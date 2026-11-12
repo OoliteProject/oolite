@@ -312,12 +312,12 @@ OO_TEST(slice1NothingToActOn)
 		OO_CHECK((ship != nullptr ? ship->foundTarget() : (Entity *)nullptr) == other);
 
 		// Already entering witchspace: no second jump (the universe's destinations are not asked).
-		if (ship != nullptr)  ship->setStatus(STATUS_ENTERING_WITCHSPACE);
+		if (ship != nullptr)  ship->setStatus(OOEntityStatus::kEnteringWitchspace);
 		OO_CHECK(!(ship != nullptr ? ship->performHyperSpaceToSpecificSystem(7) : false));
 		OO_CHECK(!(ship != nullptr ? ship->performHyperSpaceExitReplace(false) : false));
 		OO_CHECK(!(ship != nullptr ? ship->performHyperSpaceExitReplace(true, 3) : false));
-		OO_CHECK((ship != nullptr ? ship->status() : OOEntityStatus{}) == STATUS_ENTERING_WITCHSPACE);
-		if (ship != nullptr)  ship->setStatus(STATUS_IN_FLIGHT);
+		OO_CHECK((ship != nullptr ? ship->status() : OOEntityStatus{}) == OOEntityStatus::kEnteringWitchspace);
+		if (ship != nullptr)  ship->setStatus(OOEntityStatus::kInFlight);
 	}
 }
 
@@ -355,7 +355,7 @@ OO_TEST(slice1StationStubs)
 		oo::CallEntityByName(ship, "abortAllDockings");
 		oo::CallEntityByName(ship, "launchShipWithRole:", std::string("trader"));
 		OO_CHECK(oo::CallEntityByName(ship, "launchPolice").isNull());
-		OO_CHECK((ship != nullptr ? ship->status() : OOEntityStatus{}) == STATUS_IN_FLIGHT);
+		OO_CHECK((ship != nullptr ? ship->status() : OOEntityStatus{}) == OOEntityStatus::kInFlight);
 	}
 }
 
@@ -534,7 +534,7 @@ OO_TEST(slice2MessagesOnly)
 		if (ship != nullptr)  ship->exitAIWithMessage("");
 		if (ship != nullptr)  ship->setCourseToPlanet();			// no planet
 		if (ship != nullptr)  ship->setTakeOffFromPlanet();		// no planet: logged
-		OO_CHECK(Behaviour(ship) == BEHAVIOUR_IDLE && (ship != nullptr ? ship->status() : OOEntityStatus{}) == STATUS_IN_FLIGHT);
+		OO_CHECK(Behaviour(ship) == BEHAVIOUR_IDLE && (ship != nullptr ? ship->status() : OOEntityStatus{}) == OOEntityStatus::kInFlight);
 	}
 }
 
@@ -636,11 +636,11 @@ OO_TEST(slice3NothingToActOn)
 		OO_CHECK(HPdistance2(Destination(ship), make_HPvector(1, 2, 3)) == 0 && HPdistance2(Coordinates3(ship), make_HPvector(4, 5, 6)) == 0);
 
 		// Already entering witchspace: no jump.
-		if (ship != nullptr)  ship->setStatus(STATUS_ENTERING_WITCHSPACE);
+		if (ship != nullptr)  ship->setStatus(OOEntityStatus::kEnteringWitchspace);
 		if (ship != nullptr)  ship->performHyperSpaceExit();
 		if (ship != nullptr)  ship->performHyperSpaceExitWithoutReplacing();
-		OO_CHECK((ship != nullptr ? ship->status() : OOEntityStatus{}) == STATUS_ENTERING_WITCHSPACE);
-		if (ship != nullptr)  ship->setStatus(STATUS_IN_FLIGHT);
+		OO_CHECK((ship != nullptr ? ship->status() : OOEntityStatus{}) == OOEntityStatus::kEnteringWitchspace);
+		if (ship != nullptr)  ship->setStatus(OOEntityStatus::kInFlight);
 
 		// No escort to suggest to, no mother to check: the ship is its own owner.
 		if (ship != nullptr)  ship->suggestEscort();
@@ -830,7 +830,7 @@ OO_TEST(slice4ActionsAndRacepoints)
 		if (ship != nullptr)  ship->rollD("0");				// logged
 		if (ship != nullptr)  ship->rollD("6");
 		if (ship != nullptr)  ship->ai_debugMessage("hi");
-		OO_CHECK((ship != nullptr ? ship->status() : OOEntityStatus{}) == STATUS_IN_FLIGHT);
+		OO_CHECK((ship != nullptr ? ship->status() : OOEntityStatus{}) == OOEntityStatus::kInFlight);
 
 		// No target: no racepoints.
 		if (ship != nullptr)  ship->setRacepointsFromTarget();

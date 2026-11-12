@@ -1213,7 +1213,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       /* This first check is essential: if removed, it would be
        * possible to make jumps of arbitrary length - CIM */
       if ((player != nullptr ? player->status() : OOEntityStatus{}) !=
-          STATUS_ENTERING_WITCHSPACE) {
+          OOEntityStatus::kEnteringWitchspace) {
         /* These checks though similar are less important. The
          * consequences of allowing jump destination to be set in
          * flight are not as severe and do not allow the 7LY limit to
@@ -1222,9 +1222,9 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
 #ifndef OO_DUMP_PLANETINFO
         if (EXPECT_NOT(
                 (player != nullptr ? player->status() : OOEntityStatus{}) !=
-                    STATUS_DOCKED &&
+                    OOEntityStatus::kDocked &&
                 (player != nullptr ? player->status() : OOEntityStatus{}) !=
-                    STATUS_LAUNCHING)) {
+                    OOEntityStatus::kLaunching)) {
           cxx_OOJSReportError(context,
                               "player.ship.targetSystem is read-only unless "
                               "called when docked.");
@@ -1872,7 +1872,7 @@ static JSValue PlayerShipBeginHyperspaceCountdown(OOJS_NATIVE_ARGS) {
   }
   if ((player != nullptr ? player->hasHyperspaceMotor() : false) &&
       (player != nullptr ? player->status() : OOEntityStatus{}) ==
-          STATUS_IN_FLIGHT &&
+          OOEntityStatus::kInFlight &&
       (player != nullptr ? player->witchJumpChecklist(false) : false)) {
     if (player != nullptr)
       player->beginWitchspaceCountdown(witchspaceSpinUpTime);
@@ -1891,7 +1891,7 @@ static JSValue PlayerShipCancelHyperspaceCountdown(OOJS_NATIVE_ARGS) {
   bool cancelled = false;
   if ((player != nullptr ? player->hasHyperspaceMotor() : false) &&
       (player != nullptr ? player->status() : OOEntityStatus{}) ==
-          STATUS_WITCHSPACE_COUNTDOWN) {
+          OOEntityStatus::kWitchspaceCountdown) {
     if (player != nullptr) player->cancelWitchspaceCountdown();
     if (player != nullptr) player->setJumpType(false);
     cancelled = true;
@@ -1925,11 +1925,12 @@ static JSValue PlayerShipBeginGalacticHyperspaceCountdown(OOJS_NATIVE_ARGS) {
   if ((player != nullptr ? player->hasEquipmentItemProviding("EQ_GAL_DRIVE")
                          : false) &&
       (player != nullptr ? player->status() : OOEntityStatus{}) ==
-          STATUS_IN_FLIGHT &&
+          OOEntityStatus::kInFlight &&
       (player != nullptr ? player->witchJumpChecklist(true) : false)) {
     if (player != nullptr) player->setJumpType(true);
     if (player != nullptr) player->setWitchspaceCountdown(witchspaceSpinUpTime);
-    if (player != nullptr) player->setStatus(STATUS_WITCHSPACE_COUNTDOWN);
+    if (player != nullptr)
+      player->setStatus(OOEntityStatus::kWitchspaceCountdown);
     if (player != nullptr) player->playGalacticHyperspace();
     // say it!
     if (UNIVERSE != nullptr)

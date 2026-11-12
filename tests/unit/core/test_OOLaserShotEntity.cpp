@@ -139,7 +139,7 @@ OO_TEST(laserFromShip) {
     OO_CHECK(quaternion_equal(shot->getOrientation(), kIdentityQuaternion));
     OO_CHECK(shot->owner() == ship);
     OO_CHECK(shot->collisionRadius() == 1000.0f);
-    OO_CHECK(shot->status() == STATUS_EFFECT && shot->isEffect() &&
+    OO_CHECK(shot->status() == OOEntityStatus::kEffect && shot->isEffect() &&
              !shot->canCollide());
     OO_CHECK(ColorIs(shot.get(), 1.0f / 3.0f, 0.0f, 0.0f, 0.09f));
     OO_CHECK(

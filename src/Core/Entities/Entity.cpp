@@ -75,10 +75,11 @@ void Entity::init() {
 
   no_draw_distance = 100000.0;  //  10 km
 
-  scanClass = CLASS_NOT_SET;
+  scanClass = OOScanClass::kNotSet;
   Entity::setStatus(
-      STATUS_COCKPIT_DISPLAY);  // the base's own: ShipEntity's override does
-                                // the same for this status
+      OOEntityStatus::kCockpitDisplay);  // the base's own: ShipEntity's
+                                         // override does the same for this
+                                         // status
 
   spawnTime = (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0);
 
@@ -736,7 +737,7 @@ std::vector<oo::EntityHold>* Entity::getCollidingEntities() {
 }
 
 void Entity::update(OOTimeDelta delta_t) {
-  if (_status != STATUS_COCKPIT_DISPLAY) {
+  if (_status != OOEntityStatus::kCockpitDisplay) {
     if (getIsSubEntity()) {
       // A message to a nil owner answered 0.
       Entity* ownerEntity = owner();
@@ -757,7 +758,7 @@ void Entity::update(OOTimeDelta delta_t) {
     cameraRelativePosition = HPVectorToVector(position);
   }
 
-  if (status() != STATUS_COCKPIT_DISPLAY) {
+  if (status() != OOEntityStatus::kCockpitDisplay) {
     applyVelocity(delta_t);
   }
 
@@ -917,14 +918,14 @@ bool Entity::isVisible() {
 
 bool Entity::isInSpace() {
   switch (status()) {
-    case STATUS_IN_FLIGHT:
-    case STATUS_DOCKING:
-    case STATUS_LAUNCHING:
-    case STATUS_AUTOPILOT_ENGAGED:
-    case STATUS_WITCHSPACE_COUNTDOWN:
-    case STATUS_BEING_SCOOPED:
-    case STATUS_EFFECT:
-    case STATUS_ACTIVE:
+    case OOEntityStatus::kInFlight:
+    case OOEntityStatus::kDocking:
+    case OOEntityStatus::kLaunching:
+    case OOEntityStatus::kAutopilotEngaged:
+    case OOEntityStatus::kWitchspaceCountdown:
+    case OOEntityStatus::kBeingScooped:
+    case OOEntityStatus::kEffect:
+    case OOEntityStatus::kActive:
       return true;
     default:
       return false;

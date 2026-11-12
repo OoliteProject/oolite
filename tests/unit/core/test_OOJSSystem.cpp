@@ -381,13 +381,13 @@ void SetUp()
 
 	// The searchable entities, out of distance order; one is invisible.
 	Entity *farthest = MakeEntity(300, true);
-	farthest->setScanClass(CLASS_BUOY);
+	farthest->setScanClass(OOScanClass::kBuoy);
 	Entity *nearest = MakeEntity(100, true);
-	nearest->setScanClass(CLASS_NEUTRAL);
+	nearest->setScanClass(OOScanClass::kNeutral);
 	Entity *hidden = MakeEntity(150, false);
-	hidden->setScanClass(CLASS_NEUTRAL);
+	hidden->setScanClass(OOScanClass::kNeutral);
 	Entity *middle = MakeEntity(200, true);
-	middle->setScanClass(CLASS_NEUTRAL);
+	middle->setScanClass(OOScanClass::kNeutral);
 	sUniverse->_entities = { oo::EntityHold(farthest), oo::EntityHold(nearest), oo::EntityHold(hidden), oo::EntityHold(middle) };
 
 	sUniverse->_ambient = 0.5f;
@@ -628,7 +628,7 @@ OO_TEST(counts)
 	OO_CHECK_EVAL("system.countShipsWithPrimaryRole('trader')", "3");
 	OO_CHECK_EVAL("system.countShipsWithRole('pirate', system.mainStation, 1000)", "4");
 	OO_CHECK_EVAL("system.countEntitiesWithScanClass('CLASS_BUOY', system.sun)", "5");
-	OO_CHECK_LOG(sUniverse->_log, oo::str::format("countPrimary trader -1 nil; countRole pirate 1000 10; countScanClass %d -1 30", static_cast<int>(CLASS_BUOY)));
+	OO_CHECK_LOG(sUniverse->_log, oo::str::format("countPrimary trader -1 nil; countRole pirate 1000 10; countScanClass %d -1 30", static_cast<int>(OOScanClass::kBuoy)));
 
 	// Bad arguments: none, a bad reference entity, a bad range, an unknown scan class.
 	OO_CHECK(Eval("system.countShipsWithPrimaryRole()").rfind("threw: ", 0) == 0);

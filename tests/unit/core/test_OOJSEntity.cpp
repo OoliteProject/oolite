@@ -604,8 +604,8 @@ void SetUpContext()
 	sMother->_cxxEntity = oo::makeRef<ShipEntity>();
 	sMother->_isShip = true;
 	sMother->_isStation = true;
-	sMother->_status = STATUS_ACTIVE;
-	sMother->_scanClass = CLASS_STATION;
+	sMother->_status = OOEntityStatus::kActive;
+	sMother->_scanClass = OOScanClass::kStation;
 
 	sShip = oo::makeRef<TestEntityObject>().leakRef();
 	sShip->_cxxEntity = oo::makeRef<ShipEntity>();
@@ -613,8 +613,8 @@ void SetUpContext()
 	sShip->_collisionRadius = 40.5f;
 	sShip->_position = make_HPvector(1000, -2000, 3000.5);
 	sShip->_orientation = kIdentityQuaternion;
-	sShip->_status = STATUS_IN_FLIGHT;
-	sShip->_scanClass = CLASS_NEUTRAL;
+	sShip->_status = OOEntityStatus::kInFlight;
+	sShip->_scanClass = OOScanClass::kNeutral;
 	sShip->_mass = 75000;
 	sShip->_owner = sMother;
 	sShip->_energy = 200;
@@ -627,8 +627,8 @@ void SetUpContext()
 	sShip->_isInSpace = true;
 
 	sRock = oo::makeRef<TestEntityObject>().leakRef();
-	sRock->_status = STATUS_ACTIVE;
-	sRock->_scanClass = CLASS_ROCK;
+	sRock->_status = OOEntityStatus::kActive;
+	sRock->_scanClass = OOScanClass::kRock;
 	sRock->_maxEnergy = 10;
 	sRock->_owner = sRock;	// its own owner: answered as null
 
@@ -705,9 +705,9 @@ OO_TEST(readProperties)
 				  "true,true,false,false,true,true");
 	OO_CHECK_EVAL("[mother.isShip, mother.isStation, rock.isShip, rock.isInSpace].join()", "true,true,false,false");
 	// A dead entity is not valid, and says so.
-	sRock->_status = STATUS_DEAD;
+	sRock->_status = OOEntityStatus::kDead;
 	OO_CHECK_EVAL("rock.isValid + ':' + rock.status", "false:STATUS_DEAD");
-	sRock->_status = STATUS_ACTIVE;
+	sRock->_status = OOEntityStatus::kActive;
 }
 
 
@@ -745,7 +745,7 @@ OO_TEST(writeProperties)
 	OO_CHECK_EVAL("(function () { ship.scanClass = 'CLASS_CARGO'; return 'set'; })()", "threw: entity.scanClass is read-only except on NPC ships.");
 	sShip->_isPlayer = false;
 	OO_CHECK_EVAL("ship.scanClass", "CLASS_POLICE");
-	sShip->_scanClass = CLASS_NEUTRAL;
+	sShip->_scanClass = OOScanClass::kNeutral;
 
 	// Read-only properties.
 	OO_CHECK_EVAL("(function () { ship.mass = 1; return ship.mass; })()", "75000");

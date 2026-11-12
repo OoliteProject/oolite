@@ -114,8 +114,8 @@ OO_TEST(initWithPosition) {
     OO_CHECK(HPvector_equal(burst->getPosition(), make_HPvector(4, 5, 6)));
     OO_CHECK(Particle(burst)->diameter() == 64.0f &&
              burst->collisionRadius() == 2.0f);
-    OO_CHECK(burst->status() == STATUS_EFFECT &&
-             burst->getScanClass() == CLASS_NO_DRAW && burst->isEffect());
+    OO_CHECK(burst->status() == OOEntityStatus::kEffect &&
+             burst->getScanClass() == OOScanClass::kNoDraw && burst->isEffect());
     OO_CHECK(ComponentsAre(burst, 1.0f, 0.0f, 0.0f, 1.0f));
     OO_CHECK(
         oo::EntityDescription(burst).starts_with("<OOPlasmaBurstEntity 0x"));

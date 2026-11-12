@@ -405,7 +405,7 @@ std::optional<std::string> PlayerEntity::commanderSelector() {
       joyButtonState[BUTTON_GUISELECT]) {
     switch (gui->getSelectedRow()) {
       case EXITROW:
-        if (status() == STATUS_START_GAME) {
+        if (status() == OOEntityStatus::kStartGame) {
           setGuiToIntroFirstGo(true);
           return std::nullopt;
         }
@@ -1156,7 +1156,7 @@ void PlayerEntity::lsCommanders(
     rangeStart = STARTROW - 1;
   }
 
-  if (status() == STATUS_START_GAME) {
+  if (status() == OOEntityStatus::kStartGame) {
     gui->setArray({OO_DESC("oolite-loadsave-exit"), " <----- "}, EXITROW);
     gui->setColor(OOColor::redColor().get(), EXITROW);
     gui->setKey(std::string(GUI_KEY_OK), EXITROW);

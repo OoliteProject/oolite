@@ -68,8 +68,8 @@ void OOLightParticleEntity::initWithDiameter(float diameter) {
     _colorComponents[2] = 1.0f;
     _colorComponents[3] = 1.0f;
 
-    setScanClass(CLASS_NO_DRAW);
-    setStatus(STATUS_EFFECT);
+    setScanClass(OOScanClass::kNoDraw);
+    setStatus(OOEntityStatus::kEffect);
   }
 }
 

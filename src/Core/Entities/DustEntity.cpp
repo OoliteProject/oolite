@@ -108,7 +108,7 @@ void DustEntity::init() {
   drawDust = !oo::process::hasArgument("-nodust");
 
   dust_color = OOColor::colorWithRed(0.5, 1.0, 1.0, 1.0);
-  setStatus(STATUS_ACTIVE);
+  setStatus(OOEntityStatus::kActive);
 
   hasPointSprites = OOOpenGLExtensionManager::sharedManager()->haveExtension(
       "GL_ARB_point_sprite");

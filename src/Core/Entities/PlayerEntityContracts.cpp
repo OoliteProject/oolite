@@ -1421,7 +1421,7 @@ void PlayerEntity::setGuiToManifestScreen() {
 
   if (guiChanged) {
     gui->setForegroundTextureKey(std::optional<std::string>(
-        status() == STATUS_DOCKED ? "docked_overlay" : "overlay"));
+        status() == OOEntityStatus::kDocked ? "docked_overlay" : "overlay"));
     gui->setBackgroundTextureKey("manifest");
     noteGUIDidChangeFrom(oldScreen, gui_screen);
   }
@@ -2043,7 +2043,7 @@ bool PlayerEntity::buySelectedShip() {
   if (!setCommanderDataFromDictionary(commanderDataDictionary()))
     return false;  // gather up all the info
 
-  setStatus(STATUS_DOCKED);
+  setStatus(OOEntityStatus::kDocked);
   setEntityPersonalityInt(
       shipInfo.get<unsigned short>("personality"));  // SHIPYARD_KEY_PERSONALITY
 

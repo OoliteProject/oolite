@@ -1439,9 +1439,10 @@ void GuiDisplayGen::drawGLDisplay(GLfloat x, GLfloat y, GLfloat z,
   // don't draw it if docked, unless message_gui is permanent
   // don't draw it on the intro screens
   if (backgroundColor.get()) {
-    int playerStatus =
+    OOEntityStatus playerStatus =
         (PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{});
-    if (playerStatus != STATUS_START_GAME && playerStatus != STATUS_DEAD) {
+    if (playerStatus != OOEntityStatus::kStartGame &&
+        playerStatus != OOEntityStatus::kDead) {
       OOGL(glColor4f(backgroundColor->redComponent(),
                      backgroundColor->greenComponent(),
                      backgroundColor->blueComponent(),

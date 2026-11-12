@@ -204,8 +204,9 @@ void PlayerEntity::setGuiToStickMapperScreen(unsigned skip,
   }
   if (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr)
     UNIVERSE->getGameView()->suppressKeysUntilKeyUp();
-  gui->setForegroundTextureKey(std::string(
-      status() == STATUS_DOCKED ? "docked_overlay" : "paused_overlay"));
+  gui->setForegroundTextureKey(std::string(status() == OOEntityStatus::kDocked
+                                               ? "docked_overlay"
+                                               : "paused_overlay"));
   gui->setBackgroundTextureKey(std::string("settings"));
 }
 

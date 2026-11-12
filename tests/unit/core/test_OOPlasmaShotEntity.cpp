@@ -178,8 +178,8 @@ OO_TEST(shotIsMade) {
     OO_CHECK(v.x == 4 && v.y == 5 && v.z == 6);
     OO_CHECK(shot->getEnergy() == 7.0f && shot->collisionRadius() == 2.0f);
     OO_CHECK(Particle(shot)->diameter() == 12.0f);
-    OO_CHECK(shot->status() == STATUS_EFFECT &&
-             shot->getScanClass() == CLASS_NO_DRAW && shot->isEffect());
+    OO_CHECK(shot->status() == OOEntityStatus::kEffect &&
+             shot->getScanClass() == OOScanClass::kNoDraw && shot->isEffect());
     OO_CHECK(shot->getSpawnTime() == 10.0f);
     const GLfloat* c = ColorComponents(shot);
     OO_CHECK(c[0] == 1.0f && c[1] == 0.0f && c[2] == 0.0f &&

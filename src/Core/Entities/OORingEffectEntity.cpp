@@ -82,8 +82,8 @@ bool OORingEffectEntity::initRingFromEntity(Entity* sourceEntity) {
     setOrientation(sourceEntity->getOrientation());
     setVelocity(sourceEntity->getVelocity());
 
-    setStatus(STATUS_EFFECT);
-    setScanClass(CLASS_NO_DRAW);
+    setStatus(OOEntityStatus::kEffect);
+    setScanClass(OOScanClass::kNoDraw);
 
     setOwner(sourceEntity);
   }

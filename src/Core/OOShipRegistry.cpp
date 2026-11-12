@@ -471,7 +471,7 @@ void OOShipRegistry::loadDemoShips() {
           StringForKey(&key, kOODemoShipConditions);
       if (conditions.has_value()) {
         if ((PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{}) ==
-            STATUS_START_GAME) {
+            OOEntityStatus::kStartGame) {
           // conditions always false here
           removeEntry(key);
         } else {

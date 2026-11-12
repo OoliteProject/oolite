@@ -127,8 +127,8 @@ OO_TEST(defaults) {
     OO_CHECK(oo::BeaconCode(wp) == std::optional<std::string>("W"));
     OO_CHECK(oo::BeaconLabel(wp) == std::optional<std::string>("Waypoint"));
     OO_CHECK(oo::EntityIsBeacon(wp) && !oo::BeaconIsJammingScanning(wp));
-    OO_CHECK(wp->status() == STATUS_EFFECT &&
-             wp->getScanClass() == CLASS_NO_DRAW);
+    OO_CHECK(wp->status() == OOEntityStatus::kEffect &&
+             wp->getScanClass() == OOScanClass::kNoDraw);
     OO_CHECK(wp->isEffect() && wp->isWaypoint());
   }
 }

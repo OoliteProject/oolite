@@ -580,7 +580,7 @@ static JSValue MissionRunScreen(OOJS_NATIVE_ARGS) {
 
   // No mission screens during intro.
   if ((player != nullptr ? player->status() : OOEntityStatus{}) ==
-      STATUS_START_GAME) {
+      OOEntityStatus::kStartGame) {
     // (though no JS should be loaded at this stage, so this
     // check may be obsolete - CIM)
     OOJS_RETURN_BOOL(false);
@@ -740,7 +740,7 @@ static JSValue MissionRunScreen(OOJS_NATIVE_ARGS) {
   value = GetParameter(context, params, "model");
   if (!JS_IsUndefined(value)) {
     if ((player != nullptr ? player->status() : OOEntityStatus{}) ==
-            STATUS_IN_FLIGHT &&
+            OOEntityStatus::kInFlight &&
         JS_IsString(value)) {
       cxx_OOJSReportWarning(
           context,
@@ -789,7 +789,7 @@ static JSValue MissionRunScreen(OOJS_NATIVE_ARGS) {
   bool allowInterrupt = false;
   // force the allowInterrupt to be YES while in flight
   if ((player != nullptr ? player->status() : OOEntityStatus{}) ==
-      STATUS_IN_FLIGHT) {
+      OOEntityStatus::kInFlight) {
     allowInterrupt = true;
   } else {
     GetParameterBool(context, params, "allowInterrupt", &allowInterrupt);
@@ -895,7 +895,7 @@ static JSValue MissionRunShipLibrary(OOJS_NATIVE_ARGS) {
   PlayerEntity* player = OOPlayerForScripting();
   bool OK = true;
   if ((player != nullptr ? player->status() : OOEntityStatus{}) !=
-      STATUS_DOCKED) {
+      OOEntityStatus::kDocked) {
     cxx_OOJSReportWarning(context, "Mission.runShipLibrary: must be docked.");
     OK = false;
   } else {

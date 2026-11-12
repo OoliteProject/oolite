@@ -216,10 +216,10 @@ OO_TEST(failedJumpSendsPlayerJumpFailed) {
     // fails "insufficient fuel".
     PlayerEntityTestAccess::system_id(player) = 7;
     PlayerEntityTestAccess::target_system_id(player) = 8;
-    player->setStatus(STATUS_WITCHSPACE_COUNTDOWN);
+    player->setStatus(OOEntityStatus::kWitchspaceCountdown);
     player->setFuel(0);
     OO_CHECK(!player->witchJumpChecklist(false));
-    OO_CHECK(player->status() == STATUS_IN_FLIGHT);
+    OO_CHECK(player->status() == OOEntityStatus::kInFlight);
     std::vector<Event> events = EventsNamed(OOJSID("playerJumpFailed"));
     OO_CHECK_EQ(events.size(), (size_t)1);
     if (events.size() == 1) {
@@ -288,10 +288,10 @@ OO_TEST(tooFarJumpSendsPlayerJumpFailed) {
     // The target has no data (no coordinates, the origin): the player is far
     // from it.
     PlayerEntityTestAccess::galaxy_coordinates(player) = NSMakePoint(200, 200);
-    player->setStatus(STATUS_WITCHSPACE_COUNTDOWN);
+    player->setStatus(OOEntityStatus::kWitchspaceCountdown);
     player->setFuel(70);
     OO_CHECK(!player->witchJumpChecklist(false));
-    OO_CHECK(player->status() == STATUS_IN_FLIGHT);
+    OO_CHECK(player->status() == OOEntityStatus::kInFlight);
     std::vector<Event> events = EventsNamed(OOJSID("playerJumpFailed"));
     OO_CHECK_EQ(events.size(), (size_t)1);
     if (events.size() == 1 && events[0].arguments.size() == 1)

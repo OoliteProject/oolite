@@ -419,7 +419,7 @@ void Universe::initWithGameView(::MyOpenGLView* inGameView) {
   player->deferredInit();
   addEntity(player);
 
-  if (player != nullptr) player->setStatus(STATUS_START_GAME);
+  if (player != nullptr) player->setStatus(OOEntityStatus::kStartGame);
   if (player != nullptr) player->setShowDemoShips(true);
 
   setUpInitialUniverse();
@@ -1293,7 +1293,7 @@ void Universe::pauseGame() {
                          : std::optional<std::string>());
 
   if ((player != nullptr ? player->status() : OOEntityStatus{}) ==
-      STATUS_DOCKED) {
+      OOEntityStatus::kDocked) {
     if (gui != nullptr &&
         gui->setForegroundTextureKey(
             "paused_docked_overlay"))  // a nil GUI answered NO
@@ -1634,7 +1634,7 @@ void Universe::setUpWitchspaceBetweenSystem(OOSystemID s1, OOSystemID s2) {
     thing = oo::RetainEntity(oo::MadeEntity(skyRef));  // alloc retains!
     skyRef->initWithColors(col1.get(), col2.get(), systeminfo);
   }
-  thing->setScanClass(CLASS_NO_DRAW);
+  thing->setScanClass(OOScanClass::kNoDraw);
   quaternion_set_random(&randomQ);
   thing->setOrientation(randomQ);
   addEntity(thing);
@@ -1643,7 +1643,7 @@ void Universe::setUpWitchspaceBetweenSystem(OOSystemID s1, OOSystemID s2) {
   /*- the dust particle system -*/
   oo::Ref<DustEntity> dust = oo::makeRef<DustEntity>();
   dust->init();
-  dust->setScanClass(CLASS_NO_DRAW);
+  dust->setScanClass(OOScanClass::kNoDraw);
   thing = oo::MadeEntity(dust);
   addEntity(thing);
 
@@ -1830,7 +1830,7 @@ void Universe::setUpSpace() {
     thing = oo::RetainEntity(oo::MadeEntity(skyRef));  // alloc retains!
     skyRef->initWithColors(col1.get(), col2.get(), systeminfo);
   }
-  thing->setScanClass(CLASS_NO_DRAW);
+  thing->setScanClass(OOScanClass::kNoDraw);
   addEntity(thing);
   //	bgcolor = [(SkyEntity *)thing skyColor];
   //
@@ -1862,7 +1862,7 @@ void Universe::setUpSpace() {
   /*- the dust particle system -*/
   oo::Ref<DustEntity> dust = oo::makeRef<DustEntity>();
   dust->init();
-  dust->setScanClass(CLASS_NO_DRAW);
+  dust->setScanClass(OOScanClass::kNoDraw);
   thing = oo::MadeEntity(dust);
   addEntity(thing);
   dust->setDustColor(pale_bgcolor.get());
@@ -1980,7 +1980,7 @@ void Universe::setUpSpace() {
     a_sun = sunRef.get();
   }
 
-  if (a_sun != nullptr) a_sun->setStatus(STATUS_ACTIVE);
+  if (a_sun != nullptr) a_sun->setStatus(OOEntityStatus::kActive);
   if (a_sun != nullptr) a_sun->setPosition(sunPos);  // sets also light origin
   if (a_sun != nullptr) a_sun->setEnergy(1000000.0);
   addEntity(a_sun);
@@ -2093,13 +2093,14 @@ void Universe::setUpSpace() {
           quaternion_rotation_between(vf, make_vector(0.0, 0.0, 1.0)));
     if (a_station != nullptr) a_station->setPosition(stationPos);
     if (a_station != nullptr) a_station->setPitch(0.0);
-    if (a_station != nullptr) a_station->setScanClass(CLASS_STATION);
+    if (a_station != nullptr) a_station->setScanClass(OOScanClass::kStation);
     //[a_station setPlanet:[self planet]];	// done inside addEntity.
     if (a_station != nullptr) a_station->setEquivalentTechLevel(techlevel);
-    addEntity(stationObject);  // STATUS_IN_FLIGHT, AI state GLOBAL
+    addEntity(stationObject);  // OOEntityStatus::kInFlight, AI state GLOBAL
     if (a_station != nullptr)
       a_station->setStatus(
-          STATUS_ACTIVE);  // For backward compatibility. Might not be needed.
+          OOEntityStatus::kActive);  // For backward compatibility. Might not be
+                                     // needed.
     if (a_station != nullptr)
       a_station->setAllowsFastDocking(
           true);  // Main stations always allow fast docking.
@@ -2158,7 +2159,7 @@ void Universe::populateNormalSpace() {
   clearSystemPopulator();
 
   if ((PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{}) !=
-      STATUS_START_GAME) {
+      OOEntityStatus::kStartGame) {
     const std::string populator = systeminfo.get<std::string>(
         "populator",
         (sunGoneNova) ? "novaSystemWillPopulate" : "systemWillPopulate");
@@ -2628,10 +2629,10 @@ void Universe::setMainLightPosition(Vector sunPos) {
             OOCharacter::randomCharacterWithRole(desc, Ranrot() & 255))});
 
     if ((ship != nullptr ? ship->getScanClass() : OOScanClass{}) ==
-        CLASS_NOT_SET) {
-      if (ship != nullptr) ship->setScanClass(CLASS_NEUTRAL);
+        OOScanClass::kNotSet) {
+      if (ship != nullptr) ship->setScanClass(OOScanClass::kNeutral);
     }
-    addEntity(ship);  // STATUS_IN_FLIGHT, AI state GLOBAL
+    addEntity(ship);  // OOEntityStatus::kInFlight, AI state GLOBAL
     if (ship != nullptr) oo::ReleaseEntity(ship);
     return ship;
   }
@@ -2964,7 +2965,7 @@ bool Universe::addShipsAtPosition(int howMany, const std::string& desc,
     OOScanClass scanClass =
         (ship != nullptr ? ship->getScanClass() : OOScanClass{});
     if (ship != nullptr)
-      ship->setScanClass(CLASS_NO_DRAW);  // avoid lollipop flash
+      ship->setScanClass(OOScanClass::kNoDraw);  // avoid lollipop flash
 
     GLfloat safe_distance2 =
         ship->collision_radius * ship->collision_radius * SAFE_ADDITION_FACTOR2;
@@ -3008,14 +3009,15 @@ bool Universe::addShipsAtPosition(int howMany, const std::string& desc,
 
     if (ship != nullptr) ship->setPosition(ship_pos);
     if (ship != nullptr)
-      ship->setScanClass(scanClass == CLASS_NOT_SET ? CLASS_NEUTRAL
-                                                    : scanClass);
+      ship->setScanClass(scanClass == OOScanClass::kNotSet
+                             ? OOScanClass::kNeutral
+                             : scanClass);
 
     Quaternion qr;
     quaternion_set_random(&qr);
     if (ship != nullptr) ship->setOrientation(qr);
 
-    // [self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
+    // [self addEntity:ship];	// OOEntityStatus::kInFlight, AI state GLOBAL
 
     ship_positions[i] = ship_pos;
     i++;
@@ -3184,7 +3186,7 @@ bool Universe::spawnShip(const std::string& shipdesc) {
     }
   }
 
-  addEntity(ship);  // STATUS_IN_FLIGHT, AI state GLOBAL
+  addEntity(ship);  // OOEntityStatus::kInFlight, AI state GLOBAL
   if (ship != nullptr) oo::ReleaseEntity(ship);
 
   return true;
@@ -3208,10 +3210,10 @@ void Universe::witchspaceShipWithPrimaryRole(const std::string& role) {
 
   if (ship) {
     if (((ship != nullptr ? ship->getScanClass() : OOScanClass{}) ==
-         CLASS_NO_DRAW) ||
+         OOScanClass::kNoDraw) ||
         ((ship != nullptr ? ship->getScanClass() : OOScanClass{}) ==
-         CLASS_NOT_SET))
-      if (ship != nullptr) ship->setScanClass(CLASS_NEUTRAL);
+         OOScanClass::kNotSet))
+      if (ship != nullptr) ship->setScanClass(OOScanClass::kNeutral);
     if (role == "trader") {
       if (ship != nullptr) ship->setCargoFlag(OOCargoFlag::kFullScarce);
       if ((ship != nullptr ? ship->hasRole("sunskim-trader") : false) &&
@@ -3248,8 +3250,8 @@ void Universe::witchspaceShipWithPrimaryRole(const std::string& role) {
         ship->setCrew(std::vector<oo::Ref<OOCharacter>>{oo::Ref<OOCharacter>(
             OOCharacter::randomCharacterWithRole(role, Ranrot() & 255))});
     // The following is set inside leaveWitchspace: AI state GLOBAL,
-    // STATUS_EXITING_WITCHSPACE, ai message: EXITED_WITCHSPACE, then
-    // STATUS_IN_FLIGHT
+    // OOEntityStatus::kExitingWitchspace, ai message: EXITED_WITCHSPACE, then
+    // OOEntityStatus::kInFlight
     if (ship != nullptr) ship->leaveWitchspace();
     if (ship != nullptr) oo::ReleaseEntity(ship);
   }
@@ -3330,8 +3332,8 @@ Entity* Universe::addVisualEffectAt(HPVector pos, const std::string& key) {
       fillCargopodWithRandomCargo(ship);
     OOScanClass scanClass =
         (ship != nullptr ? ship->getScanClass() : OOScanClass{});
-    if (scanClass == CLASS_NOT_SET) {
-      scanClass = CLASS_NEUTRAL;
+    if (scanClass == OOScanClass::kNotSet) {
+      scanClass = OOScanClass::kNeutral;
       if (ship != nullptr) ship->setScanClass(scanClass);
     }
 
@@ -3374,8 +3376,8 @@ Entity* Universe::addVisualEffectAt(HPVector pos, const std::string& key) {
 
     if (HPdistance(getWitchspaceExitPosition(), pos) > SCANNER_MAX_RANGE) {
       // nothing extra to do
-      success = addEntity(ship);  // STATUS_IN_FLIGHT, AI state GLOBAL - ship is
-                                  // retained globally
+      success = addEntity(ship);  // OOEntityStatus::kInFlight, AI state GLOBAL
+                                  // - ship is retained globally
     } else  // witchspace incoming traders & pirates need extra settings.
     {
       if (trader) {
@@ -3396,9 +3398,9 @@ Entity* Universe::addVisualEffectAt(HPVector pos, const std::string& key) {
       }
 
       // Status changes inside the following call: AI state GLOBAL, then
-      // STATUS_EXITING_WITCHSPACE, with the EXITED_WITCHSPACE message sent to
-      // the AI. At last we set STATUS_IN_FLIGHT. Includes addEntity, so ship is
-      // retained globally.
+      // OOEntityStatus::kExitingWitchspace, with the EXITED_WITCHSPACE message
+      // sent to the AI. At last we set OOEntityStatus::kInFlight. Includes
+      // addEntity, so ship is retained globally.
       success = (ship != nullptr ? ship->witchspaceLeavingEffects() : false);
     }
 
@@ -3558,9 +3560,9 @@ void Universe::forceWitchspaceEntries() {
 void Universe::addWitchspaceJumpEffectForShip(::ShipEntity* ship) {
   // don't add rings when system is being populated
   if ((PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{}) !=
-          STATUS_ENTERING_WITCHSPACE &&
+          OOEntityStatus::kEnteringWitchspace &&
       (PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{}) !=
-          STATUS_EXITING_WITCHSPACE) {
+          OOEntityStatus::kExitingWitchspace) {
     addEntity(oo::MadeEntity(OORingEffectEntity::ringFromEntity(ship)));
     addEntity(
         oo::MadeEntity(OORingEffectEntity::shrinkingRingFromEntity(ship)));
@@ -3739,7 +3741,7 @@ void Universe::setupIntroFirstGo(bool justCobra) {
     removeDemoShips();
   }
   if (justCobra) {
-    if (player != nullptr) player->setStatus(STATUS_START_GAME);
+    if (player != nullptr) player->setStatus(OOEntityStatus::kStartGame);
   }
   if (player != nullptr) player->setShowDemoShips(true);
   displayGUI = true;
@@ -3809,14 +3811,14 @@ void Universe::setupIntroFirstGo(bool justCobra) {
     }
     if (ship != nullptr) ship->setDemoShip(1.0f);
     if (ship != nullptr) ship->setDemoStartTime(universal_time);
-    if (ship != nullptr) ship->setScanClass(CLASS_NO_DRAW);
+    if (ship != nullptr) ship->setScanClass(OOScanClass::kNoDraw);
     if (ship != nullptr) ship->switchAITo("nullAI.plist");
     if ((ship != nullptr ? ship->pendingEscortCount() : uint8_t{}) > 0) {
       if (ship != nullptr) ship->setPendingEscortCount(0);
     }
-    addEntity(ship);  // STATUS_IN_FLIGHT, AI state GLOBAL
+    addEntity(ship);  // OOEntityStatus::kInFlight, AI state GLOBAL
     // now override status
-    if (ship != nullptr) ship->setStatus(STATUS_COCKPIT_DISPLAY);
+    if (ship != nullptr) ship->setStatus(OOEntityStatus::kCockpitDisplay);
     demo_ship = ship;
 
     if (ship != nullptr) oo::ReleaseEntity(ship);
@@ -4166,7 +4168,7 @@ void Universe::unMagicMainStation() {
   */
   OOEntityStatus playerStatus =
       (PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{});
-  if (playerStatus == STATUS_START_GAME) return;
+  if (playerStatus == OOEntityStatus::kStartGame) return;
 
   ::StationEntity* theStation = station();
   if (theStation != nullptr) theStation->isExplicitlyNotMainStation = true;
@@ -4298,7 +4300,7 @@ bool Universe::breakPatternOver() { return (breakPatternCounter == 0); }
 bool Universe::breakPatternHide() {
   ::PlayerEntity* player = PLAYER;
   return ((breakPatternCounter > 5) || (!player) ||
-          (oo::EntityStatus(player) == STATUS_DOCKING));
+          (oo::EntityStatus(player) == OOEntityStatus::kDocking));
 }
 
 bool Universe::canInstantiateShip(const std::string& shipKey) {
@@ -4442,17 +4444,17 @@ std::optional<std::string> Universe::randomShipKeyForRoleRespectingConditions(
             if (ship != nullptr) ship->setBounty(0, kOOLegalStatusReasonSetup);
           }
           if (role == "police") {
-            if (ship != nullptr) ship->setScanClass(CLASS_POLICE);
+            if (ship != nullptr) ship->setScanClass(OOScanClass::kPolice);
           }
           if (role == "interceptor") {
-            if (ship != nullptr) ship->setScanClass(CLASS_POLICE);
+            if (ship != nullptr) ship->setScanClass(OOScanClass::kPolice);
             if (ship != nullptr)
               ship->setPrimaryRole("police");  // to make sure interceptors get
                                                // the correct pilot later on.
           }
         }
         if (role == "thargoid") {
-          if (ship != nullptr) ship->setScanClass(CLASS_THARGOID);
+          if (ship != nullptr) ship->setScanClass(OOScanClass::kThargoid);
         }  // thargoids are not on the autoAIMap
       }
     }
@@ -5248,7 +5250,8 @@ void Universe::drawUniverse() {
     try {
       no_update = true;  // block other attempts to draw
 
-      int i, v_status, vdist;
+      int i, vdist;
+      OOEntityStatus v_status;
       Vector view_dir, view_up;
       OOMatrix view_matrix;
       int ent_count = n_entities;
@@ -5458,7 +5461,7 @@ void Universe::drawUniverse() {
               continue;
             }
 
-            if (!((d_status == STATUS_COCKPIT_DISPLAY) ^
+            if (!((d_status == OOEntityStatus::kCockpitDisplay) ^
                   demoShipMode))  // either demo ship mode or in flight
             {
               // reset material properties
@@ -5519,7 +5522,7 @@ void Universe::drawUniverse() {
               }
             }
 
-            if (!((d_status == STATUS_COCKPIT_DISPLAY) ^
+            if (!((d_status == OOEntityStatus::kCockpitDisplay) ^
                   demoShipMode))  // either in flight or in demo ship mode
             {
               OOGLPushModelView();
@@ -5653,9 +5656,9 @@ void Universe::drawUniverse() {
       }
 
       switch (v_status) {
-        case STATUS_DEAD:
-        case STATUS_ESCAPE_SEQUENCE:
-        case STATUS_START_GAME:
+        case OOEntityStatus::kDead:
+        case OOEntityStatus::kEscapeSequence:
+        case OOEntityStatus::kStartGame:
           // no HUD rendering in these modes
           break;
         default:
@@ -5814,8 +5817,8 @@ Entity* Universe::entityForUniversalID(OOUniversalID u_id) {
     return nullptr;
   }
 
-  if (oo::EntityStatus(ent) == STATUS_DEAD ||
-      oo::EntityStatus(ent) == STATUS_DOCKED) {
+  if (oo::EntityStatus(ent) == OOEntityStatus::kDead ||
+      oo::EntityStatus(ent) == OOEntityStatus::kDocked) {
     return nullptr;
   }
 
@@ -5901,11 +5904,11 @@ bool Universe::addEntity(Entity* entity) {
             se->isExplicitlyNotMainStation =
                 true;  // we never want carriers to become main stations.
         }
-        // stations used to have STATUS_ACTIVE, they're all STATUS_IN_FLIGHT
-        // now.
+        // stations used to have OOEntityStatus::kActive, they're all
+        // OOEntityStatus::kInFlight now.
         if ((se != nullptr ? se->status() : OOEntityStatus{}) !=
-            STATUS_COCKPIT_DISPLAY) {
-          if (se != nullptr) se->setStatus(STATUS_IN_FLIGHT);
+            OOEntityStatus::kCockpitDisplay) {
+          if (se != nullptr) se->setStatus(OOEntityStatus::kInFlight);
         }
       }
     } else {
@@ -6057,7 +6060,7 @@ void Universe::removeDemoShips() {
     Entity* ent;
     for (i = 0; i < ent_count; i++) {
       ent = sortedEntities[i];
-      if (oo::EntityStatus(ent) == STATUS_COCKPIT_DISPLAY &&
+      if (oo::EntityStatus(ent) == OOEntityStatus::kCockpitDisplay &&
           !oo::EntityIsPlayer(ent)) {
         removeEntity(ent);
       }
@@ -6085,19 +6088,19 @@ void Universe::removeDemoShips() {
     double cr = (ship != nullptr ? ship->collisionRadius() : 0.0f);
     if (ship != nullptr) ship->setOrientation(q2);
     if (ship != nullptr) ship->setPositionX(0.0f, 0.0f, 3.6f * cr);
-    if (ship != nullptr) ship->setScanClass(CLASS_NO_DRAW);
+    if (ship != nullptr) ship->setScanClass(OOScanClass::kNoDraw);
     if (ship != nullptr) ship->switchAITo("nullAI.plist");
     if (ship != nullptr) ship->setPendingEscortCount(0);
 
     if (UNIVERSE != nullptr)
-      UNIVERSE->addEntity(ship);  // STATUS_IN_FLIGHT, AI state GLOBAL
+      UNIVERSE->addEntity(ship);  // OOEntityStatus::kInFlight, AI state GLOBAL
 
     if (spinning) {
       if (ship != nullptr) ship->setDemoShip(1.0f);
     } else {
       if (ship != nullptr) ship->setDemoShip(0.0f);
     }
-    if (ship != nullptr) ship->setStatus(STATUS_COCKPIT_DISPLAY);
+    if (ship != nullptr) ship->setStatus(OOEntityStatus::kCockpitDisplay);
     // stop problems on the ship library screen
     // demo ships shouldn't have this equipment
     if (ship != nullptr) ship->removeEquipmentItem("EQ_SHIELD_BOOSTER");
@@ -6403,7 +6406,7 @@ HPVector Universe::getSafeVectorFromEntity(Entity* e1, double dist,
     if (wreck != nullptr) wreck->setIsWreckage(true);
 
     if (UNIVERSE != nullptr)
-      UNIVERSE->addEntity(wreck);  // STATUS_IN_FLIGHT, AI state GLOBAL
+      UNIVERSE->addEntity(wreck);  // OOEntityStatus::kInFlight, AI state GLOBAL
     if (wreck != nullptr) wreck->performTumble();
     //	[wreck rescaleBy: 1.0/scale_factor];
     if (wreck != nullptr) oo::ReleaseEntity(wreck);
@@ -6621,7 +6624,7 @@ Entity* Universe::firstEntityTargetedByPlayer() {
 
   for (i = 0; i < ship_count; i++) {
     Entity* e2 = my_entities[i];
-    if (e2->canCollide() && e2->getScanClass() != CLASS_NO_DRAW) {
+    if (e2->canCollide() && e2->getScanClass() != OOScanClass::kNoDraw) {
       Vector rp = HPVectorToVector(HPvector_subtract(e2->getPosition(), p1));
       OOScalar dist2 = magnitude2(rp);
       if (dist2 < nearest2) {
@@ -7369,7 +7372,7 @@ void Universe::showGUIMessage(const std::optional<std::string>& text,
 
 void Universe::repopulateSystem() {
   if (EXPECT_NOT((PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{}) ==
-                 STATUS_START_GAME)) {
+                 OOEntityStatus::kStartGame)) {
     return;  // no need to be adding ships as this is not a "real" game
   }
   JSContext* context = OOJSAcquireContext();
@@ -7474,11 +7477,12 @@ void Universe::update(OOTimeDelta inDeltaT) {
                     demo_ship->switchAITo("nullAI.plist");
                   if (demo_ship != nullptr) demo_ship->setOrientation(q2);
                   if (demo_ship != nullptr)
-                    demo_ship->setScanClass(CLASS_NO_DRAW);
+                    demo_ship->setScanClass(OOScanClass::kNoDraw);
                   if (demo_ship != nullptr)
                     demo_ship->setStatus(
-                        STATUS_COCKPIT_DISPLAY);  // prevents it getting escorts
-                                                  // on addition
+                        OOEntityStatus::kCockpitDisplay);  // prevents it
+                                                           // getting escorts on
+                                                           // addition
                   if (demo_ship != nullptr) demo_ship->setDemoShip(1.0f);
                   if (demo_ship != nullptr)
                     demo_ship->setDemoStartTime(universal_time);
@@ -7487,7 +7491,7 @@ void Universe::update(OOTimeDelta inDeltaT) {
                       oo::ReleaseEntity(demo_ship);  // We now own a reference
                                                      // through the entity list.
                     if (demo_ship != nullptr)
-                      demo_ship->setStatus(STATUS_COCKPIT_DISPLAY);
+                      demo_ship->setStatus(OOEntityStatus::kCockpitDisplay);
                     demo_start_z =
                         DEMO2_VANISHING_DISTANCE * demo_ship->collision_radius;
                     if (demo_ship != nullptr)
@@ -7498,7 +7502,7 @@ void Universe::update(OOTimeDelta inDeltaT) {
                     if (demo_ship != nullptr)
                       demo_ship->setVelocity(kZeroVector);
                     if (demo_ship != nullptr)
-                      demo_ship->setScanClass(CLASS_NO_DRAW);
+                      demo_ship->setScanClass(OOScanClass::kNoDraw);
                     //										[gui
                     // setText:shipName != nil ? shipName : [demo_ship
                     // displayName] forRow:19 align:GUI_ALIGN_CENTER];
@@ -7544,7 +7548,7 @@ void Universe::update(OOTimeDelta inDeltaT) {
 #endif
         // Game Over code depends on regular delta_t updates to the dead player
         // entity. Ignore the player entity, even when dead.
-        if (EXPECT_NOT(oo::EntityStatus(thing) == STATUS_DEAD &&
+        if (EXPECT_NOT(oo::EntityStatus(thing) == OOEntityStatus::kDead &&
                        std::find(entitiesDeadThisUpdate.begin(),
                                  entitiesDeadThisUpdate.end(),
                                  thing) == entitiesDeadThisUpdate.end() &&
@@ -7683,7 +7687,7 @@ void Universe::update(OOTimeDelta inDeltaT) {
   } else {
     // always perform player's dead updates: allows deferred JS resets.
     if ((PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{}) ==
-        STATUS_DEAD) {
+        OOEntityStatus::kDead) {
       if (PLAYER != nullptr) PLAYER->update(delta_t);
     }
   }
@@ -10397,7 +10401,7 @@ void Universe::handleOoliteException(const oo::Exception* exception) {
     const oo::CaughtOOException caught(exception);
     if (strcmp(caught.name(), OOLITE_EXCEPTION_FATAL) == 0) {
       ::PlayerEntity* player = PLAYER;
-      if (player != nullptr) player->setStatus(STATUS_HANDLING_ERROR);
+      if (player != nullptr) player->setStatus(OOEntityStatus::kHandlingError);
 
       OO_LOG(cxx_kOOLogException, "***** Handling Fatal : {} : {} *****",
              caught.name(), caught.reason());
@@ -10631,7 +10635,7 @@ void Universe::setUpCargoPods() {
        (commodities != nullptr ? commodities->goods()
                                : std::vector<std::string>())) {
     ::ShipEntity* container = newShipWithRole("oolite-template-cargopod");
-    if (container != nullptr) container->setScanClass(CLASS_CARGO);
+    if (container != nullptr) container->setScanClass(OOScanClass::kCargo);
     if (container != nullptr) container->setCommodity(type, 1);
     if (container != nullptr) {
       tmp[type] = oo::EntityHold(container);
@@ -10745,7 +10749,7 @@ bool Universe::reinitAndShowDemo(bool showDemo) {
   if (station() != nullptr) station()->initialiseLocalMarket();
 
   if (showDemo) {
-    if (player != nullptr) player->setStatus(STATUS_START_GAME);
+    if (player != nullptr) player->setStatus(OOEntityStatus::kStartGame);
     // re-read keyconfig.plist just in case we've loaded a keyboard
     // configuration expansion
     if (player != nullptr) player->initControls();

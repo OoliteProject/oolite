@@ -97,7 +97,7 @@ std::optional<std::string> PlayerEntity::dockedStationDisplayName() {
 }
 
 bool PlayerEntity::dockedAtMainStation() {
-  return status() == STATUS_DOCKED &&
+  return status() == OOEntityStatus::kDocked &&
          dockedStation() ==
              (UNIVERSE != nullptr ? UNIVERSE->station() : nullptr);
 }
@@ -119,7 +119,7 @@ void PlayerEntity::awardCommodityType(const std::string& type,
       (shipCommodityData != nullptr ? shipCommodityData->massUnitForGood(type)
                                     : OOMassUnit::kTons);
 
-  if (status() != STATUS_DOCKED) {
+  if (status() != OOEntityStatus::kDocked) {
     // in-flight
     while (amount) {
       if (unit != OOMassUnit::kTons) {
@@ -141,8 +141,10 @@ void PlayerEntity::awardCommodityType(const std::string& type,
                 // the cargopod ship is just being set up. If ejected,  will
                 // call UNIVERSE addEntity [container wasAddedToUniverse]; //
                 // seems to be not needed anymore for pods
-                if (container != nullptr) container->setScanClass(CLASS_CARGO);
-                if (container != nullptr) container->setStatus(STATUS_IN_HOLD);
+                if (container != nullptr)
+                  container->setScanClass(OOScanClass::kCargo);
+                if (container != nullptr)
+                  container->setStatus(OOEntityStatus::kInHold);
                 if (container != nullptr)
                   container->setCommodity(type, smaller_quantity);
                 cargo.emplace_back(container);
@@ -165,8 +167,10 @@ void PlayerEntity::awardCommodityType(const std::string& type,
               // the cargopod ship is just being set up. If ejected, will call
               // UNIVERSE addEntity [container wasAddedToUniverse]; // seems to
               // be not needed anymore for pods
-              if (container != nullptr) container->setScanClass(CLASS_CARGO);
-              if (container != nullptr) container->setStatus(STATUS_IN_HOLD);
+              if (container != nullptr)
+                container->setScanClass(OOScanClass::kCargo);
+              if (container != nullptr)
+                container->setStatus(OOEntityStatus::kInHold);
               if (container != nullptr) container->setCommodity(type, 1);
               cargo.emplace_back(container);
               if (container != nullptr) oo::ReleaseEntity(container);

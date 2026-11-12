@@ -1673,7 +1673,7 @@ bool JSEntityIsJavaScriptSearchablePredicate(Entity* entity, void* parameter) {
   if (!OOJavaScriptEngineIsVisibleToScripts(entity)) return false;
   if (OOJavaScriptEngineIsShip(entity)) {
     if (OOJavaScriptEngineIsSubEntity(entity)) return false;
-    if (OOJavaScriptEngineStatus(entity) == STATUS_COCKPIT_DISPLAY)
+    if (OOJavaScriptEngineStatus(entity) == OOEntityStatus::kCockpitDisplay)
       return false;  // Demo ship
     return true;
   } else if (OOJavaScriptEngineIsPlanet(entity)) {
@@ -1696,7 +1696,7 @@ bool JSEntityIsJavaScriptSearchablePredicate(Entity* entity, void* parameter) {
 bool JSEntityIsDemoShipPredicate(Entity* entity, void* parameter) {
   return (OOJavaScriptEngineIsVisibleToScripts(entity) &&
           OOJavaScriptEngineIsShip(entity) &&
-          OOJavaScriptEngineStatus(entity) == STATUS_COCKPIT_DISPLAY &&
+          OOJavaScriptEngineStatus(entity) == OOEntityStatus::kCockpitDisplay &&
           !OOJavaScriptEngineIsSubEntity(entity));
 }
 

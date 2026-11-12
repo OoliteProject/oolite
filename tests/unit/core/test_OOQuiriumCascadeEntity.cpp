@@ -131,7 +131,7 @@ OO_TEST(fromShip)
 		Entity *cascade = MakeCascade(oo::ToShip(ship));
 		OO_CHECK(cascade != nullptr);
 		OO_CHECK(HPvector_equal(cascade->getPosition(), make_HPvector(5, 6, 7)));
-		OO_CHECK(cascade->status() == STATUS_EFFECT && cascade->getScanClass() == CLASS_MINE);
+		OO_CHECK(cascade->status() == OOEntityStatus::kEffect && cascade->getScanClass() == OOScanClass::kMine);
 		OO_CHECK(cascade->owner() == shipOwner);
 		OO_CHECK(cascade->isEffect() && OOEntityIsCascadeWeapon(cascade));	// -isCascadeWeapon
 		OO_CHECK(!OOEntityIsCascadeWeapon(ship));

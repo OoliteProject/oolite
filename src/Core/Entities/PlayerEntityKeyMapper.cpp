@@ -301,8 +301,9 @@ void PlayerEntity::setGuiToKeyMapperScreen(unsigned skip,
     gui->setSelectedRow(current_row);
   }
 
-  gui->setForegroundTextureKey(std::string(
-      status() == STATUS_DOCKED ? "docked_overlay" : "paused_overlay"));
+  gui->setForegroundTextureKey(std::string(status() == OOEntityStatus::kDocked
+                                               ? "docked_overlay"
+                                               : "paused_overlay"));
   gui->setBackgroundTextureKey(std::string("keyboardsettings"));
 
   if (gameView != nullptr) gameView->clearMouse();
@@ -624,8 +625,9 @@ void PlayerEntity::setGuiToKeyConfigScreen(bool resetSelectedRow) {
     gui->setSelectedRow(GUI_ROW_KC_KEY);
   }
 
-  gui->setForegroundTextureKey(std::string(
-      status() == STATUS_DOCKED ? "docked_overlay" : "paused_overlay"));
+  gui->setForegroundTextureKey(std::string(status() == OOEntityStatus::kDocked
+                                               ? "docked_overlay"
+                                               : "paused_overlay"));
   gui->setBackgroundTextureKey(std::string("keyboardsettings"));
   if (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr)
     UNIVERSE->getGameView()->clearMouse();
@@ -778,8 +780,9 @@ void PlayerEntity::setGuiToKeyConfigEntryScreen() {
   gui->setShowTextCursor(true);
   gui->setCurrentRow(end_row);
 
-  gui->setForegroundTextureKey(std::string(
-      status() == STATUS_DOCKED ? "docked_overlay" : "paused_overlay"));
+  gui->setForegroundTextureKey(std::string(status() == OOEntityStatus::kDocked
+                                               ? "docked_overlay"
+                                               : "paused_overlay"));
   gui->setBackgroundTextureKey(std::string("keyboardsettings"));
   if (UNIVERSE != nullptr)
     UNIVERSE->enterGUIViewModeWithMouseInteraction(false);
@@ -914,8 +917,9 @@ void PlayerEntity::setGuiToConfirmClearScreen() {
   gui->setSelectableRange(NSMakeRange(GUI_ROW_KC_CONFIRMCLEAR_YES, 2));
   gui->setSelectedRow(GUI_ROW_KC_CONFIRMCLEAR_NO);
 
-  gui->setForegroundTextureKey(std::string(
-      status() == STATUS_DOCKED ? "docked_overlay" : "paused_overlay"));
+  gui->setForegroundTextureKey(std::string(status() == OOEntityStatus::kDocked
+                                               ? "docked_overlay"
+                                               : "paused_overlay"));
   gui->setBackgroundTextureKey(std::string("keyboardsettings"));
 
   if (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr)
@@ -1533,8 +1537,9 @@ void PlayerEntity::setGuiToKeyboardLayoutScreen(unsigned skip,
 
   gui->setSelectedRow(kbd_row);
 
-  gui->setForegroundTextureKey(std::string(
-      status() == STATUS_DOCKED ? "docked_overlay" : "paused_overlay"));
+  gui->setForegroundTextureKey(std::string(status() == OOEntityStatus::kDocked
+                                               ? "docked_overlay"
+                                               : "paused_overlay"));
   gui->setBackgroundTextureKey(std::string("keyboardsettings"));
 
   if (gameView != nullptr) gameView->clearMouse();

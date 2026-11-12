@@ -52,8 +52,8 @@ OOECMBlastEntity::OOECMBlastEntity(ShipEntity* ship) {
 
   Entity::setPosition((ship != nullptr ? ship->getPosition() : HPVector{}));
 
-  Entity::setStatus(STATUS_EFFECT);
-  setScanClass(CLASS_NO_DRAW);
+  Entity::setStatus(OOEntityStatus::kEffect);
+  setScanClass(OOScanClass::kNoDraw);
 }
 
 oo::Ref<OOECMBlastEntity> OOECMBlastEntity::initFromShip(ShipEntity* ship) {
@@ -66,9 +66,9 @@ oo::Ref<OOECMBlastEntity> OOECMBlastEntity::initFromShip(ShipEntity* ship) {
 void OOECMBlastEntity::update(OOTimeDelta delta_t) {
   _nextBlast -= delta_t;
   ShipEntity* ship = oo::ToShip(_ship.get());
-  bool validShip =
-      (ship != nullptr) &&
-      ((ship != nullptr ? ship->status() : OOEntityStatus{}) != STATUS_DEAD);
+  bool validShip = (ship != nullptr) &&
+                   ((ship != nullptr ? ship->status() : OOEntityStatus{}) !=
+                    OOEntityStatus::kDead);
 
   if (_nextBlast <= 0.0 && validShip) {
     // Do ECM stuff.

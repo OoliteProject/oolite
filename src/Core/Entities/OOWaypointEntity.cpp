@@ -72,8 +72,8 @@ void OOWaypointEntity::initWithDictionary(const oo::PList& info) {
                             OOWAYPOINT_KEY_LABEL, "Waypoint"))
                       : std::nullopt);
 
-  setStatus(STATUS_EFFECT);
-  setScanClass(CLASS_NO_DRAW);
+  setStatus(OOEntityStatus::kEffect);
+  setScanClass(OOScanClass::kNoDraw);
 }
 
 // override

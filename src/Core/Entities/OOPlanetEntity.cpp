@@ -193,7 +193,7 @@ void OOPlanetEntity::initFromDictionary(const oo::PList& dictionary,
       dictionary.isNull() ? oo::PList(oo::PList::Dict{}) : dictionary;
   RANROTSeed savedRanrotSeed = RANROTGetFullSeed();
 
-  scanClass = CLASS_NO_DRAW;
+  scanClass = OOScanClass::kNoDraw;
 
   oo::PList planetInfo =
       (UNIVERSE != nullptr ? UNIVERSE->generateSystemData(systemID)
@@ -405,7 +405,7 @@ void OOPlanetEntity::initFromDictionary(const oo::PList& dictionary,
   OO_LOG("planetinfo.record", "rotation_speed = {:f}", _rotationalVelocity);
 #endif
 
-  setStatus(STATUS_ACTIVE);
+  setStatus(OOEntityStatus::kActive);
 
   OOGraphicsResetManager::sharedManager()->registerCxxClient(this);
 }
@@ -602,8 +602,8 @@ bool OOPlanetEntity::initAsMiniatureVersionOfPlanet(OOPlanetEntity* planet) {
 
   // [self init]: the constructor ran Entity's -init.
 
-  scanClass = CLASS_NO_DRAW;
-  setStatus(STATUS_COCKPIT_DISPLAY);
+  scanClass = OOScanClass::kNoDraw;
+  setStatus(OOEntityStatus::kCockpitDisplay);
 
   collision_radius = planet->collision_radius * PLANET_MINIATURE_FACTOR;
   orientation = planet->orientation;
@@ -948,7 +948,7 @@ void OOPlanetEntity::launchShuttle() {
     return;
   }
   if ((PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{}) ==
-      STATUS_START_GAME) {
+      OOEntityStatus::kStartGame) {
     // don't launch if game not started
     return;
   }
@@ -982,13 +982,15 @@ void OOPlanetEntity::launchShuttle() {
     if (shuttle_ship != nullptr) shuttle_ship->setPosition(launch_pos);
     if (shuttle_ship != nullptr) shuttle_ship->setOrientation(q1);
 
-    if (shuttle_ship != nullptr) shuttle_ship->setScanClass(CLASS_NEUTRAL);
+    if (shuttle_ship != nullptr)
+      shuttle_ship->setScanClass(OOScanClass::kNeutral);
     if (shuttle_ship != nullptr)
       shuttle_ship->setCargoFlag(OOCargoFlag::kFullPlentiful);
     if (shuttle_ship != nullptr)
       shuttle_ship->switchAITo("oolite-shuttleAI.js");
     if (UNIVERSE != nullptr)
-      UNIVERSE->addEntity(shuttle_ship);  // STATUS_IN_FLIGHT, AI state GLOBAL
+      UNIVERSE->addEntity(
+          shuttle_ship);  // OOEntityStatus::kInFlight, AI state GLOBAL
     _shuttlesOnGround--;
     _lastLaunchTime = (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0);
 

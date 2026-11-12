@@ -238,8 +238,8 @@ OO_TEST(defaults) {
     OO_CHECK(!entity->isEffect() && !entity->getIsVisualEffect() &&
              !entity->isWaypoint() && !entity->getIsImmuneToBreakPatternHide());
     OO_CHECK(entity->getIsSunlit());
-    OO_CHECK(entity->status() == STATUS_COCKPIT_DISPLAY &&
-             entity->getScanClass() == CLASS_NOT_SET);
+    OO_CHECK(entity->status() == OOEntityStatus::kCockpitDisplay &&
+             entity->getScanClass() == OOScanClass::kNotSet);
     OO_CHECK(!entity->isInSpace());
     OO_CHECK(HPvector_equal(entity->getPosition(), kZeroHPVector));
     OO_CHECK(quaternion_equal(entity->getOrientation(), kIdentityQuaternion));
@@ -303,12 +303,12 @@ OO_TEST(accessors) {
     OO_CHECK(entity->getEnergy() == 40 && entity->getMaxEnergy() == 100);
     entity->setDistanceTravelled(9);
     OO_CHECK(entity->getDistanceTravelled() == 9);
-    entity->setStatus(STATUS_IN_FLIGHT);
-    OO_CHECK(entity->status() == STATUS_IN_FLIGHT && entity->isInSpace());
-    entity->setStatus(STATUS_DEAD);
+    entity->setStatus(OOEntityStatus::kInFlight);
+    OO_CHECK(entity->status() == OOEntityStatus::kInFlight && entity->isInSpace());
+    entity->setStatus(OOEntityStatus::kDead);
     OO_CHECK(!entity->isInSpace());
-    entity->setScanClass(CLASS_BUOY);
-    OO_CHECK(entity->getScanClass() == CLASS_BUOY);
+    entity->setScanClass(OOScanClass::kBuoy);
+    OO_CHECK(entity->getScanClass() == OOScanClass::kBuoy);
     entity->setUniversalID(42);
     OO_CHECK(entity->getUniversalID() == 42);
     entity->setUniversalID(
@@ -421,7 +421,7 @@ OO_TEST(update) {
 
     // In flight, from PLAYER's position and viewpoint, then the velocity
     // applies.
-    entity->setStatus(STATUS_IN_FLIGHT);
+    entity->setStatus(OOEntityStatus::kInFlight);
     entity->update(2);
     OO_CHECK(entity->zeroDistance() == 18.0 &&
              entity->camZeroDistance() == 13.0);
@@ -433,7 +433,7 @@ OO_TEST(update) {
     Entity* sub = MakeEntity(make_HPvector(100, 0, 0), 1.0f);
     sub->setOwner(entity);
     SetSubEntity(sub, true);
-    sub->setStatus(STATUS_IN_FLIGHT);
+    sub->setStatus(OOEntityStatus::kInFlight);
     sub->update(0);
     OO_CHECK(sub->zeroDistance() == 18.0 && sub->camZeroDistance() == 13.0);
     OO_CHECK(sub->getIsSubEntity());
@@ -617,7 +617,7 @@ OO_TEST(objCSubclassOverrides) {
     entity->dumpState();
     OO_CHECK(entity->_selfStateDumps == 1);
     OO_CHECK(Logged("State for <TestObjCEntity 0x") && Logged("Mass: 0"));
-    entity->setStatus(STATUS_IN_FLIGHT);
+    entity->setStatus(OOEntityStatus::kInFlight);
     entity->update(0);
     OO_CHECK(entity->_cameraUpdates == 2);
     OO_CHECK(!entity->canCollide());
@@ -741,12 +741,12 @@ OO_TEST(initSentAgain) {
     TestObjCEntity* entity = static_cast<TestObjCEntity*>(
         oo::MadeEntity(oo::makeRef<TestObjCEntity>()));
     entity->setPosition(make_HPvector(1, 2, 3));
-    entity->setStatus(STATUS_IN_FLIGHT);
+    entity->setStatus(OOEntityStatus::kInFlight);
     entity->setEnergy(42);
     entity->setUniversalID(9);
     entity->init();  // the body -init ran again
     OO_CHECK(HPvector_equal(entity->getPosition(), kZeroHPVector) &&
-             entity->status() == STATUS_COCKPIT_DISPLAY);
+             entity->status() == OOEntityStatus::kCockpitDisplay);
     OO_CHECK(entity->getEnergy() == 42 && entity->getUniversalID() == 9);
     entity->setUniversalID(NO_TARGET);
   }

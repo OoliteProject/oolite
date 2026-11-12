@@ -87,7 +87,7 @@ void SetUp() {
   (void)oo::Defaults::standard();
 
   gOOPlayer = NewTestPlayer<StickProfileTestPlayer>();
-  gOOPlayer->Entity::setStatus(STATUS_DOCKED);  // the root's status()
+  gOOPlayer->Entity::setStatus(OOEntityStatus::kDocked);  // the root's status()
   gOOJSMainThreadContext = JS_NewContext(JS_NewRuntime());
 }
 

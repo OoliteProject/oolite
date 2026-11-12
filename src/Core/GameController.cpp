@@ -399,7 +399,7 @@ void GameController::doPerformGameTick() {
 
     if (UNIVERSE != nullptr) UNIVERSE->update(delta_t);
     if (EXPECT_NOT((PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{}) ==
-                   STATUS_RESTART_GAME)) {
+                   OOEntityStatus::kRestartGame)) {
       if (UNIVERSE != nullptr) UNIVERSE->reinitAndShowDemo(true);
     }
     ::OOSound::update();

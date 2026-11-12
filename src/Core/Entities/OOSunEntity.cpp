@@ -128,7 +128,7 @@ void OOSunEntity::initSunWithColor(OOColor* sun_color, const oo::PList& dict) {
 
   collision_radius = 100000.0;  //  100km across
 
-  scanClass = CLASS_NO_DRAW;
+  scanClass = OOScanClass::kNoDraw;
 
   {
     oo::Defaults& prefs = oo::Defaults::standard();

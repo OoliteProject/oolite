@@ -145,8 +145,8 @@ OO_TEST(explosionFlash) {
     OO_CHECK(v.x == 1 && v.y == 2 && v.z == 3);
     OO_CHECK(Part(flash)->diameter() == 2.0f && Diameter(flash) == 2.0f);
     OO_CHECK(flash->collisionRadius() == 0.0f && flash->getEnergy() == 0.0f);
-    OO_CHECK(flash->status() == STATUS_EFFECT &&
-             flash->getScanClass() == CLASS_NO_DRAW && flash->isEffect() &&
+    OO_CHECK(flash->status() == OOEntityStatus::kEffect &&
+             flash->getScanClass() == OOScanClass::kNoDraw && flash->isEffect() &&
              !flash->canCollide());
     const GLfloat* c = ColorComponents(flash);
     OO_CHECK(c[0] == 1.0f && c[1] == 1.0f && c[2] == 1.0f && c[3] == 1.0f);

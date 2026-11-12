@@ -30,13 +30,7 @@
 class PlayerEntity;
 
 // The player's status, as Entity.h defines it.
-#undef ENTRY
-#define ENTRY(label, value) label = value,
-typedef enum OOEntityStatus
-{
-	#include "OOEntityStatus.tbl"
-} OOEntityStatus;
-#undef ENTRY
+#include "OOEntityStatus.h"
 
 /*	The sound: a C++ stand-in (the root's members its vtable names;
    OOALSound.mm is not linked). A sound named "raise" raises from name(), one
@@ -345,7 +339,7 @@ void SetUpContext()
 	InitOOJSSound(sContext, sGlobal);
 
 	sPlayer = new FakePlayer;	// kept for the life of the test
-	sPlayer->_status = STATUS_IN_FLIGHT;
+	sPlayer->_status = OOEntityStatus::kInFlight;
 	gOOPlayer = reinterpret_cast<PlayerEntity *>(sPlayer);	// the root part comes first in PlayerEntity: the binding's PLAYER->status() reaches it
 	sMusic = new MusicRecord();
 }
@@ -462,10 +456,10 @@ OO_TEST(soundFromJSValue)
 	JS_FreeValue(sContext, object);
 	sLimiterPauses = 0;
 	// At the start screen a name is not looked up: a string is not a Sound object.
-	sPlayer->_status = STATUS_START_GAME;
+	sPlayer->_status = OOEntityStatus::kStartGame;
 	OO_CHECK(SoundFromJSValue(sContext, name) == nullptr);
 	JS_FreeValue(sContext, name);
-	sPlayer->_status = STATUS_IN_FLIGHT;
+	sPlayer->_status = OOEntityStatus::kInFlight;
 	sLimiterPauses = 0;
 }
 

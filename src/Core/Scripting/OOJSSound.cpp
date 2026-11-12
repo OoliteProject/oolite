@@ -135,7 +135,7 @@ OOSound* SoundFromJSValue(JSContext* context, JSValueConst value) {
   */
   OOJSPauseTimeLimiter();
   if ((PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{}) !=
-          STATUS_START_GAME &&
+          OOEntityStatus::kStartGame &&
       JS_IsString(value)) {
     result = GetNamedSound(
         cxx_OOStringFromJSValue(context, value).value_or(std::string()));

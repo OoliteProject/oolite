@@ -504,7 +504,7 @@ void SetUp() {
   sPlayer->_capacity = 2;
   sPlayer->_clockTime = 1000;
   sPlayer->_contractsAccept = true;
-  sPlayer->Entity::setStatus(STATUS_DOCKED);
+  sPlayer->Entity::setStatus(OOEntityStatus::kDocked);
   gOOPlayer = sPlayer;
 }
 
@@ -963,18 +963,18 @@ OO_TEST(setterHUD) {
 OO_TEST(setterTargetSystem) {
   SetUp();
   Log(sPlayer->_log);
-  sPlayer->Entity::setStatus(STATUS_DOCKED);
+  sPlayer->Entity::setStatus(OOEntityStatus::kDocked);
   OO_CHECK_EVAL("(function () { player.ship.targetSystem = 33; })()",
                 "undefined");
   OO_CHECK_LOG(sPlayer->_log, "setTargetSystemID 33");
-  sPlayer->Entity::setStatus(STATUS_IN_FLIGHT);
+  sPlayer->Entity::setStatus(OOEntityStatus::kInFlight);
   OO_CHECK(Eval("(function () { player.ship.targetSystem = 33; })()")
                .rfind("threw: ", 0) == 0);
-  sPlayer->Entity::setStatus(STATUS_ENTERING_WITCHSPACE);
+  sPlayer->Entity::setStatus(OOEntityStatus::kEnteringWitchspace);
   OO_CHECK(Eval("(function () { player.ship.targetSystem = 33; })()")
                .rfind("threw: ", 0) == 0);
   OO_CHECK_LOG(sPlayer->_log, "");
-  sPlayer->Entity::setStatus(STATUS_DOCKED);
+  sPlayer->Entity::setStatus(OOEntityStatus::kDocked);
 }
 
 OO_TEST(slice2Methods) {
@@ -1061,7 +1061,7 @@ OO_TEST(hyperspaceCountdowns) {
   OO_CHECK_EVAL("player.ship.beginHyperspaceCountdown()", "false");
   OO_CHECK_EVAL("player.ship.cancelHyperspaceCountdown()", "false");
   sPlayer->_hyperspaceMotor = true;
-  sPlayer->Entity::setStatus(STATUS_IN_FLIGHT);
+  sPlayer->Entity::setStatus(OOEntityStatus::kInFlight);
   OO_CHECK_EVAL("player.ship.beginHyperspaceCountdown(10)", "true");
   OO_CHECK_EVAL("player.ship.beginHyperspaceCountdown()", "true");
   OO_CHECK_LOG(sPlayer->_log,
@@ -1074,12 +1074,12 @@ OO_TEST(hyperspaceCountdowns) {
       0);
   OO_CHECK_EVAL("player.ship.cancelHyperspaceCountdown()",
                 "false");  // not counting down
-  sPlayer->Entity::setStatus(STATUS_WITCHSPACE_COUNTDOWN);
+  sPlayer->Entity::setStatus(OOEntityStatus::kWitchspaceCountdown);
   OO_CHECK_EVAL("player.ship.cancelHyperspaceCountdown()", "true");
   OO_CHECK_LOG(sPlayer->_log, "cancelWitchspaceCountdown; setJumpType 0");
 
   // Galactic: needs the drive, in flight.
-  sPlayer->Entity::setStatus(STATUS_IN_FLIGHT);
+  sPlayer->Entity::setStatus(OOEntityStatus::kInFlight);
   OO_CHECK_EVAL("player.ship.beginGalacticHyperspaceCountdown()", "false");
   sPlayer->_equipment.insert("EQ_GAL_DRIVE");
   Log(sUniverse->_messages);
@@ -1089,12 +1089,12 @@ OO_TEST(hyperspaceCountdowns) {
       oo::str::format(
           "witchJumpChecklist 1; setJumpType 1; setWitchspaceCountdown 20; "
           "setStatus %d; playGalacticHyperspace",
-          static_cast<int>(STATUS_WITCHSPACE_COUNTDOWN)));
+          static_cast<int>(OOEntityStatus::kWitchspaceCountdown)));
   OO_CHECK_LOG(sUniverse->_messages, "witch-galactic-in-f-seconds 1");
   OO_CHECK(Eval("player.ship.beginGalacticHyperspaceCountdown(3)")
                .rfind("threw: ", 0) == 0);
   sPlayer->_equipment.clear();
-  sPlayer->Entity::setStatus(STATUS_DOCKED);
+  sPlayer->Entity::setStatus(OOEntityStatus::kDocked);
 }
 
 OO_TEST(mfdsAndDials) {

@@ -104,7 +104,7 @@ void SetUp() {
 Entity* Ship() {
   Entity* ship = oo::MadeEntity(oo::makeRef<::ShipEntity>());
   ship->setPosition(make_HPvector(10, 20, 30));
-  ship->setStatus(STATUS_IN_FLIGHT);
+  ship->setStatus(OOEntityStatus::kInFlight);
   return ship;
 }
 
@@ -141,8 +141,8 @@ OO_TEST(blastAtTheShip) {
     Entity* blast = Blast(ship);
     OO_CHECK(blast != nullptr);
     OO_CHECK(HPvector_equal(blast->getPosition(), make_HPvector(10, 20, 30)));
-    OO_CHECK(blast->status() == STATUS_EFFECT &&
-             blast->getScanClass() == CLASS_NO_DRAW);
+    OO_CHECK(blast->status() == OOEntityStatus::kEffect &&
+             blast->getScanClass() == OOScanClass::kNoDraw);
     OO_CHECK(blast->owner() == nullptr);
     OO_CHECK(IsECMBlast(blast) && !IsECMBlast(ship));
   }
@@ -177,7 +177,7 @@ OO_TEST(deadShipEndsIt) {
     SetUp();
     Entity* ship = Ship();
     Entity* blast = Blast(ship);
-    ship->setStatus(STATUS_DEAD);
+    ship->setStatus(OOEntityStatus::kDead);
     blast->update(0.5);
     OO_CHECK(sRanges.empty() && sUniverse->_removed == blast);
   }

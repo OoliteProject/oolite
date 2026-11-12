@@ -850,7 +850,7 @@ std::optional<std::string> HeadUpDisplay::getCrosshairDefinition() {
 bool HeadUpDisplay::checkPlayerInFlight() {
   return (PLAYER != nullptr ? PLAYER->isInSpace() : false) &&
          (PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{}) !=
-             STATUS_DOCKING;
+             OOEntityStatus::kDocking;
 }
 
 bool HeadUpDisplay::checkPlayerInSystemFlight() {
@@ -1016,9 +1016,9 @@ void HeadUpDisplay::drawCrosshairs() {
 
   if (viewID == VIEW_CUSTOM || overallAlpha == 0.0f ||
       !((PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{}) ==
-            STATUS_IN_FLIGHT ||
+            OOEntityStatus::kInFlight ||
         (PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{}) ==
-            STATUS_WITCHSPACE_COUNTDOWN) ||
+            OOEntityStatus::kWitchspaceCountdown) ||
       (UNIVERSE != nullptr ? UNIVERSE->getDisplayGUI() : false)) {
     // Don't draw crosshairs
     return;
@@ -1444,7 +1444,7 @@ void HeadUpDisplay::drawScanner(const oo::PList& info) {
   if (checkPlayerInFlight()) {
     GLfloat upscale = zoom * 1.25 / scannerFootprint;
     GLfloat max_blip = 0.0;
-    int drawClass;
+    OOScanClass drawClass;
 
     OOVerifyOpenGLState();
 
@@ -1468,15 +1468,15 @@ void HeadUpDisplay::drawScanner(const oo::PList& info) {
       drawClass = scannedEntity->getScanClass();
 
       // cloaked ships - and your own one - don't show up on the scanner.
-      if (EXPECT_NOT(drawClass == CLASS_PLAYER ||
+      if (EXPECT_NOT(drawClass == OOScanClass::kPlayer ||
                      (oo::EntityIsShip(scannedEntity) &&
                       (oo::ToShip(scannedEntity) != nullptr
                            ? oo::ToShip(scannedEntity)->isCloaked()
                            : false)))) {
-        drawClass = CLASS_NO_DRAW;
+        drawClass = OOScanClass::kNoDraw;
       }
 
-      if (drawClass != CLASS_NO_DRAW) {
+      if (drawClass != OOScanClass::kNoDraw) {
         GLfloat x1, y1, y2;
         float ms_blip = 0.0;
 
@@ -1816,7 +1816,7 @@ void HeadUpDisplay::drawCompass(const oo::PList& info) {
 
   if (checkPlayerInSystemFlight() &&
       (PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{}) !=
-          STATUS_LAUNCHING)  // normal system
+          OOEntityStatus::kLaunching)  // normal system
   {
     Entity* reference =
         (PLAYER != nullptr ? PLAYER->getCompassTargetEntity()
@@ -3193,7 +3193,7 @@ void HeadUpDisplay::drawClock(const oo::PList& info) {
 
 void HeadUpDisplay::drawPrimedEquipment(const oo::PList& info) {
   if ((PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{}) ==
-      STATUS_DOCKED) {
+      OOEntityStatus::kDocked) {
     // Can't activate equipment while docked
     return;
   }
@@ -3260,7 +3260,7 @@ void HeadUpDisplay::drawPrimedEquipment(const oo::PList& info) {
 void HeadUpDisplay::drawASCTarget(const oo::PList& info) {
   if (!(checkPlayerInSystemFlight() &&
         (PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{}) !=
-            STATUS_LAUNCHING))  // normal system
+            OOEntityStatus::kLaunching))  // normal system
   {
     // Can't have compass target when docked, etc. (matches blip condition)
     return;
@@ -3309,9 +3309,9 @@ void HeadUpDisplay::drawWeaponsOfflineText(const oo::PList& info) {
 
   if (viewID == VIEW_CUSTOM || overallAlpha == 0.0f ||
       !((PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{}) ==
-            STATUS_IN_FLIGHT ||
+            OOEntityStatus::kInFlight ||
         (PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{}) ==
-            STATUS_WITCHSPACE_COUNTDOWN) ||
+            OOEntityStatus::kWitchspaceCountdown) ||
       (UNIVERSE != nullptr ? UNIVERSE->getDisplayGUI() : false)) {
     // Don't draw weapons offline text
     return;

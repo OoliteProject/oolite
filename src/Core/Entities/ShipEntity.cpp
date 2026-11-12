@@ -394,7 +394,7 @@ void ShipEntity::initWithKey(const std::string& key) {
 
   isShip = true;
   entity_personality = Ranrot() & ENTITY_PERSONALITY_MAX;
-  setStatus(STATUS_IN_FLIGHT);
+  setStatus(OOEntityStatus::kInFlight);
 
   zero_distance = SCANNER_MAX_RANGE2 * 2.0;
   weapon_recharge_rate = 6.0;
@@ -561,7 +561,7 @@ bool AuthorityPredicate(Entity* entity, void* parameter) {
   }
 
   // Select police units in typical scanner range
-  if (entityPart->getScanClass() == CLASS_POLICE &&
+  if (entityPart->getScanClass() == OOScanClass::kPolice &&
       HPdistance2(param->victim->getPosition(), entityPart->getPosition()) <
           SCANNER_MAX_RANGE2) {
     return true;
@@ -928,7 +928,7 @@ bool ShipEntity::setUpShipFromDictionary(const oo::PList& shipDict) {
 
   // if not, try 'scanClass'. NOTE: non-standard capitalization is documented
   // and entrenched.
-  if (scanClass == CLASS_NOT_SET) {
+  if (scanClass == OOScanClass::kNotSet) {
     scanClass = cxx_OOScanClassFromString(
         shipDict.get<std::string>("scanClass", "CLASS_NOT_SET"));
   }
@@ -1037,9 +1037,9 @@ bool ShipEntity::setUpShipFromDictionary(const oo::PList& shipDict) {
     cargo.clear();
 
     setUpCargoType(*cargoString);
-  } else if (scanClass != CLASS_CARGO) {
+  } else if (scanClass != OOScanClass::kCargo) {
     cargo.clear();
-    // if not CLASS_CARGO, and no cargo type set, default to
+    // if not OOScanClass::kCargo, and no cargo type set, default to
     // OOCargoType::kNotCargo
     cargo_type = OOCargoType::kNotCargo;
   }
@@ -1095,13 +1095,15 @@ bool ShipEntity::setUpShipFromDictionary(const oo::PList& shipDict) {
     accuracy = (randf() * 10.0) - 5.0;
 
     if (accuracy < 0.0f &&
-        (scanClass == CLASS_MILITARY ||
-         scanClass == CLASS_POLICE)) {  // police and military pilots have a
-                                        // better average skill.
+        (scanClass == OOScanClass::kMilitary ||
+         scanClass ==
+             OOScanClass::kPolice)) {  // police and military pilots have a
+                                       // better average skill.
       accuracy = -accuracy;
     }
   }
-  if (scanClass == CLASS_MISSILE) {  // missile accuracy range is 0 to 10
+  if (scanClass ==
+      OOScanClass::kMissile) {  // missile accuracy range is 0 to 10
     accuracy = OOClamp_0_max_f(accuracy, 10.0f);
   }
   setAccuracy(accuracy);  // set derived variables
@@ -1349,9 +1351,9 @@ bool ShipEntity::setUpOneStandardSubentity(const oo::PList& subentDict,
     if (subentity != nullptr)
       subentity->setWeaponRange(
           subentDict.get<float>("weapon_range", TURRET_SHOT_RANGE));
-    if (subentity != nullptr) subentity->setStatus(STATUS_ACTIVE);
+    if (subentity != nullptr) subentity->setStatus(OOEntityStatus::kActive);
   } else {
-    if (subentity != nullptr) subentity->setStatus(STATUS_INACTIVE);
+    if (subentity != nullptr) subentity->setStatus(OOEntityStatus::kInactive);
   }
 
   const oo::PList* scriptInfoOverride = subentDict.find("script_info");
@@ -1486,7 +1488,7 @@ void ShipEntity::setSunGlareFilter(GLfloat newValue) {
 GLfloat ShipEntity::getAccuracy() { return accuracy; }
 
 void ShipEntity::setAccuracy(GLfloat new_accuracy) {
-  if (new_accuracy < 0.0f && scanClass == CLASS_MISSILE) {
+  if (new_accuracy < 0.0f && scanClass == OOScanClass::kMissile) {
     new_accuracy = 0.0;
   } else if (new_accuracy < -5.0f) {
     new_accuracy = -5.0;
@@ -1732,7 +1734,8 @@ void ShipEntity::wasAddedToUniverse() {
   // stuff that happens when we get added to the UNIVERSE
   if (universalID != NO_TARGET) {
     // set up escorts
-    if ((status() == STATUS_IN_FLIGHT || status() == STATUS_LAUNCHING) &&
+    if ((status() == OOEntityStatus::kInFlight ||
+         status() == OOEntityStatus::kLaunching) &&
         _pendingEscortCount != 0)  // just popped into existence
     {
       setUpEscorts();
@@ -2182,8 +2185,8 @@ void ShipEntity::setUpOneEscort(::ShipEntity* escorter,
     escorter->setPrimaryRole(defaultRole);  // for mothership
   // in case this hasn't yet been set, make sure escorts get a real scan class
   // shouldn't happen very often, but is possible
-  if (scanClass == CLASS_NOT_SET) {
-    scanClass = CLASS_NEUTRAL;
+  if (scanClass == OOScanClass::kNotSet) {
+    scanClass = OOScanClass::kNeutral;
   }
   if (escorter != nullptr)
     escorter->setScanClass(scanClass);  // you are the same as I
@@ -2222,7 +2225,7 @@ void ShipEntity::setUpOneEscort(::ShipEntity* escorter,
   if (escorter != nullptr)
     escorter->setOwner(this);  // mark self as group leader
 
-  if (status() == STATUS_DOCKED) {
+  if (status() == OOEntityStatus::kDocked) {
     // A station's and a dock's C++ parts answer (no other owner answered the
     // selector).
     if (::StationEntity* station = oo::ToStation(owner()))
@@ -2231,7 +2234,8 @@ void ShipEntity::setUpOneEscort(::ShipEntity* escorter,
       dock->addShipToLaunchQueue(escorter, false);
   } else {
     if (UNIVERSE != nullptr)
-      UNIVERSE->addEntity(escorter);  // STATUS_IN_FLIGHT, AI state GLOBAL
+      UNIVERSE->addEntity(
+          escorter);  // OOEntityStatus::kInFlight, AI state GLOBAL
     if (escortAI != nullptr)
       escortAI->setState(
           "FLYING_ESCORT");  // Begin escort flight. (If the AI doesn't define
@@ -2322,16 +2326,17 @@ bool ShipEntity::getIsFrangible() { return isFrangible; }
 bool ShipEntity::suppressFlightNotifications() { return suppressAegisMessages; }
 
 OOScanClass ShipEntity::getScanClass() {
-  if (cloaking_device_active) return CLASS_NO_DRAW;
+  if (cloaking_device_active) return OOScanClass::kNoDraw;
   return scanClass;
 }
 
 //////////////////////////////////////////////
 
 bool ShipEntity::canCollide() {
-  int status = this->status();
-  if (status == STATUS_COCKPIT_DISPLAY || status == STATUS_DEAD ||
-      status == STATUS_BEING_SCOOPED) {
+  OOEntityStatus status = this->status();
+  if (status == OOEntityStatus::kCockpitDisplay ||
+      status == OOEntityStatus::kDead ||
+      status == OOEntityStatus::kBeingScooped) {
     return false;
   }
 
@@ -2426,7 +2431,8 @@ void ShipEntity::addSubentityToCollisionRadius(Entity* subent) {
     if (pod != nullptr) pod->setCommodity("slaves", 1);
     if (pod != nullptr) pod->setCrew(podCrew);
     if (pod != nullptr) pod->switchAITo("oolite-shuttleAI.js");
-    dumpItem(pod);  // CLASS_CARGO, STATUS_IN_FLIGHT, AI state GLOBAL
+    dumpItem(pod);  // OOScanClass::kCargo, OOEntityStatus::kInFlight, AI state
+                    // GLOBAL
     if (pod != nullptr) oo::ReleaseEntity(pod);  // release
   }
 
@@ -2576,8 +2582,8 @@ void ShipEntity::update(OOTimeDelta delta_t) {
   }
 
   if (!isSubEnt) {
-    if (scanClass == CLASS_NOT_SET) {
-      scanClass = CLASS_NEUTRAL;
+    if (scanClass == OOScanClass::kNotSet) {
+      scanClass = OOScanClass::kNeutral;
       OO_LOG(
           "ship.sanityCheck.failed",
           "Ship {} {} with scanClass CLASS_NOT_SET; forced to CLASS_NEUTRAL.",
@@ -2596,13 +2602,14 @@ void ShipEntity::update(OOTimeDelta delta_t) {
     //
     // reset any inadvertant legal mishaps
     //
-    if (scanClass == CLASS_POLICE) {
+    if (scanClass == OOScanClass::kPolice) {
       if (bounty > 0) {
         setBounty(0, kOOLegalStatusReasonPoliceAreClean);
       }
       ::ShipEntity* target = oo::ToShip(primaryTarget());
-      if ((target) && ((target != nullptr ? target->getScanClass()
-                                          : OOScanClass{}) == CLASS_POLICE)) {
+      if ((target) &&
+          ((target != nullptr ? target->getScanClass() : OOScanClass{}) ==
+           OOScanClass::kPolice)) {
         noteLostTarget();
       }
     }
@@ -2818,17 +2825,18 @@ void ShipEntity::update(OOTimeDelta delta_t) {
 
   // scripting
   if (!haveExecutedSpawnAction) {
-    // When crashing into a boulder, STATUS_LAUNCHING is sometimes skipped on
-    // scooping the resulting splinters.
+    // When crashing into a boulder, OOEntityStatus::kLaunching is sometimes
+    // skipped on scooping the resulting splinters.
     OOEntityStatus status = this->status();
     if (script != nullptr &&
-        (status == STATUS_IN_FLIGHT || status == STATUS_LAUNCHING ||
-         status == STATUS_BEING_SCOOPED ||
-         (status == STATUS_ACTIVE &&
+        (status == OOEntityStatus::kInFlight ||
+         status == OOEntityStatus::kLaunching ||
+         status == OOEntityStatus::kBeingScooped ||
+         (status == OOEntityStatus::kActive &&
           this == (UNIVERSE != nullptr ? UNIVERSE->station() : nullptr)))) {
       if (PLAYER != nullptr) PLAYER->setScriptTarget(this);
       doScriptEvent(OOJSID("shipSpawned"));
-      if (this->status() != STATUS_DEAD) {
+      if (this->status() != OOEntityStatus::kDead) {
         if (PLAYER != nullptr)
           PLAYER->doScriptEvent(OOJSID("shipSpawned"), this);
       }
@@ -2836,14 +2844,14 @@ void ShipEntity::update(OOTimeDelta delta_t) {
     haveExecutedSpawnAction = true;
   }
   /* No point in starting the AI if still launching */
-  if (!haveStartedJSAI && status() != STATUS_LAUNCHING) {
+  if (!haveStartedJSAI && status() != OOEntityStatus::kLaunching) {
     haveStartedJSAI = true;
     doScriptEvent(OOJSID("aiStarted"));
   }
 
   // behaviours according to status and behaviour
   //
-  if (status() == STATUS_LAUNCHING) {
+  if (status() == OOEntityStatus::kLaunching) {
     if ((UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0) >
         launch_time + launch_delay)  // move for while before thinking
     {
@@ -2851,7 +2859,7 @@ void ShipEntity::update(OOTimeDelta delta_t) {
           (UNIVERSE != nullptr ? UNIVERSE->nearestEntityMatchingPredicate(
                                      IsStationPredicate, nullptr, this)
                                : nullptr));
-      setStatus(STATUS_IN_FLIGHT);
+      setStatus(OOEntityStatus::kInFlight);
       // awaken JS-based AIs
       haveStartedJSAI = true;
       doScriptEvent(OOJSID("aiStarted"));
@@ -2891,7 +2899,7 @@ void ShipEntity::update(OOTimeDelta delta_t) {
   //
   // double check scooped behaviour
   //
-  if (status() == STATUS_BEING_SCOOPED) {
+  if (status() == OOEntityStatus::kBeingScooped) {
     // if we are being tractored, but we have no owner, then we have a problem
     if (behaviour != BEHAVIOUR_TRACTORED || owner() == nullptr ||
         oo::LiveOwner(this) ==
@@ -2899,7 +2907,8 @@ void ShipEntity::update(OOTimeDelta delta_t) {
                    // repeated the nil test
     {
       // escaped tractor beam
-      setStatus(STATUS_IN_FLIGHT);  // should correct 'uncollidable objects' bug
+      setStatus(OOEntityStatus::kInFlight);  // should correct 'uncollidable
+                                             // objects' bug
       behaviour = BEHAVIOUR_IDLE;
       frustration = 0.0;
       setOwner(this);
@@ -2910,7 +2919,7 @@ void ShipEntity::update(OOTimeDelta delta_t) {
     }
   }
 
-  if (status() == STATUS_COCKPIT_DISPLAY) {
+  if (status() == OOEntityStatus::kCockpitDisplay) {
     flightYaw = 0.0;
     applyAttitudeChanges(delta_t);
     GLfloat range2 = 0.1 * HPdistance2(position, _destination) /
@@ -3931,7 +3940,7 @@ void ShipEntity::removeEquipmentItem(const std::string& equipmentKey) {
     doScriptEvent(OOJSID("equipmentRemoved"), {oo::PList(equipmentKey)});
 
     // if all docking computers are damaged while active
-    if (getIsPlayer() && status() == STATUS_AUTOPILOT_ENGAGED &&
+    if (getIsPlayer() && status() == OOEntityStatus::kAutopilotEngaged &&
         !hasDockingComputer()) {
       static_cast<PlayerEntity*>(this)->disengageAutopilot();
     }
@@ -4302,12 +4311,12 @@ void ShipEntity::behaviour_stop_still(double delta_t) {
 
 void ShipEntity::behaviour_idle(double delta_t) {
   stick_yaw = 0.0;
-  if ((!isStation) && (scanClass != CLASS_BUOY)) {
+  if ((!isStation) && (scanClass != OOScanClass::kBuoy)) {
     stick_roll = 0.0;
   } else {
     stick_roll = flightRoll;
   }
-  if (scanClass != CLASS_BUOY) {
+  if (scanClass != OOScanClass::kBuoy) {
     stick_pitch = 0.0;
   } else {
     stick_pitch = flightPitch;
@@ -4326,7 +4335,7 @@ void ShipEntity::behaviour_tractored(double delta_t) {
     double distance = rangeToDestination();
     if (distance < desired_range) {
       performTumble();
-      setStatus(STATUS_IN_FLIGHT);
+      setStatus(OOEntityStatus::kInFlight);
       if (hauler != nullptr) hauler->scoopUp(this);
       return;
     }
@@ -4354,7 +4363,7 @@ void ShipEntity::behaviour_tractored(double delta_t) {
       velocity.z += moment * dp.z;
     }
     //
-    if (status() == STATUS_BEING_SCOOPED) {
+    if (status() == OOEntityStatus::kBeingScooped) {
       bool lost_contact =
           (distance > hauler->collision_radius + collision_radius +
                           250.0f);  // 250m range for tractor beam
@@ -4374,7 +4383,7 @@ void ShipEntity::behaviour_tractored(double delta_t) {
       if (lost_contact)  // 250m range for tractor beam
       {
         // escaped tractor beam
-        setStatus(STATUS_IN_FLIGHT);
+        setStatus(OOEntityStatus::kInFlight);
         behaviour = BEHAVIOUR_IDLE;
         setThrust(maxThrust());  // restore old thrust.
         frustration = 0.0;
@@ -4427,7 +4436,7 @@ void ShipEntity::behaviour_intercept_target(double delta_t) {
     // trying to scoop it
     if (!target ||
         (target != nullptr ? target->getScanClass() : OOScanClass{}) !=
-            CLASS_CARGO ||
+            OOScanClass::kCargo ||
         (target != nullptr && target->cargoType() == OOCargoType::kNotCargo)) {
       noteLostTargetAndGoIdle();
       return;
@@ -5962,7 +5971,7 @@ void ShipEntity::behaviour_track_as_turret(double delta_t) {
                                 : std::vector<oo::EntityHold>())) {
     Entity* target = targetRef.get();  // the snapshot keeps its object
     // defense targets cannot be tracked while cloaked
-    if (target->getScanClass() == CLASS_NO_DRAW ||
+    if (target->getScanClass() == OOScanClass::kNoDraw ||
         (oo::ToShip(target) != nullptr ? oo::ToShip(target)->isCloaked()
                                        : false) ||
         target->getEnergy() <= 0.0) {
@@ -6484,30 +6493,30 @@ GLfloat* ShipEntity::scannerDisplayColorForShip(
   }
 
   switch (scanClass) {
-    case CLASS_ROCK:
-    case CLASS_CARGO:
+    case OOScanClass::kRock:
+    case OOScanClass::kCargo:
       return cargo_color;
-    case CLASS_THARGOID:
+    case OOScanClass::kThargoid:
       if (flash)
         return hostile_color;
       else
         return friendly_color;
-    case CLASS_MISSILE:
+    case OOScanClass::kMissile:
       return missile_color;
-    case CLASS_STATION:
+    case OOScanClass::kStation:
       return friendly_color;
-    case CLASS_BUOY:
+    case OOScanClass::kBuoy:
       if (flash)
         return friendly_color;
       else
         return neutral_color;
-    case CLASS_POLICE:
-    case CLASS_MILITARY:
+    case OOScanClass::kPolice:
+    case OOScanClass::kMilitary:
       if ((isHostile) && (flash))
         return police_color2;
       else
         return police_color1;
-    case CLASS_MINE:
+    case OOScanClass::kMine:
       if (flash)
         return neutral_color;
       else
@@ -6695,7 +6704,8 @@ void ShipEntity::applyAttitudeChanges(double delta_t) {
 }
 
 void ShipEntity::avoidCollision() {
-  if (scanClass == CLASS_MISSILE) return;  // missiles are SUPPOSED to collide!
+  if (scanClass == OOScanClass::kMissile)
+    return;  // missiles are SUPPOSED to collide!
 
   ::ShipEntity* prox_ship = oo::ToShip(proximityAlert());
 
@@ -6878,8 +6888,8 @@ void ShipEntity::setProximityAlert(::ShipEntity* other) {
     return;
 
   /* Ignore station collision warnings if launching or docking */
-  if ((other->isStation) &&
-      (status() == STATUS_LAUNCHING || !dockingInstructions.isNull())) {
+  if ((other->isStation) && (status() == OOEntityStatus::kLaunching ||
+                             !dockingInstructions.isNull())) {
     return;
   }
 
@@ -6960,7 +6970,7 @@ std::optional<std::string> ShipEntity::scanDescription() {
   } else {
     std::optional<std::string> desc;
     switch (getScanClass()) {
-      case CLASS_NEUTRAL: {
+      case OOScanClass::kNeutral: {
         int legal = legalStatus();
         int legal_i = 0;
         if (legal > 0) {
@@ -6976,15 +6986,15 @@ std::optional<std::string> ShipEntity::scanDescription() {
           desc = legalStatus.at<std::string>(legal_i);
       } break;
 
-      case CLASS_THARGOID:
+      case OOScanClass::kThargoid:
         desc = OO_DESC("legal-desc-alien");
         break;
 
-      case CLASS_POLICE:
+      case OOScanClass::kPolice:
         desc = OO_DESC("legal-desc-system-vessel");
         break;
 
-      case CLASS_MILITARY:
+      case OOScanClass::kMilitary:
         desc = OO_DESC("legal-desc-military-vessel");
         break;
 
@@ -7091,10 +7101,12 @@ bool ShipEntity::hasPrimaryRole(const std::string& role) {
 bool ShipEntity::isPolice() {
   // bounty hunters have a police role, but are not police, so we must test by
   // scan class, not by role
-  return getScanClass() == CLASS_POLICE;
+  return getScanClass() == OOScanClass::kPolice;
 }
 
-bool ShipEntity::isThargoid() { return getScanClass() == CLASS_THARGOID; }
+bool ShipEntity::isThargoid() {
+  return getScanClass() == OOScanClass::kThargoid;
+}
 
 bool ShipEntity::isTrader() {
   return (UNIVERSE != nullptr
@@ -7154,7 +7166,8 @@ bool ShipEntity::isVisibleToScripts() {
 
 bool ShipEntity::isUnpiloted() {
   return isExplicitlyUnpiloted() || getIsHulk() ||
-         getScanClass() == CLASS_ROCK || getScanClass() == CLASS_CARGO;
+         getScanClass() == OOScanClass::kRock ||
+         getScanClass() == OOScanClass::kCargo;
 }
 
 // Exposed to shaders.
@@ -7533,7 +7546,7 @@ void ShipEntity::setDestinationSystem(OOSystemID s) { destination_system = s; }
 void ShipEntity::setStatus(OOEntityStatus stat) {
   if (status() == stat) return;
   OOEntityWithDrawable::setStatus(stat);  // [super setStatus:stat]
-  if (stat == STATUS_LAUNCHING) {
+  if (stat == OOEntityStatus::kLaunching) {
     launch_time = (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0);
   }
 }
@@ -7771,12 +7784,13 @@ void ShipEntity::setBounty(OOCreditsQuantity amount,
     if (oo::ToShip(parentEntity()) != nullptr)
       oo::ToShip(parentEntity())->setBounty(amount, reason);
   } else {
-    if ((scanClass == CLASS_THARGOID || scanClass == CLASS_STATION) &&
+    if ((scanClass == OOScanClass::kThargoid ||
+         scanClass == OOScanClass::kStation) &&
         reason != kOOLegalStatusReasonSetup &&
         reason != kOOLegalStatusReasonByScript) {
       return;  // no standard bounties for Thargoids / Stations
     }
-    if (scanClass == CLASS_POLICE && amount != 0) {
+    if (scanClass == OOScanClass::kPolice && amount != 0) {
       return;  // police never have bounties
     }
     setBounty(amount, cxx_OOStringFromLegalStatusReason(reason));
@@ -7815,8 +7829,8 @@ OOCreditsQuantity ShipEntity::getBounty() {
 }
 
 int ShipEntity::legalStatus() {
-  if (scanClass == CLASS_THARGOID) return 5 * collision_radius;
-  if (scanClass == CLASS_ROCK) return 0;
+  if (scanClass == OOScanClass::kThargoid) return 5 * collision_radius;
+  if (scanClass == OOScanClass::kRock) return 0;
   return (int)getBounty();
 }
 
@@ -8385,7 +8399,7 @@ void ShipEntity::noteTakingDamage(double amount, Entity* entity,
 }
 
 void ShipEntity::noteKilledBy(Entity* whom, OOShipDamageType type) {
-  if (status() == STATUS_DEAD) return;
+  if (status() == OOEntityStatus::kDead) return;
 
   if (PLAYER != nullptr) PLAYER->setScriptTarget(this);
 
@@ -8394,7 +8408,7 @@ void ShipEntity::noteKilledBy(Entity* whom, OOShipDamageType type) {
   OOJSVal whomVal = OOJSEntityJSValue(whom, context);
   OOJSVal typeVal = OOJSValueFromShipDamageType(context, type);
   OOEntityStatus originalStatus = status();
-  setStatus(STATUS_DEAD);
+  setStatus(OOEntityStatus::kDead);
 
   ShipScriptEvent(context, this, "shipDied", whomVal,
                   typeVal);  // Frees whomVal and typeVal.
@@ -8513,9 +8527,10 @@ void ShipEntity::releaseCargoPodsDebris() {
 
       if (container != nullptr)
         container->setTemperature(randomEjectaTemperature());
-      if (container != nullptr) container->setScanClass(CLASS_CARGO);
+      if (container != nullptr) container->setScanClass(OOScanClass::kCargo);
       if (UNIVERSE != nullptr)
-        UNIVERSE->addEntity(container);  // STATUS_IN_FLIGHT, AI state GLOBAL
+        UNIVERSE->addEntity(
+            container);  // OOEntityStatus::kInFlight, AI state GLOBAL
 
       ::AI* containerAI =
           (container != nullptr ? container->getAI() : (::AI*)nullptr);
@@ -8574,11 +8589,11 @@ void ShipEntity::becomeExplosion() {
       ((UNIVERSE != nullptr ? UNIVERSE->getDetailLevel()
                             : OOGraphicsDetail{}) >= OOGraphicsDetail::kExtras);
 
-  if (status() == STATUS_DEAD) {
+  if (status() == OOEntityStatus::kDead) {
     if (UNIVERSE != nullptr) UNIVERSE->removeEntity(this);
     return;
   }
-  setStatus(STATUS_DEAD);
+  setStatus(OOEntityStatus::kDead);
 
   const oo::Finally removeDead([this]  // was @finally
                                {
@@ -8737,7 +8752,7 @@ void ShipEntity::becomeExplosion() {
                 if (rock != nullptr)
                   rock->setTemperature(randomEjectaTemperature());
                 if (isBoulder()) {
-                  if (rock != nullptr) rock->setScanClass(CLASS_CARGO);
+                  if (rock != nullptr) rock->setScanClass(OOScanClass::kCargo);
                   if (rock != nullptr)
                     rock->setBounty(0, kOOLegalStatusReasonSetup);
                   // only make the rock have minerals if something isn't already
@@ -8749,12 +8764,12 @@ void ShipEntity::becomeExplosion() {
                            .has_value())
                     if (rock != nullptr) rock->setCommodity("minerals", 1);
                 } else {
-                  if (rock != nullptr) rock->setScanClass(CLASS_ROCK);
+                  if (rock != nullptr) rock->setScanClass(OOScanClass::kRock);
                   if (rock != nullptr) rock->setIsBoulder(true);
                 }
                 if (UNIVERSE != nullptr)
                   UNIVERSE->addEntity(
-                      rock);  // STATUS_IN_FLIGHT, AI state GLOBAL
+                      rock);  // OOEntityStatus::kInFlight, AI state GLOBAL
                 if (rock != nullptr) oo::ReleaseEntity(rock);
               }
             }
@@ -8843,10 +8858,11 @@ void ShipEntity::becomeExplosion() {
 
           if (plate != nullptr)
             plate->setTemperature(randomEjectaTemperature());
-          if (plate != nullptr) plate->setScanClass(CLASS_CARGO);
+          if (plate != nullptr) plate->setScanClass(OOScanClass::kCargo);
           if (plate != nullptr) plate->setCommodity("alloys", 1);
           if (UNIVERSE != nullptr)
-            UNIVERSE->addEntity(plate);  // STATUS_IN_FLIGHT, AI state GLOBAL
+            UNIVERSE->addEntity(
+                plate);  // OOEntityStatus::kInFlight, AI state GLOBAL
 
           if (plate != nullptr) oo::ReleaseEntity(plate);
         }
@@ -8887,7 +8903,7 @@ void ShipEntity::becomeEnergyBlast() {
     UNIVERSE->addEntity(
         oo::MadeEntity(OOQuiriumCascadeEntity::quiriumCascadeFromShip(this)));
   broadcastEnergyBlastImminent();
-  noteKilledBy(nullptr, kOODamageTypeCascadeWeapon);
+  noteKilledBy(nullptr, OOShipDamageType::kCascadeWeapon);
   if (UNIVERSE != nullptr) UNIVERSE->removeEntity(this);
 }
 
@@ -9004,8 +9020,8 @@ Vector ShipEntity::positionOffsetForAlignment(const std::string& align) {
 }
 
 void ShipEntity::becomeLargeExplosion(double factor) {
-  if (status() == STATUS_DEAD) return;
-  setStatus(STATUS_DEAD);
+  if (status() == OOEntityStatus::kDead) return;
+  setStatus(OOEntityStatus::kDead);
 
   const oo::Finally removeDead([this]  // was @finally
                                {
@@ -9193,8 +9209,8 @@ void ShipEntity::checkScannerIgnoringUnpowered() {
   GLfloat scannerRange2 = scannerRange * scannerRange;
   scan = z_previous;
   while ((scan) &&
-         ((scan->isShip == false) || (scan->scanClass == CLASS_ROCK) ||
-          (scan->scanClass == CLASS_CARGO))) {
+         ((scan->isShip == false) || (scan->scanClass == OOScanClass::kRock) ||
+          (scan->scanClass == OOScanClass::kCargo))) {
     scan = scan->z_previous;  // skip non-ships
   }
   while ((scan) && (scan->position.z > position.z - scannerRange) &&
@@ -9208,17 +9224,17 @@ void ShipEntity::checkScannerIgnoringUnpowered() {
         scanned_ships[n_scanned_ships++] = oo::ToShip(scan);
     }
     scan = scan->z_previous;
-    while ((scan) &&
-           ((scan->isShip == false) || (scan->scanClass == CLASS_ROCK) ||
-            (scan->scanClass == CLASS_CARGO))) {
+    while ((scan) && ((scan->isShip == false) ||
+                      (scan->scanClass == OOScanClass::kRock) ||
+                      (scan->scanClass == OOScanClass::kCargo))) {
       scan = scan->z_previous;  // skip non-ships
     }
   }
   //
   scan = z_next;
   while ((scan) &&
-         ((scan->isShip == false) || (scan->scanClass == CLASS_ROCK) ||
-          (scan->scanClass == CLASS_CARGO))) {
+         ((scan->isShip == false) || (scan->scanClass == OOScanClass::kRock) ||
+          (scan->scanClass == OOScanClass::kCargo))) {
     scan = scan->z_next;  // skip non-ships
   }
 
@@ -9233,9 +9249,9 @@ void ShipEntity::checkScannerIgnoringUnpowered() {
         scanned_ships[n_scanned_ships++] = oo::ToShip(scan);
     }
     scan = scan->z_next;
-    while ((scan) &&
-           ((scan->isShip == false) || (scan->scanClass == CLASS_ROCK) ||
-            (scan->scanClass == CLASS_CARGO))) {
+    while ((scan) && ((scan->isShip == false) ||
+                      (scan->scanClass == OOScanClass::kRock) ||
+                      (scan->scanClass == OOScanClass::kCargo))) {
       scan = scan->z_next;  // skip non-ships
     }
   }
@@ -9354,16 +9370,18 @@ bool ShipEntity::isValidTarget(Entity* target) {
   }
   if (target->getIsShip()) {
     OOEntityStatus tstatus = target->status();
-    if (tstatus == STATUS_ENTERING_WITCHSPACE || tstatus == STATUS_IN_HOLD ||
-        tstatus == STATUS_DOCKED || tstatus == STATUS_DEAD)
-    // 2013-01-13, Eric: added STATUS_DEAD because I keep seeing ships locked on
-    // dead ships in attack mode.
+    if (tstatus == OOEntityStatus::kEnteringWitchspace ||
+        tstatus == OOEntityStatus::kInHold ||
+        tstatus == OOEntityStatus::kDocked || tstatus == OOEntityStatus::kDead)
+    // 2013-01-13, Eric: added OOEntityStatus::kDead because I keep seeing ships
+    // locked on dead ships in attack mode.
     {
       return false;
     }
     return true;
   }
-  if (target->getIsWormhole() && target->getScanClass() != CLASS_NO_DRAW) {
+  if (target->getIsWormhole() &&
+      target->getScanClass() != OOScanClass::kNoDraw) {
     return true;
   }
   return false;
@@ -9477,9 +9495,9 @@ bool ShipEntity::isFriendlyTo(::ShipEntity* otherShip) {
        (myGroup == otherGroup ||
         (otherGroup != nullptr ? otherGroup->leader()
                                : (::ShipEntity*)nullptr) == this)) ||
-      (getScanClass() == CLASS_MILITARY &&
+      (getScanClass() == OOScanClass::kMilitary &&
        (otherShip != nullptr ? otherShip->getScanClass() : OOScanClass{}) ==
-           CLASS_MILITARY)) {
+           OOScanClass::kMilitary)) {
     isFriendly = true;
   }
 
@@ -9684,7 +9702,7 @@ double ShipEntity::ballTrackLeadingTarget(double delta_t, Entity* target) {
                                thrust * delta_t);
   orientationChanged();
 
-  setStatus(STATUS_ACTIVE);
+  setStatus(OOEntityStatus::kActive);
 
   return aim_cos;
 }
@@ -9764,7 +9782,8 @@ double ShipEntity::trackPrimaryTarget(double delta_t, bool retreat) {
    * fired outside scanner range it should self-destruct if the
    * target gets far enough away (it's going to miss anyway) -
    * CIM */
-  if (scanClass == CLASS_MISSILE) return missileTrackPrimaryTarget(delta_t);
+  if (scanClass == OOScanClass::kMissile)
+    return missileTrackPrimaryTarget(delta_t);
 
   GLfloat d_forward, d_up, d_right;
 
@@ -9986,7 +10005,7 @@ double ShipEntity::trackSideTarget(double delta_t, bool leftside) {
     return 0.0;
   }
 
-  if (scanClass == CLASS_MISSILE)  // never?
+  if (scanClass == OOScanClass::kMissile)  // never?
     return missileTrackPrimaryTarget(delta_t);
 
   GLfloat d_forward, d_up, d_right;
@@ -10437,7 +10456,7 @@ void ShipEntity::validateDefenseTargets() {
   for (const auto& targetRef : allDefenseTargets()) {
     Entity* target = targetRef.get();
     if ((target != nullptr ? target->status() : OOEntityStatus{}) ==
-        STATUS_DEAD) {
+        OOEntityStatus::kDead) {
       removeDefenseTarget(target);
     }
   }
@@ -10615,7 +10634,7 @@ bool ShipEntity::onTarget(OOWeaponFacing direction, OOWeaponType weapon_type) {
 
   Entity* target = primaryTarget();
   if (target == nullptr) return false;
-  if (oo::EntityStatus(target) == STATUS_DEAD) return false;
+  if (oo::EntityStatus(target) == OOEntityStatus::kDead) return false;
 
   if (isSunlit && (target->isSunlit == false) && (randf() < 0.75)) {
     return false;  // 3/4 of the time you can't see from a lit place into a
@@ -10946,7 +10965,7 @@ bool ShipEntity::fireSubentityLaserShot(double range) {
       OOLaserShotEntity::laserFromShip(this, direction, kZeroVector);
   Entity* shotObjC = oo::MadeEntity(shot);  // the shot, given its object
   shot->setColor(laser_color.get());
-  shot->setScanClass(CLASS_NO_DRAW);
+  shot->setScanClass(OOScanClass::kNoDraw);
 
   if (victim != nullptr) {
     adjustMissedShots(-1);
@@ -11040,7 +11059,7 @@ bool ShipEntity::fireDirectLaserDefensiveShot() {
   for (const auto& targetRef : defenseTargets()) {
     Entity* target = targetRef.get();  // the snapshot keeps its object
     // can't fire defensively at cloaked ships
-    if (target->getScanClass() == CLASS_NO_DRAW ||
+    if (target->getScanClass() == OOScanClass::kNoDraw ||
         (oo::ToShip(target) != nullptr ? oo::ToShip(target)->isCloaked()
                                        : false) ||
         target->getEnergy() <= 0.0) {
@@ -11093,7 +11112,7 @@ bool ShipEntity::fireDirectLaserShotAt(Entity* my_target) {
       this, OOWeaponFacing::kForward, kZeroVector);
   Entity* shotObjC = oo::MadeEntity(shot);  // the shot, given its object
   shot->setColor(laser_color.get());
-  shot->setScanClass(CLASS_NO_DRAW);
+  shot->setScanClass(OOScanClass::kNoDraw);
   shot->setPosition(position);
   shot->setOrientation(q_laser);
   shot->setVelocity(vel);
@@ -11204,7 +11223,7 @@ bool ShipEntity::fireLaserShotInDirection(OOWeaponFacing direction,
     }
 
     shot->setColor(laser_color.get());
-    shot->setScanClass(CLASS_NO_DRAW);
+    shot->setScanClass(OOScanClass::kNoDraw);
     shot->setVelocity(vel);
 
     if (victim != nullptr) {
@@ -11416,7 +11435,7 @@ Vector ShipEntity::missileLaunchPosition() {
   double throw_speed = 250.0f;
 
   if ((missiles <= 0) || (target == nullptr) ||
-      (target->getScanClass() == CLASS_NO_DRAW))  // no missile lock!
+      (target->getScanClass() == OOScanClass::kNoDraw))  // no missile lock!
     return nullptr;
 
   if (target->getIsShip()) {
@@ -11490,7 +11509,7 @@ Vector ShipEntity::missileLaunchPosition() {
       position, vectorToHPVector(quaternion_rotate_vector(q1, start)));
 
   if (isPlayer) {
-    if (missile != nullptr) missile->setScanClass(CLASS_MISSILE);
+    if (missile != nullptr) missile->setScanClass(OOScanClass::kMissile);
   }
 
   // special cases
@@ -11498,7 +11517,7 @@ Vector ShipEntity::missileLaunchPosition() {
   // We don't want real missiles in a group. Missiles could become escorts when
   // the group is also used as escortGroup.
   if ((missile != nullptr ? missile->getScanClass() : OOScanClass{}) ==
-      CLASS_THARGOID) {
+      OOScanClass::kThargoid) {
     if (group() == nullptr)
       setGroup(OOShipGroup::groupWithName("thargoid group")
                    .get());  // the ship keeps it
@@ -11536,7 +11555,7 @@ Vector ShipEntity::missileLaunchPosition() {
       missile_load_time;  // set minimum launchtime for the next missile.
 
   if (UNIVERSE != nullptr)
-    UNIVERSE->addEntity(missile);  // STATUS_IN_FLIGHT, AI state GLOBAL
+    UNIVERSE->addEntity(missile);  // OOEntityStatus::kInFlight, AI state GLOBAL
   if (missile != nullptr) oo::ReleaseEntity(missile);  // release
 
   // missile lives on after UNIVERSE addEntity
@@ -11654,12 +11673,12 @@ bool ShipEntity::launchCascadeMine() {
   if (bomb != nullptr) bomb->setRoll(random_roll);
   if (bomb != nullptr) bomb->setPitch(random_pitch);
   if (bomb != nullptr) bomb->setVelocity(vel);
-  if (bomb != nullptr) bomb->setScanClass(CLASS_MINE);
+  if (bomb != nullptr) bomb->setScanClass(OOScanClass::kMine);
   if (bomb != nullptr) bomb->setEnergy(5.0);  // 5 second countdown
   if (bomb != nullptr) bomb->setBehaviour(BEHAVIOUR_ENERGY_BOMB_COUNTDOWN);
   if (bomb != nullptr) bomb->setOwner(this);
   if (UNIVERSE != nullptr)
-    UNIVERSE->addEntity(bomb);  // STATUS_IN_FLIGHT, AI state GLOBAL
+    UNIVERSE->addEntity(bomb);  // OOEntityStatus::kInFlight, AI state GLOBAL
   if (bomb != nullptr) oo::ReleaseEntity(bomb);
 
   if (cloaking_device_active && cloakPassive) {
@@ -11763,7 +11782,8 @@ void ShipEntity::dumpCargo() { dumpCargoItem(std::nullopt); }
       }
     }
     if (jetto != nullptr) {
-      dumpItem(jetto);  // CLASS_CARGO, STATUS_IN_FLIGHT, AI state GLOBAL
+      dumpItem(jetto);  // OOScanClass::kCargo, OOEntityStatus::kInFlight, AI
+                        // state GLOBAL
       cargo.erase(cargo.begin() + i);
       broadcastAIMessage("CARGO_DUMPED");  // goes only to 16 nearby ships in
                                            // range, but that should be enough.
@@ -11864,10 +11884,10 @@ OOCargoType ShipEntity::dumpItem(::ShipEntity* cargoObj) {
   if (jetto != nullptr) jetto->setRoll(jetto_roll);
   if (jetto != nullptr) jetto->setPitch(jetto_pitch);
   if (jetto != nullptr) jetto->setVelocity(vel);
-  if (jetto != nullptr) jetto->setScanClass(CLASS_CARGO);
+  if (jetto != nullptr) jetto->setScanClass(OOScanClass::kCargo);
   if (jetto != nullptr) jetto->setTemperature(randomEjectaTemperature());
   if (UNIVERSE != nullptr)
-    UNIVERSE->addEntity(jetto);  // STATUS_IN_FLIGHT, AI state GLOBAL
+    UNIVERSE->addEntity(jetto);  // OOEntityStatus::kInFlight, AI state GLOBAL
 
   jettoAI = (jetto != nullptr ? jetto->getAI() : (::AI*)nullptr);
   if ((jettoAI != nullptr
@@ -11907,8 +11927,8 @@ void ShipEntity::manageCollisions() {
         other_ship = oo::ToShip(ent);
         collideWithShip(other_ship);
       } else if (ent->isStellarObject()) {
-        getDestroyedBy(
-            ent, ent->isSun() ? kOODamageTypeHitASun : kOODamageTypeHitAPlanet);
+        getDestroyedBy(ent, ent->isSun() ? OOShipDamageType::kHitASun
+                                         : OOShipDamageType::kHitAPlanet);
         if (this == PLAYER) oo::RetainEntity(this);
       } else if (ent->getIsWormhole()) {
         // the C++ wormhole
@@ -12102,9 +12122,10 @@ bool ShipEntity::canScoop(::ShipEntity* other) {
   if (other == nullptr) return false;
   if (!hasCargoScoop()) return false;
   if (cargo.size() >= maxAvailableCargoSpace()) return false;
-  if (scanClass == CLASS_CARGO)
+  if (scanClass == OOScanClass::kCargo)
     return false;  // we have no power so we can't scoop
-  if ((other != nullptr ? other->getScanClass() : OOScanClass{}) != CLASS_CARGO)
+  if ((other != nullptr ? other->getScanClass() : OOScanClass{}) !=
+      OOScanClass::kCargo)
     return false;
   if (other != nullptr && other->cargoType() == OOCargoType::kNotCargo)
     return false;
@@ -12124,12 +12145,12 @@ bool ShipEntity::canScoop(::ShipEntity* other) {
 }
 
 void ShipEntity::getTractoredBy(::ShipEntity* other) {
-  if (status() == STATUS_BEING_SCOOPED)
+  if (status() == OOEntityStatus::kBeingScooped)
     return;  // both cargo and ship call this. Act only once.
   desired_speed = 0.0;
   setAITo("nullAI.plist");  // prevent AI from changing status or behaviour.
   behaviour = BEHAVIOUR_TRACTORED;
-  setStatus(STATUS_BEING_SCOOPED);
+  setStatus(OOEntityStatus::kBeingScooped);
   addTarget(other);
   setOwner(other);
   // should we make this an all rather than first 16? - CIM
@@ -12167,7 +12188,7 @@ void ShipEntity::scoopUpProcess(::ShipEntity* other, bool procEvents,
 
   // don't even think of trying to scoop if the cargo hold is already full
   if (max_cargo && cargo.size() >= maxAvailableCargoSpace()) {
-    if (other != nullptr) other->setStatus(STATUS_IN_FLIGHT);
+    if (other != nullptr) other->setStatus(OOEntityStatus::kInFlight);
     return;
   }
 
@@ -12296,7 +12317,7 @@ void ShipEntity::scoopUpProcess(::ShipEntity* other, bool procEvents,
         cargo.begin(),
         oo::EntityHold(
             other));  // places most recently scooped object at eject position
-    if (other != nullptr) other->setStatus(STATUS_IN_HOLD);
+    if (other != nullptr) other->setStatus(OOEntityStatus::kInHold);
     if (other != nullptr) other->performTumble();
     if (shipAI != nullptr) shipAI->message("CARGO_SCOOPED");
     if (max_cargo && cargo.size() >= maxAvailableCargoSpace()) {
@@ -12311,7 +12332,7 @@ void ShipEntity::scoopUpProcess(::ShipEntity* other, bool procEvents,
   // if shipScoopedOther does something strange to the object, we must
   // then remove it from the hold, or it will be over-retained
   if ((other != nullptr ? other->status() : OOEntityStatus{}) !=
-      STATUS_IN_HOLD) {
+      OOEntityStatus::kInHold) {
     if (other != nullptr && (std::find(cargo.begin(), cargo.end(), other) !=
                              cargo.end()))  // the list holds no null
     {
@@ -12353,11 +12374,11 @@ bool ShipEntity::cascadeIfAppropriateWithDamageAmount(double amount,
                                                       Entity* /* owner */) {
   bool cascade = false;
   switch (getScanClass()) {
-    case CLASS_WORMHOLE:
-    case CLASS_ROCK:
-    case CLASS_CARGO:
-    case CLASS_VISUAL_EFFECT:
-    case CLASS_BUOY:
+    case OOScanClass::kWormhole:
+    case OOScanClass::kRock:
+    case OOScanClass::kCargo:
+    case OOScanClass::kVisualEffect:
+    case OOScanClass::kBuoy:
       // does not normally cascade
       if ((fuel > MIN_FUEL) || isStation) {
         // we have fuel onboard so we can still go pop, or we are a station
@@ -12365,17 +12386,17 @@ bool ShipEntity::cascadeIfAppropriateWithDamageAmount(double amount,
       } else
         break;
 
-    case CLASS_STATION:
-    case CLASS_MINE:
-    case CLASS_PLAYER:
-    case CLASS_POLICE:
-    case CLASS_MILITARY:
-    case CLASS_THARGOID:
-    case CLASS_MISSILE:
-    case CLASS_NOT_SET:
-    case CLASS_NO_DRAW:
-    case CLASS_NEUTRAL:
-    case CLASS_TARGET:
+    case OOScanClass::kStation:
+    case OOScanClass::kMine:
+    case OOScanClass::kPlayer:
+    case OOScanClass::kPolice:
+    case OOScanClass::kMilitary:
+    case OOScanClass::kThargoid:
+    case OOScanClass::kMissile:
+    case OOScanClass::kNotSet:
+    case OOScanClass::kNoDraw:
+    case OOScanClass::kNeutral:
+    case OOScanClass::kTarget:
       // ...start a chain reaction, if we're dying and have a non-trivial amount
       // of energy.
       if (energy < amount && energy > 10 && countsAsKill()) {
@@ -12394,7 +12415,7 @@ bool ShipEntity::cascadeIfAppropriateWithDamageAmount(double amount,
 void ShipEntity::takeEnergyDamage(double amount, Entity* entPart,
                                   Entity* otherPart,
                                   const std::string& /* weaponIdentifier */) {
-  if (status() == STATUS_DEAD) return;
+  if (status() == OOEntityStatus::kDead) return;
   if (amount <= 0.0) return;
 
   bool energyMine = OOEntityIsCascadeWeapon(entPart);
@@ -12544,11 +12565,11 @@ void ShipEntity::takeEnergyDamage(double amount, Entity* entPart,
     }
   }
 
-  OOShipDamageType damageType = kOODamageTypeEnergy;
+  OOShipDamageType damageType = OOShipDamageType::kEnergy;
   if (suppressExplosion)
-    damageType = kOODamageTypeRemoved;
+    damageType = OOShipDamageType::kRemoved;
   else if (energyMine)
-    damageType = kOODamageTypeCascadeWeapon;
+    damageType = OOShipDamageType::kCascadeWeapon;
 
   if (!suppressExplosion) {
     noteTakingDamage(amount, otherPart, damageType);
@@ -12611,7 +12632,7 @@ bool ShipEntity::abandonShip() {
       setAITo("nullAI.plist");
       behaviour = BEHAVIOUR_IDLE;
       frustration = 0.0;
-      setScanClass(CLASS_CARGO);  // we're unmanned now!
+      setScanClass(OOScanClass::kCargo);  // we're unmanned now!
       thrust = thrust * 0.5;
       if (thrust > 5) thrust = 5;  // 5 is the thrust of an escape-capsule
       desired_speed = 0.0;
@@ -12656,16 +12677,16 @@ bool ShipEntity::abandonShip() {
 }
 
 void ShipEntity::takeScrapeDamage(double amount, Entity* ent) {
-  if (status() == STATUS_DEAD) return;
+  if (status() == OOEntityStatus::kDead) return;
 
-  if (status() == STATUS_LAUNCHING ||
-      oo::EntityStatus(ent) == STATUS_LAUNCHING) {
+  if (status() == OOEntityStatus::kLaunching ||
+      oo::EntityStatus(ent) == OOEntityStatus::kLaunching) {
     // no collisions during launches please
     return;
   }
 
   energy -= amount;
-  noteTakingDamage(amount, ent, kOODamageTypeScrape);
+  noteTakingDamage(amount, ent, OOShipDamageType::kScrape);
 
   // oops we hit too hard!!!
   if (energy <= 0.0) {
@@ -12684,7 +12705,7 @@ void ShipEntity::takeScrapeDamage(double amount, Entity* ent) {
       if (oo::ToShip(ent) != nullptr)
         oo::ToShip(ent)->noteTargetDestroyed(this);
     }
-    getDestroyedBy(ent, kOODamageTypeScrape);
+    getDestroyedBy(ent, OOShipDamageType::kScrape);
   } else {
     // warn if I'm low on energy
     if (energy < maxEnergy * 0.25) {
@@ -12694,7 +12715,7 @@ void ShipEntity::takeScrapeDamage(double amount, Entity* ent) {
 }
 
 void ShipEntity::takeHeatDamage(double amount) {
-  if (status() == STATUS_DEAD) return;
+  if (status() == OOEntityStatus::kDead) return;
 
   if (getIsSubEntity()) {
     ::ShipEntity* owner = oo::ToShip(this->owner());
@@ -12706,11 +12727,11 @@ void ShipEntity::takeHeatDamage(double amount) {
   energy -= amount;
   throw_sparks = true;
 
-  noteTakingDamage(amount, nullptr, kOODamageTypeHeat);
+  noteTakingDamage(amount, nullptr, OOShipDamageType::kHeat);
 
   // oops we're burning up!
   if (energy <= 0.0) {
-    getDestroyedBy(nullptr, kOODamageTypeHeat);
+    getDestroyedBy(nullptr, OOShipDamageType::kHeat);
   } else {
     // warn if I'm low on energy
     if (energy < maxEnergy * 0.25) {
@@ -12744,7 +12765,7 @@ void ShipEntity::enterWormhole(::WormholeEntity* w_hole) {
 
 void ShipEntity::enterWormhole(::WormholeEntity* w_hole, bool /* replacing */) {
   if (w_hole == nullptr) return;
-  if (status() == STATUS_ENTERING_WITCHSPACE) {
+  if (status() == OOEntityStatus::kEnteringWitchspace) {
     return;  // has already entered a different wormhole
   }
   // Replacement ships now handled by system repopulator
@@ -12837,11 +12858,11 @@ bool ShipEntity::witchspaceLeavingEffects() {
   {
     return false;
   }
-  setStatus(STATUS_EXITING_WITCHSPACE);
+  setStatus(OOEntityStatus::kExitingWitchspace);
   if (shipAI != nullptr) shipAI->message("EXITED_WITCHSPACE");
 
   if (UNIVERSE != nullptr) UNIVERSE->addWitchspaceJumpEffectForShip(this);
-  setStatus(STATUS_IN_FLIGHT);
+  setStatus(OOEntityStatus::kInFlight);
   return true;
 }
 
@@ -12856,7 +12877,8 @@ void ShipEntity::markAsOffender(int offence_value, OOLegalStatusReason reason) {
       if (oo::ToShip(parentEntity()) != nullptr)
         oo::ToShip(parentEntity())->markAsOffender(offence_value, reason);
     } else {
-      if ((scanClass == CLASS_THARGOID || scanClass == CLASS_STATION) &&
+      if ((scanClass == OOScanClass::kThargoid ||
+           scanClass == OOScanClass::kStation) &&
           reason != kOOLegalStatusReasonSetup &&
           reason != kOOLegalStatusReasonByScript) {
         return;  // no non-scripted bounties for thargoids and stations
@@ -12953,7 +12975,7 @@ bool ShipEntity::acceptAsEscort(::ShipEntity* other_ship) {
   if (this == other_ship) return false;
 
   // no longer in flight, probably entered wormhole without telling escorts.
-  if (status() != STATUS_IN_FLIGHT) return false;
+  if (status() != OOEntityStatus::kInFlight) return false;
 
   // increased stack depth at which it can accept escorts to avoid rejections at
   // this stage. doesn't seem to have any adverse effect for now. - Kaks.
@@ -13324,10 +13346,12 @@ void ShipEntity::broadcastHitByLaserFrom(::ShipEntity* aggressor_ship) {
   if (getBounty()) return;
   if (!aggressor_ship) return;
 
-  if ((scanClass == CLASS_NEUTRAL) || (scanClass == CLASS_STATION) ||
-      (scanClass == CLASS_BUOY) || (scanClass == CLASS_POLICE) ||
-      (scanClass == CLASS_MILITARY) ||
-      (scanClass == CLASS_PLAYER))  // only for active ships...
+  if ((scanClass == OOScanClass::kNeutral) ||
+      (scanClass == OOScanClass::kStation) ||
+      (scanClass == OOScanClass::kBuoy) ||
+      (scanClass == OOScanClass::kPolice) ||
+      (scanClass == OOScanClass::kMilitary) ||
+      (scanClass == OOScanClass::kPlayer))  // only for active ships...
   {
     AuthorityPredicateParameter param = {
         this, (UNIVERSE != nullptr ? UNIVERSE->station() : nullptr),
@@ -13465,9 +13489,9 @@ void ShipEntity::setCommsMessageColor() {
   float hue = 0.0625f * (universalID & 15);
   UNIVERSE->commLogGUI()->setTextColor(
       OOColor::colorWithHue(hue, 0.375f, 1.0f, 1.0f).get());
-  if (scanClass == CLASS_THARGOID)
+  if (scanClass == OOScanClass::kThargoid)
     UNIVERSE->commLogGUI()->setTextColor(OOColor::greenColor().get());
-  if (scanClass == CLASS_POLICE)
+  if (scanClass == OOScanClass::kPolice)
     UNIVERSE->commLogGUI()->setTextColor(OOColor::cyanColor().get());
 }
 
@@ -13526,11 +13550,11 @@ void ShipEntity::interpretAIMessage(const std::string& ms) {
                              : nullptr);
     if ((switcher == primaryAggressor()) && (switcher == primaryTarget()) &&
         (switcher) && (rescuer) && (rescuer->isShip) &&
-        (thankedShip() != rescuer) && (scanClass != CLASS_THARGOID)) {
+        (thankedShip() != rescuer) && (scanClass != OOScanClass::kThargoid)) {
       ::ShipEntity* rescueShip = oo::ToShip(rescuer);
       //			ShipEntity* switchingShip =
       //(ShipEntity*)switcher;
-      if (scanClass == CLASS_POLICE) {
+      if (scanClass == OOScanClass::kPolice) {
         sendExpandedMessage("[police-thanks-for-assist]", rescueShip);
         if (rescueShip != nullptr)
           rescueShip->setBounty(
@@ -13879,7 +13903,7 @@ void ShipEntity::doScriptEvent(OOJSPropID scriptEvent, Entity* argument,
 // exposed for shaders; fake alert level
 // since NPCs don't have torus drive, they're never at condition green
 OOAlertCondition ShipEntity::alertCondition() {
-  if (status() == STATUS_DOCKED) {
+  if (status() == OOEntityStatus::kDocked) {
     return OOAlertCondition::kDocked;
   }
   if (hasHostileTarget() || energy < maxEnergy / 4) {
@@ -13889,7 +13913,7 @@ OOAlertCondition ShipEntity::alertCondition() {
 }
 
 OOAlertCondition ShipEntity::realAlertCondition() {
-  if (status() == STATUS_DOCKED) {
+  if (status() == OOEntityStatus::kDocked) {
     return OOAlertCondition::kDocked;
   }
   if (hasHostileTarget()) {

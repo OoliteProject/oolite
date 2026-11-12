@@ -64,7 +64,7 @@ std::size_t OOConstantFromJSValuePRIVATE(JSContext* context, JSValueConst value,
 OOINLINE JSValue OOJSValueFromEntityStatus(JSContext* context,
                                            OOEntityStatus value) {
   extern struct ConstTable gOOEntityStatusConstTable;
-  return OOJSValueFromConstantPRIVATE(context, value,
+  return OOJSValueFromConstantPRIVATE(context, oo::ToUnderlying(value),
                                       &gOOEntityStatusConstTable);
 }
 
@@ -72,7 +72,8 @@ OOINLINE OOEntityStatus OOEntityStatusFromJSValue(JSContext* context,
                                                   JSValueConst value) {
   extern struct ConstTable gOOEntityStatusConstTable;
   return (OOEntityStatus)OOConstantFromJSValuePRIVATE(
-      context, value, &gOOEntityStatusConstTable, kOOEntityStatusDefault);
+      context, value, &gOOEntityStatusConstTable,
+      oo::ToUnderlying(kOOEntityStatusDefault));
 }
 
 /*	JSValue OOJSValueFromScanClass(JSContext *, OOScanClass)
@@ -82,14 +83,16 @@ OOINLINE OOEntityStatus OOEntityStatusFromJSValue(JSContext* context,
 */
 OOINLINE JSValue OOJSValueFromScanClass(JSContext* context, OOScanClass value) {
   extern struct ConstTable gOOScanClassConstTable;
-  return OOJSValueFromConstantPRIVATE(context, value, &gOOScanClassConstTable);
+  return OOJSValueFromConstantPRIVATE(context, oo::ToUnderlying(value),
+                                      &gOOScanClassConstTable);
 }
 
 OOINLINE OOScanClass OOScanClassFromJSValue(JSContext* context,
                                             JSValueConst value) {
   extern struct ConstTable gOOScanClassConstTable;
   return (OOScanClass)OOConstantFromJSValuePRIVATE(
-      context, value, &gOOScanClassConstTable, kOOScanClassDefault);
+      context, value, &gOOScanClassConstTable,
+      oo::ToUnderlying(kOOScanClassDefault));
 }
 
 /*	JSValue OOJSValueFromCompassMode(JSContext *, OOCompassMode)
@@ -100,7 +103,7 @@ OOINLINE OOScanClass OOScanClassFromJSValue(JSContext* context,
 OOINLINE JSValue OOJSValueFromCompassMode(JSContext* context,
                                           OOCompassMode value) {
   extern struct ConstTable gOOCompassModeConstTable;
-  return OOJSValueFromConstantPRIVATE(context, value,
+  return OOJSValueFromConstantPRIVATE(context, oo::ToUnderlying(value),
                                       &gOOCompassModeConstTable);
 }
 
@@ -119,7 +122,7 @@ OOINLINE OOCompassMode OOCompassModeFromJSValue(JSContext* context,
 OOINLINE JSValue OOJSValueFromGUIScreenID(JSContext* context,
                                           OOGUIScreenID value) {
   extern struct ConstTable gOOGUIScreenIDConstTable;
-  return OOJSValueFromConstantPRIVATE(context, value,
+  return OOJSValueFromConstantPRIVATE(context, oo::ToUnderlying(value),
                                       &gOOGUIScreenIDConstTable);
 }
 
@@ -158,7 +161,8 @@ OOINLINE OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromJSValue(
 */
 OOINLINE JSValue OOJSValueFromViewID(JSContext* context, OOViewID value) {
   extern struct ConstTable gOOViewIDConstTable;
-  return OOJSValueFromConstantPRIVATE(context, value, &gOOViewIDConstTable);
+  return OOJSValueFromConstantPRIVATE(context, oo::ToUnderlying(value),
+                                      &gOOViewIDConstTable);
 }
 
 OOINLINE OOViewID OOViewIDFromJSValue(JSContext* context, JSValueConst value) {
@@ -174,7 +178,7 @@ OOINLINE OOViewID OOViewIDFromJSValue(JSContext* context, JSValueConst value) {
 OOINLINE JSValue OOJSValueFromShipDamageType(JSContext* context,
                                              OOShipDamageType value) {
   extern struct ConstTable gOOShipDamageTypeConstTable;
-  return OOJSValueFromConstantPRIVATE(context, value,
+  return OOJSValueFromConstantPRIVATE(context, oo::ToUnderlying(value),
                                       &gOOShipDamageTypeConstTable);
 }
 
@@ -185,6 +189,6 @@ OOINLINE JSValue OOJSValueFromShipDamageType(JSContext* context,
 OOINLINE JSValue OOJSValueFromLegalStatusReason(JSContext* context,
                                                 OOLegalStatusReason value) {
   extern struct ConstTable gOOLegalStatusReasonConstTable;
-  return OOJSValueFromConstantPRIVATE(context, value,
+  return OOJSValueFromConstantPRIVATE(context, oo::ToUnderlying(value),
                                       &gOOLegalStatusReasonConstTable);
 }

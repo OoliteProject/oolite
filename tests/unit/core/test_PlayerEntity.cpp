@@ -259,7 +259,7 @@ OO_TEST(initIsTheShipMadeThePlayersWay)
 		OO_CHECK(player != nullptr);
 		OO_CHECK(sShipSetUps == 0 && sPlayerSetUps == 0 && sInitControls == 0);
 		OO_CHECK(!player->getIsShip() && !player->getIsPlayer());
-		OO_CHECK(player->status() == STATUS_COCKPIT_DISPLAY);
+		OO_CHECK(player->status() == OOEntityStatus::kCockpitDisplay);
 		OO_CHECK(player->shipDataKey() == std::nullopt);
 		OO_CHECK(player->temperature() == 0 && player->weaponRechargeRate() == 0);
 		OO_CHECK(PlayerEntityTestAccess::maxFieldOfView(player) == 0);
@@ -280,7 +280,7 @@ OO_TEST(sharedPlayer)
 		OO_CHECK(player != nullptr && typeid(*player) == typeid(PlayerEntity));
 		OO_CHECK(gOOPlayer == player);
 		OO_CHECK(PlayerEntity::sharedPlayer() == player);
-		OO_CHECK(!player->getIsPlayer() && player->status() == STATUS_COCKPIT_DISPLAY);
+		OO_CHECK(!player->getIsPlayer() && player->status() == OOEntityStatus::kCockpitDisplay);
 	}
 	gOOPlayer = nullptr;
 	Release(player);
@@ -307,7 +307,7 @@ OO_TEST(deferredInit)
 		OO_CHECK(sShipSetUps == 1 && sShipSetUpDict.isDict() && sShipSetUpDict.getIf<oo::PList::Dict>()->empty());
 		OO_CHECK(player->shipDataKey() == std::optional<std::string>(std::string(PLAYER_SHIP_DESC)));
 		OO_CHECK(player->getIsShip() && player->getIsPlayer());
-		OO_CHECK(player->status() == STATUS_START_GAME);
+		OO_CHECK(player->status() == OOEntityStatus::kStartGame);
 		OO_CHECK(player->temperature() == SHIP_MIN_CABIN_TEMP && player->weaponRechargeRate() == 6.0f);
 		OO_CHECK(player->getFuel() == 5);	// what the bodies do not set stays
 		OO_CHECK(std::fabs(PlayerEntityTestAccess::maxFieldOfView(player) - MAX_FOV) < 1e-6);
@@ -586,13 +586,13 @@ OO_TEST(slice5SessionAndCollisions)
 		SetUp();
 		TestPlayer *player = MakePlayer();
 		OO_CHECK(player->sessionID() == (UNIVERSE != nullptr ? UNIVERSE->sessionID() : 0));
-		player->setStatus(STATUS_IN_FLIGHT);
+		player->setStatus(OOEntityStatus::kInFlight);
 		OO_CHECK(player->canCollide());
-		player->setStatus(STATUS_DOCKED);
+		player->setStatus(OOEntityStatus::kDocked);
 		OO_CHECK(!player->canCollide());
-		player->setStatus(STATUS_DEAD);
+		player->setStatus(OOEntityStatus::kDead);
 		OO_CHECK(!player->canCollide());
-		player->setStatus(STATUS_EXITING_WITCHSPACE);
+		player->setStatus(OOEntityStatus::kExitingWitchspace);
 		OO_CHECK(player->canCollide());
 	}
 }
@@ -659,11 +659,11 @@ OO_TEST(slice8FlightLimitsAndAutopilot)
 		OO_CHECK(player->max_flight_pitch == 1.5f && PlayerEntityTestAccess::pitch_delta(part) == 3.0f);
 		OO_CHECK(player->max_flight_roll == 2.0f && PlayerEntityTestAccess::roll_delta(part) == 4.0f);
 		OO_CHECK(player->max_flight_yaw == 0.5f && PlayerEntityTestAccess::yaw_delta(part) == 1.0f);
-		player->setStatus(STATUS_IN_FLIGHT);
+		player->setStatus(OOEntityStatus::kInFlight);
 		player->disengageAutopilot();
-		OO_CHECK(!PlayerEntityTestAccess::autopilot_engaged(part) && player->status() == STATUS_IN_FLIGHT);
+		OO_CHECK(!PlayerEntityTestAccess::autopilot_engaged(part) && player->status() == OOEntityStatus::kInFlight);
 		player->cancelDockingRequest(nullptr);
-		OO_CHECK(player->status() == STATUS_IN_FLIGHT);
+		OO_CHECK(player->status() == OOEntityStatus::kInFlight);
 	}
 }
 

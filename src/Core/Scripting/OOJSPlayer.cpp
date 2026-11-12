@@ -647,7 +647,7 @@ static JSValue PlayerReplaceShip(OOJS_NATIVE_ARGS) {
   }
 
   if (EXPECT_NOT(!((player != nullptr ? player->status() : OOEntityStatus{}) ==
-                   STATUS_DOCKED))) {
+                   OOEntityStatus::kDocked))) {
     cxx_OOJSReportError(
         context, "Player.replaceShip() only works while the player is docked.");
     return OOJSNativeFailure(context);
