@@ -44,7 +44,6 @@ MA 02110-1301, USA.
 
 #include "oofnd/Ref.hpp"
 #include "oofnd/StdLib.hpp"
-#include "oofnd/objc/OOObjCRef.h"
 #include <quickjs.h>
 
 class Entity;

@@ -18,12 +18,12 @@ endif
 
 subdir('meson')
 subdir('oofnd')
-# Game sources include oofnd headers, which are C++20 (ADR-0011): Objective-C++ builds as c++20.
+# Game sources include oofnd headers, which are C++20 (ADR-0011): the game builds as c++20.
 oolite_dependencies += [oofnd_dep]
 # oofnd/objc's support (OORaiseException, OOCAssert's failure path). The game linked libobjc2 alone
 # for its Objective-C floor (ADR-0029) from oo-qps.18 until bead oo-dbz.5: no unit is Objective-C.
 oolite_dependencies += [oofnd_objc_dep]
-oolite_override_options += ['cpp_std=c++20']   # meson's cpp_std also governs Objective-C++
+oolite_override_options += ['cpp_std=c++20']
 subdir('Core')
 subdir('SDL')
 

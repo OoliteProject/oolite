@@ -326,7 +326,7 @@ static std::optional<std::string> GetSysCtlString(const char* name)
     if (size == 0)
         return std::nullopt;
 
-    buffer = (char*)alloca(size);
+    buffer = static_cast<char*>(alloca(size));
     if (sysctlbyname(name, buffer, &size, NULL, 0) != 0)
         return std::nullopt;
     return std::string(buffer);
