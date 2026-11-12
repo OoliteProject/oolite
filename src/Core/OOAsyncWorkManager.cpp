@@ -168,7 +168,7 @@ class OOOperationQueueAsyncWorkManager : public OOAsyncWorkManagerInternal {
 
 }  // namespace
 
-enum { kMaxWorkThreads = 8 };
+constexpr unsigned kMaxWorkThreads = 8;
 
 namespace {
 

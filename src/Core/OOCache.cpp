@@ -144,7 +144,9 @@ struct OOCacheNode {
   OOCacheNode *younger = nullptr, *older = nullptr;
 };
 
-enum { kCountUnknown = -1U };
+#if OOCACHE_PERFORM_INTEGRITY_CHECKS
+constexpr unsigned kCountUnknown = -1U;
+#endif
 
 constexpr const char* kSerializedEntryKeyKey = "key";
 constexpr const char* kSerializedEntryKeyValue = "value";

@@ -37,10 +37,6 @@ SOFTWARE.
 #include "oofnd/String.hpp"
 #include "unzip.h"
 
-enum {
-  kMaxDecodeSize = 1 << 20  // 2^20 frames = 4 MB
-};
-
 static size_t OOReadOXZVorbis(void* ptr, size_t size, size_t nmemb,
                               void* datasource);
 static int OOCloseOXZVorbis(void* datasource);

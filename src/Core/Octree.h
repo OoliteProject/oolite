@@ -107,9 +107,7 @@ class Octree : public oo::RefCounted {
   oo::Data _data;
 };
 
-enum {
-  kMaxOctreeDepth = 7  // 128x128x128
-};
+inline constexpr int kMaxOctreeDepth = 7;  // 128x128x128
 
 class OOOctreeBuilder : public oo::RefCounted {
  public:

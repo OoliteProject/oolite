@@ -137,7 +137,7 @@ OOEntityStatus cxx_OOEntityStatusFromString(const std::string& string) {
 OOCompassMode cxx_OOCompassModeFromString(const std::string& string) {
 #include "OOCompassMode.tbl"
 
-  return (OOCompassMode)kOOCompassModeDefault;
+  return kOOCompassModeDefault;
 }
 
 OOGalacticHyperspaceBehaviour cxx_OOGalacticHyperspaceBehaviourFromString(
@@ -355,7 +355,7 @@ OOEnergyUnitType cxx_StringToEnergyUnitType(const std::string& string) {
 
 std::optional<std::string> cxx_OODisplayRatingStringFromKillCount(
     unsigned kills) {
-  enum { kRatingCount = 9 };
+  constexpr unsigned kRatingCount = 9;
 
   const unsigned killThresholds[kRatingCount - 1] = {
       0x0008, 0x0010, 0x0020, 0x0040, 0x0080, 0x0200, 0x0A00, 0x1900};
@@ -380,7 +380,7 @@ std::string cxx_KillCountToRatingAndKillString(unsigned kills) {
 }
 
 std::optional<std::string> cxx_OODisplayStringFromLegalStatus(int legalStatus) {
-  enum { kStatusCount = 3 };
+  constexpr unsigned kStatusCount = 3;
 
   const int statusThresholds[kStatusCount - 1] = {1, 51};
   unsigned i;
@@ -441,7 +441,7 @@ OOShaderSetting cxx_OOShaderSettingFromString(const std::string& string) {
   REVERSE_CASE(SHADERS_FULL);
   REVERSE_CASE(SHADERS_NOT_SUPPORTED);
 
-  return (OOShaderSetting)kOOShaderSettingDefault;
+  return kOOShaderSettingDefault;
 }
 
 std::string cxx_CommodityDisplayNameForSymbolicName(

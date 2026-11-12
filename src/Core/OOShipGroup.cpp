@@ -60,7 +60,7 @@ enum { kMinSize = 4, kMaxFreeSpace = 128 };
 */
 class OOShipGroupMembers {
  public:
-  enum { kBatchSize = 16 };
+  static constexpr std::size_t kBatchSize = 16;
 
   explicit OOShipGroupMembers(OOShipGroup* group) : _group(group) {}
 
