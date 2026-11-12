@@ -1565,7 +1565,8 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
 
     case kEntityPersonality:
       if (OOJSValueToInt32(context, value, &iValue)) {
-        if (iValue < 0 || iValue > (int32_t)ENTITY_PERSONALITY_MAX) {
+        if (iValue < 0 ||
+            iValue > static_cast<int32_t>(ENTITY_PERSONALITY_MAX)) {
           cxx_OOJSReportError(
               context, "ship.%s must be >= 0 and <= %u.",
               cxx_OOStringFromJSPropertyMagic(magic, sShipProperties,
@@ -1601,8 +1602,9 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
         // iValue become negative.
         if (ship->maxAvailableCargoSpace() < ship->availableCargoSpace()) {
           iValue = 0;
-        } else if ((OOCargoQuantity)iValue < ship->maxAvailableCargoSpace() -
-                                                 ship->availableCargoSpace()) {
+        } else if (static_cast<OOCargoQuantity>(iValue) <
+                   ship->maxAvailableCargoSpace() -
+                       ship->availableCargoSpace()) {
           iValue = ship->maxAvailableCargoSpace() - ship->availableCargoSpace();
         }
         ship->setMaxAvailableCargoSpace(iValue);
@@ -2089,10 +2091,10 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
 
       if (OOJSValueToInt32(context, value, &iValue)) {
         OOShipGroup* escortGroup = ship->escortGroup();
-        if ((std::ptrdiff_t)iValue < (std::ptrdiff_t)(escortGroup != nullptr
-                                                          ? escortGroup->count()
-                                                          : 0) -
-                                         1) {
+        if (static_cast<std::ptrdiff_t>(iValue) <
+            static_cast<std::ptrdiff_t>(
+                escortGroup != nullptr ? escortGroup->count() : 0) -
+                1) {
           cxx_OOJSReportError(
               context, "ship.%s must be >= current escort numbers.",
               cxx_OOStringFromJSPropertyMagic(magic, sShipProperties,
@@ -2642,8 +2644,9 @@ static JSValue ShipDealEnergyDamage(OOJS_NATIVE_ARGS) {
     }
   }
 
-  ship->dealEnergyDamage((GLfloat)baseDamage, (GLfloat)range,
-                         (GLfloat)velocityBias);
+  ship->dealEnergyDamage(static_cast<GLfloat>(baseDamage),
+                         static_cast<GLfloat>(range),
+                         static_cast<GLfloat>(velocityBias));
 
   OOJS_RETURN_VOID;
 
@@ -3005,8 +3008,8 @@ static JSValue ShipRestoreSubEntities(OOJS_NATIVE_ARGS) {
 
   // for each subentity restored, slightly increase the trade-in factor
   if (ship->getIsPlayer()) {
-    int tradeInFactorChange = (int)MAX(
-        PLAYER_SHIP_SUBENTITY_TRADE_IN_VALUE * numSubEntitiesRestored, 25U);
+    int tradeInFactorChange = static_cast<int>(MAX(
+        PLAYER_SHIP_SUBENTITY_TRADE_IN_VALUE * numSubEntitiesRestored, 25U));
     if (static_cast<PlayerEntity*>(thisEnt) != nullptr)
       static_cast<PlayerEntity*>(thisEnt)->adjustTradeInFactorBy(
           tradeInFactorChange);
@@ -3253,7 +3256,7 @@ static JSValue ShipSetBounty(OOJS_NATIVE_ARGS) {
     return OOJSNativeFailure(context);
   }
 
-  ship->setBounty((OOCreditsQuantity)newbounty, *reason);
+  ship->setBounty(static_cast<OOCreditsQuantity>(newbounty), *reason);
 
   OOJS_RETURN_VOID;
 
@@ -4286,7 +4289,7 @@ static JSValue ShipAdjustCargo(OOJS_NATIVE_ARGS) {
                                                   adjustment)
              : std::vector<oo::EntityHold>()));  // non-reified templates
   } else if (adjustment < 0) {
-    OOCargoQuantity r = (OOCargoQuantity)(-adjustment);
+    OOCargoQuantity r = static_cast<OOCargoQuantity>(-adjustment);
     ok = ship->removeCargo(commodity.value_or(""), r);
   }
 
@@ -4357,7 +4360,7 @@ static JSValue ShipThreatAssessment(OOJS_NATIVE_ARGS) {
   if (ship->missileCapacity() > 2) {
     assessment += 0.5;
   } else {
-    assessment += ((double)ship->missileCapacity()) / 5.0;
+    assessment += (static_cast<double>(ship->missileCapacity())) / 5.0;
   }
 
   /* Turret count is public knowledge */
@@ -4369,7 +4372,8 @@ static JSValue ShipThreatAssessment(OOJS_NATIVE_ARGS) {
   if (fullCheck) {
     // consider pilot skill
     if (ship->getIsPlayer()) {
-      double score = (double)(PLAYER != nullptr ? PLAYER->score() : unsigned{});
+      double score =
+          static_cast<double>(PLAYER != nullptr ? PLAYER->score() : unsigned{});
       if (score > 6400) {
         score = 6400;
       }

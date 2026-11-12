@@ -411,12 +411,13 @@ static JSValue EquipmentInfoGetProperty(OOJS_GETTER_ARGS) {
       break;
 
     case kTechLevel:
-      return JS_NewInt32(context,
-                         (int32_t)Ask(type, &OOEquipmentType::techLevel));
+      return JS_NewInt32(context, static_cast<int32_t>(
+                                      Ask(type, &OOEquipmentType::techLevel)));
 
     case kEffectiveTechLevel:
-      return JS_NewInt32(
-          context, (int32_t)Ask(type, &OOEquipmentType::effectiveTechLevel));
+      return JS_NewInt32(context,
+                         static_cast<int32_t>(
+                             Ask(type, &OOEquipmentType::effectiveTechLevel)));
 
     case kPrice:
       return JS_NewNumber(context, Ask(type, &OOEquipmentType::price));
@@ -432,7 +433,7 @@ static JSValue EquipmentInfoGetProperty(OOJS_GETTER_ARGS) {
       if (inst_time == 0) {
         inst_time = Ask(type, &OOEquipmentType::price) + 600;
       }
-      return JS_NewInt32(context, (int32_t)inst_time);
+      return JS_NewInt32(context, static_cast<int32_t>(inst_time));
 
     case kIsAvailableToAll:
       return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::isAvailableToAll));
@@ -445,8 +446,8 @@ static JSValue EquipmentInfoGetProperty(OOJS_GETTER_ARGS) {
           Ask(type, &OOEquipmentType::isAvailableToPlayer));
 
     case kRepairTime:
-      return JS_NewInt32(context,
-                         (int32_t)Ask(type, &OOEquipmentType::repairTime));
+      return JS_NewInt32(context, static_cast<int32_t>(
+                                      Ask(type, &OOEquipmentType::repairTime)));
 
     case kRequiresEmptyPylon:
       return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::requiresEmptyPylon));
@@ -485,8 +486,9 @@ static JSValue EquipmentInfoGetProperty(OOJS_GETTER_ARGS) {
       return OOJSValueFromBOOL(Ask(type, &OOEquipmentType::isVisible));
 
     case kRequiredCargoSpace:
-      return JS_NewInt32(
-          context, (int32_t)Ask(type, &OOEquipmentType::requiredCargoSpace));
+      return JS_NewInt32(context,
+                         static_cast<int32_t>(
+                             Ask(type, &OOEquipmentType::requiredCargoSpace)));
 
     case kRequiresEquipment:
       result = KeyArrayOrNull(Ask(type, &OOEquipmentType::requiresEquipment));
@@ -620,7 +622,8 @@ static JSValue EquipmentInfoGetAllEqipment(OOJS_GETTER_ARGS) {
 */
 JSValue OOEquipmentType::jsValueInContext(JSContext* context) {
   if (!JS_IsObject(_jsSelf)) {
-    JSValue newSelf = JS_NewObjectClass(context, (int)sEquipmentInfoClassID);
+    JSValue newSelf =
+        JS_NewObjectClass(context, static_cast<int>(sEquipmentInfoClassID));
     if (JS_IsException(newSelf)) {
       JS_FreeValue(context, JS_GetException(context));
       return JS_NULL;

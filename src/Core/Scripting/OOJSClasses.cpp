@@ -67,8 +67,8 @@ JSClassID OOJSRegisterClass(JSClassID* ioClassID, const JSClassDef* classDef) {
   if (!JS_IsRegisteredClass(runtime, classID)) {
     JSClassDef def = *classDef;
     if (def.exotic == nullptr) {
-      sOwnExoticMethods[classID] =
-          (JSClassExoticMethods*)calloc(1, sizeof(JSClassExoticMethods));
+      sOwnExoticMethods[classID] = static_cast<JSClassExoticMethods*>(
+          calloc(1, sizeof(JSClassExoticMethods)));
       def.exotic = sOwnExoticMethods[classID];
     }
     JS_NewClass(runtime, classID, &def);
@@ -109,7 +109,7 @@ bool OOJSIsSubclass(JSClassID putativeSubclass, JSClassID superclass) {
 }
 
 static int CompareAtoms(const void* a, const void* b) {
-  JSAtom x = *(const JSAtom*)a, y = *(const JSAtom*)b;
+  JSAtom x = *static_cast<const JSAtom*>(a), y = *static_cast<const JSAtom*>(b);
   return (x > y) - (x < y);
 }
 
@@ -119,8 +119,10 @@ static void RecordSharedProperties(JSContext* context, JSClassID classID,
   SharedPropertyTable* table = &sSharedProperties[classID];
   if (table->atoms != nullptr || properties == nullptr) return;
 
-  table->atoms = (JSAtom*)malloc(sizeof(JSAtom) * (count ? count : 1));
-  table->sortedAtoms = (JSAtom*)malloc(sizeof(JSAtom) * (count ? count : 1));
+  table->atoms =
+      static_cast<JSAtom*>(malloc(sizeof(JSAtom) * (count ? count : 1)));
+  table->sortedAtoms =
+      static_cast<JSAtom*>(malloc(sizeof(JSAtom) * (count ? count : 1)));
   for (size_t i = 0; i < count; i++) {
     if (properties[i].def_type == JS_DEF_CGETSET ||
         properties[i].def_type == JS_DEF_CGETSET_MAGIC) {
@@ -189,8 +191,8 @@ int OOJSGetSharedPermanentOwnPropertyNames(JSContext* context,
   if (JS_IsStrictEqual(context, prototype, object)) count = 0;
   JS_FreeValue(context, prototype);
 
-  JSPropertyEnum* tab = (JSPropertyEnum*)js_malloc(
-      context, sizeof(JSPropertyEnum) * (count ? count : 1));
+  JSPropertyEnum* tab = static_cast<JSPropertyEnum*>(
+      js_malloc(context, sizeof(JSPropertyEnum) * (count ? count : 1)));
   if (tab == nullptr) return -1;
 
   for (uint32_t i = 0; i < count; i++) {
@@ -224,11 +226,12 @@ JSValueConst OOJSInitClass(JSContext* context, JSValueConst global,
 
   if (properties != nullptr) {
     JS_SetPropertyFunctionList(context, prototype, properties,
-                               (int)propertyCount);
+                               static_cast<int>(propertyCount));
     RecordSharedProperties(context, classID, properties, propertyCount);
   }
   if (methods != nullptr)
-    JS_SetPropertyFunctionList(context, prototype, methods, (int)methodCount);
+    JS_SetPropertyFunctionList(context, prototype, methods,
+                               static_cast<int>(methodCount));
 
   if (constructor != nullptr) {
     const char* name = OOJSClassName(classID);
@@ -238,7 +241,7 @@ JSValueConst OOJSInitClass(JSContext* context, JSValueConst global,
     JS_SetConstructor(context, ctor, prototype);
     if (staticMethods != nullptr)
       JS_SetPropertyFunctionList(context, ctor, staticMethods,
-                                 (int)staticMethodCount);
+                                 static_cast<int>(staticMethodCount));
     JS_DefinePropertyValueStr(context, global, name, ctor,
                               JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
   }

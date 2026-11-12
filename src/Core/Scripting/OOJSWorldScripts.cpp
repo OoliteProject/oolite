@@ -143,10 +143,10 @@ static int WorldScriptsGetOwnPropertyNames(JSContext* context,
     const std::vector<std::string> names =
         (player != nullptr ? player->worldScriptNames()
                            : std::vector<std::string>());
-    uint32_t i, count = (uint32_t)names.size();
+    uint32_t i, count = static_cast<uint32_t>(names.size());
 
-    JSPropertyEnum* table =
-        (JSPropertyEnum*)js_malloc(context, sizeof *table * MAX(count, 1U));
+    JSPropertyEnum* table = static_cast<JSPropertyEnum*>(
+        js_malloc(context, sizeof *table * MAX(count, 1U)));
     if (table == nullptr) return -1;
 
     for (i = 0; i < count; i++) {

@@ -206,7 +206,8 @@ void InitOOJSPlayer(JSContext* context, JSValueConst global) {
           up there rather than keeping a reference that must be dropped on
           reset.
   */
-  JSValue playerObject = JS_NewObjectClass(context, (int)sPlayerClassID);
+  JSValue playerObject =
+      JS_NewObjectClass(context, static_cast<int>(sPlayerClassID));
   JS_DefinePropertyValueStr(context, global, "player", playerObject,
                             OOJS_PROP_READONLY);
 }
@@ -326,40 +327,47 @@ static JSValue PlayerGetProperty(OOJS_GETTER_ARGS) {
     case kContractReputation:
       return JS_NewNumber(
           context,
-          (int)(((float)(player != nullptr ? player->contractReputation()
-                                           : int{})) /
-                10.0));
+          static_cast<int>(
+              (static_cast<float>(
+                  player != nullptr ? player->contractReputation() : int{})) /
+              10.0));
 
     case kPassengerReputation:
       return JS_NewNumber(
           context,
-          (int)(((float)(player != nullptr ? player->passengerReputation()
-                                           : int{})) /
-                10.0));
+          static_cast<int>(
+              (static_cast<float>(
+                  player != nullptr ? player->passengerReputation() : int{})) /
+              10.0));
 
     case kParcelReputation:
       return JS_NewNumber(
-          context, (int)(((float)(player != nullptr ? player->parcelReputation()
+          context,
+          static_cast<int>(
+              (static_cast<float>(player != nullptr ? player->parcelReputation()
                                                     : int{})) /
-                         10.0));
+              10.0));
 
       /* Full-precision reputations */
     case kContractReputationPrecise:
       return JS_NewNumber(
           context,
-          ((float)(player != nullptr ? player->contractReputation() : int{})) /
+          (static_cast<float>(player != nullptr ? player->contractReputation()
+                                                : int{})) /
               10.0);
 
     case kPassengerReputationPrecise:
       return JS_NewNumber(
           context,
-          ((float)(player != nullptr ? player->passengerReputation() : int{})) /
+          (static_cast<float>(player != nullptr ? player->passengerReputation()
+                                                : int{})) /
               10.0);
 
     case kParcelReputationPrecise:
       return JS_NewNumber(
           context,
-          ((float)(player != nullptr ? player->parcelReputation() : int{})) /
+          (static_cast<float>(player != nullptr ? player->parcelReputation()
+                                                : int{})) /
               10.0);
 
     case kDockingClearanceStatus:
@@ -672,9 +680,10 @@ static JSValue PlayerReplaceShip(OOJS_NATIVE_ARGS) {
     // leave the conversion error pending.
     if (!OOJSValueToInt32(context, OOJS_ARGV[1], &personality))
       JS_FreeValue(context, JS_GetException(context));
-    if (personality >= 0 && (uint16_t)personality < ENTITY_PERSONALITY_MAX) {
+    if (personality >= 0 &&
+        static_cast<uint16_t>(personality) < ENTITY_PERSONALITY_MAX) {
       if (player != nullptr)
-        player->setEntityPersonalityInt((uint16_t)personality);
+        player->setEntityPersonalityInt(static_cast<uint16_t>(personality));
     }
   }
 

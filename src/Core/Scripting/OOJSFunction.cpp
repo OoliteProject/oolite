@@ -115,7 +115,7 @@ oo::Ref<OOJSFunction> OOJSFunction::initWithName(
         .version = JS_EVAL_OPTIONS_VERSION,
         .eval_flags = JS_EVAL_TYPE_GLOBAL,
         .filename = fileName.has_value() ? fileName->c_str() : "<anonymous>",
-        .line_num = (int)lineNumber};
+        .line_num = static_cast<int>(lineNumber)};
     // JS_Eval2() requires a NUL-terminated buffer, which c_str() is.
     function = JS_Eval2(context, source.c_str(), source.size(), &options);
     if (JS_IsException(function)) {

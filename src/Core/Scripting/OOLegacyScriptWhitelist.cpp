@@ -654,9 +654,10 @@ static std::string StringFromStackInternal(SanStackElement* topOfStack) {
 
   std::string base = StringFromStackInternal(topOfStack->back);
 
-  std::string string = topOfStack->key
-                           ? *topOfStack->key
-                           : std::format("{}", (size_t)topOfStack->index);
+  std::string string =
+      topOfStack->key
+          ? *topOfStack->key
+          : std::format("{}", static_cast<size_t>(topOfStack->index));
   if (base.size() > 0) base += ".";
 
   base += string;

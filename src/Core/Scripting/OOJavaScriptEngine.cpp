@@ -357,7 +357,7 @@ std::size_t OOJavaScriptEngine::shutDown() {
            "one it does.",
            static_cast<long long>(usage.obj_count));
     _runtime = nullptr;
-    return (std::size_t)usage.obj_count;
+    return static_cast<std::size_t>(usage.obj_count);
   }
 
   JS_FreeRuntime(_runtime);
@@ -619,7 +619,7 @@ bool OOJSValueToInt32(JSContext* context, JSValueConst value,
     return false;
   }
 
-  *outValue = (int32_t)number;
+  *outValue = static_cast<int32_t>(number);
   return true;
 }
 
@@ -1394,7 +1394,8 @@ static std::string DescribeValue(JSContext* context, JSValueConst value,
         std::string arrayDesc = "[";
         int64_t i, effectiveCount = MIN(count, (int64_t)4);
         for (i = 0; i < effectiveCount; i++) {
-          JSValue item = JS_GetPropertyUint32(context, value, (uint32_t)i);
+          JSValue item =
+              JS_GetPropertyUint32(context, value, static_cast<uint32_t>(i));
           std::string itemDesc = "?";
           if (!JS_IsException(item)) {
             itemDesc = DescribeValue(
@@ -1408,14 +1409,15 @@ static std::string DescribeValue(JSContext* context, JSValueConst value,
           arrayDesc += itemDesc;
         }
         if (effectiveCount != count) {
-          arrayDesc += std::format(", ... <{} items total>]", (long long)count);
+          arrayDesc += std::format(", ... <{} items total>]",
+                                   static_cast<long long>(count));
         } else {
           arrayDesc += "]";
         }
 
         result = arrayDesc;
       } else {
-        result = std::format("[<{} items>]", (long long)count);
+        result = std::format("[<{} items>]", static_cast<long long>(count));
       }
     } else {
       JS_FreeValue(context, JS_GetException(context));
@@ -1606,7 +1608,7 @@ JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst thisObj,
 
 bool JSFunctionPredicate(Entity* entity, void* parameter) {
   JSFunctionPredicateParameter* param =
-      (JSFunctionPredicateParameter*)parameter;
+      static_cast<JSFunctionPredicateParameter*>(parameter);
   bool result = false;
 
   OOCParameterAssert(entity != nullptr && param != nullptr);
@@ -1621,8 +1623,8 @@ bool JSFunctionPredicate(Entity* entity, void* parameter) {
 
   OOJSStartTimeLimiter();
   OOJSResumeTimeLimiter();
-  JSValue rval = JS_Call(param->context, param->function, param->jsThis, 1,
-                         (JSValueConst*)&arg);
+  JSValue rval =
+      JS_Call(param->context, param->function, param->jsThis, 1, &arg);
   OOJSPauseTimeLimiter();
   OOJSStopTimeLimiter();
 
@@ -1892,7 +1894,8 @@ static oo::PList PListFromJSArray(JSContext* context, JSValueConst array) {
 
   values.reserve(static_cast<std::size_t>(count));
   for (i = 0; i != count; ++i) {
-    JSValue value = JS_GetPropertyUint32(context, array, (uint32_t)i);
+    JSValue value =
+        JS_GetPropertyUint32(context, array, static_cast<uint32_t>(i));
     if (JS_IsException(value)) {
       JS_FreeValue(context, JS_GetException(context));
       value = JS_UNDEFINED;

@@ -182,7 +182,7 @@ JSValue JSVectorWithHPVector(JSContext* context, HPVector vector) {
 
   HPVector* priv = nullptr;
 
-  priv = (HPVector*)malloc(sizeof *priv);
+  priv = static_cast<HPVector*>(malloc(sizeof *priv));
   if (EXPECT_NOT(priv == nullptr)) return JS_ThrowOutOfMemory(context);
 
   *priv = vector;
@@ -264,7 +264,7 @@ bool JSObjectGetVector(JSContext* context, JSValueConst vectorObj,
   }
 
   // If this is a (JS) Vector...
-  priv = (HPVector*)JS_GetOpaque(vectorObj, sVectorClassID);
+  priv = static_cast<HPVector*>(JS_GetOpaque(vectorObj, sVectorClassID));
   if (EXPECT(priv != nullptr)) {
     *outVector = *priv;
     return true;
@@ -334,7 +334,7 @@ bool JSVectorSetHPVector(JSContext* context, JSValueConst vectorObj,
 
   if (EXPECT_NOT(!JS_IsObject(vectorObj))) return false;
 
-  priv = (HPVector*)JS_GetOpaque(vectorObj, sVectorClassID);
+  priv = static_cast<HPVector*>(JS_GetOpaque(vectorObj, sVectorClassID));
   if (priv != nullptr)  // If this is a (JS) Vector...
   {
     *priv = vector;

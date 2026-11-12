@@ -274,7 +274,8 @@ void InitOOJSSystem(JSContext* context, JSValueConst global) {
                 OOJS_COUNT(sSystemStaticMethods));
 
   // Create system object as a property of the global object.
-  JSValue systemObject = JS_NewObjectClass(context, (int)sSystemClassID);
+  JSValue systemObject =
+      JS_NewObjectClass(context, static_cast<int>(sSystemClassID));
   JS_DefinePropertyValueStr(context, global, "system", systemObject,
                             OOJS_PROP_READONLY);
 }
@@ -753,7 +754,7 @@ static JSValue SystemAddPlanet(OOJS_NATIVE_ARGS) {
 
   OOJS_BEGIN_FULL_NATIVE(context)
   planet = (player != nullptr ? player->addPlanetEntity(*key)
-                              : (OOPlanetEntity*)nullptr);
+                              : static_cast<OOPlanetEntity*>(nullptr));
   OOJS_END_FULL_NATIVE
 
   OOJS_RETURN(
@@ -779,7 +780,7 @@ static JSValue SystemAddMoon(OOJS_NATIVE_ARGS) {
 
   OOJS_BEGIN_FULL_NATIVE(context)
   planet = (player != nullptr ? player->addMoonEntity(*key)
-                              : (OOPlanetEntity*)nullptr);
+                              : static_cast<OOPlanetEntity*>(nullptr));
   OOJS_END_FULL_NATIVE
 
   OOJS_RETURN(
@@ -1661,7 +1662,7 @@ static JSValue SystemAddShipsOrGroup(JSContext* context, int argc,
   int32_t count = 0;
   int consumed = 0;
   HPVector where;
-  double radius = (double)oo::kNotFound;  // a negative value means
+  double radius = static_cast<double>(oo::kNotFound);  // a negative value means
   oo::PList result;
 
   std::string func = isGroup ? "addGroup" : "addShips";
@@ -1741,8 +1742,8 @@ static JSValue SystemAddShipsOrGroupToRoute(JSContext* context, int argc,
   static const std::set<std::string> validRoutes = {"wp", "pw", "ws",
                                                     "sw", "sp", "ps"};
   int32_t count = 0;
-  double where =
-      (double)oo::kNotFound;  // a negative value means random positioning!
+  double where = static_cast<double>(
+      oo::kNotFound);  // a negative value means random positioning!
   oo::PList result;
 
   std::string func = isGroup ? "addGroup" : "addShips";

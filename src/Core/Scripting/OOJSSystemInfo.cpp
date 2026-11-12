@@ -312,7 +312,7 @@ bool OOSystemInfo::isEqual(const OOSystemInfo* other) const {
 std::size_t OOSystemInfo::hash() const {
   std::size_t hash = _galaxy;
   hash <<= 16;
-  hash |= (uint16_t)_system;
+  hash |= static_cast<uint16_t>(_system);
   return hash;
 }
 
@@ -384,7 +384,8 @@ NSPoint OOSystemInfo::coordinates() {
 }
 
 JSValue OOSystemInfo::jsValueInContext(JSContext* context) {
-  JSValue result = JS_NewObjectClass(context, (int)sSystemInfoClassID);
+  JSValue result =
+      JS_NewObjectClass(context, static_cast<int>(sSystemInfoClassID));
   if (JS_IsException(result)) {
     JS_FreeValue(context, JS_GetException(context));
     return JS_NULL;
@@ -725,8 +726,8 @@ static int SystemInfoExoticGetOwnPropertyNames(JSContext* context,
   std::size_t count = keys.size();
   assert(count <= INT32_MAX);
 
-  JSPropertyEnum* tab =
-      (JSPropertyEnum*)js_mallocz(context, sizeof *tab * (count + 1));
+  JSPropertyEnum* tab = static_cast<JSPropertyEnum*>(
+      js_mallocz(context, sizeof *tab * (count + 1)));
   if (tab == nullptr) return -1;
 
   // System data keys (all enumerable; the SpiderMonkey enumerate hook listed
@@ -1112,7 +1113,7 @@ static JSValue SystemInfoSetPropertyMethod(OOJS_NATIVE_ARGS) {
                                "layer must be 0, 1, 2 or 3");
     return OOJSNativeFailure(context);
   }
-  OOSystemLayer layer = (OOSystemLayer)iValue;
+  OOSystemLayer layer = static_cast<OOSystemLayer>(iValue);
 
   property = cxx_OOStringFromJSValue(context, OOJS_ARGV[1]);
   if (!JS_IsNull(OOJS_ARGV[2])) {
@@ -1177,8 +1178,7 @@ static JSValue SystemInfoStaticFilteredSystems(OOJS_NATIVE_ARGS) {
       JSValue args[1] = {OOJSValueFromCxxObject(context, info.get())};
 
       OOJSResumeTimeLimiter();
-      JSValue callResult =
-          JS_Call(context, predicate, jsThis, 1, (JSValueConst*)args);
+      JSValue callResult = JS_Call(context, predicate, jsThis, 1, args);
       OOJSPauseTimeLimiter();
       JS_FreeValue(context, args[0]);
 
@@ -1249,7 +1249,7 @@ static JSValue SystemInfoStaticSetInterstellarProperty(OOJS_NATIVE_ARGS) {
                                "galaxy out of range");
     return OOJSNativeFailure(context);
   } else {
-    g = (OOGalaxyID)iValue;
+    g = static_cast<OOGalaxyID>(iValue);
   }
 
   if (!OOJSValueToInt32(context, OOJS_ARGV[1], &iValue)) {
@@ -1265,7 +1265,7 @@ static JSValue SystemInfoStaticSetInterstellarProperty(OOJS_NATIVE_ARGS) {
                                "fromsystem out of range");
     return OOJSNativeFailure(context);
   } else {
-    s1 = (OOSystemID)iValue;
+    s1 = static_cast<OOSystemID>(iValue);
   }
 
   if (!OOJSValueToInt32(context, OOJS_ARGV[2], &iValue)) {
@@ -1281,7 +1281,7 @@ static JSValue SystemInfoStaticSetInterstellarProperty(OOJS_NATIVE_ARGS) {
                                "tosystem out of range");
     return OOJSNativeFailure(context);
   } else {
-    s2 = (OOSystemID)iValue;
+    s2 = static_cast<OOSystemID>(iValue);
   }
 
   if (!OOJSValueToInt32(context, OOJS_ARGV[3], &iValue)) {
@@ -1297,7 +1297,7 @@ static JSValue SystemInfoStaticSetInterstellarProperty(OOJS_NATIVE_ARGS) {
                                "layer must be 0, 1, 2 or 3");
     return OOJSNativeFailure(context);
   }
-  OOSystemLayer layer = (OOSystemLayer)iValue;
+  OOSystemLayer layer = static_cast<OOSystemLayer>(iValue);
 
   property = cxx_OOStringFromJSValue(context, OOJS_ARGV[4]);
   if (!JS_IsNull(OOJS_ARGV[5])) {

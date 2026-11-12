@@ -346,8 +346,9 @@ static JSValue StationGetProperty(OOJS_GETTER_ARGS) {
 
     case kEquivalentTechLevel:
       return JS_NewInt32(
-          context,
-          (int32_t)(entity != nullptr ? entity->getEquivalentTechLevel() : 0));
+          context, static_cast<int32_t>(entity != nullptr
+                                            ? entity->getEquivalentTechLevel()
+                                            : 0));
 
     case kEquipmentPriceFactor:
       return JS_NewNumber(
@@ -367,13 +368,14 @@ static JSValue StationGetProperty(OOJS_GETTER_ARGS) {
         // return null if station has no shipyard
         return JS_NULL;
       } else {
-        if ((entity != nullptr ? entity->getLocalShipyard()
-                               : (std::vector<oo::PList>*)nullptr) == nullptr) {
+        if ((entity != nullptr
+                 ? entity->getLocalShipyard()
+                 : static_cast<std::vector<oo::PList>*>(nullptr)) == nullptr) {
           if (entity != nullptr) entity->generateShipyard();
         }
         std::vector<oo::PList>* shipyard =
             (entity != nullptr ? entity->getLocalShipyard()
-                               : (std::vector<oo::PList>*)nullptr);
+                               : static_cast<std::vector<oo::PList>*>(nullptr));
         return OOJSValueFromPList(
             context, shipyard != nullptr ? oo::PList(*shipyard) : oo::PList());
       }
@@ -419,7 +421,7 @@ static JSValue StationSetProperty(OOJS_SETTER_ARGS) {
     case kAlertCondition:
       if (OOJSValueToInt32(context, value, &iValue)) {
         if (entity != nullptr)
-          entity->setAlertLevel((OOStationAlertLevel)iValue,
+          entity->setAlertLevel(static_cast<OOStationAlertLevel>(iValue),
                                 false);  // Performs range checking
         return JS_UNDEFINED;
       }
@@ -703,7 +705,7 @@ static JSValue StationLaunchDefenseShip(OOJS_NATIVE_ARGS) {
   ShipEntity* launched = nullptr;
   OOJS_BEGIN_FULL_NATIVE(context)
   launched = (station != nullptr ? station->launchDefenseShip()
-                                 : (::ShipEntity*)nullptr);
+                                 : static_cast<::ShipEntity*>(nullptr));
   OOJS_END_FULL_NATIVE
   OOJS_RETURN(
       OOJSValueFromCxxObject(context, launched));  // the C++ ship's JS value
@@ -719,8 +721,8 @@ static JSValue StationLaunchEscort(OOJS_NATIVE_ARGS) {
 
   ShipEntity* launched = nullptr;
   OOJS_BEGIN_FULL_NATIVE(context)
-  launched =
-      (station != nullptr ? station->launchEscort() : (::ShipEntity*)nullptr);
+  launched = (station != nullptr ? station->launchEscort()
+                                 : static_cast<::ShipEntity*>(nullptr));
   OOJS_END_FULL_NATIVE
   OOJS_RETURN(
       OOJSValueFromCxxObject(context, launched));  // the C++ ship's JS value
@@ -737,7 +739,7 @@ static JSValue StationLaunchScavenger(OOJS_NATIVE_ARGS) {
   ShipEntity* launched = nullptr;
   OOJS_BEGIN_FULL_NATIVE(context)
   launched = (station != nullptr ? station->launchScavenger()
-                                 : (::ShipEntity*)nullptr);
+                                 : static_cast<::ShipEntity*>(nullptr));
   OOJS_END_FULL_NATIVE
   OOJS_RETURN(
       OOJSValueFromCxxObject(context, launched));  // the C++ ship's JS value
@@ -753,8 +755,8 @@ static JSValue StationLaunchMiner(OOJS_NATIVE_ARGS) {
 
   ShipEntity* launched = nullptr;
   OOJS_BEGIN_FULL_NATIVE(context)
-  launched =
-      (station != nullptr ? station->launchMiner() : (::ShipEntity*)nullptr);
+  launched = (station != nullptr ? station->launchMiner()
+                                 : static_cast<::ShipEntity*>(nullptr));
   OOJS_END_FULL_NATIVE
   OOJS_RETURN(
       OOJSValueFromCxxObject(context, launched));  // the C++ ship's JS value
@@ -770,7 +772,7 @@ static JSValue StationLaunchPirateShip(OOJS_NATIVE_ARGS) {
   ShipEntity* launched = nullptr;
   OOJS_BEGIN_FULL_NATIVE(context)
   launched = (station != nullptr ? station->launchPirateShip()
-                                 : (::ShipEntity*)nullptr);
+                                 : static_cast<::ShipEntity*>(nullptr));
   OOJS_END_FULL_NATIVE
   OOJS_RETURN(
       OOJSValueFromCxxObject(context, launched));  // the C++ ship's JS value
@@ -786,8 +788,8 @@ static JSValue StationLaunchShuttle(OOJS_NATIVE_ARGS) {
 
   ShipEntity* launched = nullptr;
   OOJS_BEGIN_FULL_NATIVE(context)
-  launched =
-      (station != nullptr ? station->launchShuttle() : (::ShipEntity*)nullptr);
+  launched = (station != nullptr ? station->launchShuttle()
+                                 : static_cast<::ShipEntity*>(nullptr));
   OOJS_END_FULL_NATIVE
   OOJS_RETURN(
       OOJSValueFromCxxObject(context, launched));  // the C++ ship's JS value
@@ -802,8 +804,8 @@ static JSValue StationLaunchPatrol(OOJS_NATIVE_ARGS) {
 
   ShipEntity* launched = nullptr;
   OOJS_BEGIN_FULL_NATIVE(context)
-  launched =
-      (station != nullptr ? station->launchPatrol() : (::ShipEntity*)nullptr);
+  launched = (station != nullptr ? station->launchPatrol()
+                                 : static_cast<::ShipEntity*>(nullptr));
   OOJS_END_FULL_NATIVE
   OOJS_RETURN(
       OOJSValueFromCxxObject(context, launched));  // the C++ ship's JS value
@@ -1029,10 +1031,10 @@ static JSValue StationSetMarketPrice(OOJS_NATIVE_ARGS) {
   }
 
   if (station != nullptr)
-    station->setPrice((std::size_t)price, commodity.value_or(""));
+    station->setPrice(static_cast<std::size_t>(price), commodity.value_or(""));
 
   if (station == (PLAYER != nullptr ? PLAYER->PlayerEntity::dockedStation()
-                                    : (StationEntity*)nullptr) &&
+                                    : static_cast<StationEntity*>(nullptr)) &&
       (PLAYER != nullptr ? PLAYER->guiScreen() : OOGUIScreenID{}) ==
           OOGUIScreenID::kMarket)  // qualified: the final overrider, so the
                                    // binding test stands in for it
@@ -1077,8 +1079,8 @@ static JSValue StationSetMarketQuantity(OOJS_NATIVE_ARGS) {
   OOCommodityMarket* market =
       (station != nullptr
            ? station->getLocalMarket()
-           : (OOCommodityMarket*)nullptr);  // null: no capacity, as a message
-                                            // to nil
+           : static_cast<OOCommodityMarket*>(nullptr));  // null: no capacity,
+                                                         // as a message to nil
   if (EXPECT_NOT(
           !gotQuantity || quantity < 0 ||
           (OOCargoQuantity)quantity >
@@ -1091,10 +1093,10 @@ static JSValue StationSetMarketQuantity(OOJS_NATIVE_ARGS) {
   }
 
   if (station != nullptr)
-    station->setQuantity((OOCargoQuantity)quantity, commodity);
+    station->setQuantity(static_cast<OOCargoQuantity>(quantity), commodity);
 
   if (station == (PLAYER != nullptr ? PLAYER->PlayerEntity::dockedStation()
-                                    : (StationEntity*)nullptr) &&
+                                    : static_cast<StationEntity*>(nullptr)) &&
       (PLAYER != nullptr ? PLAYER->guiScreen() : OOGUIScreenID{}) ==
           OOGUIScreenID::kMarket)  // qualified: the final overrider, so the
                                    // binding test stands in for it
@@ -1174,12 +1176,12 @@ static JSValue StationAddShipToShipyard(OOJS_NATIVE_ARGS) {
   }
   // make sure the shipyard has been generated
   if (!(station != nullptr ? station->getLocalShipyard()
-                           : (std::vector<oo::PList>*)nullptr)) {
+                           : static_cast<std::vector<oo::PList>*>(nullptr))) {
     if (station != nullptr) station->generateShipyard();
   }
   std::vector<oo::PList>* shipyard =
       (station != nullptr ? station->getLocalShipyard()
-                          : (std::vector<oo::PList>*)nullptr);
+                          : static_cast<std::vector<oo::PList>*>(nullptr));
 
   if (JS_IsNull(OOJS_ARGV[0]))
     OOJS_RETURN_VOID;  // OK, do nothing for null ship.
@@ -1370,7 +1372,7 @@ static JSValue StationAddShipToShipyard(OOJS_NATIVE_ARGS) {
 
   // refresh the screen if the shipyard is currently being displayed
   if (station == (PLAYER != nullptr ? PLAYER->PlayerEntity::dockedStation()
-                                    : (StationEntity*)nullptr) &&
+                                    : static_cast<StationEntity*>(nullptr)) &&
       (PLAYER != nullptr ? PLAYER->guiScreen() : OOGUIScreenID{}) ==
           OOGUIScreenID::kShipyard)  // qualified: the final overrider, so the
                                      // binding test stands in for it
@@ -1397,12 +1399,12 @@ static JSValue StationRemoveShipFromShipyard(OOJS_NATIVE_ARGS) {
   }
   // make sure the shipyard has been generated
   if (!(station != nullptr ? station->getLocalShipyard()
-                           : (std::vector<oo::PList>*)nullptr)) {
+                           : static_cast<std::vector<oo::PList>*>(nullptr))) {
     if (station != nullptr) station->generateShipyard();
   }
   std::vector<oo::PList>* shipyard =
       (station != nullptr ? station->getLocalShipyard()
-                          : (std::vector<oo::PList>*)nullptr);
+                          : static_cast<std::vector<oo::PList>*>(nullptr));
 
   int32_t shipIndex = -1;
   bool gotIndex = true;
@@ -1423,7 +1425,7 @@ static JSValue StationRemoveShipFromShipyard(OOJS_NATIVE_ARGS) {
 
   // refresh the screen if the shipyard is currently being displayed
   if (station == (PLAYER != nullptr ? PLAYER->PlayerEntity::dockedStation()
-                                    : (StationEntity*)nullptr) &&
+                                    : static_cast<StationEntity*>(nullptr)) &&
       (PLAYER != nullptr ? PLAYER->guiScreen() : OOGUIScreenID{}) ==
           OOGUIScreenID::kShipyard)  // qualified: the final overrider, so the
                                      // binding test stands in for it

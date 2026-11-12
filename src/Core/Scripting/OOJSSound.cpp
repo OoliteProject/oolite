@@ -275,8 +275,8 @@ static JSValue SoundStaticPlayMusic(OOJS_NATIVE_ARGS) {
   }
 
   OOJS_BEGIN_FULL_NATIVE(context)
-  OOMusicController::sharedController()->playMusicNamed(*name, loop,
-                                                        (float)gain);
+  OOMusicController::sharedController()->playMusicNamed(
+      *name, loop, static_cast<float>(gain));
   OOJS_END_FULL_NATIVE
 
   OOJS_RETURN_VOID;
@@ -315,7 +315,7 @@ static JSValue SoundStaticStopMusic(OOJS_NATIVE_ARGS) {
 JSValue OOJSSoundJSValueInContext(OOSound* sound, JSContext* context) {
   if (sound == nullptr) return JS_NULL;
 
-  JSValue result = JS_NewObjectClass(context, (int)sSoundClassID);
+  JSValue result = JS_NewObjectClass(context, static_cast<int>(sSoundClassID));
   if (JS_IsException(result)) {
     JS_FreeValue(context, JS_GetException(context));
     return JS_NULL;

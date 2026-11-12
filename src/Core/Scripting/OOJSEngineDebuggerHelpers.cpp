@@ -222,7 +222,7 @@ const char* JSIDToStrSafeDbg(JSAtom anID) {
     JS_FreeCString(context, chars);
   } else {
     JS_FreeValue(context, JS_GetException(context));
-    formatted = std::format("unknown <0x{:X}>", (unsigned)anID);
+    formatted = std::format("unknown <0x{:X}>", static_cast<unsigned>(anID));
   }
 
   return DebuggerCString(std::move(formatted));

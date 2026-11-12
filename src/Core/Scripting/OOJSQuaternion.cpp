@@ -148,7 +148,7 @@ JSValue JSQuaternionWithQuaternion(JSContext* context, Quaternion quaternion) {
 
   Quaternion* priv = nullptr;
 
-  priv = (Quaternion*)malloc(sizeof *priv);
+  priv = static_cast<Quaternion*>(malloc(sizeof *priv));
   if (EXPECT_NOT(priv == nullptr)) return JS_ThrowOutOfMemory(context);
 
   *priv = quaternion;
@@ -215,7 +215,8 @@ bool JSObjectGetQuaternion(JSContext* context, JSValueConst quaternionObj,
   }
 
   // If this is a (JS) Quaternion...
-  priv = (Quaternion*)JS_GetOpaque(quaternionObj, sQuaternionClassID);
+  priv =
+      static_cast<Quaternion*>(JS_GetOpaque(quaternionObj, sQuaternionClassID));
   if (EXPECT(priv != nullptr)) {
     *outQuaternion = *priv;
     return true;
@@ -288,7 +289,8 @@ bool JSQuaternionSetQuaternion(JSContext* context, JSValueConst quaternionObj,
 
   Quaternion* priv = nullptr;
 
-  priv = (Quaternion*)JS_GetOpaque(quaternionObj, sQuaternionClassID);
+  priv =
+      static_cast<Quaternion*>(JS_GetOpaque(quaternionObj, sQuaternionClassID));
   if (priv != nullptr)  // If this is a (JS) Quaternion...
   {
     *priv = quaternion;

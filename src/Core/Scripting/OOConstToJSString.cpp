@@ -179,8 +179,8 @@ void OOConstToJSStringDestroy() {
 }
 
 static int CompareEntries(const void* a, const void* b) {
-  const TableEntry* entA = (const TableEntry*)a;
-  const TableEntry* entB = (const TableEntry*)b;
+  const TableEntry* entA = static_cast<const TableEntry*>(a);
+  const TableEntry* entB = static_cast<const TableEntry*>(b);
 
   if (entA->value < entB->value) return -1;
   if (entA->value > entB->value) return 1;
@@ -209,7 +209,7 @@ JSValue OOJSValueFromConstantPRIVATE(JSContext* context, std::ptrdiff_t value,
 
   // Binary search. (Signed bounds: the SpiderMonkey version underflowed for
   // values below the first entry.)
-  std::ptrdiff_t min = 0, max = (std::ptrdiff_t)table->count - 1;
+  std::ptrdiff_t min = 0, max = static_cast<std::ptrdiff_t>(table->count) - 1;
   std::ptrdiff_t current;
   while (min <= max) {
     std::ptrdiff_t mid = (min + max) / 2;
