@@ -65,6 +65,25 @@ typedef enum {
   WH_SCANINFO_SHIP,
 } WORMHOLE_SCANINFO;
 
+// The names the game writes for WORMHOLE_SCANINFO (saves, logs and plists).
+constexpr std::string_view OOEnumName(WORMHOLE_SCANINFO value) noexcept {
+  switch (value) {
+    case WH_SCANINFO_NONE:
+      return "WH_SCANINFO_NONE";
+    case WH_SCANINFO_SCANNED:
+      return "WH_SCANINFO_SCANNED";
+    case WH_SCANINFO_COLLAPSE_TIME:
+      return "WH_SCANINFO_COLLAPSE_TIME";
+    case WH_SCANINFO_ARRIVAL_TIME:
+      return "WH_SCANINFO_ARRIVAL_TIME";
+    case WH_SCANINFO_DESTINATION:
+      return "WH_SCANINFO_DESTINATION";
+    case WH_SCANINFO_SHIP:
+      return "WH_SCANINFO_SHIP";
+  }
+  return {};
+}
+
 // A ship in transit (the old entry dictionary's "ship", "time" and
 // "shipBeacon").
 struct OOWormholeTransit {

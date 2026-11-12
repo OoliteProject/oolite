@@ -168,6 +168,23 @@ typedef enum {
   OOHDR_TONEMAPPER_REINHARD
 } OOHDRToneMapper;
 
+// The names the game writes for OOHDRToneMapper (saves, logs and plists).
+constexpr std::string_view OOEnumName(OOHDRToneMapper value) noexcept {
+  switch (value) {
+    case OOHDR_TONEMAPPER_NONE:
+      return "OOHDR_TONEMAPPER_NONE";
+    case OOHDR_TONEMAPPER_ACES_APPROX:
+      return "OOHDR_TONEMAPPER_ACES_APPROX";
+    case OOHDR_TONEMAPPER_DICE:
+      return "OOHDR_TONEMAPPER_DICE";
+    case OOHDR_TONEMAPPER_UCHIMURA:
+      return "OOHDR_TONEMAPPER_UCHIMURA";
+    case OOHDR_TONEMAPPER_REINHARD:
+      return "OOHDR_TONEMAPPER_REINHARD";
+  }
+  return {};
+}
+
 typedef enum {
   OOSDR_TONEMAPPER_NONE = -1,
   OOSDR_TONEMAPPER_ACES = 0,
@@ -177,6 +194,27 @@ typedef enum {
   OOSDR_TONEMAPPER_UCHIMURA,
   OOSDR_TONEMAPPER_REINHARD
 } OOSDRToneMapper;
+
+// The names the game writes for OOSDRToneMapper (saves, logs and plists).
+constexpr std::string_view OOEnumName(OOSDRToneMapper value) noexcept {
+  switch (value) {
+    case OOSDR_TONEMAPPER_NONE:
+      return "OOSDR_TONEMAPPER_NONE";
+    case OOSDR_TONEMAPPER_ACES:
+      return "OOSDR_TONEMAPPER_ACES";
+    case OOSDR_TONEMAPPER_AgX:
+      return "OOSDR_TONEMAPPER_AgX";
+    case OOSDR_TONEMAPPER_HEJLDAWSON:
+      return "OOSDR_TONEMAPPER_HEJLDAWSON";
+    case OOSDR_TONEMAPPER_UC2:
+      return "OOSDR_TONEMAPPER_UC2";
+    case OOSDR_TONEMAPPER_UCHIMURA:
+      return "OOSDR_TONEMAPPER_UCHIMURA";
+    case OOSDR_TONEMAPPER_REINHARD:
+      return "OOSDR_TONEMAPPER_REINHARD";
+  }
+  return {};
+}
 
 extern int debug;
 

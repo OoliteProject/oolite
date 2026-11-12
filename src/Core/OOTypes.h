@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #pragma once
 
 #include <cstdint>
+#include <string_view>
 
 #include "OOEnumFlags.h"
 #include "OOFunctionAttributes.h"
@@ -48,6 +49,19 @@ typedef enum {
   OPTIMIZED_BY_JUMPS,
   OPTIMIZED_BY_TIME
 } OORouteType;
+
+// The names the game writes for OORouteType (saves, logs and plists).
+constexpr std::string_view OOEnumName(OORouteType value) noexcept {
+  switch (value) {
+    case OPTIMIZED_BY_NONE:
+      return "OPTIMIZED_BY_NONE";
+    case OPTIMIZED_BY_JUMPS:
+      return "OPTIMIZED_BY_JUMPS";
+    case OPTIMIZED_BY_TIME:
+      return "OPTIMIZED_BY_TIME";
+  }
+  return {};
+}
 
 #define ENTRY(label, value) label,
 
@@ -83,6 +97,29 @@ typedef enum {
   CARGO_SCRIPTED_ITEM = 200,
   CARGO_CHARACTER = 300
 } OOCargoType;
+
+// The names the game writes for OOCargoType (saves, logs and plists).
+constexpr std::string_view OOEnumName(OOCargoType value) noexcept {
+  switch (value) {
+    case CARGO_NOT_CARGO:
+      return "CARGO_NOT_CARGO";
+    case CARGO_SLAVES:
+      return "CARGO_SLAVES";
+    case CARGO_ALLOY:
+      return "CARGO_ALLOY";
+    case CARGO_MINERALS:
+      return "CARGO_MINERALS";
+    case CARGO_THARGOID:
+      return "CARGO_THARGOID";
+    case CARGO_RANDOM:
+      return "CARGO_RANDOM";
+    case CARGO_SCRIPTED_ITEM:
+      return "CARGO_SCRIPTED_ITEM";
+    case CARGO_CHARACTER:
+      return "CARGO_CHARACTER";
+  }
+  return {};
+}
 
 /*
 enum
@@ -144,6 +181,26 @@ typedef enum {
   ENERGY_UNIT_NAVAL = 16
 } OOEnergyUnitType;
 
+// The names the game writes for OOEnergyUnitType (saves, logs and plists).
+constexpr std::string_view OOEnumName(OOEnergyUnitType value) noexcept {
+  switch (value) {
+    case ENERGY_UNIT_NONE:
+      return "ENERGY_UNIT_NONE";
+    case ENERGY_UNIT_NORMAL:
+      return "ENERGY_UNIT_NORMAL";
+    case ENERGY_UNIT_NAVAL:
+      return "ENERGY_UNIT_NAVAL";
+    case ENERGY_UNIT_NORMAL_DAMAGED:
+      return "ENERGY_UNIT_NORMAL_DAMAGED";
+    case ENERGY_UNIT_NAVAL_DAMAGED:
+      return "ENERGY_UNIT_NAVAL_DAMAGED";
+    case OLD_ENERGY_UNIT_NORMAL:  // a legacy save's number only: no name
+    case OLD_ENERGY_UNIT_NAVAL:
+      return {};
+  }
+  return {};
+}
+
 #define ENTRY(label, value) label = value,
 
 typedef enum {
@@ -169,6 +226,24 @@ typedef enum {
   DOCKING_CLEARANCE_STATUS_GRANTED,
   DOCKING_CLEARANCE_STATUS_TIMING_OUT,
 } OODockingClearanceStatus;
+
+// The names the game writes for OODockingClearanceStatus (saves, logs and
+// plists).
+constexpr std::string_view OOEnumName(OODockingClearanceStatus value) noexcept {
+  switch (value) {
+    case DOCKING_CLEARANCE_STATUS_NONE:
+      return "DOCKING_CLEARANCE_STATUS_NONE";
+    case DOCKING_CLEARANCE_STATUS_REQUESTED:
+      return "DOCKING_CLEARANCE_STATUS_REQUESTED";
+    case DOCKING_CLEARANCE_STATUS_NOT_REQUIRED:
+      return "DOCKING_CLEARANCE_STATUS_NOT_REQUIRED";
+    case DOCKING_CLEARANCE_STATUS_GRANTED:
+      return "DOCKING_CLEARANCE_STATUS_GRANTED";
+    case DOCKING_CLEARANCE_STATUS_TIMING_OUT:
+      return "DOCKING_CLEARANCE_STATUS_TIMING_OUT";
+  }
+  return {};
+}
 
 typedef uint32_t OOCargoQuantity;
 typedef int32_t OOCargoQuantityDelta;
@@ -249,3 +324,18 @@ typedef enum {
 
   DETAIL_LEVEL_MAXIMUM = 3
 } OOGraphicsDetail;
+
+// The names the game writes for OOGraphicsDetail (saves, logs and plists).
+constexpr std::string_view OOEnumName(OOGraphicsDetail value) noexcept {
+  switch (value) {
+    case DETAIL_LEVEL_MINIMUM:
+      return "DETAIL_LEVEL_MINIMUM";
+    case DETAIL_LEVEL_NORMAL:
+      return "DETAIL_LEVEL_NORMAL";
+    case DETAIL_LEVEL_SHADERS:
+      return "DETAIL_LEVEL_SHADERS";
+    case DETAIL_LEVEL_EXTRAS:
+      return "DETAIL_LEVEL_EXTRAS";
+  }
+  return {};
+}

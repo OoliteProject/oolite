@@ -25,18 +25,15 @@ MA );-);, USA.
 #include "OOConstToString.h"
 
 #include <format>
+#include <optional>
+#include <string_view>
 
 #include "OOCommodityMarket.h"
+#include "OOEnumTable.h"
 #include "OOEquipmentType.h"
 #include "PlayerEntity.h"
 #include "Universe.h"
 #include "oofnd/String.hpp"
-
-#define CASE(foo) \
-  case foo:       \
-    return #foo;
-#define REVERSE_CASE(foo) \
-  if (string == #foo) return foo;
 
 #define ENTRY(label, value) \
   case label:               \
@@ -177,13 +174,9 @@ OOLongRangeChartMode cxx_OOLongRangeChartModeFromString(
 #undef GALACTIC_HYPERSPACE_ENTRY
 
 std::string cxx_RouteTypeToString(OORouteType routeType) {
-  switch (routeType) {
-    CASE(OPTIMIZED_BY_NONE);
-    CASE(OPTIMIZED_BY_JUMPS);
-    CASE(OPTIMIZED_BY_TIME);
-  }
-
-  return "** ROUTE TYPE UNKNOWN **";
+  const std::string_view name = OOEnumName(routeType);
+  return name.empty() ? std::string("** ROUTE TYPE UNKNOWN **")
+                      : std::string(name);
 }
 
 namespace {
@@ -298,28 +291,17 @@ OOWeaponType cxx_OOWeaponTypeFromEquipmentIdentifierStrict(
 }
 
 std::string cxx_CargoTypeToString(OOCargoType cargo) {
-  switch (cargo) {
-    CASE(CARGO_NOT_CARGO);
-    CASE(CARGO_SLAVES);
-    CASE(CARGO_ALLOY);
-    CASE(CARGO_MINERALS);
-    CASE(CARGO_THARGOID);
-    CASE(CARGO_RANDOM);
-    CASE(CARGO_SCRIPTED_ITEM);
-    CASE(CARGO_CHARACTER);
-  }
-  return "Unknown cargo";
+  const std::string_view name = OOEnumName(cargo);
+  return name.empty() ? std::string("Unknown cargo") : std::string(name);
 }
 
 OOCargoType cxx_StringToCargoType(const std::string& string) {
-  REVERSE_CASE(CARGO_NOT_CARGO);
-  REVERSE_CASE(CARGO_SLAVES);
-  REVERSE_CASE(CARGO_ALLOY);
-  REVERSE_CASE(CARGO_MINERALS);
-  REVERSE_CASE(CARGO_THARGOID);
-  REVERSE_CASE(CARGO_RANDOM);
-  REVERSE_CASE(CARGO_SCRIPTED_ITEM);
-  REVERSE_CASE(CARGO_CHARACTER);
+  static constexpr auto kNames =
+      oo::MakeEnumTable<OOCargoType, CARGO_NOT_CARGO, CARGO_SLAVES, CARGO_ALLOY,
+                        CARGO_MINERALS, CARGO_THARGOID, CARGO_RANDOM,
+                        CARGO_SCRIPTED_ITEM, CARGO_CHARACTER>();
+  if (const std::optional<OOCargoType> value = kNames.value(string))
+    return *value;
 
   // Backwards compatibility.
   if (string == "CARGO_CARRIED") return CARGO_RANDOM;
@@ -328,27 +310,18 @@ OOCargoType cxx_StringToCargoType(const std::string& string) {
 }
 
 std::string cxx_EnergyUnitTypeToString(OOEnergyUnitType unit) {
-  switch (unit) {
-    CASE(ENERGY_UNIT_NONE);
-    CASE(ENERGY_UNIT_NORMAL);
-    CASE(ENERGY_UNIT_NAVAL);
-    CASE(ENERGY_UNIT_NORMAL_DAMAGED);
-    CASE(ENERGY_UNIT_NAVAL_DAMAGED);
-
-    case OLD_ENERGY_UNIT_NORMAL:
-    case OLD_ENERGY_UNIT_NAVAL:
-      break;
-  }
-
-  return "Unsupported energy unit";
+  const std::string_view name = OOEnumName(unit);
+  return name.empty() ? std::string("Unsupported energy unit")
+                      : std::string(name);
 }
 
 OOEnergyUnitType cxx_StringToEnergyUnitType(const std::string& string) {
-  REVERSE_CASE(ENERGY_UNIT_NONE);
-  REVERSE_CASE(ENERGY_UNIT_NORMAL);
-  REVERSE_CASE(ENERGY_UNIT_NAVAL);
-  REVERSE_CASE(ENERGY_UNIT_NORMAL_DAMAGED);
-  REVERSE_CASE(ENERGY_UNIT_NAVAL_DAMAGED);
+  static constexpr auto kNames =
+      oo::MakeEnumTable<OOEnergyUnitType, ENERGY_UNIT_NONE, ENERGY_UNIT_NORMAL,
+                        ENERGY_UNIT_NAVAL, ENERGY_UNIT_NORMAL_DAMAGED,
+                        ENERGY_UNIT_NAVAL_DAMAGED>();
+  if (const std::optional<OOEnergyUnitType> value = kNames.value(string))
+    return *value;
 
   return (OOEnergyUnitType)kOOEnergyUnitTypeDefault;
 }
@@ -425,21 +398,16 @@ std::optional<std::string> cxx_OODisplayStringFromShaderSetting(
 }
 
 std::string cxx_OOStringFromShaderSetting(OOShaderSetting setting) {
-  switch (setting) {
-    CASE(SHADERS_OFF);
-    CASE(SHADERS_SIMPLE);
-    CASE(SHADERS_FULL);
-    CASE(SHADERS_NOT_SUPPORTED);
-  }
-
-  return "UNDEFINED";
+  const std::string_view name = OOEnumName(setting);
+  return name.empty() ? std::string("UNDEFINED") : std::string(name);
 }
 
 OOShaderSetting cxx_OOShaderSettingFromString(const std::string& string) {
-  REVERSE_CASE(SHADERS_OFF);
-  REVERSE_CASE(SHADERS_SIMPLE);
-  REVERSE_CASE(SHADERS_FULL);
-  REVERSE_CASE(SHADERS_NOT_SUPPORTED);
+  static constexpr auto kNames =
+      oo::MakeEnumTable<OOShaderSetting, SHADERS_OFF, SHADERS_SIMPLE,
+                        SHADERS_FULL, SHADERS_NOT_SUPPORTED>();
+  if (const std::optional<OOShaderSetting> value = kNames.value(string))
+    return *value;
 
   return kOOShaderSettingDefault;
 }
@@ -490,90 +458,69 @@ std::optional<std::string> cxx_DisplayStringForMassUnitForCommodity(
 }
 
 OORouteType cxx_StringToRouteType(const std::string& string) {
-  REVERSE_CASE(OPTIMIZED_BY_NONE);
-  REVERSE_CASE(OPTIMIZED_BY_JUMPS);
-  REVERSE_CASE(OPTIMIZED_BY_TIME);
+  static constexpr auto kNames =
+      oo::MakeEnumTable<OORouteType, OPTIMIZED_BY_NONE, OPTIMIZED_BY_JUMPS,
+                        OPTIMIZED_BY_TIME>();
+  if (const std::optional<OORouteType> value = kNames.value(string))
+    return *value;
 
   return (OORouteType)kOORouteTypeDefault;
 }
 
 std::string cxx_DockingClearanceStatusToString(
     OODockingClearanceStatus dockingClearanceStatus) {
-  switch (dockingClearanceStatus) {
-    CASE(DOCKING_CLEARANCE_STATUS_NONE);
-    CASE(DOCKING_CLEARANCE_STATUS_REQUESTED);
-    CASE(DOCKING_CLEARANCE_STATUS_NOT_REQUIRED);
-    CASE(DOCKING_CLEARANCE_STATUS_GRANTED);
-    CASE(DOCKING_CLEARANCE_STATUS_TIMING_OUT);
-  }
-
-  return "DOCKING_CLEARANCE_STATUS_UNKNOWN";
+  const std::string_view name = OOEnumName(dockingClearanceStatus);
+  return name.empty() ? std::string("DOCKING_CLEARANCE_STATUS_UNKNOWN")
+                      : std::string(name);
 }
 
 std::string cxx_OOStringFromGraphicsDetail(OOGraphicsDetail detail) {
-  switch (detail) {
-    CASE(DETAIL_LEVEL_MINIMUM);
-    CASE(DETAIL_LEVEL_NORMAL);
-    CASE(DETAIL_LEVEL_SHADERS);
-    CASE(DETAIL_LEVEL_EXTRAS);
-  }
-
-  return "DETAIL_LEVEL_UNKNOWN";
+  const std::string_view name = OOEnumName(detail);
+  return name.empty() ? std::string("DETAIL_LEVEL_UNKNOWN") : std::string(name);
 }
 
 OOGraphicsDetail cxx_OOGraphicsDetailFromString(const std::string& string) {
-  REVERSE_CASE(DETAIL_LEVEL_MINIMUM);
-  REVERSE_CASE(DETAIL_LEVEL_NORMAL);
-  REVERSE_CASE(DETAIL_LEVEL_SHADERS);
-  REVERSE_CASE(DETAIL_LEVEL_EXTRAS);
+  static constexpr auto kNames =
+      oo::MakeEnumTable<OOGraphicsDetail, DETAIL_LEVEL_MINIMUM,
+                        DETAIL_LEVEL_NORMAL, DETAIL_LEVEL_SHADERS,
+                        DETAIL_LEVEL_EXTRAS>();
+  if (const std::optional<OOGraphicsDetail> value = kNames.value(string))
+    return *value;
 
   return DETAIL_LEVEL_MINIMUM;
 }
 
 std::string cxx_OOStringFromHDRToneMapper(OOHDRToneMapper toneMapper) {
-  switch (toneMapper) {
-    CASE(OOHDR_TONEMAPPER_NONE);
-    CASE(OOHDR_TONEMAPPER_ACES_APPROX);
-    CASE(OOHDR_TONEMAPPER_DICE);
-    CASE(OOHDR_TONEMAPPER_UCHIMURA);
-    CASE(OOHDR_TONEMAPPER_REINHARD);
-  }
-
-  return "OOHDR_TONEMAPPER_UNDEFINED";
+  const std::string_view name = OOEnumName(toneMapper);
+  return name.empty() ? std::string("OOHDR_TONEMAPPER_UNDEFINED")
+                      : std::string(name);
 }
 
 OOHDRToneMapper cxx_OOHDRToneMapperFromString(const std::string& string) {
-  REVERSE_CASE(OOHDR_TONEMAPPER_NONE);
-  REVERSE_CASE(OOHDR_TONEMAPPER_ACES_APPROX);
-  REVERSE_CASE(OOHDR_TONEMAPPER_DICE);
-  REVERSE_CASE(OOHDR_TONEMAPPER_UCHIMURA);
-  REVERSE_CASE(OOHDR_TONEMAPPER_REINHARD);
+  static constexpr auto kNames =
+      oo::MakeEnumTable<OOHDRToneMapper, OOHDR_TONEMAPPER_NONE,
+                        OOHDR_TONEMAPPER_ACES_APPROX, OOHDR_TONEMAPPER_DICE,
+                        OOHDR_TONEMAPPER_UCHIMURA, OOHDR_TONEMAPPER_REINHARD>();
+  if (const std::optional<OOHDRToneMapper> value = kNames.value(string))
+    return *value;
 
   return OOHDR_TONEMAPPER_ACES_APPROX;
 }
 
 std::string cxx_OOStringFromSDRToneMapper(OOSDRToneMapper toneMapper) {
-  switch (toneMapper) {
-    CASE(OOSDR_TONEMAPPER_NONE);
-    CASE(OOSDR_TONEMAPPER_ACES);
-    CASE(OOSDR_TONEMAPPER_AgX);
-    CASE(OOSDR_TONEMAPPER_HEJLDAWSON);
-    CASE(OOSDR_TONEMAPPER_UC2);
-    CASE(OOSDR_TONEMAPPER_UCHIMURA);
-    CASE(OOSDR_TONEMAPPER_REINHARD);
-  }
-
-  return "OOSDR_TONEMAPPER_UNDEFINED";
+  const std::string_view name = OOEnumName(toneMapper);
+  return name.empty() ? std::string("OOSDR_TONEMAPPER_UNDEFINED")
+                      : std::string(name);
 }
 
 OOSDRToneMapper cxx_OOSDRToneMapperFromString(const std::string& string) {
-  REVERSE_CASE(OOSDR_TONEMAPPER_NONE);
-  REVERSE_CASE(OOSDR_TONEMAPPER_ACES);
-  REVERSE_CASE(OOSDR_TONEMAPPER_AgX);
-  REVERSE_CASE(OOSDR_TONEMAPPER_HEJLDAWSON);
-  REVERSE_CASE(OOSDR_TONEMAPPER_UC2);
-  REVERSE_CASE(OOSDR_TONEMAPPER_UCHIMURA);
-  REVERSE_CASE(OOSDR_TONEMAPPER_REINHARD);
+  static constexpr auto kNames =
+      oo::MakeEnumTable<OOSDRToneMapper, OOSDR_TONEMAPPER_NONE,
+                        OOSDR_TONEMAPPER_ACES, OOSDR_TONEMAPPER_AgX,
+                        OOSDR_TONEMAPPER_HEJLDAWSON, OOSDR_TONEMAPPER_UC2,
+                        OOSDR_TONEMAPPER_UCHIMURA, OOSDR_TONEMAPPER_REINHARD>();
+  if (const std::optional<OOSDRToneMapper> value = kNames.value(string))
+    return *value;
 
   return OOSDR_TONEMAPPER_ACES;
 }
