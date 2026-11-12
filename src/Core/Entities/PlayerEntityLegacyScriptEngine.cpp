@@ -72,59 +72,62 @@ MA 02110-1301, USA.
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOException.h"
 
-static const char* const kOOLogScriptAddShipsFailed = "script.addShips.failed";
-static const char* const kOOLogScriptMissionDescNoText =
+constexpr std::string_view kOOLogScriptAddShipsFailed =
+    "script.addShips.failed";
+constexpr std::string_view kOOLogScriptMissionDescNoText =
     "script.missionDescription.noMissionText";
-static const char* const kOOLogScriptMissionDescNoKey =
+constexpr std::string_view kOOLogScriptMissionDescNoKey =
     "script.missionDescription.noMissionKey";
 
-static const char* const kOOLogDebugOnMetaClass = "$scriptDebugOn";
-static const char* const kOOLogDebugMessage = "script.debug.message";
-static const char* const kOOLogDebugOnOff = "script.debug.onOff";
-static const char* const kOOLogDebugAddPlanet = "script.debug.addPlanet";
-static const char* const kOOLogDebugReplaceVariablesInString =
+constexpr std::string_view kOOLogDebugOnMetaClass = "$scriptDebugOn";
+constexpr std::string_view kOOLogDebugMessage = "script.debug.message";
+constexpr std::string_view kOOLogDebugOnOff = "script.debug.onOff";
+constexpr std::string_view kOOLogDebugAddPlanet = "script.debug.addPlanet";
+constexpr std::string_view kOOLogDebugReplaceVariablesInString =
     "script.debug.replaceVariablesInString";
-static const char* const kOOLogDebugProcessSceneStringAddScene =
+constexpr std::string_view kOOLogDebugProcessSceneStringAddScene =
     "script.debug.processSceneString.addScene";
-static const char* const kOOLogDebugProcessSceneStringAddModel =
+constexpr std::string_view kOOLogDebugProcessSceneStringAddModel =
     "script.debug.processSceneString.addModel";
-static const char* const kOOLogDebugProcessSceneStringAddMiniPlanet =
+constexpr std::string_view kOOLogDebugProcessSceneStringAddMiniPlanet =
     "script.debug.processSceneString.addMiniPlanet";
 
-static const char* const kOOLogNoteRemoveAllCargo =
+constexpr std::string_view kOOLogNoteRemoveAllCargo =
     "script.debug.note.removeAllCargo";
-static const char* const kOOLogNoteUseSpecialCargo =
+constexpr std::string_view kOOLogNoteUseSpecialCargo =
     "script.debug.note.useSpecialCargo";
-static const char* const kOOLogNoteAddShips = "script.debug.note.addShips";
-static const char* const kOOLogNoteSet = "script.debug.note.set";
-static const char* const kOOLogNoteShowShipModel =
+constexpr std::string_view kOOLogNoteAddShips = "script.debug.note.addShips";
+constexpr std::string_view kOOLogNoteSet = "script.debug.note.set";
+constexpr std::string_view kOOLogNoteShowShipModel =
     "script.debug.note.showShipModel";
-static const char* const kOOLogNoteFuelLeak = "script.debug.note.setFuelLeak";
-static const char* const kOOLogNoteAddPlanet = "script.debug.note.addPlanet";
-static const char* const kOOLogNoteProcessSceneString =
+constexpr std::string_view kOOLogNoteFuelLeak = "script.debug.note.setFuelLeak";
+constexpr std::string_view kOOLogNoteAddPlanet = "script.debug.note.addPlanet";
+constexpr std::string_view kOOLogNoteProcessSceneString =
     "script.debug.note.processSceneString";
 
-static const char* const kOOLogSyntaxSetPlanetInfo =
+constexpr std::string_view kOOLogSyntaxSetPlanetInfo =
     "script.debug.syntax.setPlanetInfo";
-static const char* const kOOLogSyntaxAwardCargo =
+constexpr std::string_view kOOLogSyntaxAwardCargo =
     "script.debug.syntax.awardCargo";
-static const char* const kOOLogSyntaxAwardEquipment =
+constexpr std::string_view kOOLogSyntaxAwardEquipment =
     "script.debug.syntax.awardEquipment";
-static const char* const kOOLogSyntaxRemoveEquipment =
+constexpr std::string_view kOOLogSyntaxRemoveEquipment =
     "script.debug.syntax.removeEquipment";
-static const char* const kOOLogSyntaxMessageShipAIs =
+constexpr std::string_view kOOLogSyntaxMessageShipAIs =
     "script.debug.syntax.messageShipAIs";
-static const char* const kOOLogSyntaxAddShips = "script.debug.syntax.addShips";
-static const char* const kOOLogSyntaxSet = "script.debug.syntax.set";
-static const char* const kOOLogSyntaxReset = "script.debug.syntax.reset";
-static const char* const kOOLogSyntaxIncrement =
+constexpr std::string_view kOOLogSyntaxAddShips =
+    "script.debug.syntax.addShips";
+constexpr std::string_view kOOLogSyntaxSet = "script.debug.syntax.set";
+constexpr std::string_view kOOLogSyntaxReset = "script.debug.syntax.reset";
+constexpr std::string_view kOOLogSyntaxIncrement =
     "script.debug.syntax.increment";
-static const char* const kOOLogSyntaxDecrement =
+constexpr std::string_view kOOLogSyntaxDecrement =
     "script.debug.syntax.decrement";
-static const char* const kOOLogSyntaxAdd = "script.debug.syntax.add";
-static const char* const kOOLogSyntaxSubtract = "script.debug.syntax.subtract";
+constexpr std::string_view kOOLogSyntaxAdd = "script.debug.syntax.add";
+constexpr std::string_view kOOLogSyntaxSubtract =
+    "script.debug.syntax.subtract";
 
-static const char* const kOOLogRemoveAllCargoNotDocked =
+constexpr std::string_view kOOLogRemoveAllCargoNotDocked =
     "script.error.removeAllCargo.notDocked";
 
 #define ACTIONS_TEMP_PREFIX "__oolite_actions_temp"

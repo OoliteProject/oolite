@@ -1170,9 +1170,9 @@ std::vector<std::string> PlayerEntity::contractsListFromEntries(
     const oo::PList::Array& contracts_array, bool forCargo, bool forParcels) {
   // check  contracts
   std::vector<std::string> result;
-  const char* formatString = (forCargo || forParcels)
-                                 ? "oolite-manifest-item-delivery"
-                                 : "oolite-manifest-person-travelling";
+  const std::string_view formatString =
+      (forCargo || forParcels) ? "oolite-manifest-item-delivery"
+                               : "oolite-manifest-person-travelling";
   unsigned i;
   for (i = 0; i < contracts_array.size(); i++) {
     const oo::PList& contract_info = contracts_array[i];
@@ -1570,7 +1570,7 @@ std::optional<std::string> OptionalStringAt(const oo::PList& array,
 
 // cxx_OOExpandKey(key, ...) with the arguments it would have named after their
 // variables; nothing expanded is "".
-std::string ExpandKey(const char* key, oo::PList::Dict arguments) {
+std::string ExpandKey(std::string_view key, oo::PList::Dict arguments) {
   return cxx_OOExpandDescriptionString(
              OOStringExpanderDefaultRandomSeed(), std::string(key),
              oo::PList(std::move(arguments)), oo::PList(), std::nullopt,

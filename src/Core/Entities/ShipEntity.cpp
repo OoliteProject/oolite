@@ -210,13 +210,14 @@ std::string RepeatString(std::string_view str, std::size_t times) {
    macro could not have put in a dictionary) is left out.
 */
 std::optional<std::string> ExpandKeyWithArgument(
-    const char* key, const char* argumentName,
+    std::string_view key, std::string_view argumentName,
     const std::optional<std::string>& argument) {
   oo::PList::Dict arguments;
-  if (argument.has_value()) arguments[argumentName] = *argument;
+  if (argument.has_value()) arguments[std::string(argumentName)] = *argument;
   return cxx_OOExpandDescriptionString(
-      OOStringExpanderDefaultRandomSeed(), key, oo::PList(std::move(arguments)),
-      oo::PList(), std::nullopt, OOExpandOptions::kKey);
+      OOStringExpanderDefaultRandomSeed(), std::string(key),
+      oo::PList(std::move(arguments)), oo::PList(), std::nullopt,
+      OOExpandOptions::kKey);
 }
 
 // [key intValue] for a close-contact key (the "%d" text of a universal ID).
@@ -1640,11 +1641,9 @@ std::optional<std::string> ShipEntity::descriptionComponents() const {
         OOEntityWithDrawable::descriptionComponents().value_or("(null)"));
   } else {
     // ID, scanClass and status are of no interest for subentities.
-    const char* subtype = nullptr;
-    if (self->getBehaviour() == OOBehaviour::kTrackAsTurret)
-      subtype = "(turret)";
-    else
-      subtype = "(subentity)";
+    const std::string_view subtype =
+        self->getBehaviour() == OOBehaviour::kTrackAsTurret ? "(turret)"
+                                                            : "(subentity)";
 
     return std::format("\"{}\" position: {} {}",
                        self->getName().value_or("(null)"),

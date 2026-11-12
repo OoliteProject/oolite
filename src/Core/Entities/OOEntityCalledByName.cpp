@@ -731,15 +731,17 @@ enum class Kind : std::uint8_t {
 };
 
 // Classifies a method's return type encoding as the Objective-C dispatcher did.
-Kind ResultKind(const char* encoding) {
+Kind ResultKind(std::string_view encoding) {
   std::string_view type = encoding;
-  while (!type.empty() && std::strchr("rnNoORV", type.front()) != nullptr)
+  while (!type.empty() && std::string_view("rnNoORV").find(type.front()) !=
+                              std::string_view::npos)
     type.remove_prefix(1);
   if (type == "v") return Kind::Void;
   if (type == "@") return Kind::Object;
-  if (std::strcmp(encoding, kOOTypeEncoding<oo::PList>) == 0)
-    return Kind::PList;
-  if (type.size() == 1 && std::strchr("cCsSiIlLqQfdB", type.front()) != nullptr)
+  if (encoding == kOOTypeEncoding<oo::PList>) return Kind::PList;
+  if (type.size() == 1 &&
+      std::string_view("cCsSiIlLqQfdB").find(type.front()) !=
+          std::string_view::npos)
     return Kind::Void;
   return Kind::Unsupported;
 }
@@ -787,7 +789,7 @@ std::optional<oo::PList> CallRow(const OOEntityByNameRow& row, Entity* entity,
 /*	The class OOCallByName's lines name: the entity's object's, of class
  * Entity (not asked).
  */
-const char* ObjectClassName(Entity*) { return "Entity"; }
+std::string_view ObjectClassName(Entity*) { return "Entity"; }
 
 /*	The line OOCallByName logged for a method whose signature the call
    cannot use (LogBadSignature), for a tabled name that applies:

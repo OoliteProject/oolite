@@ -169,7 +169,7 @@ class WormholeEntity : public Entity {
   bool isVisibleToScripts() override;
 
  private:
-  const char* scanInfoString();
+  std::string_view scanInfoString();
 
   double expiry_time = {};   // Time when wormhole entrance closes
   double travel_time = {};   // Time taken for a ship to traverse the wormhole

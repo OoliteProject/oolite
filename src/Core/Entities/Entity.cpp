@@ -47,7 +47,7 @@ uint32_t gLiveEntityCount = 0;
 size_t gTotalEntityMemory = 0;
 #endif
 
-// Message-class constants for OO_LOG (const char *).
+// Message-class constants for OO_LOG (string literals).
 #ifdef OO_DEBUG_MONITOR_ENABLED
 constexpr const char* kOOLogEntityAddToList = "entity.linkedList.add";
 constexpr const char* kOOLogEntityAddToListError =

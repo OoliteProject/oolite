@@ -194,11 +194,11 @@ namespace {
 // cxx_OOExpandKey(key, ...) with its arguments as a Dict: ints as
 // PList::signedInteger, strings as std::string (exemplar
 // OOShipLibraryDescriptions.cpp ExpandCategoryKey); nothing expanded is "".
-std::string ExpandKeyWithArguments(const char* key,
+std::string ExpandKeyWithArguments(std::string_view key,
                                    const oo::PList::Dict& args) {
-  return cxx_OOExpandDescriptionString(OOStringExpanderDefaultRandomSeed(), key,
-                                       oo::PList(args), oo::PList(),
-                                       std::nullopt, OOExpandOptions::kKey)
+  return cxx_OOExpandDescriptionString(
+             OOStringExpanderDefaultRandomSeed(), std::string(key),
+             oo::PList(args), oo::PList(), std::nullopt, OOExpandOptions::kKey)
       .value_or(std::string());
 }
 
@@ -581,9 +581,10 @@ oo::PList PlayerEntity::processKeyCode(const oo::PList& key_def) {
     // the key setting with defaults to avoid the need to check for the presence
     // of a property during game loops
     oo::PList::Dict defNew;
-    for (const char* modifier : {"shift", "mod1", "mod2"}) {
+    for (std::string_view modifier : {"shift", "mod1", "mod2"}) {
       const oo::PList* setting = def.find(modifier);
-      defNew[modifier] = setting != nullptr ? *setting : oo::PList(false);
+      defNew[std::string(modifier)] =
+          setting != nullptr ? *setting : oo::PList(false);
     }
 
     //	for '0' '1' '2' '3' '4' '5' '6' '7' '8' '9' - we want to interpret those
@@ -2743,8 +2744,8 @@ void PlayerEntity::pollGuiArrowKeyControls(double delta_t) {
             OO_LOG(cxx_kOOLogException,
                    "\n\n***** Handling exception: {} : {} *****\n\n",
                    exception->name(), exception->reason());
-            if (strcmp(exception->name(), "GameNotSavedException") ==
-                0)  // try saving game instead
+            if (std::string_view(exception->name()) ==
+                "GameNotSavedException")  // try saving game instead
             {
               OO_LOG(cxx_kOOLogException, "{}",
                      "\n\n***** Trying a normal save instead *****\n\n");
@@ -5891,7 +5892,7 @@ void PlayerEntity::switchToThisView(OOViewID viewDirection,
     } else {
       OO_LOG_ERR(cxx_kOOLogParameterError,
                  "{} called with processWeaponFacing=YES for non-main view {}.",
-                 static_cast<const char*>(__FUNCTION__),
+                 std::string_view(__FUNCTION__),
                  static_cast<unsigned>(viewDirection));
     }
   }

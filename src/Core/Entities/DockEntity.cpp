@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #include "DockEntity.h"
 
 #include <format>
+#include <string_view>
 
 #include "AI.h"
 #include "EntityOOJavaScriptExtensions.h"
@@ -73,8 +74,9 @@ std::string DescriptionForLog(const oo::PList& plist) {
 // OOMakeDockingInstructions() with no comms message, as
 // -dockingInstructionsForShip: returns it.
 oo::PList DockingInstructions(StationEntity* station, HPVector coords,
-                              float speed, float range, const char* ai_message,
-                              bool match_rotation, int docking_stage) {
+                              float speed, float range,
+                              std::string_view ai_message, bool match_rotation,
+                              int docking_stage) {
   return cxx_OOMakeDockingInstructions(station, coords, speed, range,
                                        std::string(ai_message), std::nullopt,
                                        match_rotation, docking_stage);

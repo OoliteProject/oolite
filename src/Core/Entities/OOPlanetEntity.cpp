@@ -26,6 +26,7 @@ A leaf of Entity. The class is global.
 
 #include "OOPlanetEntity.h"
 
+#include <array>
 #include <cstddef>
 #include <format>
 #include <map>
@@ -123,12 +124,12 @@ oo::PList DictionaryForKey(const oo::PList& dict, std::string_view key) {
 // -dictionaryWithValuesForKeys: of the planet info: OONull for a missing key;
 // nil for no info.
 oo::PList ValuesForKeys(const oo::PList& info,
-                        std::initializer_list<const char*> keys) {
+                        std::initializer_list<std::string_view> keys) {
   if (!info.isDict()) return oo::PList();
   oo::PList::Dict result;
-  for (const char* key : keys) {
+  for (std::string_view key : keys) {
     const oo::PList* value = info.find(key);
-    result[key] = value != nullptr ? *value : OONullObjectNode();
+    result[std::string(key)] = value != nullptr ? *value : OONullObjectNode();
   }
   return oo::PList(std::move(result));
 }
@@ -445,19 +446,14 @@ void OOPlanetEntity::setUpTypeParametersWithSourceInfo(
 
 void OOPlanetEntity::setUpTerrainParametersWithSourceInfo(
     const oo::PList& sourceInfo, oo::PList& targetInfo) {
-  static const char* const keys[] = {"atmosphere_rotational_velocity",
-                                     "rotational_velocity",
-                                     "cloud_alpha",
-                                     "has_atmosphere",
-                                     "percent_cloud",
-                                     "percent_ice",
-                                     "percent_land",
-                                     "radius",
-                                     "seed"};
-  for (const char* key : keys) {
+  static constexpr auto keys = std::to_array<std::string_view>(
+      {"atmosphere_rotational_velocity", "rotational_velocity", "cloud_alpha",
+       "has_atmosphere", "percent_cloud", "percent_ice", "percent_land",
+       "radius", "seed"});
+  for (std::string_view key : keys) {
     const oo::PList* sval = sourceInfo.find(key);
     if (sval != nullptr) {
-      SetInfo(targetInfo, key, *sval);
+      SetInfo(targetInfo, std::string(key), *sval);
     }
   }
 }
