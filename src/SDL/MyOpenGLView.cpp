@@ -60,6 +60,9 @@ int SaveEXRSnapshot(const char* outfilename, int width, int height,
 
 #include <ctype.h>
 
+#include <cstddef>
+#include <vector>
+
 #include "oofnd/Date.hpp"
 
 namespace {
@@ -1286,7 +1289,8 @@ bool MyOpenGLView::snapShot(const std::optional<std::string>& filename) {
          static_cast<unsigned>(surface->h));
 
   int pitch = surface->pitch;
-  unsigned char* pixls = (unsigned char*)malloc(pitch * surface->h);
+  std::vector<unsigned char> pixls(static_cast<std::size_t>(pitch) *
+                                   surface->h);
   int y;
   int off;
 
@@ -1295,11 +1299,12 @@ bool MyOpenGLView::snapShot(const std::optional<std::string>& filename) {
   else
     glPixelStorei(GL_PACK_ALIGNMENT, 4);
   for (y = surface->h - 1, off = 0; y >= 0; y--, off += pitch) {
-    glReadPixels(0, y, surface->w, 1, GL_BGRA, GL_UNSIGNED_BYTE, pixls + off);
+    glReadPixels(0, y, surface->w, 1, GL_BGRA, GL_UNSIGNED_BYTE,
+                 pixls.data() + off);
   }
 
   tmpSurface = SDL_CreateSurfaceFrom(surface->w, surface->h, surface->format,
-                                     pixls, surface->pitch);
+                                     pixls.data(), surface->pitch);
 #if SNAPSHOTS_PNG_FORMAT
   if (!SDL_SavePNG(tmpSurface, pathToPic->c_str())) {
     OO_LOG("screenshotPNG", "Failed to save {}", *pathToPic);
@@ -1312,7 +1317,6 @@ bool MyOpenGLView::snapShot(const std::optional<std::string>& filename) {
   }
 #endif
   SDL_DestroySurface(tmpSurface);
-  free(pixls);
 
   // if outputting HDR signal, save also either an .exr or a Radiance .hdr
   // snapshot
@@ -1338,22 +1342,20 @@ bool MyOpenGLView::snapShot(const std::optional<std::string>& filename) {
     OO_LOG("screenshot", "Saving screen shot \"{}\" ({} x {} pixels).",
            pathToPicHDR, static_cast<unsigned>(surface->w),
            static_cast<unsigned>(surface->h));
-    GLfloat* pixlsf = (GLfloat*)malloc(pitch * surface->h * sizeof(GLfloat));
+    std::vector<GLfloat> pixlsf(static_cast<std::size_t>(pitch) * surface->h);
     for (y = surface->h - 1, off = 0; y >= 0; y--, off += pitch) {
-      glReadPixels(0, y, surface->w, 1, GL_RGB, GL_FLOAT, pixlsf + off);
+      glReadPixels(0, y, surface->w, 1, GL_RGB, GL_FLOAT, pixlsf.data() + off);
     }
 
     if ((fileExtension == std::string(SNAPSHOTHDR_EXTENSION_EXR) &&
          SaveEXRSnapshot(pathToPicHDR.c_str(), surface->w, surface->h,
-                         pixlsf) != 0)  // TINYEXR_SUCCESS
+                         pixlsf.data()) != 0)  // TINYEXR_SUCCESS
         || (fileExtension == std::string(SNAPSHOTHDR_EXTENSION_HDR) &&
             !stbi_write_hdr(pathToPicHDR.c_str(), surface->w, surface->h, 3,
-                            pixlsf))) {
+                            pixlsf.data()))) {
       OO_LOG("screenshotHDR", "Failed to save {}", pathToPicHDR);
       snapShotOK = false;
     }
-
-    free(pixlsf);
   }
 
 #if OOLITE_MACOS
@@ -1477,18 +1479,14 @@ void MyOpenGLView::dumpRGBAToRGBFileNamed(
       width == 0 || height == 0 || rowBytes < width * 4)
     return;
 
-  uint8_t *rgbBytes, *rgbPx, *grayBytes, *grayPx, *srcPx;
+  uint8_t *rgbPx, *grayPx, *srcPx;
   NSUInteger x, y;
   bool trivalAlpha = true;
 
-  rgbPx = rgbBytes = (uint8_t*)malloc(width * height * 3);
-  if (rgbBytes == nullptr) return;
-
-  grayPx = grayBytes = (uint8_t*)malloc(width * height);
-  if (grayBytes == nullptr) {
-    free(rgbBytes);
-    return;
-  }
+  std::vector<uint8_t> rgbBytes(width * height * 3);
+  std::vector<uint8_t> grayBytes(width * height);
+  rgbPx = rgbBytes.data();
+  grayPx = grayBytes.data();
 
   for (y = 0; y < height; y++) {
     srcPx = bytes + rowBytes * y;
@@ -1506,13 +1504,11 @@ void MyOpenGLView::dumpRGBAToRGBFileNamed(
   }
 
   if (rgbName.has_value()) {
-    dumpRGBToFileNamed(*rgbName, rgbBytes, width, height, width * 3);
+    dumpRGBToFileNamed(*rgbName, rgbBytes.data(), width, height, width * 3);
   }
-  free(rgbBytes);
 
   if (!trivalAlpha && grayName.has_value()) {
-    dumpGrayToFileNamed(*grayName, grayBytes, width, height, width);
+    dumpGrayToFileNamed(*grayName, grayBytes.data(), width, height, width);
   }
-  free(grayBytes);
 }
 #endif
