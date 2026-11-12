@@ -685,20 +685,22 @@ const OOEntityByNameRow* oo::EntityByNameRowNamed(const std::string& name) {
 // but an effect's.
 bool oo::EntityByNameRowApplies(const OOEntityByNameRow& row, Entity* entity) {
   if (entity == nullptr) return false;
-  const unsigned flags = row.flags;
-  if ((flags & kOOByNameEffect) != 0 && EffectPart(entity) != nullptr)
+  const OOByName flags = row.flags;
+  if (oo::Any(flags & OOByName::kEffect) && EffectPart(entity) != nullptr)
     return true;
-  if ((flags & (kOOByNameShip | kOOByNamePlayer | kOOByNameStation |
-                kOOByNameDock)) == 0)
+  if (!oo::Any(flags & (OOByName::kShip | OOByName::kPlayer |
+                        OOByName::kStation | OOByName::kDock)))
     return true;
-  if ((flags & kOOByNameShip) != 0 && ShipPart(entity) != nullptr) return true;
-  if ((flags & kOOByNamePlayer) != 0 && (flags & kOOByNameProxy) != 0 &&
+  if (oo::Any(flags & OOByName::kShip) && ShipPart(entity) != nullptr)
+    return true;
+  if (oo::Any(flags & OOByName::kPlayer) && oo::Any(flags & OOByName::kProxy) &&
       ProxyPart(entity) != nullptr)
     return true;
-  if ((flags & kOOByNamePlayer) != 0 && PlayerEntityPart(entity) != nullptr)
+  if (oo::Any(flags & OOByName::kPlayer) && PlayerEntityPart(entity) != nullptr)
     return true;
-  return ((flags & kOOByNameStation) != 0 && StationPart(entity) != nullptr) ||
-         ((flags & kOOByNameDock) != 0 && DockPart(entity) != nullptr);
+  return (oo::Any(flags & OOByName::kStation) &&
+          StationPart(entity) != nullptr) ||
+         (oo::Any(flags & OOByName::kDock) && DockPart(entity) != nullptr);
 }
 
 bool oo::CallEntityByNameTyped(Entity* entity, const std::string& name,
