@@ -43,10 +43,12 @@ MA 02110-1301, USA.
 
 namespace cxx {
 
-    JSValue _jsSelf; // The JS Timer object proxy for this OOJSTimer. Not owned (it owns us); cleared when finalized.
-
-    BOOL _firing; // In the callback, during which the timer is still scheduled.
-}
+class OOJSTimer : public OOScriptTimer {
+public:
+    // [[OOJSTimer alloc] initWithDelay:interval:context:function:this:], for the Timer
+    // constructor: null where the initialiser answered nil. function and jsThis are borrowed (the
+    // timer takes its own references); jsThis may be JS null.
+    static oo::Ref<OOJSTimer> timerWithDelay(OOTimeAbsolute delay, OOTimeDelta interval, JSContext* context, JSValueConst function, JSValueConst jsThis);
 
     ~OOJSTimer() override;
 
@@ -60,6 +62,9 @@ namespace cxx {
 
     // For the Timer finalizer: forgets the JS Timer object.
     void clearJSSelf();
+
+    // A one-shot timer whose callback is running: it is dropped once the callback returns.
+    bool willNotFireAgain();
 
     /*	The reference created with the JS object by the initialiser belongs to
             whoever calls this, once (the constructor, which returns it).
@@ -85,6 +90,8 @@ private:
     std::optional<std::string> _functionName;
 
     JSValue _jsSelf = JS_UNDEFINED; // The JS Timer object proxy for this OOJSTimer. Not owned (it owns us); cleared when finalized.
+
+    bool _firing = false; // In the callback, during which the timer is still scheduled.
 };
 
 } // namespace cxx

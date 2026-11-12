@@ -543,7 +543,7 @@ oo::PList::Dict* CustomEquipFields(std::vector<oo::PList>& entries, NSUInteger i
                     // axis has priority
                     assignment = [self describeStickDict:assignedAxis];
                     if (!assignment.has_value()) {
-                        int bf = [oo::NSStringOrNil(butFuncKey) integerValue];
+                        int bf = butFuncKey.has_value() ? static_cast<int>(oo::str::longLongValue(*butFuncKey)) : 0; // -integerValue (nil: 0)
                         if (bf >= BUTTON_GUILEFT && bf <= BUTTON_GUISELECT) {
                             assignment = [self describeStickDict:assignedGuiButton];
                         } else {
@@ -583,7 +583,7 @@ oo::PList::Dict* CustomEquipFields(std::vector<oo::PList>& entries, NSUInteger i
         int stickNumber = IntValueForKey(*stickDict, STICK_NUMBER);
         // Button or axis?
         const std::string stick = OO_DESC("stickmapper-stick");
-        if ([ObjectForKey(*stickDict, std::string(STICK_ISAXIS)) boolValue]) {
+        if (BoolValueForKey(*stickDict, STICK_ISAXIS)) {
             desc = oo::str::format("%s %d %s %d",
                 stick.c_str(), stickNumber + 1, OO_DESC("stickmapper-axis").c_str(), thingNumber + 1);
         } else if (thingNumber >= MAX_REAL_BUTTONS) {
@@ -948,12 +948,12 @@ oo::PList::Dict* CustomEquipFields(std::vector<oo::PList>& entries, NSUInteger i
         int i;
         for (i = 0; i < customEquipActivation.size(); i++) {
             funcList.push_back(
-                [self makeStickGuiDict:oo::str::format("%s '%s'", OO_DESC("stickmapper-cust-activate").c_str(), oo::DescriptionOf(oo::NSStringOrNil(OptionalStringForKey(customEquipActivation[i], std::string(CUSTOMEQUIP_EQUIPNAME)))).c_str())
+                [self makeStickGuiDict:oo::str::format("%s '%s'", OO_DESC("stickmapper-cust-activate").c_str(), OptionalStringForKey(customEquipActivation[i], std::string(CUSTOMEQUIP_EQUIPNAME)).value_or("(null)").c_str())
                              allowable:HW_BUTTON
                                 axisfn:STICK_NOFUNCTION
                                  butfn:(i + 10000)]);
             funcList.push_back(
-                [self makeStickGuiDict:oo::str::format("%s '%s'", OO_DESC("stickmapper-cust-mode").c_str(), oo::DescriptionOf(oo::NSStringOrNil(OptionalStringForKey(customEquipActivation[i], std::string(CUSTOMEQUIP_EQUIPNAME)))).c_str())
+                [self makeStickGuiDict:oo::str::format("%s '%s'", OO_DESC("stickmapper-cust-mode").c_str(), OptionalStringForKey(customEquipActivation[i], std::string(CUSTOMEQUIP_EQUIPNAME)).value_or("(null)").c_str())
                              allowable:HW_BUTTON
                                 axisfn:STICK_NOFUNCTION
                                  butfn:(i + 20000)]);

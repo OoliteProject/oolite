@@ -132,3 +132,8 @@ if (not get_option('deployment_release') or get_option('deployment_unit_tests'))
     # Unit tests that need no game build (meson test --suite oofnd).
     subdir('tests/unit/oofnd')
 endif
+
+if not get_option('deployment_release') and host_machine.system() == 'windows'
+    # Unit tests of converted game classes, linked from the game's own objects (meson test --suite core).
+    subdir('tests/unit/core')
+endif

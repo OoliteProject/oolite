@@ -101,7 +101,6 @@ MA 02110-1301, USA.
 #import "WormholeEntity.h"
 #include "oofnd/objc/OOException.h"
 
-#import "OOFoundationBridge.h" // oo::PListFrom, used by every build, not only OO_LOCALIZATION_TOOLS ones
 #import "OOPListGameTypes.h" // used by every build, not only OO_LOCALIZATION_TOOLS ones
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/PListParsing.hpp"
