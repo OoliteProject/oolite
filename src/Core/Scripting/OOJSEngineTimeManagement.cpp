@@ -261,9 +261,9 @@ std::optional<std::string> OOTimeProfile::description() {
           "\n{:>60}  {}{:7} {:8.2f} {:8.2f}   {:5.1f}   {:5.1f} {:8.2f}",
           entry->function().value_or("(null)"),
           entry->isJavaScriptFrame() ? 'J' : 'N',
-          (unsigned long)entry->hitCount(), entry->totalTimeSum() * 1000.0,
-          entry->selfTimeSum() * 1000.0, totalPc, selfPc,
-          entry->selfTimeMax() * 1000.0);
+          static_cast<unsigned long>(entry->hitCount()),
+          entry->totalTimeSum() * 1000.0, entry->selfTimeSum() * 1000.0,
+          totalPc, selfPc, entry->selfTimeMax() * 1000.0);
     }
   }
 

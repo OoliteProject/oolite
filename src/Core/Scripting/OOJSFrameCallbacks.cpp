@@ -192,8 +192,8 @@ void OOJSFrameCallbacksInvoke(OOTimeDelta inDeltaT) {
 
     for (i = 0; i < sCount; i++) {
       // TODO: remove out of scope callbacks - post MNSR!
-      JSValue result = JS_Call(context, sCallbacks[i].callback, global, 1,
-                               (JSValueConst*)&deltaVal);
+      JSValue result =
+          JS_Call(context, sCallbacks[i].callback, global, 1, &deltaVal);
       if (JS_IsException(result)) {
         OOJSReportPendingException(context);
       }
@@ -362,7 +362,7 @@ static bool GrowCallbackList(JSContext* context,
   std::size_t newSpace = MAX(sSpace * 2, kMinCount);
 
   CallbackEntry* newCallbacks =
-      (CallbackEntry*)calloc(sizeof(CallbackEntry), newSpace);
+      static_cast<CallbackEntry*>(calloc(sizeof(CallbackEntry), newSpace));
   if (newCallbacks == nullptr) {
     *errorString = "Failed to allocate space for frame callback.";
     return false;

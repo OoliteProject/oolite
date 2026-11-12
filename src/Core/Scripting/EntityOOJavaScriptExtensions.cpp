@@ -85,8 +85,8 @@ JSValue EntityJSValueInContext(Entity* entity, JSContext* context) {
   if (!JS_IsObject(entity->_jsSelf) && OOJSEntityIsVisibleToScripts(entity)) {
     // Create JS object. The entity keeps a reference to it for as long as the
     // entity exists.
-    JSValue jsSelf =
-        JS_NewObjectClass(context, (int)OOJSEntityJSClassID(entity));
+    JSValue jsSelf = JS_NewObjectClass(
+        context, static_cast<int>(OOJSEntityJSClassID(entity)));
     if (JS_IsException(jsSelf)) {
       JS_FreeValue(context, JS_GetException(context));
     } else {
@@ -183,7 +183,7 @@ void ShipEntityJSSetTargetForScript(ShipEntity* ship, ShipEntity* target) {
     if (me != nullptr) me->addTarget(target);
   } else {
     if (me != nullptr)
-      me->removeTarget(
-          (me != nullptr ? me->primaryTarget() : (Entity*)nullptr));
+      me->removeTarget((me != nullptr ? me->primaryTarget()
+                                      : static_cast<Entity*>(nullptr)));
   }
 }

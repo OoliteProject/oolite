@@ -369,7 +369,8 @@ JSValue OOJSSoundSourceJSValueInContext(OOSoundSource* source,
                                         JSContext* context) {
   if (source == nullptr) return JS_NULL;
 
-  JSValue result = JS_NewObjectClass(context, (int)sSoundSourceClassID);
+  JSValue result =
+      JS_NewObjectClass(context, static_cast<int>(sSoundSourceClassID));
   if (JS_IsException(result)) {
     JS_FreeValue(context, JS_GetException(context));
     return JS_NULL;

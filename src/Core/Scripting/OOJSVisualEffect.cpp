@@ -319,15 +319,15 @@ static JSValue VisualEffectGetProperty(OOJS_GETTER_ARGS) {
                           (entity != nullptr ? entity->scaleZ() : 0.0f));
 
     case kScannerDisplayColor1:
-      result = NormalizedColorComponents((entity != nullptr
-                                              ? entity->scannerDisplayColor1()
-                                              : (OOColor*)nullptr));
+      result = NormalizedColorComponents(
+          (entity != nullptr ? entity->scannerDisplayColor1()
+                             : static_cast<OOColor*>(nullptr)));
       break;
 
     case kScannerDisplayColor2:
-      result = NormalizedColorComponents((entity != nullptr
-                                              ? entity->scannerDisplayColor2()
-                                              : (OOColor*)nullptr));
+      result = NormalizedColorComponents(
+          (entity != nullptr ? entity->scannerDisplayColor2()
+                             : static_cast<OOColor*>(nullptr)));
       break;
 
     case kHullHeatLevel:
@@ -367,8 +367,9 @@ static JSValue VisualEffectGetProperty(OOJS_GETTER_ARGS) {
     } break;
 
     case kScript:
-      result = OOScriptObjectNode(
-          (entity != nullptr ? entity->script() : (OOScript*)nullptr));
+      result = OOScriptObjectNode((entity != nullptr
+                                       ? entity->script()
+                                       : static_cast<OOScript*>(nullptr)));
       break;
 
     case kScriptInfo:
@@ -563,12 +564,14 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS) {
 // nil answered.
 namespace {
 oo::PList MeshMaterials(OOVisualEffectEntity* effect) {
-  OOMesh* mesh = (effect != nullptr ? effect->mesh() : (OOMesh*)nullptr);
+  OOMesh* mesh =
+      (effect != nullptr ? effect->mesh() : static_cast<OOMesh*>(nullptr));
   return (mesh != nullptr) ? mesh->getMaterials() : oo::PList();
 }
 
 oo::PList MeshShaders(OOVisualEffectEntity* effect) {
-  OOMesh* mesh = (effect != nullptr ? effect->mesh() : (OOMesh*)nullptr);
+  OOMesh* mesh =
+      (effect != nullptr ? effect->mesh() : static_cast<OOMesh*>(nullptr));
   return (mesh != nullptr) ? mesh->shaders() : oo::PList();
 }
 }  // namespace

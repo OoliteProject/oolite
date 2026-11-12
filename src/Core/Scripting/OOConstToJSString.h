@@ -71,9 +71,9 @@ OOINLINE JSValue OOJSValueFromEntityStatus(JSContext* context,
 OOINLINE OOEntityStatus OOEntityStatusFromJSValue(JSContext* context,
                                                   JSValueConst value) {
   extern struct ConstTable gOOEntityStatusConstTable;
-  return (OOEntityStatus)OOConstantFromJSValuePRIVATE(
-      context, value, &gOOEntityStatusConstTable,
-      oo::ToUnderlying(kOOEntityStatusDefault));
+  return static_cast<OOEntityStatus>(
+      OOConstantFromJSValuePRIVATE(context, value, &gOOEntityStatusConstTable,
+                                   oo::ToUnderlying(kOOEntityStatusDefault)));
 }
 
 /*	JSValue OOJSValueFromScanClass(JSContext *, OOScanClass)
@@ -90,9 +90,9 @@ OOINLINE JSValue OOJSValueFromScanClass(JSContext* context, OOScanClass value) {
 OOINLINE OOScanClass OOScanClassFromJSValue(JSContext* context,
                                             JSValueConst value) {
   extern struct ConstTable gOOScanClassConstTable;
-  return (OOScanClass)OOConstantFromJSValuePRIVATE(
-      context, value, &gOOScanClassConstTable,
-      oo::ToUnderlying(kOOScanClassDefault));
+  return static_cast<OOScanClass>(
+      OOConstantFromJSValuePRIVATE(context, value, &gOOScanClassConstTable,
+                                   oo::ToUnderlying(kOOScanClassDefault)));
 }
 
 /*	JSValue OOJSValueFromCompassMode(JSContext *, OOCompassMode)
@@ -110,9 +110,9 @@ OOINLINE JSValue OOJSValueFromCompassMode(JSContext* context,
 OOINLINE OOCompassMode OOCompassModeFromJSValue(JSContext* context,
                                                 JSValueConst value) {
   extern struct ConstTable gOOCompassModeConstTable;
-  return (OOCompassMode)OOConstantFromJSValuePRIVATE(
-      context, value, &gOOCompassModeConstTable,
-      oo::ToUnderlying(kOOCompassModeDefault));
+  return static_cast<OOCompassMode>(
+      OOConstantFromJSValuePRIVATE(context, value, &gOOCompassModeConstTable,
+                                   oo::ToUnderlying(kOOCompassModeDefault)));
 }
 
 /*	JSValue OOJSValueFromGUIScreenID(JSContext *, OOGUIScreenID)
@@ -130,9 +130,9 @@ OOINLINE JSValue OOJSValueFromGUIScreenID(JSContext* context,
 OOINLINE OOGUIScreenID OOGUIScreenIDFromJSValue(JSContext* context,
                                                 JSValueConst value) {
   extern struct ConstTable gOOGUIScreenIDConstTable;
-  return (OOGUIScreenID)OOConstantFromJSValuePRIVATE(
-      context, value, &gOOGUIScreenIDConstTable,
-      oo::ToUnderlying(kOOGUIScreenIDDefault));
+  return static_cast<OOGUIScreenID>(
+      OOConstantFromJSValuePRIVATE(context, value, &gOOGUIScreenIDConstTable,
+                                   oo::ToUnderlying(kOOGUIScreenIDDefault)));
 }
 
 /*	JSValue OOJSValueFromGalacticHyperspaceBehaviour(JSContext *,
@@ -152,9 +152,10 @@ OOINLINE JSValue OOJSValueFromGalacticHyperspaceBehaviour(
 OOINLINE OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromJSValue(
     JSContext* context, JSValueConst value) {
   extern struct ConstTable gOOGalacticHyperspaceBehaviourConstTable;
-  return (OOGalacticHyperspaceBehaviour)OOConstantFromJSValuePRIVATE(
-      context, value, &gOOGalacticHyperspaceBehaviourConstTable,
-      oo::ToUnderlying(kOOGalacticHyperspaceBehaviourDefault));
+  return static_cast<OOGalacticHyperspaceBehaviour>(
+      OOConstantFromJSValuePRIVATE(
+          context, value, &gOOGalacticHyperspaceBehaviourConstTable,
+          oo::ToUnderlying(kOOGalacticHyperspaceBehaviourDefault)));
 }
 
 /*	JSValue OOJSValueFromViewID(JSContext *, OOViewID)
@@ -170,8 +171,9 @@ OOINLINE JSValue OOJSValueFromViewID(JSContext* context, OOViewID value) {
 
 OOINLINE OOViewID OOViewIDFromJSValue(JSContext* context, JSValueConst value) {
   extern struct ConstTable gOOViewIDConstTable;
-  return (OOViewID)OOConstantFromJSValuePRIVATE(
-      context, value, &gOOViewIDConstTable, oo::ToUnderlying(kOOViewIDDefault));
+  return static_cast<OOViewID>(
+      OOConstantFromJSValuePRIVATE(context, value, &gOOViewIDConstTable,
+                                   oo::ToUnderlying(kOOViewIDDefault)));
 }
 
 /*	JSValue OOJSValueFromShipDamageType(JSContext *, OOShipDamageType)

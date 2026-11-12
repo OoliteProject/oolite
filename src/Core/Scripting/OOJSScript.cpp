@@ -164,7 +164,7 @@ bool OOJSScript::initWithPath(const std::optional<std::string>& path,
 
     // Set up JS object
     if (!problem.has_value()) {
-      _jsSelf = JS_NewObjectClass(context, (int)sScriptClassID);
+      _jsSelf = JS_NewObjectClass(context, static_cast<int>(sScriptClassID));
       if (JS_IsException(_jsSelf)) {
         JS_FreeValue(context, JS_GetException(context));
         _jsSelf = JS_UNDEFINED;
@@ -826,8 +826,8 @@ static std::string SourceHash(std::string_view source) {
     hash ^= static_cast<unsigned char>(c);
     hash *= 0x100000001b3ULL;
   }
-  return std::format("{:016x}:{}", (unsigned long long)hash,
-                     (unsigned long)source.size());
+  return std::format("{:016x}:{}", static_cast<unsigned long long>(hash),
+                     static_cast<unsigned long>(source.size()));
 }
 
 // The entry's member, or null.
@@ -1026,8 +1026,7 @@ static std::string RewriteLegacyConst(JSContext* context,
 
   if (JS_IsFunction(context, rewriter)) {
     JSValue argument = JS_NewStringLen(context, source.data(), source.size());
-    JSValue rewritten =
-        JS_Call(context, rewriter, JS_UNDEFINED, 1, (JSValueConst*)&argument);
+    JSValue rewritten = JS_Call(context, rewriter, JS_UNDEFINED, 1, &argument);
     if (JS_IsException(rewritten)) {
       OOJSReportPendingException(context);
     } else {

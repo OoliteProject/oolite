@@ -347,9 +347,10 @@ static JSValue ManifestComment(OOJS_NATIVE_ARGS) {
   }
 
   OOCommodityMarket* market =
-      (PLAYER != nullptr ? PLAYER->getShipCommodityData()
-                         : (OOCommodityMarket*)nullptr);  // null: no comment,
-                                                          // as a message to nil
+      (PLAYER != nullptr
+           ? PLAYER->getShipCommodityData()
+           : static_cast<OOCommodityMarket*>(nullptr));  // null: no comment,
+                                                         // as a message to nil
   if (market != nullptr) information = market->commentForGood(*good);
 
   OOJS_RETURN_STRING_OR_NULL(information);
@@ -376,9 +377,9 @@ static JSValue ManifestSetComment(OOJS_NATIVE_ARGS) {
   }
 
   OOCommodityMarket* market =
-      (PLAYER != nullptr
-           ? PLAYER->getShipCommodityData()
-           : (OOCommodityMarket*)nullptr);  // null: false, as a message to nil
+      (PLAYER != nullptr ? PLAYER->getShipCommodityData()
+                         : static_cast<OOCommodityMarket*>(
+                               nullptr));  // null: false, as a message to nil
   OK = market != nullptr && market->setComment(*information, *good);
 
   OOJS_RETURN_BOOL(OK);
@@ -402,9 +403,10 @@ static JSValue ManifestShortComment(OOJS_NATIVE_ARGS) {
   }
 
   OOCommodityMarket* market =
-      (PLAYER != nullptr ? PLAYER->getShipCommodityData()
-                         : (OOCommodityMarket*)nullptr);  // null: no comment,
-                                                          // as a message to nil
+      (PLAYER != nullptr
+           ? PLAYER->getShipCommodityData()
+           : static_cast<OOCommodityMarket*>(nullptr));  // null: no comment,
+                                                         // as a message to nil
   if (market != nullptr) information = market->shortCommentForGood(*good);
 
   OOJS_RETURN_STRING_OR_NULL(information);
@@ -431,9 +433,9 @@ static JSValue ManifestSetShortComment(OOJS_NATIVE_ARGS) {
   }
 
   OOCommodityMarket* market =
-      (PLAYER != nullptr
-           ? PLAYER->getShipCommodityData()
-           : (OOCommodityMarket*)nullptr);  // null: false, as a message to nil
+      (PLAYER != nullptr ? PLAYER->getShipCommodityData()
+                         : static_cast<OOCommodityMarket*>(
+                               nullptr));  // null: false, as a message to nil
   OK = market != nullptr && market->setShortComment(*information, *good);
 
   OOJS_RETURN_BOOL(OK);

@@ -767,7 +767,7 @@ static JSValue MissionRunScreen(OOJS_NATIVE_ARGS) {
       // value))];
       demoShip = (UNIVERSE != nullptr ? UNIVERSE->makeDemoShipWithRole(
                                             role.value_or(""), spinning)
-                                      : (::ShipEntity*)nullptr);
+                                      : static_cast<::ShipEntity*>(nullptr));
     }
   }
   JS_FreeValue(context, value);

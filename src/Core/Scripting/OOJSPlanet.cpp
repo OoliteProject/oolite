@@ -141,13 +141,15 @@ JSClassID JSPlanetClassID() { return sPlanetClassID; }
 // planet's overrides.
 bool OOJSPlanetIsVisibleToScripts(OOPlanetEntity* planet) {
   OOStellarBodyType type =
-      (planet != nullptr ? planet->planetType() : (OOStellarBodyType)0);
+      (planet != nullptr ? planet->planetType()
+                         : static_cast<OOStellarBodyType>(0));
   return type == OOStellarBodyType::kNormalPlanet ||
          type == OOStellarBodyType::kMoon;
 }
 
 std::optional<std::string> OOJSPlanetJSClassName(OOPlanetEntity* planet) {
-  switch ((planet != nullptr ? planet->planetType() : (OOStellarBodyType)0)) {
+  switch ((planet != nullptr ? planet->planetType()
+                             : static_cast<OOStellarBodyType>(0))) {
     case OOStellarBodyType::kNormalPlanet:
       return std::string("Planet");
     case OOStellarBodyType::kMoon:
@@ -168,9 +170,9 @@ static JSValue PlanetGetProperty(OOJS_GETTER_ARGS) {
     using enum PlanetProperty;
     case kAirColor:
       return OOJSValueFromPList(
-          context,
-          NormalizedColorComponents(
-              (planet != nullptr ? planet->airColor() : (OOColor*)nullptr)));
+          context, NormalizedColorComponents(
+                       (planet != nullptr ? planet->airColor()
+                                          : static_cast<OOColor*>(nullptr))));
 
     case kAirColorMixRatio:
       return JS_NewNumber(
@@ -182,9 +184,9 @@ static JSValue PlanetGetProperty(OOJS_GETTER_ARGS) {
 
     case kIlluminationColor:
       return OOJSValueFromPList(
-          context, NormalizedColorComponents((planet != nullptr
-                                                  ? planet->illuminationColor()
-                                                  : (OOColor*)nullptr)));
+          context, NormalizedColorComponents(
+                       (planet != nullptr ? planet->illuminationColor()
+                                          : static_cast<OOColor*>(nullptr))));
 
     case kIsMainPlanet:
       return OOJSValueFromBOOL(

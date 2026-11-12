@@ -89,17 +89,20 @@ oo::PList NormalizedColorComponents(OOColor* color) {
 template <typename R>
 R AskHud(PlayerEntity* player, R (HeadUpDisplay::*member)()) {
   HeadUpDisplay* hud =
-      (player != nullptr ? player->getHud() : (HeadUpDisplay*)nullptr);
+      (player != nullptr ? player->getHud()
+                         : static_cast<HeadUpDisplay*>(nullptr));
   return (hud != nullptr) ? (hud->*member)() : R();
 }
 
 HeadUpDisplay* HudOf(PlayerEntity* player) {
-  return (player != nullptr ? player->getHud() : (HeadUpDisplay*)nullptr);
+  return (player != nullptr ? player->getHud()
+                            : static_cast<HeadUpDisplay*>(nullptr));
 }
 
 oo::Ref<OOColor> HudReticleColor(PlayerEntity* player, std::size_t idx) {
   HeadUpDisplay* hud =
-      (player != nullptr ? player->getHud() : (HeadUpDisplay*)nullptr);
+      (player != nullptr ? player->getHud()
+                         : static_cast<HeadUpDisplay*>(nullptr));
   return (hud != nullptr) ? hud->reticleColorForIndex(idx) : oo::Ref<OOColor>();
 }
 
@@ -468,7 +471,8 @@ void InitOOJSPlayerShip(JSContext* context, JSValueConst global) {
   OOCAssert(JS_IsObject(playerObject),
             "Player must be initialized before PlayerShip.");
 
-  JSValue shipObject = JS_NewObjectClass(context, (int)sPlayerShipClassID);
+  JSValue shipObject =
+      JS_NewObjectClass(context, static_cast<int>(sPlayerShipClassID));
   // The slot holds a weak reference to the C++ player, as every entity's JS
   // object's does.
   OOJSSetCxxPrivate(shipObject, oo::makeRef<OOJSEntityHolder>(player).get());
@@ -545,9 +549,9 @@ static JSValue PlayerShipGetProperty(OOJS_GETTER_ARGS) {
       return OOJSValueFromBOOL(player != nullptr ? player->isDocked() : false);
 
     case kDockedStation:
-      result =
-          oo::EntityObjectNode(player != nullptr ? player->dockedStation()
-                                                 : (StationEntity*)nullptr);
+      result = oo::EntityObjectNode(player != nullptr
+                                        ? player->dockedStation()
+                                        : static_cast<StationEntity*>(nullptr));
       break;
 
     case kSpecialCargo:
@@ -740,7 +744,8 @@ static JSValue PlayerShipGetProperty(OOJS_GETTER_ARGS) {
       result = oo::EntityObjectNode(
           player != nullptr
               ? player->getCompassTargetEntity()
-              : (Entity*)nullptr);  // the C++ entity's node, the same object's
+              : static_cast<Entity*>(
+                    nullptr));  // the C++ entity's node, the same object's
       break;
 
     case kCompassType:
@@ -804,7 +809,7 @@ static JSValue PlayerShipGetProperty(OOJS_GETTER_ARGS) {
                     (player != nullptr ? player->getCurrentWeaponFacing()
                                        : OOWeaponFacing{}),
                     false)
-              : (OOEquipmentType*)nullptr);
+              : static_cast<OOEquipmentType*>(nullptr));
       break;
 
     case kPrice:
@@ -1206,7 +1211,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
 
     case kServiceLevel:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
-        int newLevel = (int)fValue;
+        int newLevel = static_cast<int>(fValue);
         if (player != nullptr)
           player->adjustTradeInFactorBy(
               (newLevel -
@@ -1740,9 +1745,10 @@ static JSValue PlayerShipRemoveContract(OOJS_NATIVE_ARGS) {
     return OOJSNativeFailure(context);
   }
 
-  bool OK = (player != nullptr
-                 ? player->removeContract(key.value_or(""), (unsigned)dest)
-                 : false);
+  bool OK =
+      (player != nullptr ? player->removeContract(key.value_or(""),
+                                                  static_cast<unsigned>(dest))
+                         : false);
   OOJS_RETURN_BOOL(OK);
 
   OOJS_NATIVE_EXIT

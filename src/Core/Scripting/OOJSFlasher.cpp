@@ -206,7 +206,7 @@ static JSValue FlasherSetProperty(OOJS_SETTER_ARGS) {
     using enum FlasherProperty;
     case kActive:
       if ((bValue = JS_ToBool(context, value)) >= 0) {
-        entity->setActive((bool)bValue);
+        entity->setActive(static_cast<bool>(bValue));
         return JS_UNDEFINED;
       }
       break;
