@@ -47,7 +47,8 @@ MA 02110-1301, USA.
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"
 
-#include <string>
+#include "oofnd/String.hpp"
+
 #include <unordered_map>
 
 typedef struct RunningStack RunningStack;
@@ -926,24 +927,24 @@ static std::string RewriteLegacyConst(JSContext* context, const std::string& sou
 {
     static std::unordered_map<std::string, std::string> sRewritten;
 
-    if ([source rangeOfString:@"const"].location == NSNotFound)
+    if (source.find("const") == std::string::npos)
         return source;
 
-    const auto cached = sRewritten.find(oo::StdString(source));
+    const auto cached = sRewritten.find(source);
     if (cached != sRewritten.end())
-        return oo::NSStringOrNil(cached->second);
+        return cached->second;
 
     JSValueConst rewriter = OOJSLegacyConstRewriter();
-    NSString* result = source;
+    std::string result = source;
 
     if (JS_IsFunction(context, rewriter)) {
-        JSValue argument = OOJSValueFromNativeObject(context, source);
+        JSValue argument = JS_NewStringLen(context, source.data(), source.size());
         JSValue rewritten = JS_Call(context, rewriter, JS_UNDEFINED, 1, (JSValueConst*)&argument);
         if (JS_IsException(rewritten)) {
             OOJSReportPendingException(context);
         } else {
-            result = oo::NSStringOrNil(cxx_OOStringFromJSValue(context, rewritten)) ?: source;
-            sRewritten.emplace(oo::StdString(source), oo::StdString(result));
+            result = cxx_OOStringFromJSValue(context, rewritten).value_or(source);
+            sRewritten.emplace(source, result);
         }
         JS_FreeValue(context, rewritten);
         JS_FreeValue(context, argument);

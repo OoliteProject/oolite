@@ -26,8 +26,6 @@ MA 02110-1301, USA.
 #import "GameController.h"
 #import "HeadUpDisplay.h"
 #import "OOEquipmentType.h"
-#import "OOFoundationBridge.h"
-#import "OOPListView.h"
 #import "OOJoystickManager.h"
 #import "OOTexture.h"
 #import "PlayerEntityControls.h"

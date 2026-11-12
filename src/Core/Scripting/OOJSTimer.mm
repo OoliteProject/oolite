@@ -63,26 +63,7 @@ static JSClassID sTimerClassID;
 
 namespace cxx {
 
-- (id)initWithDelay:(OOTimeAbsolute)delay
-           interval:(OOTimeDelta)interval
-            context:(JSContext*)context
-           function:(JSValueConst)function
-               this:(JSValueConst)jsThis;
-
-- (void)clearJSSelf;
-- (BOOL)willNotFireAgain;
-- (JSValue)transferJSSelf;
-- (void)releaseJSValues;
-
-@end
-
-@implementation OOJSTimer
-
-- (id)initWithDelay:(OOTimeAbsolute)delay
-           interval:(OOTimeDelta)interval
-            context:(JSContext*)context
-           function:(JSValueConst)function
-               this:(JSValueConst)jsThis
+oo::Ref<OOJSTimer> OOJSTimer::timerWithDelay(OOTimeAbsolute delay, OOTimeDelta interval, JSContext* context, JSValueConst function, JSValueConst jsThis)
 {
     oo::Ref<OOJSTimer> timer = oo::adopt(new OOJSTimer);
     if (!timer->initWithDelay(delay, interval, context, function, jsThis))
@@ -229,15 +210,15 @@ void OOJSTimer::timerFired()
     JSValue function = JS_DupValue(context, _function);
     JSValue jsThis = JS_DupValue(context, _jsThis);
 
-    [OOJSScript pushScript:_owningScript];
-    _firing = YES;
+    [OOJSScript pushScript:_owningScript.get()];
+    _firing = true;
     [engine callJSFunction:function
                  forObject:jsThis
                       argc:0
                       argv:NULL
                     result:&rval];
-    _firing = NO;
-    [OOJSScript popScript:_owningScript];
+    _firing = false;
+    [OOJSScript popScript:_owningScript.get()];
 
     JS_FreeValue(context, rval);
     JS_FreeValue(context, function);
@@ -267,12 +248,12 @@ void OOJSTimer::clearJSSelf()
         (e.g. with a new timer) frees the JS object at once under QuickJS's
         reference counting, which SpiderMonkey's GC almost never did.
 */
-- (BOOL)willNotFireAgain
+bool OOJSTimer::willNotFireAgain()
 {
-    return _firing && [self interval] <= 0.0;
+    return _firing && interval() <= 0.0;
 }
 
-/*	The reference created with the JS object in -initWithDelay:... belongs to
+/*	The reference created with the JS object in initWithDelay() belongs to
         whoever calls this, once (the constructor, which returns it).
         SpiderMonkey's unrooted _jsSelf pointer added no reference, so this is
         what lets the JS object be collected (and finalized) as before.
@@ -407,7 +388,8 @@ static void TimerFinalize(JSRuntime* runtime, JSValueConst thisObj)
     ::OOJSTimer* timer = (::OOJSTimer*)JS_GetOpaque(thisObj, sTimerClassID);
 
     if (timer != nil) {
-        if ([timer isScheduled] && ![timer willNotFireAgain]) {
+        cxx::OOJSTimer* cxxTimer = oo::ToCxx(timer);
+        if (cxxTimer->isScheduled() && !cxxTimer->willNotFireAgain()) {
             OO_LOG_WARN("script.javaScript.unrootedTimer", "Timer {} is being garbage-collected while still running. You must keep a reference to all running timers, or they will stop unpredictably!", oo::DescriptionOf(timer));
         }
         cxxTimer->clearJSSelf();

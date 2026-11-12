@@ -10,22 +10,9 @@
 #   build/quickjs-poc/src/Core/Scripting/poc/oojs-quickjs-poc src/Core/Scripting/poc/tests
 #
 # The harness has its own minimal engine core and script loader (in this
-# directory), since the full ones depend on the rest of the game.
-
-quickjs_dep = dependency(
-    'quickjs-ng',
-    version: '>=0.17.0',
-    default_options: ['default_library=static', 'libc=false'],
-)
-
-if host_os == 'windows' or host_os == 'cygwin'
-    error('The QuickJS proof-of-concept harness currently supports Linux only.')
-endif
-
-poc_gnustep_dep = declare_dependency(
-    dependencies: [gs_lib, objc_lib, dependency('gl')],
-    include_directories: include_directories(found_gs_inc, is_system: true),
-)
+# directory), since the full ones depend on the rest of the game. It uses the
+# game's QuickJS-ng (src/meson/meson.build), oofnd and the Objective-C floor
+# (libobjc2, no Foundation library), compiled as the game is.
 
 poc_sources = files(
     '../OOJSClasses.mm',
