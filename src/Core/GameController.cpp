@@ -346,14 +346,15 @@ void GameController::setMouseInteractionMode(OOMouseInteractionMode mode) {
 void GameController::setMouseInteractionModeForFlight() {
   setMouseInteractionMode(
       (PLAYER != nullptr ? PLAYER->isMouseControlOn() : false)
-          ? MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL
-          : MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL);
+          ? OOMouseInteractionMode::kFlightWithMouseControl
+          : OOMouseInteractionMode::kFlightNoMouseControl);
 }
 
 void GameController::setMouseInteractionModeForUIWithMouseInteraction(
     bool interaction) {
-  setMouseInteractionMode(interaction ? MOUSE_MODE_UI_SCREEN_WITH_INTERACTION
-                                      : MOUSE_MODE_UI_SCREEN_NO_INTERACTION);
+  setMouseInteractionMode(interaction
+                              ? OOMouseInteractionMode::kUiScreenWithInteraction
+                              : OOMouseInteractionMode::kUiScreenNoInteraction);
 }
 
 ::MyOpenGLView* GameController::gameView() { return _gameView; }

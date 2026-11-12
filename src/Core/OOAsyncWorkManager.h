@@ -29,14 +29,18 @@ SOFTWARE.
 
 #pragma once
 
+#include "OOEnumFlags.h"
 #include "OOFoundation.h"
 #include "oofnd/Ref.hpp"
 
-typedef enum {
-  kOOAsyncPriorityLow,
-  kOOAsyncPriorityMedium,
-  kOOAsyncPriorityHigh
-} OOAsyncWorkPriority;
+enum class OOAsyncWorkPriority : std::int32_t {
+  kLow,
+  kMedium,
+  kHigh,
+};
+static_assert(static_cast<std::int32_t>(OOAsyncWorkPriority::kLow) == 0);
+static_assert(static_cast<std::int32_t>(OOAsyncWorkPriority::kMedium) == 1);
+static_assert(static_cast<std::int32_t>(OOAsyncWorkPriority::kHigh) == 2);
 
 /*	A task: performed on a work thread by performAsyncTask(), then, if it
    has a completion (hasCompleteAsyncTask()), completed on the main thread by

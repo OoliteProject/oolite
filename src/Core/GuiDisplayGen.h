@@ -47,6 +47,7 @@ MA 02110-1301, USA.
 #include <utility>
 #include <vector>
 
+#include "OOEnumFlags.h"
 #include "OOFoundation.h"
 #include "OOFunctionAttributes.h"
 #include "OOMaths.h"
@@ -66,24 +67,43 @@ MA 02110-1301, USA.
 #define MAIN_GUI_ROW_WIDTH 16
 #define MAIN_GUI_PIXEL_ROW_START 40
 
-typedef enum {
-  GUI_ALIGN_LEFT,
-  GUI_ALIGN_RIGHT,
-  GUI_ALIGN_CENTER
-} OOGUIAlignment;
+enum class OOGUIAlignment : std::int32_t {
+  kLeft,
+  kRight,
+  kCenter,
+};
+static_assert(static_cast<std::int32_t>(OOGUIAlignment::kLeft) == 0);
+static_assert(static_cast<std::int32_t>(OOGUIAlignment::kRight) == 1);
+static_assert(static_cast<std::int32_t>(OOGUIAlignment::kCenter) == 2);
 
-typedef enum {
-  GUI_BACKGROUND_SPECIAL_NONE,
-  GUI_BACKGROUND_SPECIAL_CUSTOM,
-  GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_SHORTEST,
-  GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_QUICKEST,
-  GUI_BACKGROUND_SPECIAL_SHORT,
-  GUI_BACKGROUND_SPECIAL_SHORT_ANA_SHORTEST,
-  GUI_BACKGROUND_SPECIAL_SHORT_ANA_QUICKEST,
-  GUI_BACKGROUND_SPECIAL_LONG,
-  GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST,
-  GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST
-} OOGUIBackgroundSpecial;
+enum class OOGUIBackgroundSpecial : std::int32_t {
+  kNone,
+  kCustom,
+  kCustomAnaShortest,
+  kCustomAnaQuickest,
+  kShort,
+  kShortAnaShortest,
+  kShortAnaQuickest,
+  kLong,
+  kLongAnaShortest,
+  kLongAnaQuickest,
+};
+static_assert(static_cast<std::int32_t>(OOGUIBackgroundSpecial::kNone) == 0);
+static_assert(static_cast<std::int32_t>(OOGUIBackgroundSpecial::kCustom) == 1);
+static_assert(
+    static_cast<std::int32_t>(OOGUIBackgroundSpecial::kCustomAnaShortest) == 2);
+static_assert(
+    static_cast<std::int32_t>(OOGUIBackgroundSpecial::kCustomAnaQuickest) == 3);
+static_assert(static_cast<std::int32_t>(OOGUIBackgroundSpecial::kShort) == 4);
+static_assert(
+    static_cast<std::int32_t>(OOGUIBackgroundSpecial::kShortAnaShortest) == 5);
+static_assert(
+    static_cast<std::int32_t>(OOGUIBackgroundSpecial::kShortAnaQuickest) == 6);
+static_assert(static_cast<std::int32_t>(OOGUIBackgroundSpecial::kLong) == 7);
+static_assert(
+    static_cast<std::int32_t>(OOGUIBackgroundSpecial::kLongAnaShortest) == 8);
+static_assert(
+    static_cast<std::int32_t>(OOGUIBackgroundSpecial::kLongAnaQuickest) == 9);
 
 inline constexpr std::string_view GUI_KEY_OK = "OK";
 inline constexpr std::string_view GUI_KEY_SKIP = "SKIP-ROW";

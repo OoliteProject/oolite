@@ -480,10 +480,10 @@ OOComparisonResult ComparePlanetsBySurfaceDistance(
   float p1 = SurfaceDistanceSqaredV(p, e1);
   float p2 = SurfaceDistanceSqaredV(p, e2);
 
-  if (p1 < p2) return OOOrderedAscending;
-  if (p1 > p2) return OOOrderedDescending;
+  if (p1 < p2) return OOComparisonResult::kAscending;
+  if (p1 > p2) return OOComparisonResult::kDescending;
 
-  return OOOrderedSame;
+  return OOComparisonResult::kSame;
 }
 }  // namespace
 
@@ -5006,7 +5006,7 @@ void ShipEntity::behaviour_close_to_broadside_range(double delta_t) {
     if (proximityAlert() == primaryTarget()) {
       behaviour = OOBehaviour::kAttackFlyToTarget;  // this behaviour will
                                                     // handle proximity_alert.
-      behaviour_attack_fly_from_target(delta_t);  // do it now.
+      behaviour_attack_fly_from_target(delta_t);    // do it now.
     } else {
       avoidCollision();
     }
@@ -5037,7 +5037,7 @@ void ShipEntity::behaviour_close_with_target(double delta_t) {
     if (proximityAlert() == primaryTarget()) {
       behaviour = OOBehaviour::kAttackFlyToTarget;  // this behaviour will
                                                     // handle proximity_alert.
-      behaviour_attack_fly_from_target(delta_t);  // do it now.
+      behaviour_attack_fly_from_target(delta_t);    // do it now.
     } else {
       avoidCollision();
     }
@@ -5136,7 +5136,7 @@ void ShipEntity::behaviour_fly_to_target_six(double delta_t) {
     if (proximityAlert() == primaryTarget()) {
       behaviour = OOBehaviour::kAttackFlyToTarget;  // this behaviour will
                                                     // handle proximity_alert.
-      behaviour_attack_fly_from_target(delta_t);  // do it now.
+      behaviour_attack_fly_from_target(delta_t);    // do it now.
     } else {
       avoidCollision();
     }
@@ -7330,8 +7330,9 @@ Entity* ShipEntity::findNearestStellarBody() {
   // ComparePlanetsBySurfaceDistance's order; the nearest comes first.
   std::stable_sort(planets.begin(), planets.end(),
                    [this](const oo::EntityHold& a, const oo::EntityHold& b) {
-                     return ComparePlanetsBySurfaceDistance(
-                                a.get(), b.get(), this) == OOOrderedAscending;
+                     return ComparePlanetsBySurfaceDistance(a.get(), b.get(),
+                                                            this) ==
+                            OOComparisonResult::kAscending;
                    });
   result = static_cast<::OOPlanetEntity*>(planets[0].get());
 

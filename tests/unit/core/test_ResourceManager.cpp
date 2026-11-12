@@ -397,16 +397,16 @@ OO_TEST(mergedPlistsFromTheSearchPaths) {
     const std::vector<std::string> paths = ResourceManager::paths();
     OO_CHECK(paths.size() >= 2);
 
-    // MERGE_NONE: the last file in search order; MERGE_BASIC: top-level keys;
-    // MERGE_SMART: second level.
+    // OOResourceMergeMode::kNone: the last file in search order; OOResourceMergeMode::kBasic: top-level keys;
+    // OOResourceMergeMode::kSmart: second level.
     const oo::PList last = ResourceManager::dictionaryFromFilesNamed(
-        "oo-test-dict.plist", std::string("Config"), MERGE_NONE, false);
+        "oo-test-dict.plist", std::string("Config"), OOResourceMergeMode::kNone, false);
     std::printf("  MERGE_NONE: %s\n", oo::DescriptionOf(last).c_str());
     const oo::PList basic = ResourceManager::dictionaryFromFilesNamed(
-        "oo-test-dict.plist", std::string("Config"), MERGE_BASIC, false);
+        "oo-test-dict.plist", std::string("Config"), OOResourceMergeMode::kBasic, false);
     std::printf("  MERGE_BASIC: %s\n", oo::DescriptionOf(basic).c_str());
     const oo::PList smart = ResourceManager::dictionaryFromFilesNamed(
-        "oo-test-dict.plist", std::string("Config"), MERGE_SMART, false);
+        "oo-test-dict.plist", std::string("Config"), OOResourceMergeMode::kSmart, false);
     std::printf("  MERGE_SMART: %s\n", oo::DescriptionOf(smart).c_str());
     OO_CHECK(basic.find("base") != nullptr && basic.find("fromA") != nullptr &&
              basic.find("fromH") != nullptr);
@@ -505,7 +505,7 @@ OO_TEST(cxxSlice3API) {
   {
     OO_CHECK(ResourceManager::dictionaryFromFilesNamed("oo-test-dict.plist",
                                                        std::string("Config"),
-                                                       MERGE_BASIC, false)
+                                                       OOResourceMergeMode::kBasic, false)
                  .find("fromA") != nullptr);
     OO_CHECK(ResourceManager::dictionaryFromFilesNamed(
                  "oo-test-none.plist", std::string("Config"), true)

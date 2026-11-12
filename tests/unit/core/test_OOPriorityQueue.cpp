@@ -35,9 +35,9 @@ class CxxItem : public oo::RefCounted {
 int CxxItem::sLive = 0;
 
 OOComparisonResult CompareCxx(CxxItem* a, CxxItem* b) {
-  if (a->key < b->key) return OOOrderedAscending;
-  if (a->key > b->key) return OOOrderedDescending;
-  return OOOrderedSame;
+  if (a->key < b->key) return OOComparisonResult::kAscending;
+  if (a->key > b->key) return OOComparisonResult::kDescending;
+  return OOComparisonResult::kSame;
 }
 
 }  // namespace

@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#include "OOEnumFlags.h"
 #include "OOFoundation.h"
 #include "OOOpenGL.h"
 #include "oofnd/PList.hpp"
@@ -41,33 +42,52 @@ class OOSound;
 
 #define TRUMBLE_GROWTH_RATE 0.01
 
-enum trumble_animation {
-  TRUMBLE_ANIM_NONE = 0,
-  TRUMBLE_ANIM_IDLE,
-  TRUMBLE_ANIM_BLINK,
-  TRUMBLE_ANIM_SNARL,
-  TRUMBLE_ANIM_PROOT,
-  TRUMBLE_ANIM_SHUDDER,
-  TRUMBLE_ANIM_STONED,
-  TRUMBLE_ANIM_SPAWN,
-  TRUMBLE_ANIM_SLEEP,
-  TRUMBLE_ANIM_DIE
+enum class trumble_animation : int {
+  kNone = 0,
+  kIdle,
+  kBlink,
+  kSnarl,
+  kProot,
+  kShudder,
+  kStoned,
+  kSpawn,
+  kSleep,
+  kDie,
 };
+static_assert(static_cast<int>(trumble_animation::kNone) == 0);
+static_assert(static_cast<int>(trumble_animation::kIdle) == 1);
+static_assert(static_cast<int>(trumble_animation::kBlink) == 2);
+static_assert(static_cast<int>(trumble_animation::kSnarl) == 3);
+static_assert(static_cast<int>(trumble_animation::kProot) == 4);
+static_assert(static_cast<int>(trumble_animation::kShudder) == 5);
+static_assert(static_cast<int>(trumble_animation::kStoned) == 6);
+static_assert(static_cast<int>(trumble_animation::kSpawn) == 7);
+static_assert(static_cast<int>(trumble_animation::kSleep) == 8);
+static_assert(static_cast<int>(trumble_animation::kDie) == 9);
 
-enum trumble_eyes {
-  TRUMBLE_EYES_NONE = 0,
-  TRUMBLE_EYES_OPEN,
-  TRUMBLE_EYES_SHUT,
-  TRUMBLE_EYES_WIDE
+enum class trumble_eyes : int {
+  kNone = 0,
+  kOpen,
+  kShut,
+  kWide,
 };
+static_assert(static_cast<int>(trumble_eyes::kNone) == 0);
+static_assert(static_cast<int>(trumble_eyes::kOpen) == 1);
+static_assert(static_cast<int>(trumble_eyes::kShut) == 2);
+static_assert(static_cast<int>(trumble_eyes::kWide) == 3);
 
-enum trumble_mouth {
-  TRUMBLE_MOUTH_NONE = 0,
-  TRUMBLE_MOUTH_POUT,
-  TRUMBLE_MOUTH_GROWL,
-  TRUMBLE_MOUTH_SNARL,
-  TRUMBLE_MOUTH_NORMAL
+enum class trumble_mouth : int {
+  kNone = 0,
+  kPout,
+  kGrowl,
+  kSnarl,
+  kNormal,
 };
+static_assert(static_cast<int>(trumble_mouth::kNone) == 0);
+static_assert(static_cast<int>(trumble_mouth::kPout) == 1);
+static_assert(static_cast<int>(trumble_mouth::kGrowl) == 2);
+static_assert(static_cast<int>(trumble_mouth::kSnarl) == 3);
+static_assert(static_cast<int>(trumble_mouth::kNormal) == 4);
 
 struct OOTrumbleTestAccess;  // tests/unit/core/test_OOTrumble.cpp
 
@@ -159,15 +179,15 @@ class OOTrumble : public oo::RefCounted {
   double animationTime = {};      // set to 0.0 at start of current animation
   double animationDuration = {};  // set to 0.0 at start of current animation
   //
-  enum trumble_animation animation = {};      // current animation sequence
-  enum trumble_animation nextAnimation = {};  // next animation sequence
+  trumble_animation animation = {};      // current animation sequence
+  trumble_animation nextAnimation = {};  // next animation sequence
   //
   int animationStage = {};  // sub-sequence within animation
   //
-  enum trumble_mouth mouthFrame = {};  // which mouth position - determines what
-                                       // part of the texture to display
-  enum trumble_eyes eyeFrame = {};  // which eye position - determines what part
-                                    // of the texture to display
+  trumble_mouth mouthFrame = {};  // which mouth position - determines what
+                                  // part of the texture to display
+  trumble_eyes eyeFrame = {};     // which eye position - determines what part
+                                  // of the texture to display
   //
   oo::Ref<OOTexture> texture;
   //

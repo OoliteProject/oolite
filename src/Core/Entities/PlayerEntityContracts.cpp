@@ -1482,11 +1482,12 @@ void PlayerEntity::setGuiToDockingReportScreen() {
           const std::size_t line_break = dockingReport.find('\n');
           const std::string line = dockingReport.substr(0, line_break);
           dockingReport.erase(0, line_break + 1);
-          text_row = gui->addLongText(line, text_row, GUI_ALIGN_LEFT);
+          text_row = gui->addLongText(line, text_row, OOGUIAlignment::kLeft);
         }
         dockingReport = oo::str::trimWhitespaceAndNewlines(dockingReport);
       } else {
-        text_row = gui->addLongText(dockingReport, text_row, GUI_ALIGN_LEFT);
+        text_row =
+            gui->addLongText(dockingReport, text_row, OOGUIAlignment::kLeft);
         dockingReport.clear();
       }
     }
@@ -1504,7 +1505,7 @@ void PlayerEntity::setGuiToDockingReportScreen() {
             .get(),
         GUI_ROW_MARKET_CASH);
 
-    gui->setText(OO_DESC("press-space-commander"), 21, GUI_ALIGN_CENTER);
+    gui->setText(OO_DESC("press-space-commander"), 21, OOGUIAlignment::kCenter);
     gui->setColor(gui->colorFromSetting(
                          std::string(cxx_kGuiDockingContinueColor), nullptr)
                       .get(),
@@ -1739,7 +1740,7 @@ void PlayerEntity::setGuiToShipyardScreen(std::size_t skip) {
       showShipyardInfoForSelection();
     } else {
       gui->setText(OO_DESC("shipyard-no-ships-available-for-purchase"),
-                   GUI_ROW_NO_SHIPS, GUI_ALIGN_CENTER);
+                   GUI_ROW_NO_SHIPS, OOGUIAlignment::kCenter);
       gui->setColor(gui->colorFromSetting(cxx_kGuiShipyardNoshipColor,
                                           OOColor::greenColor().get())
                         .get(),
@@ -1820,7 +1821,7 @@ void PlayerEntity::showShipyardInfoForSelection() {
     // is longer than usual.
     showTradeInInformationFooter();
     i = gui->addLongText(salesPitch, GUI_ROW_SHIPYARD_INFO_START,
-                         GUI_ALIGN_LEFT);
+                         OOGUIAlignment::kLeft);
     if (i - 1 >= GUI_ROW_MARKET_CASH - 1) {
       gui->setColor(gui->colorFromSetting(cxx_kGuiShipyardDescriptionColor,
                                           OOColor::greenColor().get())

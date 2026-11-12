@@ -175,11 +175,11 @@ OO_TEST(ordering) {
     SetUp(100.0);
     oo::Ref<OOScriptTimer> early = OOScriptTimer::timerWithNextTime(110.0, 5.0);
     oo::Ref<OOScriptTimer> late = OOScriptTimer::timerWithNextTime(120.0, 5.0);
-    OO_CHECK_EQ(early->compareByNextFireTime(late.get()), OOOrderedAscending);
-    OO_CHECK_EQ(late->compareByNextFireTime(early.get()), OOOrderedDescending);
-    OO_CHECK_EQ(early->compareByNextFireTime(early.get()), OOOrderedSame);
+    OO_CHECK_EQ(early->compareByNextFireTime(late.get()), OOComparisonResult::kAscending);
+    OO_CHECK_EQ(late->compareByNextFireTime(early.get()), OOComparisonResult::kDescending);
+    OO_CHECK_EQ(early->compareByNextFireTime(early.get()), OOComparisonResult::kSame);
     OO_CHECK_EQ(early->compareByNextFireTime(nullptr),
-                OOOrderedDescending);  // nil is -INFINITY
+                OOComparisonResult::kDescending);  // nil is -INFINITY
   }
 }
 

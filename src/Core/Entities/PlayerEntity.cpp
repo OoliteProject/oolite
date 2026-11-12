@@ -214,11 +214,11 @@ std::size_t IndexOfGood(const std::vector<std::string>& goods,
              : oo::kNotFound;
 }
 
-// The market sorters, as orderings (< 0, 0, > 0 for OOOrderedAscending, Same,
-// Descending) over commodity keys; used with std::stable_sort, as
-// -sortedArrayUsingFunction:context: is a stable sort in GNUstep (probed on
-// gnustep-base: ties keep their order). They read the market's C++ part; a null
-// market answers as a nil one did (no name, 0).
+// The market sorters, as orderings (< 0, 0, > 0 for
+// OOComparisonResult::kAscending, Same, Descending) over commodity keys; used
+// with std::stable_sort, as -sortedArrayUsingFunction:context: is a stable sort
+// in GNUstep (probed on gnustep-base: ties keep their order). They read the
+// market's C++ part; a null market answers as a nil one did (no name, 0).
 int marketSorterByName(const std::string& a, const std::string& b,
                        OOCommodityMarket* market) {
   // (-compare: on a nil name: goods always have names)
@@ -861,21 +861,21 @@ NSPoint PlayerEntity::getChart_centre_coordinates() {
 }
 
 OOScalar PlayerEntity::getChart_zoom() {
-  if (_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT ||
-      _missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT_ANA_QUICKEST ||
-      _missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT_ANA_SHORTEST) {
+  if (_missionBackgroundSpecial == OOGUIBackgroundSpecial::kShort ||
+      _missionBackgroundSpecial == OOGUIBackgroundSpecial::kShortAnaQuickest ||
+      _missionBackgroundSpecial == OOGUIBackgroundSpecial::kShortAnaShortest) {
     return 1.0;
-  } else if (_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG ||
+  } else if (_missionBackgroundSpecial == OOGUIBackgroundSpecial::kLong ||
              _missionBackgroundSpecial ==
-                 GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST ||
+                 OOGUIBackgroundSpecial::kLongAnaShortest ||
              _missionBackgroundSpecial ==
-                 GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST) {
+                 OOGUIBackgroundSpecial::kLongAnaQuickest) {
     return CHART_MAX_ZOOM;
-  } else if (_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_CUSTOM ||
+  } else if (_missionBackgroundSpecial == OOGUIBackgroundSpecial::kCustom ||
              _missionBackgroundSpecial ==
-                 GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_QUICKEST ||
+                 OOGUIBackgroundSpecial::kCustomAnaQuickest ||
              _missionBackgroundSpecial ==
-                 GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_SHORTEST) {
+                 OOGUIBackgroundSpecial::kCustomAnaShortest) {
     return custom_chart_zoom;
   }
   return chart_zoom;
@@ -903,21 +903,21 @@ NSPoint PlayerEntity::adjusted_chart_centre() {
   double ecc;  // chart centre coordinate we'd want if the cursor was on the
                // edge of the galaxy in the current direction
 
-  if (_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT ||
-      _missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT_ANA_QUICKEST ||
-      _missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT_ANA_SHORTEST) {
+  if (_missionBackgroundSpecial == OOGUIBackgroundSpecial::kShort ||
+      _missionBackgroundSpecial == OOGUIBackgroundSpecial::kShortAnaQuickest ||
+      _missionBackgroundSpecial == OOGUIBackgroundSpecial::kShortAnaShortest) {
     return galaxy_coordinates;
-  } else if (_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG ||
+  } else if (_missionBackgroundSpecial == OOGUIBackgroundSpecial::kLong ||
              _missionBackgroundSpecial ==
-                 GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST ||
+                 OOGUIBackgroundSpecial::kLongAnaQuickest ||
              _missionBackgroundSpecial ==
-                 GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST) {
+                 OOGUIBackgroundSpecial::kLongAnaShortest) {
     return NSMakePoint(128.0, 128.0);
-  } else if (_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_CUSTOM ||
+  } else if (_missionBackgroundSpecial == OOGUIBackgroundSpecial::kCustom ||
              _missionBackgroundSpecial ==
-                 GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_QUICKEST ||
+                 OOGUIBackgroundSpecial::kCustomAnaQuickest ||
              _missionBackgroundSpecial ==
-                 GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_SHORTEST) {
+                 OOGUIBackgroundSpecial::kCustomAnaShortest) {
     return custom_chart_centre_coordinates;
   }
   // When fully zoomed in we want to centre chart on chart_centre_coordinates.
@@ -2894,7 +2894,7 @@ bool PlayerEntity::canCollide() {
 // Sun glare, the atmosphere, update:. (Sends to self are member calls.)
 
 OOComparisonResult PlayerEntity::compareZeroDistance(Entity* /*otherEntity*/) {
-  return OOOrderedDescending;  // always the most near
+  return OOComparisonResult::kDescending;  // always the most near
 }
 
 bool PlayerEntity::validForAddToUniverse() { return true; }
@@ -8121,7 +8121,7 @@ void PlayerEntity::setGuiToStatusScreen() {
     gui->setTitle(
         oo::str::formatRuntime(text, {commanderName().value_or("(null)")}));
 
-    gui->setText(shipName, 0, GUI_ALIGN_CENTER);
+    gui->setText(shipName, 0, OOGUIAlignment::kCenter);
 
     gui->setArray(RowOf(OO_DESC("status-present-system"), systemName), 1);
     if (hasHyperspaceMotor())
@@ -8857,7 +8857,7 @@ void PlayerEntity::setGuiToSystemDataScreenRefreshBackground(
     if (concealment >= OO_SYSTEMCONCEALMENT_NODATA) {
       OOGUIRow i =
           gui->addLongText(cxx_OOExpandKey("sysdata-data-on-system-no-data"),
-                           15, GUI_ALIGN_LEFT);
+                           15, OOGUIAlignment::kLeft);
       missionTextRow = i;
       for (i--; i > 14; --i) {
         gui->setColor(gui->colorFromSetting(cxx_kGuiSystemdataDescriptionColor,
@@ -8943,7 +8943,7 @@ void PlayerEntity::setGuiToSystemDataScreenRefreshBackground(
         }
       }
 
-      i = gui->addLongText(system_desc, 17, GUI_ALIGN_LEFT);
+      i = gui->addLongText(system_desc, 17, OOGUIAlignment::kLeft);
       missionTextRow = i;
       for (i--; i > 16; --i) {
         gui->setColor(gui->colorFromSetting(cxx_kGuiSystemdataDescriptionColor,
@@ -9211,7 +9211,7 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
 
     gui->setText(displayModeString,
                  OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_DISPLAY),
-                 GUI_ALIGN_CENTER);
+                 OOGUIAlignment::kCenter);
     if (runningOnPrimaryDisplayDevice) {
       gui->setKey(std::string(GUI_KEY_OK),
                   OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_DISPLAY));
@@ -9258,7 +9258,7 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
 
       gui->setText(maxBrightnessString,
                    OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_HDRMAXBRIGHTNESS),
-                   GUI_ALIGN_CENTER);
+                   OOGUIAlignment::kCenter);
       gui->setKey(std::string(GUI_KEY_OK),
                   OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_HDRMAXBRIGHTNESS));
     }
@@ -9267,11 +9267,11 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
     if ((UNIVERSE != nullptr ? UNIVERSE->getAutoSave() : false))
       gui->setText(OO_DESC("gameoptions-autosave-yes"),
                    OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_AUTOSAVE),
-                   GUI_ALIGN_CENTER);
+                   OOGUIAlignment::kCenter);
     else
       gui->setText(OO_DESC("gameoptions-autosave-no"),
                    OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_AUTOSAVE),
-                   GUI_ALIGN_CENTER);
+                   OOGUIAlignment::kCenter);
     gui->setKey(std::string(GUI_KEY_OK),
                 OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_AUTOSAVE));
 
@@ -9286,17 +9286,18 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
       if (vol > 0)
         gui->setText(
             std::format("{}{} ", soundVolumeWordDesc, SliderString(vol)),
-            OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_VOLUME), GUI_ALIGN_CENTER);
+            OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_VOLUME),
+            OOGUIAlignment::kCenter);
       else
         gui->setText(OO_DESC("gameoptions-sound-volume-mute"),
                      OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_VOLUME),
-                     GUI_ALIGN_CENTER);
+                     OOGUIAlignment::kCenter);
       gui->setKey(std::string(GUI_KEY_OK),
                   OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_VOLUME));
     } else {
       gui->setText(OO_DESC("gameoptions-volume-external-only"),
                    OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_VOLUME),
-                   GUI_ALIGN_CENTER);
+                   OOGUIAlignment::kCenter);
       gui->setColor(OOColor::grayColor().get(),
                     OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_VOLUME));
     }
@@ -9311,7 +9312,7 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
     gui->setText(
         std::format("{}{} ({}{}) ", fovWordDesc, SliderString(fovTicks),
                     (int)fov, "\xC2\xB0" /*the degrees symbol*/),
-        OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_FOV), GUI_ALIGN_CENTER);
+        OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_FOV), OOGUIAlignment::kCenter);
     gui->setKey(std::string(GUI_KEY_OK),
                 OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_FOV));
 
@@ -9333,7 +9334,7 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
         {{"colorblindModeDesc", oo::PList(colorblindModeDesc)}});
     gui->setText(colorblindModeMsg,
                  OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_COLORBLINDMODE),
-                 GUI_ALIGN_CENTER);
+                 OOGUIAlignment::kCenter);
     if ((UNIVERSE != nullptr ? UNIVERSE->useShaders() : false)) {
       gui->setKey(std::string(GUI_KEY_OK),
                   OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_COLORBLINDMODE));
@@ -9348,17 +9349,17 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
       case OOSpeechSettings::kOff:
         gui->setText(OO_DESC("gameoptions-spoken-messages-no"),
                      OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SPEECH),
-                     GUI_ALIGN_CENTER);
+                     OOGUIAlignment::kCenter);
         break;
       case OOSpeechSettings::kComms:
         gui->setText(OO_DESC("gameoptions-spoken-messages-comms"),
                      OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SPEECH),
-                     GUI_ALIGN_CENTER);
+                     OOGUIAlignment::kCenter);
         break;
       case OOSpeechSettings::kAll:
         gui->setText(OO_DESC("gameoptions-spoken-messages-yes"),
                      OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SPEECH),
-                     GUI_ALIGN_CENTER);
+                     OOGUIAlignment::kCenter);
         break;
     }
     OO_SETACCESSCONDITIONFORROW(
@@ -9375,7 +9376,7 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
           {{"voiceName", oo::PList(voiceName)}});
       gui->setText(message,
                    OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SPEECH_LANGUAGE),
-                   GUI_ALIGN_CENTER);
+                   OOGUIAlignment::kCenter);
       OO_SETACCESSCONDITIONFORROW(
           !startingGame,
           OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SPEECH_LANGUAGE));
@@ -9384,7 +9385,7 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
                                        : "gameoptions-voice-F");
       gui->setText(message,
                    OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SPEECH_GENDER),
-                   GUI_ALIGN_CENTER);
+                   OOGUIAlignment::kCenter);
       OO_SETACCESSCONDITIONFORROW(
           !startingGame,
           OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SPEECH_GENDER));
@@ -9395,39 +9396,41 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
     if ((gameView != nullptr ? gameView->inFullScreenMode() : false)) {
       gui->setText(OO_DESC("gameoptions-play-in-window"),
                    OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE),
-                   GUI_ALIGN_CENTER);
+                   OOGUIAlignment::kCenter);
     } else {
       gui->setText(OO_DESC("gameoptions-play-in-fullscreen"),
                    OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE),
-                   GUI_ALIGN_CENTER);
+                   OOGUIAlignment::kCenter);
     }
     gui->setKey(std::string(GUI_KEY_OK),
                 OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE));
 
     gui->setText(OO_DESC("gameoptions-joystick-configuration"),
                  OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_STICKMAPPER),
-                 GUI_ALIGN_CENTER);
+                 OOGUIAlignment::kCenter);
     OO_SETACCESSCONDITIONFORROW(
         OOJoystickManager::sharedStickHandler()->joystickCount(),
         OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_STICKMAPPER));
 
     gui->setText(OO_DESC("gameoptions-keyboard-configuration"),
                  OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_KEYMAPPER),
-                 GUI_ALIGN_CENTER);
+                 OOGUIAlignment::kCenter);
     gui->setKey(std::string(GUI_KEY_OK),
                 OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_KEYMAPPER));
 
     const std::string musicMode =
         (UNIVERSE != nullptr
              ? UNIVERSE->descriptionForArrayKey(
-                   "music-mode", OOMusicController::sharedController()->mode())
+                   "music-mode",
+                   oo::ToUnderlying(
+                       OOMusicController::sharedController()->mode()))
              : std::optional<std::string>())
             .value_or(std::string());
     const std::string message = ExpandKeyWithSeed(
         OOStringExpanderDefaultRandomSeed(), "gameoptions-music-mode",
         {{"musicMode", oo::PList(musicMode)}});
     gui->setText(message, OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_MUSIC),
-                 GUI_ALIGN_CENTER);
+                 OOGUIAlignment::kCenter);
     gui->setKey(std::string(GUI_KEY_OK),
                 OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_MUSIC));
 
@@ -9435,11 +9438,11 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
       if ((UNIVERSE != nullptr ? UNIVERSE->getWireframeGraphics() : false))
         gui->setText(OO_DESC("gameoptions-wireframe-graphics-yes"),
                      OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS),
-                     GUI_ALIGN_CENTER);
+                     OOGUIAlignment::kCenter);
       else
         gui->setText(OO_DESC("gameoptions-wireframe-graphics-no"),
                      OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS),
-                     GUI_ALIGN_CENTER);
+                     OOGUIAlignment::kCenter);
       gui->setKey(std::string(GUI_KEY_OK),
                   OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS));
     }
@@ -9455,7 +9458,7 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
                                SliderString(paperWhiteTicks),
                                static_cast<int>(paperWhite)),
                    OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_HDRPAPERWHITE),
-                   GUI_ALIGN_CENTER);
+                   OOGUIAlignment::kCenter);
       gui->setKey(std::string(GUI_KEY_OK),
                   OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_HDRPAPERWHITE));
     }
@@ -9470,7 +9473,7 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
     gui->setText(ExpandKeyWithSeed(OOStringExpanderDefaultRandomSeed(),
                                    shaderEffectsOptionsString, {}),
                  OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SHADEREFFECTS),
-                 GUI_ALIGN_CENTER);
+                 OOGUIAlignment::kCenter);
     if (!OOOpenGLExtensionManager::sharedManager()->shadersForceDisabled()) {
       gui->setKey(std::string(GUI_KEY_OK),
                   OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SHADEREFFECTS));
@@ -9485,11 +9488,11 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
                              : false)) {
       gui->setText(OO_DESC("gameoptions-docking-clearance-yes"),
                    OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_DOCKINGCLEARANCE),
-                   GUI_ALIGN_CENTER);
+                   OOGUIAlignment::kCenter);
     } else {
       gui->setText(OO_DESC("gameoptions-docking-clearance-no"),
                    OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_DOCKINGCLEARANCE),
-                   GUI_ALIGN_CENTER);
+                   OOGUIAlignment::kCenter);
     }
     OO_SETACCESSCONDITIONFORROW(
         !startingGame,
@@ -9498,7 +9501,7 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
     // Back menu option
     gui->setText(OO_DESC("gui-back"),
                  OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_BACK),
-                 GUI_ALIGN_CENTER);
+                 OOGUIAlignment::kCenter);
     gui->setKey(std::string(GUI_KEY_OK),
                 OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_BACK));
 
@@ -9573,7 +9576,8 @@ void PlayerEntity::setGuiToLoadSaveScreen() {
         {TextArg(commanderName())}));  // Same title as status screen.
 
     gui->setText(OO_DESC("options-quick-save"),
-                 OOGUIOptionsRow(GUI_ROW_OPTIONS_QUICKSAVE), GUI_ALIGN_CENTER);
+                 OOGUIOptionsRow(GUI_ROW_OPTIONS_QUICKSAVE),
+                 OOGUIAlignment::kCenter);
     if (canQuickSave)
       gui->setKey(std::string(GUI_KEY_OK),
                   OOGUIOptionsRow(GUI_ROW_OPTIONS_QUICKSAVE));
@@ -9582,9 +9586,11 @@ void PlayerEntity::setGuiToLoadSaveScreen() {
                     OOGUIOptionsRow(GUI_ROW_OPTIONS_QUICKSAVE));
 
     gui->setText(OO_DESC("options-save-commander"),
-                 OOGUIOptionsRow(GUI_ROW_OPTIONS_SAVE), GUI_ALIGN_CENTER);
+                 OOGUIOptionsRow(GUI_ROW_OPTIONS_SAVE),
+                 OOGUIAlignment::kCenter);
     gui->setText(OO_DESC("options-load-commander"),
-                 OOGUIOptionsRow(GUI_ROW_OPTIONS_LOAD), GUI_ALIGN_CENTER);
+                 OOGUIOptionsRow(GUI_ROW_OPTIONS_LOAD),
+                 OOGUIAlignment::kCenter);
     if (canLoadOrSave) {
       gui->setKey(std::string(GUI_KEY_OK),
                   OOGUIOptionsRow(GUI_ROW_OPTIONS_SAVE));
@@ -9598,13 +9604,14 @@ void PlayerEntity::setGuiToLoadSaveScreen() {
     }
 
     gui->setText(OO_DESC("options-return-to-menu"),
-                 OOGUIOptionsRow(GUI_ROW_OPTIONS_BEGIN_NEW), GUI_ALIGN_CENTER);
+                 OOGUIOptionsRow(GUI_ROW_OPTIONS_BEGIN_NEW),
+                 OOGUIAlignment::kCenter);
     gui->setKey(std::string(GUI_KEY_OK),
                 OOGUIOptionsRow(GUI_ROW_OPTIONS_BEGIN_NEW));
 
     gui->setText(OO_DESC("options-game-options"),
                  OOGUIOptionsRow(GUI_ROW_OPTIONS_GAMEOPTIONS),
-                 GUI_ALIGN_CENTER);
+                 OOGUIAlignment::kCenter);
     gui->setKey(std::string(GUI_KEY_OK),
                 OOGUIOptionsRow(GUI_ROW_OPTIONS_GAMEOPTIONS));
 
@@ -9614,7 +9621,8 @@ void PlayerEntity::setGuiToLoadSaveScreen() {
 
     // quit menu option
     gui->setText(OO_DESC("options-exit-game"),
-                 OOGUIOptionsRow(GUI_ROW_OPTIONS_QUIT), GUI_ALIGN_CENTER);
+                 OOGUIOptionsRow(GUI_ROW_OPTIONS_QUIT),
+                 OOGUIAlignment::kCenter);
     gui->setKey(std::string(GUI_KEY_OK), OOGUIOptionsRow(GUI_ROW_OPTIONS_QUIT));
 #endif
 
@@ -10117,7 +10125,7 @@ void PlayerEntity::setGuiToEquipShipScreen(
       }
     } else {
       gui->setText(OO_DESC("equip-no-equipment-available-for-purchase"),
-                   GUI_ROW_NO_SHIPS, GUI_ALIGN_CENTER);
+                   GUI_ROW_NO_SHIPS, OOGUIAlignment::kCenter);
       gui->setColor(gui->colorFromSetting(cxx_kGuiEquipmentUnavailableColor,
                                           OOColor::greenColor().get())
                         .get(),
@@ -10214,7 +10222,7 @@ void PlayerEntity::showInformationForSelectedUpgradeWithFormatString(
       }
       if (formatString.has_value())
         desc = oo::str::formatRuntime(*formatString, {TextArg(desc)});
-      gui->addLongText(desc, GUI_ROW_EQUIPMENT_DETAIL, GUI_ALIGN_LEFT);
+      gui->addLongText(desc, GUI_ROW_EQUIPMENT_DETAIL, OOGUIAlignment::kLeft);
     }
   }
 }
@@ -10245,7 +10253,7 @@ void PlayerEntity::setGuiToInterfacesScreen(int skip) {
                      [interfaces](const std::string& a, const std::string& b) {
                        return interfaces->find(a)->second->interfaceCompare(
                                   interfaces->find(b)->second.get()) ==
-                              OOOrderedAscending;
+                              OOComparisonResult::kAscending;
                      });
   }
   int i;
@@ -10340,7 +10348,7 @@ void PlayerEntity::setGuiToInterfacesScreen(int skip) {
       showInformationForSelectedInterface();
     } else {
       gui->setText(OO_DESC("interfaces-no-interfaces-available-for-use"),
-                   GUI_ROW_NO_INTERFACES, GUI_ALIGN_LEFT);
+                   GUI_ROW_NO_INTERFACES, OOGUIAlignment::kLeft);
       gui->setColor(gui->colorFromSetting(cxx_kGuiInterfaceNoneColor,
                                           OOColor::greenColor().get())
                         .get(),
@@ -10400,7 +10408,7 @@ void PlayerEntity::showInformationForSelectedInterface() {
         InterfaceForKey(dockedStation(), interfaceKey);
     if (definition) {
       gui->addLongText(definition->summary(), GUI_ROW_INTERFACES_DETAIL,
-                       GUI_ALIGN_LEFT);
+                       OOGUIAlignment::kLeft);
     }
   }
 }
@@ -10450,53 +10458,53 @@ void PlayerEntity::setupStartScreenGui() {
   gui->setTitle("Oolite");
 
   text = OO_DESC("game-copyright");
-  gui->setText(text, 15, GUI_ALIGN_CENTER);
+  gui->setText(text, 15, OOGUIAlignment::kCenter);
   gui->setColor(OOColor::whiteColor().get(), 15);
 
   text = OO_DESC("theme-music-credit");
-  gui->setText(text, 17, GUI_ALIGN_CENTER);
+  gui->setText(text, 17, OOGUIAlignment::kCenter);
   gui->setColor(OOColor::grayColor().get(), 17);
 
   int initialRow = 22;
   int row = initialRow;
 
   text = OO_DESC("oolite-start-option-1");
-  gui->setText(text, row, GUI_ALIGN_CENTER);
+  gui->setText(text, row, OOGUIAlignment::kCenter);
   gui->setColor(OOColor::yellowColor().get(), row);
   gui->setKey(std::format("Start:{}", row), row);
 
   ++row;
 
   text = OO_DESC("oolite-start-option-2");
-  gui->setText(text, row, GUI_ALIGN_CENTER);
+  gui->setText(text, row, OOGUIAlignment::kCenter);
   gui->setColor(OOColor::yellowColor().get(), row);
   gui->setKey(std::format("Start:{}", row), row);
 
   ++row;
 
   text = OO_DESC("oolite-start-option-3");
-  gui->setText(text, row, GUI_ALIGN_CENTER);
+  gui->setText(text, row, OOGUIAlignment::kCenter);
   gui->setColor(OOColor::yellowColor().get(), row);
   gui->setKey(std::format("Start:{}", row), row);
 
   ++row;
 
   text = OO_DESC("oolite-start-option-4");
-  gui->setText(text, row, GUI_ALIGN_CENTER);
+  gui->setText(text, row, OOGUIAlignment::kCenter);
   gui->setColor(OOColor::yellowColor().get(), row);
   gui->setKey(std::format("Start:{}", row), row);
 
   ++row;
 
   text = OO_DESC("oolite-start-option-5");
-  gui->setText(text, row, GUI_ALIGN_CENTER);
+  gui->setText(text, row, OOGUIAlignment::kCenter);
   gui->setColor(OOColor::yellowColor().get(), row);
   gui->setKey(std::format("Start:{}", row), row);
 
   ++row;
 
   text = OO_DESC("oolite-start-option-6");
-  gui->setText(text, row, GUI_ALIGN_CENTER);
+  gui->setText(text, row, OOGUIAlignment::kCenter);
   gui->setColor(OOColor::yellowColor().get(), row);
   gui->setKey(std::format("Start:{}", row), row);
 
@@ -10537,7 +10545,8 @@ void PlayerEntity::setGuiToIntroFirstGo(bool justCobra) {
     const std::optional<std::string> errors = ResourceManager::errors();
     if (errors.has_value()) {
       OOGUIRow ms_start = msgLine;
-      OOGUIRow i = msgLine = gui->addLongText(errors, ms_start, GUI_ALIGN_LEFT);
+      OOGUIRow i = msgLine =
+          gui->addLongText(errors, ms_start, OOGUIAlignment::kLeft);
       for (i--; i >= ms_start; i--) gui->setColor(OOColor::redColor().get(), i);
       msgLine++;
     }
@@ -10565,7 +10574,7 @@ void PlayerEntity::setGuiToIntroFirstGo(bool justCobra) {
 
       OOGUIRow ms_start = msgLine;
       OOGUIRow i = msgLine =
-          gui->addLongText(messageToDisplay, ms_start, GUI_ALIGN_LEFT);
+          gui->addLongText(messageToDisplay, ms_start, OOGUIAlignment::kLeft);
       for (i--; i >= ms_start; i--) {
         gui->setColor(OOColor::orangeColor().get(), i);
       }
@@ -10580,7 +10589,7 @@ void PlayerEntity::setGuiToIntroFirstGo(bool justCobra) {
         OOGUIRow ms_start = msgLine;
         const std::string& message = arguments[i + 1];
         OOGUIRow i = msgLine =
-            gui->addLongText(message, ms_start, GUI_ALIGN_CENTER);
+            gui->addLongText(message, ms_start, OOGUIAlignment::kCenter);
         for (i--; i >= ms_start; i--) {
           gui->setColor(OOColor::magentaColor().get(), i);
         }
@@ -10589,7 +10598,7 @@ void PlayerEntity::setGuiToIntroFirstGo(bool justCobra) {
         OOGUIRow ms_start = msgLine;
         const std::string version = "Version " OO_VERSION_FULL;
         OOGUIRow i = msgLine =
-            gui->addLongText(version, ms_start, GUI_ALIGN_CENTER);
+            gui->addLongText(version, ms_start, OOGUIAlignment::kCenter);
         for (i--; i >= ms_start; i--) {
           gui->setColor(OOColor::magentaColor().get(), i);
         }
@@ -10602,7 +10611,7 @@ void PlayerEntity::setGuiToIntroFirstGo(bool justCobra) {
     gui->setTitle(text);
 
     text = OO_DESC("oolite-ship-library-exit");
-    gui->setText(text, 27, GUI_ALIGN_CENTER);
+    gui->setText(text, 27, OOGUIAlignment::kCenter);
     gui->setColor(OOColor::yellowColor().get(), 27);
   }
 
@@ -11979,9 +11988,10 @@ void PlayerEntity::setGuiToMarketInfoScreen() {
     OOGUIRow i = 0;
     if (!info.has_value() || info->empty()) {
       i = gui->addLongText(OO_DESC("oolite-commodity-no-comment"),
-                           GUI_ROW_MARKET_START + 2, GUI_ALIGN_LEFT);
+                           GUI_ROW_MARKET_START + 2, OOGUIAlignment::kLeft);
     } else {
-      i = gui->addLongText(info, GUI_ROW_MARKET_START + 2, GUI_ALIGN_LEFT);
+      i = gui->addLongText(info, GUI_ROW_MARKET_START + 2,
+                           OOGUIAlignment::kLeft);
     }
     for (i--; i > GUI_ROW_MARKET_START + 2; --i) {
       gui->setColor(
@@ -13343,51 +13353,51 @@ OOGUIBackgroundSpecial PlayerEntity::missionBackgroundSpecial() {
 
 void PlayerEntity::setMissionBackgroundSpecial(const std::string& special) {
   if (special.empty()) {  // (nil, from the bridge)
-    _missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_NONE;
+    _missionBackgroundSpecial = OOGUIBackgroundSpecial::kNone;
   } else if (special == "SHORT_RANGE_CHART") {
-    _missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_SHORT;
+    _missionBackgroundSpecial = OOGUIBackgroundSpecial::kShort;
   } else if (special == "SHORT_RANGE_CHART_SHORTEST") {
     if (hasEquipmentItemProviding("EQ_ADVANCED_NAVIGATIONAL_ARRAY")) {
-      _missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_SHORT_ANA_SHORTEST;
+      _missionBackgroundSpecial = OOGUIBackgroundSpecial::kShortAnaShortest;
     } else {
-      _missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_SHORT;
+      _missionBackgroundSpecial = OOGUIBackgroundSpecial::kShort;
     }
   } else if (special == "SHORT_RANGE_CHART_QUICKEST") {
     if (hasEquipmentItemProviding("EQ_ADVANCED_NAVIGATIONAL_ARRAY")) {
-      _missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_SHORT_ANA_QUICKEST;
+      _missionBackgroundSpecial = OOGUIBackgroundSpecial::kShortAnaQuickest;
     } else {
-      _missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_SHORT;
+      _missionBackgroundSpecial = OOGUIBackgroundSpecial::kShort;
     }
   } else if (special == "CUSTOM_CHART") {
-    _missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_CUSTOM;
+    _missionBackgroundSpecial = OOGUIBackgroundSpecial::kCustom;
   } else if (special == "CUSTOM_CHART_SHORTEST") {
     if (hasEquipmentItemProviding("EQ_ADVANCED_NAVIGATIONAL_ARRAY")) {
-      _missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_SHORTEST;
+      _missionBackgroundSpecial = OOGUIBackgroundSpecial::kCustomAnaShortest;
     } else {
-      _missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_CUSTOM;
+      _missionBackgroundSpecial = OOGUIBackgroundSpecial::kCustom;
     }
   } else if (special == "CUSTOM_CHART_QUICKEST") {
     if (hasEquipmentItemProviding("EQ_ADVANCED_NAVIGATIONAL_ARRAY")) {
-      _missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_QUICKEST;
+      _missionBackgroundSpecial = OOGUIBackgroundSpecial::kCustomAnaQuickest;
     } else {
-      _missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_CUSTOM;
+      _missionBackgroundSpecial = OOGUIBackgroundSpecial::kCustom;
     }
   } else if (special == "LONG_RANGE_CHART") {
-    _missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_LONG;
+    _missionBackgroundSpecial = OOGUIBackgroundSpecial::kLong;
   } else if (special == "LONG_RANGE_CHART_SHORTEST") {
     if (hasEquipmentItemProviding("EQ_ADVANCED_NAVIGATIONAL_ARRAY")) {
-      _missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST;
+      _missionBackgroundSpecial = OOGUIBackgroundSpecial::kLongAnaShortest;
     } else {
-      _missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_LONG;
+      _missionBackgroundSpecial = OOGUIBackgroundSpecial::kLong;
     }
   } else if (special == "LONG_RANGE_CHART_QUICKEST") {
     if (hasEquipmentItemProviding("EQ_ADVANCED_NAVIGATIONAL_ARRAY")) {
-      _missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST;
+      _missionBackgroundSpecial = OOGUIBackgroundSpecial::kLongAnaQuickest;
     } else {
-      _missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_LONG;
+      _missionBackgroundSpecial = OOGUIBackgroundSpecial::kLong;
     }
   } else {
-    _missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_NONE;
+    _missionBackgroundSpecial = OOGUIBackgroundSpecial::kNone;
   }
 }
 

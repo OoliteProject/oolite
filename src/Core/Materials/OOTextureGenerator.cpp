@@ -44,5 +44,5 @@ std::optional<std::string> OOTextureGenerator::cacheKey() {
 
 bool OOTextureGenerator::enqueue() {
   return OOAsyncWorkManager::sharedAsyncWorkManager()->addTask(
-      this, kOOAsyncPriorityMedium);
+      this, OOAsyncWorkPriority::kMedium);
 }

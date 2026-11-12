@@ -173,13 +173,13 @@ void OOTrumble::setupForPlayer(::PlayerEntity* p1,
   discomfort = 0.0;
   //
   eye_position = NSMakePoint(0.0, 0.075 * (randf() - randf()));
-  eyeFrame = TRUMBLE_EYES_OPEN;
+  eyeFrame = trumble_eyes::kOpen;
   //
   mouth_position = NSMakePoint(0.0, 0.035 * (randf() - randf()));
-  mouthFrame = TRUMBLE_MOUTH_NORMAL;
+  mouthFrame = trumble_mouth::kNormal;
   //
-  animation = TRUMBLE_ANIM_IDLE;
-  nextAnimation = TRUMBLE_ANIM_IDLE;
+  animation = trumble_animation::kIdle;
+  nextAnimation = trumble_animation::kIdle;
   animationTime = 0.0;
   animationDuration = 1.5 + randf() * 3.0;  // time until next animation
   //
@@ -250,47 +250,47 @@ GLfloat OOTrumble::getDiscomfort() { return discomfort; }
 
 // AI methods here
 void OOTrumble::actionIdle() {
-  nextAnimation = TRUMBLE_ANIM_IDLE;
+  nextAnimation = trumble_animation::kIdle;
   animationDuration = 1.5 + 3.0 * randf();  // time until next animation
 }
 
 void OOTrumble::actionBlink() {
-  nextAnimation = TRUMBLE_ANIM_BLINK;
+  nextAnimation = trumble_animation::kBlink;
   animationDuration = 0.5 + 0.5 * randf();  // time until next animation
 }
 
 void OOTrumble::actionSnarl() {
-  nextAnimation = TRUMBLE_ANIM_SNARL;
+  nextAnimation = trumble_animation::kSnarl;
   animationDuration = 4.0 + 1.0 * randf();  // time until next animation
 }
 
 void OOTrumble::actionProot() {
-  nextAnimation = TRUMBLE_ANIM_PROOT;
+  nextAnimation = trumble_animation::kProot;
   animationDuration = 1.5 + 0.5 * randf();  // time until next animation
 }
 
 void OOTrumble::actionShudder() {
-  nextAnimation = TRUMBLE_ANIM_SHUDDER;
+  nextAnimation = trumble_animation::kShudder;
   animationDuration = 2.25 + randf() * 1.5;  // time until next animation
 }
 
 void OOTrumble::actionStoned() {
-  nextAnimation = TRUMBLE_ANIM_STONED;
+  nextAnimation = trumble_animation::kStoned;
   animationDuration = 1.5 + randf() * 3.0;  // time until next animation
 }
 
 void OOTrumble::actionPop() {
-  nextAnimation = TRUMBLE_ANIM_DIE;
+  nextAnimation = trumble_animation::kDie;
   animationDuration = 1.5 + randf() * 3.0;  // time until next animation
 }
 
 void OOTrumble::actionSleep() {
-  nextAnimation = TRUMBLE_ANIM_SLEEP;
+  nextAnimation = trumble_animation::kSleep;
   animationDuration = 12.0 + 12.0 * randf();  // time until next animation
 }
 
 void OOTrumble::actionSpawn() {
-  nextAnimation = TRUMBLE_ANIM_SPAWN;
+  nextAnimation = trumble_animation::kSpawn;
   animationDuration = 9.0 + 3.0 * randf();  // time until next animation
 }
 
@@ -362,14 +362,14 @@ void OOTrumble::drawTrumble(double z) {
   //
   GLfloat eyeTextureOffset = 0.0;
   switch (eyeFrame) {
-    case TRUMBLE_EYES_NONE:
-    case TRUMBLE_EYES_OPEN:
+    case trumble_eyes::kNone:
+    case trumble_eyes::kOpen:
       eyeTextureOffset = 0.0;
       break;
-    case TRUMBLE_EYES_SHUT:
+    case trumble_eyes::kShut:
       eyeTextureOffset = 0.25;
       break;
-    case TRUMBLE_EYES_WIDE:
+    case trumble_eyes::kWide:
       eyeTextureOffset = 0.5;
       break;
   }
@@ -397,17 +397,17 @@ void OOTrumble::drawTrumble(double z) {
   //
   GLfloat mouthTextureOffset = 0.0;
   switch (mouthFrame) {
-    case TRUMBLE_MOUTH_POUT:
+    case trumble_mouth::kPout:
       mouthTextureOffset = 0.500;
       break;
-    case TRUMBLE_MOUTH_NONE:
-    case TRUMBLE_MOUTH_NORMAL:
+    case trumble_mouth::kNone:
+    case trumble_mouth::kNormal:
       mouthTextureOffset = 0.625;
       break;
-    case TRUMBLE_MOUTH_GROWL:
+    case trumble_mouth::kGrowl:
       mouthTextureOffset = 0.750;
       break;
-    case TRUMBLE_MOUTH_SNARL:
+    case trumble_mouth::kSnarl:
       mouthTextureOffset = 0.875;
       break;
   }
@@ -486,7 +486,7 @@ void OOTrumble::updateTrumble(double delta_t) {
   // rotation
   //
   rotation += delta_t * (rotational_velocity + p_mov.y);
-  if (animation != TRUMBLE_ANIM_DIE) {
+  if (animation != trumble_animation::kDie) {
     if (rotation < -TRUMBLE_MAX_ROTATION) {
       rotation = -TRUMBLE_MAX_ROTATION;
       rotational_velocity =
@@ -594,31 +594,31 @@ void OOTrumble::updateTrumble(double delta_t) {
   // animations
   //
   switch (animation) {
-    case TRUMBLE_ANIM_SNARL:
+    case trumble_animation::kSnarl:
       updateSnarl(delta_t);
       break;
-    case TRUMBLE_ANIM_SHUDDER:
+    case trumble_animation::kShudder:
       updateShudder(delta_t);
       break;
-    case TRUMBLE_ANIM_STONED:
+    case trumble_animation::kStoned:
       updateStoned(delta_t);
       break;
-    case TRUMBLE_ANIM_DIE:
+    case trumble_animation::kDie:
       updatePop(delta_t);
       break;
-    case TRUMBLE_ANIM_BLINK:
+    case trumble_animation::kBlink:
       updateBlink(delta_t);
       break;
-    case TRUMBLE_ANIM_PROOT:
+    case trumble_animation::kProot:
       updateProot(delta_t);
       break;
-    case TRUMBLE_ANIM_SLEEP:
+    case trumble_animation::kSleep:
       updateSleep(delta_t);
       break;
-    case TRUMBLE_ANIM_SPAWN:
+    case trumble_animation::kSpawn:
       updateSpawn(delta_t);
       break;
-    case TRUMBLE_ANIM_IDLE:
+    case trumble_animation::kIdle:
     default:
       updateIdle(delta_t);
       break;
@@ -656,7 +656,7 @@ void OOTrumble::updateIdle(double delta_t) {
 }
 
 void OOTrumble::updateBlink(double delta_t) {
-  eyeFrame = TRUMBLE_EYES_SHUT;
+  eyeFrame = trumble_eyes::kShut;
   animationTime += delta_t;
   if (animationTime > animationDuration) {
     // blink or proot or idle
@@ -665,15 +665,15 @@ void OOTrumble::updateBlink(double delta_t) {
     if (randf() < 0.1) actionProot();
     animation = nextAnimation;
     animationTime = 0.0;
-    eyeFrame = TRUMBLE_EYES_OPEN;
+    eyeFrame = trumble_eyes::kOpen;
   }
 }
 
 void OOTrumble::updateSnarl(double delta_t) {
   int pc = 100 * animationTime / animationDuration;
   if (pc < 25) {
-    eyeFrame = TRUMBLE_EYES_SHUT;
-    mouthFrame = TRUMBLE_MOUTH_GROWL;
+    eyeFrame = trumble_eyes::kShut;
+    mouthFrame = trumble_mouth::kGrowl;
   }
   if ((pc >= 25) && (pc < 90)) {
     double vibr = (pc & 1) ? -1.0 : 1.0;
@@ -681,15 +681,15 @@ void OOTrumble::updateSnarl(double delta_t) {
       position.x += size * vibr * 0.5;
     else
       position.y += size * vibr * 0.5;
-    eyeFrame = TRUMBLE_EYES_WIDE;
+    eyeFrame = trumble_eyes::kWide;
     if (pc & 2)
-      mouthFrame = TRUMBLE_MOUTH_SNARL;
+      mouthFrame = trumble_mouth::kSnarl;
     else
-      mouthFrame = TRUMBLE_MOUTH_GROWL;
+      mouthFrame = trumble_mouth::kGrowl;
   }
   if ((pc >= 90) && (pc < 100)) {
-    eyeFrame = TRUMBLE_EYES_WIDE;
-    mouthFrame = TRUMBLE_MOUTH_GROWL;
+    eyeFrame = trumble_eyes::kWide;
+    mouthFrame = trumble_mouth::kGrowl;
   }
   animationTime += delta_t;
   if (animationTime > animationDuration) {
@@ -698,8 +698,8 @@ void OOTrumble::updateSnarl(double delta_t) {
     if (randf() < 0.1) actionBlink();
     animation = nextAnimation;
     animationTime = 0.0;
-    eyeFrame = TRUMBLE_EYES_OPEN;
-    mouthFrame = TRUMBLE_MOUTH_NORMAL;
+    eyeFrame = trumble_eyes::kOpen;
+    mouthFrame = trumble_mouth::kNormal;
   }
 }
 
@@ -709,14 +709,14 @@ void OOTrumble::updateProot(double delta_t) {
   }
   int pc = 100 * animationTime / animationDuration;
   if (pc < 10) {
-    eyeFrame = TRUMBLE_EYES_SHUT;
-    mouthFrame = TRUMBLE_MOUTH_POUT;
+    eyeFrame = trumble_eyes::kShut;
+    mouthFrame = trumble_mouth::kPout;
   }
   if (pc >= 10) {
     double vibr = (pc & 2) ? -1.0 : 1.0;
     position.x += size * vibr * 0.25;
-    eyeFrame = TRUMBLE_EYES_SHUT;
-    mouthFrame = TRUMBLE_MOUTH_GROWL;
+    eyeFrame = trumble_eyes::kShut;
+    mouthFrame = trumble_mouth::kGrowl;
     if (!animationStage) {
       animationStage = 1;
       PlayTrumbleIdle();
@@ -729,27 +729,27 @@ void OOTrumble::updateProot(double delta_t) {
     if (randf() < 0.1) actionBlink();
     animation = nextAnimation;
     animationTime = 0.0;
-    eyeFrame = TRUMBLE_EYES_OPEN;
-    mouthFrame = TRUMBLE_MOUTH_NORMAL;
+    eyeFrame = trumble_eyes::kOpen;
+    mouthFrame = trumble_mouth::kNormal;
   }
 }
 
 void OOTrumble::updateShudder(double delta_t) {
   if (!animationTime) {
-    eyeFrame = TRUMBLE_EYES_WIDE;
-    mouthFrame = TRUMBLE_MOUTH_GROWL;
+    eyeFrame = trumble_eyes::kWide;
+    mouthFrame = trumble_mouth::kGrowl;
     PlayTrumbleSqueal();
   }
   int pc = 100 * animationTime / animationDuration;
   if (pc < 10) {
-    eyeFrame = TRUMBLE_EYES_WIDE;
-    mouthFrame = TRUMBLE_MOUTH_GROWL;
+    eyeFrame = trumble_eyes::kWide;
+    mouthFrame = trumble_mouth::kGrowl;
   }
   if (pc >= 10) {
     double vibr = (pc & 2) ? -0.25 : 0.25;
     position.x += size * vibr;
-    eyeFrame = TRUMBLE_EYES_OPEN;
-    mouthFrame = TRUMBLE_MOUTH_GROWL;
+    eyeFrame = trumble_eyes::kOpen;
+    mouthFrame = trumble_mouth::kGrowl;
   }
   animationTime += delta_t;
   if (animationTime > animationDuration) {
@@ -760,8 +760,8 @@ void OOTrumble::updateShudder(double delta_t) {
     if (randf() < 0.1) actionBlink();
     animation = nextAnimation;
     animationTime = 0.0;
-    eyeFrame = TRUMBLE_EYES_OPEN;
-    mouthFrame = TRUMBLE_MOUTH_NORMAL;
+    eyeFrame = trumble_eyes::kOpen;
+    mouthFrame = trumble_mouth::kNormal;
   }
 }
 
@@ -769,8 +769,8 @@ void OOTrumble::updateStoned(double /*delta_t*/) {}
 
 void OOTrumble::updatePop(double delta_t) {
   if (!animationTime) {
-    eyeFrame = TRUMBLE_EYES_SHUT;
-    mouthFrame = TRUMBLE_MOUTH_GROWL;
+    eyeFrame = trumble_eyes::kShut;
+    mouthFrame = trumble_mouth::kGrowl;
     movement.y = (ranrot_rand() & 7);
     if (randf() < 0.5)
       rotational_velocity = 63 + (ranrot_rand() & 127);
@@ -809,7 +809,7 @@ void OOTrumble::updateSleep(double delta_t) {
     saved_float1 = eye_position.y;
     saved_float2 = mouth_position.y;
   }
-  eyeFrame = TRUMBLE_EYES_SHUT;
+  eyeFrame = trumble_eyes::kShut;
   int pc = 512 * animationTime / animationDuration;
   if (pc & 16) {
     double vibr = (pc & 2) ? -0.0025 : 0.0025;
@@ -828,7 +828,7 @@ void OOTrumble::updateSleep(double delta_t) {
     if (randf() < 0.25) actionProot();
     animation = nextAnimation;
     animationTime = 0.0;
-    eyeFrame = TRUMBLE_EYES_OPEN;
+    eyeFrame = trumble_eyes::kOpen;
   }
 }
 
@@ -837,8 +837,8 @@ void OOTrumble::updateSpawn(double delta_t) {
   movement.y *= (1.0 - delta_t);
   rotation *= (1.0 - delta_t);
   rotational_velocity *= (1.0 - delta_t);
-  eyeFrame = TRUMBLE_EYES_WIDE;
-  mouthFrame = TRUMBLE_MOUTH_POUT;
+  eyeFrame = trumble_eyes::kWide;
+  mouthFrame = trumble_mouth::kPout;
   int pc = 256 * animationTime / animationDuration;
   double vibr = (pc & 2) ? -0.002 * pc : 0.002 * pc;
   position.x += size * vibr;
@@ -850,8 +850,8 @@ void OOTrumble::updateSpawn(double delta_t) {
     actionProot();
     animation = nextAnimation;
     animationTime = 0.0;
-    eyeFrame = TRUMBLE_EYES_OPEN;
-    mouthFrame = TRUMBLE_MOUTH_NORMAL;
+    eyeFrame = trumble_eyes::kOpen;
+    mouthFrame = trumble_mouth::kNormal;
     randomizeMotionX();
     if (player != nullptr) player->addTrumble(this);
   }

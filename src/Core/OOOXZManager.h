@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 
 #include "GuiDisplayGen.h"
 #include "OOColor.h"
+#include "OOEnumFlags.h"
 #include "OOFoundation.h"
 #include "OOOpenGL.h"
 #include "OOTypes.h"
@@ -47,44 +48,80 @@ namespace oo::http {
 class Download;
 }
 
-typedef enum {
-  OXZ_DOWNLOAD_NONE = 0,
-  OXZ_DOWNLOAD_STARTED = 1,
-  OXZ_DOWNLOAD_RECEIVING = 2,
-  OXZ_DOWNLOAD_COMPLETE = 10,
-  OXZ_DOWNLOAD_ERROR = 99
-} OXZDownloadStatus;
+enum class OXZDownloadStatus : std::int32_t {
+  kNone = 0,
+  kStarted = 1,
+  kReceiving = 2,
+  kComplete = 10,
+  kError = 99,
+};
+static_assert(static_cast<std::int32_t>(OXZDownloadStatus::kNone) == 0);
+static_assert(static_cast<std::int32_t>(OXZDownloadStatus::kStarted) == 1);
+static_assert(static_cast<std::int32_t>(OXZDownloadStatus::kReceiving) == 2);
+static_assert(static_cast<std::int32_t>(OXZDownloadStatus::kComplete) == 10);
+static_assert(static_cast<std::int32_t>(OXZDownloadStatus::kError) == 99);
 
-typedef enum {
-  OXZ_STATE_NODATA,
-  OXZ_STATE_MAIN,
-  OXZ_STATE_UPDATING,
-  OXZ_STATE_PICK_INSTALL,
-  OXZ_STATE_PICK_INSTALLED,
-  OXZ_STATE_PICK_REMOVE,
-  OXZ_STATE_INSTALLING,
-  OXZ_STATE_DEPENDENCIES,
-  OXZ_STATE_REMOVING,
-  OXZ_STATE_TASKDONE,
-  OXZ_STATE_RESTARTING,
-  OXZ_STATE_SETFILTER,
-  OXZ_STATE_EXTRACT,
-  OXZ_STATE_EXTRACTDONE
-} OXZInterfaceState;
+enum class OXZInterfaceState : std::int32_t {
+  kNoData,
+  kMain,
+  kUpdating,
+  kPickInstall,
+  kPickInstalled,
+  kPickRemove,
+  kInstalling,
+  kDependencies,
+  kRemoving,
+  kTaskdone,
+  kRestarting,
+  kSetfilter,
+  kExtract,
+  kExtractdone,
+};
+static_assert(static_cast<std::int32_t>(OXZInterfaceState::kNoData) == 0);
+static_assert(static_cast<std::int32_t>(OXZInterfaceState::kMain) == 1);
+static_assert(static_cast<std::int32_t>(OXZInterfaceState::kUpdating) == 2);
+static_assert(static_cast<std::int32_t>(OXZInterfaceState::kPickInstall) == 3);
+static_assert(static_cast<std::int32_t>(OXZInterfaceState::kPickInstalled) ==
+              4);
+static_assert(static_cast<std::int32_t>(OXZInterfaceState::kPickRemove) == 5);
+static_assert(static_cast<std::int32_t>(OXZInterfaceState::kInstalling) == 6);
+static_assert(static_cast<std::int32_t>(OXZInterfaceState::kDependencies) == 7);
+static_assert(static_cast<std::int32_t>(OXZInterfaceState::kRemoving) == 8);
+static_assert(static_cast<std::int32_t>(OXZInterfaceState::kTaskdone) == 9);
+static_assert(static_cast<std::int32_t>(OXZInterfaceState::kRestarting) == 10);
+static_assert(static_cast<std::int32_t>(OXZInterfaceState::kSetfilter) == 11);
+static_assert(static_cast<std::int32_t>(OXZInterfaceState::kExtract) == 12);
+static_assert(static_cast<std::int32_t>(OXZInterfaceState::kExtractdone) == 13);
 
 // What a manifest's OXZ can do here (installableState()). (a member's result).
-typedef enum {
-  OXZ_INSTALLABLE_OKAY,
-  OXZ_INSTALLABLE_UPDATE,
-  OXZ_INSTALLABLE_DEPENDENCIES,
-  OXZ_INSTALLABLE_CONFLICTS,
+enum class OXZInstallableState : std::int32_t {
+  kInstallableOkay,
+  kInstallableUpdate,
+  kInstallableDependencies,
+  kInstallableConflicts,
   // for things to work, _ALREADY must be the first UNINSTALLABLE state
   // and all the INSTALLABLE ones must be before all the UNINSTALLABLE ones
-  OXZ_UNINSTALLABLE_ALREADY,
-  OXZ_UNINSTALLABLE_NOREMOTE,
-  OXZ_UNINSTALLABLE_VERSION,
-  OXZ_UNINSTALLABLE_MANUAL
-} OXZInstallableState;
+  kUninstallableAlready,
+  kUninstallableNoremote,
+  kUninstallableVersion,
+  kUninstallableManual,
+};
+static_assert(
+    static_cast<std::int32_t>(OXZInstallableState::kInstallableOkay) == 0);
+static_assert(
+    static_cast<std::int32_t>(OXZInstallableState::kInstallableUpdate) == 1);
+static_assert(static_cast<std::int32_t>(
+                  OXZInstallableState::kInstallableDependencies) == 2);
+static_assert(
+    static_cast<std::int32_t>(OXZInstallableState::kInstallableConflicts) == 3);
+static_assert(
+    static_cast<std::int32_t>(OXZInstallableState::kUninstallableAlready) == 4);
+static_assert(static_cast<std::int32_t>(
+                  OXZInstallableState::kUninstallableNoremote) == 5);
+static_assert(
+    static_cast<std::int32_t>(OXZInstallableState::kUninstallableVersion) == 6);
+static_assert(
+    static_cast<std::int32_t>(OXZInstallableState::kUninstallableManual) == 7);
 
 class OOOXZManager : public oo::RefCounted {
  public:

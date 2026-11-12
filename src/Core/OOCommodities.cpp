@@ -172,7 +172,7 @@ OOCommodities::OOCommodities() {
   // TODO: validation of inputs; convert 't', 'kg', 'g' in quantity_unit to 0,
   // 1, 2 (for now it needs them entering as the ints).
   const oo::PList rawCommodityLists = ResourceManager::dictionaryFromFilesNamed(
-      "trade-goods.plist", "Config", MERGE_SMART, true);
+      "trade-goods.plist", "Config", OOResourceMergeMode::kSmart, true);
   if (const oo::PList::Dict* entries =
           rawCommodityLists.getIf<oo::PList::Dict>())
     _commodityLists = *entries;

@@ -122,10 +122,10 @@ OO_TEST(profiling)
 		OO_CHECK(profile->nativeTime() >= outerEntry->selfTimeSum() + innerEntry->selfTimeSum());
 
 		// Comparisons: "reverse" is longest first.
-		OO_CHECK_EQ(outerEntry->compareBySelfTime(outerEntry), OOOrderedSame);
-		OO_CHECK_EQ(outerEntry->compareByTotalTime(innerEntry), -outerEntry->compareByTotalTimeReverse(innerEntry));
-		OO_CHECK_EQ(innerEntry->compareBySelfTime(outerEntry), -innerEntry->compareBySelfTimeReverse(outerEntry));
-		if (outerEntry->totalTimeSum() > innerEntry->totalTimeSum())  OO_CHECK_EQ(outerEntry->compareByTotalTimeReverse(innerEntry), OOOrderedAscending);
+		OO_CHECK_EQ(outerEntry->compareBySelfTime(outerEntry), OOComparisonResult::kSame);
+		OO_CHECK_EQ(oo::ToUnderlying(outerEntry->compareByTotalTime(innerEntry)), -oo::ToUnderlying(outerEntry->compareByTotalTimeReverse(innerEntry)));
+		OO_CHECK_EQ(oo::ToUnderlying(innerEntry->compareBySelfTime(outerEntry)), -oo::ToUnderlying(innerEntry->compareBySelfTimeReverse(outerEntry)));
+		if (outerEntry->totalTimeSum() > innerEntry->totalTimeSum())  OO_CHECK_EQ(outerEntry->compareByTotalTimeReverse(innerEntry), OOComparisonResult::kAscending);
 
 		// The descriptions.
 		const std::string profileText = profile->description().value_or("");

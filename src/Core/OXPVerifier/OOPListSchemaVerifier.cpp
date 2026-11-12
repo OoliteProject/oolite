@@ -59,12 +59,13 @@ SOFTWARE.
 // message.
 constexpr int kMaximumLengthForStringInErrorMessage = 100;
 
-// Internal error codes.
-enum {
-  kStartOfPrivateErrorCodes = kPListErrorLastErrorCode,
-
-  kPListErrorFailedAndErrorHasBeenReported
-};
+// Internal error codes, after the public ones.
+constexpr OOPListSchemaVerifierErrorCode kStartOfPrivateErrorCodes =
+    OOPListSchemaVerifierErrorCode::kLastErrorCode;
+constexpr OOPListSchemaVerifierErrorCode
+    kPListErrorFailedAndErrorHasBeenReported =
+        static_cast<OOPListSchemaVerifierErrorCode>(
+            static_cast<std::int32_t>(kStartOfPrivateErrorCodes) + 1);
 
 #if PLIST_VERIFIER_DEBUG_DUMP_ENABLED
 static bool sDebugDump = false;
@@ -403,7 +404,8 @@ bool OOPListSchemaVerifier::delegateVerifierWithPropertyList(
         // Note: Generates an error if delegate returned NO (meaning stop) or if
         // delegate produced an error but did not request a stop.
         *outError = ErrorWithProperty(
-            kPListDelegatedTypeError, &keyPath, kUnderlyingErrorErrorKey,
+            OOPListSchemaVerifierErrorCode::kDelegatedTypeError, &keyPath,
+            kUnderlyingErrorErrorKey,
             error.has_value() ? PListFromError(*error) : oo::PList(),
             "Value at %s does not match delegated type \"%s\".",
             KeyPathToString(keyPath).c_str(),
@@ -508,11 +510,11 @@ bool OOPListSchemaVerifier::verifyPList(
   } catch (...) {
     const auto exception = oo::CurrentOOException();
     if (!exception) throw;  // not an OOException: it goes on up, as before
-    error =
-        Error(kPListErrorInternal, (BackLinkChain*)&keyPath,
-              "Uncaught exception %s: %s in plist verifier for \"%s\" at %s.",
-              exception->name(), exception->reason(), name.c_str(),
-              KeyPathToString(keyPath).c_str());
+    error = Error(
+        OOPListSchemaVerifierErrorCode::kInternal, (BackLinkChain*)&keyPath,
+        "Uncaught exception %s: %s in plist verifier for \"%s\" at %s.",
+        exception->name(), exception->reason(), name.c_str(),
+        KeyPathToString(keyPath).c_str());
   }
 
   DebugDumpPopIndent();
@@ -552,8 +554,8 @@ oo::PList OOPListSchemaVerifier::resolveSchemaType(
           const oo::PList* definition = _definitions.find(typeString);
           if (definition == nullptr) {
             *outError = ErrorWithProperty(
-                kPListErrorSchemaUndefiniedMacroReference, &keyPath,
-                kUndefinedMacroErrorKey, oo::PList(typeString),
+                OOPListSchemaVerifierErrorCode::kSchemaUndefiniedMacroReference,
+                &keyPath, kUndefinedMacroErrorKey, oo::PList(typeString),
                 "Bad schema: reference to undefined macro \"%s\".",
                 StringForErrorReport(typeString).c_str());
             return oo::PList();
@@ -576,9 +578,10 @@ oo::PList OOPListSchemaVerifier::resolveSchemaType(
   const char* complaint =
       haveTypeValue ? "not string or dictionary" : "no type specified";
 
-  *outError = Error(kPListErrorSchemaBadTypeSpecifier, &keyPath,
-                    "Bad schema: invalid type specifier for path %s (%s).",
-                    KeyPathToString(keyPath).c_str(), complaint);
+  *outError =
+      Error(OOPListSchemaVerifierErrorCode::kSchemaBadTypeSpecifier, &keyPath,
+            "Bad schema: invalid type specifier for path %s (%s).",
+            KeyPathToString(keyPath).c_str(), complaint);
   return oo::PList();
 }
 
@@ -610,13 +613,13 @@ SchemaType StringToSchemaType(
   if (result == kTypeUnknown && outError != nullptr) {
     if (oo::str::hasPrefix(string, "$")) {
       *outError = ErrorWithProperty(
-          kPListErrorSchemaUnknownType, nullptr, kUnknownTypeErrorKey,
-          oo::PList(string), "Bad schema: unresolved macro reference \"%s\".",
-          string.c_str());
+          OOPListSchemaVerifierErrorCode::kSchemaUnknownType, nullptr,
+          kUnknownTypeErrorKey, oo::PList(string),
+          "Bad schema: unresolved macro reference \"%s\".", string.c_str());
     } else {
       *outError =
-          ErrorWithProperty(kPListErrorSchemaUnknownType, nullptr,
-                            kUnknownTypeErrorKey, oo::PList(string),
+          ErrorWithProperty(OOPListSchemaVerifierErrorCode::kSchemaUnknownType,
+                            nullptr, kUnknownTypeErrorKey, oo::PList(string),
                             "Bad schema: unknown type \"%s\".", string.c_str());
     }
   }
@@ -675,8 +678,9 @@ std::string ApplyStringFilter(
                  filterSpec.getIf<oo::PList::Array>()) {
     filters = *array;
   } else {
-    *outError = Error(kPListErrorSchemaUnknownFilter, &keyPath,
-                      "Bad schema: \"filter\" must be a string or an array.");
+    *outError =
+        Error(OOPListSchemaVerifierErrorCode::kSchemaUnknownFilter, &keyPath,
+              "Bad schema: \"filter\" must be a string or an array.");
     return string;
   }
 
@@ -730,13 +734,15 @@ std::string ApplyStringFilter(
         }
       } else {
         *outError = ErrorWithProperty(
-            kPListErrorSchemaUnknownFilter, &keyPath, kUnnownFilterErrorKey,
-            filterValue, "Bad schema: unknown string filter specifier \"%s\".",
+            OOPListSchemaVerifierErrorCode::kSchemaUnknownFilter, &keyPath,
+            kUnnownFilterErrorKey, filterValue,
+            "Bad schema: unknown string filter specifier \"%s\".",
             filter->c_str());
       }
     } else {
-      *outError = Error(kPListErrorSchemaUnknownFilter, &keyPath,
-                        "Bad schema: filter specifier is not a string.");
+      *outError =
+          Error(OOPListSchemaVerifierErrorCode::kSchemaUnknownFilter, &keyPath,
+                "Bad schema: filter specifier is not a string.");
     }
   }
 
@@ -759,7 +765,7 @@ bool ApplyStringTest(const std::string& string, const oo::PList& test,
     tests = *array;
   } else {
     *outError = Error(
-        kPListErrorSchemaBadComparator, &keyPath,
+        OOPListSchemaVerifierErrorCode::kSchemaBadComparator, &keyPath,
         "Bad schema: %s requirement specification is not a string or array.",
         testDescription);
     return false;
@@ -770,7 +776,7 @@ bool ApplyStringTest(const std::string& string, const oo::PList& test,
       if (stringTest(string, *subString)) return true;
     } else {
       *outError =
-          Error(kPListErrorSchemaBadComparator, &keyPath,
+          Error(OOPListSchemaVerifierErrorCode::kSchemaBadComparator, &keyPath,
                 "Bad schema: required %s is not a string.", testDescription);
       return false;
     }
@@ -948,8 +954,9 @@ static std::optional<OOPListSchemaVerifierError> Verify_String(
             "prefix", keyPath, &error)) {
       if (!error.has_value())
         error = ErrorWithProperty(
-            kPListErrorStringPrefixMissing, &keyPath, kMissingSubStringErrorKey,
-            *testValue, "String \"%s\" does not have required %s %s.",
+            OOPListSchemaVerifierErrorCode::kStringPrefixMissing, &keyPath,
+            kMissingSubStringErrorKey, *testValue,
+            "String \"%s\" does not have required %s %s.",
             StringForErrorReport(stringValue).c_str(), "prefix",
             StringOrArrayForErrorReport(*testValue, "in ").c_str());
       return error;
@@ -966,8 +973,9 @@ static std::optional<OOPListSchemaVerifierError> Verify_String(
             "suffix", keyPath, &error)) {
       if (!error.has_value())
         error = ErrorWithProperty(
-            kPListErrorStringSuffixMissing, &keyPath, kMissingSubStringErrorKey,
-            *testValue, "String \"%s\" does not have required %s %s.",
+            OOPListSchemaVerifierErrorCode::kStringSuffixMissing, &keyPath,
+            kMissingSubStringErrorKey, *testValue,
+            "String \"%s\" does not have required %s %s.",
             StringForErrorReport(stringValue).c_str(), "suffix",
             StringOrArrayForErrorReport(*testValue, "in ").c_str());
       return error;
@@ -980,7 +988,7 @@ static std::optional<OOPListSchemaVerifierError> Verify_String(
                          keyPath, &error)) {
       if (!error.has_value())
         error = ErrorWithProperty(
-            kPListErrorStringSubstringMissing, &keyPath,
+            OOPListSchemaVerifierErrorCode::kStringSubstringMissing, &keyPath,
             kMissingSubStringErrorKey, *testValue,
             "String \"%s\" does not have required %s %s.",
             StringForErrorReport(stringValue).c_str(), "substring",
@@ -993,18 +1001,18 @@ static std::optional<OOPListSchemaVerifierError> Verify_String(
   length = oo::str::length(filteredString);
   lengthConstraint = params.get<std::size_t>("minLength");
   if (length < lengthConstraint) {
-    return Error(kPListErrorMinimumConstraintNotMet, &keyPath,
-                 "String \"%s\" is too short (%u bytes, minimum is %u).",
-                 StringForErrorReport(filteredString).c_str(), length,
-                 lengthConstraint);
+    return Error(
+        OOPListSchemaVerifierErrorCode::kMinimumConstraintNotMet, &keyPath,
+        "String \"%s\" is too short (%u bytes, minimum is %u).",
+        StringForErrorReport(filteredString).c_str(), length, lengthConstraint);
   }
 
   lengthConstraint = params.get<std::size_t>("maxLength", SIZE_MAX);
   if (lengthConstraint < length) {
-    return Error(kPListErrorMaximumConstraintNotMet, &keyPath,
-                 "String \"%s\" is too long (%u bytes, maximum is %u).",
-                 StringForErrorReport(filteredString).c_str(), length,
-                 lengthConstraint);
+    return Error(
+        OOPListSchemaVerifierErrorCode::kMaximumConstraintNotMet, &keyPath,
+        "String \"%s\" is too long (%u bytes, maximum is %u).",
+        StringForErrorReport(filteredString).c_str(), length, lengthConstraint);
   }
 
   // All tests passed.
@@ -1034,16 +1042,16 @@ static std::optional<OOPListSchemaVerifierError> Verify_Array(
   count = elements.size();
   constraint = params.get<std::size_t>("minCount", 0);
   if (count < constraint) {
-    return Error(kPListErrorMinimumConstraintNotMet, &keyPath,
-                 "Array has too few members (%u, minimum is %u).", count,
-                 constraint);
+    return Error(OOPListSchemaVerifierErrorCode::kMinimumConstraintNotMet,
+                 &keyPath, "Array has too few members (%u, minimum is %u).",
+                 count, constraint);
   }
 
   constraint = params.get<std::size_t>("maxCount", SIZE_MAX);
   if (constraint < count) {
-    return Error(kPListErrorMaximumConstraintNotMet, &keyPath,
-                 "Array has too many members (%u, maximum is %u).", count,
-                 constraint);
+    return Error(OOPListSchemaVerifierErrorCode::kMaximumConstraintNotMet,
+                 &keyPath, "Array has too many members (%u, maximum is %u).",
+                 count, constraint);
   }
 
   // Test member objects.
@@ -1094,15 +1102,15 @@ static std::optional<OOPListSchemaVerifierError> Verify_Dictionary(
   count = members.size();
   constraint = params.get<std::size_t>("minCount", 0);
   if (count < constraint) {
-    return Error(kPListErrorMinimumConstraintNotMet, &keyPath,
-                 "Dictionary has too few pairs (%u, minimum is %u).", count,
-                 constraint);
+    return Error(OOPListSchemaVerifierErrorCode::kMinimumConstraintNotMet,
+                 &keyPath, "Dictionary has too few pairs (%u, minimum is %u).",
+                 count, constraint);
   }
   constraint = params.get<std::size_t>("maxCount", SIZE_MAX);
   if (constraint < count) {
-    return Error(kPListErrorMaximumConstraintNotMet, &keyPath,
-                 "Dictionary has too manu pairs (%u, maximum is %u).", count,
-                 constraint);
+    return Error(OOPListSchemaVerifierErrorCode::kMaximumConstraintNotMet,
+                 &keyPath, "Dictionary has too manu pairs (%u, maximum is %u).",
+                 count, constraint);
   }
 
   // Get schema.
@@ -1148,8 +1156,9 @@ static std::optional<OOPListSchemaVerifierError> Verify_Dictionary(
       // unknown keys.
       if (!tentative) {
         const OOPListSchemaVerifierError error = ErrorWithProperty(
-            kPListErrorDictionaryUnknownKey, &keyPath, kUnknownKeyErrorKey,
-            oo::PList(key), "Unpermitted key \"%s\" in dictionary.",
+            OOPListSchemaVerifierErrorCode::kDictionaryUnknownKey, &keyPath,
+            kUnknownKeyErrorKey, oo::PList(key),
+            "Unpermitted key \"%s\" in dictionary.",
             StringForErrorReport(key).c_str());
         stop = !verifier->delegateVerifierWithPropertyList(
             rootPList, name, value, error, params);
@@ -1174,8 +1183,8 @@ static std::optional<OOPListSchemaVerifierError> Verify_Dictionary(
     const std::vector<std::string> missing(requiredKeys.begin(),
                                            requiredKeys.end());
     return ErrorWithProperty(
-        kPListErrorDictionaryMissingRequiredKeys, &keyPath,
-        kMissingRequiredKeysErrorKey,
+        OOPListSchemaVerifierErrorCode::kDictionaryMissingRequiredKeys,
+        &keyPath, kMissingRequiredKeysErrorKey,
         oo::PList(oo::PList::Array(missing.begin(), missing.end())),
         "Required keys %s missing from dictionary.",
         SetForErrorReport(missing).c_str());
@@ -1215,16 +1224,16 @@ static std::optional<OOPListSchemaVerifierError> Verify_Integer(
   // Check constraints.
   constraint = params.get<long long>("minimum", LLONG_MIN);
   if (numericValue < constraint) {
-    return Error(kPListErrorMinimumConstraintNotMet, &keyPath,
-                 "Number is too small (%lli, minimum is %lli).", numericValue,
-                 constraint);
+    return Error(OOPListSchemaVerifierErrorCode::kMinimumConstraintNotMet,
+                 &keyPath, "Number is too small (%lli, minimum is %lli).",
+                 numericValue, constraint);
   }
 
   constraint = params.get<long long>("maximum", LLONG_MAX);
   if (constraint < numericValue) {
-    return Error(kPListErrorMaximumConstraintNotMet, &keyPath,
-                 "Number is too large (%lli, maximum is %lli).", numericValue,
-                 constraint);
+    return Error(OOPListSchemaVerifierErrorCode::kMaximumConstraintNotMet,
+                 &keyPath, "Number is too large (%lli, maximum is %lli).",
+                 numericValue, constraint);
   }
 
   return std::nullopt;
@@ -1255,16 +1264,16 @@ static std::optional<OOPListSchemaVerifierError> Verify_PositiveInteger(
   // Check constraints.
   constraint = params.get<unsigned long long>("minimum", 0);
   if (numericValue < constraint) {
-    return Error(kPListErrorMinimumConstraintNotMet, &keyPath,
-                 "Number is too small (%zu, minimum is %zu).", numericValue,
-                 constraint);
+    return Error(OOPListSchemaVerifierErrorCode::kMinimumConstraintNotMet,
+                 &keyPath, "Number is too small (%zu, minimum is %zu).",
+                 numericValue, constraint);
   }
 
   constraint = params.get<unsigned long long>("maximum", ULLONG_MAX);
   if (constraint < numericValue) {
-    return Error(kPListErrorMaximumConstraintNotMet, &keyPath,
-                 "Number is too large (%zu, maximum is %zu).", numericValue,
-                 constraint);
+    return Error(OOPListSchemaVerifierErrorCode::kMaximumConstraintNotMet,
+                 &keyPath, "Number is too large (%zu, maximum is %zu).",
+                 numericValue, constraint);
   }
 
   return std::nullopt;
@@ -1296,16 +1305,16 @@ static std::optional<OOPListSchemaVerifierError> Verify_Float(
   // Check constraints.
   constraint = params.get<double>("minimum", -INFINITY);
   if (numericValue < constraint) {
-    return Error(kPListErrorMinimumConstraintNotMet, &keyPath,
-                 "Number is too small (%g, minimum is %g).", numericValue,
-                 constraint);
+    return Error(OOPListSchemaVerifierErrorCode::kMinimumConstraintNotMet,
+                 &keyPath, "Number is too small (%g, minimum is %g).",
+                 numericValue, constraint);
   }
 
   constraint = params.get<double>("maximum", INFINITY);
   if (constraint < numericValue) {
-    return Error(kPListErrorMaximumConstraintNotMet, &keyPath,
-                 "Number is too large (%g, maximum is %g).", numericValue,
-                 constraint);
+    return Error(OOPListSchemaVerifierErrorCode::kMaximumConstraintNotMet,
+                 &keyPath, "Number is too large (%g, maximum is %g).",
+                 numericValue, constraint);
   }
 
   return std::nullopt;
@@ -1335,23 +1344,23 @@ static std::optional<OOPListSchemaVerifierError> Verify_PositiveFloat(
   }
 
   if (numericValue < 0) {
-    return Error(kPListErrorNumberIsNegative, &keyPath,
+    return Error(OOPListSchemaVerifierErrorCode::kNumberIsNegative, &keyPath,
                  "Expected non-negative number, found %g.", numericValue);
   }
 
   // Check constraints.
   constraint = params.get<double>("minimum", 0);
   if (numericValue < constraint) {
-    return Error(kPListErrorMinimumConstraintNotMet, &keyPath,
-                 "Number is too small (%g, minimum is %g).", numericValue,
-                 constraint);
+    return Error(OOPListSchemaVerifierErrorCode::kMinimumConstraintNotMet,
+                 &keyPath, "Number is too small (%g, minimum is %g).",
+                 numericValue, constraint);
   }
 
   constraint = params.get<double>("maximum", INFINITY);
   if (constraint < numericValue) {
-    return Error(kPListErrorMaximumConstraintNotMet, &keyPath,
-                 "Number is too large (%g, maximum is %g).", numericValue,
-                 constraint);
+    return Error(OOPListSchemaVerifierErrorCode::kMaximumConstraintNotMet,
+                 &keyPath, "Number is too large (%g, maximum is %g).",
+                 numericValue, constraint);
   }
 
   return std::nullopt;
@@ -1376,8 +1385,8 @@ static std::optional<OOPListSchemaVerifierError> Verify_OneOf(
   options = params.get<oo::PList::Array>("options");
   if (options == nullptr) {
     *outStop = true;
-    return Error(kPListErrorSchemaNoOneOfOptions, &keyPath,
-                 "Bad schema: no options specified for oneOf type.");
+    return Error(OOPListSchemaVerifierErrorCode::kSchemaNoOneOfOptions,
+                 &keyPath, "Bad schema: no options specified for oneOf type.");
   }
 
   for (const oo::PList& option : *options->getIf<oo::PList::Array>()) {
@@ -1395,9 +1404,10 @@ static std::optional<OOPListSchemaVerifierError> Verify_OneOf(
 
   if (!OK) {
     DebugDump("{}", "! No match.");
-    return ErrorWithProperty(
-        kPListErrorOneOfNoMatch, &keyPath, kErrorsByOptionErrorKey,
-        oo::PList(std::move(errors)), "No matching type rule could be found.");
+    return ErrorWithProperty(OOPListSchemaVerifierErrorCode::kOneOfNoMatch,
+                             &keyPath, kErrorsByOptionErrorKey,
+                             oo::PList(std::move(errors)),
+                             "No matching type rule could be found.");
   }
 
   // Ignore stop in tentatives.
@@ -1428,8 +1438,8 @@ static std::optional<OOPListSchemaVerifierError> Verify_Enumeration(
 
   if (values == nullptr) {
     *outStop = true;
-    return Error(kPListErrorSchemaNoEnumerationValues, &keyPath,
-                 "Bad schema: no options specified for oneOf type.");
+    return Error(OOPListSchemaVerifierErrorCode::kSchemaNoEnumerationValues,
+                 &keyPath, "Bad schema: no options specified for oneOf type.");
   }
 
   const oo::PList* filter = params.find("filter");
@@ -1444,7 +1454,7 @@ static std::optional<OOPListSchemaVerifierError> Verify_Enumeration(
       return std::nullopt;
   }
 
-  return Error(kPListErrorEnumerationBadValue, &keyPath,
+  return Error(OOPListSchemaVerifierErrorCode::kEnumerationBadValue, &keyPath,
                "Value \"%s\" not recognized, should be one of %s.",
                StringForErrorReport(stringValue).c_str(),
                ArrayForErrorReport(*values).c_str());
@@ -1629,7 +1639,7 @@ OOPListSchemaVerifierError ErrorWithDictionaryAndArguments(
   }
 
   return OOPListSchemaVerifierError{
-      kOOPListSchemaVerifierErrorDomain, errorCode,
+      kOOPListSchemaVerifierErrorDomain, oo::ToUnderlying(errorCode),
       oo::str::vformat(format, arguments), oo::PList(std::move(userInfo))};
 }
 
@@ -1673,20 +1683,23 @@ OOPListSchemaVerifierError ErrorTypeMismatch(const char* expectedClassName,
       break;  // any other object
   }
 
-  return ErrorWithDictionary(
-      kPListErrorTypeMismatch, &keyPath, oo::PList(std::move(dict)),
-      "Expected %s, found %s.", expectedClassName, className.c_str());
+  return ErrorWithDictionary(OOPListSchemaVerifierErrorCode::kTypeMismatch,
+                             &keyPath, oo::PList(std::move(dict)),
+                             "Expected %s, found %s.", expectedClassName,
+                             className.c_str());
 }
 
 OOPListSchemaVerifierError ErrorFailureAlreadyReported() {
-  return OOPListSchemaVerifierError{kOOPListSchemaVerifierErrorDomain,
-                                    kPListErrorFailedAndErrorHasBeenReported,
-                                    std::nullopt, oo::PList()};
+  return OOPListSchemaVerifierError{
+      kOOPListSchemaVerifierErrorDomain,
+      oo::ToUnderlying(kPListErrorFailedAndErrorHasBeenReported), std::nullopt,
+      oo::PList()};
 }
 
 bool IsFailureAlreadyReportedError(const OOPListSchemaVerifierError& error) {
   return error.domain == kOOPListSchemaVerifierErrorDomain &&
-         error.code == kPListErrorFailedAndErrorHasBeenReported;
+         error.code ==
+             oo::ToUnderlying(kPListErrorFailedAndErrorHasBeenReported);
 }
 
 }  // namespace

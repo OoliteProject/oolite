@@ -55,13 +55,15 @@ constexpr const char* kOOSystemLayerProperty = "layer";
 // A layer number read from data, as an OOSystemLayer. 0-3 are the layers
 // themselves; anything else (only a hand-edited saved game gives one) takes the
 // rule -setProperties:inDescription: applies to a bad layer number,
-// OO_LAYER_OXP_PRIORITY, read as the enum's own unsigned underlying type would
-// read it, so a negative number is a large one. Clamping as an integer means
-// the enum is only ever given one of its own values; the bare cast this
+// OOSystemLayer::kOXPPriority, read as the enum's own unsigned underlying type
+// would read it, so a negative number is a large one. Clamping as an integer
+// means the enum is only ever given one of its own values; the bare cast this
 // replaces was undefined for any other value and then indexed past layers[].
 OOSystemLayer OOSystemLayerFromNumber(unsigned int number) {
-  return (number > OO_LAYER_OXP_PRIORITY) ? OO_LAYER_OXP_PRIORITY
-                                          : static_cast<OOSystemLayer>(number);
+  return (number > static_cast<unsigned int>(
+                       oo::ToUnderlying(OOSystemLayer::kOXPPriority)))
+             ? OOSystemLayer::kOXPPriority
+             : static_cast<OOSystemLayer>(number);
 }
 
 // ScanTokensFromString(key) as a property-list array, so at<std::size_t>(i)
@@ -290,7 +292,7 @@ void OOSystemDescriptionManager::importLegacyScriptedChanges(
       // if the OXP is still installed
       for (const auto& [propertyKey, value] :
            *systemChanges.getIf<oo::PList::Dict>()) {
-        setProperty(propertyKey, systemKey, OO_LAYER_OXP_DYNAMIC, value,
+        setProperty(propertyKey, systemKey, OOSystemLayer::kOXPDynamic, value,
                     defaultManifest);
       }
       /* Fix for older savegames not having a larger sun radius
@@ -300,7 +302,7 @@ void OOSystemDescriptionManager::importLegacyScriptedChanges(
       float sr_num = oo::plist_get::realFrom<float>(&sr, 0.0f);
       if (sr_num < 600000) {
         // fix sun radius values (a float: written to disk as a single real)
-        setProperty("sun_radius", systemKey, OO_LAYER_OXP_DYNAMIC,
+        setProperty("sun_radius", systemKey, OOSystemLayer::kOXPDynamic,
                     oo::PList::singleReal(sr_num + 600000.0f), defaultManifest);
       }
     }
@@ -410,18 +412,18 @@ oo::PList OOSystemDescriptionManager::getProperty(const std::string& property,
   if (desc == nullptr) {
     return oo::PList();
   }
-  oo::PList result = desc->getProperty(property, OO_LAYER_OXP_PRIORITY);
+  oo::PList result = desc->getProperty(property, OOSystemLayer::kOXPPriority);
   if (result.isNull()) {
-    result = desc->getProperty(property, OO_LAYER_OXP_DYNAMIC);
+    result = desc->getProperty(property, OOSystemLayer::kOXPDynamic);
   }
   if (result.isNull()) {
-    result = desc->getProperty(property, OO_LAYER_OXP_STATIC);
+    result = desc->getProperty(property, OOSystemLayer::kOXPStatic);
   }
   if (result.isNull() && universal) {
     result = ValueForKey(universalProperties, property);
   }
   if (result.isNull()) {
-    result = desc->getProperty(property, OO_LAYER_CORE);
+    result = desc->getProperty(property, OOSystemLayer::kCore);
   }
   return result;
 }
@@ -435,21 +437,21 @@ oo::PList OOSystemDescriptionManager::getProperty(const std::string& property1,
     return oo::PList();
   }
   OOSystemDescriptionEntry* desc = entry->second.get();
-  oo::PList result = desc->getProperty(property1, OO_LAYER_OXP_PRIORITY);
+  oo::PList result = desc->getProperty(property1, OOSystemLayer::kOXPPriority);
   if (result.isNull()) {
-    result = desc->getProperty(property2, OO_LAYER_OXP_PRIORITY);
+    result = desc->getProperty(property2, OOSystemLayer::kOXPPriority);
   }
   if (result.isNull()) {
-    result = desc->getProperty(property1, OO_LAYER_OXP_DYNAMIC);
+    result = desc->getProperty(property1, OOSystemLayer::kOXPDynamic);
   }
   if (result.isNull()) {
-    result = desc->getProperty(property2, OO_LAYER_OXP_DYNAMIC);
+    result = desc->getProperty(property2, OOSystemLayer::kOXPDynamic);
   }
   if (result.isNull()) {
-    result = desc->getProperty(property1, OO_LAYER_OXP_STATIC);
+    result = desc->getProperty(property1, OOSystemLayer::kOXPStatic);
   }
   if (result.isNull()) {
-    result = desc->getProperty(property2, OO_LAYER_OXP_STATIC);
+    result = desc->getProperty(property2, OOSystemLayer::kOXPStatic);
   }
   if (universal) {
     if (result.isNull()) {
@@ -460,10 +462,10 @@ oo::PList OOSystemDescriptionManager::getProperty(const std::string& property1,
     }
   }
   if (result.isNull()) {
-    result = desc->getProperty(property1, OO_LAYER_CORE);
+    result = desc->getProperty(property1, OOSystemLayer::kCore);
   }
   if (result.isNull()) {
-    result = desc->getProperty(property2, OO_LAYER_CORE);
+    result = desc->getProperty(property2, OOSystemLayer::kCore);
   }
   return result;
 }
@@ -472,9 +474,11 @@ void OOSystemDescriptionManager::setProperties(const oo::PList& properties,
                                                OOSystemDescriptionEntry* desc) {
   // Range-checked as the number it is read as, then converted: the enum only
   // ever holds a layer.
-  unsigned int layerNumber =
-      properties.get<unsigned int>(kOOSystemLayerProperty, OO_LAYER_OXP_STATIC);
-  if (layerNumber > OO_LAYER_OXP_PRIORITY) {
+  unsigned int layerNumber = properties.get<unsigned int>(
+      kOOSystemLayerProperty,
+      static_cast<unsigned int>(oo::ToUnderlying(OOSystemLayer::kOXPStatic)));
+  if (layerNumber > static_cast<unsigned int>(
+                        oo::ToUnderlying(OOSystemLayer::kOXPPriority))) {
     OO_LOG("system.description.error",
            "Layer {} is not a valid layer number in system information.",
            static_cast<unsigned>(layerNumber));
@@ -635,7 +639,8 @@ OOSystemDescriptionEntry::OOSystemDescriptionEntry() {
 void OOSystemDescriptionEntry::setProperty(const std::string& property,
                                            OOSystemLayer layer,
                                            const oo::PList& value) {
-  oo::PList::Dict& properties = *layers[layer].getIf<oo::PList::Dict>();
+  oo::PList::Dict& properties =
+      *layers[oo::ToUnderlying(layer)].getIf<oo::PList::Dict>();
   if (value.isNull()) {
     properties.erase(property);
   } else {
@@ -651,7 +656,7 @@ void OOSystemDescriptionEntry::setProperty(const std::string& property,
 
 oo::PList OOSystemDescriptionEntry::getProperty(const std::string& property,
                                                 OOSystemLayer layer) {
-  return ValueForKey(layers[layer], property);
+  return ValueForKey(layers[oo::ToUnderlying(layer)], property);
 }
 
 /* Mostly the rest of the game gets a system dictionary from

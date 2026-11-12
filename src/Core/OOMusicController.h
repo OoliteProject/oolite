@@ -47,18 +47,22 @@ MA 02110-1301, USA.
 #include <vector>
 
 #include "OOALMusic.h"
+#include "OOEnumFlags.h"
 #include "OOFoundation.h"
 #include "OOSoundSource.h"
 #include "oofnd/Ref.hpp"
 #include "oofnd/objc/OOObject.h"
 
-typedef enum {
-  kOOMusicOff,
-  kOOMusicOn,
-  kOOMusicITunes,
+enum class OOMusicMode : std::int32_t {
+  kOff,
+  kOn,
+  kITunes,
 
-  kOOMusicModeMax = kOOMusicOn
-} OOMusicMode;
+};
+static_assert(static_cast<std::int32_t>(OOMusicMode::kOff) == 0);
+static_assert(static_cast<std::int32_t>(OOMusicMode::kOn) == 1);
+static_assert(static_cast<std::int32_t>(OOMusicMode::kITunes) == 2);
+inline constexpr OOMusicMode kOOMusicModeMax = OOMusicMode::kOn;
 
 class OOMusicController : public oo::RefCounted {
  public:

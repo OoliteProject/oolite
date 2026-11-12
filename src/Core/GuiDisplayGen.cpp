@@ -210,7 +210,7 @@ GuiDisplayGen::GuiDisplayGen() {
     rowPosition[i].x = 0.0f;
     rowPosition[i].y =
         size_in_pixels.height - (pixel_row_start + i * pixel_row_height);
-    rowAlignment[i] = GUI_ALIGN_LEFT;
+    rowAlignment[i] = OOGUIAlignment::kLeft;
   }
 
   for (i = 0; i < n_columns; i++) {
@@ -223,7 +223,7 @@ GuiDisplayGen::GuiDisplayGen() {
 
   drawPosition = make_vector(0.0f, 0.0f, 640.0f);
 
-  backgroundSpecial = GUI_BACKGROUND_SPECIAL_NONE;
+  backgroundSpecial = OOGUIBackgroundSpecial::kNone;
 
   guiUserSettings = ResourceManager::dictionaryFromFilesNamed(
       "gui-settings.plist", "Config", true);
@@ -260,7 +260,7 @@ GuiDisplayGen::GuiDisplayGen(NSSize gui_size, int gui_cols, int gui_rows,
     rowPosition[i].x = 0.0f;
     rowPosition[i].y =
         size_in_pixels.height - (pixel_row_start + i * pixel_row_height);
-    rowAlignment[i] = GUI_ALIGN_LEFT;
+    rowAlignment[i] = OOGUIAlignment::kLeft;
   }
 
   title = gui_title;  // as given (not through -setTitle:)
@@ -322,7 +322,7 @@ void GuiDisplayGen::resizeTo(NSSize gui_size, int csize,
     rowPosition[i].x = 0.0f;
     rowPosition[i].y =
         size_in_pixels.height - (pixel_row_start + i * pixel_row_height);
-    rowAlignment[i] = GUI_ALIGN_LEFT;
+    rowAlignment[i] = OOGUIAlignment::kLeft;
   }
 
   pixel_text_size = NSMakeSize(csize, csize);
@@ -619,7 +619,7 @@ void GuiDisplayGen::clearAndKeepBackground(bool keepBackground) {
   unsigned i;
   setTitle(std::nullopt);
   for (i = 0; i < n_rows; i++) {
-    setText("", i, GUI_ALIGN_LEFT);
+    setText("", i, OOGUIAlignment::kLeft);
     setColor(textColor.get(), i);
     //
     setKey(std::string(GUI_KEY_SKIP), i);
@@ -744,7 +744,7 @@ void GuiDisplayGen::leaveLastLine() {
     rowText[i] = oo::PList("");
     rowColor[i] = textColor;
     rowKey[i] = std::string();
-    rowAlignment[i] = GUI_ALIGN_LEFT;
+    rowAlignment[i] = OOGUIAlignment::kLeft;
     rowFadeTime[i] = 0.0f;
   }
   rowFadeTime[i] = 0.4f;  // fade the last line...
@@ -933,7 +933,7 @@ void GuiDisplayGen::scrollUp(int how_much) {
     rowText[i] = oo::PList("");
     rowColor[i] = textColor;
     rowKey[i] = std::string();
-    rowAlignment[i] = GUI_ALIGN_LEFT;
+    rowAlignment[i] = OOGUIAlignment::kLeft;
     rowFadeTime[i] = 0.0f;
   }
 }
@@ -951,9 +951,9 @@ void GuiDisplayGen::setBackgroundTextureSpecial(OOGUIBackgroundSpecial spec,
         (PLAYER != nullptr ? PLAYER->galaxyNumber() : OOGalaxyID{});
 
     switch (spec) {
-      case GUI_BACKGROUND_SPECIAL_CUSTOM:
-      case GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_SHORTEST:
-      case GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_QUICKEST:
+      case OOGUIBackgroundSpecial::kCustom:
+      case OOGUIBackgroundSpecial::kCustomAnaShortest:
+      case OOGUIBackgroundSpecial::kCustomAnaQuickest:
         bgDescriptor =
             (UNIVERSE != nullptr ? UNIVERSE->screenTextureDescriptorForKey(
                                        "custom_chart_mission")
@@ -971,9 +971,9 @@ void GuiDisplayGen::setBackgroundTextureSpecial(OOGUIBackgroundSpecial spec,
           }
         }
         break;
-      case GUI_BACKGROUND_SPECIAL_SHORT:
-      case GUI_BACKGROUND_SPECIAL_SHORT_ANA_SHORTEST:
-      case GUI_BACKGROUND_SPECIAL_SHORT_ANA_QUICKEST:
+      case OOGUIBackgroundSpecial::kShort:
+      case OOGUIBackgroundSpecial::kShortAnaShortest:
+      case OOGUIBackgroundSpecial::kShortAnaQuickest:
         bgDescriptor =
             (UNIVERSE != nullptr ? UNIVERSE->screenTextureDescriptorForKey(
                                        "short_range_chart_mission")
@@ -985,9 +985,9 @@ void GuiDisplayGen::setBackgroundTextureSpecial(OOGUIBackgroundSpecial spec,
                                    : oo::PList());
         }
         break;
-      case GUI_BACKGROUND_SPECIAL_LONG:
-      case GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST:
-      case GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST:
+      case OOGUIBackgroundSpecial::kLong:
+      case OOGUIBackgroundSpecial::kLongAnaShortest:
+      case OOGUIBackgroundSpecial::kLongAnaQuickest:
         bgDescriptor =
             (UNIVERSE != nullptr
                  ? UNIVERSE->screenTextureDescriptorForKey(std::format(
@@ -1013,7 +1013,7 @@ void GuiDisplayGen::setBackgroundTextureSpecial(OOGUIBackgroundSpecial spec,
           }
         }
         break;
-      case GUI_BACKGROUND_SPECIAL_NONE:
+      case OOGUIBackgroundSpecial::kNone:
         break;
     }
     if (!bgDescriptor.isNull()) {
@@ -1026,7 +1026,7 @@ void GuiDisplayGen::setBackgroundTextureSpecial(OOGUIBackgroundSpecial spec,
 
 bool GuiDisplayGen::setBackgroundTextureDescriptor(
     const oo::PList& descriptor) {
-  backgroundSpecial = GUI_BACKGROUND_SPECIAL_NONE;  // reset
+  backgroundSpecial = OOGUIBackgroundSpecial::kNone;  // reset
   backgroundSprite =
       NewTextureSpriteWithDescriptor(descriptor, OOTextureFlags::kSRGBA);
   return backgroundSprite.get() != nullptr;
@@ -1298,18 +1298,18 @@ int GuiDisplayGen::drawGUI(GLfloat alpha, bool drawCursor) {
               OOGUIScreenID::kShortRangeChart ||
           (player != nullptr ? player->guiScreen() : OOGUIScreenID{}) ==
               OOGUIScreenID::kLongRangeChart ||
-          backgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT ||
-          backgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT_ANA_QUICKEST ||
-          backgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT_ANA_SHORTEST ||
-          backgroundSpecial == GUI_BACKGROUND_SPECIAL_CUSTOM ||
-          backgroundSpecial == GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_QUICKEST ||
-          backgroundSpecial == GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_SHORTEST) {
+          backgroundSpecial == OOGUIBackgroundSpecial::kShort ||
+          backgroundSpecial == OOGUIBackgroundSpecial::kShortAnaQuickest ||
+          backgroundSpecial == OOGUIBackgroundSpecial::kShortAnaShortest ||
+          backgroundSpecial == OOGUIBackgroundSpecial::kCustom ||
+          backgroundSpecial == OOGUIBackgroundSpecial::kCustomAnaQuickest ||
+          backgroundSpecial == OOGUIBackgroundSpecial::kCustomAnaShortest) {
         drawStarChart(x - 0.5f * size_in_pixels.width,
                       y - 0.5f * size_in_pixels.height, z, alpha, false);
       }
-      if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG ||
-          backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST ||
-          backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST) {
+      if (backgroundSpecial == OOGUIBackgroundSpecial::kLong ||
+          backgroundSpecial == OOGUIBackgroundSpecial::kLongAnaQuickest ||
+          backgroundSpecial == OOGUIBackgroundSpecial::kLongAnaShortest) {
         drawStarChart(x - 0.5f * size_in_pixels.width,
                       y - 0.5f * size_in_pixels.height, z, alpha, true);
       }
@@ -1515,13 +1515,13 @@ void GuiDisplayGen::drawGLDisplay(GLfloat x, GLfloat y, GLfloat z,
       if (!text.empty()) {
         strsize = cxx_OORectFromString(text, 0.0f, 0.0f, characterSize).size;
         switch (rowAlignment[i]) {
-          case GUI_ALIGN_LEFT:
+          case OOGUIAlignment::kLeft:
             rowPosition[i].x = 0.0f;
             break;
-          case GUI_ALIGN_RIGHT:
+          case OOGUIAlignment::kRight:
             rowPosition[i].x = size_in_pixels.width - strsize.width;
             break;
-          case GUI_ALIGN_CENTER:
+          case OOGUIAlignment::kCenter:
             rowPosition[i].x = (size_in_pixels.width - strsize.width) / 2.0f;
             break;
         }
@@ -2180,13 +2180,13 @@ void GuiDisplayGen::drawStarChart(GLfloat x, GLfloat y, GLfloat z,
   static oo::PList routeInfo;  // null: no cached route
 
   /* May override current mode for mission screens */
-  if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST ||
-      backgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT_ANA_SHORTEST ||
-      backgroundSpecial == GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_SHORTEST) {
+  if (backgroundSpecial == OOGUIBackgroundSpecial::kLongAnaShortest ||
+      backgroundSpecial == OOGUIBackgroundSpecial::kShortAnaShortest ||
+      backgroundSpecial == OOGUIBackgroundSpecial::kCustomAnaShortest) {
     advancedNavArrayMode = OORouteType::kJumps;
-  } else if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST ||
-             backgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT_ANA_QUICKEST ||
-             backgroundSpecial == GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_QUICKEST) {
+  } else if (backgroundSpecial == OOGUIBackgroundSpecial::kLongAnaQuickest ||
+             backgroundSpecial == OOGUIBackgroundSpecial::kShortAnaQuickest ||
+             backgroundSpecial == OOGUIBackgroundSpecial::kCustomAnaQuickest) {
     advancedNavArrayMode = OORouteType::kTime;
   }
 
@@ -2422,9 +2422,9 @@ void GuiDisplayGen::drawStarChart(GLfloat x, GLfloat y, GLfloat z,
 
   if (n_matches == 0) {
     foundSystem = 0;
-  } else if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST ||
-             backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST ||
-             backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG) {
+  } else if (backgroundSpecial == OOGUIBackgroundSpecial::kLongAnaShortest ||
+             backgroundSpecial == OOGUIBackgroundSpecial::kLongAnaQuickest ||
+             backgroundSpecial == OOGUIBackgroundSpecial::kLong) {
     // do nothing at this stage
   } else {
     for (i = 0; i < 256; i++) {

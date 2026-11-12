@@ -203,8 +203,8 @@ oo::PList KeyConfigEntry(const oo::PList::Dict& settings,
 // it to tell if a key is set to default
 void PlayerEntity::initCheckingDictionary() {
   const oo::PList kdicmaster = ResourceManager::dictionaryFromFilesNamed(
-      "keyconfig2.plist", std::optional<std::string>("Config"), MERGE_BASIC,
-      false);
+      "keyconfig2.plist", std::optional<std::string>("Config"),
+      OOResourceMergeMode::kBasic, false);
   const std::string kbd = KeyboardCode();
   const oo::PList* kdicValue = kdicmaster.get<oo::PList::Dict>(kbd);
   oo::PList::Dict kdic = (kdicValue != nullptr)
@@ -276,19 +276,19 @@ void PlayerEntity::setGuiToKeyMapperScreen(unsigned skip,
   if (!validateAllKeys().empty()) {
     has_error = true;
     gui->setText(OO_DESC("oolite-keyconfig-validation-error"), GUI_ROW_KC_ERROR,
-                 GUI_ALIGN_CENTER);
+                 OOGUIAlignment::kCenter);
     gui->setColor(OOColor::redColor().get(), GUI_ROW_KC_ERROR);
   }
   gui->setArray(Columns({OO_DESC("oolite-keyconfig-initial-info-1")}),
                 GUI_ROW_KC_INSTRUCT);
   gui->setText(OO_DESC("oolite-keyconfig-initial-info-2"),
-               GUI_ROW_KC_INSTRUCT + 1, GUI_ALIGN_CENTER);
+               GUI_ROW_KC_INSTRUCT + 1, OOGUIAlignment::kCenter);
   if (has_error) {
     gui->setText(OO_DESC("oolite-keyconfig-initial-error"),
-                 GUI_ROW_KC_INSTRUCT + 2, GUI_ALIGN_CENTER);
+                 GUI_ROW_KC_INSTRUCT + 2, OOGUIAlignment::kCenter);
   } else {
     gui->setText(OO_DESC("oolite-keyconfig-initial-info-3"),
-                 GUI_ROW_KC_INSTRUCT + 2, GUI_ALIGN_CENTER);
+                 GUI_ROW_KC_INSTRUCT + 2, OOGUIAlignment::kCenter);
   }
 
   if (resetCurrentRow) {
@@ -590,16 +590,16 @@ void PlayerEntity::setGuiToKeyConfigScreen(bool resetSelectedRow) {
   if (Contains(camera_keys, definition))
     helper = std::format("{} {}", DescriptionOfString(helper),
                          OO_DESC("oolite-keyconfig-update-camkeys").c_str());
-  gui->addLongText(helper, GUI_ROW_KC_UPDATE_INFO, GUI_ALIGN_LEFT);
+  gui->addLongText(helper, GUI_ROW_KC_UPDATE_INFO, OOGUIAlignment::kLeft);
 
   gui->setText("", GUI_ROW_KC_VALIDATION);
 
   gui->setText(OO_DESC("oolite-keyconfig-update-save"), GUI_ROW_KC_SAVE,
-               GUI_ALIGN_CENTER);
+               OOGUIAlignment::kCenter);
   gui->setKey(std::string(GUI_KEY_OK), GUI_ROW_KC_SAVE);
 
   gui->setText(OO_DESC("oolite-keyconfig-update-cancel"), GUI_ROW_KC_CANCEL,
-               GUI_ALIGN_CENTER);
+               OOGUIAlignment::kCenter);
   gui->setKey(std::string(GUI_KEY_OK), GUI_ROW_KC_CANCEL);
 
   gui->setSelectableRange(
@@ -614,7 +614,7 @@ void PlayerEntity::setGuiToKeyConfigScreen(bool resetSelectedRow) {
                          OO_DESC("oolite-keyconfig-update-validation-@"),
                          {TextArg(OptionalStringForKey(
                              keyFunctions[i], std::string(KEY_KC_GUIDESC)))}),
-                     GUI_ROW_KC_VALIDATION, GUI_ALIGN_CENTER);
+                     GUI_ROW_KC_VALIDATION, OOGUIAlignment::kCenter);
         gui->setColor(OOColor::orangeColor().get(), GUI_ROW_KC_VALIDATION);
         break;
       }
@@ -766,14 +766,14 @@ void PlayerEntity::setGuiToKeyConfigEntryScreen() {
   }
 
   gui->addLongText(OO_DESC("oolite-keyconfig-update-entry-info"),
-                   GUI_ROW_KC_ENTRY_INFO, GUI_ALIGN_LEFT);
+                   GUI_ROW_KC_ENTRY_INFO, OOGUIAlignment::kLeft);
 
   gui->setText(
       std::format("{}: {}", OO_DESC("oolite-keyconfig-update-key").c_str(),
                   DescriptionOfString((gameView != nullptr
                                            ? gameView->getTypedString()
                                            : std::optional<std::string>()))),
-      end_row, GUI_ALIGN_LEFT);
+      end_row, OOGUIAlignment::kLeft);
   gui->setColor(OOColor::cyanColor().get(), end_row);
   gui->setSelectableRange(NSMakeRange(0, 0));
 
@@ -904,14 +904,14 @@ void PlayerEntity::setGuiToConfirmClearScreen() {
   gui->setTitle(OO_DESC("oolite-keyconfig-clear-overrides-title"));  // @"%@"
 
   gui->addLongText(OO_DESC("oolite-keyconfig-clear-overrides"),  // @"%@"
-                   GUI_ROW_KC_CONFIRMCLEAR, GUI_ALIGN_LEFT);
+                   GUI_ROW_KC_CONFIRMCLEAR, OOGUIAlignment::kLeft);
 
   gui->setText(OO_DESC("oolite-keyconfig-clear-yes"),
-               GUI_ROW_KC_CONFIRMCLEAR_YES, GUI_ALIGN_CENTER);
+               GUI_ROW_KC_CONFIRMCLEAR_YES, OOGUIAlignment::kCenter);
   gui->setKey(std::string(GUI_KEY_OK), GUI_ROW_KC_CONFIRMCLEAR_YES);
 
   gui->setText(OO_DESC("oolite-keyconfig-clear-no"), GUI_ROW_KC_CONFIRMCLEAR_NO,
-               GUI_ALIGN_CENTER);
+               OOGUIAlignment::kCenter);
   gui->setKey(std::string(GUI_KEY_OK), GUI_ROW_KC_CONFIRMCLEAR_NO);
 
   gui->setSelectableRange(NSMakeRange(GUI_ROW_KC_CONFIRMCLEAR_YES, 2));
@@ -1603,8 +1603,8 @@ void PlayerEntity::handleKeyboardLayoutEntryKeys(::GuiDisplayGen* gui,
 std::optional<std::string> PlayerEntity::keyboardDescription(
     const std::string& kbd) {
   const oo::PList kmap = ResourceManager::dictionaryFromFilesNamed(
-      KeyMappingsFileName(), std::optional<std::string>("Config"), MERGE_BASIC,
-      false);
+      KeyMappingsFileName(), std::optional<std::string>("Config"),
+      OOResourceMergeMode::kBasic, false);
   const oo::PList* sect = kmap.find(kbd);
   return sect != nullptr ? OptionalStringForKey(*sect, "description")
                          : std::nullopt;
@@ -1612,8 +1612,8 @@ std::optional<std::string> PlayerEntity::keyboardDescription(
 
 std::vector<oo::PList> PlayerEntity::keyboardLayoutList() {
   const oo::PList kmap = ResourceManager::dictionaryFromFilesNamed(
-      KeyMappingsFileName(), std::optional<std::string>("Config"), MERGE_BASIC,
-      false);
+      KeyMappingsFileName(), std::optional<std::string>("Config"),
+      OOResourceMergeMode::kBasic, false);
   std::vector<oo::PList> kbdList;
   oo::PList def;
 

@@ -32,14 +32,15 @@ MA 02110-1301, USA.
 
 namespace {
 // -caseInsensitiveCompare: as the definitions used it: a nil receiver answers
-// OOOrderedSame (a message to nil); a nil argument compares as the empty
-// string.
+// OOComparisonResult::kSame (a message to nil); a nil argument compares as the
+// empty string.
 static OOComparisonResult CaseInsensitiveCompare(
     const std::optional<std::string>& a, const std::optional<std::string>& b) {
-  if (!a.has_value()) return OOOrderedSame;
+  if (!a.has_value()) return OOComparisonResult::kSame;
   int order = oo::str::caseInsensitiveCompare(*a, b.value_or(std::string()));
-  return (order < 0) ? OOOrderedAscending
-                     : ((order > 0) ? OOOrderedDescending : OOOrderedSame);
+  return (order < 0) ? OOComparisonResult::kAscending
+                     : ((order > 0) ? OOComparisonResult::kDescending
+                                    : OOComparisonResult::kSame);
 }
 }  // namespace
 
@@ -159,7 +160,7 @@ OOComparisonResult OOJSInterfaceDefinition::interfaceCompare(
     OOJSInterfaceDefinition* other) {
   OOComparisonResult byCategory = CaseInsensitiveCompare(
       _category, (other != nullptr) ? other->category() : std::nullopt);
-  if (byCategory == OOOrderedSame) {
+  if (byCategory == OOComparisonResult::kSame) {
     return CaseInsensitiveCompare(
         _title, (other != nullptr) ? other->title() : std::nullopt);
   } else {

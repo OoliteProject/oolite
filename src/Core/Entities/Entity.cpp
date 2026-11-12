@@ -633,9 +633,9 @@ double Entity::camZeroDistance() { return cam_zero_distance; }
 
 OOComparisonResult Entity::compareZeroDistance(Entity* otherEntity) {
   if ((otherEntity) && (zero_distance > otherEntity->zero_distance))
-    return OOOrderedAscending;
+    return OOComparisonResult::kAscending;
   else
-    return OOOrderedDescending;
+    return OOComparisonResult::kDescending;
 }
 
 BoundingBox Entity::getBoundingBox() { return boundingBox; }

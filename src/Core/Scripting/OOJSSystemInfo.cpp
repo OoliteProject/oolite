@@ -337,7 +337,7 @@ void OOSystemInfo::setValue(const oo::PList& value, const std::string& key) {
   if (UNIVERSE != nullptr)
     UNIVERSE->setSystemDataForGalaxy(_galaxy, _system, key, value,
                                      ManifestString(manifest),
-                                     OO_LAYER_OXP_DYNAMIC);
+                                     OOSystemLayer::kOXPDynamic);
 }
 
 std::vector<std::string> OOSystemInfo::allKeys() {

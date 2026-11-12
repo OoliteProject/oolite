@@ -295,7 +295,7 @@ void PlayerEntity::showScenarioDetails() {
           scenarioDescription.has_value() ? cxx_OOExpand(*scenarioDescription)
                                           : std::nullopt;
       gui->addLongText(expandedDescription, GUI_ROW_SCENARIOS_DETAIL,
-                       GUI_ALIGN_LEFT);
+                       OOGUIAlignment::kLeft);
       const std::optional<std::string> shipKey =
           OptionalStringValue(scenario->find("model"));
       if (shipKey) {
@@ -368,9 +368,9 @@ std::optional<std::string> PlayerEntity::commanderSelector() {
       showCommanderShip(idx);
     } else {
       if (UNIVERSE != nullptr) UNIVERSE->removeDemoShips();
-      gui->setText("", CDRDESCROW, GUI_ALIGN_LEFT);
-      gui->setText("", CDRDESCROW + 1, GUI_ALIGN_LEFT);
-      gui->setText("", CDRDESCROW + 2, GUI_ALIGN_LEFT);
+      gui->setText("", CDRDESCROW, OOGUIAlignment::kLeft);
+      gui->setText("", CDRDESCROW + 1, OOGUIAlignment::kLeft);
+      gui->setText("", CDRDESCROW + 2, OOGUIAlignment::kLeft);
     }
 
   } else {
@@ -480,9 +480,9 @@ void PlayerEntity::saveCommanderInputHandler() {
                 .value_or("");
     } else {
       if (UNIVERSE != nullptr) UNIVERSE->removeDemoShips();
-      gui->setText("", CDRDESCROW, GUI_ALIGN_LEFT);
-      gui->setText("", CDRDESCROW + 1, GUI_ALIGN_LEFT);
-      gui->setText("", CDRDESCROW + 2, GUI_ALIGN_LEFT);
+      gui->setText("", CDRDESCROW, OOGUIAlignment::kLeft);
+      gui->setText("", CDRDESCROW + 1, OOGUIAlignment::kLeft);
+      gui->setText("", CDRDESCROW + 2, OOGUIAlignment::kLeft);
     }
   } else {
     commanderNameString = (gameView != nullptr ? gameView->getTypedString()
@@ -1006,14 +1006,14 @@ void PlayerEntity::setGuiToOverwriteScreen(const std::string& cdrName) {
       oo::str::formatRuntime(
           OO_DESC("overwritescreen-commander-@-already-exists-overwrite-query"),
           {cdrName}),
-      SAVE_OVERWRITE_WARN_ROW, GUI_ALIGN_CENTER);
+      SAVE_OVERWRITE_WARN_ROW, OOGUIAlignment::kCenter);
 
   gui->setText(OO_DESC("overwritescreen-yes"), SAVE_OVERWRITE_YES_ROW,
-               GUI_ALIGN_CENTER);
+               OOGUIAlignment::kCenter);
   gui->setKey(std::string(GUI_KEY_OK), SAVE_OVERWRITE_YES_ROW);
 
   gui->setText(OO_DESC("overwritescreen-no"), SAVE_OVERWRITE_NO_ROW,
-               GUI_ALIGN_CENTER);
+               OOGUIAlignment::kCenter);
   gui->setKey(std::string(GUI_KEY_OK), SAVE_OVERWRITE_NO_ROW);
 
   gui->setSelectableRange(NSMakeRange(SAVE_OVERWRITE_YES_ROW, 2));
@@ -1097,7 +1097,7 @@ void PlayerEntity::lsCommanders(
   if (cdrDetailArray.empty()) {
     // Empty directory; tell the user and exit immediately.
     gui->setText(OO_DESC("loadsavescreen-no-commanders-found"), STARTROW,
-                 GUI_ALIGN_CENTER);
+                 OOGUIAlignment::kCenter);
     return;
   }
 
@@ -1139,7 +1139,7 @@ void PlayerEntity::lsCommanders(
 
   // clear text lines here
   for (i = EXITROW; i < ENDROW + 1; i++) {
-    gui->setText("", i, GUI_ALIGN_LEFT);
+    gui->setText("", i, OOGUIAlignment::kLeft);
     gui->setColor(OOColor::yellowColor().get(), i);
     gui->setKey(std::string(GUI_KEY_SKIP), i);
   }
@@ -1242,9 +1242,9 @@ void PlayerEntity::showCommanderShip(int cdrArrayIndex) {
     return;  // (-objectAtIndex: raised)
   const oo::PList cdr = cdrDetailArray[cdrArrayIndex];
 
-  gui->setText("", CDRDESCROW, GUI_ALIGN_LEFT);
-  gui->setText("", CDRDESCROW + 1, GUI_ALIGN_LEFT);
-  gui->setText("", CDRDESCROW + 2, GUI_ALIGN_LEFT);
+  gui->setText("", CDRDESCROW, OOGUIAlignment::kLeft);
+  gui->setText("", CDRDESCROW + 1, OOGUIAlignment::kLeft);
+  gui->setText("", CDRDESCROW + 2, OOGUIAlignment::kLeft);
 
   if (cdr.get<bool>("isFolder")) {
     const std::string folderDesc = oo::str::formatRuntime(
@@ -1252,7 +1252,7 @@ void PlayerEntity::showCommanderShip(int cdrArrayIndex) {
         {COMMAND_MODIFIER_KEY,
          oo::str::lastPathComponent(cdr.get<std::string>("saved_game_path"))});
     gui->setColor(OOColor::orangeColor().get(), CDRDESCROW);
-    gui->addLongText(folderDesc, CDRDESCROW, GUI_ALIGN_LEFT);
+    gui->addLongText(folderDesc, CDRDESCROW, OOGUIAlignment::kLeft);
     return;
   }
 
@@ -1263,7 +1263,7 @@ void PlayerEntity::showCommanderShip(int cdrArrayIndex) {
         {COMMAND_MODIFIER_KEY,
          oo::str::lastPathComponent(cdr.get<std::string>("saved_game_path"))});
     gui->setColor(OOColor::orangeColor().get(), CDRDESCROW);
-    gui->addLongText(folderDesc, CDRDESCROW, GUI_ALIGN_LEFT);
+    gui->addLongText(folderDesc, CDRDESCROW, OOGUIAlignment::kLeft);
     return;
   }
   gui->setColor(gui->colorFromSetting(std::nullopt, nullptr).get(), CDRDESCROW);
@@ -1362,7 +1362,7 @@ void PlayerEntity::showCommanderShip(int cdrArrayIndex) {
 
   //-------------------------------------------------------------------------------------------------------------------------
 
-  gui->addLongText(cdrDesc, CDRDESCROW, GUI_ALIGN_LEFT);
+  gui->addLongText(cdrDesc, CDRDESCROW, OOGUIAlignment::kLeft);
 }
 
 int PlayerEntity::findIndexOfCommander(const std::string& cdrName) {
@@ -1370,7 +1370,8 @@ int PlayerEntity::findIndexOfCommander(const std::string& cdrName) {
   for (i = 0; i < cdrDetailArray.size(); i++) {
     const std::optional<std::string> currentName =
         CommanderSaveName(cdrDetailArray[i]);
-    if (currentName && cdrName == *currentName)  // -compare: == OOOrderedSame
+    if (currentName &&
+        cdrName == *currentName)  // -compare: == OOComparisonResult::kSame
     {
       return i;
     }

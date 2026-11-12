@@ -1468,8 +1468,10 @@ bool ResourceManager::corePlist(const std::string& fileName,
 oo::PList ResourceManager::dictionaryFromFilesNamed(
     const std::string& fileName, const std::optional<std::string>& folderName,
     bool mergeFiles) {
-  return dictionaryFromFilesNamed(fileName, folderName,
-                                  mergeFiles ? MERGE_BASIC : MERGE_NONE, true);
+  return dictionaryFromFilesNamed(
+      fileName, folderName,
+      mergeFiles ? OOResourceMergeMode::kBasic : OOResourceMergeMode::kNone,
+      true);
 }
 
 oo::PList ResourceManager::dictionaryFromFilesNamed(
@@ -1481,15 +1483,15 @@ oo::PList ResourceManager::dictionaryFromFilesNamed(
   OOCacheManager* cacheMgr = OOCacheManager::sharedCache();
 
   switch (mergeMode) {
-    case MERGE_NONE:
+    case OOResourceMergeMode::kNone:
       mergeType = "none";
       break;
 
-    case MERGE_BASIC:
+    case OOResourceMergeMode::kBasic:
       mergeType = "basic";
       break;
 
-    case MERGE_SMART:
+    case OOResourceMergeMode::kSmart:
       mergeType = "smart";
       break;
   }
@@ -1514,7 +1516,7 @@ oo::PList ResourceManager::dictionaryFromFilesNamed(
 
   // OODictionaryFromFile (OOPListParsing) is an unmigrated callee: its
   // dictionaries arrive through oo::PListFrom.
-  if (mergeMode == MERGE_NONE) {
+  if (mergeMode == OOResourceMergeMode::kNone) {
     // Find "last" matching dictionary
     const std::vector<std::string> paths = ResourceManager::paths();
     for (auto pathIt = paths.rbegin(); pathIt != paths.rend(); ++pathIt) {
@@ -1552,7 +1554,7 @@ oo::PList ResourceManager::dictionaryFromFilesNamed(
 
     for (const oo::PList& dict : results) {
       const oo::PList::Dict& entries = *dict.getIf<oo::PList::Dict>();
-      if (mergeMode == MERGE_SMART)
+      if (mergeMode == OOResourceMergeMode::kSmart)
         MergeEntries(merged, entries);
       else
         for (const auto& [key, value] : entries)
@@ -1715,7 +1717,8 @@ void ResourceManager::handleEquipmentListMerging(oo::PList& arrayToProcess,
 // via the overrides file.
 void ResourceManager::handleEquipmentOverrides(oo::PList& arrayToProcess) {
   const oo::PList overrides = dictionaryFromFilesNamed(
-      "equipment-overrides.plist", std::string("Config"), MERGE_SMART, false);
+      "equipment-overrides.plist", std::string("Config"),
+      OOResourceMergeMode::kSmart, false);
   const oo::PList::Dict* overrideEntries = overrides.getIf<oo::PList::Dict>();
   if (overrideEntries == nullptr) return;
   oo::PList::Array& entries = *arrayToProcess.getIf<oo::PList::Array>();

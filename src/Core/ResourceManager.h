@@ -44,6 +44,7 @@ MA 02110-1301, USA.
 #include <utility>
 #include <vector>
 
+#include "OOEnumFlags.h"
 #include "OOFoundation.h"
 #include "OOOpenGL.h"
 #include "OOScript.h"  // oo::Ref<OOScript> members and results
@@ -55,12 +56,15 @@ class OOSystemDescriptionManager;  // OOSystemDescriptionManager.h
 class OOSound;
 class OOMusic;
 
-typedef enum {
-  MERGE_NONE,   // Just use the last file in search order.
-  MERGE_BASIC,  // Merge files by adding the top-level items of each file.
-  MERGE_SMART   // Merge files by merging the top-level elements of each file
-                // (second-order merge, but not recursive)
-} OOResourceMergeMode;
+enum class OOResourceMergeMode : std::int32_t {
+  kNone,   // Just use the last file in search order.
+  kBasic,  // Merge files by adding the top-level items of each file.
+  kSmart,  // Merge files by merging the top-level elements of each file
+           // (second-order merge, but not recursive)
+};
+static_assert(static_cast<std::int32_t>(OOResourceMergeMode::kNone) == 0);
+static_assert(static_cast<std::int32_t>(OOResourceMergeMode::kBasic) == 1);
+static_assert(static_cast<std::int32_t>(OOResourceMergeMode::kSmart) == 2);
 
 /* 'All' doesn't quite mean 'all' - OXPs with the tag
  * "oolite-scenario-only" will only be loaded if required by a

@@ -83,7 +83,7 @@ OO_TEST(oneSharedManager) {
 OO_TEST(nilIsRefused) {
   {
     OOAsyncWorkManager* manager = OOAsyncWorkManager::sharedAsyncWorkManager();
-    OO_CHECK(!manager->addTask(nullptr, kOOAsyncPriorityMedium));
+    OO_CHECK(!manager->addTask(nullptr, OOAsyncWorkPriority::kMedium));
     manager->waitForTaskToComplete(nullptr);  // returns at once
   }
 }
@@ -92,7 +92,7 @@ OO_TEST(waitPerformsThenCompletesOnTheWaitingThread) {
   {
     OOAsyncWorkManager* manager = OOAsyncWorkManager::sharedAsyncWorkManager();
     const oo::Ref<TestTask> task = oo::makeRef<TestTask>();
-    OO_CHECK(manager->addTask(task.get(), kOOAsyncPriorityMedium));
+    OO_CHECK(manager->addTask(task.get(), OOAsyncWorkPriority::kMedium));
     manager->waitForTaskToComplete(task.get());
     OO_CHECK(task->performed);
     OO_CHECK(!task->performedOnCallingThread);  // on a work thread
@@ -109,7 +109,7 @@ OO_TEST(completePendingTasksCollectsReadyTasks) {
     OOAsyncWorkManager* manager = OOAsyncWorkManager::sharedAsyncWorkManager();
     const oo::Ref<TestTask> task = oo::makeRef<TestTask>();
     OO_CHECK_EQ(task->retainCount(), 1u);
-    OO_CHECK(manager->addTask(task.get(), kOOAsyncPriorityHigh));
+    OO_CHECK(manager->addTask(task.get(), OOAsyncWorkPriority::kHigh));
     OO_CHECK(WaitFor(task->performed));
     // Performed, but completed only when collected: poll until it is ready.
     for (int i = 0; i < 500 && task->completions == 0; i++) {
@@ -140,7 +140,7 @@ OO_TEST(taskWithoutCompletionIsPerformed) {
     OOAsyncWorkManager* manager = OOAsyncWorkManager::sharedAsyncWorkManager();
     const oo::Ref<TestFireAndForgetTask> task =
         oo::makeRef<TestFireAndForgetTask>();
-    OO_CHECK(manager->addTask(task.get(), kOOAsyncPriorityLow));
+    OO_CHECK(manager->addTask(task.get(), OOAsyncWorkPriority::kLow));
     OO_CHECK(WaitFor(task->performed));
     manager
         ->completePendingTasks();  // nothing to collect for it; must not hang
@@ -152,7 +152,7 @@ OO_TEST(exceptionInPerformIsSwallowed) {
     OOAsyncWorkManager* manager = OOAsyncWorkManager::sharedAsyncWorkManager();
     const oo::Ref<TestTask> task = oo::makeRef<TestTask>();
     task->shouldThrow = true;
-    OO_CHECK(manager->addTask(task.get(), kOOAsyncPriorityMedium));
+    OO_CHECK(manager->addTask(task.get(), OOAsyncWorkPriority::kMedium));
     manager->waitForTaskToComplete(task.get());
     OO_CHECK(task->performed);
     OO_CHECK_EQ(task->completions.load(), 1);
@@ -165,9 +165,9 @@ OO_TEST(everyPriorityIsPerformed) {
     const oo::Ref<TestTask> low = oo::makeRef<TestTask>();
     const oo::Ref<TestTask> medium = oo::makeRef<TestTask>();
     const oo::Ref<TestTask> high = oo::makeRef<TestTask>();
-    OO_CHECK(manager->addTask(low.get(), kOOAsyncPriorityLow));
-    OO_CHECK(manager->addTask(medium.get(), kOOAsyncPriorityMedium));
-    OO_CHECK(manager->addTask(high.get(), kOOAsyncPriorityHigh));
+    OO_CHECK(manager->addTask(low.get(), OOAsyncWorkPriority::kLow));
+    OO_CHECK(manager->addTask(medium.get(), OOAsyncWorkPriority::kMedium));
+    OO_CHECK(manager->addTask(high.get(), OOAsyncWorkPriority::kHigh));
     manager->waitForTaskToComplete(low.get());
     manager->waitForTaskToComplete(medium.get());
     manager->waitForTaskToComplete(high.get());

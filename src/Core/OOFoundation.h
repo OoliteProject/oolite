@@ -154,15 +154,21 @@ MA 02110-1301, USA.
  * oo::DescriptionOf), Foundation-free.
  */
 #include "OODescription.h"
+#include "OOEnumFlags.h"
 
 /*	The ordering type and values: an std::ptrdiff_t enum with Foundation's
    NSComparisonResult values.
 */
-enum OOComparisonResult : std::ptrdiff_t {
-  OOOrderedAscending = -1,
-  OOOrderedSame = 0,
-  OOOrderedDescending = 1
+enum class OOComparisonResult : std::ptrdiff_t {
+  kAscending = -1,
+  kSame = 0,
+  kDescending = 1,
 };
+static_assert(static_cast<std::ptrdiff_t>(OOComparisonResult::kAscending) ==
+              -1);
+static_assert(static_cast<std::ptrdiff_t>(OOComparisonResult::kSame) == 0);
+static_assert(static_cast<std::ptrdiff_t>(OOComparisonResult::kDescending) ==
+              1);
 
 // OO_DEBUG is defined at the top of this file, where the enumeration macros can
 // test it.

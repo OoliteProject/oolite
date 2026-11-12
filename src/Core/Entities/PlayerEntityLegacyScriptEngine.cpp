@@ -1427,7 +1427,7 @@ void PlayerEntity::setSpecificPlanetInfo(
   if (UNIVERSE != nullptr)
     UNIVERSE->setSystemDataForGalaxy(gnum, pnum, keyString,
                                      oo::PList(valueString), std::string(),
-                                     OO_LAYER_OXP_DYNAMIC);
+                                     OOSystemLayer::kOXPDynamic);
 }
 
 void PlayerEntity::awardCargo(
@@ -2066,7 +2066,8 @@ void PlayerEntity::addLiteralMissionText(
   ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
 
   for (const std::string& para : oo::str::split(text, "\n")) {
-    missionTextRow = gui->addLongText(para, missionTextRow, GUI_ALIGN_LEFT);
+    missionTextRow =
+        gui->addLongText(para, missionTextRow, OOGUIAlignment::kLeft);
   }
 }
 
@@ -2152,7 +2153,7 @@ void PlayerEntity::setMissionChoicesDictionary(const oo::PList& choicesDict) {
 
   for (const std::string& choiceKey : choiceKeys) {
     const oo::PList& choiceValue = *choicesDict.find(choiceKey);
-    OOGUIAlignment alignment = GUI_ALIGN_CENTER;
+    OOGUIAlignment alignment = OOGUIAlignment::kCenter;
     oo::Ref<OOColor> rowColor = OOColor::yellowColor();
     bool selectable = true;
     if (const std::string* text = choiceValue.getIf<std::string>()) {
@@ -2170,9 +2171,9 @@ void PlayerEntity::setMissionChoicesDictionary(const oo::PList& choicesDict) {
       const std::string alignmentChoice =
           choiceValue.get<std::string>("alignment", "CENTER");
       if (alignmentChoice == "LEFT") {
-        alignment = GUI_ALIGN_LEFT;
+        alignment = OOGUIAlignment::kLeft;
       } else if (alignmentChoice == "RIGHT") {
-        alignment = GUI_ALIGN_RIGHT;
+        alignment = OOGUIAlignment::kRight;
       }
       const oo::PList* colorDesc = choiceValue.find("color");
       if (choiceValue.get<bool>("unselectable")) {
@@ -2211,7 +2212,8 @@ void PlayerEntity::setMissionChoicesDictionary(const oo::PList& choicesDict) {
 
   if (!selectableRowExists) {
     // just in case choices are set but they're all blank.
-    gui->setText(std::optional<std::string>(" "), end_row, GUI_ALIGN_CENTER);
+    gui->setText(std::optional<std::string>(" "), end_row,
+                 OOGUIAlignment::kCenter);
     gui->setKey(std::string(), end_row);
     gui->setColor(OOColor::yellowColor().get(), end_row);
   }
@@ -2680,7 +2682,7 @@ void PlayerEntity::refreshMissionScreenTextEntry() {
       oo::str::formatRuntime(OO_DESC("mission-screen-text-prompt-@"),
                              {typed.has_value() ? oo::str::FormatArg(*typed)
                                                 : oo::str::FormatArg::null()}),
-      end_row, GUI_ALIGN_LEFT);
+      end_row, OOGUIAlignment::kLeft);
   gui->setColor(OOColor::cyanColor().get(), end_row);
 
   gui->setShowTextCursor(true);
@@ -2701,7 +2703,8 @@ void PlayerEntity::setGuiToMissionScreenWithCallback(bool callback) {
     gui->setTitle(missionTitle().value_or(OO_DESC("mission-information")));
 
     if (!_missionTextEntry) {
-      gui->setText(OO_DESC("press-space-commander"), end_row, GUI_ALIGN_CENTER);
+      gui->setText(OO_DESC("press-space-commander"), end_row,
+                   OOGUIAlignment::kCenter);
       gui->setColor(OOColor::yellowColor().get(), end_row);
       gui->setKey("spacebar", end_row);
       gui->setShowTextCursor(false);

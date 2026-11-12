@@ -126,10 +126,11 @@ oo::Ref<OOTimeProfile> OOJSEndProfiling() {
   entries.reserve(sProfileInfo->size());
   for (const auto& keyAndEntry : *sProfileInfo)
     entries.emplace_back(keyAndEntry.second);
-  std::stable_sort(
-      entries.begin(), entries.end(), [](const auto& a, const auto& b) {
-        return a->compareBySelfTimeReverse(b.get()) == OOOrderedAscending;
-      });
+  std::stable_sort(entries.begin(), entries.end(),
+                   [](const auto& a, const auto& b) {
+                     return a->compareBySelfTimeReverse(b.get()) ==
+                            OOComparisonResult::kAscending;
+                   });
   result->setProfileEntries(entries);
 
   if (sTracing) {
@@ -399,7 +400,8 @@ bool OOTimeProfileEntry::isJavaScriptFrame() { return false; }
 
 OOComparisonResult OOTimeProfileEntry::compareByTotalTime(
     OOTimeProfileEntry* other) {
-  return (OOComparisonResult)-compareByTotalTimeReverse(other);
+  return static_cast<OOComparisonResult>(
+      -oo::ToUnderlying(compareByTotalTimeReverse(other)));
 }
 
 OOComparisonResult OOTimeProfileEntry::compareByTotalTimeReverse(
@@ -408,14 +410,15 @@ OOComparisonResult OOTimeProfileEntry::compareByTotalTimeReverse(
   double otherTotal = (other != nullptr) ? other->totalTimeSum()
                                          : 0.0;  // (a message to nil gave 0)
 
-  if (selfTotal < otherTotal) return OOOrderedDescending;
-  if (selfTotal > otherTotal) return OOOrderedAscending;
-  return OOOrderedSame;
+  if (selfTotal < otherTotal) return OOComparisonResult::kDescending;
+  if (selfTotal > otherTotal) return OOComparisonResult::kAscending;
+  return OOComparisonResult::kSame;
 }
 
 OOComparisonResult OOTimeProfileEntry::compareBySelfTime(
     OOTimeProfileEntry* other) {
-  return (OOComparisonResult)-compareBySelfTimeReverse(other);
+  return static_cast<OOComparisonResult>(
+      -oo::ToUnderlying(compareBySelfTimeReverse(other)));
 }
 
 OOComparisonResult OOTimeProfileEntry::compareBySelfTimeReverse(
@@ -424,9 +427,9 @@ OOComparisonResult OOTimeProfileEntry::compareBySelfTimeReverse(
   double otherTotal = (other != nullptr) ? other->selfTimeSum()
                                          : 0.0;  // (a message to nil gave 0)
 
-  if (selfTotal < otherTotal) return OOOrderedDescending;
-  if (selfTotal > otherTotal) return OOOrderedAscending;
-  return OOOrderedSame;
+  if (selfTotal < otherTotal) return OOComparisonResult::kDescending;
+  if (selfTotal > otherTotal) return OOComparisonResult::kAscending;
+  return OOComparisonResult::kSame;
 }
 
 JSValue OOTimeProfileEntry::oo_jsValueInContext(JSContext* context) {

@@ -324,9 +324,9 @@ OO_TEST(accessors) {
     entity->update(0);
     other->update(0);
     OO_CHECK(entity->zeroDistance() == 14.0 && other->zeroDistance() == 12.0);
-    OO_CHECK(entity->compareZeroDistance(other) == OOOrderedAscending);
-    OO_CHECK(other->compareZeroDistance(entity) == OOOrderedDescending);
-    OO_CHECK(entity->compareZeroDistance(nullptr) == OOOrderedDescending);
+    OO_CHECK(entity->compareZeroDistance(other) == OOComparisonResult::kAscending);
+    OO_CHECK(other->compareZeroDistance(entity) == OOComparisonResult::kDescending);
+    OO_CHECK(entity->compareZeroDistance(nullptr) == OOComparisonResult::kDescending);
 
     OO_CHECK(!entity->checkCloseCollisionWith(nullptr) &&
              entity->checkCloseCollisionWith(other));

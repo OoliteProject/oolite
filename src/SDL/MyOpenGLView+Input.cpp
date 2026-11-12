@@ -40,10 +40,11 @@ void MyOpenGLView::initKeyMappingData() {
   // load in our keyboard scancode mappings
 #if OOLITE_WINDOWS
   const oo::PList kmap = ResourceManager::dictionaryFromFilesNamed(
-      "keymappings_windows.plist", "Config", MERGE_BASIC, false);
+      "keymappings_windows.plist", "Config", OOResourceMergeMode::kBasic,
+      false);
 #else
   const oo::PList kmap = ResourceManager::dictionaryFromFilesNamed(
-      "keymappings_linux.plist", "Config", MERGE_BASIC, false);
+      "keymappings_linux.plist", "Config", OOResourceMergeMode::kBasic, false);
 #endif
   // get the stored keyboard code from preferences
   // (oo_stringForKey:defaultValue: over the value)

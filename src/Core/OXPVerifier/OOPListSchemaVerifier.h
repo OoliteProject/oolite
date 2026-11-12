@@ -53,6 +53,7 @@ SOFTWARE.
 #include <utility>
 #include <vector>
 
+#include "OOEnumFlags.h"
 #include "OOFoundation.h"
 #include "OOFunctionAttributes.h"
 #include "oofnd/PList.hpp"
@@ -195,91 +196,147 @@ extern const char* const
                                    // dictionary, sorted
 extern const char* const
     kMissingSubStringErrorKey;  // String or array of strings not found for
-                                // kPListErrorStringPrefixMissing/kPListErrorStringSuffixMissing/kPListErrorStringSubstringMissing.
+                                // OOPListSchemaVerifierErrorCode::kStringPrefixMissing/OOPListSchemaVerifierErrorCode::kStringSuffixMissing/OOPListSchemaVerifierErrorCode::kStringSubstringMissing.
 extern const char* const
     kUnnownFilterErrorKey;  // Unrecognized filter specifier for
-                            // kPListErrorSchemaUnknownFilter. Not specified if
-                            // filter is not a string.
+                            // OOPListSchemaVerifierErrorCode::kSchemaUnknownFilter.
+                            // Not specified if filter is not a string.
 extern const char* const kErrorsByOptionErrorKey;
 extern const char* const
     kUnderlyingErrorErrorKey;  // The delegate's own error for
-                               // kPListDelegatedTypeError.		//
-                               // Dictionary of errors for oneOf types.
+                               // OOPListSchemaVerifierErrorCode::kDelegatedTypeError.
+                               // // Dictionary of errors for oneOf types.
 
 extern const char* const
-    kUnknownTypeErrorKey;  // Set for kPListErrorSchemaUnknownType.
+    kUnknownTypeErrorKey;  // Set for
+                           // OOPListSchemaVerifierErrorCode::kSchemaUnknownType.
 extern const char* const
     kUndefinedMacroErrorKey;  // Set for
-                              // kPListErrorSchemaUndefiniedMacroReference.
+                              // OOPListSchemaVerifierErrorCode::kSchemaUndefiniedMacroReference.
 
 // All plist verifier errors have a short error description in their
 // -localizedFailureReason.
 
-typedef enum {
-  kPListErrorNone,
-  kPListErrorInternal,  // PList verifier did something dumb.
+enum class OOPListSchemaVerifierErrorCode : std::int32_t {
+  kNone,
+  kInternal,  // PList verifier did something dumb.
 
   // Verification errors -- property list doesn't match schema.
-  kPListErrorTypeMismatch,  // Basic type mismatch -- array instead of number,
-                            // for instance.
+  kTypeMismatch,  // Basic type mismatch -- array instead of number,
+                  // for instance.
 
-  kPListErrorMinimumConstraintNotMet,  // minimum/minCount/minLength constraint
-                                       // violated
-  kPListErrorMaximumConstraintNotMet,  // maximum/maxCount/maxLength constraint
-                                       // violated
-  kPListErrorNumberIsNegative,         // Negative number in positiveFloat.
+  kMinimumConstraintNotMet,  // minimum/minCount/minLength constraint
+                             // violated
+  kMaximumConstraintNotMet,  // maximum/maxCount/maxLength constraint
+                             // violated
+  kNumberIsNegative,         // Negative number in positiveFloat.
 
-  kPListErrorStringPrefixMissing,  // String does not match requiredPrefix rule.
-                                   // kMissingSubStringErrorKey is set.
-  kPListErrorStringSuffixMissing,  // String does not match requiredSuffix rule.
-                                   // kMissingSubStringErrorKey is set.
-  kPListErrorStringSubstringMissing,  // String does not match requiredSuffix
-                                      // rule. kMissingSubStringErrorKey is set.
+  kStringPrefixMissing,     // String does not match requiredPrefix rule.
+                            // kMissingSubStringErrorKey is set.
+  kStringSuffixMissing,     // String does not match requiredSuffix rule.
+                            // kMissingSubStringErrorKey is set.
+  kStringSubstringMissing,  // String does not match requiredSuffix
+                            // rule. kMissingSubStringErrorKey is set.
 
-  kPListErrorDictionaryUnknownKey,           // Unknown key for dictionary with
-                                             // allowOthers = NO.
-  kPListErrorDictionaryMissingRequiredKeys,  // requiredKeys rule is not
-                                             // fulfilled. The missing keys are
-                                             // listed in
-                                             // kMissingRequiredKeysErrorKey.
+  kDictionaryUnknownKey,           // Unknown key for dictionary with
+                                   // allowOthers = NO.
+  kDictionaryMissingRequiredKeys,  // requiredKeys rule is not
+                                   // fulfilled. The missing keys are
+                                   // listed in
+                                   // kMissingRequiredKeysErrorKey.
 
-  kPListErrorEnumerationBadValue,  // Enumeration type contains string that
-                                   // isn't in permitted set.
+  kEnumerationBadValue,  // Enumeration type contains string that
+                         // isn't in permitted set.
 
-  kPListErrorOneOfNoMatch,  // No match for oneOf type. kErrorsByOptionErrorKey
-                            // is set to a dictionary of type specifiers to
-                            // errors. Note that the keys in this dictionary can
-                            // be either strings or dictionaries.
+  kOneOfNoMatch,  // No match for oneOf type. kErrorsByOptionErrorKey
+                  // is set to a dictionary of type specifiers to
+                  // errors. Note that the keys in this dictionary can
+                  // be either strings or dictionaries.
 
-  kPListDelegatedTypeError,  // Delegate's verification method failed. If it
-                             // returned an error, this will be in
-                             // kUnderlyingErrorErrorKey.
+  kDelegatedTypeError,  // Delegate's verification method failed. If it
+                        // returned an error, this will be in
+                        // kUnderlyingErrorErrorKey.
 
   // Schema errors -- schema is broken.
-  kPListErrorStartOfSchemaErrors = 100,
+  kStartOfSchemaErrors = 100,
 
-  kPListErrorSchemaBadTypeSpecifier,  // Bad type specifier - specifier is not a
-                                      // string or a dictionary, or is a
-                                      // dictionary with no type key.
-                                      // kUndefinedMacroErrorKey is set.
-  kPListErrorSchemaUndefiniedMacroReference,  // Reference to $macro not found
-                                              // in $definitions.
-  kPListErrorSchemaUnknownType,     // Unknown type specified in type specifier.
+  kSchemaBadTypeSpecifier,          // Bad type specifier - specifier is not a
+                                    // string or a dictionary, or is a
+                                    // dictionary with no type key.
+                                    // kUndefinedMacroErrorKey is set.
+  kSchemaUndefiniedMacroReference,  // Reference to $macro not found
+                                    // in $definitions.
+  kSchemaUnknownType,               // Unknown type specified in type specifier.
                                     // kUnknownTypeErrorKey is set.
-  kPListErrorSchemaNoOneOfOptions,  // OneOf clause has no options array.
-  kPListErrorSchemaNoEnumerationValues,  // Enumeration clause has no values
-                                         // array.
-  kPListErrorSchemaUnknownFilter,  // Bad value for string/enumeration filter
-                                   // specifier.
-  kPListErrorSchemaBadComparator,  // String comparision requirement value
-                                   // (requiredPrefix etc.) is not a string.
+  kSchemaNoOneOfOptions,            // OneOf clause has no options array.
+  kSchemaNoEnumerationValues,       // Enumeration clause has no values
+                                    // array.
+  kSchemaUnknownFilter,             // Bad value for string/enumeration filter
+                                    // specifier.
+  kSchemaBadComparator,             // String comparision requirement value
+                                    // (requiredPrefix etc.) is not a string.
 
-  kPListErrorLastErrorCode
-} OOPListSchemaVerifierErrorCode;
+  kLastErrorCode,
+};
+static_assert(
+    static_cast<std::int32_t>(OOPListSchemaVerifierErrorCode::kNone) == 0);
+static_assert(
+    static_cast<std::int32_t>(OOPListSchemaVerifierErrorCode::kInternal) == 1);
+static_assert(static_cast<std::int32_t>(
+                  OOPListSchemaVerifierErrorCode::kTypeMismatch) == 2);
+static_assert(static_cast<std::int32_t>(
+                  OOPListSchemaVerifierErrorCode::kMinimumConstraintNotMet) ==
+              3);
+static_assert(static_cast<std::int32_t>(
+                  OOPListSchemaVerifierErrorCode::kMaximumConstraintNotMet) ==
+              4);
+static_assert(static_cast<std::int32_t>(
+                  OOPListSchemaVerifierErrorCode::kNumberIsNegative) == 5);
+static_assert(static_cast<std::int32_t>(
+                  OOPListSchemaVerifierErrorCode::kStringPrefixMissing) == 6);
+static_assert(static_cast<std::int32_t>(
+                  OOPListSchemaVerifierErrorCode::kStringSuffixMissing) == 7);
+static_assert(static_cast<std::int32_t>(
+                  OOPListSchemaVerifierErrorCode::kStringSubstringMissing) ==
+              8);
+static_assert(static_cast<std::int32_t>(
+                  OOPListSchemaVerifierErrorCode::kDictionaryUnknownKey) == 9);
+static_assert(
+    static_cast<std::int32_t>(
+        OOPListSchemaVerifierErrorCode::kDictionaryMissingRequiredKeys) == 10);
+static_assert(static_cast<std::int32_t>(
+                  OOPListSchemaVerifierErrorCode::kEnumerationBadValue) == 11);
+static_assert(static_cast<std::int32_t>(
+                  OOPListSchemaVerifierErrorCode::kOneOfNoMatch) == 12);
+static_assert(static_cast<std::int32_t>(
+                  OOPListSchemaVerifierErrorCode::kDelegatedTypeError) == 13);
+static_assert(static_cast<std::int32_t>(
+                  OOPListSchemaVerifierErrorCode::kStartOfSchemaErrors) == 100);
+static_assert(static_cast<std::int32_t>(
+                  OOPListSchemaVerifierErrorCode::kSchemaBadTypeSpecifier) ==
+              101);
+static_assert(
+    static_cast<std::int32_t>(
+        OOPListSchemaVerifierErrorCode::kSchemaUndefiniedMacroReference) ==
+    102);
+static_assert(static_cast<std::int32_t>(
+                  OOPListSchemaVerifierErrorCode::kSchemaUnknownType) == 103);
+static_assert(static_cast<std::int32_t>(
+                  OOPListSchemaVerifierErrorCode::kSchemaNoOneOfOptions) ==
+              104);
+static_assert(static_cast<std::int32_t>(
+                  OOPListSchemaVerifierErrorCode::kSchemaNoEnumerationValues) ==
+              105);
+static_assert(static_cast<std::int32_t>(
+                  OOPListSchemaVerifierErrorCode::kSchemaUnknownFilter) == 106);
+static_assert(static_cast<std::int32_t>(
+                  OOPListSchemaVerifierErrorCode::kSchemaBadComparator) == 107);
+static_assert(static_cast<std::int32_t>(
+                  OOPListSchemaVerifierErrorCode::kLastErrorCode) == 108);
 
 OOINLINE bool OOPlistErrorIsSchemaError(OOPListSchemaVerifierErrorCode error) {
-  return kPListErrorStartOfSchemaErrors < error &&
-         error < kPListErrorLastErrorCode;
+  return OOPListSchemaVerifierErrorCode::kStartOfSchemaErrors < error &&
+         error < OOPListSchemaVerifierErrorCode::kLastErrorCode;
 }
 
 #endif  // OO_OXP_VERIFIER_ENABLED

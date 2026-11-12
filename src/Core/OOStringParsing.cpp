@@ -289,9 +289,9 @@ std::vector<unsigned> cxx_ComponentsFromVersionString(
 OOComparisonResult cxx_CompareVersions(const std::vector<unsigned>& version1,
                                        const std::vector<unsigned>& version2) {
   const int order = oo::str::compareVersions(version1, version2);
-  if (order < 0) return OOOrderedAscending;
-  if (order > 0) return OOOrderedDescending;
-  return OOOrderedSame;
+  if (order < 0) return OOComparisonResult::kAscending;
+  if (order > 0) return OOComparisonResult::kDescending;
+  return OOComparisonResult::kSame;
 }
 
 std::string cxx_ClockToString(double clock, bool adjusting) {
