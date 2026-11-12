@@ -35,6 +35,7 @@ SOFTWARE.
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <format>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -1108,8 +1109,8 @@ static bool IsIncompleteSyntaxError(JSContext* context, JSValueConst exception,
   const std::string lastLine =
       (lastNewline == std::string::npos) ? code : code.substr(lastNewline + 1);
   const std::string endLocation =
-      oo::str::format("<console input>:%lu:%lu", (unsigned long)lineCount,
-                      (unsigned long)oo::utf8ToUtf16(lastLine).size() + 1);
+      std::format("<console input>:{}:{}", (unsigned long)lineCount,
+                  (unsigned long)oo::utf8ToUtf16(lastLine).size() + 1);
   const std::string firstFrame = stack.substr(0, stack.find('\n'));
   return firstFrame.find(endLocation) != std::string::npos;
 }
@@ -1230,8 +1231,8 @@ static JSValue ConsoleGarbageCollect(OOJS_NATIVE_ARGS) {
   JS_RunGC(runtime);
   size_t bytesAfter = JSHeapSize(runtime);
 
-  OOJS_RETURN_PLIST(oo::PList(oo::str::format(
-      "Bytes before: %zu Bytes after: %zu", bytesBefore, bytesAfter)));
+  OOJS_RETURN_PLIST(oo::PList(std::format("Bytes before: {} Bytes after: {}",
+                                          bytesBefore, bytesAfter)));
 
   OOJS_NATIVE_EXIT
 }

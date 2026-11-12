@@ -61,6 +61,7 @@ int SaveEXRSnapshot(const char* outfilename, int width, int height,
 #include <ctype.h>
 
 #include <cstddef>
+#include <format>
 #include <vector>
 
 #include "oofnd/Date.hpp"
@@ -140,8 +141,8 @@ oo::PList MyOpenGLView::getNativeSize() {
 }
 
 std::optional<std::string> MyOpenGLView::getWindowCaption() {
-  return oo::str::format("Oolite v%s by %s - %s", OO_VERSION_FULL, OO_BUILDER,
-                         OO_BUILD_DATE);
+  return std::format("Oolite v{} by {} - {}", OO_VERSION_FULL, OO_BUILDER,
+                     OO_BUILD_DATE);
 }
 
 void MyOpenGLView::createWindowWithSize(NSSize size) {
@@ -1262,8 +1263,8 @@ bool MyOpenGLView::snapShot(const std::optional<std::string>& filename) {
   if (!pathToPic.has_value()) {
     do {
       tmpImageNo++;
-      pathToPic = oo::str::format("%s-%03d%s", baseName.c_str(), tmpImageNo,
-                                  extension.c_str());
+      pathToPic = std::format("{}-{:03}{}", baseName,
+                              static_cast<int>(tmpImageNo), extension);
     } while (oo::fs::fileExists(oo::fs::pathFromUTF8(*pathToPic)));
   }
 

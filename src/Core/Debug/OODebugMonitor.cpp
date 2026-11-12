@@ -33,6 +33,7 @@ SOFTWARE.
 
 #include <algorithm>
 #include <cstddef>
+#include <format>
 #include <map>
 #include <optional>
 #include <set>
@@ -342,7 +343,7 @@ std::string SizeString(size_t size) {
   unsigned magnitude = 0;
 
   if (size < kThreshold << 10) {
-    return oo::str::format("%zu bytes", size);
+    return std::format("{} bytes", size);
   }
   const char* suffix;
   if (size < kThreshold << 20) {
@@ -360,7 +361,7 @@ std::string SizeString(size_t size) {
   float sizef = (float)size / unit;
   sizef = round(sizef * 100.0f) / 100.f;
 
-  return oo::str::format("%.2f %s", sizef, suffix);
+  return std::format("{:.2f} {}", sizef, suffix);
 }
 
 }  // namespace
@@ -413,9 +414,8 @@ void OODebugMonitor::dumpEntity(Entity* entity, EntityDumpState* state,
     extra += ", drawable: " + SizeString(drawableSize);
   }
 
-  writeMemStat(oo::str::format("%s: %s%s",
-                               oo::EntityShortDescription(entity).c_str(),
-                               SizeString(entitySize).c_str(), extra.c_str()));
+  writeMemStat(std::format("{}: {}{}", oo::EntityShortDescription(entity),
+                           SizeString(entitySize), extra));
 
   state->totalEntityObjSize += entitySize;
   state->totalDrawableSize += drawableSize;
@@ -491,14 +491,13 @@ void OODebugMonitor::dumpMemoryStatistics() {
 
   oo::log::outdent();
   writeMemStat(
-      oo::str::format("Total entity size (excluding %u entities not accounted "
-                      "for): %s (%s entity objects, %s drawables)",
-                      gLiveEntityCount - entityDumpState.seenCount,
-                      SizeString(entityDumpState.totalEntityObjSize +
-                                 entityDumpState.totalDrawableSize)
-                          .c_str(),
-                      SizeString(entityDumpState.totalEntityObjSize).c_str(),
-                      SizeString(entityDumpState.totalDrawableSize).c_str()));
+      std::format("Total entity size (excluding {} entities not accounted "
+                  "for): {} ({} entity objects, {} drawables)",
+                  gLiveEntityCount - entityDumpState.seenCount,
+                  SizeString(entityDumpState.totalEntityObjSize +
+                             entityDumpState.totalDrawableSize),
+                  SizeString(entityDumpState.totalEntityObjSize),
+                  SizeString(entityDumpState.totalDrawableSize)));
   totalSize +=
       entityDumpState.totalEntityObjSize + entityDumpState.totalDrawableSize;
 
@@ -545,10 +544,9 @@ void OODebugMonitor::dumpMemoryStatistics() {
     unsigned refCount =
         (counted != textureRefCounts.end()) ? (unsigned)counted->second : 0;
 
-    writeMemStat(oo::str::format(
-        "%s: [%u refs%s] %s%s", tex->name().value_or("(null)").c_str(),
-        refCount, usage, SizeString(objSize + dataSize).c_str(),
-        byteCountSuffix));
+    writeMemStat(std::format("{}: [{} refs{}] {}{}",
+                             tex->name().value_or("(null)"), refCount, usage,
+                             SizeString(objSize + dataSize), byteCountSuffix));
 
     totalTextureDataSize += dataSize;
     totalTextureObjSize += objSize;
@@ -560,17 +558,16 @@ void OODebugMonitor::dumpMemoryStatistics() {
 #if !OOTEXTURE_RELOADABLE
   totalTextureDataSize *= 2;
 #endif
-  writeMemStat(oo::str::format(
-      "Total texture size: %s (%s object overhead, %s data, %s visible texture "
+  writeMemStat(std::format(
+      "Total texture size: {} ({} object overhead, {} data, {} visible texture "
       "data)",
-      SizeString(totalTextureObjSize + totalTextureDataSize).c_str(),
-      SizeString(totalTextureObjSize).c_str(),
-      SizeString(totalTextureDataSize).c_str(),
-      SizeString(visibleTextureDataSize).c_str()));
+      SizeString(totalTextureObjSize + totalTextureDataSize),
+      SizeString(totalTextureObjSize), SizeString(totalTextureDataSize),
+      SizeString(visibleTextureDataSize)));
 
   totalSize += dumpJSMemoryStatistics();
 
-  writeMemStat(oo::str::format("Total: %s", SizeString(totalSize).c_str()));
+  writeMemStat(std::format("Total: {}", SizeString(totalSize)));
 
   oo::log::outdent();
 }
@@ -589,10 +586,10 @@ size_t OODebugMonitor::dumpJSMemoryStatistics() {
 
   OOJSRelinquishContext(context);
 
-  writeMemStat(oo::str::format(
-      "JavaScript heap: %s (%lli objects, next collection at %s)",
-      SizeString(jsSize).c_str(), (long long)usage.obj_count,
-      SizeString(jsGCThreshold).c_str()));
+  writeMemStat(
+      std::format("JavaScript heap: {} ({} objects, next collection at {})",
+                  SizeString(jsSize), (long long)usage.obj_count,
+                  SizeString(jsGCThreshold)));
   return jsSize;
 }
 
@@ -623,8 +620,8 @@ std::string OODebugMonitor::sourceCodeForFile(const std::string& filePath,
   if (cached == _sourceFiles.end()) {
     std::optional<std::vector<std::string>> lines = loadSourceFile(path);
     if (!lines.has_value())
-      lines = std::vector<std::string>{
-          oo::str::format("<Can't load file %s>", path.c_str())};
+      lines =
+          std::vector<std::string>{std::format("<Can't load file {}>", path)};
 
     cached = _sourceFiles.emplace(path, std::move(*lines)).first;
   }
@@ -828,7 +825,7 @@ void OODebugMonitor::jsEngine(::OOJavaScriptEngine* /*engine*/,
   // bytes are UTF-16 units):
   emphasisRange = NSMakeRange(0, prefix.size() + 1);
 
-  formattedMessage = oo::str::format("%s: %s", prefix.c_str(), message.c_str());
+  formattedMessage = std::format("{}: {}", prefix, message);
 
   // Note that the "active script" isn't necessarily the one causing the
   // error, since one script can call another's methods.
@@ -845,9 +842,8 @@ void OODebugMonitor::jsEngine(::OOJavaScriptEngine* /*engine*/,
   if (showLocation && stackSkip == 0 && filePath.has_value() &&
       !filePath->empty()) {
     // Append file name and line
-    formattedMessage +=
-        oo::str::format("\n    %s, line %u",
-                        oo::str::lastPathComponent(*filePath).c_str(), line);
+    formattedMessage += std::format(
+        "\n    {}, line {}", oo::str::lastPathComponent(*filePath), line);
 
     // Append source code
     formattedMessage += ":\n    " + sourceCodeForFile(*filePath, line);
@@ -893,8 +889,7 @@ void OODebugMonitor::clearJSSelf(JSValueConst /*selfVal*/) {
 std::string OODebugMonitor::className() const { return "OODebugMonitor"; }
 
 std::string OODebugMonitor::description() const {
-  return oo::str::format("<OODebugMonitor %s>",
-                         oo::str::pointerDescription(this).c_str());
+  return std::format("<OODebugMonitor {}>", oo::str::pointerDescription(this));
 }
 
 /*	The one monitor is made by sharedDebugMonitor() and never released.
