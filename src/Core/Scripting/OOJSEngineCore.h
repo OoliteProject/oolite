@@ -401,7 +401,7 @@ oo::PList OOJSDictionaryFromStringTable(JSContext* context, JSValueConst value);
         OOJSIsSubclass() tests whether putativeSubclass is equal to superclass
         or a registered subclass of it, recursively.
 */
-enum { kOOJSMaxClassID = 1 << 16 };  // QuickJS's limit.
+inline constexpr JSClassID kOOJSMaxClassID = 1 << 16;  // QuickJS's limit.
 
 JSClassID OOJSRegisterClass(JSClassID* ioClassID, const JSClassDef* classDef);
 

@@ -31,15 +31,15 @@ SOFTWARE.
 
 #pragma once
 
+#include <cstdint>
+
 // OODebugTCPConsoleClient defines OOALSTR as a plain literal before including
 // this; the C decoder gets it from OOTCPStreamDecoderAbstractionLayer.h.
 #if !defined(OOALSTR) && !defined(OO_PLAIN_CPP_UNIT)
 #include "OOFoundation.h"
 #endif
 
-enum {
-  kOOTCPConsolePort = 0x002173 /* = 8563 */
-};
+inline constexpr std::uint16_t kOOTCPConsolePort = 0x002173; /* = 8563 */
 
 /*	PROTOCOL OVERVIEW
 
