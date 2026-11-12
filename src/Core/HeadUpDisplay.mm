@@ -361,22 +361,10 @@ void cxx::HeadUpDisplay::initWithDictionary(const oo::PList& hudinfo, const std:
 
     minimalistic_scanner = info.get<bool>("scanner_minimalistic", false);
 
-    nonlinear_scanner = info.get<bool>("scanner_non_linear", NO);
-    scanner_ultra_zoom = info.get<bool>("scanner_ultra_zoom", NO);
+    nonlinear_scanner = info.get<bool>("scanner_non_linear", false);
+    scanner_ultra_zoom = info.get<bool>("scanner_ultra_zoom", false);
 
     distance_unit = OO_DESC("oolite-hud-distance-unit");
-
-    return self;
-}
-
-- (void)dealloc
-{
-    ReleaseHUDWidgets(legendArray);
-    ReleaseHUDWidgets(dialArray);
-    ReleaseHUDWidgets(mfdArray);
-    DESTROY(_crosshairColor);
-
-    [super dealloc];
 }
 
 //------------------------------------------------------------------------------------//
