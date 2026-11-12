@@ -237,8 +237,8 @@ JSValue OOJSTimer::jsValueInContext(JSContext* context)
 void OOJSTimer::clearJSSelf(JSValueConst selfVal)
 {
     if (isScheduled() && !willNotFireAgain()) {
-        // Described from the timer's own state and the cached function name: the finalizer must
-        // not run JS code.
+        // Described from the timer's own state and the cached function name: the
+        // finalizer must not run JS code.
         OO_LOG_WARN("script.javaScript.unrootedTimer", "Timer {} is being garbage-collected while still running. You must keep a reference to all running timers, or they will stop unpredictably!", description());
     }
     if (JS_IsObject(_jsSelf) && JS_VALUE_GET_PTR(_jsSelf) == JS_VALUE_GET_PTR(selfVal))

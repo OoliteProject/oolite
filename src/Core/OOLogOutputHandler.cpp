@@ -359,8 +359,10 @@ static void LoadLogCStringFunctions(void)
 
     foundationBundle = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.Foundation"));
     if (foundationBundle != NULL) {
-        getter = (LogCStringFunctionGetterProc)CFBundleGetFunctionPointerForName(foundationBundle, CFSTR("_NSLogCStringFunction"));
-        setter = (LogCStringFunctionSetterProc)CFBundleGetFunctionPointerForName(foundationBundle, CFSTR("_NSSetLogCStringFunction"));
+        getter = (LogCStringFunctionGetterProc)CFBundleGetFunctionPointerForName(foundationBundle,
+            CFSTR("_NSLogCStringFunction"));
+        setter = (LogCStringFunctionSetterProc)CFBundleGetFunctionPointerForName(
+            foundationBundle, CFSTR("_NSSetLogCStringFunction"));
 
         if (getter != NULL && setter != NULL) {
             _NSLogCStringFunction = getter;
@@ -411,7 +413,8 @@ static void ExcludeFromTimeMachine(const std::string& path)
     CFBundleRef carbonCoreBundle = CFBundleGetBundleWithIdentifier(
         CFSTR("com.apple.CoreServices.CarbonCore"));
     if (carbonCoreBundle) {
-        CSBackupSetItemExcluded = (OSStatus (*)(NSURL*, Boolean, Boolean))CFBundleGetFunctionPointerForName(carbonCoreBundle, CFSTR("CSBackupSetItemExcluded"));
+        CSBackupSetItemExcluded = (OSStatus (*)(NSURL*, Boolean, Boolean))CFBundleGetFunctionPointerForName(
+            carbonCoreBundle, CFSTR("CSBackupSetItemExcluded"));
         if (CSBackupSetItemExcluded != NULL) {
             (void)CSBackupSetItemExcluded(
                 [NSURL fileURLWithPath:oo::NSStringFrom(path)], YES, NO);

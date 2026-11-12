@@ -50,10 +50,6 @@ if is_debug
     )
 endif
 
-# (A message to an undeclared method was an error, -Werror=objc-method-access, proposed ADR-0050,
-# bead oo-tk0w, while the game sent Objective-C messages. No unit is Objective-C since bead oo-dbz.5:
-# a call to an undeclared C++ member is a compile error by itself.)
-
 if get_option('no_shaders')
     add_project_arguments('-DNO_SHADERS=1', language: c_family)
 endif

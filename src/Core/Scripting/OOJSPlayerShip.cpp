@@ -74,9 +74,8 @@ oo::PList NormalizedColorComponents(OOColor* color)
     return oo::PList(std::move(components));
 }
 
-/*	The player's HUD is converted (HeadUpDisplay), and the player answers its facade. A
-        player with no HUD answered zero, false, nil or none to every message the getter sent the HUD;
-        so does a null HUD here (ADR-0056 amendments oo-6ia4 item 2, oo-nge8 item 6).
+/*	A player with no HUD answers zero, false, nil or none to every message
+   the getter sends the HUD; so does a null HUD here.
 */
 template <typename R>
 R AskHud(PlayerEntity* player, R (HeadUpDisplay::*member)())

@@ -529,8 +529,8 @@ void OOJoystickManager::loadStickSettings()
     const oo::PList axisSettings = defaults.object(std::string(AXIS_SETTINGS));
     const oo::PList buttonSettings = defaults.object(std::string(BUTTON_SETTINGS));
     const oo::PList guiButtonSettings = defaults.object(std::string(GUI_BUTTON_SETTINGS));
-    // Keys are visited in byte order (they came in hash order): where two settings claim the
-    // same stick axis or button, the last one still wins (proposed ADR-0043).
+    // Keys are visited in byte order (they came in hash order): where two
+    // settings claim the same stick axis or button, the last one still wins.
     if (axisSettings) {
         if (const oo::PList::Dict* settings = axisSettings.getIf<oo::PList::Dict>()) {
             for (const auto& [key, stickFn] : *settings) {
