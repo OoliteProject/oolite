@@ -910,7 +910,7 @@ void OOOctreeBuilder::endInnerNode() {
 void OOOctreeBuilder::SetNode_slow(OOOctreeBuilder* self, uint32_t index,
                                    int value) {
   uint32_t newCapacity =
-      MAX(self->_capacity * 2, (uint32_t)kMinimumBuilderCapacity);
+      MAX(self->_capacity * 2, static_cast<uint32_t>(kMinimumBuilderCapacity));
   newCapacity = MAX(newCapacity, index + 1);
 
   int* newBuffer = static_cast<int*>(

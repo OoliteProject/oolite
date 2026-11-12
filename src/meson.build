@@ -1,14 +1,21 @@
 oolite_sources = []
+# Vendored third-party code (MiniZip, stb_image_write, tinyexr, miniz). It keeps its upstream
+# source (it is not Oolite's C++), so it builds as its own library, without oolite_cpp_args.
+oolite_vendored_sources = []
 oolite_includes = []
 oolite_override_options = []
 oolite_link_args = []
+# The game's own warnings on top of meson's warning level. C-style casts are errors in review
+# (clang-tidy google-readability-casting is fatal); the compiler reports them too.
+oolite_cpp_args = ['-Wold-style-cast']
 oolite_dependencies = [
-    dependency('sdl3'),
-    dependency('libpng'),
-    dependency('openal'),
-    dependency('vorbisfile'),
-    dependency('vorbis'),
-    dependency('zlib'),
+    dependency('sdl3', include_type: 'system'),
+    dependency('libpng', include_type: 'system'),
+    dependency('openal', include_type: 'system'),
+    # Third-party headers are system headers: the game's warnings are for its own code.
+    dependency('vorbisfile', include_type: 'system'),
+    dependency('vorbis', include_type: 'system'),
+    dependency('zlib', include_type: 'system'),
 ]
 
 if get_option('espeak')
@@ -26,6 +33,18 @@ oolite_override_options += ['cpp_std=c++23']
 subdir('Core')
 subdir('SDL')
 
+oolite_vendored_lib = static_library(
+    'oolite_vendored',
+    oolite_vendored_sources,
+    include_directories: oolite_includes,
+    # zlib's headers for MiniZip (the game links zlib itself); oolite_dependencies would compile
+    # oofnd's sources into this library again.
+    dependencies: [dependency('zlib', include_type: 'system').partial_dependency(compile_args: true, includes: true)],
+    override_options: oolite_override_options,
+    install: false,
+)
+oolite_dependencies += [declare_dependency(link_with: oolite_vendored_lib)]
+
 appname = 'oolite'
 exe_rpath = host_os == 'darwin' ? '@executable_path' : '$ORIGIN'
 oolite_bin = executable(
@@ -34,6 +53,7 @@ oolite_bin = executable(
     include_directories: oolite_includes,
     dependencies: oolite_dependencies,
     override_options: oolite_override_options,
+    cpp_args: oolite_cpp_args,
     link_args: oolite_link_args,
     win_subsystem: 'windows',
     build_rpath: exe_rpath,

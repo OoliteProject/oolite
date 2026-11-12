@@ -304,8 +304,9 @@ bool OOALSoundVorbisCodec::readCreatingBuffer(char** outBuffer,
 
   if (OK) {
     totalSizeInFrames = ov_pcm_total(&_vf, -1);
-    assert((uint64_t)totalSizeInFrames <
-           (uint64_t)SIZE_MAX);  // Should have been checked by caller
+    assert(
+        static_cast<uint64_t>(totalSizeInFrames) <
+        static_cast<uint64_t>(SIZE_MAX));  // Should have been checked by caller
     sizeInFrames = static_cast<size_t>(totalSizeInFrames);
   }
 
@@ -316,8 +317,8 @@ bool OOALSoundVorbisCodec::readCreatingBuffer(char** outBuffer,
   }
 
   if (OK && sizeInFrames) {
-    remaining =
-        static_cast<int>(MIN(frameSize * sizeInFrames, (size_t)INT_MAX));
+    remaining = static_cast<int>(
+        MIN(frameSize * sizeInFrames, static_cast<size_t>(INT_MAX)));
     dst = buffer;
 
     char pcmout[4096];

@@ -1707,8 +1707,8 @@ void PlayerEntity::addShipsAt(
     OO_LOG(
         kOOLogScriptAddShipsFailed,
         "***** SCRIPT ERROR: in {}, {} could not add {} ships with role \"{}\"",
-        CurrentScriptDescription(), "addShipsAt:", (unsigned)number,
-        roleString);
+        CurrentScriptDescription(),
+        "addShipsAt:", static_cast<unsigned>(number), roleString);
   }
 }
 
@@ -1752,8 +1752,8 @@ void PlayerEntity::addShipsAtPrecisely(
     OO_LOG(
         kOOLogScriptAddShipsFailed,
         "***** SCRIPT ERROR: in {}, {} could not add {} ships with role '{}'",
-        CurrentScriptDescription(), "addShipsAtPrecisely:", (unsigned)number,
-        roleString);
+        CurrentScriptDescription(),
+        "addShipsAtPrecisely:", static_cast<unsigned>(number), roleString);
   }
 }
 
@@ -1791,7 +1791,7 @@ void PlayerEntity::addShipsWithinRadius(
   OO_LOG(kOOLogNoteAddShips,
          "DEBUG: Going to add {} ship(s) with role '{}' within {:.2f} radius "
          "about point ({:.3f}, {:.3f}, {:.3f}) using system {}",
-         number, roleString, (double)r, x, y, z, systemString);
+         number, roleString, static_cast<double>(r), x, y, z, systemString);
 
   if (!(UNIVERSE != nullptr ? UNIVERSE->addShipsNearPosition(
                                   number, roleString, posn, systemString, r)
@@ -1799,8 +1799,8 @@ void PlayerEntity::addShipsWithinRadius(
     OO_LOG(
         kOOLogScriptAddShipsFailed,
         "***** SCRIPT ERROR :in {}, {} could not add {} ships with role \"{}\"",
-        CurrentScriptDescription(), "addShipsWithinRadius:", (unsigned)number,
-        roleString);
+        CurrentScriptDescription(),
+        "addShipsWithinRadius:", static_cast<unsigned>(number), roleString);
   }
 }
 

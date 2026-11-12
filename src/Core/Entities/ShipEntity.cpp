@@ -1112,8 +1112,8 @@ bool ShipEntity::setUpShipFromDictionary(const oo::PList& shipDict) {
   _missed_shots = 0;
 
   //  escorts
-  _maxEscortCount =
-      MIN(shipDict.get<unsigned char>("escorts", 0), (uint8_t)MAX_ESCORTS);
+  _maxEscortCount = MIN(shipDict.get<unsigned char>("escorts", 0),
+                        static_cast<uint8_t>(MAX_ESCORTS));
   _pendingEscortCount = _maxEscortCount;
   if (_pendingEscortCount == 0 &&
       ArrayForKey(shipDict, "escort_roles") != nullptr) {
@@ -2165,7 +2165,7 @@ void ShipEntity::setUpOneEscort(::ShipEntity* escorter,
 
   double dd = escorter->collision_radius;
 
-  if (EXPECT(currentEscortCount < (uint8_t)MAX_ESCORTS)) {
+  if (EXPECT(currentEscortCount < static_cast<uint8_t>(MAX_ESCORTS))) {
     // spread them around a little randomly
     ex_pos.x += dd * 6.0 * (randf() - 0.5);
     ex_pos.y += dd * 6.0 * (randf() - 0.5);
@@ -13136,7 +13136,7 @@ HPVector ShipEntity::coordinatesForEscortPosition(unsigned idx) {
   // The _escortPositions array is always MAX_ESCORTS long.
   // Kludge: return the same last escort position if we have escorts above
   // MAX_ESCORTS...
-  idx = MIN(idx, (unsigned)(MAX_ESCORTS - 1));
+  idx = MIN(idx, static_cast<unsigned>(MAX_ESCORTS - 1));
 
   return HPvector_add(position,
                       vectorToHPVector(quaternion_rotate_vector(

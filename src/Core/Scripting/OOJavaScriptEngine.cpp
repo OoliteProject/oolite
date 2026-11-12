@@ -1383,7 +1383,7 @@ static std::string DescribeValue(JSContext* context, JSValueConst value,
     const std::u16string units = oo::utf8ToUtf16(
         cxx_OOStringFromJSValueEvenIfNull(context, value).value_or(""));
     const std::string truncated = oo::utf16ToUtf8(std::u16string_view(
-        units.data(), MIN(units.size(), (size_t)kMaxLength)));
+        units.data(), MIN(units.size(), static_cast<size_t>(kMaxLength))));
     result = "\"" + cxx_OOJSEscapedForJavaScriptLiteral(truncated) +
              ((units.size() > kMaxLength) ? "..." : "") + "\"";
   } else if (JS_IsArray(value)) {
@@ -1392,7 +1392,7 @@ static std::string DescribeValue(JSContext* context, JSValueConst value,
     if (JS_GetLength(context, value, &count) == 0) {
       if (!recursing) {
         std::string arrayDesc = "[";
-        int64_t i, effectiveCount = MIN(count, (int64_t)4);
+        int64_t i, effectiveCount = MIN(count, static_cast<int64_t>(4));
         for (i = 0; i < effectiveCount; i++) {
           JSValue item =
               JS_GetPropertyUint32(context, value, static_cast<uint32_t>(i));

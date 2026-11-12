@@ -24,6 +24,8 @@ endif
 oolite_dependencies += dependency(
     'quickjs-ng',
     version: '>=0.17.0',
+    # A system header for the game: its macros' C-style casts are not the game's (-Wold-style-cast).
+    include_type: 'system',
     # No LTO for QuickJS: with clang on Windows (MSYS2), the static library's
     # LTO objects are archived without a symbol index, so linking fails.
     # Warning level 2 (QuickJS defaults to 3) leaves out -Wpedantic, which

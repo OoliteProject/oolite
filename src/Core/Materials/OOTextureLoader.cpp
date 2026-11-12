@@ -154,7 +154,7 @@ bool OOTextureLoader::initWithPath(const std::optional<std::string>& inPath,
     _shrinkThreshold = kNeverShrinkThreshold;
   } else if (oo::Any(options & OOTextureFlags::kExtraShrink)) {
     _shrinkThreshold = kExtraShrinkThreshold;
-    _maxSize = MIN(_maxSize, (uint32_t)kExtraShrinkMaxSize);
+    _maxSize = MIN(_maxSize, static_cast<uint32_t>(kExtraShrinkMaxSize));
   } else {
     _shrinkThreshold = kDefaultShrinkThreshold;
   }

@@ -4759,7 +4759,7 @@ std::vector<oo::EntityHold> Universe::getContainersOfGoods(
       qr = 1 + (Ranrot() % total_quantity);
       co_type = 0;
       while (qr > 0) {
-        OOCAssert((std::size_t)co_type < commodityCount,
+        OOCAssert(static_cast<std::size_t>(co_type) < commodityCount,
                   "Commodity type index out of range.");
         qr -= quantities[co_type++];
       }
@@ -5748,9 +5748,10 @@ void Universe::prepareToRenderIntoDefaultFramebuffer() {
       // resolve MSAA framebuffer to target framebuffer
       OOGL(glBindFramebuffer(GL_READ_FRAMEBUFFER, msaaFramebufferID));
       OOGL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFramebufferID));
-      OOGL(glBlitFramebuffer(0, 0, (GLint)viewSize.width,
-                             (GLint)viewSize.height, 0, 0,
-                             (GLint)viewSize.width, (GLint)viewSize.height,
+      OOGL(glBlitFramebuffer(0, 0, static_cast<GLint>(viewSize.width),
+                             static_cast<GLint>(viewSize.height), 0, 0,
+                             static_cast<GLint>(viewSize.width),
+                             static_cast<GLint>(viewSize.height),
                              GL_COLOR_BUFFER_BIT, GL_NEAREST));
     }
   }
@@ -9424,8 +9425,9 @@ oo::PList Universe::shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL,
         ship_info.get<int>(std::string(KEY_TECHLEVEL));
 
     double chance =
-        1.0 - pow(1.0 - ship_info.get<double>(std::string(KEY_CHANCE)),
-                  MAX((OOTechLevelID)1, techlevel - ship_techlevel));
+        1.0 -
+        pow(1.0 - ship_info.get<double>(std::string(KEY_CHANCE)),
+            MAX(static_cast<OOTechLevelID>(1), techlevel - ship_techlevel));
 
     // seed random number generator
     int superRand1 = ship_seed.a * 0x10000 + ship_seed.c * 0x100 + ship_seed.e;
@@ -11367,8 +11369,8 @@ void Universe::initTargetFramebufferWithViewSize(NSSize viewSize) {
   OOGL(glGenRenderbuffers(1, &msaaTextureID));
   OOGL(glBindRenderbuffer(GL_RENDERBUFFER, msaaTextureID));
   OOGL(glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGBA16F,
-                                        (GLsizei)viewSize.width,
-                                        (GLsizei)viewSize.height));
+                                        static_cast<GLsizei>(viewSize.width),
+                                        static_cast<GLsizei>(viewSize.height)));
   OOGL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
   OOGL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                                  GL_RENDERBUFFER, msaaTextureID));
@@ -11386,9 +11388,10 @@ void Universe::initTargetFramebufferWithViewSize(NSSize viewSize) {
   // create necessary MSAA depth render buffer
   OOGL(glGenRenderbuffers(1, &msaaDepthBufferID));
   OOGL(glBindRenderbuffer(GL_RENDERBUFFER, msaaDepthBufferID));
-  OOGL(glRenderbufferStorageMultisample(
-      GL_RENDERBUFFER, 4, GL_DEPTH_COMPONENT32F, (GLsizei)viewSize.width,
-      (GLsizei)viewSize.height));
+  OOGL(glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4,
+                                        GL_DEPTH_COMPONENT32F,
+                                        static_cast<GLsizei>(viewSize.width),
+                                        static_cast<GLsizei>(viewSize.height)));
   OOGL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
   OOGL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
                                  GL_RENDERBUFFER, msaaDepthBufferID));
@@ -11405,8 +11408,9 @@ void Universe::initTargetFramebufferWithViewSize(NSSize viewSize) {
   // creating texture that should be rendered into
   OOGL(glGenTextures(1, &targetTextureID));
   OOGL(glBindTexture(GL_TEXTURE_2D, targetTextureID));
-  OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width,
-                    (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, nullptr));
+  OOGL(glTexImage2D(
+      GL_TEXTURE_2D, 0, GL_RGBA16F, static_cast<GLsizei>(viewSize.width),
+      static_cast<GLsizei>(viewSize.height), 0, GL_RGBA, GL_FLOAT, nullptr));
   OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
   OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
   OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
@@ -11418,8 +11422,8 @@ void Universe::initTargetFramebufferWithViewSize(NSSize viewSize) {
   OOGL(glGenRenderbuffers(1, &targetDepthBufferID));
   OOGL(glBindRenderbuffer(GL_RENDERBUFFER, targetDepthBufferID));
   OOGL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F,
-                             (GLsizei)viewSize.width,
-                             (GLsizei)viewSize.height));
+                             static_cast<GLsizei>(viewSize.width),
+                             static_cast<GLsizei>(viewSize.height)));
   OOGL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
                                  GL_RENDERBUFFER, targetDepthBufferID));
 
@@ -11451,8 +11455,9 @@ void Universe::initTargetFramebufferWithViewSize(NSSize viewSize) {
   OOGL(glGenTextures(2, passthroughTextureID));
   for (unsigned int i = 0; i < 2; i++) {
     OOGL(glBindTexture(GL_TEXTURE_2D, passthroughTextureID[i]));
-    OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width,
-                      (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, nullptr));
+    OOGL(glTexImage2D(
+        GL_TEXTURE_2D, 0, GL_RGBA16F, static_cast<GLsizei>(viewSize.width),
+        static_cast<GLsizei>(viewSize.height), 0, GL_RGBA, GL_FLOAT, nullptr));
     OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
@@ -11476,8 +11481,9 @@ void Universe::initTargetFramebufferWithViewSize(NSSize viewSize) {
   for (unsigned int i = 0; i < 2; i++) {
     OOGL(glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[i]));
     OOGL(glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[i]));
-    OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width,
-                      (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, nullptr));
+    OOGL(glTexImage2D(
+        GL_TEXTURE_2D, 0, GL_RGBA16F, static_cast<GLsizei>(viewSize.width),
+        static_cast<GLsizei>(viewSize.height), 0, GL_RGBA, GL_FLOAT, nullptr));
     OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     OOGL(glTexParameteri(
@@ -11555,7 +11561,7 @@ void Universe::initTargetFramebufferWithViewSize(NSSize viewSize) {
   OOGL(glEnableVertexAttribArray(1));
   // texture coord attribute
   OOGL(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
-                             (void*)(2 * sizeof(float))));
+                             reinterpret_cast<void*>(2 * sizeof(float))));
 
   // restoring previous bindings
   OOGL(glUseProgram(previousProgramID));
@@ -11594,8 +11600,8 @@ void Universe::resizeTargetFramebufferWithViewSize(NSSize viewSize) {
 #if OO_MSAA_COLOR_RENDERBUFFER
   OOGL(glBindRenderbuffer(GL_RENDERBUFFER, msaaTextureID));
   OOGL(glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGBA16F,
-                                        (GLsizei)viewSize.width,
-                                        (GLsizei)viewSize.height));
+                                        static_cast<GLsizei>(viewSize.width),
+                                        static_cast<GLsizei>(viewSize.height)));
   OOGL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
 #else
   OOGL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msaaTextureID));
@@ -11607,36 +11613,40 @@ void Universe::resizeTargetFramebufferWithViewSize(NSSize viewSize) {
 
   // resize MSAA depth attachment
   OOGL(glBindRenderbuffer(GL_RENDERBUFFER, msaaDepthBufferID));
-  OOGL(glRenderbufferStorageMultisample(
-      GL_RENDERBUFFER, 4, GL_DEPTH_COMPONENT32F, (GLsizei)viewSize.width,
-      (GLsizei)viewSize.height));
+  OOGL(glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4,
+                                        GL_DEPTH_COMPONENT32F,
+                                        static_cast<GLsizei>(viewSize.width),
+                                        static_cast<GLsizei>(viewSize.height)));
   OOGL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
 
   // resize color attachments
   OOGL(glBindTexture(GL_TEXTURE_2D, targetTextureID));
-  OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width,
-                    (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, nullptr));
+  OOGL(glTexImage2D(
+      GL_TEXTURE_2D, 0, GL_RGBA16F, static_cast<GLsizei>(viewSize.width),
+      static_cast<GLsizei>(viewSize.height), 0, GL_RGBA, GL_FLOAT, nullptr));
   OOGL(glBindTexture(GL_TEXTURE_2D, 0));
 
   for (i = 0; i < 2; i++) {
     OOGL(glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[i]));
-    OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width,
-                      (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, nullptr));
+    OOGL(glTexImage2D(
+        GL_TEXTURE_2D, 0, GL_RGBA16F, static_cast<GLsizei>(viewSize.width),
+        static_cast<GLsizei>(viewSize.height), 0, GL_RGBA, GL_FLOAT, nullptr));
     OOGL(glBindTexture(GL_TEXTURE_2D, 0));
   }
 
   for (i = 0; i < 2; i++) {
     OOGL(glBindTexture(GL_TEXTURE_2D, passthroughTextureID[i]));
-    OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, (GLsizei)viewSize.width,
-                      (GLsizei)viewSize.height, 0, GL_RGBA, GL_FLOAT, nullptr));
+    OOGL(glTexImage2D(
+        GL_TEXTURE_2D, 0, GL_RGBA16F, static_cast<GLsizei>(viewSize.width),
+        static_cast<GLsizei>(viewSize.height), 0, GL_RGBA, GL_FLOAT, nullptr));
     OOGL(glBindTexture(GL_TEXTURE_2D, 0));
   }
 
   // resize depth attachment
   OOGL(glBindRenderbuffer(GL_RENDERBUFFER, targetDepthBufferID));
   OOGL(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F,
-                             (GLsizei)viewSize.width,
-                             (GLsizei)viewSize.height));
+                             static_cast<GLsizei>(viewSize.width),
+                             static_cast<GLsizei>(viewSize.height)));
   OOGL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
 
   targetFramebufferSize.width = viewSize.width;

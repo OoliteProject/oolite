@@ -1398,7 +1398,7 @@ static JSValue SystemStaticSystemIDForName(OOJS_NATIVE_ARGS) {
 
   // As with INT_TO_JSVAL(), the unsigned result is reinterpreted as signed (so
   // not found is -1).
-  OOJS_RETURN_INT((int32_t)result);
+  OOJS_RETURN_INT(static_cast<int32_t>(result));
 
   OOJS_NATIVE_EXIT
 }

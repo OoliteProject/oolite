@@ -87,7 +87,7 @@ typedef DWORD OOHighResTimeValue;  // Rolls over once every 50 days, but we can
   do {                             \
     (void)time;                    \
   } while (0)
-#define OOCopyHighResTime(time) ((OOHighResTimeValue)time)
+#define OOCopyHighResTime(time) (static_cast<OOHighResTimeValue>(time))
 
 #else
 
@@ -108,7 +108,7 @@ OOINLINE OOHighResTimeValue OOGetHighResTime(void) {
   do {                             \
     (void)time;                    \
   } while (0)
-#define OOCopyHighResTime(time) ((OOHighResTimeValue)time)
+#define OOCopyHighResTime(time) (static_cast<OOHighResTimeValue>(time))
 
 #endif
 

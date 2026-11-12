@@ -1083,7 +1083,7 @@ static JSValue StationSetMarketQuantity(OOJS_NATIVE_ARGS) {
                                                          // as a message to nil
   if (EXPECT_NOT(
           !gotQuantity || quantity < 0 ||
-          (OOCargoQuantity)quantity >
+          static_cast<OOCargoQuantity>(quantity) >
               ((market != nullptr) ? market->capacityForGood(commodity) : 0))) {
     cxx_OOJSReportBadArguments(
         context, "Station", "setMarketQuantity", MIN(argc, 2), OOJS_ARGV,

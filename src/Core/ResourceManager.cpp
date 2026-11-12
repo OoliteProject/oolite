@@ -1969,9 +1969,8 @@ void ResourceManager::mergeRoleCategories(const oo::PList& catData,
         categoryEntries.try_emplace(key, oo::PList::Array()).first->second;
     const oo::PList* catDataEntry = catData.get<oo::PList::Array>(key);
     OO_LOG("shipData.load.roleCategories", "Adding {} entries for category {}",
-           static_cast<long>((unsigned long)(catDataEntry != nullptr
-                                                 ? catDataEntry->count()
-                                                 : 0)),
+           static_cast<long>(static_cast<unsigned long>(
+               catDataEntry != nullptr ? catDataEntry->count() : 0)),
            key);
     if (catDataEntry == nullptr) continue;
     oo::PList::Array& members = *contents.getIf<oo::PList::Array>();

@@ -40,7 +40,7 @@
 #include "OODebugGLDrawing.h"
 #endif
 
-#define LOD_GRANULARITY ((float)(kOOPlanetDataLevels - 1))
+#define LOD_GRANULARITY (static_cast<float>(kOOPlanetDataLevels - 1))
 #define LOD_FACTOR (1.0 / 4.0)
 
 oo::Ref<OOPlanetDrawable> OOPlanetDrawable::planetWithTextureName(

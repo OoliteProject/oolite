@@ -66,8 +66,9 @@ double cunningFee(double value,
 void ranrot_srand(uint32_t seed);
 unsigned Ranrot(void);
 #define ranrot_rand() \
-  ((int)Ranrot())  // Some uses perform arithmetic that does weird things if
-                   // result is unsigned -- DustEntity.m, for instance.
+  (static_cast<int>(  \
+      Ranrot()))  // Some uses perform arithmetic that does weird things if
+                  // result is unsigned -- DustEntity.m, for instance.
 float randf(void);
 float bellf(int n);
 

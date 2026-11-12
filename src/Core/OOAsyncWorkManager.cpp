@@ -176,7 +176,7 @@ unsigned WorkThreadCount() {
 #if OO_DEBUG
   return kMaxWorkThreads;
 #else
-  return MIN(OOCPUCount(), (unsigned)kMaxWorkThreads);
+  return MIN(OOCPUCount(), static_cast<unsigned>(kMaxWorkThreads));
 #endif
 }
 
