@@ -54,18 +54,19 @@ MA 02110-1301, USA.
 #include "Universe.h"
 #include "oofnd/PList.hpp"
 
-#define MAX_ROWS_FUNCTIONS 12
+inline constexpr int MAX_ROWS_FUNCTIONS = 12;
 
-#define GUI_ROW_STICKNAME 1
+inline constexpr int GUI_ROW_STICKNAME = 1;
 // leave row 2 empty - we need it in case we have a
 // second joystick connected. Also, we need a different way
 // of listing joysticks, if we ever decide to support more
 // than the current maximum of 2 - Nikos 20151103
-#define GUI_ROW_STICKPROFILE 3
-#define GUI_ROW_HEADING 4
-#define GUI_ROW_FUNCSTART 5
-#define GUI_ROW_FUNCEND (GUI_ROW_FUNCSTART + MAX_ROWS_FUNCTIONS - 1)
-#define GUI_ROW_INSTRUCT 18
+inline constexpr int GUI_ROW_STICKPROFILE = 3;
+inline constexpr int GUI_ROW_HEADING = 4;
+inline constexpr int GUI_ROW_FUNCSTART = 5;
+inline constexpr int GUI_ROW_FUNCEND =
+    GUI_ROW_FUNCSTART + MAX_ROWS_FUNCTIONS - 1;
+inline constexpr int GUI_ROW_INSTRUCT = 18;
 
 // Dictionary keys (of the oo::PList function entries)
 #define KEY_HEADER "header"
