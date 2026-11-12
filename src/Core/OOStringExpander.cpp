@@ -874,8 +874,8 @@ const OOSelectorTable* SpecialSubstitutionSelectors() {
   if (specials != nullptr) return specials;
 
   struct {
-    const char* key;
-    const char* selector;
+    std::string_view key;
+    std::string_view selector;
   } selectors[] = {
       {"commander_name", "commanderName_string"},
       {"commander_shipname", "commanderShip_string"},

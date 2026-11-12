@@ -269,7 +269,7 @@ oo::PList OOCommodities::modifyGood(const oo::PList& good, ::OOScript* script,
                       // OOJSValueFromNativeObject() of its object reached
       OOJSValueFromDouble(context, system)};
   bool OK = true;
-  const char* errorType = nullptr;
+  std::string_view errorType;
 
   if (localMode) {
     errorType = "local";

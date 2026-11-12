@@ -140,7 +140,7 @@ struct OODeferredCall {
 
 // call() with the perform's try/catch (below).
 bool DeferredCallRunCatching(const std::function<void()>& call,
-                             const char** outName, const char** outReason);
+                             std::string* outName, std::string* outReason);
 
 std::vector<OODeferredCall> sDeferredCalls;  // in scheduling order
 
@@ -162,8 +162,9 @@ void OOScheduleDeferredCall(std::function<void()> call, double delay) {
 namespace {
 
 // The Foundation timer's line for an exception from a deferred call.
-void LogDeferredCallException(const char* exceptionName,
-                              const char* exceptionReason, const void* target) {
+void LogDeferredCallException(std::string_view exceptionName,
+                              std::string_view exceptionReason,
+                              const void* target) {
   // The game's own exceptions: the same line, name and reason bridged.
   OO_LOG("unclassified",
          "*** NSTimer ignoring exception '{}' (reason '{}') raised during "
@@ -183,7 +184,7 @@ void FireOneDueDeferredCall() {
       sDeferredCalls.erase(it);
 
       // The call and its handler.
-      const char *exceptionName = nullptr, *exceptionReason = nullptr;
+      std::string exceptionName, exceptionReason;
       if (!DeferredCallRunCatching(*call.call, &exceptionName,
                                    &exceptionReason)) {
         LogDeferredCallException(exceptionName, exceptionReason, call.call);
@@ -813,7 +814,7 @@ namespace {
 std::optional<oo::Exception> sLastDeferredCallException;
 
 bool DeferredCallRunCatching(const std::function<void()>& call,
-                             const char** outName, const char** outReason) {
+                             std::string* outName, std::string* outReason) {
   try {
     call();
   } catch (...) {

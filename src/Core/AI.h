@@ -153,7 +153,7 @@ class AI : public oo::RefCounted {
   // Wrapper for a deferred call (OOScheduleDeferredCall) to catch/fix bugs.
   // <selectorName> is found in the deferred calls' name table (AI.cpp) and
   // called with <argument>.
-  void performDeferredCall(const char* selectorName,
+  void performDeferredCall(std::string_view selectorName,
                            const std::string& argument, double delay);
 
   void refreshOwnerDesc();

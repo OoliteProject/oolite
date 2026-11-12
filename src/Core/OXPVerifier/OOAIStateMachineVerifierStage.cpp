@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #include "OOAIStateMachineVerifierStage.h"
 
 #include <format>
+#include <string_view>
 
 #include "OOPListParsing.h"
 
@@ -81,7 +82,7 @@ void OOAIStateMachineVerifierStage::run() {
   // Build whitelist. Note that we merge in aliases since the distinction
   // doesn't matter when just validating.
   const oo::PList whitelist = ResourceManager::whitelistDictionary();
-  for (const char* key : {"ai_methods", "ai_and_action_methods"}) {
+  for (std::string_view key : {"ai_methods", "ai_and_action_methods"}) {
     if (const oo::PList* methods = whitelist.get<oo::PList::Array>(key)) {
       for (const oo::PList& method : *methods->getIf<oo::PList::Array>()) {
         if (const std::string* string = method.getIf<std::string>())

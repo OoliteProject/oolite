@@ -77,11 +77,7 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path) {
           components.begin() + static_cast<std::ptrdiff_t>(i) + 1,
           components.end()));
 
-  unzFile uf = nullptr;
-  const char* zipname = zipFile.c_str();
-  if (zipname != nullptr) {
-    uf = unzOpen64(zipname);
-  }
+  unzFile uf = unzOpen64(zipFile.c_str());
   if (uf == nullptr) {
     // This is not necessarily an error - the OXZ manager tries to
     // do this as a test for the presence of managed OXZs
@@ -89,9 +85,8 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path) {
     // zipFile);
     return std::nullopt;
   }
-  const char* filename = containedFile.c_str();
   // unzLocateFile(*, *, 1) = case-sensitive extract
-  if (unzLocateFile(uf, filename, 1) != UNZ_OK) {
+  if (unzLocateFile(uf, containedFile.c_str(), 1) != UNZ_OK) {
     unzClose(uf);
     /* Much of the time this function is called with the
      * expectation that the file may not necessarily exist -

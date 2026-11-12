@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #include <cstring>
 #include <format>
 #include <functional>
+#include <string_view>
 
 #include "GameController.h"
 #include "OOCacheManager.h"
@@ -78,7 +79,7 @@ std::string PendingMessagesDescription(const std::set<std::string>& messages) {
    ship's), so it is not here and its call logs and does nothing.
 */
 struct DeferredAIMethod {
-  const char* selectorName;
+  std::string_view selectorName;
   void (AI::*method)(const std::string& argument);
 };
 
@@ -102,10 +103,10 @@ void OOAIAutorelease(oo::Ref<AI> ai) {
 */
 namespace {
 
-void FireAIDeferredCall(AI* ai, const char* selectorName,
+void FireAIDeferredCall(AI* ai, std::string_view selectorName,
                         const std::string& parameter) {
   for (const DeferredAIMethod& entry : kDeferredAIMethods) {
-    if (strcmp(entry.selectorName, selectorName) == 0) {
+    if (entry.selectorName == selectorName) {
       (ai->*entry.method)(parameter);
       return;
     }
@@ -237,7 +238,7 @@ void AI::reportStackOverflow() {
   if (oo::log::willDisplay("ai.error.stackOverflow")) {
     bool stackDump = oo::log::willDisplay("ai.error.stackOverflow.dump");
 
-    const char* trailer = stackDump ? " -- stack:" : ".";
+    const std::string_view trailer = stackDump ? " -- stack:" : ".";
     OO_LOG_ERR("ai.error.stackOverflow",
                "AI stack overflow for {} in {}: {}{}\n",
                oo::EntityShortDescription(owner()), stateMachineName,
@@ -686,9 +687,9 @@ void AI::dumpState() {
         +deferredCallTrampolineWithInfo:.
         -- Ahruman 20070706
 */
-void AI::performDeferredCall(const char* selectorName,
+void AI::performDeferredCall(std::string_view selectorName,
                              const std::string& argument, double delay) {
-  if (selectorName != nullptr) {
+  if (!selectorName.empty()) {
     // The call keeps the AI alive until it has run.
     oo::Ref<AI> ai(this);
     OOScheduleDeferredCall(
@@ -838,7 +839,7 @@ oo::PList AI::cleanActions(const oo::PList& actions,
     const oo::PList whitelistDictionary =
         ResourceManager::whitelistDictionary();
     whitelist.emplace();
-    for (const char* key : {"ai_methods", "ai_and_action_methods"}) {
+    for (std::string_view key : {"ai_methods", "ai_and_action_methods"}) {
       const oo::PList* methods = whitelistDictionary.get<oo::PList::Array>(key);
       if (methods == nullptr) continue;
       for (const oo::PList& method : *methods->getIf<oo::PList::Array>()) {

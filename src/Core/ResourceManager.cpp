@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #include "ResourceManager.h"
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <format>
 #include <functional>
@@ -598,13 +599,9 @@ void ResourceManager::preloadFileLists() {
 
 void ResourceManager::preloadFileListFromOXZ(
     const std::string& path, const std::vector<std::string>& folders) {
-  unzFile uf = nullptr;
-  const char* zipname = path.c_str();
-  char componentName[512];
+  unzFile uf = unzOpen64(path.c_str());
+  std::array<char, 512> componentName{};
 
-  if (zipname != nullptr) {
-    uf = unzOpen64(zipname);
-  }
   if (uf == nullptr) {
     OO_LOG("resourceManager.error", "Could not open .oxz at {} as zip file",
            path);
@@ -612,9 +609,9 @@ void ResourceManager::preloadFileListFromOXZ(
   }
   if (unzGoToFirstFile(uf) == UNZ_OK) {
     do {
-      unzGetCurrentFileInfo64(uf, nullptr, componentName, 512, nullptr, 0,
-                              nullptr, 0);
-      const std::string zipEntry = componentName;
+      unzGetCurrentFileInfo64(uf, nullptr, componentName.data(),
+                              componentName.size(), nullptr, 0, nullptr, 0);
+      const std::string zipEntry = componentName.data();
       // A name that is not UTF-8 was nil, and had no components.
       const std::vector<std::string> pathBits =
           IsWellFormedUTF8(zipEntry) ? oo::str::pathComponents(zipEntry)
@@ -1480,7 +1477,7 @@ oo::PList ResourceManager::dictionaryFromFilesNamed(
     OOResourceMergeMode mergeMode, bool cache) {
   oo::PList result;
   std::string cacheKey;
-  const char* mergeType = nullptr;
+  std::optional<std::string_view> mergeType;
   OOCacheManager* cacheMgr = OOCacheManager::sharedCache();
 
   switch (mergeMode) {
@@ -1496,7 +1493,7 @@ oo::PList ResourceManager::dictionaryFromFilesNamed(
       mergeType = "smart";
       break;
   }
-  if (mergeType == nullptr) {
+  if (!mergeType.has_value()) {
     OO_LOG(cxx_kOOLogParameterError,
            "Unknown dictionary merge mode {} for {}. (This is an internal "
            "programming error, please report it.)",
@@ -1507,9 +1504,9 @@ oo::PList ResourceManager::dictionaryFromFilesNamed(
   if (cache) {
     if (folderName.has_value()) {
       cacheKey =
-          std::format("{}/{} merge:{}", *folderName, fileName, mergeType);
+          std::format("{}/{} merge:{}", *folderName, fileName, *mergeType);
     } else {
-      cacheKey = std::format("{} merge:{}", fileName, mergeType);
+      cacheKey = std::format("{} merge:{}", fileName, *mergeType);
     }
     oo::PList cached = cacheMgr->pListForKey(cacheKey, "dictionaries");
     if (!cached.isNull()) return cached;

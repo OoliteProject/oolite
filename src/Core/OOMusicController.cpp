@@ -239,5 +239,5 @@ void OOMusicController::setMode(OOMusicMode mode) {
 
 // The iTunes integration. Upstream's Cocoa build drove iTunes with AppleScript;
 // no other build has it, so these do nothing.
-void OOMusicController::playiTunesPlaylist(const char* /*playlistName*/) {}
+void OOMusicController::playiTunesPlaylist(std::string_view /*playlistName*/) {}
 void OOMusicController::pauseiTunes() {}

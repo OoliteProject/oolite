@@ -827,7 +827,8 @@ std::string StringForErrorReport(const std::string& string) {
   */
   const std::size_t limit = units.size();
   std::u16string result = units;
-  auto replaceWithinLimit = [&](const char* target, const char* replacement) {
+  auto replaceWithinLimit = [&](std::string_view target,
+                                std::string_view replacement) {
     const std::size_t head = std::min(limit, result.size());
     const std::string replaced = oo::str::replaceOccurrences(
         oo::utf16ToUtf8(result.substr(0, head)), target, replacement);

@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #include "AIGraphViz.h"
 
 #include <format>
+#include <string_view>
 
 #include "OOStringParsing.h"
 #include "ResourceManager.h"
@@ -69,8 +70,8 @@ std::string HandlerToken(const std::string& state, const std::string& handler,
 
 void AddSimpleSpecialNodeLink(std::string& graphViz,
                               const std::string& handlerToken,
-                              const std::string& name, const char* shape,
-                              const char* color,
+                              const std::string& name, std::string_view shape,
+                              std::string_view color,
                               std::set<std::string>& specialNodes) {
   std::string identifier = cxx_GraphVizTokenString("special_" + name, nullptr);
   std::string declaration =
