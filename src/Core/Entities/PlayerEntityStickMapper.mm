@@ -204,12 +204,12 @@ void PlayerEntity::setGuiToStickMapperScreen(unsigned skip, bool resetCurrentRow
 
 void PlayerEntity::stickMapperInputHandler(::GuiDisplayGen* gui, ::MyOpenGLView* gameView)
 {
-    ::OOJoystickManager* stickHandler = [::OOJoystickManager sharedStickHandler];
+    OOJoystickManager* stickHandler = OOJoystickManager::sharedStickHandler();
     // Don't do anything if the user is supposed to be selecting
     // a function - other than look for Escape.
     if (waitingForStickCallback) {
-        if ([gameView isDown:27]) {
-            [stickHandler clearCallback];
+        if ((gameView != nullptr ? gameView->isDown(27) : false)) {
+            stickHandler->clearCallback();
             gui->setArray(std::vector<std::string> { OO_DESC("stickmapper-set-aborted") }, GUI_ROW_INSTRUCT);
             waitingForStickCallback = NO;
         }
@@ -217,9 +217,9 @@ void PlayerEntity::stickMapperInputHandler(::GuiDisplayGen* gui, ::MyOpenGLView*
         // Break out now.
         return;
     }
-    const BOOL* joyButtonState = [stickHandler getAllButtonStates];
+    const BOOL* joyButtonState = stickHandler->getAllButtonStates();
     handleGUIUpDownArrowKeys();
-    BOOL selectKeyPress = (checkKeyPress(n_key_gui_select) || joyButtonState[BUTTON_GUISELECT] || [gameView isDown:gvMouseDoubleClick]);
+    BOOL selectKeyPress = (checkKeyPress(n_key_gui_select) || joyButtonState[BUTTON_GUISELECT] || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false));
 
     if (gui->getSelectedRow() == GUI_ROW_STICKPROFILE && selectKeyPress) {
         setGuiToStickProfileScreen(gui);
@@ -339,12 +339,12 @@ void PlayerEntity::updateFunction(const oo::PList& hwDict) // called by name (jo
         oo::Defaults::standard().setObject(std::string(KEYCONFIG_CUSTOMEQUIP), oo::PList(customEquipActivation));
     } else {
         if (function >= BUTTON_GUILEFT && function <= BUTTON_GUISELECT) {
-            [stickHandler setFunction:function withDict:hwDict];
+            stickHandler->setFunction(function, hwDict);
         } else {
-            [stickHandler setFunction:function withDict:hwDict];
+            stickHandler->setFunction(function, hwDict);
             checkCustomEquipButtons(hwDict, -1);
         }
-        [stickHandler saveStickSettings];
+        stickHandler->saveStickSettings();
     }
 
     // Update the GUI (this will refresh the function list).
@@ -439,9 +439,9 @@ void PlayerEntity::displayFunctionList(::GuiDisplayGen* gui, NSUInteger skip)
     {
         stickFunctions = stickFunctionList();
     }
-    const oo::PList assignedAxes = [stickHandler axisFunctions];
-    const oo::PList assignedButs = [stickHandler buttonFunctions];
-    const oo::PList assignedGuiButs = [stickHandler guiButtonFunctions];
+    const oo::PList assignedAxes = stickHandler->axisFunctions();
+    const oo::PList assignedButs = stickHandler->buttonFunctions();
+    const oo::PList assignedGuiButs = stickHandler->guiButtonFunctions();
 
     NSUInteger i, n_functions = stickFunctions.size();
     NSInteger n_rows, start_row, previous = 0;

@@ -293,11 +293,13 @@ void PlayerEntity::setGuiToKeyMapperScreen(unsigned skip, bool resetCurrentRow)
 
 void PlayerEntity::keyMapperInputHandler(::GuiDisplayGen* gui, ::MyOpenGLView* gameView)
 {
-    const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
+    const BOOL* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
     handleGUIUpDownArrowKeys();
-    BOOL selectKeyPress = (checkKeyPress(n_key_gui_select) || joyButtonState[BUTTON_GUISELECT] || [gameView isDown:gvMouseDoubleClick]);
-    if ([gameView isDown:gvMouseDoubleClick])
-        [gameView clearMouse];
+    BOOL selectKeyPress = (checkKeyPress(n_key_gui_select) || joyButtonState[BUTTON_GUISELECT] || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false));
+    if ((gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false)) {
+        if (gameView != nullptr)
+            gameView->clearMouse();
+    }
 
     const std::string key = gui->keyForRow(gui->getSelectedRow()).value_or(""); // a nil key has no prefix
     if (oo::str::hasPrefix(key, "Index:"))
@@ -613,11 +615,13 @@ void PlayerEntity::outputKeyDefinition(const std::string& key, const std::string
 
 void PlayerEntity::handleKeyConfigKeys(::GuiDisplayGen* gui, ::MyOpenGLView* gameView)
 {
-    const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
+    const BOOL* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
     handleGUIUpDownArrowKeys();
-    BOOL selectKeyPress = (checkKeyPress(n_key_gui_select) || joyButtonState[BUTTON_GUISELECT] || [gameView isDown:gvMouseDoubleClick]);
-    if ([gameView isDown:gvMouseDoubleClick])
-        [gameView clearMouse];
+    BOOL selectKeyPress = (checkKeyPress(n_key_gui_select) || joyButtonState[BUTTON_GUISELECT] || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false));
+    if ((gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false)) {
+        if (gameView != nullptr)
+            gameView->clearMouse();
+    }
 
     if (selectKeyPress && (gui->getSelectedRow() == GUI_ROW_KC_KEY || gui->getSelectedRow() == (GUI_ROW_KC_KEY + 5))) {
         key_index = (gui->getSelectedRow() == GUI_ROW_KC_KEY ? 0 : 1);
@@ -682,7 +686,7 @@ void PlayerEntity::setGuiToKeyConfigEntryScreen()
 
     gui->addLongText(OO_DESC("oolite-keyconfig-update-entry-info"), GUI_ROW_KC_ENTRY_INFO, GUI_ALIGN_LEFT);
 
-    gui->setText(oo::str::format("%s: %s", OO_DESC("oolite-keyconfig-update-key").c_str(), DescriptionOfString([gameView cxx_typedString]).c_str()), end_row, GUI_ALIGN_LEFT);
+    gui->setText(oo::str::format("%s: %s", OO_DESC("oolite-keyconfig-update-key").c_str(), DescriptionOfString((gameView != nullptr ? gameView->getTypedString() : std::optional<std::string>())).c_str()), end_row, GUI_ALIGN_LEFT);
     gui->setColor(OOColor::cyanColor().get(), end_row);
     gui->setSelectableRange(NSMakeRange(0, 0));
 
@@ -713,7 +717,7 @@ void PlayerEntity::handleKeyConfigEntryKeys(::GuiDisplayGen* gui, ::MyOpenGLView
     if ((gameView != nullptr ? gameView->lastKeyWasShifted() : false))
         last_shift = YES;
 
-    gui->setText(oo::str::format("%s: %s", OO_DESC("oolite-keyconfig-update-key").c_str(), DescriptionOfString([gameView cxx_typedString]).c_str()), end_row);
+    gui->setText(oo::str::format("%s: %s", OO_DESC("oolite-keyconfig-update-key").c_str(), DescriptionOfString((gameView != nullptr ? gameView->getTypedString() : std::optional<std::string>())).c_str()), end_row);
     gui->setColor(OOColor::cyanColor().get(), end_row);
 
     if (checkKeyPress(n_key_gui_select)) {
@@ -825,12 +829,14 @@ void PlayerEntity::setGuiToConfirmClearScreen()
 
 void PlayerEntity::handleKeyMapperConfirmClearKeys(::GuiDisplayGen* gui, ::MyOpenGLView* gameView)
 {
-    const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
+    const BOOL* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
     handleGUIUpDownArrowKeys();
 
-    BOOL selectKeyPress = (checkKeyPress(n_key_gui_select) || joyButtonState[BUTTON_GUISELECT] || [gameView isDown:gvMouseDoubleClick]);
-    if ([gameView isDown:gvMouseDoubleClick])
-        [gameView clearMouse];
+    BOOL selectKeyPress = (checkKeyPress(n_key_gui_select) || joyButtonState[BUTTON_GUISELECT] || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false));
+    if ((gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false)) {
+        if (gameView != nullptr)
+            gameView->clearMouse();
+    }
 
     // Translation issue: we can't confidently use raw Y and N ascii as shortcuts. It's better to use the load-previous-commander keys.
     const oo::PList* yesValue = UNIVERSE->descriptions()->find("load-previous-commander-yes");
@@ -1207,11 +1213,13 @@ void PlayerEntity::setGuiToKeyboardLayoutScreen(unsigned skip, bool /*resetCurre
 
 void PlayerEntity::handleKeyboardLayoutEntryKeys(::GuiDisplayGen* gui, ::MyOpenGLView* gameView)
 {
-    const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
+    const BOOL* joyButtonState = OOJoystickManager::sharedStickHandler()->getAllButtonStates();
     handleGUIUpDownArrowKeys();
-    BOOL selectKeyPress = (checkKeyPress(n_key_gui_select) || joyButtonState[BUTTON_GUISELECT] || [gameView isDown:gvMouseDoubleClick]);
-    if ([gameView isDown:gvMouseDoubleClick])
-        [gameView clearMouse];
+    BOOL selectKeyPress = (checkKeyPress(n_key_gui_select) || joyButtonState[BUTTON_GUISELECT] || (gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false));
+    if ((gameView != nullptr ? gameView->isDown(gvMouseDoubleClick) : false)) {
+        if (gameView != nullptr)
+            gameView->clearMouse();
+    }
 
     const std::string key = gui->keyForRow(gui->getSelectedRow()).value_or(""); // a nil key has no prefix
     if (selectKeyPress) {

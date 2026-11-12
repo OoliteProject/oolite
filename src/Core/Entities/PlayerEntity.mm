@@ -2078,8 +2078,9 @@ bool PlayerEntity::setUpAndConfirmOK(bool stopOnError, bool saveGame)
 #else
     /* on OSes that allow safe deletion of open files, can use sounds
      * on the OXZ screen and other start screens */
-    [UNIVERSE preloadSounds];
-    setUpSound();
+    if (UNIVERSE != nullptr)
+        UNIVERSE->preloadSounds();
+    setUpSound(); // the C++ member (by name on the object before)
     if (saveGame) {
         worldScripts = ResourceManager::loadScripts();
         if (UNIVERSE != nullptr)
