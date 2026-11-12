@@ -2,17 +2,19 @@
         Unit tests for OOJSInterfaceDefinition
    (src/Core/Scripting/OOJSInterfaceDefinition.h/.mm).
 
-	An interface definition is a station's F4 interface entry made by a script: a title, category
-	and summary, and a JS callback and its `this` that it keeps alive (owned references) and runs
-	with the entry's key, pushing the script that made it. The test runs it in a real QuickJS-ng
-	context and links the game's own objects for the class. What the rest of the engine would
-	provide is defined below as the smallest stand-in that does the same thing: the engine object
-	(which calls the function), the script stack (OOJSScript) and the property-list converter. The
-	engine's and OOJSScript's headers are not imported, because the test defines those classes;
-	the class's header names OOScript with @class for that. The tests pin the initial state and the text properties,
-	the callback and its `this` (kept alive across a garbage collection), the run, the sort order
-	(interfaceCompare(), with its null cases) and an engine reset.
-	Run: tests/run.sh unit
+        An interface definition is a station's F4 interface entry made by a
+   script: a title, category and summary, and a JS callback and its `this` that
+   it keeps alive (owned references) and runs with the entry's key, pushing the
+   script that made it. The test runs it in a real QuickJS-ng context and links
+   the game's own objects for the class. What the rest of the engine would
+        provide is defined below as the smallest stand-in that does the same
+   thing: the engine object (which calls the function), the script stack
+   (OOJSScript) and the property-list converter. The engine's and OOJSScript's
+   headers are not imported, because the test defines those classes; the class's
+   header names OOScript with @class for that. The tests pin the initial state
+   and the text properties, the callback and its `this` (kept alive across a
+   garbage collection), the run, the sort order (interfaceCompare(), with its
+   null cases) and an engine reset. Run: tests/run.sh unit
 */
 
 #include <quickjs.h>

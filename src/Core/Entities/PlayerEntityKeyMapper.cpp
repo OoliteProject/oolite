@@ -1346,8 +1346,8 @@ std::vector<oo::PList> PlayerEntity::keyFunctionList() {
   funcList.push_back(
       makeKeyGuiDict(OO_DESC("oolite-keydesc-key_show_fps"), "key_show_fps"));
   //[funcList addObject:[self
-  //makeKeyGuiDict:OO_DESC("oolite-keydesc-key_bloom_toggle")
-  //keyDef:@"key_bloom_toggle"]];
+  // makeKeyGuiDict:OO_DESC("oolite-keydesc-key_bloom_toggle")
+  // keyDef:@"key_bloom_toggle"]];
   funcList.push_back(
       makeKeyGuiDict(OO_DESC("oolite-keydesc-key_mouse_control_roll"),
                      "key_mouse_control_roll"));

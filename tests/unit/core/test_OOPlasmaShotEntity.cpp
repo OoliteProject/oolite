@@ -2,17 +2,21 @@
         Unit tests for OOPlasmaShotEntity
    (src/Core/Entities/OOPlasmaShotEntity.h), a turret's plasma shot.
 
-	The entity reads Universe and PLAYER, so the test links the whole game but main (['*']) and uses
-	a Universe that was never initialised, subclassed to answer the time the test sets and to record
-	-addEntity: and -removeEntity:, and a plain entity as PLAYER. The ship that fired is a plain
-	entity marked as a ship (so it is its own root ship entity; a C++ ship under its object, never
-	set up), and the entity hit is an entity subclass that records the damage. A shot is a no-draw
-	effect of diameter 12 and collision radius 2 with the given position, velocity, energy and
-	colour (always opaque); it cannot collide for its first 0.05 seconds; it collides with anything
-	but an effect or its owner's ship; it damages what it collides with (unless that is its owner's
-	ship), removes itself and leaves a plasma burst where it was; and it removes itself when its
-	time is up. The shots are made, and their colour read, through the one block of helpers below:
-	the shot is a C++ entity, an OOLightParticleEntity. Run: bash tools/check-core-tests.sh
+        The entity reads Universe and PLAYER, so the test links the whole game
+   but main (['*']) and uses a Universe that was never initialised, subclassed
+   to answer the time the test sets and to record -addEntity: and
+   -removeEntity:, and a plain entity as PLAYER. The ship that fired is a plain
+        entity marked as a ship (so it is its own root ship entity; a C++ ship
+   under its object, never set up), and the entity hit is an entity subclass
+   that records the damage. A shot is a no-draw effect of diameter 12 and
+   collision radius 2 with the given position, velocity, energy and colour
+   (always opaque); it cannot collide for its first 0.05 seconds; it collides
+   with anything but an effect or its owner's ship; it damages what it collides
+   with (unless that is its owner's ship), removes itself and leaves a plasma
+   burst where it was; and it removes itself when its time is up. The shots are
+   made, and their colour read, through the one block of helpers below: the shot
+   is a C++ entity, an OOLightParticleEntity. Run: bash
+   tools/check-core-tests.sh
 */
 
 #include <string>
@@ -135,10 +139,16 @@ Entity* Shot(HPVector position, Vector velocity, float energy,
       position, velocity, energy, duration, color));
 }
 
-OOLightParticleEntity *Particle(Entity *shot)	{ return static_cast<OOLightParticleEntity *>(shot); }
-const GLfloat *ColorComponents(Entity *shot)	{ return Particle(shot)->_colorComponents; }
-void SetColliding(Entity *shot, Entity *other)	{ shot->collidingEntities.emplace_back(other); }
-void SetIsShip(Entity *e)						{ e->isShip = true; }
+OOLightParticleEntity* Particle(Entity* shot) {
+  return static_cast<OOLightParticleEntity*>(shot);
+}
+const GLfloat* ColorComponents(Entity* shot) {
+  return Particle(shot)->_colorComponents;
+}
+void SetColliding(Entity* shot, Entity* other) {
+  shot->collidingEntities.emplace_back(other);
+}
+void SetIsShip(Entity* e) { e->isShip = true; }
 
 // --------------------------------------------------------------------------------------------------
 
@@ -146,7 +156,6 @@ Entity* RedShot() {
   return Shot(make_HPvector(1, 2, 3), make_vector(4, 5, 6), 7.0f, 2.0,
               OOColor::colorWithRed(1.0f, 0.0f, 0.0f, 0.5f).get());
 }
-
 
 // A ship: C++ (its root ship entity is the C++ ship), never set up,
 // marked as a ship.

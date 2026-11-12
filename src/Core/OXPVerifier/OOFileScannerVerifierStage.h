@@ -76,14 +76,14 @@ class OOFileScannerVerifierStage : public OOOXPVerifierStage {
                   const std::optional<std::string>& context, bool checkBuiltIn);
 
   //	This method performs all the checks the previous one does, but also
-  //returns a file path.
+  // returns a file path.
   std::optional<std::string> pathForFile(
       const std::optional<std::string>& file,
       const std::optional<std::string>& folder,
       const std::optional<std::string>& context, bool checkBuiltIn);
 
   //	Data getters based on above method. An empty oo::Data: no such file (or
-  //an empty one).
+  // an empty one).
   oo::Data dataForFile(const std::optional<std::string>& file,
                        const std::optional<std::string>& folder,
                        const std::optional<std::string>& context,

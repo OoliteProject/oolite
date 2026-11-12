@@ -149,7 +149,7 @@ oo::PList StationEntity::launchIndependentShip(
         // JSAI: not needed - oolite-traderAI.js handles exiting if full fuel
         // and plentiful cargo
         //				[ship
-        //switchAITo:@"exitingTraderAI.plist"];
+        // switchAITo:@"exitingTraderAI.plist"];
         if ((ship != nullptr ? ship->getFuel() : OOFuelQuantity{}) == 0) {
           if (ship != nullptr) ship->setFuel(70);
         }
@@ -1202,9 +1202,10 @@ std::optional<std::string> StationEntity::marketOverrideName() {
   // 2010.06.14 - Micha - we can't default to the primary role as otherwise the
   // logic
   //				generating the market in [Universe
-  //commodityDataForEconomy:] doesn't 				work properly with the various overrides.
-  //The primary role will get 				used if either there is no market override, or the
-  //market wasn't 				defined.
+  // commodityDataForEconomy:] doesn't 				work properly
+  // with the various overrides. The primary role will get
+  // used if either there is no market override, or the market wasn't
+  // defined.
   return OptionalStringValue(shipinfoDictionary.find("market"));
 }
 

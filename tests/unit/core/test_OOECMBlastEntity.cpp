@@ -2,16 +2,17 @@
         Unit tests for OOECMBlastEntity (src/Core/Entities/OOECMBlastEntity.h),
    the invisible entity that sends a ship's ECM pulses.
 
-	The entity reads Universe, so the test links the whole game but main (['*']) and uses a Universe
-	that was never initialised, subclassed to record -removeEntity: and the range searches the
-	pulses make (it finds no ship, so no script event is sent). The blast calls the C++ ship's
-	members, so the firing ship is a C++ ship under its object, never set up. The tests cover: no
-	blast from nil; a blast is a no-draw effect at the ship's position; four pulses half a second
-	apart, a quarter of the scanner range wider each, then it removes itself; a dead or
-	deallocated ship ends it at once; it is an ECM blast and the ship is not (the check asks the
-	C++ member). The blasts are made through the one helper below: the blast is a C++ entity whose
-	object is the Entity wrapping it.
-	Run: bash tools/check-core-tests.sh
+        The entity reads Universe, so the test links the whole game but main
+   (['*']) and uses a Universe that was never initialised, subclassed to record
+   -removeEntity: and the range searches the pulses make (it finds no ship, so
+   no script event is sent). The blast calls the C++ ship's members, so the
+   firing ship is a C++ ship under its object, never set up. The tests cover: no
+        blast from nil; a blast is a no-draw effect at the ship's position; four
+   pulses half a second apart, a quarter of the scanner range wider each, then
+   it removes itself; a dead or deallocated ship ends it at once; it is an ECM
+   blast and the ship is not (the check asks the C++ member). The blasts are
+   made through the one helper below: the blast is a C++ entity whose object is
+   the Entity wrapping it. Run: bash tools/check-core-tests.sh
 */
 
 #include <vector>
@@ -100,12 +101,11 @@ void SetUp() {
 
 // A ship (the blast calls its members), under its object
 // (autoreleased), never set up.
-Entity *Ship()
-{
-	Entity *ship = oo::MadeEntity(oo::makeRef<::ShipEntity>());
-	ship->setPosition(make_HPvector(10, 20, 30));
-	ship->setStatus(STATUS_IN_FLIGHT);
-	return ship;
+Entity* Ship() {
+  Entity* ship = oo::MadeEntity(oo::makeRef<::ShipEntity>());
+  ship->setPosition(make_HPvector(10, 20, 30));
+  ship->setStatus(STATUS_IN_FLIGHT);
+  return ship;
 }
 
 // --- How the test makes a blast

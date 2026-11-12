@@ -11,12 +11,13 @@
    manifest is synthetic, written by the test; no expansion is read. The one
    download is a file: URL (oofnd/Http.hpp), so no network is used.
 
-	It pins what the manager computed before the conversion: the shared instance and the list it
-	loads from the manifest cache, sorted; the paths; the filters and their validation; the human
-	size; the managed OXZs read from disk and matched against the list; a manifest download from
-	start to finish (the list replaced, the cache rewritten, the temporary file removed, the managed
-	list rebuilt), and the requests it then refuses. Every case asks the C++ singleton. Run:
-	bash tools/check-core-tests.sh test_OOOXZManager
+        It pins what the manager computed before the conversion: the shared
+   instance and the list it loads from the manifest cache, sorted; the paths;
+   the filters and their validation; the human size; the managed OXZs read from
+   disk and matched against the list; a manifest download from start to finish
+   (the list replaced, the cache rewritten, the temporary file removed, the
+   managed list rebuilt), and the requests it then refuses. Every case asks the
+   C++ singleton. Run: bash tools/check-core-tests.sh test_OOOXZManager
 */
 
 #include "OOCacheManager.h"
@@ -196,21 +197,21 @@ std::string Titles(const oo::PList& list) {
   return result;
 }
 
-
 // The manager's private API its C++ members.
-OOOXZManager *Manager()								{ return OOOXZManager::sharedManager(); }
-std::optional<std::string> ManifestPath()					{ return Manager()->manifestPath(); }
-std::optional<std::string> DownloadPath()					{ return Manager()->downloadPath(); }
-std::optional<std::string> ExtractionBase(const std::string &identifier, const std::string &version)	{ return Manager()->extractionBasePathForIdentifier(identifier, version); }
-std::optional<std::string> DataURL()						{ return Manager()->dataURL(); }
-std::optional<std::string> HumanSize(NSUInteger bytes)		{ return Manager()->humanSize(bytes); }
-bool EnsureInstallPath()									{ return Manager()->ensureInstallPath(); }
-bool ValidateFilter(const std::string &input)				{ return Manager()->validateFilter(input); }
-
-std::string Filtered(const std::string &filter)
-{
-	Manager()->setFilter(filter);
-	return Titles(Manager()->applyCurrentFilter(Manager()->manifests()));
+OOOXZManager* Manager() { return OOOXZManager::sharedManager(); }
+std::optional<std::string> ManifestPath() { return Manager()->manifestPath(); }
+std::optional<std::string> DownloadPath() { return Manager()->downloadPath(); }
+std::optional<std::string> ExtractionBase(const std::string& identifier,
+                                          const std::string& version) {
+  return Manager()->extractionBasePathForIdentifier(identifier, version);
+}
+std::optional<std::string> DataURL() { return Manager()->dataURL(); }
+std::optional<std::string> HumanSize(NSUInteger bytes) {
+  return Manager()->humanSize(bytes);
+}
+bool EnsureInstallPath() { return Manager()->ensureInstallPath(); }
+bool ValidateFilter(const std::string& input) {
+  return Manager()->validateFilter(input);
 }
 
 std::string Filtered(const std::string& filter) {
@@ -828,18 +829,22 @@ class TestUniverse : public Universe {
 namespace {
 
 // Installs the stand-in for the life of one case.
-struct StandInUniverse
-{
-	TestUniverse *universe;
-	StandInUniverse()  { universe = new TestUniverse(); gSharedUniverse = universe; }
-	~StandInUniverse()  { gSharedUniverse = nullptr; }	// never released: a universe's teardown flushes the caches and the GL objects
-	std::string Page()
-	{
-		std::string page;
-		for (const std::string &line : universe->testGui->log)  page += line + "\n";
-		universe->testGui->log.clear();
-		return page;
-	}
+struct StandInUniverse {
+  TestUniverse* universe;
+  StandInUniverse() {
+    universe = new TestUniverse();
+    gSharedUniverse = universe;
+  }
+  ~StandInUniverse() {
+    gSharedUniverse = nullptr;
+  }  // never released: a universe's teardown flushes the caches and the GL
+     // objects
+  std::string Page() {
+    std::string page;
+    for (const std::string& line : universe->testGui->log) page += line + "\n";
+    universe->testGui->log.clear();
+    return page;
+  }
 };
 
 // Prints a page as C++ string literal lines, to pin it.

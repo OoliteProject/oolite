@@ -106,19 +106,17 @@ bool SameObject(JSValueConst a, JSValueConst b) {
          JS_VALUE_GET_PTR(a) == JS_VALUE_GET_PTR(b);
 }
 
-
 // A ship made the way the test can: the C++ ship under its object (retained and
-// never released), never set up from a definition, a ship (it answers -isShip, as the Objective-C
-// class did, so shipSubEntities() keeps it).
-TestShip *Ship(const char *name)
-{
-	oo::Ref<TestShip> ship = oo::makeRef<TestShip>();
-	{
-		oo::RetainEntity(oo::MadeEntity(ship));
-	}
-	ship->isShip = true;
-	ship->_name = name;
-	return ship.get();
+// never released), never set up from a definition, a ship (it answers -isShip,
+// as the Objective-C class did, so shipSubEntities() keeps it).
+TestShip* Ship(const char* name) {
+  oo::Ref<TestShip> ship = oo::makeRef<TestShip>();
+  {
+    oo::RetainEntity(oo::MadeEntity(ship));
+  }
+  ship->isShip = true;
+  ship->_name = name;
+  return ship.get();
 }
 
 // A subentity's owner, and that it is one (the Objective-C ship answered -owner

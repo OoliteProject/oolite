@@ -2,14 +2,16 @@
         Unit tests for OOShipRegistry (src/Core/OOShipRegistry.h): the class
    shell, lifecycle, the lookups, OOConveniences and the singleton.
 
-	It pins what the registry answers, through the API its
-	callers use, over a small ship data set that a stand-in ResourceManager serves: the shared
-	instance, every lookup (ship, effect and shipyard entries, player ships, roles and their
-	probability sets, keys with a role, a random key for a role, demo ships), replacing an entry,
-	and +reload, which makes a new registry from the cache the first one filled. The data pipeline
-	itself (OODataLoader) runs as it is; this test only fixes its input. The expectations were
-	written against the unconverted class and run on it first. The cases ask the C++ class. Run:
-	bash meson test -C build/meson_test test_OOShipRegistry test_OOShipRegistry
+        It pins what the registry answers, through the API its
+        callers use, over a small ship data set that a stand-in ResourceManager
+   serves: the shared instance, every lookup (ship, effect and shipyard entries,
+   player ships, roles and their probability sets, keys with a role, a random
+   key for a role, demo ships), replacing an entry, and +reload, which makes a
+   new registry from the cache the first one filled. The data pipeline itself
+   (OODataLoader) runs as it is; this test only fixes its input. The
+   expectations were written against the unconverted class and run on it first.
+   The cases ask the C++ class. Run: bash meson test -C build/meson_test
+   test_OOShipRegistry test_OOShipRegistry
 */
 
 #include <cstdio>

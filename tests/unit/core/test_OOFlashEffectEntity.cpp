@@ -3,20 +3,22 @@
    (src/Core/Entities/OOFlashEffectEntity.h), the white flash of an explosion
    and the coloured flash where a laser hits.
 
-	The entity reads Universe and PLAYER, so the test links the whole game but main (['*']) and
-	uses a Universe that was never initialised, subclassed to answer the time the test sets and to
-	record -removeEntity:, and a plain entity as PLAYER. The tests cover: an explosion flash sits where its
-	entity is, moves with it, starts at its collision radius, is white and grows at 150 times its
-	size a second (at least 600) to half opacity; a laser flash starts at diameter 1 in the given
-	colour and grows at 150 a second to full opacity; both fade in over two thirds of their life
-	(0.4 and 0.3 seconds) and out over the rest, and remove themselves when their time is up. The
-	diameter and colour components, ivars of OOLightParticleEntity, are read through the one block
-	of helpers below. Its texture is loaded once, by name (the loader replaced as in
-	test_OOParticleSystem). The flashes are made by the C++ factories the callers call and wrapped
-	as the callers do: the class's own selectors are member calls,
-	the root's are still sent to the object, and the last test pins that the object is a C++
-	entity's (the root Entity's).
-	Run: bash tools/check-core-tests.sh
+        The entity reads Universe and PLAYER, so the test links the whole game
+   but main (['*']) and uses a Universe that was never initialised, subclassed
+   to answer the time the test sets and to record -removeEntity:, and a plain
+   entity as PLAYER. The tests cover: an explosion flash sits where its entity
+   is, moves with it, starts at its collision radius, is white and grows at 150
+   times its size a second (at least 600) to half opacity; a laser flash starts
+   at diameter 1 in the given colour and grows at 150 a second to full opacity;
+   both fade in over two thirds of their life (0.4 and 0.3 seconds) and out over
+   the rest, and remove themselves when their time is up. The diameter and
+   colour components, ivars of OOLightParticleEntity, are read through the one
+   block of helpers below. Its texture is loaded once, by name (the loader
+   replaced as in test_OOParticleSystem). The flashes are made by the C++
+   factories the callers call and wrapped as the callers do: the class's own
+   selectors are member calls, the root's are still sent to the object, and the
+   last test pins that the object is a C++ entity's (the root Entity's). Run:
+   bash tools/check-core-tests.sh
 */
 
 #include <cmath>

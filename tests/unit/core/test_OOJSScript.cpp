@@ -259,13 +259,13 @@ OO_TEST(runningStack) {
 // The crossing: the script's identity is the C++ object. The
 // running stack holds it, weakly, and the Script object's private slot refers
 // to it weakly.
-OO_TEST(crossing)
-{
-	SetUp();
-	{
-		oo::Ref<OOJSScript> script = OOJSScript::scriptWithPath(Script("crossing/crossing.js", kNamedScript), oo::PList());
-		OO_CHECK(script != nullptr);
-		if (script == nullptr)  return;
+OO_TEST(crossing) {
+  SetUp();
+  {
+    oo::Ref<OOJSScript> script = OOJSScript::scriptWithPath(
+        Script("crossing/crossing.js", kNamedScript), oo::PList());
+    OO_CHECK(script != nullptr);
+    if (script == nullptr) return;
 
     // The C++ members answer, and the root's members reach the overrides.
     OOScript* root = script.get();

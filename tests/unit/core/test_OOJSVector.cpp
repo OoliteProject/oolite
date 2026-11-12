@@ -2,16 +2,18 @@
         Unit tests for the Vector3D JS binding
    (src/Core/Scripting/OOJSVector.h/.mm).
 
-	A binding's test runs its JS class in a real QuickJS-ng context and links the game's own objects
-	for the binding, the engine's class registration (OOJSClasses.mm), its exception translator
-	(OOJSEngineNativeWrappers.mm) and the maths they call. What the rest of the engine would provide
-	(error reporting, the argument and string helpers, Quaternion, the Entity class, the universe,
-	the profiler and the time limiter) is defined below as the smallest stand-in that does the same
-	thing: reportError for an error, a plain array for a quaternion. The expectations were written
-	against the file's behaviour: they pin the JS-visible behaviour:
-	construction, x/y/z, every method and static method, the errors, Vector3D.prototype reading as
-	zero, and how a native's exception reaches JS (an OOException and a C++ exception
-	both become a JS error). Run: bash tools/check-core-tests.sh
+        A binding's test runs its JS class in a real QuickJS-ng context and
+   links the game's own objects for the binding, the engine's class registration
+   (OOJSClasses.mm), its exception translator (OOJSEngineNativeWrappers.mm) and
+   the maths they call. What the rest of the engine would provide (error
+   reporting, the argument and string helpers, Quaternion, the Entity class, the
+   universe, the profiler and the time limiter) is defined below as the smallest
+   stand-in that does the same thing: reportError for an error, a plain array
+   for a quaternion. The expectations were written against the file's behaviour:
+   they pin the JS-visible behaviour: construction, x/y/z, every method and
+   static method, the errors, Vector3D.prototype reading as zero, and how a
+   native's exception reaches JS (an OOException and a C++ exception both become
+   a JS error). Run: bash tools/check-core-tests.sh
 */
 
 #include <quickjs.h>
@@ -405,41 +407,23 @@ OO_TEST(nativeInterface) {
            consumed == 0);  // numbers only for the constructor
 }
 
-
-OO_TEST(nativeInterface)
-{
-	SetUpContext();
-	JSValue value = JS_UNDEFINED;
-	OO_CHECK(HPVectorToJSValue(sContext, make_HPvector(1, 2, 3), &value));
-	HPVector hp = kZeroHPVector;
-	OO_CHECK(JSValueToHPVector(sContext, value, &hp) && hp.x == 1 && hp.y == 2 && hp.z == 3);
-	OO_CHECK(JSVectorSetHPVector(sContext, value, make_HPvector(4, 5, 6)));
-	Vector v = kZeroVector;
-	OO_CHECK(JSValueToVector(sContext, value, &v) && v.x == 4 && v.y == 5 && v.z == 6);
-	OO_CHECK(!JSValueToVector(sContext, JS_NewInt32(sContext, 3), &v));
-	OO_CHECK(!JSObjectGetVector(sContext, JS_NULL, &hp));
-	JS_FreeValue(sContext, value);
-	value = JS_UNDEFINED;
-	OO_CHECK(NSPointToVectorJSValue(sContext, NSMakePoint(7, 8), &value) && JSValueToHPVector(sContext, value, &hp) && hp.x == 7 && hp.y == 8 && hp.z == 0);
-	int consumed = 99;
-	OO_CHECK(VectorFromArgumentListNoError(sContext, 1, &value, &hp, &consumed) && consumed == 1);
-	JS_FreeValue(sContext, value);
-	JSValueConst three[3] = { JS_NewInt32(sContext, 1), JS_NewInt32(sContext, 2), JS_NewInt32(sContext, 3) };
-	OO_CHECK(!VectorFromArgumentListNoError(sContext, 3, three, &hp, &consumed) && consumed == 0);	// numbers only for the constructor
-}
-
-
-OO_TEST(nativeExceptions)
-{
-	// toCoordinateSystem() and fromCoordinateSystem() call the universe inside OOJS_NATIVE_ENTER.
-	OO_CHECK_EQ(Eval("new Vector3D(1, 2, 3).toCoordinateSystem('abc')"), "(2, 4, 6)");
-	OO_CHECK_EQ(Eval("new Vector3D(1, 2, 3).fromCoordinateSystem('abc')"), "(30, 0, 0)");
-	OO_CHECK_EQ(Eval("new Vector3D(1, 2, 3).toCoordinateSystem()"), "threw: bad arguments: Vector3D.toCoordinateSystem (0): ; expected coordinate system");
-	// An OOException from a native is a JS error, and the time limiter is resumed on the
-	// way out.
-	OO_CHECK_EQ(Eval("new Vector3D(1, 2, 3).toCoordinateSystem('throw-objc')"), "threw: Native exception: legacy boom");
-	OO_CHECK_EQ(Eval("new Vector3D(1, 2, 3).fromCoordinateSystem('throw-objc')"), "threw: Native exception: coords boom");
-	OO_CHECK_EQ(sLimiterPauses, 0);
+OO_TEST(nativeExceptions) {
+  // toCoordinateSystem() and fromCoordinateSystem() call the universe inside
+  // OOJS_NATIVE_ENTER.
+  OO_CHECK_EQ(Eval("new Vector3D(1, 2, 3).toCoordinateSystem('abc')"),
+              "(2, 4, 6)");
+  OO_CHECK_EQ(Eval("new Vector3D(1, 2, 3).fromCoordinateSystem('abc')"),
+              "(30, 0, 0)");
+  OO_CHECK_EQ(Eval("new Vector3D(1, 2, 3).toCoordinateSystem()"),
+              "threw: bad arguments: Vector3D.toCoordinateSystem (0): ; "
+              "expected coordinate system");
+  // An OOException from a native is a JS error, and the time limiter is resumed
+  // on the way out.
+  OO_CHECK_EQ(Eval("new Vector3D(1, 2, 3).toCoordinateSystem('throw-objc')"),
+              "threw: Native exception: legacy boom");
+  OO_CHECK_EQ(Eval("new Vector3D(1, 2, 3).fromCoordinateSystem('throw-objc')"),
+              "threw: Native exception: coords boom");
+  OO_CHECK_EQ(sLimiterPauses, 0);
 #if OOJS_PROFILE
   OO_CHECK_EQ(sProfileDepth, 0);
 #endif

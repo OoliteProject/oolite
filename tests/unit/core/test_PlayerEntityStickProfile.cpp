@@ -57,8 +57,8 @@ class StickProfileTestPlayer : public PlayerEntity {
                      const std::vector<oo::PList>& /*arguments*/) override {}
 };
 
-// NewTestPlayer<TestPlayer>(): a C++ player, as PlayerEntity::sharedPlayer() makes the game's,
-// retained (+1).
+// NewTestPlayer<TestPlayer>(): a C++ player, as PlayerEntity::sharedPlayer()
+// makes the game's, retained (+1).
 template <class T>
 T* NewTestPlayer() {
   oo::Ref<T> player = oo::makeRef<T>();
@@ -86,25 +86,9 @@ void SetUp() {
   OO_CHECK(::_putenv_s("HOMEPATH", sRoot.string().c_str()) == 0);
   (void)oo::Defaults::standard();
 
-// The scratch home and the stand-in player, set once, before the defaults are first read.
-void SetUp()
-{
-	if (!sRoot.empty())  return;
-	sRoot = stdfs::temp_directory_path() / ("oo-test-stickprofile-" + std::to_string(static_cast<unsigned long>(::_getpid())));
-	stdfs::remove_all(sRoot);
-	stdfs::create_directories(sRoot);
-	OO_CHECK(::_putenv_s("HOMEPATH", sRoot.string().c_str()) == 0);
-	(void)oo::Defaults::standard();
-
-	gOOPlayer = NewTestPlayer<StickProfileTestPlayer>();
-	gOOPlayer->Entity::setStatus(STATUS_DOCKED);	// the root's status()
-	gOOJSMainThreadContext = JS_NewContext(JS_NewRuntime());
-}
-
-
-OOJoystickManager *Handler()
-{
-	return OOJoystickManager::sharedStickHandler();
+  gOOPlayer = NewTestPlayer<StickProfileTestPlayer>();
+  gOOPlayer->Entity::setStatus(STATUS_DOCKED);  // the root's status()
+  gOOJSMainThreadContext = JS_NewContext(JS_NewRuntime());
 }
 
 OOJoystickManager* Handler() { return OOJoystickManager::sharedStickHandler(); }

@@ -92,7 +92,7 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path) {
     // This is not necessarily an error - the OXZ manager tries to
     // do this as a test for the presence of managed OXZs
     //		OO_LOG(cxx_kOOLogFileNotFound, "Could not unzip OXZ at {}",
-    //zipFile);
+    // zipFile);
     return std::nullopt;
   }
   const char* filename = containedFile.c_str();

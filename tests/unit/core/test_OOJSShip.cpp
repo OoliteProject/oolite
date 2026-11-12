@@ -1,16 +1,17 @@
 /*	test_OOJSShip.mm
         Unit tests for the ship JS binding (src/Core/Scripting/OOJSShip.h/.mm).
 
-	The Ship object is made by the real engine for a real ship, so the test links every game object
-	but main's (tests/unit/core/meson.build entry ['*'], as test_OOJSPlayerShip does) and runs the
-	binding in the engine's own context. The ship is a ShipEntity set up by ShipEntity's own
-	-setUpShipFromDictionary: from a definition in the test (PlainShip, as test_ShipEntity.mm's), in
-	a Universe that was never initialised and with a plain entity as PLAYER; the player branches of
-	the getter read the engine's own player, whose class the test swaps for a subclass that answers
-	-availableFacings and -fleeingStatus itself. The expectations pin the property getter (every
-	property) and the
-	weapon offsets and colours its helpers give JavaScript. Run: bash tools/check-core-tests.sh
-	test_OOJSShip
+        The Ship object is made by the real engine for a real ship, so the test
+   links every game object but main's (tests/unit/core/meson.build entry ['*'],
+   as test_OOJSPlayerShip does) and runs the binding in the engine's own
+   context. The ship is a ShipEntity set up by ShipEntity's own
+        -setUpShipFromDictionary: from a definition in the test (PlainShip, as
+   test_ShipEntity.mm's), in a Universe that was never initialised and with a
+   plain entity as PLAYER; the player branches of the getter read the engine's
+   own player, whose class the test swaps for a subclass that answers
+        -availableFacings and -fleeingStatus itself. The expectations pin the
+   property getter (every property) and the weapon offsets and colours its
+   helpers give JavaScript. Run: bash tools/check-core-tests.sh test_OOJSShip
 */
 
 #include <process.h>
@@ -244,28 +245,14 @@ void SetUp() {
       SCENARIO_OXP_DEFINITION_NONE));  // strict: the built-in Resources alone
   // The engine's player is a TestPlayerShip: made first, so
   // InitOOJSPlayerShip()'s PlayerEntity::sharedPlayer() answers it (the C++
-  // player cannot change class, as object_setClass() made the Objective-C one a
-  // TestPlayerShip).
+  // player cannot change class).
   gOOPlayer = NewTestPlayer<TestPlayerShip>();
   (void)OOJavaScriptEngine::sharedEngine();
 
-// The scratch home and game folder, the engine, the universe, PLAYER and the ship; made once.
-void SetUp()
-{
-	if (!sRoot.empty())  return;
-	std::setvbuf(stdout, nullptr, _IONBF, 0);	// a crash keeps the results so far
-	sRoot = stdfs::temp_directory_path() / ("oo-test-jsship-" + std::to_string(static_cast<unsigned long>(::_getpid())));
-	stdfs::remove_all(sRoot);
-	stdfs::create_directories(sRoot / "Resources");
-	OO_CHECK(::_putenv_s("HOMEPATH", sRoot.string().c_str()) == 0);
-	stdfs::current_path(sRoot);
-	const std::string info = "{ CFBundleVersion = \"9.9.9-test\"; }";
-	OO_CHECK(oo::fs::writeFile(sRoot / "Resources" / "Info-gnustep.plist", oo::Data(info.data(), info.size()), oo::fs::WriteMode::direct).has_value());
-	ResourceManager::setUseAddOns(std::string(SCENARIO_OXP_DEFINITION_NONE));	// strict: the built-in Resources alone
-	// The engine's player is a TestPlayerShip: made first, so InitOOJSPlayerShip()'s
-	// PlayerEntity::sharedPlayer() answers it (the C++ player cannot change class).
-	gOOPlayer = NewTestPlayer<TestPlayerShip>();
-	(void)OOJavaScriptEngine::sharedEngine();
+  sRealPlayer =
+      gOOPlayer;  // the one InitOOJSPlayerShip() made, which player.ship holds
+  sRealPlayer->isPlayer = true;  // what the player's set-up sets, which the
+                                 // engine's player has not run
 
   Universe* universe = new TestUniverse();  // never released
   gSharedUniverse = universe;
@@ -587,19 +574,17 @@ OO_TEST(getterPlayerBranches) {
 // ship.<prop>)".
 #define SET(prop, value) "(ship." prop " = " value ", ship." prop ")"
 
-
-OO_TEST(setterNames)
-{
-	SetUp();
-	OO_CHECK_EVAL(SET("name", "'Asp'"), "Asp");
-	OO_CHECK_EVAL(SET("displayName", "'Asp Mk II'"), "Asp Mk II");
-	OO_CHECK_EVAL(SET("shipUniqueName", "'Jim'"), "Jim");
-	OO_CHECK_EVAL(SET("shipClassName", "'Asp'"), "Asp");
-	OO_CHECK_EVAL(SET("scanDescription", "'Hunter'"), "Hunter");
-	OO_CHECK_EVAL(SET("scanDescription", "null"), "null");	// can be cleared
-	OO_CHECK_EVAL(SET("primaryRole", "'hunter'"), "hunter");
-	OO_CHECK_EVAL(SET("beaconLabel", "'Label'"), "Label");
-	OO_CHECK_EVAL(SET("AIState", "'ATTACK'"), "null");
+OO_TEST(setterNames) {
+  SetUp();
+  OO_CHECK_EVAL(SET("name", "'Asp'"), "Asp");
+  OO_CHECK_EVAL(SET("displayName", "'Asp Mk II'"), "Asp Mk II");
+  OO_CHECK_EVAL(SET("shipUniqueName", "'Jim'"), "Jim");
+  OO_CHECK_EVAL(SET("shipClassName", "'Asp'"), "Asp");
+  OO_CHECK_EVAL(SET("scanDescription", "'Hunter'"), "Hunter");
+  OO_CHECK_EVAL(SET("scanDescription", "null"), "null");  // can be cleared
+  OO_CHECK_EVAL(SET("primaryRole", "'hunter'"), "hunter");
+  OO_CHECK_EVAL(SET("beaconLabel", "'Label'"), "Label");
+  OO_CHECK_EVAL(SET("AIState", "'ATTACK'"), "null");
 }
 
 OO_TEST(setterBeaconCode) {
@@ -624,62 +609,60 @@ OO_TEST(setterBeaconCode) {
   OO_CHECK_LOG("clearBeacon");
 }
 
-
-OO_TEST(setterNumbers)
-{
-	SetUp();
-	OO_CHECK_EVAL(SET("accuracy", "4"), "4");
-	OO_CHECK_EVAL(SET("fuel", "3.5"), "3.5");
-	OO_CHECK_EVAL(SET("fuel", "99"), "7");	// at most MAX_JUMP_RANGE
-	OO_CHECK_EVAL(SET("entityPersonality", "5"), "5");
-	OO_CHECK(Threw("ship.entityPersonality = -1"));
-	OO_CHECK_EVAL(SET("hyperspaceSpinTime", "12"), "12");
-	OO_CHECK_EVAL(SET("bounty", "-5"), "0");
-	OO_CHECK_EVAL(SET("bounty", "30"), "0");
-	OO_CHECK_EVAL(SET("cargoSpaceCapacity", "10"), "10");
-	OO_CHECK_EVAL(SET("cargoSpaceCapacity", "-3"), "0");
-	OO_CHECK_EVAL(SET("destinationSystem", "-3"), "0");
-	OO_CHECK_EVAL(SET("homeSystem", "4"), "4");
-	OO_CHECK_EVAL(SET("AIScriptWakeTime", "3"), "3");
-	OO_CHECK_EVAL(SET("temperature", "-1"), "0");
-	OO_CHECK_EVAL(SET("temperature", "0.5"), "0.5");
-	OO_CHECK_EVAL(SET("heatInsulation", "0"), "0.125");
-	OO_CHECK_EVAL(SET("missileLoadTime", "-2"), "0");
-	OO_CHECK_EVAL(SET("missileLoadTime", "1.5"), "1.5");
-	OO_CHECK_EVAL(SET("reactionTime", "1.5"), "1.5");
-	OO_CHECK_EVAL(SET("desiredSpeed", "-1"), "0");
-	OO_CHECK_EVAL(SET("desiredSpeed", "80"), "80");
-	OO_CHECK_EVAL(SET("speed", "60"), "60");
-	OO_CHECK(Threw("ship.speed = -1"));
-	OO_CHECK(Threw("ship.speed = NaN"));
-	OO_CHECK_EVAL(SET("desiredRange", "-4"), "0");
-	OO_CHECK_EVAL(SET("desiredRange", "250"), "250");
-	OO_CHECK_EVAL(SET("scriptedMisjumpRange", "0.25"), "0.25");
-	OO_CHECK(Threw("ship.scriptedMisjumpRange = 2"));
-	OO_CHECK_EVAL(SET("sunGlareFilter", "0.25"), "0.25");
-	OO_CHECK(Threw("ship.sunGlareFilter = 2"));
-	OO_CHECK_EVAL(SET("thrust", "100"), "20");	// at most maxThrust
-	OO_CHECK_EVAL(SET("thrust", "5"), "5");
-	OO_CHECK_EVAL(SET("maxPitch", "2"), "2");
-	OO_CHECK(Threw("ship.maxPitch = -1"));
-	OO_CHECK_EVAL(SET("maxSpeed", "350"), "350");
-	OO_CHECK(Threw("ship.maxSpeed = -1"));
-	OO_CHECK_EVAL(SET("maxRoll", "4"), "4");
-	OO_CHECK(Threw("ship.maxRoll = -1"));
-	OO_CHECK_EVAL(SET("maxYaw", "1"), "1");
-	OO_CHECK(Threw("ship.maxYaw = -1"));
-	OO_CHECK_EVAL(SET("injectorBurnRate", "0.25"), "0.25");
-	OO_CHECK(Threw("ship.injectorBurnRate = -1"));
-	OO_CHECK_EVAL(SET("injectorSpeedFactor", "2"), "2");
-	OO_CHECK(Threw("ship.injectorSpeedFactor = 0.5"));
-	OO_CHECK(Threw("ship.injectorSpeedFactor = 1000"));
-	OO_CHECK_EVAL(SET("maxThrust", "30"), "30");
-	OO_CHECK(Threw("ship.maxThrust = -1"));
-	OO_CHECK_EVAL(SET("energyRechargeRate", "6"), "6");
-	OO_CHECK(Threw("ship.energyRechargeRate = -1"));
-	OO_CHECK_EVAL(SET("maxEscorts", "2"), "2");
-	OO_CHECK(Threw("ship.maxEscorts = 20"));
-	OO_CHECK(!Threw("ship.fuel = 'lots'"));
+OO_TEST(setterNumbers) {
+  SetUp();
+  OO_CHECK_EVAL(SET("accuracy", "4"), "4");
+  OO_CHECK_EVAL(SET("fuel", "3.5"), "3.5");
+  OO_CHECK_EVAL(SET("fuel", "99"), "7");  // at most MAX_JUMP_RANGE
+  OO_CHECK_EVAL(SET("entityPersonality", "5"), "5");
+  OO_CHECK(Threw("ship.entityPersonality = -1"));
+  OO_CHECK_EVAL(SET("hyperspaceSpinTime", "12"), "12");
+  OO_CHECK_EVAL(SET("bounty", "-5"), "0");
+  OO_CHECK_EVAL(SET("bounty", "30"), "0");
+  OO_CHECK_EVAL(SET("cargoSpaceCapacity", "10"), "10");
+  OO_CHECK_EVAL(SET("cargoSpaceCapacity", "-3"), "0");
+  OO_CHECK_EVAL(SET("destinationSystem", "-3"), "0");
+  OO_CHECK_EVAL(SET("homeSystem", "4"), "4");
+  OO_CHECK_EVAL(SET("AIScriptWakeTime", "3"), "3");
+  OO_CHECK_EVAL(SET("temperature", "-1"), "0");
+  OO_CHECK_EVAL(SET("temperature", "0.5"), "0.5");
+  OO_CHECK_EVAL(SET("heatInsulation", "0"), "0.125");
+  OO_CHECK_EVAL(SET("missileLoadTime", "-2"), "0");
+  OO_CHECK_EVAL(SET("missileLoadTime", "1.5"), "1.5");
+  OO_CHECK_EVAL(SET("reactionTime", "1.5"), "1.5");
+  OO_CHECK_EVAL(SET("desiredSpeed", "-1"), "0");
+  OO_CHECK_EVAL(SET("desiredSpeed", "80"), "80");
+  OO_CHECK_EVAL(SET("speed", "60"), "60");
+  OO_CHECK(Threw("ship.speed = -1"));
+  OO_CHECK(Threw("ship.speed = NaN"));
+  OO_CHECK_EVAL(SET("desiredRange", "-4"), "0");
+  OO_CHECK_EVAL(SET("desiredRange", "250"), "250");
+  OO_CHECK_EVAL(SET("scriptedMisjumpRange", "0.25"), "0.25");
+  OO_CHECK(Threw("ship.scriptedMisjumpRange = 2"));
+  OO_CHECK_EVAL(SET("sunGlareFilter", "0.25"), "0.25");
+  OO_CHECK(Threw("ship.sunGlareFilter = 2"));
+  OO_CHECK_EVAL(SET("thrust", "100"), "20");  // at most maxThrust
+  OO_CHECK_EVAL(SET("thrust", "5"), "5");
+  OO_CHECK_EVAL(SET("maxPitch", "2"), "2");
+  OO_CHECK(Threw("ship.maxPitch = -1"));
+  OO_CHECK_EVAL(SET("maxSpeed", "350"), "350");
+  OO_CHECK(Threw("ship.maxSpeed = -1"));
+  OO_CHECK_EVAL(SET("maxRoll", "4"), "4");
+  OO_CHECK(Threw("ship.maxRoll = -1"));
+  OO_CHECK_EVAL(SET("maxYaw", "1"), "1");
+  OO_CHECK(Threw("ship.maxYaw = -1"));
+  OO_CHECK_EVAL(SET("injectorBurnRate", "0.25"), "0.25");
+  OO_CHECK(Threw("ship.injectorBurnRate = -1"));
+  OO_CHECK_EVAL(SET("injectorSpeedFactor", "2"), "2");
+  OO_CHECK(Threw("ship.injectorSpeedFactor = 0.5"));
+  OO_CHECK(Threw("ship.injectorSpeedFactor = 1000"));
+  OO_CHECK_EVAL(SET("maxThrust", "30"), "30");
+  OO_CHECK(Threw("ship.maxThrust = -1"));
+  OO_CHECK_EVAL(SET("energyRechargeRate", "6"), "6");
+  OO_CHECK(Threw("ship.energyRechargeRate = -1"));
+  OO_CHECK_EVAL(SET("maxEscorts", "2"), "2");
+  OO_CHECK(Threw("ship.maxEscorts = 20"));
+  OO_CHECK(!Threw("ship.fuel = 'lots'"));
 }
 
 OO_TEST(setterFlags) {
@@ -704,17 +687,23 @@ OO_TEST(setterVectors) {
   OO_CHECK(Threw("ship.destination = 'nowhere'"));
 }
 
-
-OO_TEST(setterColours)
-{
-	SetUp();
-	OO_CHECK_EVAL("JSON.stringify(" SET("scannerDisplayColor1", "'blueColor'") ")", "[0,0,1,1]");
-	OO_CHECK_EVAL(SET("scannerDisplayColor1", "null"), "1,0,0,1");
-	OO_CHECK_EVAL("JSON.stringify(" SET("scannerDisplayColor2", "[1, 1, 0]") ")", "[1,1,0,1]");
-	OO_CHECK_EVAL("JSON.stringify(" SET("scannerHostileDisplayColor1", "'whiteColor'") ")", "[1,1,1,1]");
-	OO_CHECK_EVAL("JSON.stringify(" SET("scannerHostileDisplayColor2", "'blackColor'") ")", "[0,0,0,1]");
-	OO_CHECK_EVAL("JSON.stringify(" SET("exhaustEmissiveColor", "'redColor'") ")", "[1,0,0,1]");
-	OO_CHECK(Threw("ship.exhaustEmissiveColor = true"));
+OO_TEST(setterColours) {
+  SetUp();
+  OO_CHECK_EVAL(
+      "JSON.stringify(" SET("scannerDisplayColor1", "'blueColor'") ")",
+      "[0,0,1,1]");
+  OO_CHECK_EVAL(SET("scannerDisplayColor1", "null"), "1,0,0,1");
+  OO_CHECK_EVAL("JSON.stringify(" SET("scannerDisplayColor2", "[1, 1, 0]") ")",
+                "[1,1,0,1]");
+  OO_CHECK_EVAL(
+      "JSON.stringify(" SET("scannerHostileDisplayColor1", "'whiteColor'") ")",
+      "[1,1,1,1]");
+  OO_CHECK_EVAL(
+      "JSON.stringify(" SET("scannerHostileDisplayColor2", "'blackColor'") ")",
+      "[0,0,0,1]");
+  OO_CHECK_EVAL("JSON.stringify(" SET("exhaustEmissiveColor", "'redColor'") ")",
+                "[1,0,0,1]");
+  OO_CHECK(Threw("ship.exhaustEmissiveColor = true"));
 }
 
 OO_TEST(setterTargetsAndGroups) {
@@ -776,27 +765,32 @@ bool ThrewWith(const std::string& src, const std::string& message) {
   return result == "threw: " + message;
 }
 
-
-OO_TEST(methodsAI)
-{
-	SetUp();
-	OO_CHECK(Threw("ship.setScript()"));
-	OO_CHECK(ThrewWith("player.ship.setScript('a.js')", "Ship.setScript: Not valid for player ship."));
-	OO_CHECK(Threw("ship.setAI()"));
-	OO_CHECK(ThrewWith("player.ship.setAI('nullAI.plist')", "Ship.setAI: Not valid for player ship."));
-	OO_CHECK_EVAL("(ship.setAI('route1patrolAI.plist'), ship.AI)", "<no AI>");
-	OO_CHECK(Threw("ship.switchAI()"));
-	OO_CHECK(ThrewWith("player.ship.switchAI('nullAI.plist')", "Ship.switchAI: Not valid for player ship."));
-	OO_CHECK_EVAL("(ship.switchAI('nullAI.plist'), ship.AI)", "<no AI>");
-	OO_CHECK(ThrewWith("player.ship.exitAI()", "Ship.exitAI: Not valid for player ship."));
-	OO_CHECK_EVAL("ship.exitAI()", "undefined");	// no suspended machines: a warning only
-	OO_CHECK(Threw("ship.reactToAIMessage()"));
-	OO_CHECK(ThrewWith("player.ship.reactToAIMessage('X')", "Ship.reactToAIMessage: Not valid for player ship."));
-	OO_CHECK_EVAL("ship.reactToAIMessage('NOTHING_HERE')", "undefined");
-	OO_CHECK(Threw("ship.sendAIMessage()"));
-	OO_CHECK(ThrewWith("player.ship.sendAIMessage('X')", "Ship.sendAIMessage: Not valid for player ship."));
-	OO_CHECK_EVAL("ship.sendAIMessage('NOTHING_HERE')", "undefined");
-	OO_CHECK_EVAL("ship.AI", "<no AI>");
+OO_TEST(methodsAI) {
+  SetUp();
+  OO_CHECK(Threw("ship.setScript()"));
+  OO_CHECK(ThrewWith("player.ship.setScript('a.js')",
+                     "Ship.setScript: Not valid for player ship."));
+  OO_CHECK(Threw("ship.setAI()"));
+  OO_CHECK(ThrewWith("player.ship.setAI('nullAI.plist')",
+                     "Ship.setAI: Not valid for player ship."));
+  OO_CHECK_EVAL("(ship.setAI('route1patrolAI.plist'), ship.AI)", "<no AI>");
+  OO_CHECK(Threw("ship.switchAI()"));
+  OO_CHECK(ThrewWith("player.ship.switchAI('nullAI.plist')",
+                     "Ship.switchAI: Not valid for player ship."));
+  OO_CHECK_EVAL("(ship.switchAI('nullAI.plist'), ship.AI)", "<no AI>");
+  OO_CHECK(ThrewWith("player.ship.exitAI()",
+                     "Ship.exitAI: Not valid for player ship."));
+  OO_CHECK_EVAL("ship.exitAI()",
+                "undefined");  // no suspended machines: a warning only
+  OO_CHECK(Threw("ship.reactToAIMessage()"));
+  OO_CHECK(ThrewWith("player.ship.reactToAIMessage('X')",
+                     "Ship.reactToAIMessage: Not valid for player ship."));
+  OO_CHECK_EVAL("ship.reactToAIMessage('NOTHING_HERE')", "undefined");
+  OO_CHECK(Threw("ship.sendAIMessage()"));
+  OO_CHECK(ThrewWith("player.ship.sendAIMessage('X')",
+                     "Ship.sendAIMessage: Not valid for player ship."));
+  OO_CHECK_EVAL("ship.sendAIMessage('NOTHING_HERE')", "undefined");
+  OO_CHECK_EVAL("ship.AI", "<no AI>");
 }
 
 OO_TEST(methodsEscortsRolesEquipment) {
@@ -812,27 +806,28 @@ OO_TEST(methodsEscortsRolesEquipment) {
   OO_CHECK_EVAL("ship.abandonShip()", "false");  // no escape pod
 }
 
-
-OO_TEST(methodsCargoAndSpawnArguments)
-{
-	SetUp();
-	OO_CHECK(Threw("ship.ejectItem()"));
-	OO_CHECK(Threw("ship.ejectSpecificItem()"));
-	OO_CHECK(Threw("ship.spawn()"));
-	OO_CHECK(Threw("ship.spawn('trader', 0)"));
-	OO_CHECK(Threw("ship.spawn('trader', 65)"));
-	OO_CHECK(Threw("ship.dumpCargo(0)"));
-	OO_CHECK(Threw("ship.dumpCargo(65)"));
-	sPlayerDocked = true;
-	OO_CHECK_EVAL("player.ship.dumpCargo()", "null");	// docked: a warning
-	sPlayerDocked = false;
-	OO_CHECK(Threw("ship.addCargoEntity()"));
-	OO_CHECK(Threw("ship.addCargoEntity(7)"));
-	OO_CHECK_EVAL("(function () { try { return ship.addCargoEntity(other); } catch (e) { return 'refused'; } })()", "<evaluation failed>");
-	OO_CHECK(Threw("ship.dealEnergyDamage(5)"));
-	OO_CHECK(Threw("ship.dealEnergyDamage(-5, 100)"));
-	OO_CHECK(Threw("ship.dealEnergyDamage(5, -100)"));
-	OO_CHECK(Threw("ship.dealEnergyDamage(5, 100, 'fast')"));
+OO_TEST(methodsCargoAndSpawnArguments) {
+  SetUp();
+  OO_CHECK(Threw("ship.ejectItem()"));
+  OO_CHECK(Threw("ship.ejectSpecificItem()"));
+  OO_CHECK(Threw("ship.spawn()"));
+  OO_CHECK(Threw("ship.spawn('trader', 0)"));
+  OO_CHECK(Threw("ship.spawn('trader', 65)"));
+  OO_CHECK(Threw("ship.dumpCargo(0)"));
+  OO_CHECK(Threw("ship.dumpCargo(65)"));
+  sPlayerDocked = true;
+  OO_CHECK_EVAL("player.ship.dumpCargo()", "null");  // docked: a warning
+  sPlayerDocked = false;
+  OO_CHECK(Threw("ship.addCargoEntity()"));
+  OO_CHECK(Threw("ship.addCargoEntity(7)"));
+  OO_CHECK_EVAL(
+      "(function () { try { return ship.addCargoEntity(other); } catch (e) { "
+      "return 'refused'; } })()",
+      "<evaluation failed>");
+  OO_CHECK(Threw("ship.dealEnergyDamage(5)"));
+  OO_CHECK(Threw("ship.dealEnergyDamage(-5, 100)"));
+  OO_CHECK(Threw("ship.dealEnergyDamage(5, -100)"));
+  OO_CHECK(Threw("ship.dealEnergyDamage(5, 100, 'fast')"));
 }
 
 OO_TEST(methodsCommsAndLegacyActions) {
@@ -903,35 +898,33 @@ OO_TEST(methodsEquipment) {
   OO_CHECK_EVAL("ship.restoreSubEntities()", "false");  // none to restore
 }
 
-
-OO_TEST(methodsMissilesAndStations)
-{
-	SetUp();
-	OO_CHECK_EVAL("ship.selectNewMissile()", "threw: Native exception: Could not load any ship data.");
-	OO_CHECK_EVAL("ship.fireMissile()", "null");	// none aboard
-	OO_CHECK_EVAL("ship.findNearestStation()", "null");	// none in the universe
+OO_TEST(methodsMissilesAndStations) {
+  SetUp();
+  OO_CHECK_EVAL("ship.selectNewMissile()",
+                "threw: Native exception: Could not load any ship data.");
+  OO_CHECK_EVAL("ship.fireMissile()", "null");         // none aboard
+  OO_CHECK_EVAL("ship.findNearestStation()", "null");  // none in the universe
 }
 
-
-OO_TEST(methodsBountyCargoCrew)
-{
-	SetUp();
-	OO_CHECK_EVAL("(ship.setBounty(12, 'test'), ship.bounty)", "12");
-	OO_CHECK(Threw("ship.setBounty(12)"));
-	OO_CHECK(Threw("ship.setBounty(-1, 'test')"));
-	OO_CHECK(Threw("ship.setCargo()"));
-	OO_CHECK(Threw("ship.setCargo('food', 0)"));
-	OO_CHECK_EVAL("ship.setCargo('food')", "false");	// the universe has no commodities
-	OO_CHECK(Threw("ship.setCrew()"));
-	// ship.setCrew(7) is not run here: the native does not throw but takes the
-	// number as an empty character definition, and making that character expands descriptions (its
-	// random name), which ends this test's process, whose universe has none. The integration tests
-	// cover it.
-	OO_CHECK_EVAL("(ship.setCrew(null) + ' ' + ship.crew)", "true null");
-	OO_CHECK(Threw("ship.setCargoType()"));
-	OO_CHECK_EVAL("ship.setCargoType('SCARCE_GOODS')", "true");
-	OO_CHECK_EVAL("ship.setCargoType('PIRATE_GOODS')", "true");
-	OO_CHECK_EVAL("ship.setCargoType('NONSENSE_GOODS')", "false");
+OO_TEST(methodsBountyCargoCrew) {
+  SetUp();
+  OO_CHECK_EVAL("(ship.setBounty(12, 'test'), ship.bounty)", "12");
+  OO_CHECK(Threw("ship.setBounty(12)"));
+  OO_CHECK(Threw("ship.setBounty(-1, 'test')"));
+  OO_CHECK(Threw("ship.setCargo()"));
+  OO_CHECK(Threw("ship.setCargo('food', 0)"));
+  OO_CHECK_EVAL("ship.setCargo('food')",
+                "false");  // the universe has no commodities
+  OO_CHECK(Threw("ship.setCrew()"));
+  // ship.setCrew(7) is not run here: the native does not throw but takes the
+  // number as an empty character definition, and making that character expands
+  // descriptions (its random name), which ends this test's process, whose
+  // universe has none. The integration tests cover it.
+  OO_CHECK_EVAL("(ship.setCrew(null) + ' ' + ship.crew)", "true null");
+  OO_CHECK(Threw("ship.setCargoType()"));
+  OO_CHECK_EVAL("ship.setCargoType('SCARCE_GOODS')", "true");
+  OO_CHECK_EVAL("ship.setCargoType('PIRATE_GOODS')", "true");
+  OO_CHECK_EVAL("ship.setCargoType('NONSENSE_GOODS')", "false");
 }
 
 OO_TEST(methodsMaterials) {
@@ -1048,17 +1041,16 @@ OO_TEST(methodsScannerAndCargo) {
   OO_CHECK_EVAL("ship.adjustCargo('food', 0)", "true");
 }
 
-
-OO_TEST(methodsAssessments)
-{
-	SetUp();
-	OO_CHECK_EVAL("ship.damageAssessment()", "1");	// missile pylons but no missiles
-	OO_CHECK_EVAL("ship.threatAssessment()", "3.850000012665987");
-	OO_CHECK_EVAL("ship.threatAssessment(true)", "1.650000024586916");
-	OO_CHECK_EVAL("player.ship.threatAssessment(true)", "0.1");
-	sFleeingStatus = PLAYER_FLEEING_CARGO;
-	OO_CHECK_EVAL("player.ship.threatAssessment()", "0.4199999958276749");
-	sFleeingStatus = PLAYER_FLEEING_NONE;
+OO_TEST(methodsAssessments) {
+  SetUp();
+  OO_CHECK_EVAL("ship.damageAssessment()",
+                "1");  // missile pylons but no missiles
+  OO_CHECK_EVAL("ship.threatAssessment()", "3.850000012665987");
+  OO_CHECK_EVAL("ship.threatAssessment(true)", "1.650000024586916");
+  OO_CHECK_EVAL("player.ship.threatAssessment(true)", "0.1");
+  sFleeingStatus = PLAYER_FLEEING_CARGO;
+  OO_CHECK_EVAL("player.ship.threatAssessment()", "0.4199999958276749");
+  sFleeingStatus = PLAYER_FLEEING_NONE;
 }
 
 OO_TEST(staticMethods) {

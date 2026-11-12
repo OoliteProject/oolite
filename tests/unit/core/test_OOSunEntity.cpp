@@ -2,18 +2,21 @@
         Unit tests for OOSunEntity (src/Core/Entities/OOSunEntity.h), a system's
    star.
 
-	The entity reads Universe and PLAYER, so the test links the whole game but main (['*']) and uses
-	a Universe that was never initialised (minimum detail, so the corona never moves), subclassed to
-	record the main light position, the sky colour and the system data the sun sets, and an entity
-	that answers the viewpoint the test sets as PLAYER. A sun's radius, name and corona come
-	from its dictionary, it is a no-draw, visible, collidable sun; its light colours are its colour
-	blended with white; -changeSunProperty:withDictionary: takes the radius, the name, the corona,
-	and going nova or not, and refuses anything else; a new position moves the main light; going
-	nova counts down, then whitens the sky and records the nova and the growing radius in the system
-	data; and the camera-relative position is pulled in to 1e9 for a far sun. The camera-relative
-	position is read through the one helper below. The cases make the C++ sun and ask the C++
-	class, and the facade case pins the crossing: the
-	sun is the root Entity. Run: bash tools/check-core-tests.sh
+        The entity reads Universe and PLAYER, so the test links the whole game
+   but main (['*']) and uses a Universe that was never initialised (minimum
+   detail, so the corona never moves), subclassed to record the main light
+   position, the sky colour and the system data the sun sets, and an entity that
+   answers the viewpoint the test sets as PLAYER. A sun's radius, name and
+   corona come from its dictionary, it is a no-draw, visible, collidable sun;
+   its light colours are its colour blended with white;
+   -changeSunProperty:withDictionary: takes the radius, the name, the corona,
+        and going nova or not, and refuses anything else; a new position moves
+   the main light; going nova counts down, then whitens the sky and records the
+   nova and the growing radius in the system data; and the camera-relative
+   position is pulled in to 1e9 for a far sun. The camera-relative position is
+   read through the one helper below. The cases make the C++ sun and ask the C++
+        class, and the facade case pins the crossing: the
+        sun is the root Entity. Run: bash tools/check-core-tests.sh
 */
 
 #include <cmath>
@@ -47,8 +50,8 @@ class TestPlayer : public PlayerEntity {
   HPVector viewpointPosition() override { return _viewpoint; }
 };
 
-// NewTestPlayer<TestPlayer>(): a C++ player, as PlayerEntity::sharedPlayer() makes the game's,
-// retained (+1).
+// NewTestPlayer<TestPlayer>(): a C++ player, as PlayerEntity::sharedPlayer()
+// makes the game's, retained (+1).
 template <class T>
 T* NewTestPlayer() {
   oo::Ref<T> player = oo::makeRef<T>();
@@ -114,8 +117,7 @@ oo::PList Dict(oo::PList::Dict entries) {
 
 bool Near(double a, double b) { return std::fabs(a - b) < 1e-4; }
 
-// alloc/initSunWithColor:andDictionary:/autorelease: a new C++ sun, owned by
-// its autoreleased Objective-C object.
+// A new C++ sun.
 OOSunEntity* Sun(OOColor* color, double radius) {
   oo::Ref<OOSunEntity> sun = oo::makeRef<OOSunEntity>();
   (void)oo::MadeEntity(sun);
@@ -128,19 +130,8 @@ OOSunEntity* Sun(OOColor* color, double radius) {
   return sun.get();
 }
 
-
-// A new C++ sun.
-OOSunEntity *Sun(OOColor *color, double radius)
-{
-	oo::Ref<OOSunEntity> sun = oo::makeRef<OOSunEntity>();
-	(void)oo::MadeEntity(sun);
-	sun->initSunWithColor(color, Dict({
-		{ "sun_name", oo::PList("Sol") },
-		{ "sun_radius", oo::PList(radius) },
-		{ "corona_flare", oo::PList(0.5) },
-		{ "corona_shimmer", oo::PList(0.5) },
-	}));
-	return sun.get();
+OOSunEntity* RedSun() {
+  return Sun(OOColor::colorWithRed(1.0f, 0.0f, 0.0f, 1.0f).get(), 1000.0);
 }
 
 }  // namespace
@@ -308,56 +299,41 @@ OO_TEST(facade) {
   {
     SetUp();
     OOSunEntity* sun = RedSun();
-    // Its Objective-C object is the root's facade.
     Entity* object = sun;
-    OO_CHECK(object !=
-             nullptr);  // A C++ entity, not an Objective-C entity's adapter.
+    OO_CHECK(object != nullptr);  // A C++ entity.
     OO_CHECK(dynamic_cast<OOSunEntity*>(object) == sun);
   }
 }
 
-
-OO_TEST(facade)
-{
-	{
-		SetUp();
-		OOSunEntity *sun = RedSun();
-		Entity *object = sun;
-		OO_CHECK(object != nullptr);	// A C++ entity.
-		OO_CHECK(dynamic_cast<OOSunEntity *>(object) == sun);
-	}
+// Registers Entity's JS class and the given class (a child of Entity) in the
+// test's context, as the engine's start does; the context is made here if the
+// test has none yet.
+static void RegisterJSClasses(void (*initClass)(JSContext*, JSValueConst)) {
+  extern JSContext* gOOJSMainThreadContext;
+  if (gOOJSMainThreadContext == nullptr)
+    gOOJSMainThreadContext = JS_NewContext(JS_NewRuntime());
+  JSContext* context = OOJSAcquireContext();
+  JSValue global = JS_GetGlobalObject(context);
+  InitOOJSEntity(context, global);
+  initClass(context, global);
+  JS_FreeValue(context, global);
 }
-
-
-// Registers Entity's JS class and the given class (a child of Entity) in the test's context, as the
-// engine's start does; the context is made here if the test has none yet.
-static void RegisterJSClasses(void (*initClass)(JSContext *, JSValueConst))
-{
-	extern JSContext *gOOJSMainThreadContext;
-	if (gOOJSMainThreadContext == nullptr)  gOOJSMainThreadContext = JS_NewContext(JS_NewRuntime());
-	JSContext *context = OOJSAcquireContext();
-	JSValue global = JS_GetGlobalObject(context);
-	InitOOJSEntity(context, global);
-	initClass(context, global);
-	JS_FreeValue(context, global);
-}
-
 
 // The binding's category: what
 // the engine asks a OOSunEntity for by selector is what OOJSSun.mm answers.
-OO_TEST(jsExtensions)
-{
-	{
-		SetUp();
-		OOSunEntity *sun = RedSun();
-		RegisterJSClasses(InitOOJSSun);
-		Entity *object = sun;	// what the engine asks
-		const JSClassID jsClass = OOJSEntityJSClassID(object);
-		const JSClassID expectedClass = JSSunClassID();
-		OO_CHECK(jsClass != 0 && jsClass == expectedClass);
-		OO_CHECK(OOJSEntityJSClassName(object) == std::optional<std::string>("Sun"));
-		OO_CHECK(OOJSEntityIsVisibleToScripts(object) == true);
-	}
+OO_TEST(jsExtensions) {
+  {
+    SetUp();
+    OOSunEntity* sun = RedSun();
+    RegisterJSClasses(InitOOJSSun);
+    Entity* object = sun;  // what the engine asks
+    const JSClassID jsClass = OOJSEntityJSClassID(object);
+    const JSClassID expectedClass = JSSunClassID();
+    OO_CHECK(jsClass != 0 && jsClass == expectedClass);
+    OO_CHECK(OOJSEntityJSClassName(object) ==
+             std::optional<std::string>("Sun"));
+    OO_CHECK(OOJSEntityIsVisibleToScripts(object) == true);
+  }
 }
 
 OO_TEST_MAIN()
