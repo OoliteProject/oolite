@@ -255,7 +255,7 @@ id ObjectForKey(const oo::PList& dict, std::string_view key);
     if (groupID != NSNotFound) {
         OOShipGroup* group = GroupForGroupID(groupID, *context);
         [ship setGroup:group]; // Handles adding to group
-        if (oo::PListView(dict).get<bool>(KEY_IS_GROUP_LEADER))
+        if (dict.get<bool>(KEY_IS_GROUP_LEADER))
             [group setLeader:ship];
         const std::optional<std::string> groupName = OptionalStringForKey(dict, KEY_GROUP_NAME);
         if (groupName.has_value())

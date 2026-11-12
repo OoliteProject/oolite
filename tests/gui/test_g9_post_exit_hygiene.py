@@ -65,7 +65,6 @@ takes tools/gui-lock for the duration via the ``game`` fixture and launches noth
 
 import ast
 import os
-import sys
 
 import pytest
 
@@ -81,12 +80,6 @@ from conftest import (
 )
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-TESTS_DIR = os.path.abspath(os.path.join(HERE, ".."))
-if TESTS_DIR not in sys.path:
-    sys.path.insert(0, TESTS_DIR)
-
-# Sources are named by STEM: the migration renames .m -> .mm -> .cpp (source_paths.py, oo-7j3t).
-from source_paths import iter_source_files, resolve_source  # noqa: E402
 
 # Same budget as G1/G3: a close that has not taken the game down by now has not worked.
 EXIT_TIMEOUT_SECONDS = 10

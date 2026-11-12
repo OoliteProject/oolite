@@ -63,7 +63,7 @@ MA 02110-1301, USA.
         [self setUpColors:dictionary.get<oo::PList::Array>("colors")];
         [self getCurrentColorComponents];
 
-        [self setActive:oo::PListView(dictionary).get<bool>(@"initially_on", YES)];
+        [self setActive:dictionary.get<bool>("initially_on", YES)];
     }
     return self;
 }

@@ -167,7 +167,7 @@ id MaterialConfigWithTextures(const oo::PList& configuration, std::initializer_l
     if (s != [PLAYER systemID]) {
         SetInfo(planetInfo, "isMiniature", oo::PList(static_cast<bool>(YES)));
     }
-    return [self initFromDictionary:planetInfo withAtmosphere:oo::PListView(planetInfo).get<bool>(@"has_atmosphere", YES) andSeed:[[UNIVERSE systemManager] getRandomSeedForSystem:s inGalaxy:[PLAYER galaxyNumber]] forSystem:s];
+    return [self initFromDictionary:planetInfo withAtmosphere:planetInfo.get<bool>("has_atmosphere", YES) andSeed:[[UNIVERSE systemManager] getRandomSeedForSystem:s inGalaxy:[PLAYER galaxyNumber]] forSystem:s];
 }
 
 static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH; // atmosphere effect starts at 10x the height of the clouds
@@ -366,8 +366,8 @@ static OOColor* ColorWithHSBColor(Vector c)
 
 - (void)setUpTypeParametersWithSourceInfo:(const oo::PList&)sourceInfo targetInfo:(oo::PList&)targetInfo
 {
-    [targetInfo oo_setBool:oo::PListView(sourceInfo).get<bool>(@"mainForLocalSystem") forKey:@"mainForLocalSystem"];
-    [targetInfo oo_setBool:oo::PListView(sourceInfo).get<bool>(@"isMiniature") forKey:@"isMiniature"];
+    SetInfo(targetInfo, "mainForLocalSystem", oo::PList(sourceInfo.get<bool>("mainForLocalSystem")));
+    SetInfo(targetInfo, "isMiniature", oo::PList(sourceInfo.get<bool>("isMiniature")));
 }
 
 - (void)setUpTerrainParametersWithSourceInfo:(const oo::PList&)sourceInfo targetInfo:(oo::PList&)targetInfo

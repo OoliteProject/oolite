@@ -159,10 +159,10 @@ std::vector<oo::ObjCRef<OOVisualEffectEntity*>> VisualEffectsIn(const OOVisualEf
     if (modelName.has_value()) {
         OOMesh* mesh = [OOMesh meshWithName:*modelName
                                    cacheKey:_effectKey
-                         materialDictionary:oo::PListView(effectDict).get<NSDictionary*>(@"materials")
-                          shadersDictionary:oo::PListView(effectDict).get<NSDictionary*>(@"shaders")
-                                     smooth:oo::PListView(effectDict).get<bool>(@"smooth", NO)
-                               shaderMacros:OODefaultShipShaderMacros()
+                         materialDictionary:DictionaryForKey(effectDict, "materials")
+                          shadersDictionary:DictionaryForKey(effectDict, "shaders")
+                                     smooth:effectDict.get<bool>("smooth", NO)
+                               shaderMacros:oo::PListFrom(OODefaultShipShaderMacros())
                         shaderBindingTarget:self];
         if (mesh == nil)
             return NO;

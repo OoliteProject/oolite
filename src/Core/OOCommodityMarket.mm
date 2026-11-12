@@ -86,11 +86,7 @@ std::optional<std::string> SavedGoodKey(const oo::PList& entry)
 
 - (id)goods
 {
-    if (_sortedKeys == nil) {
-        NSArray* keys = [_commodityList allKeys];
-        _sortedKeys = [[keys sortedArrayUsingFunction:OOSortFunction(goodsSorter) context:_commodityList] retain];
-    }
-    return _sortedKeys;
+    return oo::NSArrayFromStrings([self sortedGoodKeys]);
 }
 
 - (id)dictionaryForScripting

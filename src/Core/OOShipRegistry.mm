@@ -616,14 +616,21 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
         }
         demoClass.push_back(std::move(demoEntry));
     }
-    // sort each ship list by name
-    NSString* demoClassName = nil;
-    foreach (demoClassName, demoList) {
-        [[demoList objectForKey:demoClassName] sortUsingFunction:OOSortFunction(SortDemoShipsByName) context:NULL];
+    // sort each ship list by name (-compare:)
+    oo::PList::Array categories;
+    categories.reserve(demoList.size());
+    for (auto& [demoClassName, demoClass] : demoList) {
+        std::stable_sort(demoClass.begin(), demoClass.end(), [](const oo::PList& a, const oo::PList& b) {
+            return oo::str::compare(a.get<std::string>("name"), b.get<std::string>("name")) < 0;
+        });
+        categories.emplace_back(std::move(demoClass));
     }
 
-    // and then sort the ship list list by class name
-    _demoShips = [[[demoList allValues] sortedArrayUsingFunction:OOSortFunction(SortDemoCategoriesByName) context:NULL] retain];
+    // and then sort the ship list list by class name (the plural category name, -compare:)
+    std::stable_sort(categories.begin(), categories.end(), [](const oo::PList& a, const oo::PList& b) {
+        return oo::str::compare(OOShipLibraryCategoryPlural(a.at(0)->get<std::string>("class")), OOShipLibraryCategoryPlural(b.at(0)->get<std::string>("class"))) < 0;
+    });
+    _demoShips = oo::PList(std::move(categories));
 }
 
 - (void)loadCachedRoleProbabilitySets
@@ -720,10 +727,10 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
                     Remove unresolved entries, building a list of the ones that
                     don't have is_external_dependency set.
             */
-            reportedBadShips = [NSMutableArray array];
-            foreach (key, remainingLikeShips) {
-                if (!oo::PListView(oo::PListView(ioData).get<NSDictionary*>(key)).get<bool>(@"is_external_dependency")) {
-                    [reportedBadShips addObject:key];
+            std::vector<std::string> reportedBadShips;
+            for (const std::string& key : remainingLikeShips) {
+                if (!ships[key].get<bool>("is_external_dependency")) {
+                    reportedBadShips.push_back(key);
                 }
                 ships.erase(key);
             }
@@ -961,11 +968,12 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
                 entry.erase("subentities");
             }
 
-            if (badSubentities != nil) {
-                if (!oo::PListView(shipEntry).get<bool>(@"is_external_dependency")) {
-                    badSubentitiesList = [[[badSubentities allObjects] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)] componentsJoinedByString:@", "];
-                    OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" has unresolved subentit%@ %@.", shipKey, ([badSubentities count] == 1) ? @"y" : @"ies", badSubentitiesList);
-                    OOStandardsError(@"Bad subentity definition found");
+            if (!badSubentities.empty()) {
+                if (!shipEntry.get<bool>("is_external_dependency")) {
+                    const std::size_t badCount = badSubentities.size();
+                    const std::string badSubentitiesList = CaseInsensitiveSortedList(std::vector<std::string>(badSubentities.begin(), badSubentities.end()));
+                    OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" has unresolved subentit%@ %@.", oo::NSStringFrom(shipKey), (badCount == 1) ? @"y" : @"ies", oo::NSStringFrom(badSubentitiesList));
+                    cxx_OOStandardsError("Bad subentity definition found");
                 }
                 remove = YES;
             }
@@ -990,10 +998,10 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
         const oo::PList& shipEntry = ship->second;
         BOOL remove = NO;
 
-        if (oo::PListView(shipEntry).get<bool>(@"is_template") || oo::PListView(shipEntry).get<bool>(@"_oo_deferred_remove"))
+        if (shipEntry.get<bool>("is_template") || shipEntry.get<bool>("_oo_deferred_remove"))
             remove = YES;
-        else if (shipMode && [oo::PListView(shipEntry).get<NSString*>(@"roles") length] == 0 && !oo::PListView(shipEntry).get<bool>(@"_oo_is_subentity") && !oo::PListView(shipEntry).get<bool>(@"_oo_is_effect")) {
-            OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" specifies no %@.", shipKey, @"roles");
+        else if (shipMode && StringForKey(&shipEntry, "roles").value_or("").empty() && !shipEntry.get<bool>("_oo_is_subentity") && !shipEntry.get<bool>("_oo_is_effect")) {
+            OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" specifies no %@.", oo::NSStringFrom(shipKey), @"roles");
             remove = YES;
             cxx_OOStandardsError("Error in shipdata.plist");
         } else {
@@ -1133,14 +1141,13 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
         @autoreleasepool {
             [[GameController sharedController] setProgressBarValue:(float)i++ / (float)count];
 
-            shipEntry = [ioData objectForKey:shipKey];
-            remove = NO;
-
-            modelName = oo::PListView(shipEntry).get<NSString*>(@"model");
-            mesh = [OOMesh meshWithName:modelName
-                     materialDictionary:oo::PListView(shipEntry).get<NSDictionary*>(@"materials")
-                      shadersDictionary:oo::PListView(shipEntry).get<NSDictionary*>(@"shaders")
-                                 smooth:oo::PListView(shipEntry).get<bool>(@"smooth")
+            // OOMesh is an unmigrated callee: convert at the call.
+            const oo::PList* materials = shipEntry.get<oo::PList::Dict>("materials");
+            const oo::PList* shaders = shipEntry.get<oo::PList::Dict>("shaders");
+            mesh = [OOMesh meshWithName:oo::NSStringOrNil(modelName)
+                     materialDictionary:(materials != nullptr ? oo::ObjectFromPList(*materials) : nil)
+                      shadersDictionary:(shaders != nullptr ? oo::ObjectFromPList(*shaders) : nil)
+                                 smooth:shipEntry.get<bool>("smooth")
                            shaderMacros:nil
                     shaderBindingTarget:nil];
         } // NOTE: mesh is now invalid, but pointer nil check is OK.
@@ -1232,7 +1239,8 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
     }
 
     // For frangible ships, bad subentities are non-fatal.
-    if (*outFatalError && oo::PListView(oo::PListView(shipData).get<NSDictionary*>(shipKey)).get<bool>(@"frangible"))
+    const oo::PList* shipEntry = shipData.get<oo::PList::Dict>(shipKey);
+    if (*outFatalError && shipEntry != nullptr && shipEntry->get<bool>("frangible"))
         *outFatalError = NO;
 
     return result;
@@ -1443,9 +1451,9 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
         return oo::PList();
     }
 
-    frequency = oo::PListView(declaration).get<float>(@"frequency", 2.0);
-    phase = oo::PListView(declaration).get<float>(@"phase", 0.0);
-    initiallyOn = oo::PListView(declaration).get<bool>(@"initially_on", YES);
+    frequency = declaration.get<float>("frequency", 2.0);
+    phase = declaration.get<float>("phase", 0.0);
+    initiallyOn = declaration.get<bool>("initially_on", true);
 
     oo::PList::Dict result;
     result.emplace("type", "flasher");
@@ -1501,7 +1509,7 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
             weaponEnergy = 100.0f;
         }
     } else {
-        isDock = oo::PListView(declaration).get<bool>(@"is_dock");
+        isDock = declaration.get<bool>("is_dock");
     }
 
     position = VectorForKey(declaration, "position");
@@ -1520,9 +1528,9 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context);
 
         result["dock_label"] = declaration.get<std::string>("dock_label", "the docking bay");
 
-        BOOL dockable = oo::PListView(declaration).get<bool>(@"allow_docking", YES);
-        BOOL playerdockable = oo::PListView(declaration).get<bool>(@"disallowed_docking_collides", NO);
-        BOOL undockable = oo::PListView(declaration).get<bool>(@"allow_launching", YES);
+        BOOL dockable = declaration.get<bool>("allow_docking", true);
+        BOOL playerdockable = declaration.get<bool>("disallowed_docking_collides", false);
+        BOOL undockable = declaration.get<bool>("allow_launching", true);
 
         result["allow_docking"] = dockable ? true : false;
         result["disallowed_docking_collides"] = playerdockable ? true : false;

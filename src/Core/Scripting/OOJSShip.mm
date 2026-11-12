@@ -3004,7 +3004,7 @@ static JSValue ShipSetMaterialsInternal(OOJS_NATIVE_ARGS, ShipEntity* thisEnt, B
                                cacheKey:std::nullopt
                      materialDictionary:oo::PListFrom(materials)
                       shadersDictionary:oo::PListFrom(shaders)
-                                 smooth:oo::PListView(shipDict).get<BOOL>(@"smooth", NO)
+                                 smooth:oo::PListView(shipDict).get<bool>(@"smooth", NO)
                            shaderMacros:oo::PListFrom(oo::PListView([ResourceManager materialDefaults]).get<NSDictionary*>(@"ship-prefix-macros"))
                     shaderBindingTarget:thisEnt];
 

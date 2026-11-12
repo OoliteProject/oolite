@@ -1043,7 +1043,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void* market);
     NSString* scenarioRestrict = oo::PListView(dict).get<NSString*>(@"scenario_restriction", nil);
     if (scenarioRestrict == nil) {
         // older save game - use the 'strict' key instead
-        BOOL strict = oo::PListView(dict).get<BOOL>(@"strict", NO);
+        BOOL strict = oo::PListView(dict).get<bool>(@"strict", NO);
         if (strict) {
             scenarioRestrict = SCENARIO_OXP_DEFINITION_NONE;
         } else {
@@ -1173,23 +1173,23 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void* market);
     NSMutableDictionary* equipment = [NSMutableDictionary dictionaryWithDictionary:oo::PListView(dict).get<NSDictionary*>(@"extra_equipment")];
 
     // Equipment flags	(deprecated in favour of equipment dictionary, keep for compatibility)
-    if (oo::PListView(dict).get<BOOL>(@"has_docking_computer"))
+    if (oo::PListView(dict).get<bool>(@"has_docking_computer"))
         [equipment oo_setInteger:1 forKey:@"EQ_DOCK_COMP"];
-    if (oo::PListView(dict).get<BOOL>(@"has_galactic_hyperdrive"))
+    if (oo::PListView(dict).get<bool>(@"has_galactic_hyperdrive"))
         [equipment oo_setInteger:1 forKey:@"EQ_GAL_DRIVE"];
-    if (oo::PListView(dict).get<BOOL>(@"has_escape_pod"))
+    if (oo::PListView(dict).get<bool>(@"has_escape_pod"))
         [equipment oo_setInteger:1 forKey:@"EQ_ESCAPE_POD"];
-    if (oo::PListView(dict).get<BOOL>(@"has_ecm"))
+    if (oo::PListView(dict).get<bool>(@"has_ecm"))
         [equipment oo_setInteger:1 forKey:@"EQ_ECM"];
-    if (oo::PListView(dict).get<BOOL>(@"has_scoop"))
+    if (oo::PListView(dict).get<bool>(@"has_scoop"))
         [equipment oo_setInteger:1 forKey:@"EQ_FUEL_SCOOPS"];
-    if (oo::PListView(dict).get<BOOL>(@"has_energy_bomb"))
+    if (oo::PListView(dict).get<bool>(@"has_energy_bomb"))
         [equipment oo_setInteger:1 forKey:@"EQ_ENERGY_BOMB"];
-    if (oo::PListView(dict).get<BOOL>(@"has_fuel_injection"))
+    if (oo::PListView(dict).get<bool>(@"has_fuel_injection"))
         [equipment oo_setInteger:1 forKey:@"EQ_FUEL_INJECTION"];
 
     // Legacy energy unit type -> energy unit equipment item
-    if (oo::PListView(dict).get<BOOL>(@"has_energy_unit") && [self installedEnergyUnitType] == ENERGY_UNIT_NONE) {
+    if (oo::PListView(dict).get<bool>(@"has_energy_unit") && [self installedEnergyUnitType] == ENERGY_UNIT_NONE) {
         OOEnergyUnitType eType = (OOEnergyUnitType)oo::PListView(dict).get<int>(@"energy_unit", ENERGY_UNIT_NORMAL);
         switch (eType) {
         // look for NEU first!
@@ -1214,7 +1214,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void* market);
             award until we've handled missiles later on, though.
     */
     BOOL energyBombCompensation = NO;
-    if (oo::PListView(equipment).get<BOOL>(@"EQ_ENERGY_BOMB") && [OOEquipmentType equipmentTypeWithIdentifier:@"EQ_ENERGY_BOMB"] == nil) {
+    if (oo::PListView(equipment).get<bool>(@"EQ_ENERGY_BOMB") && [OOEquipmentType equipmentTypeWithIdentifier:@"EQ_ENERGY_BOMB"] == nil) {
         energyBombCompensation = YES;
         [equipment removeObjectForKey:@"EQ_ENERGY_BOMB"];
     }
@@ -1235,7 +1235,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void* market);
     // speech
     isSpeechOn = (OOSpeechSettings)oo::PListView(dict).get<int>(@"speech_on");
 #if OOLITE_ESPEAK
-    voice_gender_m = oo::PListView(dict).get<BOOL>(@"speech_gender", YES);
+    voice_gender_m = oo::PListView(dict).get<bool>(@"speech_gender", YES);
     voice_no = [UNIVERSE setVoice:[UNIVERSE voiceNumber:oo::PListView(dict).get<NSString*>(@"speech_voice", nil)] withGenderM:voice_gender_m];
 #endif
 
@@ -1575,7 +1575,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void* market);
         _customViewIndex = oo::PListView(dict).get<unsigned int>(@"custom_view_index") % [_customViews count];
 
     // docking clearance protocol
-    [UNIVERSE setDockingClearanceProtocolActive:oo::PListView(dict).get<BOOL>(@"docking_clearance_protocol", NO)];
+    [UNIVERSE setDockingClearanceProtocolActive:oo::PListView(dict).get<bool>(@"docking_clearance_protocol", NO)];
 
     // trumble information
     [self setUpTrumbles];
@@ -7162,7 +7162,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void* market);
     NSString* desc = nil;
     NSString* alldesc = nil;
 
-    BOOL prioritiseDamaged = oo::PListView([gui userSettings]).get<BOOL>(kGuiStatusPrioritiseDamaged, YES);
+    BOOL prioritiseDamaged = oo::PListView([gui userSettings]).get<bool>(kGuiStatusPrioritiseDamaged, YES);
 
     for (eqTypeEnum = [OOEquipmentType reverseEquipmentEnumerator]; (eqType = [eqTypeEnum nextObject]);) {
         if ([eqType isVisible]) {
@@ -7518,7 +7518,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void* market);
     NSInteger concealment = oo::PListView(infoSystemData).get<int>(@"concealment", OO_SYSTEMCONCEALMENT_NONE);
     infoSystemName = oo::PListView(infoSystemData).get<NSString*>(KEY_NAME);
 
-    BOOL sunGoneNova = (oo::PListView(infoSystemData).get<BOOL>(@"sun_gone_nova"));
+    BOOL sunGoneNova = (oo::PListView(infoSystemData).get<bool>(@"sun_gone_nova"));
     OOGUIScreenID oldScreen = gui_screen;
 
     GuiDisplayGen* gui = [UNIVERSE gui];
@@ -10310,7 +10310,7 @@ static NSString* last_outfitting_key = nil;
             continue;
 
         // Traditional form is a dictionary of booleans; we only accept those where the value is true.
-        if (dict != nil && !oo::PListView(dict).get<BOOL>(eqDesc))
+        if (dict != nil && !oo::PListView(dict).get<bool>(eqDesc))
             continue;
 
         // We need to add the entire collection without validation first and then remove the items that are

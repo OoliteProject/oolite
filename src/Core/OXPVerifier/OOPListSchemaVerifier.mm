@@ -1011,10 +1011,10 @@ static NSError* Verify_Dictionary(OOPListSchemaVerifier* verifier, const oo::PLi
     }
 
     // Get schema.
-    schema = oo::PListView(params).get<NSDictionary*>(@"schema");
-    valueType = [params objectForKey:@"valueType"];
-    allowOthers = oo::PListView(params).get<bool>(@"allowOthers", YES);
-    requiredKeyList = oo::PListView(params).get<NSArray*>(@"requiredKeys");
+    schema = params.get<oo::PList::Dict>("schema");
+    valueType = params.find("valueType");
+    allowOthers = params.get<bool>("allowOthers", YES);
+    requiredKeyList = params.get<oo::PList::Array>("requiredKeys");
 
     // If these conditions are met, all members must pass:
     if (schema == nullptr && valueType == nullptr && requiredKeyList == nullptr && allowOthers)

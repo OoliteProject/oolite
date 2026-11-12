@@ -1106,7 +1106,7 @@ OOTextureSprite* NewTextureSpriteWithDescriptor(const oo::PList& descriptor, uin
     if (JS_IsObject(value)) {
         // String objects are converted to NSStrings; anything else is treated as a dictionary.
         if (JS_GetClassID(value) != gOOJSStringClassID) {
-            result = OOJSDictionaryFromJSObject(context, value);
+            result = oo::PListFrom(OOJSDictionaryFromJSObject(context, value));
         }
     }
 

@@ -222,7 +222,7 @@ float cxx_OOMaterialParallaxBias(const oo::PList& configuration)
 
 bool cxx_OOMaterialGammaCorrect(const oo::PList& configuration)
 {
-    return oo::PListView(self).get<bool>(kOOMaterialGammaCorrectName, ![[NSUserDefaults standardUserDefaults] boolForKey:@"no-gamma-correct"]);
+    return configuration.get<bool>(cxx_kOOMaterialGammaCorrectName, ![[NSUserDefaults standardUserDefaults] boolForKey:@"no-gamma-correct"]);
 }
 
 float cxx_OOMaterialGloss(const oo::PList& configuration)

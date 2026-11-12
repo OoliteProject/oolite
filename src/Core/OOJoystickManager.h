@@ -235,11 +235,11 @@ enum {
 // Hardware introspection.
 - (std::vector<std::string>)listSticks;
 
-// These use NSDictionary/NSArray since they are used outside the game
-// loop and are needed for loading/saving defaults.
-- (NSDictionary*)axisFunctions;
-- (NSDictionary*)buttonFunctions;
-- (NSDictionary*)guiButtonFunctions;
+// These use property-list dictionaries since they are used outside the game
+// loop and are needed for loading/saving defaults. A nil manager answers a null PList.
+- (oo::PList)axisFunctions;
+- (oo::PList)buttonFunctions;
+- (oo::PList)guiButtonFunctions;
 
 // Set a callback for the next moved axis/pressed button. hwflags
 // is in the form HW_AXIS | HW_BUTTON (or just one of).
