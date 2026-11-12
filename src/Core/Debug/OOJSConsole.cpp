@@ -193,6 +193,13 @@ enum {
   JS_CGETSET_MAGIC_DEF2(name, getter, setter, magic,         \
                         OOJS_PROP_HIDDEN_READWRITE_CB)
 
+// A flag's JS property name as the C string a property entry holds.
+// OOEnumName's names are string literals, so the view's data is
+// null-terminated.
+static constexpr const char* DebugFlagPropertyName(OODebugFlags flag) {
+  return OOEnumName(flag).data();
+}
+
 static const JSCFunctionListEntry sConsoleProperties[] = {
     // JS name								Getter
     // Setter				ID
@@ -226,9 +233,9 @@ static const JSCFunctionListEntry sConsoleProperties[] = {
                      kConsole_glFragmentShaderTextureUnitCount),
 
 // Each flag's name is its OOEnumName, as console.DEBUG_* always was.
-#define DEBUG_FLAG_DECL(flag, magic)                                          \
-  OOJS_PROPERTY_RO(OOEnumName(OODebugFlags::flag).data(), ConsoleGetProperty, \
-                   magic)
+#define DEBUG_FLAG_DECL(flag, magic)                          \
+  OOJS_PROPERTY_RO(DebugFlagPropertyName(OODebugFlags::flag), \
+                   ConsoleGetProperty, magic)
     DEBUG_FLAG_DECL(kLinkedLists, kConsole_DEBUG_LINKED_LISTS),
     DEBUG_FLAG_DECL(kCollisions, kConsole_DEBUG_COLLISIONS),
     DEBUG_FLAG_DECL(kDocking, kConsole_DEBUG_DOCKING),
