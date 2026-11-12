@@ -327,7 +327,7 @@ oo::Ref<OOMaterial> OOMaterial::materialWithName(
     // Use default shader if smoothing is on, or shader detail is full,
     // DEBUG_NO_SHADER_FALLBACK is set, or material uses an effect map.
     if (result == nullptr &&
-        (smooth || gDebugFlags & DEBUG_NO_SHADER_FALLBACK ||
+        (smooth || OODebugFlagIsOn(OODebugFlags::kNoShaderFallback) ||
          (UNIVERSE != nullptr ? UNIVERSE->getDetailLevel()
                               : OOGraphicsDetail{}) >= DETAIL_LEVEL_SHADERS ||
          !cxx_OOMaterialCombinedSpecularMapSpecifier(configuration).isNull() ||

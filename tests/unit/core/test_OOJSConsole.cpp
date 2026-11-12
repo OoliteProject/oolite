@@ -608,8 +608,8 @@ OO_TEST(theConsoleObjects)
 	OO_CHECK_EVAL("typeof console", "object");
 	OO_CHECK_EVAL("typeof console.settings", "object");
 	OO_CHECK_EVAL("Object.getPrototypeOf(console) === Object.getPrototypeOf(console.settings)", "false");
-	OO_CHECK_EVAL("console.DEBUG_LINKED_LISTS", std::to_string(DEBUG_LINKED_LISTS).c_str());
-	OO_CHECK_EVAL("console.DEBUG_SHADER_VALIDATION", std::to_string(DEBUG_SHADER_VALIDATION).c_str());
+	OO_CHECK_EVAL("console.DEBUG_LINKED_LISTS", std::to_string(oo::ToUnderlying(OODebugFlags::kLinkedLists)).c_str());
+	OO_CHECK_EVAL("console.DEBUG_SHADER_VALIDATION", std::to_string(oo::ToUnderlying(OODebugFlags::kShaderValidation)).c_str());
 }
 
 

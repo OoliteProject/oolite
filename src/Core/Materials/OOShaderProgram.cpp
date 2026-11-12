@@ -306,7 +306,7 @@ bool ValidateShaderObject(GLhandleARB object,
   }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  if (0 && (gDebugFlags & DEBUG_SHADER_VALIDATION)) {
+  if (0 && OODebugFlagIsOn(OODebugFlags::kShaderValidation)) {
     OOGL(glValidateProgramARB(object));
     OOGL(glGetObjectParameterivARB(object, GL_OBJECT_VALIDATE_STATUS_ARB,
                                    &status));

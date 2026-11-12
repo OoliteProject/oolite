@@ -36,10 +36,10 @@ MA 02110-1301, USA.
 #include "oofnd/objc/OOException.h"
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-#define OctreeDebugLog(format, ...)                     \
-  do {                                                  \
-    if (EXPECT_NOT(gDebugFlags & DEBUG_OCTREE_LOGGING)) \
-      OO_LOG("octree.debug", format, ##__VA_ARGS__);    \
+#define OctreeDebugLog(format, ...)                                \
+  do {                                                             \
+    if (EXPECT_NOT(OODebugFlagIsOn(OODebugFlags::kOctreeLogging))) \
+      OO_LOG("octree.debug", format, ##__VA_ARGS__);               \
   } while (0)
 #else
 #define OctreeDebugLog(...) \

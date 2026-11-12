@@ -6305,7 +6305,7 @@ void ShipEntity::drawImmediate(bool immediate, bool translucent) {
   // with the matrices.
   if (translucent)
     drawDebugStuff();
-  else if (gDebugFlags & DEBUG_BOUNDING_BOXES && !getIsSubEntity()) {
+  else if (OODebugFlagIsOn(OODebugFlags::kBoundingBoxes) && !getIsSubEntity()) {
     OODebugDrawBoundingBox(getBoundingBox());
     OODebugDrawColoredBoundingBox(totalBoundingBox,
                                   OOColor::purpleColor().get());
@@ -6399,7 +6399,7 @@ void ShipEntity::drawSubEntityImmediate(bool immediate, bool translucent) {
   drawImmediate(immediate, translucent);
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  if (gDebugFlags & DEBUG_BOUNDING_BOXES) {
+  if (OODebugFlagIsOn(OODebugFlags::kBoundingBoxes)) {
     OODebugDrawBoundingBox(getBoundingBox());
   }
 #endif

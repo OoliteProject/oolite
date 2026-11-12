@@ -481,8 +481,8 @@ void OOMesh::renderOpaqueParts() {
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  if (gDebugFlags & DEBUG_DRAW_NORMALS) debugDrawNormals();
-  if (gDebugFlags & DEBUG_OCTREE_DRAW) {
+  if (OODebugFlagIsOn(OODebugFlags::kDrawNormals)) debugDrawNormals();
+  if (OODebugFlagIsOn(OODebugFlags::kOctreeDraw)) {
     if (Octree* cxxOctree = getOctree().get()) cxxOctree->drawOctree();
   }  // a nil octree did nothing
 #endif

@@ -254,7 +254,7 @@ void DustEntity::drawImmediate(bool /*immediate*/, bool translucent) {
   assert(player != nullptr);
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  if (gDebugFlags & DEBUG_NO_DUST) return;
+  if (OODebugFlagIsOn(OODebugFlags::kNoDust)) return;
 #endif
 
 #if OO_SHADERS

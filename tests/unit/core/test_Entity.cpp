@@ -511,7 +511,7 @@ OO_TEST(linkedLists) {
 
     // Moving b to the far end of x re-sorts it, and the lists still check.
 #ifndef NDEBUG
-    gDebugFlags = DEBUG_LINKED_LISTS;
+    gDebugFlags = oo::ToUnderlying(OODebugFlags::kLinkedLists);
     CaptureLog();
 #endif
     b->setPosition(make_HPvector(40, 10, 30));

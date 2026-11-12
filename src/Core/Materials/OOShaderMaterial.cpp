@@ -219,7 +219,7 @@ bool OOShaderMaterial::initWithName(const std::optional<std::string>& name,
 
 				bool canFallBack = !modifiedMacros.get<bool>("OO_REDUCED_COMPLEXITY");
 #ifdef OO_DEBUG_MONITOR_ENABLED
-				if (gDebugFlags & DEBUG_NO_SHADER_FALLBACK)  canFallBack = false;
+				if (OODebugFlagIsOn(OODebugFlags::kNoShaderFallback))  canFallBack = false;
 #endif
 				if (canFallBack)
 				{
