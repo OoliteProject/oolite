@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #include <stdlib.h>
 
 #include "MyOpenGLView.h"
+#include "OOAsyncWorkManager.h"
 #include "OODebugFlags.h"
 #include "OODebugSupport.h"
 #include "OOFoundation.h"
@@ -692,6 +693,9 @@ void GameController::exitAppWithContext(const std::string& context) {
     ChangeDisplaySettingsEx(NULL, NULL, NULL, 0, NULL);
   }
 #endif
+  // The work threads are owned by the never-destroyed manager, so they are
+  // joined here, before anything they might use is torn down.
+  OOAsyncWorkManager::sharedAsyncWorkManager()->shutdown();
   oo::Defaults::standard().synchronize();
   OO_LOG("gameController.exitApp", "{}", ".GNUstepDefaults synchronized.");
 #ifndef NDEBUG
