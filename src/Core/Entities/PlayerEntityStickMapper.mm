@@ -211,7 +211,7 @@ MA 02110-1301, USA.
     // What moved?
     int function;
     NSDictionary* entry = [stickFunctions objectAtIndex:selFunctionIdx];
-    if (oo::PListView(hwDict).get<BOOL>(STICK_ISAXIS)) {
+    if (oo::PListView(hwDict).get<bool>(STICK_ISAXIS)) {
         function = oo::PListView(entry).get<int>(KEY_AXISFN);
         if (function == AXIS_THRUST) {
             [stickHandler unsetButtonFunction:BUTTON_INCTHRUST];
@@ -861,12 +861,12 @@ MA 02110-1301, USA.
         int i;
         for (i = 0; i < [customEquipActivation count]; i++) {
             [funcList addObject:
-                    [self makeStickGuiDict:[NSString stringWithFormat:@"%@ '%@'", DESC(@"stickmapper-cust-activate"), [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPNAME]]
+                    [self makeStickGuiDict:[NSString stringWithFormat:@"%@ '%@'", DESC(@"stickmapper-cust-activate"), oo::PListView([customEquipActivation objectAtIndex:i]).get<NSString*>(CUSTOMEQUIP_EQUIPNAME)]
                                  allowable:HW_BUTTON
                                     axisfn:STICK_NOFUNCTION
                                      butfn:(i + 10000)]];
             [funcList addObject:
-                    [self makeStickGuiDict:[NSString stringWithFormat:@"%@ '%@'", DESC(@"stickmapper-cust-mode"), [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPNAME]]
+                    [self makeStickGuiDict:[NSString stringWithFormat:@"%@ '%@'", DESC(@"stickmapper-cust-mode"), oo::PListView([customEquipActivation objectAtIndex:i]).get<NSString*>(CUSTOMEQUIP_EQUIPNAME)]
                                  allowable:HW_BUTTON
                                     axisfn:STICK_NOFUNCTION
                                      butfn:(i + 20000)]];
