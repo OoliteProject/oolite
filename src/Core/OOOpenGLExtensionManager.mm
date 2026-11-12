@@ -324,9 +324,9 @@ std::optional<std::string> OptionalGLString(const GLubyte* string)
         textureUnitCount = MAX(texUnitOverride, 0);
 #endif
 
-    usePointSmoothing = oo::PListView(gpuConfig).get<bool>(@"smooth_points", YES);
-    useLineSmoothing = oo::PListView(gpuConfig).get<bool>(@"smooth_lines", YES);
-    useDustShader = oo::PListView(gpuConfig).get<bool>(@"use_dust_shader", YES);
+    usePointSmoothing = gpuConfig.get<bool>("smooth_points", YES) ? YES : NO;
+    useLineSmoothing = gpuConfig.get<bool>("smooth_lines", YES) ? YES : NO;
+    useDustShader = gpuConfig.get<bool>("use_dust_shader", YES) ? YES : NO;
 }
 
 - (void)dealloc
@@ -749,7 +749,18 @@ oo::PList StringForKey(const oo::PList* dict, std::string_view key)
                                                                                     inFolder:@"Config"
                                                                                     andMerge:YES]);
 
-    NSArray* keys = [[configurations allKeys] sortedArrayUsingFunction:OOSortFunction(CompareGPUSettingsByPriority) context:configurations];
+    // Highest precedence first, then case-insensitive name order (keys were taken in hash order
+    // before sorting; ties between names equal but for case now keep byte order).
+    std::vector<std::string> keys;
+    if (const oo::PList::Dict* dict = configurations.getIf<oo::PList::Dict>()) {
+        for (const auto& entry : *dict)
+            keys.push_back(entry.first);
+    }
+    std::stable_sort(keys.begin(), keys.end(), [&configurations](const std::string& keyA, const std::string& keyB) {
+        const oo::PList* dictA = configurations.get<oo::PList::Dict>(keyA);
+        const oo::PList* dictB = configurations.get<oo::PList::Dict>(keyB);
+        const double precedenceA = dictA != nullptr ? dictA->get<double>("precedence", 1) : 0;
+        const double precedenceB = dictB != nullptr ? dictB->get<double>("precedence", 1) : 0;
 
         if (precedenceA != precedenceB)
             return precedenceA > precedenceB;

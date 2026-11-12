@@ -409,7 +409,7 @@ oo::PList CloudAtmosphereDictionary(float cloudAlpha)
     OOTexture* texture = [textureObject isKindOfClass:[OOTexture class]] ? (OOTexture*)textureObject : nil;
     if (texture != nil) {
         _texture = [texture retain];
-        isTextureImage = oo::PListView(dict).get<bool>(@"_oo_isExplicitlyTextured");
+        isTextureImage = dict.get<bool>("_oo_isExplicitlyTextured");
     } else {
         const oo::PList* textureValue = dict.find("texture");
         const oo::PList textureSpec = cxx_OOTextureSpecFromObject(textureValue != nullptr ? *textureValue : oo::PList(), std::nullopt);
@@ -486,7 +486,7 @@ oo::PList CloudAtmosphereDictionary(float cloudAlpha)
         sea_hsb.y = 1.0;
         sea_hsb.z = 1.0; // fully-saturated fully bright (red)
         // override the mainPlanet texture colour...
-        [self setTextureColorForPlanet:!![dict objectForKey:@"mainForLocalSystem"] inSystem:oo::PListView(dict).get<bool>(@"mainForLocalSystem", NO)];
+        [self setTextureColorForPlanet:dict.find("mainForLocalSystem") != nullptr inSystem:dict.get<bool>("mainForLocalSystem", NO)];
     } else {
         // random land & sea colours.
         land_hsb.x = gen_rnd_number() / 256.0;

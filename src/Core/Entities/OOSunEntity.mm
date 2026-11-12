@@ -638,7 +638,7 @@ MA 02110-1301, USA.
         corona_blending = OOClamp_0_1_f([object floatValue]);
     } else if (key == "sun_gone_nova") {
 
-        if (oo::PListView(dict).get<bool>(key)) {
+        if (dict.get<bool>(key)) {
             [self setGoingNova:YES inTime:0];
         } else {
             [self setGoingNova:NO inTime:0];

@@ -1522,8 +1522,11 @@ static std::vector<oo::ObjCRef<Entity*>> FindJSVisibleEntities(EntityFilterPredi
                                                                        inRange:range
                                                                       ofEntity:relativeTo]);
 
-    if (result != nil && relativeTo != nil && ![relativeTo isPlayer]) {
-        [result sortUsingFunction:OOSortFunction(CompareEntitiesByDistance) context:relativeTo];
+    if (relativeTo != nil && ![relativeTo isPlayer]) {
+        // -sortUsingFunction:context: with the same comparison (a stable sort: GNUstep's is timsort).
+        std::stable_sort(result.begin(), result.end(), [relativeTo](const oo::ObjCRef<Entity*>& a, const oo::ObjCRef<Entity*>& b) {
+            return CompareEntitiesByDistance(a.get(), b.get(), relativeTo) == NSOrderedAscending;
+        });
     }
     return result; // empty for no matches, as the empty array was
 

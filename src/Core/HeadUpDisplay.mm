@@ -329,15 +329,15 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
 
     overallAlpha = oo::PListView(hudinfo).get<float>(@"overall_alpha", DEFAULT_OVERALL_ALPHA);
 
-    reticleTargetSensitive = oo::PListView(hudinfo).get<BOOL>(@"reticle_target_sensitive", NO);
+    reticleTargetSensitive = oo::PListView(hudinfo).get<bool>(@"reticle_target_sensitive", NO);
     propertiesReticleTargetSensitive = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
             [NSNumber numberWithBool:YES], @"isAccurate",
         [NSNumber numberWithDouble:[UNIVERSE getTime]], @"timeLastAccuracyProbabilityCalculation",
         nil];
 
-    cloakIndicatorOnStatusLight = oo::PListView(hudinfo).get<BOOL>(@"cloak_indicator_on_status_light", YES);
+    cloakIndicatorOnStatusLight = oo::PListView(hudinfo).get<bool>(@"cloak_indicator_on_status_light", YES);
 
-    allowBigGui = oo::PListView(hudinfo).get<BOOL>(@"allow_big_gui", NO);
+    allowBigGui = oo::PListView(hudinfo).get<bool>(@"allow_big_gui", NO);
 
     last_transmitter = NO_TARGET;
 
@@ -357,10 +357,10 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
     _crosshairScale = oo::PListView(hudinfo).get<float>(@"crosshair_scale", 32.0f);
     _crosshairWidth = oo::PListView(hudinfo).get<float>(@"crosshair_width", 1.5f);
 
-    minimalistic_scanner = oo::PListView(hudinfo).get<BOOL>(@"scanner_minimalistic", NO);
+    minimalistic_scanner = oo::PListView(hudinfo).get<bool>(@"scanner_minimalistic", NO);
 
-    nonlinear_scanner = oo::PListView(hudinfo).get<BOOL>(@"scanner_non_linear", NO);
-    scanner_ultra_zoom = oo::PListView(hudinfo).get<BOOL>(@"scanner_ultra_zoom", NO);
+    nonlinear_scanner = oo::PListView(hudinfo).get<bool>(@"scanner_non_linear", NO);
+    scanner_ultra_zoom = oo::PListView(hudinfo).get<bool>(@"scanner_ultra_zoom", NO);
 
     distance_unit = DESC(@"oolite-hud-distance-unit");
 
@@ -443,10 +443,10 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
         BOOL line1 = ![oo::PListView(lastLines).at<NSString*>(0) isEqualToString:@""];
         [self resetGui:gui withInfo:gui_info];
 
-        BOOL permanent = oo::PListView(gui_info).get<BOOL>(@"permanent", NO);
+        BOOL permanent = oo::PListView(gui_info).get<bool>(@"permanent", NO);
         [UNIVERSE setPermanentMessageLog:permanent];
 
-        BOOL automaticBg = oo::PListView(gui_info).get<BOOL>(@"background_automatic", YES);
+        BOOL automaticBg = oo::PListView(gui_info).get<bool>(@"background_automatic", YES);
         [UNIVERSE setAutoMessageLogBg:automaticBg];
 
         // set message gui text colors - one for standard messages, one for incoming comms
@@ -494,8 +494,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
     gui_info = oo::PListView(info).get<NSDictionary*>(@"comm_log_gui");
 
     if (gui && [gui_info count] > 0) {
-        [UNIVERSE setAutoCommLog:oo::PListView(gui_info).get<BOOL>(@"automatic", YES)];
-        [UNIVERSE setPermanentCommLog:oo::PListView(gui_info).get<BOOL>(@"permanent", NO)];
+        [UNIVERSE setAutoCommLog:oo::PListView(gui_info).get<bool>(@"automatic", YES)];
+        [UNIVERSE setPermanentCommLog:oo::PListView(gui_info).get<bool>(@"permanent", NO)];
 
         /*
                 We need to repopulate the comms log after resetting it.
@@ -983,7 +983,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
         }
     }
 
-    BOOL viewOnly = oo::PListView(info).get<BOOL>(VIEWSCREEN_KEY, NO);
+    BOOL viewOnly = oo::PListView(info).get<bool>(VIEWSCREEN_KEY, NO);
     // 1=docked, 2=green, 4=yellow, 8=red
     if (viewOnly && [PLAYER guiScreen] != GUI_SCREEN_MAIN) {
         return;
@@ -1046,7 +1046,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
         }
     }
 
-    BOOL viewOnly = oo::PListView(info).get<BOOL>(VIEWSCREEN_KEY, NO);
+    BOOL viewOnly = oo::PListView(info).get<bool>(VIEWSCREEN_KEY, NO);
 
     // 1=docked, 2=green, 4=yellow, 8=red
     if (viewOnly && [PLAYER guiScreen] != GUI_SCREEN_MAIN) {
@@ -1744,7 +1744,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.height = useDefined(cached.height, 8);
     alpha *= cached.alpha;
 
-    draw_surround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, NO);
+    draw_surround = oo::PListView(info).get<bool>(DRAW_SURROUND_KEY, NO);
 
     SET_COLOR_SURROUND(green_color);
     if (draw_surround) {
@@ -1806,7 +1806,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.width = useDefined(cached.width, 50);
     siz.height = useDefined(cached.height, 8);
     alpha *= cached.alpha;
-    draw_surround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, NO);
+    draw_surround = oo::PListView(info).get<bool>(DRAW_SURROUND_KEY, NO);
 
     if (draw_surround) {
         // draw custom surround
@@ -1912,7 +1912,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.height = useDefined(cached.height, SPEED_BAR_HEIGHT);
     alpha *= cached.alpha;
 
-    draw_surround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, SPEED_BAR_DRAW_SURROUND);
+    draw_surround = oo::PListView(info).get<bool>(DRAW_SURROUND_KEY, SPEED_BAR_DRAW_SURROUND);
 
     SET_COLOR_SURROUND(green_color);
     if (draw_surround) {
@@ -1946,7 +1946,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.width = useDefined(cached.width, ROLL_BAR_WIDTH);
     siz.height = useDefined(cached.height, ROLL_BAR_HEIGHT);
     alpha *= cached.alpha;
-    draw_surround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, ROLL_BAR_DRAW_SURROUND);
+    draw_surround = oo::PListView(info).get<bool>(DRAW_SURROUND_KEY, ROLL_BAR_DRAW_SURROUND);
 
     if (draw_surround) {
         // draw ROLL surround
@@ -1973,7 +1973,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.width = useDefined(cached.width, PITCH_BAR_WIDTH);
     siz.height = useDefined(cached.height, PITCH_BAR_HEIGHT);
     alpha *= cached.alpha;
-    draw_surround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, PITCH_BAR_DRAW_SURROUND);
+    draw_surround = oo::PListView(info).get<bool>(DRAW_SURROUND_KEY, PITCH_BAR_DRAW_SURROUND);
 
     if (draw_surround) {
         // draw PITCH surround
@@ -2001,7 +2001,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.width = useDefined(cached.width, PITCH_BAR_WIDTH);
     siz.height = useDefined(cached.height, PITCH_BAR_HEIGHT);
     alpha *= cached.alpha;
-    draw_surround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, PITCH_BAR_DRAW_SURROUND);
+    draw_surround = oo::PListView(info).get<bool>(DRAW_SURROUND_KEY, PITCH_BAR_DRAW_SURROUND);
 
     if (draw_surround) {
         // draw YAW surround
@@ -2038,8 +2038,8 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.width = useDefined(cached.width, ENERGY_GAUGE_WIDTH);
     siz.height = useDefined(cached.height, ENERGY_GAUGE_HEIGHT);
     alpha *= cached.alpha;
-    drawSurround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, ENERGY_GAUGE_DRAW_SURROUND);
-    labelled = oo::PListView(info).get<BOOL>(LABELLED_KEY, YES);
+    drawSurround = oo::PListView(info).get<bool>(DRAW_SURROUND_KEY, ENERGY_GAUGE_DRAW_SURROUND);
+    labelled = oo::PListView(info).get<bool>(LABELLED_KEY, YES);
     if (n_bars > 8)
         labelled = NO;
 
@@ -2100,7 +2100,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.width = useDefined(cached.width, FORWARD_SHIELD_BAR_WIDTH);
     siz.height = useDefined(cached.height, FORWARD_SHIELD_BAR_HEIGHT);
     alpha *= cached.alpha;
-    draw_surround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, FORWARD_SHIELD_BAR_DRAW_SURROUND);
+    draw_surround = oo::PListView(info).get<bool>(DRAW_SURROUND_KEY, FORWARD_SHIELD_BAR_DRAW_SURROUND);
 
     if (draw_surround) {
         // draw forward_shield surround
@@ -2134,7 +2134,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.width = useDefined(cached.width, AFT_SHIELD_BAR_WIDTH);
     siz.height = useDefined(cached.height, AFT_SHIELD_BAR_HEIGHT);
     alpha *= cached.alpha;
-    draw_surround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, AFT_SHIELD_BAR_DRAW_SURROUND);
+    draw_surround = oo::PListView(info).get<bool>(DRAW_SURROUND_KEY, AFT_SHIELD_BAR_DRAW_SURROUND);
 
     if (draw_surround) {
         // draw forward_shield surround
@@ -2168,7 +2168,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.width = useDefined(cached.width, FUEL_BAR_WIDTH);
     siz.height = useDefined(cached.height, FUEL_BAR_HEIGHT);
     alpha *= cached.alpha;
-    draw_surround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, NO);
+    draw_surround = oo::PListView(info).get<bool>(DRAW_SURROUND_KEY, NO);
 
     if (draw_surround) {
         SET_COLOR_SURROUND(green_color);
@@ -2243,7 +2243,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.width = useDefined(cached.width, CABIN_TEMP_BAR_WIDTH);
     siz.height = useDefined(cached.height, CABIN_TEMP_BAR_HEIGHT);
     alpha *= cached.alpha;
-    draw_surround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, NO);
+    draw_surround = oo::PListView(info).get<bool>(DRAW_SURROUND_KEY, NO);
 
     if (draw_surround) {
         SET_COLOR_SURROUND(green_color);
@@ -2284,7 +2284,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.width = useDefined(cached.width, WEAPON_TEMP_BAR_WIDTH);
     siz.height = useDefined(cached.height, WEAPON_TEMP_BAR_HEIGHT);
     alpha *= cached.alpha;
-    draw_surround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, NO);
+    draw_surround = oo::PListView(info).get<bool>(DRAW_SURROUND_KEY, NO);
 
     if (draw_surround) {
         SET_COLOR_SURROUND(green_color);
@@ -2317,7 +2317,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
     siz.width = useDefined(cached.width, ALTITUDE_BAR_WIDTH);
     siz.height = useDefined(cached.height, ALTITUDE_BAR_HEIGHT);
     alpha *= cached.alpha;
-    draw_surround = oo::PListView(info).get<BOOL>(DRAW_SURROUND_KEY, NO);
+    draw_surround = oo::PListView(info).get<bool>(DRAW_SURROUND_KEY, NO);
 
     if (draw_surround) {
         SET_COLOR_SURROUND(yellow_color);
@@ -3348,7 +3348,7 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
                         // Store the time the last accuracy probability has been performed
                         [propertiesReticleTargetSensitive setObject:[NSNumber numberWithDouble:[UNIVERSE getTime]] forKey:@"timeLastAccuracyProbabilityCalculation"];
                     }
-                    if (oo::PListView(propertiesReticleTargetSensitive).get<BOOL>(@"isAccurate")) {
+                    if (oo::PListView(propertiesReticleTargetSensitive).get<bool>(@"isAccurate")) {
                         // high accuracy reticle
                         isTargeted = ([UNIVERSE firstEntityTargetedByPlayerPrecisely] == target);
                     } else {

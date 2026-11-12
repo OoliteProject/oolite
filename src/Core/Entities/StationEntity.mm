@@ -609,11 +609,12 @@ oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords,
     hasNPCTraffic = (unsigned char)oo::PListView(dict).get<oo::FuzzyBoolean>(@"has_npc_traffic", (maxFlightSpeed == 0)); // carriers default to NO
     hasPatrolShips = oo::PListView(dict).get<oo::FuzzyBoolean>(@"has_patrol_ships", NO);
     suppress_arrival_reports = (unsigned char)oo::PListView(dict).get<bool>(@"suppress_arrival_reports", NO);
-    [self setAllegiance:oo::PListView(dict).get<NSString*>(@"allegiance")];
+    [self cxx_setAllegiance:OptionalStringValue([dict objectForKey:@"allegiance"])];
 
     marketCapacity = oo::PListView(dict).get<unsigned int>(@"market_capacity", MAIN_SYSTEM_MARKET_LIMIT);
-    marketDefinition = [oo::PListView(dict).get<NSArray*>(@"market_definition", nil) retain];
-    marketScriptName = [oo::PListView(dict).get<NSString*>(@"market_script", nil) retain];
+    oo::PList marketDefinitionValue = oo::PListFrom([dict objectForKey:@"market_definition"]);
+    marketDefinition = marketDefinitionValue.isArray() ? std::move(marketDefinitionValue) : oo::PList(); // oo_arrayForKey:
+    marketScriptName = OptionalStringValue([dict objectForKey:@"market_script"]);
     marketMonitored = (unsigned char)oo::PListView(dict).get<bool>(@"market_monitored", NO);
     marketBroadcast = (unsigned char)oo::PListView(dict).get<bool>(@"market_broadcast", YES);
 

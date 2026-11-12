@@ -323,33 +323,31 @@ static id sSharedStickHandler = nil;
     return oo::PList(std::move(fnList));
 }
 
-- (NSDictionary*)guiButtonFunctions
+- (oo::PList)guiButtonFunctions
 {
     int i, j;
-    NSMutableDictionary* fnList = [NSMutableDictionary dictionary];
+    oo::PList::Dict fnList;
 
     // Add buttons
     for (i = 0; i < MAX_BUTTONS; i++) {
         for (j = 0; j < MAX_STICKS; j++) {
             if (guibuttonmap[j][i] >= 0) {
-                NSDictionary* fnDict = [NSDictionary dictionaryWithObjectsAndKeys:
-                        [NSNumber numberWithBool:NO], STICK_ISAXIS,
-                    [NSNumber numberWithInt:j], STICK_NUMBER,
-                    [NSNumber numberWithInt:i], STICK_AXBUT,
-                    nil];
-                [fnList setValue:fnDict
-                          forKey:ENUMKEY(guibuttonmap[j][i])];
+                oo::PList::Dict fnDict;
+                fnDict[oo::StdString(STICK_ISAXIS)] = oo::PList(static_cast<bool>(NO));
+                fnDict[oo::StdString(STICK_NUMBER)] = oo::PList(j);
+                fnDict[oo::StdString(STICK_AXBUT)] = oo::PList(i);
+                fnList[ENUMKEY(guibuttonmap[j][i])] = oo::PList(std::move(fnDict));
             }
         }
     }
-    return fnList;
+    return oo::PList(std::move(fnList));
 }
 
-- (void)setFunction:(int)function withDict:(NSDictionary*)stickFn
+- (void)setFunction:(int)function withDict:(const oo::PList&)stickFn
 {
-    BOOL isAxis = oo::PListView(stickFn).get<bool>(STICK_ISAXIS);
-    int stickNum = oo::PListView(stickFn).get<int>(STICK_NUMBER);
-    int stickAxBt = oo::PListView(stickFn).get<int>(STICK_AXBUT);
+    BOOL isAxis = stickFn.get<bool>(oo::StdString(STICK_ISAXIS)) ? YES : NO;
+    int stickNum = stickFn.get<int>(oo::StdString(STICK_NUMBER));
+    int stickAxBt = stickFn.get<int>(oo::StdString(STICK_AXBUT));
 
     if (isAxis) {
         [self setFunctionForAxis:stickAxBt
@@ -529,7 +527,7 @@ static id sSharedStickHandler = nil;
                  forKey:AXIS_SETTINGS];
     [defaults setObject:oo::ObjectFromPList([self buttonFunctions])
                  forKey:BUTTON_SETTINGS];
-    [defaults setObject:[self guiButtonFunctions]
+    [defaults setObject:oo::ObjectFromPList([self guiButtonFunctions])
                  forKey:GUI_BUTTON_SETTINGS];
     [self saveProfileForAxis:AXIS_ROLL];
     [self saveProfileForAxis:AXIS_PITCH];
@@ -541,10 +539,11 @@ static id sSharedStickHandler = nil;
 {
     [self clearMappings];
     NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
-    NSDictionary* axisSettings = [defaults objectForKey:AXIS_SETTINGS];
-    NSDictionary* buttonSettings = [defaults objectForKey:BUTTON_SETTINGS];
-    NSDictionary* guiButtonSettings = [defaults objectForKey:GUI_BUTTON_SETTINGS];
-    
+    const oo::PList axisSettings = oo::PListFrom([defaults objectForKey:AXIS_SETTINGS]);
+    const oo::PList buttonSettings = oo::PListFrom([defaults objectForKey:BUTTON_SETTINGS]);
+    const oo::PList guiButtonSettings = oo::PListFrom([defaults objectForKey:GUI_BUTTON_SETTINGS]);
+    // Keys are visited in byte order (they came in hash order): where two settings claim the
+    // same stick axis or button, the last one still wins (proposed ADR-0043).
     if (axisSettings) {
         if (const oo::PList::Dict* settings = axisSettings.getIf<oo::PList::Dict>()) {
             for (const auto& [key, stickFn] : *settings) {
@@ -565,11 +564,11 @@ static id sSharedStickHandler = nil;
         [self setDefaultMapping];
     }
     if (guiButtonSettings) {
-        NSArray* keys = [guiButtonSettings allKeys];
-        for (i = 0; i < [keys count]; i++) {
-            NSString* key = [keys objectAtIndex:i];
-            [self setFunction:[key intValue]
-                     withDict:[guiButtonSettings objectForKey:key]];
+        if (const oo::PList::Dict* settings = guiButtonSettings.getIf<oo::PList::Dict>()) {
+            for (const auto& [key, stickFn] : *settings) {
+                [self setFunction:oo::str::intValue(key)
+                         withDict:stickFn];
+            }
         }
     }
     [self loadProfileForAxis:AXIS_ROLL];

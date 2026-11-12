@@ -2959,7 +2959,7 @@ static NSTimeInterval time_last_frame;
         if ((guiSelectedRow == GUI_ROW(GAME, HDRMAXBRIGHTNESS)) && (([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) || ([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]))) {
             if (!hdrMaxBrightnessControlPressed) {
                 int direction = ([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) ? 1 : -1;
-                NSArray* brightnesses = [[UNIVERSE descriptions] oo_arrayForKey:@"hdr_maxBrightness_array"];
+                NSArray* brightnesses = oo::PListView([UNIVERSE descriptions]).get<NSArray*>(@"hdr_maxBrightness_array");
                 int brightnessIdx = [brightnesses indexOfObject:[NSString stringWithFormat:@"%d", (int)[gameView hdrMaxBrightness]]];
 
                 if (static_cast<NSInteger>(brightnessIdx) == NSNotFound) {

@@ -591,8 +591,8 @@ static JSValue PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS)
 
                 if (nDests > 0)
                     for (i = --nDests; i > 0; i--) {
-                        if (oo::PListView(oo::PListView(sDests).at<NSDictionary*>(i)).get<bool>(@"nova")) {
-                            [sDests removeObjectAtIndex:i];
+                        if (sDests[i].get<bool>("nova")) {
+                            sDests.erase(sDests.begin() + i);
                         }
                     }
 

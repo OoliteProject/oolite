@@ -329,12 +329,13 @@ void OpenLogFile();
 {
     id verbose = nil;
 
-    OOLogSetShowMessageClassTemporary(oo::PListView(_verifierPList).get<bool>(@"logShowMessageClassOverride", NO));
+    OOLogSetShowMessageClassTemporary(_verifierPList.get<bool>("logShowMessageClassOverride", NO));
 
-    overrides = oo::PListView(_verifierPList).get<NSDictionary*>(@"logControlOverride");
-    foreachkey(messageClass, overrides)
-    {
-        OOLogSetDisplayMessagesInClass(messageClass, oo::PListView(overrides).get<bool>(messageClass, NO));
+    const oo::PList* overrides = _verifierPList.get<oo::PList::Dict>("logControlOverride");
+    if (overrides != nullptr) {
+        for (const auto& override : *overrides->getIf<oo::PList::Dict>()) {
+            OOLogSetDisplayMessagesInClass(oo::NSStringFrom(override.first), overrides->get<bool>(override.first, NO));
+        }
     }
 
     /*	Since actually editing logControlOverride is a pain, we also allow

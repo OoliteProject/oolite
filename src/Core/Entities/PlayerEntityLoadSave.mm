@@ -378,7 +378,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary* dict);
         if (guiSelectedRow != MOREROW && guiSelectedRow != BACKROW) {
             [self showCommanderShip:idx];
             if (oo::PListView((NSDictionary*)[cdrDetailArray objectAtIndex:idx]).get<bool>(@"isSavedGame")) // don't show things that aren't saved games
-                commanderNameString = oo::PListView(oo::PListView(cdrDetailArray).at<NSDictionary*>(idx)).get<NSString*>(@"player_save_name", oo::PListView(oo::PListView(cdrDetailArray).at<NSDictionary*>(idx)).get<NSString*>(@"player_name"));
+                commanderNameString = oo::StdString(oo::PListView(oo::PListView(cdrDetailArray).at<NSDictionary*>(idx)).get<NSString*>(@"player_save_name", oo::PListView(oo::PListView(cdrDetailArray).at<NSDictionary*>(idx)).get<NSString*>(@"player_name")));
             else
                 commanderNameString = oo::StdString([gameView typedString]);
         } else {
@@ -414,7 +414,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary* dict);
     }
 
     // ignore Ctrl if pressed together with Enter for the moment - we check for it explicitly immediately after
-    if (([self checkKeyPress:n_key_gui_select ignore_ctrl:YES] || [gameView isDown:gvMouseDoubleClick] || joyButtonState[BUTTON_GUISELECT]) && [commanderNameString length]) {
+    if (([self checkKeyPress:n_key_gui_select ignore_ctrl:YES] || [gameView isDown:gvMouseDoubleClick] || joyButtonState[BUTTON_GUISELECT]) && !commanderNameString.empty()) {
         if ([gameView isCommandModifierKeyDown] || [gameView isDown:gvMouseDoubleClick]) {
             int guiSelectedRow = [gui selectedRow];
             int idx = (guiSelectedRow - STARTROW) + (currentPage * NUMROWS);

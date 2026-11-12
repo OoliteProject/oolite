@@ -513,7 +513,7 @@ const char* sGlobalTraceContext = nullptr;
     gOOTextureInfo.textureMaxLevelAvailable = ver120 || [extMgr haveExtension:"GL_SGIS_texture_lod"];
 
 #if GL_EXT_texture_lod_bias
-    if (oo::PListView([NSUserDefaults standardUserDefaults]).get<BOOL>(@"use-texture-lod-bias", YES)) {
+    if (oo::PListView([NSUserDefaults standardUserDefaults]).get<bool>(@"use-texture-lod-bias", YES)) {
         gOOTextureInfo.textureLODBiasAvailable = [extMgr haveExtension:"GL_EXT_texture_lod_bias"] ? 1 : 0;
     } else {
         gOOTextureInfo.textureLODBiasAvailable = NO;
