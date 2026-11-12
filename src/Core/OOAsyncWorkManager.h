@@ -83,6 +83,13 @@ class OOAsyncWorkManager : public oo::RefCounted {
   */
   virtual void waitForTaskToComplete(OOAsyncWorkTask* task);
 
+  /*	Stop the work threads: request stop, wake every worker and join them. A
+     worker busy with a task finishes it first; tasks still queued are dropped
+     without running their completion. Idempotent. Called once, on the quit
+     path, because the manager itself is never destroyed.
+  */
+  virtual void shutdown() noexcept {}
+
  protected:
   OOAsyncWorkManager() = default;
   ~OOAsyncWorkManager() override;
