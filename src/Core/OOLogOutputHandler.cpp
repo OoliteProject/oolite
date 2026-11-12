@@ -234,7 +234,7 @@ void AsyncLogMessage(std::string_view message) {
 
   if (!sFlushPending.exchange(true)) {
     // No pending flush
-    if (std::this_thread::get_id() == oo::thread::kMainThreadId) {
+    if (oo::thread::isMainThread()) {
       std::chrono::steady_clock::time_point deadline =
           std::chrono::steady_clock::now() +
           std::chrono::duration_cast<std::chrono::steady_clock::duration>(

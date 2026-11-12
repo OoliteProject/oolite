@@ -1,12 +1,11 @@
 // clang-format off
 /*	oofnd/Thread.hpp
         oo::thread: the two things Oolite asked of NSThread that std::thread
-        cannot do, plus the main thread's id.
+        cannot do, plus a test for the main thread.
 
             Foundation                                    here
             --------------------------------------------  -------------------------------------
-            [NSThread isMainThread]                       std::this_thread::get_id() ==
-                                                              oo::thread::kMainThreadId
+            [NSThread isMainThread]                       oo::thread::isMainThread()
             [[NSThread currentThread] setName:n]          oo::thread::setCurrentName(utf8)
             [NSThread setThreadPriority:p] (0.0 .. 1.0)   oo::thread::setCurrentPriority(p)
             detachNewThreadSelector:toTarget:withObject:  a std::jthread owned by its user
@@ -16,7 +15,7 @@
 
           * The main thread is the thread that ran static initialisation, i.e. the one that calls
             main(): its id is captured then (kMainThreadId below), before any code in main()
-            runs. The comparison is false only when made during another TU's static
+            runs. isMainThread() is false only when asked during another TU's static
             initialisation before this header's inline variable is initialised; nothing in the
             game does that.
           * setCurrentName(): SetThreadDescription on Windows (what GNUstep's -setName: calls
@@ -63,8 +62,11 @@ namespace oo::thread {
 
 // The id of the thread that ran static initialisation (the main thread); see
 // the banner.
-// Callers compare std::this_thread::get_id() with it.
 inline const std::thread::id kMainThreadId = std::this_thread::get_id();
+
+inline bool isMainThread() {
+  return std::this_thread::get_id() == kMainThreadId;
+}
 
 inline bool setCurrentName(std::string_view utf8Name) {
 #if defined(_WIN32)
