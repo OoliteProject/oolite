@@ -162,7 +162,8 @@ class GameController : public oo::RefCounted {
   oo::PList getDisplayModes();  // an array of mode dictionaries
   std::size_t indexOfCurrentDisplayMode();
   void pauseFullScreenModeToPerform(
-      const char* selectorName, oo::RefCounted* target);  // by name (was a SEL)
+      std::string_view selectorName,
+      oo::RefCounted* target);  // by name (was a SEL)
 #endif
 
   // tests/unit/core/test_GameController.cpp reads and sets the state below.

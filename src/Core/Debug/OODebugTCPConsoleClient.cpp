@@ -201,14 +201,14 @@ namespace {
 
 // One of OODebugTCPConsoleProtocol.h's name constants (UTF-8 literals here, see
 // OOALSTR above).
-std::string ProtocolName(const char* name) { return std::string(name); }
+std::string ProtocolName(std::string_view name) { return std::string(name); }
 
 // PListView get<> of a string: the packet's value for <key> if it is a string,
 // or a number's -stringValue; nullopt (was nil) for anything else, a missing
 // key or a packet that is no dictionary. <key> is one of
 // OODebugTCPConsoleProtocol.h's constants.
 std::optional<std::string> PacketString(const oo::PList& packet,
-                                        const char* key) {
+                                        std::string_view key) {
   const std::string name = ProtocolName(key);
   const oo::PList* value = packet.find(name);
   if (value == nullptr || !(value->isString() || value->isNumber()))
