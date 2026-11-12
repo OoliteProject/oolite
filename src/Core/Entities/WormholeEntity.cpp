@@ -738,7 +738,7 @@ void WormholeEntity::drawImmediate(bool /*immediate*/, bool translucent) {
 
     GLfloat color_fv[4] = OO_WORMHOLE_COLOR_FVEC4;
 
-    OOSetOpenGLState(OPENGL_STATE_TRANSLUCENT_PASS);
+    OOSetOpenGLState(OOOpenGLStateID::kTranslucentPass);
     OOGL(glDisable(GL_CULL_FACE));
     OOGL(glEnable(GL_BLEND));
 

@@ -755,7 +755,7 @@ void PlayerEntity::setGuiToKeyConfigEntryScreen() {
     gameView->setTypedString(
         (k_int != 0 ? keyCodeDescriptionShort(k_int).value_or(std::string())
                     : std::string()));
-  if (gameView != nullptr) gameView->setStringInput(gvStringInputAll);
+  if (gameView != nullptr) gameView->setStringInput(StringInput::kAll);
 
   gui->clear();
   gui->setTitle(OO_DESC("oolite-keyconfig-update-entry-title"));  // @"%@"

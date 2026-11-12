@@ -371,7 +371,7 @@ void OOSunEntity::drawOpaqueParts() {
 
   OO_ENTER_OPENGL();
 
-  OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
+  OOSetOpenGLState(OOOpenGLStateID::kAdditiveBlending);
 
   if ((UNIVERSE != nullptr ? UNIVERSE->reducedDetail() : false)) {
     int subdivideLevel = 2;  // 4 is probably the maximum!
@@ -444,7 +444,7 @@ void OOSunEntity::drawTranslucentParts() {
 
   OO_ENTER_OPENGL();
 
-  OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
+  OOSetOpenGLState(OOOpenGLStateID::kAdditiveBlending);
 
   OOGL(glVertexPointer(3, GL_FLOAT, 0, sunVertices));
 
@@ -576,7 +576,7 @@ void OOSunEntity::drawDirectVisionSunGlare() {
 #if SUN_DIRECT_VISION_GLARE
   OO_ENTER_OPENGL();
 
-  OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+  OOSetOpenGLState(OOOpenGLStateID::kOverlay);
 
   GLfloat sunGlareAngularSize =
       atan(radius() /
@@ -630,7 +630,7 @@ void OOSunEntity::drawDirectVisionSunGlare() {
 void OOSunEntity::drawStarGlare() {
   OO_ENTER_OPENGL();
 
-  OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+  OOSetOpenGLState(OOOpenGLStateID::kOverlay);
 
   float sqrt_zero_distance = sqrtf(cam_zero_distance);
   float alt = sqrt_zero_distance - collision_radius;

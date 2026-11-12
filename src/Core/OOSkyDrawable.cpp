@@ -163,7 +163,7 @@ void OOSkyDrawable::renderOpaqueParts() {
   // since it'll be behind everything else anyway.
 
   OO_ENTER_OPENGL();
-  OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
+  OOSetOpenGLState(OOOpenGLStateID::kAdditiveBlending);
 
   OOGL(glDisable(GL_DEPTH_TEST));  // don't read the depth buffer
   OOGL(glEnable(GL_TEXTURE_2D));

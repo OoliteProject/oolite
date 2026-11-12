@@ -277,7 +277,7 @@ void DustEntity::drawImmediate(bool /*immediate*/, bool translucent) {
   float dustIntensity;
 
   OO_ENTER_OPENGL();
-  OOSetOpenGLState(OPENGL_STATE_OPAQUE);
+  OOSetOpenGLState(OOOpenGLStateID::kOpaque);
   OOGL(glDisableClientState(GL_NORMAL_ARRAY));
 
   if (!warp_stars) {

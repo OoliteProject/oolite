@@ -5297,7 +5297,8 @@ void Universe::drawUniverse() {
 
       cxx_OOCheckOpenGLErrors("Universe before doing anything");
 
-      OOSetOpenGLState(OPENGL_STATE_OPAQUE);  // FIXME: should be redundant.
+      OOSetOpenGLState(
+          OOOpenGLStateID::kOpaque);  // FIXME: should be redundant.
 
       OOGL(glClear(GL_COLOR_BUFFER_BIT));
 
@@ -5383,7 +5384,7 @@ void Universe::drawUniverse() {
          * handled a little more carefully than before.
          */
 
-        OOSetOpenGLState(OPENGL_STATE_OPAQUE);
+        OOSetOpenGLState(OOOpenGLStateID::kOpaque);
         // clearing the depth buffer waits until we've set
         // STATE_OPAQUE so that depth writes are definitely
         // available.
@@ -5585,7 +5586,8 @@ void Universe::drawUniverse() {
       // glare effects covering the entire game window
       OOGLResetProjection();
       OOGLFrustum(-0.5, 0.5, -aspect * 0.5, aspect * 0.5, 1.0, MAX_CLEAR_DEPTH);
-      OOSetOpenGLState(OPENGL_STATE_OVERLAY);  // FIXME: should be redundant.
+      OOSetOpenGLState(
+          OOOpenGLStateID::kOverlay);  // FIXME: should be redundant.
       if (EXPECT(!displayGUI)) {
         if (!bpHide && cachedSun) {
           if (cachedSun != nullptr) cachedSun->drawDirectVisionSunGlare();
@@ -5596,7 +5598,8 @@ void Universe::drawUniverse() {
       // actions when the HUD should be rendered separately from the 3d universe
       if (hudSeparateRenderPass) {
         cxx_OOCheckOpenGLErrors("Universe after drawing entities");
-        OOSetOpenGLState(OPENGL_STATE_OVERLAY);  // FIXME: should be redundant.
+        OOSetOpenGLState(
+            OOOpenGLStateID::kOverlay);  // FIXME: should be redundant.
 
         prepareToRenderIntoDefaultFramebuffer();
         OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
@@ -5755,7 +5758,7 @@ OOMatrix Universe::getViewMatrix() { return viewMatrix; }
 // removing entities, demo ships.
 
 void Universe::drawMessage() {
-  OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+  OOSetOpenGLState(OOOpenGLStateID::kOverlay);
 
   OOGL(glDisable(GL_TEXTURE_2D));  // for background sheets
 

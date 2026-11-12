@@ -73,9 +73,9 @@ void MyOpenGLView::setStringInput(enum StringInput value) {
 }
 void MyOpenGLView::allowStringInput(bool value) {
   if (value)
-    allowingStringInput = gvStringInputAlpha;
+    allowingStringInput = StringInput::kAlpha;
   else
-    allowingStringInput = gvStringInputNo;
+    allowingStringInput = StringInput::kNo;
 }
 StringInput MyOpenGLView::getAllowingStringInput() {
   return allowingStringInput;
@@ -166,13 +166,13 @@ bool MyOpenGLView::isCapsLockOn() {
 }
 bool MyOpenGLView::lastKeyWasShifted() { return lastKeyShifted; }
 int MyOpenGLView::numKeys() { return NUM_KEYS; }
-int MyOpenGLView::mouseWheelState() {
+MouseWheelStatus MyOpenGLView::mouseWheelState() {
   if (_mouseWheelDelta > 0.0f)
-    return gvMouseWheelUp;
+    return MouseWheelStatus::kUp;
   else if (_mouseWheelDelta < 0.0f)
-    return gvMouseWheelDown;
+    return MouseWheelStatus::kDown;
   else
-    return gvMouseWheelNeutral;
+    return MouseWheelStatus::kNeutral;
 }
 float MyOpenGLView::mouseWheelDelta() {
   return _mouseWheelDelta / OOMOUSEWHEEL_DELTA;
@@ -387,67 +387,89 @@ void MyOpenGLView::pollControls() {
             break;
 
           case SDLK_KP_0:
-            key_id = (!allowingStringInput ? gvNumberPadKey0 : gvNumberKey0);
+            key_id = (allowingStringInput == StringInput::kNo ? gvNumberPadKey0
+                                                              : gvNumberKey0);
             special_key = true;
             break;
           case SDLK_KP_1:
-            key_id = (!allowingStringInput ? gvNumberPadKey1 : gvNumberKey1);
+            key_id = (allowingStringInput == StringInput::kNo ? gvNumberPadKey1
+                                                              : gvNumberKey1);
             special_key = true;
             break;
           case SDLK_KP_2:
-            key_id = (!allowingStringInput ? gvNumberPadKey2 : gvNumberKey2);
+            key_id = (allowingStringInput == StringInput::kNo ? gvNumberPadKey2
+                                                              : gvNumberKey2);
             special_key = true;
             break;
           case SDLK_KP_3:
-            key_id = (!allowingStringInput ? gvNumberPadKey3 : gvNumberKey3);
+            key_id = (allowingStringInput == StringInput::kNo ? gvNumberPadKey3
+                                                              : gvNumberKey3);
             special_key = true;
             break;
           case SDLK_KP_4:
-            key_id = (!allowingStringInput ? gvNumberPadKey4 : gvNumberKey4);
+            key_id = (allowingStringInput == StringInput::kNo ? gvNumberPadKey4
+                                                              : gvNumberKey4);
             special_key = true;
             break;
           case SDLK_KP_5:
-            key_id = (!allowingStringInput ? gvNumberPadKey5 : gvNumberKey5);
+            key_id = (allowingStringInput == StringInput::kNo ? gvNumberPadKey5
+                                                              : gvNumberKey5);
             special_key = true;
             break;
           case SDLK_KP_6:
-            key_id = (!allowingStringInput ? gvNumberPadKey6 : gvNumberKey6);
+            key_id = (allowingStringInput == StringInput::kNo ? gvNumberPadKey6
+                                                              : gvNumberKey6);
             special_key = true;
             break;
           case SDLK_KP_7:
-            key_id = (!allowingStringInput ? gvNumberPadKey7 : gvNumberKey7);
+            key_id = (allowingStringInput == StringInput::kNo ? gvNumberPadKey7
+                                                              : gvNumberKey7);
             special_key = true;
             break;
           case SDLK_KP_8:
-            key_id = (!allowingStringInput ? gvNumberPadKey8 : gvNumberKey8);
+            key_id = (allowingStringInput == StringInput::kNo ? gvNumberPadKey8
+                                                              : gvNumberKey8);
             special_key = true;
             break;
           case SDLK_KP_9:
-            key_id = (!allowingStringInput ? gvNumberPadKey9 : gvNumberKey9);
+            key_id = (allowingStringInput == StringInput::kNo ? gvNumberPadKey9
+                                                              : gvNumberKey9);
             special_key = true;
             break;
           case SDLK_KP_PERIOD:
-            key_id = (!allowingStringInput ? gvNumberPadKeyPeriod : 46);
+            key_id =
+                (allowingStringInput == StringInput::kNo ? gvNumberPadKeyPeriod
+                                                         : 46);
             special_key = true;
             break;
           case SDLK_KP_DIVIDE:
-            key_id = (!allowingStringInput ? gvNumberPadKeyDivide : 47);
+            key_id =
+                (allowingStringInput == StringInput::kNo ? gvNumberPadKeyDivide
+                                                         : 47);
             special_key = true;
             break;
           case SDLK_KP_MULTIPLY:
-            key_id = (!allowingStringInput ? gvNumberPadKeyMultiply : 42);
+            key_id = (allowingStringInput == StringInput::kNo
+                          ? gvNumberPadKeyMultiply
+                          : 42);
             special_key = true;
             break;
           case SDLK_KP_MINUS:
-            key_id = (!allowingStringInput ? gvNumberPadKeyMinus : 45);
+            key_id =
+                (allowingStringInput == StringInput::kNo ? gvNumberPadKeyMinus
+                                                         : 45);
             special_key = true;
             break;
           case SDLK_KP_PLUS:
-            key_id = (!allowingStringInput ? gvNumberPadKeyPlus : 43);
+            key_id =
+                (allowingStringInput == StringInput::kNo ? gvNumberPadKeyPlus
+                                                         : 43);
             special_key = true;
             break;
           case SDLK_KP_EQUALS:
-            key_id = (!allowingStringInput ? gvNumberPadKeyEquals : 61);
+            key_id =
+                (allowingStringInput == StringInput::kNo ? gvNumberPadKeyEquals
+                                                         : 61);
             special_key = true;
             break;
           case SDLK_KP_ENTER:
@@ -586,7 +608,8 @@ void MyOpenGLView::pollControls() {
         // cases) to get the character without the impact of caps lock.
 
         if (((!special_key && (ctrl || key_id == 0)) ||
-             (isCapsLockOn() && (!special_key && !allowingStringInput))) &&
+             (isCapsLockOn() &&
+              (!special_key && allowingStringInput == StringInput::kNo))) &&
             !modifier_pressed)  //
         {
           // ctrl changes alpha characters to control codes (1-26)
@@ -609,7 +632,7 @@ void MyOpenGLView::pollControls() {
         // if we've got the unicode value, we can store it in our array now
         if (key_id > 0) scancode2Unicode[scan_code] = key_id;
 
-        if (allowingStringInput && !modifier_pressed) {
+        if (allowingStringInput != StringInput::kNo && !modifier_pressed) {
           handleStringInput(kbd_event, key_id);
         }
 
@@ -670,52 +693,74 @@ void MyOpenGLView::pollControls() {
         // translate scancode to unicode equiv
         switch (kbd_event->key) {
           case SDLK_KP_0:
-            key_id = (!allowingStringInput ? gvNumberPadKey0 : gvNumberKey0);
+            key_id = (allowingStringInput == StringInput::kNo ? gvNumberPadKey0
+                                                              : gvNumberKey0);
             break;
           case SDLK_KP_1:
-            key_id = (!allowingStringInput ? gvNumberPadKey1 : gvNumberKey1);
+            key_id = (allowingStringInput == StringInput::kNo ? gvNumberPadKey1
+                                                              : gvNumberKey1);
             break;
           case SDLK_KP_2:
-            key_id = (!allowingStringInput ? gvNumberPadKey2 : gvNumberKey2);
+            key_id = (allowingStringInput == StringInput::kNo ? gvNumberPadKey2
+                                                              : gvNumberKey2);
             break;
           case SDLK_KP_3:
-            key_id = (!allowingStringInput ? gvNumberPadKey3 : gvNumberKey3);
+            key_id = (allowingStringInput == StringInput::kNo ? gvNumberPadKey3
+                                                              : gvNumberKey3);
             break;
           case SDLK_KP_4:
-            key_id = (!allowingStringInput ? gvNumberPadKey4 : gvNumberKey4);
+            key_id = (allowingStringInput == StringInput::kNo ? gvNumberPadKey4
+                                                              : gvNumberKey4);
             break;
           case SDLK_KP_5:
-            key_id = (!allowingStringInput ? gvNumberPadKey5 : gvNumberKey5);
+            key_id = (allowingStringInput == StringInput::kNo ? gvNumberPadKey5
+                                                              : gvNumberKey5);
             break;
           case SDLK_KP_6:
-            key_id = (!allowingStringInput ? gvNumberPadKey6 : gvNumberKey6);
+            key_id = (allowingStringInput == StringInput::kNo ? gvNumberPadKey6
+                                                              : gvNumberKey6);
             break;
           case SDLK_KP_7:
-            key_id = (!allowingStringInput ? gvNumberPadKey7 : gvNumberKey7);
+            key_id = (allowingStringInput == StringInput::kNo ? gvNumberPadKey7
+                                                              : gvNumberKey7);
             break;
           case SDLK_KP_8:
-            key_id = (!allowingStringInput ? gvNumberPadKey8 : gvNumberKey8);
+            key_id = (allowingStringInput == StringInput::kNo ? gvNumberPadKey8
+                                                              : gvNumberKey8);
             break;
           case SDLK_KP_9:
-            key_id = (!allowingStringInput ? gvNumberPadKey9 : gvNumberKey9);
+            key_id = (allowingStringInput == StringInput::kNo ? gvNumberPadKey9
+                                                              : gvNumberKey9);
             break;
           case SDLK_KP_PERIOD:
-            key_id = (!allowingStringInput ? gvNumberPadKeyPeriod : 46);
+            key_id =
+                (allowingStringInput == StringInput::kNo ? gvNumberPadKeyPeriod
+                                                         : 46);
             break;
           case SDLK_KP_DIVIDE:
-            key_id = (!allowingStringInput ? gvNumberPadKeyDivide : 47);
+            key_id =
+                (allowingStringInput == StringInput::kNo ? gvNumberPadKeyDivide
+                                                         : 47);
             break;
           case SDLK_KP_MULTIPLY:
-            key_id = (!allowingStringInput ? gvNumberPadKeyMultiply : 42);
+            key_id = (allowingStringInput == StringInput::kNo
+                          ? gvNumberPadKeyMultiply
+                          : 42);
             break;
           case SDLK_KP_MINUS:
-            key_id = (!allowingStringInput ? gvNumberPadKeyMinus : 45);
+            key_id =
+                (allowingStringInput == StringInput::kNo ? gvNumberPadKeyMinus
+                                                         : 45);
             break;
           case SDLK_KP_PLUS:
-            key_id = (!allowingStringInput ? gvNumberPadKeyPlus : 43);
+            key_id =
+                (allowingStringInput == StringInput::kNo ? gvNumberPadKeyPlus
+                                                         : 43);
             break;
           case SDLK_KP_EQUALS:
-            key_id = (!allowingStringInput ? gvNumberPadKeyEquals : 61);
+            key_id =
+                (allowingStringInput == StringInput::kNo ? gvNumberPadKeyEquals
+                                                         : 61);
             break;
           case SDLK_KP_ENTER:
             key_id = gvNumberPadKeyEnter;
@@ -889,7 +934,7 @@ void MyOpenGLView::handleStringInput(SDL_KeyboardEvent* kbd_event,
   // TODO: a more flexible mechanism  for max. string length ?
   if (oo::utf8ToUtf16(typedString).size() < 40) {
     lastKeyShifted = shift;
-    if (allowingStringInput == gvStringInputAlpha) {
+    if (allowingStringInput == StringInput::kAlpha) {
       // inputAlpha - limited input for planet find screen
       if (key >= SDLK_A && key <= SDLK_Z) {
         isAlphabetKeyDown = true;
@@ -901,7 +946,7 @@ void MyOpenGLView::handleStringInput(SDL_KeyboardEvent* kbd_event,
       //  printable range
       if (key_id >= 32 && key_id <= 255)  // 126
       {
-        if ((char)key_id != '/' || allowingStringInput == gvStringInputAll) {
+        if ((char)key_id != '/' || allowingStringInput == StringInput::kAll) {
           isAlphabetKeyDown = true;
           typedString += FormattedCharacter(key_id);
         }

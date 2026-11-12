@@ -46,7 +46,7 @@ OOCrosshairs::~OOCrosshairs() { free(_data); }
 void OOCrosshairs::render() {
   if (_data != nullptr) {
     OO_ENTER_OPENGL();
-    OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+    OOSetOpenGLState(OOOpenGLStateID::kOverlay);
 
     OOGL(glPushAttrib(GL_ENABLE_BIT));
     OOGL(glDisable(GL_LIGHTING));

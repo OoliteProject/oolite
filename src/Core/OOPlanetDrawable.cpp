@@ -155,7 +155,7 @@ void OOPlanetDrawable::calculateLevelOfDetailForViewDistance(float distance) {
 void OOPlanetDrawable::renderOpaqueParts() {
   assert(_lod < kOOPlanetDataLevels);
 
-  OOSetOpenGLState(OPENGL_STATE_OPAQUE);
+  OOSetOpenGLState(OOOpenGLStateID::kOpaque);
 
   renderCommonParts();
 
@@ -166,7 +166,7 @@ void OOPlanetDrawable::renderTranslucentParts() {
   assert(_lod < kOOPlanetDataLevels);
 
   // yes, opaque - necessary changes made later
-  OOSetOpenGLState(OPENGL_STATE_OPAQUE);
+  OOSetOpenGLState(OOOpenGLStateID::kOpaque);
 
   renderCommonParts();
 
@@ -179,7 +179,7 @@ void OOPlanetDrawable::renderTranslucentPartsOnOpaquePass() {
   OO_ENTER_OPENGL();
 
   // yes, opaque - necessary changes made later
-  OOSetOpenGLState(OPENGL_STATE_OPAQUE);
+  OOSetOpenGLState(OOOpenGLStateID::kOpaque);
 
   OOGL(glDisable(GL_DEPTH_TEST));
   renderCommonParts();

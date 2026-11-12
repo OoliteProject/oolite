@@ -147,50 +147,54 @@ static JSClassDef sConsoleClass = {
     .finalizer = OOJSCxxObjectWrapperFinalize,
 };
 
-enum {
-  // Property IDs
-  kConsole_debugFlags,   // debug flags, integer, read/write
-  kConsole_detailLevel,  // graphics detail level, symbolic string, read/write
-  kConsole_maximumDetailLevel,  // maximum graphics detail level, symbolic
-                                // string, read-only
-  kConsole_displayFPS,  // display FPS (and related info), boolean, read/write
-  kConsole_platformDescription,  // Information about system we're running on in
-                                 // unspecified format, string, read-only
-  kConsole_ignoreDroppedPackets,  // boolean (default false), read/write
-  kConsole_pedanticMode,  // JS pedantic mode (JS_STRICT flag, not the same as
-                          // "use strict"), boolean (default true), read/write
-  kConsole_showErrorLocations,  // Show error/warning source locations, boolean
-                                // (default true), read/write
-  kConsole_dumpStackForErrors,  // Write stack dump when reporting
-                                // error/exception, boolean (default false),
-                                // read/write
-  kConsole_dumpStackForWarnings,  // Write stack dump when reporting warning,
-                                  // boolean (default false), read/write
+namespace {
 
-  kConsole_glVendorString,    // OpenGL GL_VENDOR string, string, read-only
-  kConsole_glRendererString,  // OpenGL GL_RENDERER string, string, read-only
-  kConsole_glFixedFunctionTextureUnitCount,   // GL_MAX_TEXTURE_UNITS_ARB,
-                                              // integer, read-only
-  kConsole_glFragmentShaderTextureUnitCount,  // GL_MAX_TEXTURE_IMAGE_UNITS_ARB,
-                                              // integer, read-only
+enum class ConsoleProperty : std::int16_t {
+  // Property IDs
+  kDebugFlags,            // debug flags, integer, read/write
+  kDetailLevel,           // graphics detail level, symbolic string, read/write
+  kMaximumDetailLevel,    // maximum graphics detail level, symbolic
+                          // string, read-only
+  kDisplayFPS,            // display FPS (and related info), boolean, read/write
+  kPlatformDescription,   // Information about system we're running on in
+                          // unspecified format, string, read-only
+  kIgnoreDroppedPackets,  // boolean (default false), read/write
+  kPedanticMode,          // JS pedantic mode (JS_STRICT flag, not the same as
+                          // "use strict"), boolean (default true), read/write
+  kShowErrorLocations,    // Show error/warning source locations, boolean
+                          // (default true), read/write
+  kDumpStackForErrors,    // Write stack dump when reporting
+                          // error/exception, boolean (default false),
+                          // read/write
+  kDumpStackForWarnings,  // Write stack dump when reporting warning,
+                          // boolean (default false), read/write
+
+  kGlVendorString,    // OpenGL GL_VENDOR string, string, read-only
+  kGlRendererString,  // OpenGL GL_RENDERER string, string, read-only
+  kGlFixedFunctionTextureUnitCount,   // GL_MAX_TEXTURE_UNITS_ARB,
+                                      // integer, read-only
+  kGlFragmentShaderTextureUnitCount,  // GL_MAX_TEXTURE_IMAGE_UNITS_ARB,
+                                      // integer, read-only
 
   // Symbolic constants for debug flags:
-  kConsole_DEBUG_LINKED_LISTS,
-  kConsole_DEBUG_COLLISIONS,
-  kConsole_DEBUG_DOCKING,
-  kConsole_DEBUG_OCTREE_LOGGING,
-  kConsole_DEBUG_BOUNDING_BOXES,
-  kConsole_DEBUG_OCTREE_DRAW,
-  kConsole_DEBUG_DRAW_NORMALS,
-  kConsole_DEBUG_NO_DUST,
-  kConsole_DEBUG_NO_SHADER_FALLBACK,
-  kConsole_DEBUG_SHADER_VALIDATION,
+  kDEBUG_LINKED_LISTS,
+  kDEBUG_COLLISIONS,
+  kDEBUG_DOCKING,
+  kDEBUG_OCTREE_LOGGING,
+  kDEBUG_BOUNDING_BOXES,
+  kDEBUG_OCTREE_DRAW,
+  kDEBUG_DRAW_NORMALS,
+  kDEBUG_NO_DUST,
+  kDEBUG_NO_SHADER_FALLBACK,
+  kDEBUG_SHADER_VALIDATION,
 
-  kConsole_DEBUG_MISC
+  kDEBUG_MISC
 };
 
-#define OOJS_PROPERTY_HIDDEN_RW(name, getter, setter, magic) \
-  JS_CGETSET_MAGIC_DEF2(name, getter, setter, magic,         \
+}  // namespace
+
+#define OOJS_PROPERTY_HIDDEN_RW(name, getter, setter, magic)            \
+  JS_CGETSET_MAGIC_DEF2(name, getter, setter, OOJSPropertyMagic(magic), \
                         OOJS_PROP_HIDDEN_READWRITE_CB)
 
 // A flag's JS property name as the C string a property entry holds.
@@ -204,50 +208,56 @@ static const JSCFunctionListEntry sConsoleProperties[] = {
     // JS name								Getter
     // Setter				ID
     OOJS_PROPERTY_RW("debugFlags", ConsoleGetProperty, ConsoleSetProperty,
-                     kConsole_debugFlags),
+                     ConsoleProperty::kDebugFlags),
     OOJS_PROPERTY_RW("detailLevel", ConsoleGetProperty, ConsoleSetProperty,
-                     kConsole_detailLevel),
+                     ConsoleProperty::kDetailLevel),
     OOJS_PROPERTY_RO("maximumDetailLevel", ConsoleGetProperty,
-                     kConsole_maximumDetailLevel),
+                     ConsoleProperty::kMaximumDetailLevel),
     OOJS_PROPERTY_RW("displayFPS", ConsoleGetProperty, ConsoleSetProperty,
-                     kConsole_displayFPS),
+                     ConsoleProperty::kDisplayFPS),
     OOJS_PROPERTY_RO("platformDescription", ConsoleGetProperty,
-                     kConsole_platformDescription),
+                     ConsoleProperty::kPlatformDescription),
     OOJS_PROPERTY_RW("pedanticMode", ConsoleGetProperty, ConsoleSetProperty,
-                     kConsole_pedanticMode),
+                     ConsoleProperty::kPedanticMode),
     OOJS_PROPERTY_RW("ignoreDroppedPackets", ConsoleGetProperty,
-                     ConsoleSetProperty, kConsole_ignoreDroppedPackets),
+                     ConsoleSetProperty,
+                     ConsoleProperty::kIgnoreDroppedPackets),
     OOJS_PROPERTY_HIDDEN_RW("__showErrorLocations", ConsoleGetProperty,
-                            ConsoleSetProperty, kConsole_showErrorLocations),
+                            ConsoleSetProperty,
+                            ConsoleProperty::kShowErrorLocations),
     OOJS_PROPERTY_HIDDEN_RW("__dumpStackForErrors", ConsoleGetProperty,
-                            ConsoleSetProperty, kConsole_dumpStackForErrors),
+                            ConsoleSetProperty,
+                            ConsoleProperty::kDumpStackForErrors),
     OOJS_PROPERTY_HIDDEN_RW("__dumpStackForWarnings", ConsoleGetProperty,
-                            ConsoleSetProperty, kConsole_dumpStackForWarnings),
+                            ConsoleSetProperty,
+                            ConsoleProperty::kDumpStackForWarnings),
     OOJS_PROPERTY_RO("glVendorString", ConsoleGetProperty,
-                     kConsole_glVendorString),
+                     ConsoleProperty::kGlVendorString),
     OOJS_PROPERTY_RO("glRendererString", ConsoleGetProperty,
-                     kConsole_glRendererString),
+                     ConsoleProperty::kGlRendererString),
     OOJS_PROPERTY_RO("glFixedFunctionTextureUnitCount", ConsoleGetProperty,
-                     kConsole_glFixedFunctionTextureUnitCount),
+                     ConsoleProperty::kGlFixedFunctionTextureUnitCount),
     OOJS_PROPERTY_RO("glFragmentShaderTextureUnitCount", ConsoleGetProperty,
-                     kConsole_glFragmentShaderTextureUnitCount),
+                     ConsoleProperty::kGlFragmentShaderTextureUnitCount),
 
 // Each flag's name is its OOEnumName, as console.DEBUG_* always was.
 #define DEBUG_FLAG_DECL(flag, magic)                          \
   OOJS_PROPERTY_RO(DebugFlagPropertyName(OODebugFlags::flag), \
                    ConsoleGetProperty, magic)
-    DEBUG_FLAG_DECL(kLinkedLists, kConsole_DEBUG_LINKED_LISTS),
-    DEBUG_FLAG_DECL(kCollisions, kConsole_DEBUG_COLLISIONS),
-    DEBUG_FLAG_DECL(kDocking, kConsole_DEBUG_DOCKING),
-    DEBUG_FLAG_DECL(kOctreeLogging, kConsole_DEBUG_OCTREE_LOGGING),
-    DEBUG_FLAG_DECL(kBoundingBoxes, kConsole_DEBUG_BOUNDING_BOXES),
-    DEBUG_FLAG_DECL(kOctreeDraw, kConsole_DEBUG_OCTREE_DRAW),
-    DEBUG_FLAG_DECL(kDrawNormals, kConsole_DEBUG_DRAW_NORMALS),
-    DEBUG_FLAG_DECL(kNoDust, kConsole_DEBUG_NO_DUST),
-    DEBUG_FLAG_DECL(kNoShaderFallback, kConsole_DEBUG_NO_SHADER_FALLBACK),
-    DEBUG_FLAG_DECL(kShaderValidation, kConsole_DEBUG_SHADER_VALIDATION),
+    DEBUG_FLAG_DECL(kLinkedLists, ConsoleProperty::kDEBUG_LINKED_LISTS),
+    DEBUG_FLAG_DECL(kCollisions, ConsoleProperty::kDEBUG_COLLISIONS),
+    DEBUG_FLAG_DECL(kDocking, ConsoleProperty::kDEBUG_DOCKING),
+    DEBUG_FLAG_DECL(kOctreeLogging, ConsoleProperty::kDEBUG_OCTREE_LOGGING),
+    DEBUG_FLAG_DECL(kBoundingBoxes, ConsoleProperty::kDEBUG_BOUNDING_BOXES),
+    DEBUG_FLAG_DECL(kOctreeDraw, ConsoleProperty::kDEBUG_OCTREE_DRAW),
+    DEBUG_FLAG_DECL(kDrawNormals, ConsoleProperty::kDEBUG_DRAW_NORMALS),
+    DEBUG_FLAG_DECL(kNoDust, ConsoleProperty::kDEBUG_NO_DUST),
+    DEBUG_FLAG_DECL(kNoShaderFallback,
+                    ConsoleProperty::kDEBUG_NO_SHADER_FALLBACK),
+    DEBUG_FLAG_DECL(kShaderValidation,
+                    ConsoleProperty::kDEBUG_SHADER_VALIDATION),
 
-    DEBUG_FLAG_DECL(kMisc, kConsole_DEBUG_MISC),
+    DEBUG_FLAG_DECL(kMisc, ConsoleProperty::kDEBUG_MISC),
 #undef DEBUG_FLAG_DECL
 };
 
@@ -415,61 +425,62 @@ JSValue DebugMonitorToJSConsole(JSContext* context, OODebugMonitor* monitor) {
 static JSValue ConsoleGetProperty(OOJS_GETTER_ARGS) {
   OOJS_NATIVE_ENTER(context)
 
-  switch (magic) {
+  switch (static_cast<ConsoleProperty>(magic)) {
+    using enum ConsoleProperty;
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    case kConsole_debugFlags:
+    case kDebugFlags:
       return JS_NewUint32(context, (uint32_t)gDebugFlags);
 #endif
 
-    case kConsole_detailLevel:
+    case kDetailLevel:
       OOJS_RETURN_PLIST(oo::PList(cxx_OOStringFromGraphicsDetail(
           (UNIVERSE != nullptr ? UNIVERSE->getDetailLevel()
                                : OOGraphicsDetail{}))));
 
-    case kConsole_maximumDetailLevel:
+    case kMaximumDetailLevel:
       OOJS_RETURN_PLIST(oo::PList(cxx_OOStringFromGraphicsDetail(
           OOOpenGLExtensionManager::sharedManager()->maximumDetailLevel())));
 
-    case kConsole_displayFPS:
+    case kDisplayFPS:
       return OOJSValueFromBOOL(
           (UNIVERSE != nullptr ? UNIVERSE->getDisplayFPS() : false));
 
-    case kConsole_platformDescription:
+    case kPlatformDescription:
       OOJS_RETURN_PLIST(oo::PList(OOPlatformDescription()));
 
-    case kConsole_pedanticMode:
+    case kPedanticMode:
       return OOJSValueFromBOOL(sPedanticMode);
 
-    case kConsole_ignoreDroppedPackets:
+    case kIgnoreDroppedPackets:
       return OOJSValueFromBOOL(
           OODebugMonitor::sharedDebugMonitor()->TCPIgnoresDroppedPackets());
 
-    case kConsole_showErrorLocations:
+    case kShowErrorLocations:
       return OOJSValueFromBOOL(
           OOJavaScriptEngine::sharedEngine()->showErrorLocations());
 
-    case kConsole_dumpStackForErrors:
+    case kDumpStackForErrors:
       return OOJSValueFromBOOL(
           OOJavaScriptEngine::sharedEngine()->dumpStackForErrors());
 
-    case kConsole_dumpStackForWarnings:
+    case kDumpStackForWarnings:
       return OOJSValueFromBOOL(
           OOJavaScriptEngine::sharedEngine()->dumpStackForWarnings());
 
-    case kConsole_glVendorString:
+    case kGlVendorString:
       OOJS_RETURN_STRING_OR_NULL(
           OOOpenGLExtensionManager::sharedManager()->vendorString());
 
-    case kConsole_glRendererString:
+    case kGlRendererString:
       OOJS_RETURN_STRING_OR_NULL(
           OOOpenGLExtensionManager::sharedManager()->rendererString());
 
-    case kConsole_glFixedFunctionTextureUnitCount:
+    case kGlFixedFunctionTextureUnitCount:
       return JS_NewInt32(
           context,
           OOOpenGLExtensionManager::sharedManager()->textureUnitCount());
 
-    case kConsole_glFragmentShaderTextureUnitCount:
+    case kGlFragmentShaderTextureUnitCount:
       return JS_NewInt32(
           context,
           OOOpenGLExtensionManager::sharedManager()->textureImageUnitCount());
@@ -478,18 +489,18 @@ static JSValue ConsoleGetProperty(OOJS_GETTER_ARGS) {
   case magic:                        \
     return JS_NewInt32(              \
         context, static_cast<int32_t>(oo::ToUnderlying(OODebugFlags::flag)));
-      DEBUG_FLAG_CASE(kLinkedLists, kConsole_DEBUG_LINKED_LISTS);
-      DEBUG_FLAG_CASE(kCollisions, kConsole_DEBUG_COLLISIONS);
-      DEBUG_FLAG_CASE(kDocking, kConsole_DEBUG_DOCKING);
-      DEBUG_FLAG_CASE(kOctreeLogging, kConsole_DEBUG_OCTREE_LOGGING);
-      DEBUG_FLAG_CASE(kBoundingBoxes, kConsole_DEBUG_BOUNDING_BOXES);
-      DEBUG_FLAG_CASE(kOctreeDraw, kConsole_DEBUG_OCTREE_DRAW);
-      DEBUG_FLAG_CASE(kDrawNormals, kConsole_DEBUG_DRAW_NORMALS);
-      DEBUG_FLAG_CASE(kNoDust, kConsole_DEBUG_NO_DUST);
-      DEBUG_FLAG_CASE(kNoShaderFallback, kConsole_DEBUG_NO_SHADER_FALLBACK);
-      DEBUG_FLAG_CASE(kShaderValidation, kConsole_DEBUG_SHADER_VALIDATION);
+      DEBUG_FLAG_CASE(kLinkedLists, kDEBUG_LINKED_LISTS);
+      DEBUG_FLAG_CASE(kCollisions, kDEBUG_COLLISIONS);
+      DEBUG_FLAG_CASE(kDocking, kDEBUG_DOCKING);
+      DEBUG_FLAG_CASE(kOctreeLogging, kDEBUG_OCTREE_LOGGING);
+      DEBUG_FLAG_CASE(kBoundingBoxes, kDEBUG_BOUNDING_BOXES);
+      DEBUG_FLAG_CASE(kOctreeDraw, kDEBUG_OCTREE_DRAW);
+      DEBUG_FLAG_CASE(kDrawNormals, kDEBUG_DRAW_NORMALS);
+      DEBUG_FLAG_CASE(kNoDust, kDEBUG_NO_DUST);
+      DEBUG_FLAG_CASE(kNoShaderFallback, kDEBUG_NO_SHADER_FALLBACK);
+      DEBUG_FLAG_CASE(kShaderValidation, kDEBUG_SHADER_VALIDATION);
 
-      DEBUG_FLAG_CASE(kMisc, kConsole_DEBUG_MISC);
+      DEBUG_FLAG_CASE(kMisc, kDEBUG_MISC);
 #undef DEBUG_FLAG_CASE
 
     default:
@@ -507,15 +518,16 @@ static JSValue ConsoleSetProperty(OOJS_SETTER_ARGS) {
   int32_t iValue;
   std::optional<std::string> sValue;
 
-  switch (magic) {
+  switch (static_cast<ConsoleProperty>(magic)) {
+    using enum ConsoleProperty;
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    case kConsole_debugFlags:
+    case kDebugFlags:
       if (OOJSValueToInt32(context, value, &iValue)) {
         gDebugFlags = iValue;
       }
       break;
 #endif
-    case kConsole_detailLevel:
+    case kDetailLevel:
       sValue = cxx_OOStringFromJSValue(context, value);
       OOJS_BEGIN_FULL_NATIVE(context)
       if (UNIVERSE != nullptr)
@@ -524,31 +536,31 @@ static JSValue ConsoleSetProperty(OOJS_SETTER_ARGS) {
       OOJS_END_FULL_NATIVE
       break;
 
-    case kConsole_displayFPS:
+    case kDisplayFPS:
       if (UNIVERSE != nullptr)
         UNIVERSE->setDisplayFPS(OOJSValueToBOOL(context, value));
       break;
 
-    case kConsole_pedanticMode:
+    case kPedanticMode:
       sPedanticMode = OOJSValueToBOOL(context, value);
       break;
 
-    case kConsole_ignoreDroppedPackets:
+    case kIgnoreDroppedPackets:
       OODebugMonitor::sharedDebugMonitor()->setTCPIgnoresDroppedPackets(
           OOJSValueToBOOL(context, value));
       break;
 
-    case kConsole_showErrorLocations:
+    case kShowErrorLocations:
       OOJavaScriptEngine::sharedEngine()->setShowErrorLocations(
           OOJSValueToBOOL(context, value));
       break;
 
-    case kConsole_dumpStackForErrors:
+    case kDumpStackForErrors:
       OOJavaScriptEngine::sharedEngine()->setDumpStackForErrors(
           OOJSValueToBOOL(context, value));
       break;
 
-    case kConsole_dumpStackForWarnings:
+    case kDumpStackForWarnings:
       OOJavaScriptEngine::sharedEngine()->setDumpStackForWarnings(
           OOJSValueToBOOL(context, value));
       break;

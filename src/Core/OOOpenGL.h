@@ -130,14 +130,19 @@ constexpr std::string_view OOEnumName(OOShaderSetting value) noexcept {
                 GL_DEPTH_WRITEMASK is off
                 GL_CULL_FACE is off
 */
-typedef enum {
-  OPENGL_STATE_OPAQUE,
-  OPENGL_STATE_TRANSLUCENT_PASS,
-  OPENGL_STATE_ADDITIVE_BLENDING,
-  OPENGL_STATE_OVERLAY,
+enum class OOOpenGLStateID : int {
+  kOpaque,
+  kTranslucentPass,
+  kAdditiveBlending,
+  kOverlay,
 
-  OPENGL_STATE_INTERNAL_USE_ONLY
-} OOOpenGLStateID;
+  kInternalUseOnly,
+};
+static_assert(static_cast<int>(OOOpenGLStateID::kOpaque) == 0);
+static_assert(static_cast<int>(OOOpenGLStateID::kTranslucentPass) == 1);
+static_assert(static_cast<int>(OOOpenGLStateID::kAdditiveBlending) == 2);
+static_assert(static_cast<int>(OOOpenGLStateID::kOverlay) == 3);
+static_assert(static_cast<int>(OOOpenGLStateID::kInternalUseOnly) == 4);
 
 #if OO_GL_STATE_VERIFICATION
 void OOSetOpenGLState_(OOOpenGLStateID state, const char* function,

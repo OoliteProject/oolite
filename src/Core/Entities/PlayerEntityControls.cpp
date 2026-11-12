@@ -1046,8 +1046,8 @@ void PlayerEntity::pollApplicationControls() {
     if ((checkKeyPress(n_key_snapshot) || joyButtonState[BUTTON_SNAPSHOT]) &&
         ((gameView != nullptr ? gameView->getAllowingStringInput()
                               : StringInput{}) <=
-         gvStringInputAlpha) &&  // not while entering text on the keyboard
-                                 // config screens
+         StringInput::kAlpha) &&  // not while entering text on the keyboard
+                                  // config screens
         !::OOOXZManager::sharedManager()
              ->isAcceptingTextInput())  //  '*' key but not while filtering
                                         //  inside OXZ Manager
@@ -1299,8 +1299,9 @@ void PlayerEntity::pollFlightControls(double delta_t) {
         if ((checkKeyPress(n_key_increase_speed) ||
              joyButtonState[BUTTON_INCTHRUST] ||
              ((mouse_control_on) &&
-              ((gameView != nullptr ? gameView->mouseWheelState() : 0) ==
-               gvMouseWheelUp) &&
+              ((gameView != nullptr
+                    ? gameView->mouseWheelState()
+                    : MouseWheelStatus::kNeutral) == MouseWheelStatus::kUp) &&
               ((UNIVERSE != nullptr ? UNIVERSE->getViewDirection()
                                     : OOViewID{}) <= OOViewID::kStarboard ||
                !(gameView != nullptr ? gameView->isCapsLockOn() : false)))) &&
@@ -1311,8 +1312,9 @@ void PlayerEntity::pollFlightControls(double delta_t) {
         if ((checkKeyPress(n_key_decrease_speed) ||
              joyButtonState[BUTTON_DECTHRUST] ||
              ((mouse_control_on) &&
-              ((gameView != nullptr ? gameView->mouseWheelState() : 0) ==
-               gvMouseWheelDown) &&
+              ((gameView != nullptr
+                    ? gameView->mouseWheelState()
+                    : MouseWheelStatus::kNeutral) == MouseWheelStatus::kDown) &&
               ((UNIVERSE != nullptr ? UNIVERSE->getViewDirection()
                                     : OOViewID{}) <= OOViewID::kStarboard ||
                !(gameView != nullptr ? gameView->isCapsLockOn() : false)))) &&
@@ -1918,8 +1920,8 @@ void PlayerEntity::pollFlightControls(double delta_t) {
       exceptionContext = "options menu";
       if ((checkKeyPress(n_key_gui_screen_options)) &&
           (gui_screen != OOGUIScreenID::kOptions) &&
-          !(gameView != nullptr ? gameView->getAllowingStringInput()
-                                : StringInput{})) {
+          (gameView != nullptr ? gameView->getAllowingStringInput()
+                               : StringInput{}) == StringInput::kNo) {
         if (gameView != nullptr) gameView->clearKeys();
         setGuiToLoadSaveScreen();
       }
@@ -1960,8 +1962,9 @@ void PlayerEntity::pollFlightControls(double delta_t) {
 #ifdef OO_DEBUG_MONITOR_ENABLED
       // look for debugging keys
       if (checkKeyPress(n_key_dump_entity_list) &&
-          !(gameView != nullptr ? gameView->getAllowingStringInput()
-                                : StringInput{}))  // look for the '0' key
+          (gameView != nullptr
+               ? gameView->getAllowingStringInput()
+               : StringInput{}) == StringInput::kNo)  // look for the '0' key
       {
         if (!dump_entity_list_pressed) {
           if (UNIVERSE != nullptr) UNIVERSE->debugDumpEntities();
@@ -1975,16 +1978,18 @@ void PlayerEntity::pollFlightControls(double delta_t) {
 
       // look for debugging keys
       if (checkKeyPress(n_key_debug_full) &&
-          !(gameView != nullptr ? gameView->getAllowingStringInput()
-                                : StringInput{}))  // look for the 'd' key
+          (gameView != nullptr
+               ? gameView->getAllowingStringInput()
+               : StringInput{}) == StringInput::kNo)  // look for the 'd' key
       {
         gDebugFlags = oo::ToUnderlying(OODebugFlags::kAll);
         if (UNIVERSE != nullptr) UNIVERSE->addMessage("Full debug ON", 3);
       }
 
       if (checkKeyPress(n_key_debug_collision) &&
-          !(gameView != nullptr ? gameView->getAllowingStringInput()
-                                : StringInput{}))  // look for the 'b' key
+          (gameView != nullptr
+               ? gameView->getAllowingStringInput()
+               : StringInput{}) == StringInput::kNo)  // look for the 'b' key
       {
         gDebugFlags |= oo::ToUnderlying(OODebugFlags::kCollisions);
         if (UNIVERSE != nullptr) UNIVERSE->addMessage("Collision debug ON", 3);
@@ -1992,8 +1997,9 @@ void PlayerEntity::pollFlightControls(double delta_t) {
 
       if (checkKeyPress(n_key_debug_console_connect) &&
           !::OODebugMonitor::sharedDebugMonitor()->usingPlugInController() &&
-          !(gameView != nullptr ? gameView->getAllowingStringInput()
-                                : StringInput{}))  // look for the 'c' key
+          (gameView != nullptr
+               ? gameView->getAllowingStringInput()
+               : StringInput{}) == StringInput::kNo)  // look for the 'c' key
       {
         // This code is executed only if we're not using the integrated plugin
         // controller
@@ -2014,8 +2020,9 @@ void PlayerEntity::pollFlightControls(double delta_t) {
         autopilot_key_pressed = false;
 
       if (checkKeyPress(n_key_debug_bounding_boxes) &&
-          !(gameView != nullptr ? gameView->getAllowingStringInput()
-                                : StringInput{}))  // look for the 'x' key
+          (gameView != nullptr
+               ? gameView->getAllowingStringInput()
+               : StringInput{}) == StringInput::kNo)  // look for the 'x' key
       {
         gDebugFlags |= oo::ToUnderlying(OODebugFlags::kBoundingBoxes);
         if (UNIVERSE != nullptr)
@@ -2023,8 +2030,9 @@ void PlayerEntity::pollFlightControls(double delta_t) {
       }
 
       if (checkKeyPress(n_key_debug_shaders) &&
-          !(gameView != nullptr ? gameView->getAllowingStringInput()
-                                : StringInput{}))  // look for the 's' key
+          (gameView != nullptr
+               ? gameView->getAllowingStringInput()
+               : StringInput{}) == StringInput::kNo)  // look for the 's' key
       {
         oo::log::logger().setDisplay("$shaderDebugOn", true);
         if (UNIVERSE != nullptr) UNIVERSE->addMessage("Shader debug ON", 3);
@@ -2034,8 +2042,8 @@ void PlayerEntity::pollFlightControls(double delta_t) {
            checkKeyPress(n_key_gui_arrow_right)) &&
           gui_screen != OOGUIScreenID::kGameOptions &&
           (UNIVERSE != nullptr ? UNIVERSE->getDisplayFPS() : false) &&
-          !(gameView != nullptr ? gameView->getAllowingStringInput()
-                                : StringInput{})) {
+          (gameView != nullptr ? gameView->getAllowingStringInput()
+                               : StringInput{}) == StringInput::kNo) {
         if (!leftRightKeyPressed) {
           float newTimeAccelerationFactor =
               checkKeyPress(n_key_gui_arrow_left)
@@ -2057,8 +2065,9 @@ void PlayerEntity::pollFlightControls(double delta_t) {
         leftRightKeyPressed = false;
 
       if (checkKeyPress(n_key_debug_off) &&
-          !(gameView != nullptr ? gameView->getAllowingStringInput()
-                                : StringInput{}))  // look for the 'n' key
+          (gameView != nullptr
+               ? gameView->getAllowingStringInput()
+               : StringInput{}) == StringInput::kNo)  // look for the 'n' key
       {
         gDebugFlags = 0;
         if (UNIVERSE != nullptr) UNIVERSE->addMessage("All debug flags OFF", 3);
@@ -2072,8 +2081,9 @@ void PlayerEntity::pollFlightControls(double delta_t) {
     if ((checkKeyPress(n_key_pausebutton) || joyButtonState[BUTTON_PAUSE]) &&
         gui_screen != OOGUIScreenID::kLongRangeChart &&
         gui_screen != OOGUIScreenID::kMission &&
-        !(gameView != nullptr ? gameView->getAllowingStringInput()
-                              : StringInput{}))  // look for the 'p' key
+        (gameView != nullptr
+             ? gameView->getAllowingStringInput()
+             : StringInput{}) == StringInput::kNo)  // look for the 'p' key
     {
       if (!pause_pressed) {
         if (paused) {
@@ -2165,20 +2175,20 @@ void PlayerEntity::pollGuiArrowKeyControls(double delta_t) {
 
   // deal with string inputs as necessary
   if (gui_screen == OOGUIScreenID::kLongRangeChart) {
-    if (gameView != nullptr) gameView->setStringInput(gvStringInputAlpha);
+    if (gameView != nullptr) gameView->setStringInput(StringInput::kAlpha);
   } else if (gui_screen == OOGUIScreenID::kSave) {
-    if (gameView != nullptr) gameView->setStringInput(gvStringInputLoadSave);
+    if (gameView != nullptr) gameView->setStringInput(StringInput::kLoadSave);
   } else if (gui_screen == OOGUIScreenID::kMission && _missionTextEntry) {
-    if (gameView != nullptr) gameView->setStringInput(gvStringInputAll);
+    if (gameView != nullptr) gameView->setStringInput(StringInput::kAll);
   } else if (gui_screen == OOGUIScreenID::kKeyboardEntry) {
-    if (gameView != nullptr) gameView->setStringInput(gvStringInputAll);
+    if (gameView != nullptr) gameView->setStringInput(StringInput::kAll);
   }
 #if 0
 	// at the moment this function is never called for OOGUIScreenID::kOXZManager
 	// but putting this here in case we do later
 	else if (gui_screen == OOGUIScreenID::kOXZManager && ::OOOXZManager::sharedManager()->isAcceptingTextInput())
 	{
-		if (gameView != nullptr) gameView->setStringInput(gvStringInputAll);
+		if (gameView != nullptr) gameView->setStringInput(StringInput::kAll);
 	}
 #endif
   else {
@@ -2393,16 +2403,18 @@ void PlayerEntity::pollGuiArrowKeyControls(double delta_t) {
           target_chart_focus = cursor_coordinates;
         }
         if (checkKeyPress(n_key_map_zoom_in) ||
-            (gameView != nullptr ? gameView->mouseWheelState() : 0) ==
-                gvMouseWheelDown) {
+            (gameView != nullptr
+                 ? gameView->mouseWheelState()
+                 : MouseWheelStatus::kNeutral) == MouseWheelStatus::kDown) {
           target_chart_zoom *= CHART_ZOOM_SPEED_FACTOR;
           if (target_chart_zoom > CHART_MAX_ZOOM)
             target_chart_zoom = CHART_MAX_ZOOM;
           saved_chart_zoom = target_chart_zoom;
         }
         if (checkKeyPress(n_key_map_zoom_out) ||
-            (gameView != nullptr ? gameView->mouseWheelState() : 0) ==
-                gvMouseWheelUp) {
+            (gameView != nullptr
+                 ? gameView->mouseWheelState()
+                 : MouseWheelStatus::kNeutral) == MouseWheelStatus::kUp) {
           if (gui_screen == OOGUIScreenID::kLongRangeChart) {
             target_chart_zoom = CHART_MAX_ZOOM;
             setGuiToShortRangeChartScreen();
@@ -4426,8 +4438,8 @@ void PlayerEntity::pollCustomViewControls() {
   if (checkKeyPress(n_key_custom_view) || joyButtonState[BUTTON_EXTVIEWCYCLE]) {
     if (!customView_pressed && !_customViews.empty() &&
         gui_screen != OOGUIScreenID::kLongRangeChart &&
-        !(gameView != nullptr ? gameView->getAllowingStringInput()
-                              : StringInput{})) {
+        (gameView != nullptr ? gameView->getAllowingStringInput()
+                             : StringInput{}) == StringInput::kNo) {
       if ((UNIVERSE != nullptr ? UNIVERSE->getViewDirection() : OOViewID{}) ==
           OOViewID::kCustom)  // already in custom view mode
       {
@@ -4468,14 +4480,16 @@ void PlayerEntity::pollCustomViewControls() {
     OOTimeDelta delta_t = this_time - last_time;
     if ((checkKeyPressIgnoreCtrl(n_key_custom_view_zoom_out, true) &&
          !checkKeyPressIgnoreCtrl(n_key_custom_view_zoom_in, true)) ||
-        (gameView != nullptr ? gameView->mouseWheelState() : 0) ==
-            gvMouseWheelDown) {
+        (gameView != nullptr
+             ? gameView->mouseWheelState()
+             : MouseWheelStatus::kNeutral) == MouseWheelStatus::kDown) {
       customViewZoomOut(pow(customViewZoomSpeed, delta_t));
     }
     if ((checkKeyPressIgnoreCtrl(n_key_custom_view_zoom_in, true) &&
          !checkKeyPressIgnoreCtrl(n_key_custom_view_zoom_out, true)) ||
-        (gameView != nullptr ? gameView->mouseWheelState() : 0) ==
-            gvMouseWheelUp) {
+        (gameView != nullptr
+             ? gameView->mouseWheelState()
+             : MouseWheelStatus::kNeutral) == MouseWheelStatus::kUp) {
       customViewZoomIn(pow(customViewZoomSpeed, delta_t));
     }
     if (checkKeyPressIgnoreCtrl(n_key_custom_view_roll_left, true) &&
@@ -4640,7 +4654,7 @@ void PlayerEntity::pollViewControls() {
   // Zoom scanner 'z'
   if ((checkKeyPress(n_key_scanner_zoom) &&
        ((gameView != nullptr ? gameView->getAllowingStringInput()
-                             : StringInput{}) == gvStringInputNo)) ||
+                             : StringInput{}) == StringInput::kNo)) ||
       joyButtonState[BUTTON_SCANNERZOOM])  // look for the 'z' key
   {
     if (!scanner_zoom_rate) {
@@ -4663,7 +4677,7 @@ void PlayerEntity::pollViewControls() {
   // Unzoom scanner 'Z'
   if ((checkKeyPress(n_key_scanner_unzoom) &&
        ((gameView != nullptr ? gameView->getAllowingStringInput()
-                             : StringInput{}) == gvStringInputNo)) ||
+                             : StringInput{}) == StringInput::kNo)) ||
       joyButtonState[BUTTON_SCANNERUNZOOM])  // look for the 'Z' key
   {
     if ((!scanner_zoom_rate) && (hud != nullptr && hud->scannerZoom() > 1.0))
@@ -5531,7 +5545,8 @@ void PlayerEntity::pollDemoControls(double /*delta_t*/) {
       if (EXPECT(!oxzmanager->isRestarting())) {
         if (oxzmanager->isAcceptingGUIInput()) {
           if (oxzmanager->isAcceptingTextInput()) {
-            if (gameView != nullptr) gameView->setStringInput(gvStringInputAll);
+            if (gameView != nullptr)
+              gameView->setStringInput(StringInput::kAll);
             oxzmanager->refreshTextInput((gameView != nullptr
                                               ? gameView->getTypedString()
                                               : std::optional<std::string>())

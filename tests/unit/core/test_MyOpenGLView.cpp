@@ -92,7 +92,7 @@ OO_TEST(initWithoutAWindow) {
              view->getViewSize().height == WINDOW_SIZE_DEFAULT_HEIGHT);
     OO_CHECK(view->getVirtualJoystickPosition().x == 0.0 &&
              view->getVirtualJoystickPosition().y == 0.0);
-    OO_CHECK(view->getAllowingStringInput() == gvStringInputNo);
+    OO_CHECK(view->getAllowingStringInput() == StringInput::kNo);
     OO_CHECK(!view->getIsAlphabetKeyDown());
     OO_CHECK_EQ(view->mouseWheelDelta(), 0.0f);
     // The matrix manager is C++: the C++ view's getter answers it, the same one

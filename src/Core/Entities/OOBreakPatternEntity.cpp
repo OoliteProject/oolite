@@ -120,7 +120,7 @@ void OOBreakPatternEntity::drawImmediate(bool immediate, bool translucent) {
 
   if (translucent || immediate) {
     OO_ENTER_OPENGL();
-    OOSetOpenGLState(OPENGL_STATE_OPAQUE);
+    OOSetOpenGLState(OOOpenGLStateID::kOpaque);
 
     OOGL(glDisable(GL_LIGHTING));
     OOGL(glDisable(GL_TEXTURE_2D));

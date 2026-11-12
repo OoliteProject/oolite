@@ -4318,7 +4318,7 @@ void cxx_OODrawStringAligned(const std::string& text, GLfloat x, GLfloat y,
 }
 
 void OOStartDrawingStrings() {
-  OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+  OOSetOpenGLState(OOOpenGLStateID::kOverlay);
 
   OOGL(glEnable(GL_TEXTURE_2D));
   if (sFontTexture != nullptr)
@@ -4363,7 +4363,7 @@ void cxx_OODrawHilightedString(const std::string& text, GLfloat x, GLfloat y,
   NSSize strsize = cxx_OORectFromString(text, 0.0f, 0.0f, siz).size;
   strsize.width += 0.5f;
 
-  OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+  OOSetOpenGLState(OOOpenGLStateID::kOverlay);
 
   OOGL(glPushAttrib(GL_CURRENT_BIT));  // save the text colour
   OOGL(glGetFloatv(GL_CURRENT_COLOR,
@@ -4388,7 +4388,7 @@ void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y,
   int tl = tec + 1;
   GLfloat ce1 = 1.0f - 0.125f * eco;
 
-  OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+  OOSetOpenGLState(OOOpenGLStateID::kOverlay);
 
   OOGL(glEnable(GL_TEXTURE_2D));
   if (sFontTexture != nullptr)
@@ -4450,7 +4450,7 @@ void OODrawHilightedPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y,
   if (tl > 9) hisize.width += siz.width * sGlyphWidths[49] - 2.0;
   hisize.width += siz.width * sGlyphWidths[48 + (tl % 10)];
 
-  OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+  OOSetOpenGLState(OOOpenGLStateID::kOverlay);
 
   OOGL(glPushAttrib(GL_CURRENT_BIT));  // save the text colour
   OOGL(glGetFloatv(GL_CURRENT_COLOR,
@@ -4554,7 +4554,7 @@ static GLfloat nonlinearScannerFunc(GLfloat distance, GLfloat zoom,
 static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz,
                             OOViewID v_dir, GLfloat thickness, GLfloat zoom,
                             bool nonlinear, bool minimalistic) {
-  OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+  OOSetOpenGLState(OOOpenGLStateID::kOverlay);
 
   MyOpenGLView* gameView =
       (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr);
