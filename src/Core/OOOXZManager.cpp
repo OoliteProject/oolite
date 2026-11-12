@@ -452,9 +452,9 @@ std::optional<std::string> OOOXZManager::humanSize(std::size_t bytes) {
   } else if (bytes < static_cast<std::size_t>(1024) *
                          1024)  // the product in std::size_t
   {
-    return std::format("{} kB", (size_t)(bytes >> 10));
+    return std::format("{} kB", static_cast<size_t>(bytes >> 10));
   } else {
-    return std::format("{:.2f} MB", ((float)(bytes >> 10)) / 1024);
+    return std::format("{:.2f} MB", (static_cast<float>(bytes >> 10)) / 1024);
   }
 }
 
@@ -577,14 +577,15 @@ bool OOOXZManager::applyFilterByAuthor(const oo::PList& manifest,
 
 bool OOOXZManager::applyFilterByDays(const oo::PList& manifest,
                                      const std::string& days) {
-  std::ptrdiff_t i =
-      (std::ptrdiff_t)oo::str::longLongValue(days);  // -integerValue
+  std::ptrdiff_t i = static_cast<std::ptrdiff_t>(
+      oo::str::longLongValue(days));  // -integerValue
   if (i < 1) {
     return false;
   } else {
     std::size_t updated =
         manifest.get<unsigned long long>(std::string(kOOManifestUploadDate));
-    std::size_t now = (std::size_t)oo::date::timeIntervalSince1970();
+    std::size_t now =
+        static_cast<std::size_t>(oo::date::timeIntervalSince1970());
     return (updated + (86400 * i) > now);
   }
 }
@@ -1528,12 +1529,13 @@ void OOOXZManager::gui() {
       break;
     case OXZInterfaceState::kTaskdone:
       if (_downloadStatus == OXZDownloadStatus::kComplete) {
-        const auto doneText =
-            DescFormat(OO_DESC("oolite-oxzmanager-progress-done-%u-%u"),
-                       {(unsigned long long)_oxzList.count(),
-                        (unsigned long long)managedOXZs()
-                            .count()});  // (evaluated, as a message's arguments
-                                         // were, whether or not there is a GUI)
+        const auto doneText = DescFormat(
+            OO_DESC("oolite-oxzmanager-progress-done-%u-%u"),
+            {static_cast<unsigned long long>(_oxzList.count()),
+             static_cast<unsigned long long>(
+                 managedOXZs()
+                     .count())});  // (evaluated, as a message's arguments
+                                   // were, whether or not there is a GUI)
         if (gui != nullptr)
           gui->addLongText(doneText, OXZ_GUI_ROW_PROGRESS,
                            OOGUIAlignment::kLeft);

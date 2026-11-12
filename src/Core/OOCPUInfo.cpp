@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 
 #include <stdlib.h>
 
+#include <bit>
 #include <cstring>
 
 #include "oofnd/String.hpp"
@@ -69,7 +70,7 @@ void OOCPUInfoInit() {
   uint8_t endianTag[4] = {0x12, 0x34, 0x56, 0x78};
 
 #if OOLITE_BIG_ENDIAN
-  if (*(uint32_t*)endianTag != 0x12345678) {
+  if (std::bit_cast<uint32_t>(endianTag) != 0x12345678) {
     OO_LOG("cpuInfo.endianTest.failed", "{}",
            "OOLITE_BIG_ENDIAN is set, but the system is not big-endian -- "
            "aborting.");
@@ -78,7 +79,7 @@ void OOCPUInfoInit() {
 #endif
 
 #if OOLITE_LITTLE_ENDIAN
-  if (*(uint32_t*)endianTag != 0x78563412) {
+  if (std::bit_cast<uint32_t>(endianTag) != 0x78563412) {
     OO_LOG("cpuInfo.endianTest.failed", "{}",
            "OOLITE_LITTLE_ENDIAN is set, but the system is not little-endian "
            "-- aborting.");

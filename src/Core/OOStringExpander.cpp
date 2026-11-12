@@ -1461,7 +1461,8 @@ OOUnits Digram(const std::optional<std::string>& digrams, const OOUnits& units,
       OORaiseException(
           OORangeException,
           "in substringWithRange:, range { %lu, 2 } extends beyond size (%lu)",
-          (unsigned long)location, (unsigned long)units.size());
+          static_cast<unsigned long>(location),
+          static_cast<unsigned long>(units.size()));
     }
     return OOUnits();
   }

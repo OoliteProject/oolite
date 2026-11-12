@@ -104,9 +104,12 @@ HPVector OOHPVectorRandomRadial(OOHPScalar maxLength) {
 
 HPVector OOHPRandomPositionInBoundingBox(BoundingBox bb) {
   HPVector result;
-  result.x = (OOHPScalar)(bb.min.x + randf() * (bb.max.x - bb.min.x));
-  result.y = (OOHPScalar)(bb.min.y + randf() * (bb.max.y - bb.min.y));
-  result.z = (OOHPScalar)(bb.min.z + randf() * (bb.max.z - bb.min.z));
+  result.x =
+      static_cast<OOHPScalar>(bb.min.x + randf() * (bb.max.x - bb.min.x));
+  result.y =
+      static_cast<OOHPScalar>(bb.min.y + randf() * (bb.max.y - bb.min.y));
+  result.z =
+      static_cast<OOHPScalar>(bb.min.z + randf() * (bb.max.z - bb.min.z));
   return result;
 }
 

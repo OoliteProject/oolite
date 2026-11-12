@@ -306,16 +306,18 @@ bool OOALSoundVorbisCodec::readCreatingBuffer(char** outBuffer,
     totalSizeInFrames = ov_pcm_total(&_vf, -1);
     assert((uint64_t)totalSizeInFrames <
            (uint64_t)SIZE_MAX);  // Should have been checked by caller
-    sizeInFrames = (size_t)totalSizeInFrames;
+    sizeInFrames = static_cast<size_t>(totalSizeInFrames);
   }
 
   if (OK) {
-    buffer = (char*)malloc(sizeof(char) * frameSize * sizeInFrames);
+    buffer =
+        static_cast<char*>(malloc(sizeof(char) * frameSize * sizeInFrames));
     if (!buffer) OK = false;
   }
 
   if (OK && sizeInFrames) {
-    remaining = (int)MIN(frameSize * sizeInFrames, (size_t)INT_MAX);
+    remaining =
+        static_cast<int>(MIN(frameSize * sizeInFrames, (size_t)INT_MAX));
     dst = buffer;
 
     char pcmout[4096];
@@ -382,8 +384,9 @@ size_t OOALSoundVorbisCodec::sizeAsBuffer() {
   ogg_int64_t size;
   size = ov_pcm_total(&_vf, -1);
   size *= sizeof(char) * (isStereo() ? 4 : 2);
-  if ((uint64_t)SIZE_MAX < (uint64_t)size) size = (ogg_int64_t)SIZE_MAX;
-  return (size_t)size;
+  if (static_cast<uint64_t>(SIZE_MAX) < static_cast<uint64_t>(size))
+    size = static_cast<ogg_int64_t>(SIZE_MAX);
+  return static_cast<size_t>(size);
 }
 
 bool OOALSoundVorbisCodec::isStereo() {
@@ -434,7 +437,7 @@ std::optional<std::string> OOALSoundVorbisCodec::name() { return _name; }
 
 static size_t OOReadOXZVorbis(void* ptr, size_t size, size_t nmemb,
                               void* datasource) {
-  OOALSoundVorbisCodec* src = (OOALSoundVorbisCodec*)datasource;
+  OOALSoundVorbisCodec* src = static_cast<OOALSoundVorbisCodec*>(datasource);
   size_t toRead = size * nmemb;
   // Read straight into the decoder's buffer. This used to read into a malloc'd
   // copy that was never freed: a leak on every read of a Vorbis file in an OXZ.

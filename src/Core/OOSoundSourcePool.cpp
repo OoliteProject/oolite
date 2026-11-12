@@ -59,7 +59,7 @@ bool OOSoundSourcePool::initWithCount(uint8_t count, OOTimeDelta minRepeat) {
     _minRepeat = minRepeat;
 
     // Create source pool
-    _sources = (PoolElement*)calloc(sizeof(PoolElement), count);
+    _sources = static_cast<PoolElement*>(calloc(sizeof(PoolElement), count));
     if (_sources == nullptr) {
       return false;
     }

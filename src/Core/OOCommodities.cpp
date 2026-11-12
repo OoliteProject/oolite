@@ -244,8 +244,9 @@ oo::PList OOCommodities::createDefinitionFrom(
     return definition;
   }
   ::OOScript* goodScript =
-      (PLAYER != nullptr ? PLAYER->commodityScriptNamed(goodScriptName)
-                         : (OOScript*)nullptr);  // (has a value: checked above)
+      (PLAYER != nullptr
+           ? PLAYER->commodityScriptNamed(goodScriptName)
+           : static_cast<OOScript*>(nullptr));  // (has a value: checked above)
   if (goodScript == nullptr) {
     return definition;
   }
@@ -326,7 +327,7 @@ oo::Ref<OOCommodityMarket> OOCommodities::generateMarketForSystemWithEconomy(
     OOEconomyID economy, const std::optional<std::string>& scriptName) {
   ::OOScript* script =
       (PLAYER != nullptr ? PLAYER->commodityScriptNamed(scriptName)
-                         : (OOScript*)nullptr);
+                         : static_cast<OOScript*>(nullptr));
 
   oo::Ref<OOCommodityMarket> market = oo::makeRef<OOCommodityMarket>();
 
@@ -364,7 +365,7 @@ oo::Ref<OOCommodityMarket> OOCommodities::generateMarketForStation(
            ? PLAYER->commodityScriptNamed((station != nullptr
                                                ? station->getMarketScriptName()
                                                : std::optional<std::string>()))
-           : (OOScript*)nullptr);
+           : static_cast<OOScript*>(nullptr));
   if (!marketDefinition && marketScript == nullptr) {
     oo::Ref<OOCommodityMarket> market = generateBlankMarket();
     return market;
@@ -492,7 +493,7 @@ OOCargoQuantity OOCommodities::generateQuantityForGood(const oo::PList& good,
   if (base < 0.0) {
     return 0;
   } else {
-    return (OOCargoQuantity)base;
+    return static_cast<OOCargoQuantity>(base);
   }
 }
 
@@ -512,7 +513,7 @@ OOCreditsQuantity OOCommodities::generatePriceForGood(const oo::PList& good,
   if (base < 0.0) {
     return 0;
   } else {
-    return (OOCreditsQuantity)base;
+    return static_cast<OOCreditsQuantity>(base);
   }
 }
 
@@ -529,9 +530,9 @@ OOCreditsQuantity OOCommodities::samplePriceForCommodity(
   good = createDefinitionFrom(good, p, 0, commodity, nullptr, system);
   if (scriptName.has_value()) {
     ::OOScript* script =
-        (PLAYER != nullptr
-             ? PLAYER->commodityScriptNamed(scriptName)
-             : (OOScript*)nullptr);  // (has a value: checked above)
+        (PLAYER != nullptr ? PLAYER->commodityScriptNamed(scriptName)
+                           : static_cast<OOScript*>(
+                                 nullptr));  // (has a value: checked above)
     if (script != nullptr) {
       good = modifyGood(good, script, nullptr, system, true);
     }
@@ -555,10 +556,10 @@ float OOCommodities::economicBiasForGood(const oo::PList& good,
     return 0.0;
   } else if (exDiff > imDiff) {
     // closer to the importer, so return -ve
-    return -(1.0 - ((float)imDiff / (float)distance));
+    return -(1.0 - (static_cast<float>(imDiff) / static_cast<float>(distance)));
   } else {
     // closer to the exporter, so return +ve
-    return 1.0 - ((float)exDiff / (float)distance);
+    return 1.0 - (static_cast<float>(exDiff) / static_cast<float>(distance));
   }
 }
 
@@ -591,7 +592,8 @@ oo::PList OOCommodities::firstModifierForGood(const std::string& good,
 
 OOCreditsQuantity OOCommodities::adjustPrice(OOCreditsQuantity price,
                                              const oo::PList& rule) {
-  float p = (float)price;  // work in floats to avoid rounding problems
+  float p =
+      static_cast<float>(price);  // work in floats to avoid rounding problems
   float pa = rule.get<float>(kOOCommodityMarketPriceAdder, 0.0);
   float pm = rule.get<float>(kOOCommodityMarketPriceMultiplier, 1.0);
   if (pm <= 0.0 && pa <= 0.0) {
@@ -606,12 +608,13 @@ OOCreditsQuantity OOCommodities::adjustPrice(OOCreditsQuantity price,
     // price below 1 decicredit
     p = 1.0;
   }
-  return (OOCreditsQuantity)p;
+  return static_cast<OOCreditsQuantity>(p);
 }
 
 OOCargoQuantity OOCommodities::adjustQuantity(OOCargoQuantity quantity,
                                               const oo::PList& rule) {
-  float q = (float)quantity;  // work in floats to avoid rounding problems
+  float q = static_cast<float>(
+      quantity);  // work in floats to avoid rounding problems
   float qa = rule.get<float>(kOOCommodityMarketQuantityAdder, 0.0);
   float qm = rule.get<float>(kOOCommodityMarketQuantityMultiplier, 1.0);
   if (qm <= 0.0 && qa <= 0.0) {
@@ -627,7 +630,7 @@ OOCargoQuantity OOCommodities::adjustQuantity(OOCargoQuantity quantity,
     q = 0.0;
   }
   // may be over station capacity - that gets capped later
-  return (OOCargoQuantity)q;
+  return static_cast<OOCargoQuantity>(q);
 }
 
 oo::PList OOCommodities::updateInfoFor(const oo::PList& good,
@@ -647,7 +650,7 @@ oo::PList OOCommodities::updateInfoFor(const oo::PList& good,
   }
 
   long long capacity = rule.get<long long>(kOOCommodityMarketCapacity, -1);
-  if (capacity >= 0 && capacity <= (long long)maxCapacity) {
+  if (capacity >= 0 && capacity <= static_cast<long long>(maxCapacity)) {
     SetSigned(tmp, kOOCommodityCapacity, capacity);
   } else {
     // set to the station max capacity

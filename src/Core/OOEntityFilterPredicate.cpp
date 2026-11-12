@@ -38,7 +38,7 @@ bool NOPredicate(Entity* /*entity*/, void* /*parameter*/) { return false; }
 
 bool NOTPredicate(Entity* entity, void* parameter) {
   ChainedEntityPredicateParameter* param =
-      (ChainedEntityPredicateParameter*)parameter;
+      static_cast<ChainedEntityPredicateParameter*>(parameter);
   if (param == nullptr || param->predicate == nullptr) return false;
 
   return !param->predicate(entity, param->parameter);
@@ -46,7 +46,7 @@ bool NOTPredicate(Entity* entity, void* parameter) {
 
 bool ANDPredicate(Entity* entity, void* parameter) {
   BinaryOperationPredicateParameter* param =
-      (BinaryOperationPredicateParameter*)parameter;
+      static_cast<BinaryOperationPredicateParameter*>(parameter);
 
   if (!param->predicate1(entity, param->parameter1)) return false;
   if (!param->predicate2(entity, param->parameter2)) return false;
@@ -55,7 +55,7 @@ bool ANDPredicate(Entity* entity, void* parameter) {
 
 bool ORPredicate(Entity* entity, void* parameter) {
   BinaryOperationPredicateParameter* param =
-      (BinaryOperationPredicateParameter*)parameter;
+      static_cast<BinaryOperationPredicateParameter*>(parameter);
 
   if (param->predicate1(entity, param->parameter1)) return true;
   if (param->predicate2(entity, param->parameter2)) return true;
@@ -64,7 +64,7 @@ bool ORPredicate(Entity* entity, void* parameter) {
 
 bool NORPredicate(Entity* entity, void* parameter) {
   BinaryOperationPredicateParameter* param =
-      (BinaryOperationPredicateParameter*)parameter;
+      static_cast<BinaryOperationPredicateParameter*>(parameter);
 
   if (param->predicate1(entity, param->parameter1)) return false;
   if (param->predicate2(entity, param->parameter2)) return false;
@@ -73,7 +73,7 @@ bool NORPredicate(Entity* entity, void* parameter) {
 
 bool XORPredicate(Entity* entity, void* parameter) {
   BinaryOperationPredicateParameter* param =
-      (BinaryOperationPredicateParameter*)parameter;
+      static_cast<BinaryOperationPredicateParameter*>(parameter);
   bool A, B;
 
   A = param->predicate1(entity, param->parameter1);
@@ -84,7 +84,7 @@ bool XORPredicate(Entity* entity, void* parameter) {
 
 bool NANDPredicate(Entity* entity, void* parameter) {
   BinaryOperationPredicateParameter* param =
-      (BinaryOperationPredicateParameter*)parameter;
+      static_cast<BinaryOperationPredicateParameter*>(parameter);
   bool A, B;
 
   A = param->predicate1(entity, param->parameter1);
@@ -174,7 +174,7 @@ bool HasPrimaryRoleInSetPredicate(Entity* ship, void* parameter) {
 bool IsHostileAgainstTargetPredicate(Entity* ship, void* parameter) {
   return (oo::ToShip(ship) != nullptr ? oo::ToShip(ship)->hasHostileTarget()
                                       : false) &&
-         (oo::ToShip(ship) != nullptr
-              ? oo::ToShip(ship)->primaryTarget()
-              : (Entity*)nullptr) == static_cast<::ShipEntity*>(parameter);
+         (oo::ToShip(ship) != nullptr ? oo::ToShip(ship)->primaryTarget()
+                                      : static_cast<Entity*>(nullptr)) ==
+             static_cast<::ShipEntity*>(parameter);
 }

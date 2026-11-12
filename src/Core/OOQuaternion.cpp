@@ -44,10 +44,14 @@ Quaternion quaternion_multiply(Quaternion q1, Quaternion q2) {
 // NOTE: this is broken - its distribution is weighted towards corners of the
 // hypercube. Probably doesn't matter, though.
 void quaternion_set_random(Quaternion* quat) {
-  quat->w = (OOScalar)(Ranrot() % 1024) - 511.5f;  // -511.5 to +511.5
-  quat->x = (OOScalar)(Ranrot() % 1024) - 511.5f;  // -511.5 to +511.5
-  quat->y = (OOScalar)(Ranrot() % 1024) - 511.5f;  // -511.5 to +511.5
-  quat->z = (OOScalar)(Ranrot() % 1024) - 511.5f;  // -511.5 to +511.5
+  quat->w =
+      static_cast<OOScalar>(Ranrot() % 1024) - 511.5f;  // -511.5 to +511.5
+  quat->x =
+      static_cast<OOScalar>(Ranrot() % 1024) - 511.5f;  // -511.5 to +511.5
+  quat->y =
+      static_cast<OOScalar>(Ranrot() % 1024) - 511.5f;  // -511.5 to +511.5
+  quat->z =
+      static_cast<OOScalar>(Ranrot() % 1024) - 511.5f;  // -511.5 to +511.5
   quaternion_normalize(quat);
 }
 

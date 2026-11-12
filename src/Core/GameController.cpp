@@ -241,9 +241,9 @@ GameController::GameController() {
 
     // rather than seeding this with the date repeatedly, seed it
     // once here at startup
-    ranrot_srand(
-        (uint32_t)oo::date::timeIntervalSince1970());  // reset randomiser
-                                                       // with current time
+    ranrot_srand(static_cast<uint32_t>(
+        oo::date::timeIntervalSince1970()));  // reset randomiser
+                                              // with current time
 
     _splashStart = oo::date::monotonicSeconds();
   }
@@ -508,8 +508,8 @@ void GameController::runFrameLoop() {
 #if OOLITE_WINDOWS
             Sleep((DWORD)ceil(remaining * 1000.0));
 #else
-            std::this_thread::sleep_for(
-                std::chrono::milliseconds((long long)ceil(remaining * 1000.0)));
+            std::this_thread::sleep_for(std::chrono::milliseconds(
+                static_cast<long long>(ceil(remaining * 1000.0))));
 #endif
           }
         }

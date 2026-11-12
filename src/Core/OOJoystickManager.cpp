@@ -362,9 +362,9 @@ void OOJoystickManager::setFunctionForAxis(int axis, int function,
   // commander has to waggle the throttle to wake it up). Other axes
   // set as default.
   if (function == AXIS_THRUST) {
-    axstate[function] = (float)(65536 - (axisvalue + 32768)) / 65536;
+    axstate[function] = static_cast<float>(65536 - (axisvalue + 32768)) / 65536;
   } else {
-    axstate[function] = (float)axisvalue / STICK_NORMALDIV;
+    axstate[function] = static_cast<float>(axisvalue) / STICK_NORMALDIV;
   }
 }
 

@@ -105,8 +105,10 @@ OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime,
   // wrapped to about 49.7 days.
   return 1e-3 * (double)(int32_t)(endTime - startTime);
 #elif OO_PROFILING_STOPWATCH_GETTIMEOFDAY
-  int32_t deltaS = (int32_t)endTime.tv_sec - (int32_t)startTime.tv_sec;
-  int32_t deltaU = (int32_t)endTime.tv_usec - (int32_t)startTime.tv_usec;
+  int32_t deltaS = static_cast<int32_t>(endTime.tv_sec) -
+                   static_cast<int32_t>(startTime.tv_sec);
+  int32_t deltaU = static_cast<int32_t>(endTime.tv_usec) -
+                   static_cast<int32_t>(startTime.tv_usec);
   double result = deltaU;
   result = (result * 1e-6) + deltaS;
   return result;

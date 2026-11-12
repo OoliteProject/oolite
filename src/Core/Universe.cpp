@@ -529,7 +529,7 @@ static GLfloat docked_light_diffuse[4] = {
     DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, 1.0f};  // white
 static GLfloat docked_light_specular[4] = {
     DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL * 0.75f,
-    (GLfloat)1.0f};  // yellow-white
+    static_cast<GLfloat>(1.0f)};  // yellow-white
 
 // Weight of sun in ambient light calculation. 1.0 means only sun's diffuse is
 // used for ambient, 0.0 means only sky colour is used.
@@ -1035,7 +1035,8 @@ void RemoveKeyAt(std::vector<std::string>& keys, unsigned index) {
     OORaiseException(
         OORangeException,
         "Index %lu is out of range %lu (in 'removeObjectAtIndex:')",
-        (unsigned long)index, (unsigned long)keys.size());
+        static_cast<unsigned long>(index),
+        static_cast<unsigned long>(keys.size()));
   }
   keys.erase(keys.begin() + index);
 }
@@ -1215,7 +1216,7 @@ std::string cxx_OOLookUpPluralDescriptionPRIV(const std::string& key,
     if (!tmp.has_value())  // this should mean that descriptions.plist is
                            // from 1.73 or above.
       return cxx_OOLookUpDescriptionPRIV(
-          std::format("{}%{}", key, (int)(count != 1)));
+          std::format("{}%{}", key, static_cast<int>(count != 1)));
     // still using an older descriptions.plist
     return *tmp;
   }
@@ -1247,7 +1248,7 @@ std::string cxx_OOLookUpPluralDescriptionPRIV(const std::string& key,
           continue;
       }
 
-      long int param = strtol(cond, (char**)&cond, 10);
+      long int param = strtol(cond, const_cast<char**>(&cond), 10);
 
       switch (command) {
         case '#':
@@ -1425,7 +1426,7 @@ void Universe::setUpUniverseFromStation() {
     ::PlayerEntity* player = PLAYER;
     ::StationEntity* dockedStation =
         (player != nullptr ? player->dockedStation()
-                           : (::StationEntity*)nullptr);
+                           : static_cast<::StationEntity*>(nullptr));
     NSPoint coords =
         (player != nullptr ? player->getGalaxy_coordinates() : NSPoint{});
     // check the nearest system
@@ -1479,7 +1480,7 @@ void Universe::setUpUniverseFromStation() {
           Quaternion q1;
 
           quaternion_set_random(&q1);
-          if (abs((int)d1) < 2750) {
+          if (abs(static_cast<int>(d1)) < 2750) {
             d1 += ((d1 > 0.0) ? 2750.0f
                               : -2750.0f);  // no closer than 2750m. Carriers
                                             // are bigger than player ships.
@@ -1558,7 +1559,7 @@ void Universe::setUpUniverseFromWitchspace() {
         &printedLines);
   std::vector<std::string>* commLog =
       (player != nullptr ? player->getCommLog()
-                         : (std::vector<std::string>*)nullptr);
+                         : static_cast<std::vector<std::string>*>(nullptr));
   if (commLog != nullptr)
     commLog->insert(commLog->end(), printedLines.begin(), printedLines.end());
 
@@ -3407,7 +3408,7 @@ Entity* Universe::addVisualEffectAt(HPVector pos, const std::string& key) {
 
     if (ship != nullptr) oo::ReleaseEntity(ship);
   }
-  return success ? ship : (::ShipEntity*)nullptr;
+  return success ? ship : static_cast<::ShipEntity*>(nullptr);
 
   OOJS_PROFILE_EXIT
 }
@@ -3545,8 +3546,9 @@ void Universe::forceWitchspaceEntries() {
   for (i = 0; i < n_entities; i++) {
     if (sortedEntities[i]->isShip) {
       ::ShipEntity* my_ship = oo::ToShip(sortedEntities[i]);
-      Entity* my_target = oo::WithObject(
-          (my_ship != nullptr ? my_ship->primaryTarget() : (Entity*)nullptr));
+      Entity* my_target =
+          oo::WithObject((my_ship != nullptr ? my_ship->primaryTarget()
+                                             : static_cast<Entity*>(nullptr)));
       if (my_target != nullptr && my_target->getIsWormhole()) {
         if (my_ship != nullptr) my_ship->enterTargetWormhole();
       } else if ((my_ship != nullptr && my_ship->getAI() != nullptr
@@ -3638,9 +3640,9 @@ void Universe::setUpBreakPattern(HPVector pos, Quaternion q, bool forDocking) {
   if (forDocking) {
     const oo::PList info =
         ((PLAYER != nullptr ? PLAYER->dockedStation()
-                            : (::StationEntity*)nullptr) != nullptr
+                            : static_cast<::StationEntity*>(nullptr)) != nullptr
              ? (PLAYER != nullptr ? PLAYER->dockedStation()
-                                  : (::StationEntity*)nullptr)
+                                  : static_cast<::StationEntity*>(nullptr))
                    ->shipInfoDictionary()
              : oo::PList());
     sides = info.get<unsigned int>("tunnel_corners", 4);
@@ -3665,10 +3667,11 @@ void Universe::setUpBreakPattern(HPVector pos, Quaternion q, bool forDocking) {
     // FIXME: better would be to have break pattern timing not depend on
     // these ring objects existing in the first place. - CIM
     if (forDocking &&
-        !((PLAYER != nullptr ? PLAYER->dockedStation()
-                             : (::StationEntity*)nullptr) != nullptr
+        !((PLAYER != nullptr
+               ? PLAYER->dockedStation()
+               : static_cast<::StationEntity*>(nullptr)) != nullptr
               ? (PLAYER != nullptr ? PLAYER->dockedStation()
-                                   : (::StationEntity*)nullptr)
+                                   : static_cast<::StationEntity*>(nullptr))
                     ->getHasBreakPattern()
               : false)) {
       ring->isImmuneToBreakPatternHide = false;
@@ -4669,7 +4672,7 @@ OOCreditsQuantity Universe::getEquipmentPriceForKey(const std::string& eq_key) {
 ::ShipEntity* Universe::reifyCargoPod(::ShipEntity* cargoObj) {
   if ((cargoObj != nullptr ? cargoObj->isTemplateCargoPod() : false)) {
     return (UNIVERSE != nullptr ? UNIVERSE->cargoPodFromTemplate(cargoObj)
-                                : (::ShipEntity*)nullptr);
+                                : static_cast<::ShipEntity*>(nullptr));
   } else {
     return cargoObj;
   }
@@ -4689,20 +4692,21 @@ OOCreditsQuantity Universe::getEquipmentPriceForKey(const std::string& eq_key) {
           : 0;
   if (randf() < 0.5)  // stops OXP monopolising pods for commodities
   {
-    container = co_type.has_value()
-                    ? (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(*co_type)
-                                           : (::ShipEntity*)nullptr)
-                    : nullptr;  // newShipWithRole returns retained object
+    container =
+        co_type.has_value()
+            ? (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(*co_type)
+                                   : static_cast<::ShipEntity*>(nullptr))
+            : nullptr;  // newShipWithRole returns retained object
   }
   if (container == nullptr) {
     container = (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("cargopod")
-                                     : (::ShipEntity*)nullptr);
+                                     : static_cast<::ShipEntity*>(nullptr));
   }
   if (co_type.has_value()) {
     if (container != nullptr) container->setCommodity(*co_type, co_amount);
   }  // nil: no change, as before
   return (container != nullptr ? oo::ToShip(oo::AutoreleaseEntity(container))
-                               : (::ShipEntity*)nullptr);
+                               : static_cast<::ShipEntity*>(nullptr));
 }
 
 std::vector<oo::EntityHold> Universe::getContainersOfGoods(
@@ -4924,7 +4928,7 @@ void Universe::setGameView(::MyOpenGLView* view) {
 
 ::GameController* Universe::gameController() {
   return (getGameView() != nullptr ? getGameView()->getGameController()
-                                   : (::GameController*)nullptr);
+                                   : static_cast<::GameController*>(nullptr));
 }
 
 // The number kinds the old dictionary held: oo_setInteger: a signed integer,
@@ -5237,8 +5241,10 @@ void Universe::drawUniverse() {
   OO_LOG("universe.profile.draw", "{}", "Begin draw");
 
   if (!no_update) {
-    if ((int)targetFramebufferSize.width != (int)viewSize.width ||
-        (int)targetFramebufferSize.height != (int)viewSize.height) {
+    if (static_cast<int>(targetFramebufferSize.width) !=
+            static_cast<int>(viewSize.width) ||
+        static_cast<int>(targetFramebufferSize.height) !=
+            static_cast<int>(viewSize.height)) {
       resizeTargetFramebufferWithViewSize(viewSize);
     }
 
@@ -5629,7 +5635,8 @@ void Universe::drawUniverse() {
       OOGL(GLScaledLineWidth(lineWidth));
 
       ::HeadUpDisplay* theHUD =
-          (player != nullptr ? player->getHud() : (HeadUpDisplay*)nullptr);
+          (player != nullptr ? player->getHud()
+                             : static_cast<HeadUpDisplay*>(nullptr));
 
       // If the HUD has a non-nil deferred name string, it means that a HUD
       // switch was requested while it was being rendered. If so, execute the
@@ -5641,10 +5648,11 @@ void Universe::drawUniverse() {
             *theHUD
                  ->getDeferredHudName();  // a copy: the switch releases the HUD
         if (player != nullptr) player->switchHudTo(deferredName);
-        theHUD = (player != nullptr
-                      ? player->getHud()
-                      : (HeadUpDisplay*)nullptr);  // HUD has been changed, so
-                                                   // point to its new address
+        theHUD =
+            (player != nullptr ? player->getHud()
+                               : static_cast<HeadUpDisplay*>(
+                                     nullptr));  // HUD has been changed, so
+                                                 // point to its new address
       }
 
       // Hiding HUD: has been a regular - non-debug - feature as of r2749, about
@@ -5763,7 +5771,8 @@ void Universe::drawMessage() {
   OOGL(glDisable(GL_TEXTURE_2D));  // for background sheets
 
   HeadUpDisplay* hud =
-      (PLAYER != nullptr ? PLAYER->getHud() : (HeadUpDisplay*)nullptr);
+      (PLAYER != nullptr ? PLAYER->getHud()
+                         : static_cast<HeadUpDisplay*>(nullptr));
   float overallAlpha =
       (hud != nullptr) ? hud->getOverallAlpha() : 0.0f;  // a nil HUD answered 0
   if (displayGUI) {
@@ -5992,8 +6001,9 @@ bool Universe::removeEntity(Entity* entity) {
     AddIfAbsent(entitiesDeadThisUpdate, entity);
     if (entity->getIsStation()) {
       std::erase(allStations, entity);
-      if ((PLAYER != nullptr ? PLAYER->getTargetDockStation()
-                             : (::StationEntity*)nullptr) == entity) {
+      if ((PLAYER != nullptr
+               ? PLAYER->getTargetDockStation()
+               : static_cast<::StationEntity*>(nullptr)) == entity) {
         if (PLAYER != nullptr)
           PLAYER->setDockingClearanceStatus(OODockingClearanceStatus::kNone);
       }
@@ -6079,14 +6089,15 @@ void Universe::removeDemoShips() {
 ::ShipEntity* Universe::makeDemoShipWithRole(const std::string& role,
                                              bool spinning) {
   if ((PLAYER != nullptr ? PLAYER->dockedStation()
-                         : (::StationEntity*)nullptr) == nullptr)
+                         : static_cast<::StationEntity*>(nullptr)) == nullptr)
     return nullptr;
 
   removeDemoShips();  // get rid of any pre-existing models on display
 
   if (PLAYER != nullptr) PLAYER->setShowDemoShips(true);
-  Quaternion q2 = {(GLfloat)M_SQRT1_2, (GLfloat)M_SQRT1_2, (GLfloat)0.0,
-                   (GLfloat)0.0};
+  Quaternion q2 = {static_cast<GLfloat>(M_SQRT1_2),
+                   static_cast<GLfloat>(M_SQRT1_2), static_cast<GLfloat>(0.0),
+                   static_cast<GLfloat>(0.0)};
 
   ::ShipEntity* ship = newShipWithRole(role);  // retain count = 1
   if (ship) {
@@ -6113,7 +6124,7 @@ void Universe::removeDemoShips() {
   }
 
   return (ship != nullptr ? oo::ToShip(oo::AutoreleaseEntity(ship))
-                          : (::ShipEntity*)nullptr);
+                          : static_cast<::ShipEntity*>(nullptr));
 }
 
 bool Universe::isVectorClearFromEntity(Entity* e1, double dist, HPVector p2) {
@@ -6311,12 +6322,12 @@ HPVector Universe::getSafeVectorFromEntity(Entity* e1, double dist,
           if (dist2 == 0.0) {
             // ie. we're on a line through the object's center !
             // jitter the position somewhat!
-            result.x +=
-                ((int)(Ranrot() % 1024) - 512) / 512.0;  //   -1.0 .. +1.0
-            result.y +=
-                ((int)(Ranrot() % 1024) - 512) / 512.0;  //   -1.0 .. +1.0
-            result.z +=
-                ((int)(Ranrot() % 1024) - 512) / 512.0;  //   -1.0 .. +1.0
+            result.x += (static_cast<int>(Ranrot() % 1024) - 512) /
+                        512.0;  //   -1.0 .. +1.0
+            result.y += (static_cast<int>(Ranrot() % 1024) - 512) /
+                        512.0;  //   -1.0 .. +1.0
+            result.z += (static_cast<int>(Ranrot() % 1024) - 512) /
+                        512.0;  //   -1.0 .. +1.0
           }
 
           HPVector nearest_point = p1;
@@ -6383,8 +6394,9 @@ HPVector Universe::getSafeVectorFromEntity(Entity* e1, double dist,
                                         HPVector rpos, GLfloat scale,
                                         GLfloat lifetime) {
   ::ShipEntity* wreck =
-      (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(wreckRole)
-                           : (::ShipEntity*)nullptr);  // retain count = 1
+      (UNIVERSE != nullptr
+           ? UNIVERSE->newShipWithRole(wreckRole)
+           : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
   Quaternion q;
   if (wreck) {
     GLfloat expected_mass = 0.1f * (ship != nullptr ? ship->getMass() : 0.0f) *
@@ -6463,8 +6475,9 @@ void Universe::addLaserHitEffectsAt(HPVector pos, ::ShipEntity* target,
   HPVector p0 = (srcEntity != nullptr ? srcEntity->getPosition() : HPVector{});
   Quaternion q1 =
       (srcEntity != nullptr ? srcEntity->normalOrientation() : Quaternion{});
-  ::ShipEntity* parent = oo::ToShip(
-      (srcEntity != nullptr ? srcEntity->parentEntity() : (Entity*)nullptr));
+  ::ShipEntity* parent =
+      oo::ToShip((srcEntity != nullptr ? srcEntity->parentEntity()
+                                       : static_cast<Entity*>(nullptr)));
 
   if (parent) {
     // we're a subentity!
@@ -6493,7 +6506,7 @@ void Universe::addLaserHitEffectsAt(HPVector pos, ::ShipEntity* target,
       my_entities[ship_count++] =
           (oo::ToShip(ent) != nullptr
                ? oo::ToShip(oo::RetainEntity(oo::ToShip(ent)))
-               : (::ShipEntity*)nullptr);
+               : static_cast<::ShipEntity*>(nullptr));
     }
   }
 
@@ -6901,7 +6914,7 @@ Entity* Universe::nearestEntityMatchingPredicate(
   for (i = 0; i < n_entities; i++) {
     Entity* e2 = sortedEntities[i];
     float distanceToReferenceEntitySquared =
-        (float)HPdistance2(p1, e2->getPosition());
+        static_cast<float>(HPdistance2(p1, e2->getPosition()));
 
     if (entity != e2 && distanceToReferenceEntitySquared < rangeSq &&
         predicate(e2, parameter)) {
@@ -7349,7 +7362,7 @@ void Universe::addCommsMessage(const std::optional<std::string>& text,
                                   nullptr, 0.0, std::nullopt, &printedLines);
     std::vector<std::string>* commLog =
         (player != nullptr ? player->getCommLog()
-                           : (std::vector<std::string>*)nullptr);
+                           : static_cast<std::vector<std::string>*>(nullptr));
     if (commLog != nullptr)
       commLog->insert(commLog->end(), printedLines.begin(), printedLines.end());
 
@@ -7596,7 +7609,7 @@ void Universe::update(OOTimeDelta inDeltaT) {
 #endif
           ::AI* theShipsAI =
               (oo::ToShip(thing) != nullptr ? oo::ToShip(thing)->getAI()
-                                            : (::AI*)nullptr);
+                                            : static_cast<::AI*>(nullptr));
           if (theShipsAI) {
             double thinkTime =
                 (theShipsAI != nullptr ? theShipsAI->getNextThinkTime()
@@ -8796,8 +8809,8 @@ OOSystemID Universe::findNeighbouringSystemToCoords(NSPoint coords,
     NSPoint ipos =
         (systemManager != nullptr ? systemManager->getCoordinatesForSystem(i, g)
                                   : NSMakePoint(0, 0));
-    distance = distanceBetweenPlanetPositions((int)coords.x, (int)coords.y,
-                                              ipos.x, ipos.y);
+    distance = distanceBetweenPlanetPositions(
+        static_cast<int>(coords.x), static_cast<int>(coords.y), ipos.x, ipos.y);
     if ((connected[i]) && (distance < min_dist) && (distance != 0.0)) {
       min_dist = distance;
       system = i;
@@ -8844,8 +8857,8 @@ OOSystemID Universe::findConnectedSystemAtCoords(NSPoint coords, OOGalaxyID g) {
     NSPoint ipos =
         (systemManager != nullptr ? systemManager->getCoordinatesForSystem(i, g)
                                   : NSMakePoint(0, 0));
-    distance = distanceBetweenPlanetPositions((int)coords.x, (int)coords.y,
-                                              ipos.x, ipos.y);
+    distance = distanceBetweenPlanetPositions(
+        static_cast<int>(coords.x), static_cast<int>(coords.y), ipos.x, ipos.y);
     if ((connected[i]) && (distance < min_dist)) {
       min_dist = distance;
       system = i;
@@ -8951,7 +8964,7 @@ NSPoint Universe::findSystemCoordinatesWithPrefix(const std::string& p_fix,
   return system_coords;
 }
 
-bool* Universe::systemsFound() { return (bool*)system_found; }
+bool* Universe::systemsFound() { return system_found; }
 
 std::optional<std::string> Universe::systemNameIndex(OOSystemID index) {
   return system_names[index & 255];
@@ -9092,8 +9105,8 @@ oo::PList Universe::routeFromSystem(OOSystemID start, OOSystemID goal,
 #else
   return oo::PList(oo::PList::Dict{
       {"route", oo::PList(std::move(route))},
-      {"distance", oo::PList((double)cheapest[goal]->distance())},
-      {"time", oo::PList((double)cheapest[goal]->time())},
+      {"distance", oo::PList(cheapest[goal]->distance())},
+      {"time", oo::PList(cheapest[goal]->time())},
       {"jumps", oo::PList::signedInteger(cheapest[goal]->jumps())}});
 #endif
 }
@@ -9300,17 +9313,18 @@ oo::PList Universe::getStationMarkets() {
     // must be deterministic and secondary
     if ((station != nullptr ? station->getAllowsSaving() : false) &&
         station != (UNIVERSE != nullptr ? UNIVERSE->station() : nullptr)) {
-      stationMarket = (station != nullptr ? station->getLocalMarket()
-                                          : (OOCommodityMarket*)nullptr);
+      stationMarket =
+          (station != nullptr ? station->getLocalMarket()
+                              : static_cast<OOCommodityMarket*>(nullptr));
       if (stationMarket != nullptr) {
         const HPVector position =
             (station != nullptr ? station->getPosition() : HPVector{});
         markets.push_back(oo::PList(oo::PList::Dict{
             {"market", stationMarket->saveStationAmounts()},
-            {"position",
-             oo::PList(oo::PList::Array{oo::PList((double)position.x),
-                                        oo::PList((double)position.y),
-                                        oo::PList((double)position.z)})}}));
+            {"position", oo::PList(oo::PList::Array{
+                             oo::PList(static_cast<double>(position.x)),
+                             oo::PList(static_cast<double>(position.y)),
+                             oo::PList(static_cast<double>(position.z))})}}));
       }
     }
   }
@@ -9987,7 +10001,8 @@ OOCreditsQuantity Universe::tradeInValueForCommanderDictionary(
   // shipyard.plist settings might have duplicate keys.
   // cull possible duplicates from inside base equipment
   // (the search range 0..i-2 never looks at the entry just before)
-  for (i = (std::ptrdiff_t)base_extra_equipment.size() - 1; i > 0; i--) {
+  for (i = static_cast<std::ptrdiff_t>(base_extra_equipment.size()) - 1; i > 0;
+       i--) {
     eq_key = base_extra_equipment[i];
     const auto searchEnd = base_extra_equipment.begin() + (i - 1);
     if (eq_key.has_value() &&
@@ -9996,7 +10011,8 @@ OOCreditsQuantity Universe::tradeInValueForCommanderDictionary(
   }
 
   // do we at least have the same equipment as a standard ship?
-  for (i = (std::ptrdiff_t)base_extra_equipment.size() - 1; i >= 0; i--) {
+  for (i = static_cast<std::ptrdiff_t>(base_extra_equipment.size()) - 1; i >= 0;
+       i--) {
     eq_key = base_extra_equipment[i];
     if (eq_key.has_value() &&
         std::find(ship_extra_equipment.begin(), ship_extra_equipment.end(),
@@ -10010,7 +10026,8 @@ OOCreditsQuantity Universe::tradeInValueForCommanderDictionary(
   // remove portable equipment from the totals
   ::OOEquipmentType* item = nullptr;
 
-  for (i = (std::ptrdiff_t)ship_extra_equipment.size() - 1; i >= 0; i--) {
+  for (i = static_cast<std::ptrdiff_t>(ship_extra_equipment.size()) - 1; i >= 0;
+       i--) {
     item = OOEquipmentType::equipmentTypeWithIdentifier(ship_extra_equipment[i])
                .get();
     if ((item != nullptr ? item->isPortableBetweenShips() : false))
@@ -10018,7 +10035,8 @@ OOCreditsQuantity Universe::tradeInValueForCommanderDictionary(
   }
 
   // add up what we've got left.
-  for (i = (std::ptrdiff_t)ship_extra_equipment.size() - 1; i >= 0; i--)
+  for (i = static_cast<std::ptrdiff_t>(ship_extra_equipment.size()) - 1; i >= 0;
+       i--)
     extra_equipment_value +=
         ((UNIVERSE != nullptr
               ? UNIVERSE->getEquipmentPriceForKey(ship_extra_equipment[i])
@@ -10031,7 +10049,8 @@ OOCreditsQuantity Universe::tradeInValueForCommanderDictionary(
 
   // we'll return at least the scrap value
   // TODO: calculate scrap value based on the size of the ship.
-  if ((long long)scrap_value > (long long)base_price + extra_equipment_value)
+  if (static_cast<long long>(scrap_value) >
+      static_cast<long long>(base_price) + extra_equipment_value)
     return scrap_value;
 
   return base_price + extra_equipment_value;
@@ -10481,7 +10500,7 @@ unsigned int Universe::setVoice(unsigned int index, bool isMale) {
     espeak_VOICE voice = {espeak_voices[index]->name,
                           nullptr,
                           nullptr,
-                          (unsigned char)(isMale ? 1 : 2),
+                          static_cast<unsigned char>(isMale ? 1 : 2),
                           0,
                           0,
                           0,
@@ -10897,8 +10916,8 @@ bool Universe::doRemoveEntity(Entity* entity) {
                oo::EntityDescription(entity));
     }
     if (index != -1) {
-      while ((unsigned)index < n_entities) {
-        while (((unsigned)index + n < n_entities) &&
+      while (static_cast<unsigned>(index) < n_entities) {
+        while ((static_cast<unsigned>(index) + n < n_entities) &&
                (sortedEntities[index + n] == entity)) {
           n++;  // ie there's a duplicate entry for this entity
         }
@@ -11179,7 +11198,10 @@ void Universe::addNumericRefsInString(const std::string& string,
     // mod shuffle them to avoid adjacent nodes having similar colours.
     graphViz += std::format(
         "\t{} -> n{}_0 [color=\"{:f},0.75,0.8\" lhead=cluster_{}]\n", fromNode,
-        i, ((float)(i * 511 % nodeCount)) / ((float)nodeCount), i);
+        i,
+        (static_cast<float>(i * 511 % nodeCount)) /
+            (static_cast<float>(nodeCount)),
+        i);
   }
 
   if (string.find("%I") != std::string::npos) {
@@ -11529,7 +11551,7 @@ void Universe::initTargetFramebufferWithViewSize(NSSize viewSize) {
   OOGL(glEnableVertexAttribArray(0));
   // position attribute
   OOGL(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
-                             (void*)nullptr));
+                             static_cast<void*>(nullptr)));
   OOGL(glEnableVertexAttribArray(1));
   // texture coord attribute
   OOGL(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
@@ -11643,7 +11665,8 @@ void Universe::drawTargetTextureIntoDefaultFramebuffer() {
   GLuint final = OOGLProgramName(finalProgram->program());
   NSSize viewSize =
       (gameView != nullptr ? gameView->backingViewSize() : NSSize{});
-  float fboResolution[2] = {(float)viewSize.width, (float)viewSize.height};
+  float fboResolution[2] = {static_cast<float>(viewSize.width),
+                            static_cast<float>(viewSize.height)};
 
   OOGL(glBindFramebuffer(GL_FRAMEBUFFER, passthroughFramebufferID));
   OOGL(glClear(GL_COLOR_BUFFER_BIT));

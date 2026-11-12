@@ -125,7 +125,7 @@ void OOPlanetDrawable::setRadius(float radius) {
 }
 
 float OOPlanetDrawable::levelOfDetail() {
-  return (float)_lod / LOD_GRANULARITY;
+  return static_cast<float>(_lod) / LOD_GRANULARITY;
 }
 
 void OOPlanetDrawable::setLevelOfDetail(float lod) {

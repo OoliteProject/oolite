@@ -277,8 +277,9 @@ OOINLINE OOMatrix OOMatrixTranslate(OOMatrix m, Vector offset) {
 }
 
 OOINLINE OOMatrix OOMatrixHPTranslate(OOMatrix m, HPVector offset) {
-  return OOMatrixTranslateComponents(m, (OOScalar)offset.x, (OOScalar)offset.y,
-                                     (OOScalar)offset.z);
+  return OOMatrixTranslateComponents(m, static_cast<OOScalar>(offset.x),
+                                     static_cast<OOScalar>(offset.y),
+                                     static_cast<OOScalar>(offset.z));
 }
 
 OOINLINE OOMatrix OOMatrixForScale(OOScalar sx, OOScalar sy, OOScalar sz) {

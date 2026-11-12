@@ -258,35 +258,38 @@ bool OOEquipmentType::initWithInfo(const oo::PList& info) {
     if (extra != nullptr) {
       const oo::PList& extraInfo = *extra;
 
-      _isAvailableToAll = (unsigned char)extraInfo.get<bool>("available_to_all",
-                                                             _isAvailableToAll);
-      _isAvailableToPlayer = (unsigned char)extraInfo.get<bool>(
-          "available_to_player", _isAvailableToPlayer);
-      _isAvailableToNPCs = (unsigned char)extraInfo.get<bool>(
-          "available_to_NPCs", _isAvailableToNPCs);
+      _isAvailableToAll = static_cast<unsigned char>(
+          extraInfo.get<bool>("available_to_all", _isAvailableToAll));
+      _isAvailableToPlayer = static_cast<unsigned char>(
+          extraInfo.get<bool>("available_to_player", _isAvailableToPlayer));
+      _isAvailableToNPCs = static_cast<unsigned char>(
+          extraInfo.get<bool>("available_to_NPCs", _isAvailableToNPCs));
 
-      _isMissileOrMine = (unsigned char)extraInfo.get<bool>("is_external_store",
-                                                            _isMissileOrMine);
-      _requiresEmptyPylon = (unsigned char)extraInfo.get<bool>(
-          "requires_empty_pylon", _requiresEmptyPylon);
-      _requiresMountedPylon = (unsigned char)extraInfo.get<bool>(
-          "requires_mounted_pylon", _requiresMountedPylon);
-      _requiresClean =
-          (unsigned char)extraInfo.get<bool>("requires_clean", _requiresClean);
-      _requiresNotClean = (unsigned char)extraInfo.get<bool>(
-          "requires_not_clean", _requiresNotClean);
-      _portableBetweenShips = (unsigned char)extraInfo.get<bool>(
-          "portable_between_ships", _portableBetweenShips);
-      _requiresFreePassengerBerth = (unsigned char)extraInfo.get<bool>(
-          "requires_free_passenger_berth", _requiresFreePassengerBerth);
-      _requiresFullFuel = (unsigned char)extraInfo.get<bool>(
-          "requires_full_fuel", _requiresFullFuel);
-      _requiresNonFullFuel = (unsigned char)extraInfo.get<bool>(
-          "requires_non_full_fuel", _requiresNonFullFuel);
-      _isVisible = (unsigned char)extraInfo.get<bool>("visible", _isVisible);
-      _canCarryMultiple =
-          (unsigned char)extraInfo.get<bool>("can_carry_multiple", false);
-      _hideValues = (unsigned char)extraInfo.get<bool>("hide_values", false);
+      _isMissileOrMine = static_cast<unsigned char>(
+          extraInfo.get<bool>("is_external_store", _isMissileOrMine));
+      _requiresEmptyPylon = static_cast<unsigned char>(
+          extraInfo.get<bool>("requires_empty_pylon", _requiresEmptyPylon));
+      _requiresMountedPylon = static_cast<unsigned char>(
+          extraInfo.get<bool>("requires_mounted_pylon", _requiresMountedPylon));
+      _requiresClean = static_cast<unsigned char>(
+          extraInfo.get<bool>("requires_clean", _requiresClean));
+      _requiresNotClean = static_cast<unsigned char>(
+          extraInfo.get<bool>("requires_not_clean", _requiresNotClean));
+      _portableBetweenShips = static_cast<unsigned char>(
+          extraInfo.get<bool>("portable_between_ships", _portableBetweenShips));
+      _requiresFreePassengerBerth =
+          static_cast<unsigned char>(extraInfo.get<bool>(
+              "requires_free_passenger_berth", _requiresFreePassengerBerth));
+      _requiresFullFuel = static_cast<unsigned char>(
+          extraInfo.get<bool>("requires_full_fuel", _requiresFullFuel));
+      _requiresNonFullFuel = static_cast<unsigned char>(
+          extraInfo.get<bool>("requires_non_full_fuel", _requiresNonFullFuel));
+      _isVisible = static_cast<unsigned char>(
+          extraInfo.get<bool>("visible", _isVisible));
+      _canCarryMultiple = static_cast<unsigned char>(
+          extraInfo.get<bool>("can_carry_multiple", false));
+      _hideValues =
+          static_cast<unsigned char>(extraInfo.get<bool>("hide_values", false));
 
       _requiredCargoSpace = extraInfo.get<unsigned int>("requires_cargo_space",
                                                         _requiredCargoSpace);

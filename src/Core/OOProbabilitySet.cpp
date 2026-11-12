@@ -394,7 +394,8 @@ bool OOConcreteProbabilitySet::initWithObjects(const oo::PList* objects,
 
   // Allocate arrays
   _objects = new oo::PList[count];
-  _cumulativeWeights = (float*)malloc(sizeof *_cumulativeWeights * count);
+  _cumulativeWeights =
+      static_cast<float*>(malloc(sizeof *_cumulativeWeights * count));
   if (_cumulativeWeights == nullptr) {
     return false;
   }
@@ -507,7 +508,7 @@ oo::Ref<OOMutableProbabilitySet> OOConcreteProbabilitySet::mutableCopy() {
   float weight = 0.0f, sum = 0.0f;
 
   // Convert cumulative weights to "plain" weights.
-  weights = (float*)malloc(sizeof *weights * _count);
+  weights = static_cast<float*>(malloc(sizeof *weights * _count));
   if (weights == nullptr) return nullptr;
 
   for (i = 0; i < _count; ++i) {

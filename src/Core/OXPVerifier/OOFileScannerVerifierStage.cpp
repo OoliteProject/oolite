@@ -588,7 +588,8 @@ void OOFileScannerVerifierStage::checkPListFormat(
           break;
 
         default:
-          formatDesc = std::format("unknown format ({})", (int)format);
+          formatDesc =
+              std::format("unknown format ({})", static_cast<int>(format));
       }
 
       OO_LOG("verifyOXP.plist.weirdFormat",
