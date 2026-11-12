@@ -153,7 +153,7 @@ void OOJSReportPendingException(JSContext* context) {
 namespace {
 
 bool Matches(const std::string& string, const std::string& regExp,
-             std::size_t flags = 0) {
+             OORegExpFlags flags = {}) {
   oo::Ref<OORegExpMatcher> matcher = OORegExpMatcher::regExpMatcher();
   return matcher != nullptr && matcher->string(string, regExp, flags);
 }
@@ -167,9 +167,9 @@ OO_TEST(matches) {
     OO_CHECK(Matches("GeForce GTX 1080", "^GeForce GTX [0-9]+$"));
     OO_CHECK(!Matches("GeForce GTX 1080", "^GTX"));
     OO_CHECK(!Matches("geforce", "GeForce"));
-    OO_CHECK(Matches("geforce", "GeForce", kOORegExpCaseInsensitive));
+    OO_CHECK(Matches("geforce", "GeForce", OORegExpFlags::kCaseInsensitive));
     OO_CHECK(!Matches("one\ntwo", "^two"));
-    OO_CHECK(Matches("one\ntwo", "^two", kOORegExpMultiLine));
+    OO_CHECK(Matches("one\ntwo", "^two", OORegExpFlags::kMultiLine));
     OO_CHECK(Matches("", "^$"));
     OO_CHECK(Matches("caf\xC3\xA9",
                      "\xC3\xA9$"));  // UTF-8 in, and UTF-8 to the engine
@@ -187,15 +187,15 @@ OO_TEST(emptyPatternMatchesNothing) {
 OO_TEST(regExpIsCachedByPatternAndFlags) {
   oo::Ref<OORegExpMatcher> matcher = OORegExpMatcher::regExpMatcher();
   unsigned made = sRegExpsMade;
-  OO_CHECK(matcher->string("abc", "c$", 0));
+  OO_CHECK(matcher->string("abc", "c$", OORegExpFlags::kNone));
   OO_CHECK(sRegExpsMade == made + 1);
-  OO_CHECK(!matcher->string("abd", "c$", 0));
+  OO_CHECK(!matcher->string("abd", "c$", OORegExpFlags::kNone));
   OO_CHECK(sRegExpsMade == made + 1);  // same pattern and flags: cached
-  OO_CHECK(matcher->string("ABC", "c$", kOORegExpCaseInsensitive));
+  OO_CHECK(matcher->string("ABC", "c$", OORegExpFlags::kCaseInsensitive));
   OO_CHECK(sRegExpsMade == made + 2);  // new flags
-  OO_CHECK(matcher->string("ABD", "d$", kOORegExpCaseInsensitive));
+  OO_CHECK(matcher->string("ABD", "d$", OORegExpFlags::kCaseInsensitive));
   OO_CHECK(sRegExpsMade == made + 3);  // new pattern
-  OO_CHECK(matcher->string("abd", "d$", 0));
+  OO_CHECK(matcher->string("abd", "d$", OORegExpFlags::kNone));
   OO_CHECK(sRegExpsMade == made + 4);
 }
 
@@ -233,8 +233,8 @@ OO_TEST(cxxMatches) {
   OO_CHECK(matcher != nullptr);
   OO_CHECK(matcher->string("GeForce GTX 1080", "^GeForce GTX [0-9]+$"));
   OO_CHECK(!matcher->string("geforce", "GeForce"));
-  OO_CHECK(matcher->string("geforce", "GeForce", kOORegExpCaseInsensitive));
-  OO_CHECK(matcher->string("one\ntwo", "^two", kOORegExpMultiLine));
+  OO_CHECK(matcher->string("geforce", "GeForce", OORegExpFlags::kCaseInsensitive));
+  OO_CHECK(matcher->string("one\ntwo", "^two", OORegExpFlags::kMultiLine));
   OO_CHECK(!matcher->string("abc", ""));
 }
 

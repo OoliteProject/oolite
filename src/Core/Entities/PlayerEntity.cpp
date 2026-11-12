@@ -194,7 +194,7 @@ std::string ExpandKeyWithSeed(Random_Seed seed, const std::string& key,
                               const oo::PList::Dict& args) {
   return cxx_OOExpandDescriptionString(
              seed, key, args.empty() ? oo::PList() : oo::PList(args),
-             oo::PList(), std::nullopt, kOOExpandKey)
+             oo::PList(), std::nullopt, OOExpandOptions::kKey)
       .value_or(std::string());
 }
 

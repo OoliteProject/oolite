@@ -348,7 +348,7 @@ void PerformActionStatment(const oo::PList& statement, Entity* target) {
             : oo::PList();
     const std::optional<std::string> expanded = cxx_OOExpandDescriptionString(
         OOStringExpanderDefaultRandomSeed(), *argumentString, oo::PList(),
-        locals, std::nullopt, kOOExpandNoOptions);
+        locals, std::nullopt, OOExpandOptions::kNone);
     if (expanded.has_value())
       oo::CallEntityByName(cxxTarget, selectorString, *expanded);
     else
@@ -2052,7 +2052,7 @@ void PlayerEntity::addMissionText(const std::string& textKey)  // called by name
   if (!key.has_value() || !text.has_value()) return;
   const std::string expanded =
       cxx_OOExpandWithOptions(OOStringExpanderDefaultRandomSeed(),
-                              kOOExpandBackslashN, *text)
+                              OOExpandOptions::kBackslashN, *text)
           .value_or(std::string());
 
   const std::optional<std::string> literal = replaceVariablesInString(expanded);

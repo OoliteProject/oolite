@@ -214,9 +214,9 @@ std::optional<std::string> ExpandKeyWithArgument(
     const std::optional<std::string>& argument) {
   oo::PList::Dict arguments;
   if (argument.has_value()) arguments[argumentName] = *argument;
-  return cxx_OOExpandDescriptionString(OOStringExpanderDefaultRandomSeed(), key,
-                                       oo::PList(std::move(arguments)),
-                                       oo::PList(), std::nullopt, kOOExpandKey);
+  return cxx_OOExpandDescriptionString(
+      OOStringExpanderDefaultRandomSeed(), key, oo::PList(std::move(arguments)),
+      oo::PList(), std::nullopt, OOExpandOptions::kKey);
 }
 
 // [key intValue] for a close-contact key (the "%d" text of a universal ID).
@@ -13409,7 +13409,7 @@ void ShipEntity::sendExpandedMessage(const std::string& message_text,
       cxx_OOExpandDescriptionString(OOStringExpanderDefaultRandomSeed(),
                                     message_text,
                                     oo::PList(std::move(specials)), oo::PList(),
-                                    std::nullopt, kOOExpandNoOptions);
+                                    std::nullopt, OOExpandOptions::kNone);
 
   if (expandedMessage.has_value())
     sendMessage(*expandedMessage, other_ship, false);  // nil was not sent

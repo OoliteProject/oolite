@@ -1063,7 +1063,7 @@ std::string ExpandKeyWith(const std::string& key, const char* name,
   return cxx_OOExpandDescriptionString(
              OOStringExpanderDefaultRandomSeed(), key,
              cxx_OOExpandArgumentDictionary({{name, value}}), oo::PList(),
-             std::nullopt, kOOExpandKey)
+             std::nullopt, OOExpandOptions::kKey)
       .value_or(std::string());
 }
 

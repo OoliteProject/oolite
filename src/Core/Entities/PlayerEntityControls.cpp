@@ -198,7 +198,7 @@ std::string ExpandKeyWithArguments(const char* key,
                                    const oo::PList::Dict& args) {
   return cxx_OOExpandDescriptionString(OOStringExpanderDefaultRandomSeed(), key,
                                        oo::PList(args), oo::PList(),
-                                       std::nullopt, kOOExpandKey)
+                                       std::nullopt, OOExpandOptions::kKey)
       .value_or(std::string());
 }
 
