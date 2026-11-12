@@ -27,14 +27,12 @@
 #include "OOTexture.h"
 // Before OOConcreteTexture.h, in a block of its own: OOTextureInternal.h tests
 // OOTEXTURE_RELOADABLE, which OOConcreteTexture.h defines.
-#include <cxxabi.h>
-
-#include <cstdlib>
 #include <typeinfo>
 
 #include "OOCPUInfo.h"
 #include "OOCache.h"
 #include "OOConcreteTexture.h"
+#include "OODemangle.h"
 #include "OODescription.h"
 #include "OOMacroOpenGL.h"
 #include "OONullTexture.h"
@@ -379,13 +377,7 @@ namespace {
 
 // The C++ class's name.
 std::string ClassName(const OOTexture& texture) {
-  int status = 0;
-  char* demangled =
-      abi::__cxa_demangle(typeid(texture).name(), nullptr, nullptr, &status);
-  std::string result = (status == 0 && demangled != nullptr)
-                           ? demangled
-                           : typeid(texture).name();
-  std::free(demangled);
+  std::string result = OODemangle(typeid(texture).name());
   return result;
 }
 

@@ -24,12 +24,10 @@ MA 02110-1301, USA.
 
 #include "OOScript.h"
 
-#include <cxxabi.h>
-
-#include <cstdlib>
 #include <typeinfo>
 
 #include "OODebugStandards.h"
+#include "OODemangle.h"
 #include "OOJSScript.h"
 #include "OOJavaScriptEngine.h"
 #include "OOLogging.h"
@@ -61,12 +59,7 @@ static std::optional<std::vector<std::string>> StringsFromArrayFile(
 
 // The C++ class's name.
 static std::string ClassName(const OOScript& script) {
-  int status = 0;
-  char* demangled =
-      abi::__cxa_demangle(typeid(script).name(), nullptr, nullptr, &status);
-  std::string result =
-      (status == 0 && demangled != nullptr) ? demangled : typeid(script).name();
-  std::free(demangled);
+  std::string result = OODemangle(typeid(script).name());
   if (result.starts_with("cxx::")) result.erase(0, 5);
   return result;
 }

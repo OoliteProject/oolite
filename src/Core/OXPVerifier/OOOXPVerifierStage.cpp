@@ -36,11 +36,9 @@ SOFTWARE.
 
 #if OO_OXP_VERIFIER_ENABLED
 
-#include <cxxabi.h>
-
-#include <cstdlib>
 #include <typeinfo>
 
+#include "OODemangle.h"
 #include "oofnd/Log.hpp"
 
 // Adding a stage to a set of stages: identity, no duplicates, null ignored.
@@ -73,12 +71,7 @@ std::string OOOXPVerifierStage::description() const {
 
 // The C++ class's name (demangled, "cxx::" dropped).
 std::string OOOXPVerifierStage::className() const {
-  int status = 0;
-  char* demangled =
-      abi::__cxa_demangle(typeid(*this).name(), nullptr, nullptr, &status);
-  std::string result =
-      (status == 0 && demangled != nullptr) ? demangled : typeid(*this).name();
-  std::free(demangled);
+  std::string result = OODemangle(typeid(*this).name());
   if (result.starts_with("cxx::")) result.erase(0, 5);
   return result;
 }
