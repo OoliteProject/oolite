@@ -134,7 +134,7 @@ void OOWaypointEntity::drawImmediate(bool /*immediate*/, bool translucent) {
   GLfloat s1 = _size * 0.75f;
 
   OO_ENTER_OPENGL();
-  OOSetOpenGLState(OPENGL_STATE_TRANSLUCENT_PASS);
+  OOSetOpenGLState(OOOpenGLStateID::kTranslucentPass);
   OOGL(glEnable(GL_BLEND));
   GLScaledLineWidth(1.0);
 

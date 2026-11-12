@@ -158,7 +158,7 @@ void OOLightParticleEntity::drawImmediate(bool /*immediate*/,
   if (no_draw_distance <= cam_zero_distance) return;
 
   OO_ENTER_OPENGL();
-  OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
+  OOSetOpenGLState(OOOpenGLStateID::kAdditiveBlending);
 
   OOGL(glPushAttrib(GL_COLOR_BUFFER_BIT | GL_ENABLE_BIT));
   OOGL(glEnable(GL_BLEND));

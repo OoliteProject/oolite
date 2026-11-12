@@ -408,7 +408,7 @@ void OOExhaustPlumeEntity::drawSubEntityImmediate(bool /*immediate*/,
     return;  // don't draw if not moving according to 'update' calculation
 
   OO_ENTER_OPENGL();
-  OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
+  OOSetOpenGLState(OOOpenGLStateID::kAdditiveBlending);
 
   OOGLPopModelView();
   OOGLPushModelView();

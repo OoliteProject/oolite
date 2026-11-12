@@ -211,7 +211,7 @@ void OOPolygonSprite::drawWithData(GLfloat* data, size_t count, GLuint* vbo) {
   OOCParameterAssert(vbo != nullptr && data != nullptr);
 
   OO_ENTER_OPENGL();
-  OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+  OOSetOpenGLState(OOOpenGLStateID::kOverlay);
 
 #if OO_USE_VBO
   bool useVBO = OOOpenGLExtensionManager::sharedManager()->vboSupported();

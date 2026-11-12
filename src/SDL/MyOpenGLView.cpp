@@ -498,7 +498,7 @@ bool MyOpenGLView::init() {
   if (_mouseVirtualStickSensitivityFactor < 0.005f)
     _mouseVirtualStickSensitivityFactor = 0.005f;
 
-  allowingStringInput = gvStringInputNo;
+  allowingStringInput = StringInput::kNo;
   isAlphabetKeyDown = false;
 
   timeIntervalAtLastClick =
@@ -746,7 +746,7 @@ void MyOpenGLView::initSplashScreen() {
   dest.h = image->h;
 
   createWindowWithSize(NSMakeSize(image->w, image->h));
-  OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+  OOSetOpenGLState(OOOpenGLStateID::kOverlay);
   float pixelDensity = SDL_GetWindowPixelDensity(window);
   if (pixelDensity == 0.0f) {
     pixelDensity = 1.0f;

@@ -79,192 +79,193 @@ using OOOpenGLState = struct {
 };
 
 // The state definitions.
-static const OOOpenGLState kStandardStates[OPENGL_STATE_INTERNAL_USE_ONLY + 1] =
-    {{
-         // [OPENGL_STATE_OPAQUE]
-         .name = "OPENGL_STATE_OPAQUE",
-         .LIGHTING = kStateTrue,
-         .LIGHT0 = kStateMaybe,
-         /* FIXME: in shader mode, these should not be kStateMaybe, but
-          * false for 0 and true for 1. On the other hand, in shader mode
-          * these settings are supposed to be irrelevant. */
-         .LIGHT1 = kStateMaybe,  // FIXME: see above
-         .LIGHT2 = kStateFalse,
-         .LIGHT3 = kStateFalse,
-         .LIGHT4 = kStateFalse,
-         .LIGHT5 = kStateFalse,
-         .LIGHT6 = kStateFalse,
-         .LIGHT7 = kStateFalse,
-         .TEXTURE_2D = kStateTrue,
-         .COLOR_MATERIAL = kStateFalse,
-         .BLEND = kStateFalse,
-         .FOG = kStateMaybe,
-         .DEPTH_TEST = kStateTrue,
-         .NORMALIZE = kStateFalse,
-         .RESCALE_NORMAL = kStateFalse,
-         .VERTEX_ARRAY = true,
-         .NORMAL_ARRAY = true,
-         .COLOR_ARRAY = false,
-         .INDEX_ARRAY = false,
-         .TEXTURE_COORD_ARRAY = false,
-         .EDGE_FLAG_ARRAY = false,
-         .DEPTH_WRITEMASK = true,
-         .CULL_FACE = kStateTrue,
-         .SHADE_MODEL = GL_SMOOTH,
-         .TEXTURE_ENV_MODE = GL_MODULATE,
-         .ACTIVE_TEXTURE = GL_TEXTURE0,
-         .CLIENT_ACTIVE_TEXTURE = GL_TEXTURE0,
-         .CULL_FACE_MODE = GL_BACK,
-         .FRONT_FACE = GL_CCW,
-         .BLEND_SRC = GL_SRC_ALPHA,
-         .BLEND_DST = GL_ONE_MINUS_SRC_ALPHA,
-     },
-     {
-         // [OPENGL_STATE_TRANSLUCENT_PASS]
-         .name = "OPENGL_STATE_TRANSLUCENT_PASS",
-         .LIGHTING = kStateFalse,
-         .LIGHT0 = kStateMaybe,  // FIXME: see above
-         .LIGHT1 = kStateMaybe,  // FIXME: see above
-         .LIGHT2 = kStateFalse,
-         .LIGHT3 = kStateFalse,
-         .LIGHT4 = kStateFalse,
-         .LIGHT5 = kStateFalse,
-         .LIGHT6 = kStateFalse,
-         .LIGHT7 = kStateFalse,
-         .TEXTURE_2D = kStateFalse,
-         .COLOR_MATERIAL = kStateFalse,
-         .BLEND = kStateFalse,
-         .FOG = kStateMaybe,
-         .DEPTH_TEST = kStateTrue,
-         .NORMALIZE = kStateFalse,
-         .RESCALE_NORMAL = kStateFalse,
-         .VERTEX_ARRAY = false,
-         .NORMAL_ARRAY = false,
-         .COLOR_ARRAY = false,
-         .INDEX_ARRAY = false,
-         .TEXTURE_COORD_ARRAY = false,
-         .EDGE_FLAG_ARRAY = false,
-         .DEPTH_WRITEMASK = false,
-         .CULL_FACE = kStateTrue,
-         .SHADE_MODEL = GL_SMOOTH,
-         .TEXTURE_ENV_MODE = GL_MODULATE,
-         .ACTIVE_TEXTURE = GL_TEXTURE0,
-         .CLIENT_ACTIVE_TEXTURE = GL_TEXTURE0,
-         .CULL_FACE_MODE = GL_BACK,
-         .FRONT_FACE = GL_CCW,
-         .BLEND_SRC = GL_SRC_ALPHA,
-         .BLEND_DST = GL_ONE_MINUS_SRC_ALPHA,
-     },
-     {
-         // [OPENGL_STATE_ADDITIVE_BLENDING]
-         .name = "OPENGL_STATE_ADDITIVE_BLENDING",
-         .LIGHTING = kStateFalse,
-         .LIGHT0 = kStateMaybe,  // FIXME: see above
-         .LIGHT1 = kStateMaybe,  // FIXME: see above
-         .LIGHT2 = kStateFalse,
-         .LIGHT3 = kStateFalse,
-         .LIGHT4 = kStateFalse,
-         .LIGHT5 = kStateFalse,
-         .LIGHT6 = kStateFalse,
-         .LIGHT7 = kStateFalse,
-         .TEXTURE_2D = kStateFalse,
-         .COLOR_MATERIAL = kStateFalse,
-         .BLEND = kStateTrue,
-         .FOG = kStateMaybe,
-         .DEPTH_TEST = kStateTrue,
-         .NORMALIZE = kStateFalse,
-         .RESCALE_NORMAL = kStateFalse,
-         .VERTEX_ARRAY = true,
-         .NORMAL_ARRAY = false,
-         .COLOR_ARRAY = false,
-         .INDEX_ARRAY = false,
-         .TEXTURE_COORD_ARRAY = false,
-         .EDGE_FLAG_ARRAY = false,
-         .DEPTH_WRITEMASK = false,
-         .CULL_FACE = kStateFalse,
-         .SHADE_MODEL = GL_SMOOTH,
-         .TEXTURE_ENV_MODE = GL_MODULATE,  // Should be GL_BLEND?
-         .ACTIVE_TEXTURE = GL_TEXTURE0,
-         .CLIENT_ACTIVE_TEXTURE = GL_TEXTURE0,
-         .CULL_FACE_MODE = GL_BACK,
-         .FRONT_FACE = GL_CCW,
-         .BLEND_SRC = GL_SRC_ALPHA,
-         .BLEND_DST = GL_ONE,
-     },
-     {
-         // [OPENGL_STATE_OVERLAY]
-         .name = "OPENGL_STATE_OVERLAY",
-         .LIGHTING = kStateFalse,
-         .LIGHT0 = kStateMaybe,  // FIXME: see above
-         .LIGHT1 = kStateMaybe,  // FIXME: see above
-         .LIGHT2 = kStateFalse,
-         .LIGHT3 = kStateFalse,
-         .LIGHT4 = kStateFalse,
-         .LIGHT5 = kStateFalse,
-         .LIGHT6 = kStateFalse,
-         .LIGHT7 = kStateFalse,
-         .TEXTURE_2D = kStateFalse,
-         .COLOR_MATERIAL = kStateFalse,
-         .BLEND = kStateTrue,
-         .FOG = kStateFalse,
-         .DEPTH_TEST = kStateFalse,
-         .NORMALIZE = kStateFalse,
-         .RESCALE_NORMAL = kStateFalse,
-         .VERTEX_ARRAY = false,
-         .NORMAL_ARRAY = false,
-         .COLOR_ARRAY = false,
-         .INDEX_ARRAY = false,
-         .TEXTURE_COORD_ARRAY = false,
-         .EDGE_FLAG_ARRAY = false,
-         .DEPTH_WRITEMASK = false,
-         .CULL_FACE = kStateFalse,  // ??
-         .SHADE_MODEL = GL_SMOOTH,
-         .TEXTURE_ENV_MODE = GL_MODULATE,
-         .ACTIVE_TEXTURE = GL_TEXTURE0,
-         .CLIENT_ACTIVE_TEXTURE = GL_TEXTURE0,
-         .CULL_FACE_MODE = GL_BACK,
-         .FRONT_FACE = GL_CCW,
-         .BLEND_SRC = GL_SRC_ALPHA,
-         .BLEND_DST = GL_ONE_MINUS_SRC_ALPHA,
-     },
-     {
-         // [OPENGL_STATE_INTERNAL_USE_ONLY]
-         .name = "<canonical initial state>",
-         .LIGHTING = kStateFalse,
-         .LIGHT0 = kStateFalse,
-         .LIGHT1 = kStateFalse,
-         .LIGHT2 = kStateFalse,
-         .LIGHT3 = kStateFalse,
-         .LIGHT4 = kStateFalse,
-         .LIGHT5 = kStateFalse,
-         .LIGHT6 = kStateFalse,
-         .LIGHT7 = kStateFalse,
-         .TEXTURE_2D = kStateFalse,
-         .COLOR_MATERIAL = kStateFalse,
-         .BLEND = kStateFalse,
-         .FOG = kStateFalse,
-         .DEPTH_TEST = kStateFalse,
-         .NORMALIZE = kStateFalse,
-         .RESCALE_NORMAL = kStateFalse,
-         .VERTEX_ARRAY = false,
-         .NORMAL_ARRAY = false,
-         .COLOR_ARRAY = false,
-         .INDEX_ARRAY = false,
-         .TEXTURE_COORD_ARRAY = false,
-         .EDGE_FLAG_ARRAY = false,
-         .DEPTH_WRITEMASK = true,
-         .CULL_FACE = kStateFalse,
-         .SHADE_MODEL = GL_SMOOTH,
-         .TEXTURE_ENV_MODE = GL_MODULATE,
-         .ACTIVE_TEXTURE = GL_TEXTURE0,
-         .CLIENT_ACTIVE_TEXTURE = GL_TEXTURE0,
-         .CULL_FACE_MODE = GL_BACK,
-         .FRONT_FACE = GL_CCW,
-         .BLEND_SRC = GL_ONE,
-         .BLEND_DST = GL_ZERO,
-     }};
+static const OOOpenGLState
+    kStandardStates[oo::ToUnderlying(OOOpenGLStateID::kInternalUseOnly) + 1] = {
+        {
+            // [OOOpenGLStateID::kOpaque]
+            .name = "OPENGL_STATE_OPAQUE",
+            .LIGHTING = kStateTrue,
+            .LIGHT0 = kStateMaybe,
+            /* FIXME: in shader mode, these should not be kStateMaybe, but
+             * false for 0 and true for 1. On the other hand, in shader mode
+             * these settings are supposed to be irrelevant. */
+            .LIGHT1 = kStateMaybe,  // FIXME: see above
+            .LIGHT2 = kStateFalse,
+            .LIGHT3 = kStateFalse,
+            .LIGHT4 = kStateFalse,
+            .LIGHT5 = kStateFalse,
+            .LIGHT6 = kStateFalse,
+            .LIGHT7 = kStateFalse,
+            .TEXTURE_2D = kStateTrue,
+            .COLOR_MATERIAL = kStateFalse,
+            .BLEND = kStateFalse,
+            .FOG = kStateMaybe,
+            .DEPTH_TEST = kStateTrue,
+            .NORMALIZE = kStateFalse,
+            .RESCALE_NORMAL = kStateFalse,
+            .VERTEX_ARRAY = true,
+            .NORMAL_ARRAY = true,
+            .COLOR_ARRAY = false,
+            .INDEX_ARRAY = false,
+            .TEXTURE_COORD_ARRAY = false,
+            .EDGE_FLAG_ARRAY = false,
+            .DEPTH_WRITEMASK = true,
+            .CULL_FACE = kStateTrue,
+            .SHADE_MODEL = GL_SMOOTH,
+            .TEXTURE_ENV_MODE = GL_MODULATE,
+            .ACTIVE_TEXTURE = GL_TEXTURE0,
+            .CLIENT_ACTIVE_TEXTURE = GL_TEXTURE0,
+            .CULL_FACE_MODE = GL_BACK,
+            .FRONT_FACE = GL_CCW,
+            .BLEND_SRC = GL_SRC_ALPHA,
+            .BLEND_DST = GL_ONE_MINUS_SRC_ALPHA,
+        },
+        {
+            // [OOOpenGLStateID::kTranslucentPass]
+            .name = "OPENGL_STATE_TRANSLUCENT_PASS",
+            .LIGHTING = kStateFalse,
+            .LIGHT0 = kStateMaybe,  // FIXME: see above
+            .LIGHT1 = kStateMaybe,  // FIXME: see above
+            .LIGHT2 = kStateFalse,
+            .LIGHT3 = kStateFalse,
+            .LIGHT4 = kStateFalse,
+            .LIGHT5 = kStateFalse,
+            .LIGHT6 = kStateFalse,
+            .LIGHT7 = kStateFalse,
+            .TEXTURE_2D = kStateFalse,
+            .COLOR_MATERIAL = kStateFalse,
+            .BLEND = kStateFalse,
+            .FOG = kStateMaybe,
+            .DEPTH_TEST = kStateTrue,
+            .NORMALIZE = kStateFalse,
+            .RESCALE_NORMAL = kStateFalse,
+            .VERTEX_ARRAY = false,
+            .NORMAL_ARRAY = false,
+            .COLOR_ARRAY = false,
+            .INDEX_ARRAY = false,
+            .TEXTURE_COORD_ARRAY = false,
+            .EDGE_FLAG_ARRAY = false,
+            .DEPTH_WRITEMASK = false,
+            .CULL_FACE = kStateTrue,
+            .SHADE_MODEL = GL_SMOOTH,
+            .TEXTURE_ENV_MODE = GL_MODULATE,
+            .ACTIVE_TEXTURE = GL_TEXTURE0,
+            .CLIENT_ACTIVE_TEXTURE = GL_TEXTURE0,
+            .CULL_FACE_MODE = GL_BACK,
+            .FRONT_FACE = GL_CCW,
+            .BLEND_SRC = GL_SRC_ALPHA,
+            .BLEND_DST = GL_ONE_MINUS_SRC_ALPHA,
+        },
+        {
+            // [OOOpenGLStateID::kAdditiveBlending]
+            .name = "OPENGL_STATE_ADDITIVE_BLENDING",
+            .LIGHTING = kStateFalse,
+            .LIGHT0 = kStateMaybe,  // FIXME: see above
+            .LIGHT1 = kStateMaybe,  // FIXME: see above
+            .LIGHT2 = kStateFalse,
+            .LIGHT3 = kStateFalse,
+            .LIGHT4 = kStateFalse,
+            .LIGHT5 = kStateFalse,
+            .LIGHT6 = kStateFalse,
+            .LIGHT7 = kStateFalse,
+            .TEXTURE_2D = kStateFalse,
+            .COLOR_MATERIAL = kStateFalse,
+            .BLEND = kStateTrue,
+            .FOG = kStateMaybe,
+            .DEPTH_TEST = kStateTrue,
+            .NORMALIZE = kStateFalse,
+            .RESCALE_NORMAL = kStateFalse,
+            .VERTEX_ARRAY = true,
+            .NORMAL_ARRAY = false,
+            .COLOR_ARRAY = false,
+            .INDEX_ARRAY = false,
+            .TEXTURE_COORD_ARRAY = false,
+            .EDGE_FLAG_ARRAY = false,
+            .DEPTH_WRITEMASK = false,
+            .CULL_FACE = kStateFalse,
+            .SHADE_MODEL = GL_SMOOTH,
+            .TEXTURE_ENV_MODE = GL_MODULATE,  // Should be GL_BLEND?
+            .ACTIVE_TEXTURE = GL_TEXTURE0,
+            .CLIENT_ACTIVE_TEXTURE = GL_TEXTURE0,
+            .CULL_FACE_MODE = GL_BACK,
+            .FRONT_FACE = GL_CCW,
+            .BLEND_SRC = GL_SRC_ALPHA,
+            .BLEND_DST = GL_ONE,
+        },
+        {
+            // [OOOpenGLStateID::kOverlay]
+            .name = "OPENGL_STATE_OVERLAY",
+            .LIGHTING = kStateFalse,
+            .LIGHT0 = kStateMaybe,  // FIXME: see above
+            .LIGHT1 = kStateMaybe,  // FIXME: see above
+            .LIGHT2 = kStateFalse,
+            .LIGHT3 = kStateFalse,
+            .LIGHT4 = kStateFalse,
+            .LIGHT5 = kStateFalse,
+            .LIGHT6 = kStateFalse,
+            .LIGHT7 = kStateFalse,
+            .TEXTURE_2D = kStateFalse,
+            .COLOR_MATERIAL = kStateFalse,
+            .BLEND = kStateTrue,
+            .FOG = kStateFalse,
+            .DEPTH_TEST = kStateFalse,
+            .NORMALIZE = kStateFalse,
+            .RESCALE_NORMAL = kStateFalse,
+            .VERTEX_ARRAY = false,
+            .NORMAL_ARRAY = false,
+            .COLOR_ARRAY = false,
+            .INDEX_ARRAY = false,
+            .TEXTURE_COORD_ARRAY = false,
+            .EDGE_FLAG_ARRAY = false,
+            .DEPTH_WRITEMASK = false,
+            .CULL_FACE = kStateFalse,  // ??
+            .SHADE_MODEL = GL_SMOOTH,
+            .TEXTURE_ENV_MODE = GL_MODULATE,
+            .ACTIVE_TEXTURE = GL_TEXTURE0,
+            .CLIENT_ACTIVE_TEXTURE = GL_TEXTURE0,
+            .CULL_FACE_MODE = GL_BACK,
+            .FRONT_FACE = GL_CCW,
+            .BLEND_SRC = GL_SRC_ALPHA,
+            .BLEND_DST = GL_ONE_MINUS_SRC_ALPHA,
+        },
+        {
+            // [OOOpenGLStateID::kInternalUseOnly]
+            .name = "<canonical initial state>",
+            .LIGHTING = kStateFalse,
+            .LIGHT0 = kStateFalse,
+            .LIGHT1 = kStateFalse,
+            .LIGHT2 = kStateFalse,
+            .LIGHT3 = kStateFalse,
+            .LIGHT4 = kStateFalse,
+            .LIGHT5 = kStateFalse,
+            .LIGHT6 = kStateFalse,
+            .LIGHT7 = kStateFalse,
+            .TEXTURE_2D = kStateFalse,
+            .COLOR_MATERIAL = kStateFalse,
+            .BLEND = kStateFalse,
+            .FOG = kStateFalse,
+            .DEPTH_TEST = kStateFalse,
+            .NORMALIZE = kStateFalse,
+            .RESCALE_NORMAL = kStateFalse,
+            .VERTEX_ARRAY = false,
+            .NORMAL_ARRAY = false,
+            .COLOR_ARRAY = false,
+            .INDEX_ARRAY = false,
+            .TEXTURE_COORD_ARRAY = false,
+            .EDGE_FLAG_ARRAY = false,
+            .DEPTH_WRITEMASK = true,
+            .CULL_FACE = kStateFalse,
+            .SHADE_MODEL = GL_SMOOTH,
+            .TEXTURE_ENV_MODE = GL_MODULATE,
+            .ACTIVE_TEXTURE = GL_TEXTURE0,
+            .CLIENT_ACTIVE_TEXTURE = GL_TEXTURE0,
+            .CULL_FACE_MODE = GL_BACK,
+            .FRONT_FACE = GL_CCW,
+            .BLEND_SRC = GL_ONE,
+            .BLEND_DST = GL_ZERO,
+        }};
 
-static OOOpenGLStateID sCurrentStateID = OPENGL_STATE_INTERNAL_USE_ONLY;
+static OOOpenGLStateID sCurrentStateID = OOOpenGLStateID::kInternalUseOnly;
 
 /*	SwitchOpenGLStateInternal(sourceState, targetState)
 
@@ -440,7 +441,8 @@ inline void SetFunctionTracking(bool /*value*/) {}
 
 void OOSetOpenGLState_(OOOpenGLStateID state, const char* function,
                        unsigned line) {
-  OOCParameterAssert((unsigned)state < OPENGL_STATE_INTERNAL_USE_ONLY);
+  OOCParameterAssert((unsigned)state < (unsigned)oo::ToUnderlying(
+                                           OOOpenGLStateID::kInternalUseOnly));
 
   OOGLNoteCurrentFunction(function, line);
   SetFunctionTracking(false);
@@ -448,8 +450,9 @@ void OOSetOpenGLState_(OOOpenGLStateID state, const char* function,
   VerifyOpenGLStateInternal("OOSetOpenGLState", function, line);
 
   if (state != sCurrentStateID) {
-    SwitchOpenGLStateInternal(&kStandardStates[sCurrentStateID],
-                              &kStandardStates[state]);
+    SwitchOpenGLStateInternal(
+        &kStandardStates[oo::ToUnderlying(sCurrentStateID)],
+        &kStandardStates[oo::ToUnderlying(state)]);
     sCurrentStateID = state;
   }
 
@@ -530,9 +533,10 @@ static void VerifyOpenGLStateInternal(const char* caller,
   OOOpenGLState currentState;
   GetCurrentOpenGLState(&currentState);
 
-  OOCParameterAssert(sCurrentStateID <= OPENGL_STATE_INTERNAL_USE_ONLY);
+  OOCParameterAssert(sCurrentStateID <= OOOpenGLStateID::kInternalUseOnly);
 
-  const OOOpenGLState* expectedState = &kStandardStates[sCurrentStateID];
+  const OOOpenGLState* expectedState =
+      &kStandardStates[oo::ToUnderlying(sCurrentStateID)];
 
   if (!StatesEqual(&currentState, expectedState)) {
     if (oo::log::willDisplay(kOOLogOpenGLVerifyDump)) {
@@ -598,11 +602,13 @@ static void VerifyOpenGLStateInternal(const char* caller,
 */
 
 void OOSetOpenGLState(OOOpenGLStateID state) {
-  OOCParameterAssert((unsigned)state < OPENGL_STATE_INTERNAL_USE_ONLY);
+  OOCParameterAssert((unsigned)state < (unsigned)oo::ToUnderlying(
+                                           OOOpenGLStateID::kInternalUseOnly));
 
   if (state != sCurrentStateID) {
-    SwitchOpenGLStateInternal(&kStandardStates[sCurrentStateID],
-                              &kStandardStates[state]);
+    SwitchOpenGLStateInternal(
+        &kStandardStates[oo::ToUnderlying(sCurrentStateID)],
+        &kStandardStates[oo::ToUnderlying(state)]);
     sCurrentStateID = state;
   }
 }
@@ -661,5 +667,5 @@ static void SwitchOpenGLStateInternal(const OOOpenGLState* sourceState,
 
 void OOResetGLStateVerifier() {
   // State has been reset behind our backs, so to speak; don't verify.
-  sCurrentStateID = OPENGL_STATE_INTERNAL_USE_ONLY;
+  sCurrentStateID = OOOpenGLStateID::kInternalUseOnly;
 }

@@ -144,20 +144,34 @@ inline constexpr int gvNumberPadKeyPeriod = gvNumberPadKeyPlus + 1;
 inline constexpr int gvNumberPadKeyEquals = gvNumberPadKeyPeriod + 1;
 inline constexpr int gvNumberPadKeyEnter = gvNumberPadKeyEquals + 1;  // 326
 
-enum MouseWheelStatus {
-  gvMouseWheelDown = -1,
-  gvMouseWheelNeutral,
-  gvMouseWheelUp
+enum class MouseWheelStatus : int {
+  kDown = -1,
+  kNeutral,
+  kUp,
 };
+static_assert(static_cast<int>(MouseWheelStatus::kDown) == -1);
+static_assert(static_cast<int>(MouseWheelStatus::kNeutral) == 0);
+static_assert(static_cast<int>(MouseWheelStatus::kUp) == 1);
 
-enum StringInput {
-  gvStringInputNo = 0,
-  gvStringInputAlpha = 1,
-  gvStringInputLoadSave = 2,
-  gvStringInputAll = 3
+enum class StringInput : int {
+  kNo = 0,
+  kAlpha = 1,
+  kLoadSave = 2,
+  kAll = 3,
 };
+static_assert(static_cast<int>(StringInput::kNo) == 0);
+static_assert(static_cast<int>(StringInput::kAlpha) == 1);
+static_assert(static_cast<int>(StringInput::kLoadSave) == 2);
+static_assert(static_cast<int>(StringInput::kAll) == 3);
 
-enum KeyboardType { gvKeyboardAuto, gvKeyboardUS, gvKeyboardUK };
+enum class KeyboardType : int {
+  kAuto,
+  kUS,
+  kUK,
+};
+static_assert(static_cast<int>(KeyboardType::kAuto) == 0);
+static_assert(static_cast<int>(KeyboardType::kUS) == 1);
+static_assert(static_cast<int>(KeyboardType::kUK) == 2);
 
 enum class OOHDRToneMapper : std::int32_t {
   kNone = -1,
@@ -340,7 +354,7 @@ class MyOpenGLView : public oo::RefCounted {
   void autoShowMouse();
   void setStringInput(enum StringInput value);
   void allowStringInput(bool value);
-  enum StringInput getAllowingStringInput();
+  StringInput getAllowingStringInput();
   std::optional<std::string> getTypedString();
   virtual void resetTypedString();
   void setTypedString(const std::string& value);
@@ -363,7 +377,7 @@ class MyOpenGLView : public oo::RefCounted {
   bool isCapsLockOn();
   bool lastKeyWasShifted();
   int numKeys();
-  int mouseWheelState();
+  MouseWheelStatus mouseWheelState();
   float mouseWheelDelta();
   void setMouseWheelDelta(float newWheelDelta);
   // Command-key combinations need special handling. SDL stubs for these mac
@@ -391,7 +405,7 @@ class MyOpenGLView : public oo::RefCounted {
   oo::PList keyMappings_shifted;
   bool suppressKeys = {};  // DJS
   bool opt = {}, ctrl = {}, command = {}, shift = {}, lastKeyShifted = {};
-  enum StringInput allowingStringInput = {};
+  StringInput allowingStringInput = {};
   bool isAlphabetKeyDown = {};
 
   int keycodetrans[255] = {};

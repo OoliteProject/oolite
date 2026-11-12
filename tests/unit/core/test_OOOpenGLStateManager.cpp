@@ -73,7 +73,7 @@ struct Expected {
 
 // In OOOpenGLStateID order: opaque, translucent pass, additive blending,
 // overlay.
-const Expected kStates[OPENGL_STATE_INTERNAL_USE_ONLY] = {
+const Expected kStates[oo::ToUnderlying(OOOpenGLStateID::kInternalUseOnly)] = {
     {"opaque", kOn, kEither, kEither, kOn, kOff, kEither, kOn, kOn, true, true,
      true, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA},
     {"translucent", kOff, kEither, kEither, kOff, kOff, kEither, kOn, kOn,
@@ -97,7 +97,7 @@ GLint Integer(GLenum name) {
 
 // Every item of OOOpenGLStates.tbl, against the expectation for <state>.
 bool Matches(OOOpenGLStateID state) {
-  const Expected& e = kStates[state];
+  const Expected& e = kStates[oo::ToUnderlying(state)];
   GLboolean depthMask = GL_FALSE;
   glGetBooleanv(GL_DEPTH_WRITEMASK, &depthMask);
 
@@ -144,7 +144,7 @@ OO_TEST(fromTheInitialState) {
   (void)OOOpenGLExtensionManager::sharedManager();  // loads glActiveTextureARB
                                                     // & co.
 
-  for (int s = 0; s < OPENGL_STATE_INTERNAL_USE_ONLY; s++) {
+  for (int s = 0; s < oo::ToUnderlying(OOOpenGLStateID::kInternalUseOnly); s++) {
     // Put the context back in the canonical initial state (GL's defaults) and
     // say so.
     glDisable(GL_LIGHTING);
@@ -167,8 +167,8 @@ OO_TEST(fromTheInitialState) {
 
 OO_TEST(betweenEveryPairOfStates) {
   OO_CHECK(OOTestGLContext());
-  for (int from = 0; from < OPENGL_STATE_INTERNAL_USE_ONLY; from++) {
-    for (int to = 0; to < OPENGL_STATE_INTERNAL_USE_ONLY; to++) {
+  for (int from = 0; from < oo::ToUnderlying(OOOpenGLStateID::kInternalUseOnly); from++) {
+    for (int to = 0; to < oo::ToUnderlying(OOOpenGLStateID::kInternalUseOnly); to++) {
       OOSetOpenGLState((OOOpenGLStateID)from);
       OO_CHECK(Matches((OOOpenGLStateID)from));
       OOSetOpenGLState((OOOpenGLStateID)to);
@@ -187,22 +187,22 @@ OO_TEST(openItemsAreLeftAlone) {
   // state, so it leaves them alone, and switching from an open FOG to the
   // overlay's "off" leaves fog as it was (on here), where the overlay's own
   // table entry says off.
-  OOSetOpenGLState(OPENGL_STATE_OPAQUE);
+  OOSetOpenGLState(OOOpenGLStateID::kOpaque);
   glEnable(GL_LIGHT0);
   glDisable(GL_LIGHT1);
   glEnable(GL_FOG);
-  OOSetOpenGLState(OPENGL_STATE_TRANSLUCENT_PASS);
+  OOSetOpenGLState(OOOpenGLStateID::kTranslucentPass);
   OO_CHECK(glIsEnabled(GL_LIGHT0) && !glIsEnabled(GL_LIGHT1) &&
            glIsEnabled(GL_FOG));
-  OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
+  OOSetOpenGLState(OOOpenGLStateID::kAdditiveBlending);
   OO_CHECK(glIsEnabled(GL_LIGHT0) && !glIsEnabled(GL_LIGHT1) &&
            glIsEnabled(GL_FOG));
-  OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+  OOSetOpenGLState(OOOpenGLStateID::kOverlay);
   OO_CHECK(glIsEnabled(GL_LIGHT0) && !glIsEnabled(GL_LIGHT1) &&
            glIsEnabled(GL_FOG));
   glDisable(GL_FOG);  // as the overlay expects, so that the next switch has
                       // nothing to verify
-  OOSetOpenGLState(OPENGL_STATE_OPAQUE);
+  OOSetOpenGLState(OOOpenGLStateID::kOpaque);
   OO_CHECK(glIsEnabled(GL_LIGHT0) && !glIsEnabled(GL_LIGHT1) &&
            !glIsEnabled(GL_FOG));
   glDisable(GL_LIGHT0);

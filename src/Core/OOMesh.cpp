@@ -67,8 +67,8 @@ MA 02110-1301, USA.
 // If set, cachable memory is scribbled with FEEDFACE to identify junk in cache.
 #define SCRIBBLE 0
 
-constexpr int kBaseOctreeDepth = 5;  // 32x32x32
-                                     //	kMaxOctreeDepth declared in Octree.h.
+constexpr int kBaseOctreeDepth = 5;   // 32x32x32
+                                      //	kMaxOctreeDepth declared in Octree.h.
 constexpr int kSmallOctreeDepth = 4;  // 16x16x16
 constexpr int kOctreeSizeThreshold =
     900;  // Size at which we start increasing octree depth
@@ -314,7 +314,7 @@ void OOMesh::renderOpaqueParts() {
   bool meshBelongsToVisualEffect =
       bindingEntity != nullptr && bindingEntity->getIsVisualEffect();
 
-  OOSetOpenGLState(OPENGL_STATE_OPAQUE);
+  OOSetOpenGLState(OOOpenGLStateID::kOpaque);
 
   OOGL(glVertexPointer(3, GL_FLOAT, 0, _displayLists.vertexArray));
   OOGL(glNormalPointer(GL_FLOAT, 0, _displayLists.normalArray));

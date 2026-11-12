@@ -55,7 +55,7 @@ NSSize OOTextureSprite::getSize() { return size; }
 
 void OOTextureSprite::blitToX(float x, float y, float z, float a) {
   OO_ENTER_OPENGL();
-  OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+  OOSetOpenGLState(OOOpenGLStateID::kOverlay);
 
   a = OOClamp_0_1_f(a);
   OOGL(glEnable(GL_TEXTURE_2D));

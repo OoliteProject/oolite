@@ -131,7 +131,7 @@ void OORingEffectEntity::drawImmediate(bool /*immediate*/, bool translucent) {
     return;
 
   OO_ENTER_OPENGL();
-  OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
+  OOSetOpenGLState(OOOpenGLStateID::kAdditiveBlending);
 
   GLfloat alpha = OOClamp_0_1_f((kRingDuration - _timePassed) / kRingAttack);
 

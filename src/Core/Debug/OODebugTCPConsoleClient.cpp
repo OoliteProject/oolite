@@ -86,9 +86,9 @@ static void LogSendPacket(const oo::PList& packet);
 namespace {
 
 OOINLINE bool StatusIsSendable(OOTCPClientConnectionStatus status) {
-  return status == kOOTCPClientStartedConnectionStage1 ||
-         status == kOOTCPClientStartedConnectionStage2 ||
-         status == kOOTCPClientConnected;
+  return status == OOTCPClientConnectionStatus::kStartedConnectionStage1 ||
+         status == OOTCPClientConnectionStatus::kStartedConnectionStage2 ||
+         status == OOTCPClientConnectionStatus::kConnected;
 }
 
 }  // namespace
@@ -279,7 +279,7 @@ bool OODebugTCPConsoleClient::initWithAddress(
 
     if (_decoder != nullptr) {
       OK = true;
-      _status = kOOTCPClientStartedConnectionStage1;
+      _status = OOTCPClientConnectionStatus::kStartedConnectionStage1;
 
       // Attempt to connect: the protocol version, and the game's version
       // (omitted when there is none: +dictionaryWithObjectsAndKeys: stopped at
@@ -296,8 +296,8 @@ bool OODebugTCPConsoleClient::initWithAddress(
       sendPacket(ProtocolName(kOOTCPPacket_RequestConnection),
                  oo::PList(std::move(parameters)));
 
-      if (_status == kOOTCPClientStartedConnectionStage1)
-        _status = kOOTCPClientStartedConnectionStage2;
+      if (_status == OOTCPClientConnectionStatus::kStartedConnectionStage1)
+        _status = OOTCPClientConnectionStatus::kStartedConnectionStage2;
       else
         OK = false;  // Connection failed.
     }
@@ -333,11 +333,11 @@ OODebugTCPConsoleClient::~OODebugTCPConsoleClient() {
 
 bool OODebugTCPConsoleClient::connectDebugMonitor(
     OODebugMonitor* debugMonitor, std::optional<std::string>* message) {
-  if (_status == kOOTCPClientConnectionRefused) {
+  if (_status == OOTCPClientConnectionStatus::kConnectionRefused) {
     if (message != nullptr) *message = "Connection refused.";
     return false;
   }
-  if (_status == kOOTCPClientDisconnected) {
+  if (_status == OOTCPClientConnectionStatus::kDisconnected) {
     if (message != nullptr) *message = "Cannot reconnect after disconnecting.";
     return false;
   }
@@ -571,7 +571,7 @@ void OODebugTCPConsoleClient::handleWaitResultRead(bool readable, bool writable,
   if (readable) {
     // The bytes-available event (end of stream was an event the delegate
     // ignored).
-    if (_status <= kOOTCPClientConnected) readData();
+    if (_status <= OOTCPClientConnectionStatus::kConnected) readData();
     if (_errorEventPending) handleErrorEvent();
   }
 }
@@ -579,7 +579,7 @@ void OODebugTCPConsoleClient::handleWaitResultRead(bool readable, bool writable,
 // The delegate's error branch, for the event the failing stream raised.
 void OODebugTCPConsoleClient::handleErrorEvent() {
   _errorEventPending = false;
-  if (_status > kOOTCPClientConnected) return;
+  if (_status > OOTCPClientConnectionStatus::kConnected) return;
   breakConnectionWithStreamError(_pendingErrorCode);
 }
 
@@ -786,8 +786,8 @@ void OODebugTCPConsoleClient::dispatchPacket(const oo::PList& packet,
 
 void OODebugTCPConsoleClient::handleApproveConnectionPacket(
     const oo::PList& packet) {
-  if (_status == kOOTCPClientStartedConnectionStage2) {
-    _status = kOOTCPClientConnected;
+  if (_status == OOTCPClientConnectionStatus::kStartedConnectionStage2) {
+    _status = OOTCPClientConnectionStatus::kConnected;
 
     // Build "Connected..." message with two optional parts, console identity
     // and host name.
@@ -814,8 +814,8 @@ void OODebugTCPConsoleClient::handleApproveConnectionPacket(
 
 void OODebugTCPConsoleClient::handleRejectConnectionPacket(
     const oo::PList& packet) {
-  if (_status == kOOTCPClientStartedConnectionStage2) {
-    _status = kOOTCPClientConnectionRefused;
+  if (_status == OOTCPClientConnectionStatus::kStartedConnectionStage2) {
+    _status = OOTCPClientConnectionStatus::kConnectionRefused;
   } else {
     OO_LOG("debugTCP.protocolError.outOfOrder",
            "Got {} packet from debug console in wrong context.",
@@ -908,15 +908,15 @@ void OODebugTCPConsoleClient::disconnectFromServerWithMessage(
   }
   closeConnection();
 
-  _status = kOOTCPClientDisconnected;
+  _status = OOTCPClientConnectionStatus::kDisconnected;
 }
 
 void OODebugTCPConsoleClient::breakConnectionWithMessage(
     const std::string& message) {
   closeConnection();
 
-  if (_status != kOOTCPClientConnectionRefused)
-    _status = kOOTCPClientDisconnected;
+  if (_status != OOTCPClientConnectionStatus::kConnectionRefused)
+    _status = OOTCPClientConnectionStatus::kDisconnected;
 
   if (message.length() > 0) {
     OO_LOG("debugTCP.disconnect", "No connection to debug console: \"{}\"",

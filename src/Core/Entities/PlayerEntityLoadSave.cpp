@@ -1025,7 +1025,7 @@ void PlayerEntity::setGuiToOverwriteScreen(const std::string& cdrName) {
   gui->setBackgroundTextureKey("load_save");
 
   setShowDemoShips(false);
-  if (gameView != nullptr) gameView->setStringInput(gvStringInputNo);
+  if (gameView != nullptr) gameView->setStringInput(StringInput::kNo);
   if (UNIVERSE != nullptr)
     UNIVERSE->enterGUIViewModeWithMouseInteraction(
         false);  // FIXME: should be YES, but was NO before introducing new

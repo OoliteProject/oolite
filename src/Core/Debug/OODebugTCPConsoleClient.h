@@ -62,14 +62,25 @@ struct fd_set;  // winsock2.h's, which the .cpp includes
 
 struct OOTCPStreamDecoder;
 
-typedef enum {
-  kOOTCPClientNotConnected,
-  kOOTCPClientStartedConnectionStage1,
-  kOOTCPClientStartedConnectionStage2,
-  kOOTCPClientConnected,
-  kOOTCPClientConnectionRefused,
-  kOOTCPClientDisconnected
-} OOTCPClientConnectionStatus;
+enum class OOTCPClientConnectionStatus : int {
+  kNotConnected,
+  kStartedConnectionStage1,
+  kStartedConnectionStage2,
+  kConnected,
+  kConnectionRefused,
+  kDisconnected,
+};
+static_assert(static_cast<int>(OOTCPClientConnectionStatus::kNotConnected) ==
+              0);
+static_assert(static_cast<int>(
+                  OOTCPClientConnectionStatus::kStartedConnectionStage1) == 1);
+static_assert(static_cast<int>(
+                  OOTCPClientConnectionStatus::kStartedConnectionStage2) == 2);
+static_assert(static_cast<int>(OOTCPClientConnectionStatus::kConnected) == 3);
+static_assert(
+    static_cast<int>(OOTCPClientConnectionStatus::kConnectionRefused) == 4);
+static_assert(static_cast<int>(OOTCPClientConnectionStatus::kDisconnected) ==
+              5);
 
 /*	The frame loop's side of the console socket: what the run loop did for
    the console's streams. OODebugTCPConsoleIsWaitingForInput() is true while a
