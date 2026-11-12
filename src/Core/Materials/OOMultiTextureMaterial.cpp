@@ -94,7 +94,7 @@ bool OOMultiTextureMaterial::initWithName(
     if (!emissionSpec.isNull() && illuminationSpec.isNull() &&
         emissionAndIlluminationSpec.isNull() && emissionColor == nullptr) {
       _emissionMap = oo::Ref<OOTexture>(OOTexture::textureWithConfiguration(
-          emissionSpec, kOOTextureExtraShrink));
+          emissionSpec, OOTextureFlags::kExtraShrink));
       if (_emissionMap.get() != nullptr) _unitsUsed++;
     } else {
       oo::Ref<OOCombinedEmissionMapGenerator> generator;

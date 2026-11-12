@@ -652,8 +652,9 @@ void OOExhaustPlumeEntity::setUpTexture() {
     sPlumeTexture =
         OOTexture::textureWithName(
             "oolite-exhaust-blur.png", "Textures",
-            kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear |
-                kOOTextureAlphaMask | kOOTextureRepeatT | kOOTextureRepeatS,
+            OOTextureFlags::kMinFilterMipMap |
+                OOTextureFlags::kMagFilterLinear | OOTextureFlags::kAlphaMask |
+                OOTextureFlags::kRepeatT | OOTextureFlags::kRepeatS,
             kOOTextureDefaultAnisotropy / 2.0, 0.0)
             .leakRef();
     OOGraphicsResetManager::sharedManager()->registerCxxClient(

@@ -79,7 +79,7 @@ std::vector<char> ReadBytes(const std::string& path) {
 // known extension runs (and then answers nil, reading nothing).
 void SetUpLoaders() {
   {
-    (void)OOTextureLoader::loaderWithPath(std::string("unknown.type"), 0);
+    (void)OOTextureLoader::loaderWithPath(std::string("unknown.type"), OOTextureFlags::kNone);
   }
 }
 
@@ -104,7 +104,7 @@ std::vector<oo::Ref<OOTextureLoader>> gKeptLoaders;
 // The factory's loader for a path, already queued.
 OOTextureLoader* Load(const std::string& path) {
   const oo::Ref<OOTextureLoader> loader =
-      OOTextureLoader::loaderWithPath(path, kOOTextureMinFilterLinear);
+      OOTextureLoader::loaderWithPath(path, OOTextureFlags::kMinFilterLinear);
   if (loader != nullptr) gKeptLoaders.push_back(loader);
   return loader.get();
 }
@@ -256,8 +256,8 @@ OO_TEST(cxxApi) {
     const std::string path = WritePNG("cxx.png", 8, 8, PNG_FORMAT_RGBA);
     const oo::Ref<OOPNGTextureLoader> loader =
         oo::makeRef<OOPNGTextureLoader>();
-    OO_CHECK(!loader->initWithPath(std::nullopt, 0));
-    OO_CHECK(loader->initWithPath(path, kOOTextureMinFilterLinear));
+    OO_CHECK(!loader->initWithPath(std::nullopt, OOTextureFlags::kNone));
+    OO_CHECK(loader->initWithPath(path, OOTextureFlags::kMinFilterLinear));
     OO_CHECK(loader->path() == std::optional<std::string>(path) &&
              loader->cacheKey() ==
                  std::optional<std::string>("cxx.png:0x0002"));
@@ -276,7 +276,7 @@ OO_TEST(cxxApi) {
 
     // The factory's loader is one.
     oo::Ref<OOTextureLoader> made =
-        OOTextureLoader::loaderWithPath(path, kOOTextureMinFilterLinear);
+        OOTextureLoader::loaderWithPath(path, OOTextureFlags::kMinFilterLinear);
     OO_CHECK(dynamic_cast<OOPNGTextureLoader*>(made.get()) != nullptr);
     OO_CHECK(made->getResult(&pixMap, &format, nullptr, nullptr));
     OOFreePixMap(&pixMap);
@@ -286,7 +286,7 @@ OO_TEST(cxxApi) {
     const oo::Ref<OOPNGTextureLoader> direct =
         oo::makeRef<OOPNGTextureLoader>();
     OO_CHECK(
-        direct->initWithPath(WritePNG("direct.png", 8, 8, PNG_FORMAT_GA), 0));
+        direct->initWithPath(WritePNG("direct.png", 8, 8, PNG_FORMAT_GA), OOTextureFlags::kNone));
     direct->loadTexture();
     OO_CHECK(direct->_data != nullptr &&
              direct->_format == kOOPixMapGrayscaleAlpha &&

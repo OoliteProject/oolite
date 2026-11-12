@@ -404,12 +404,13 @@ void OOSkyDrawable::addQuads(OOSkyQuadDesc* quads, unsigned count) {
 
 void OOSkyDrawable::loadStarTextures() {
   if (sStarTextures == nullptr) {
-    sStarTextures = OOProbabilisticTextureManager::createWithPListName(
-                        "startextures.plist",
-                        kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear |
-                            kOOTextureAlphaMask,
-                        0.0f, -0.0f)
-                        .leakRef();
+    sStarTextures =
+        OOProbabilisticTextureManager::createWithPListName(
+            "startextures.plist",
+            OOTextureFlags::kMinFilterMipMap |
+                OOTextureFlags::kMagFilterLinear | OOTextureFlags::kAlphaMask,
+            0.0f, -0.0f)
+            .leakRef();
     if (sStarTextures == nullptr) {
       OORaiseException(OOLITE_EXCEPTION_DATA_NOT_FOUND,
                        "No star textures could be loaded.");
@@ -424,7 +425,8 @@ void OOSkyDrawable::loadNebulaTextures() {
     sNebulaTextures =
         OOProbabilisticTextureManager::createWithPListName(
             "nebulatextures.plist",
-            kOOTextureDefaultOptions | kOOTextureAlphaMask, 0.0f, 0.0f)
+            OOTextureFlags::kDefaultOptions | OOTextureFlags::kAlphaMask, 0.0f,
+            0.0f)
             .leakRef();
     if (sNebulaTextures == nullptr) {
       OORaiseException(OOLITE_EXCEPTION_DATA_NOT_FOUND,

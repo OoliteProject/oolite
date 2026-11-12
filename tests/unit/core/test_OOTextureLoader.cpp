@@ -54,7 +54,7 @@ class TestLoader : public OOTextureLoader {
 
   // The root's state, as the subclasses read it (the one block the conversion
   // ports).
-  uint32_t testOptions() { return _options; }
+  OOTextureFlags testOptions() { return _options; }
   uint32_t testMaxSize() { return _maxSize; }
   uint32_t testShrinkThreshold() { return _shrinkThreshold; }
   bool testGenerateMipMaps() { return _generateMipMaps; }
@@ -76,7 +76,7 @@ namespace {
 // known extension runs (and then answers nil, reading nothing).
 void SetUpLoaders() {
   {
-    (void)OOTextureLoader::loaderWithPath(std::string("unknown.type"), 0);
+    (void)OOTextureLoader::loaderWithPath(std::string("unknown.type"), OOTextureFlags::kNone);
   }
 }
 
@@ -84,7 +84,7 @@ void SetUpLoaders() {
 // case's pool).
 std::vector<oo::Ref<TestLoader>> gKeptLoaders;
 
-TestLoader* Loader(const char* path, uint32_t options, uint32_t width,
+TestLoader* Loader(const char* path, OOTextureFlags options, uint32_t width,
                    uint32_t height, OOTextureDataFormat format) {
   const oo::Ref<TestLoader> made = oo::makeRef<TestLoader>();
   TestLoader* loader =
@@ -123,14 +123,14 @@ Result GetResult(OOTextureLoader* loader) {
 OO_TEST(factoryRefusals) {
   OO_CHECK(OOTestGLContext());
   {
-    OO_CHECK(OOTextureLoader::loaderWithPath(std::nullopt, 0) == nullptr);
+    OO_CHECK(OOTextureLoader::loaderWithPath(std::nullopt, OOTextureFlags::kNone) == nullptr);
     OO_CHECK(OOTextureLoader::loaderWithPath(
-                 std::string("textures/unknown.type"), 0) == nullptr);
+                 std::string("textures/unknown.type"), OOTextureFlags::kNone) == nullptr);
     OO_CHECK(OOTextureLoader::loaderWithTextureSpecifier(
-                 oo::PList(3.0), 0, std::string("Textures")) == nullptr);
+                 oo::PList(3.0), OOTextureFlags::kNone, std::string("Textures")) == nullptr);
     OO_CHECK(OOTextureLoader::loaderWithTextureSpecifier(
-                 oo::PList(), 0, std::string("Textures")) == nullptr);
-    OO_CHECK(!oo::makeRef<TestLoader>()->initWithPath(std::nullopt, 0));
+                 oo::PList(), OOTextureFlags::kNone, std::string("Textures")) == nullptr);
+    OO_CHECK(!oo::makeRef<TestLoader>()->initWithPath(std::nullopt, OOTextureFlags::kNone));
   }
 }
 
@@ -139,8 +139,8 @@ OO_TEST(optionsDecoded) {
   SetUpLoaders();
   {
     TestLoader* plain =
-        Loader("dir/plain.png", kOOTextureMinFilterLinear, 4, 4, kOOPixMapRGBA);
-    OO_CHECK(plain->testOptions() == kOOTextureMinFilterLinear);
+        Loader("dir/plain.png", OOTextureFlags::kMinFilterLinear, 4, 4, kOOPixMapRGBA);
+    OO_CHECK(plain->testOptions() == OOTextureFlags::kMinFilterLinear);
     OO_CHECK(!plain->testGenerateMipMaps() && !plain->testAvoidShrinking() &&
              !plain->testNoScaling());
     OO_CHECK(plain->testShrinkThreshold() == 512 && plain->testMaxSize() >= 64);
@@ -151,25 +151,25 @@ OO_TEST(optionsDecoded) {
              std::optional<std::string>("plain.png:0x0002"));
     OO_CHECK(!plain->isReady());
 
-    OO_CHECK(Loader("a", kOOTextureMinFilterMipMap, 1, 1, kOOPixMapRGBA)
+    OO_CHECK(Loader("a", OOTextureFlags::kMinFilterMipMap, 1, 1, kOOPixMapRGBA)
                  ->testGenerateMipMaps());
-    TestLoader* noShrink = Loader("b", kOOTextureNoShrink, 1, 1, kOOPixMapRGBA);
+    TestLoader* noShrink = Loader("b", OOTextureFlags::kNoShrink, 1, 1, kOOPixMapRGBA);
     OO_CHECK(noShrink->testAvoidShrinking() &&
              noShrink->testShrinkThreshold() == UINT32_MAX);
-    TestLoader* never = Loader("c", kOOTextureNeverScale, 1, 1, kOOPixMapRGBA);
+    TestLoader* never = Loader("c", OOTextureFlags::kNeverScale, 1, 1, kOOPixMapRGBA);
     OO_CHECK(never->testNoScaling() &&
              never->testShrinkThreshold() == UINT32_MAX);
-    TestLoader* extra = Loader("d", kOOTextureExtraShrink, 1, 1, kOOPixMapRGBA);
+    TestLoader* extra = Loader("d", OOTextureFlags::kExtraShrink, 1, 1, kOOPixMapRGBA);
     OO_CHECK(extra->testShrinkThreshold() == 128 &&
              extra->testMaxSize() <= 256);
-    OO_CHECK(Loader("e", kOOTextureAllowCubeMap, 1, 1, kOOPixMapRGBA)
+    OO_CHECK(Loader("e", OOTextureFlags::kAllowCubeMap, 1, 1, kOOPixMapRGBA)
                  ->testAllowCubeMap());
     TestLoader* green =
-        Loader("f", kOOTextureExtractChannelG, 1, 1, kOOPixMapRGBA);
+        Loader("f", OOTextureFlags::kExtractChannelG, 1, 1, kOOPixMapRGBA);
     OO_CHECK(green->testExtractChannel() &&
              green->testExtractChannelIndex() == 1);
     TestLoader* alpha =
-        Loader("g", kOOTextureExtractChannelA, 1, 1, kOOPixMapRGBA);
+        Loader("g", OOTextureFlags::kExtractChannelA, 1, 1, kOOPixMapRGBA);
     OO_CHECK(alpha->testExtractChannel() &&
              alpha->testExtractChannelIndex() == 3);
   }
@@ -180,7 +180,7 @@ OO_TEST(descriptions) {
   SetUpLoaders();
   {
     TestLoader* loader =
-        Loader("dir/desc.png", kOOTextureMinFilterLinear, 4, 4, kOOPixMapRGBA);
+        Loader("dir/desc.png", OOTextureFlags::kMinFilterLinear, 4, 4, kOOPixMapRGBA);
     OO_CHECK(loader->description().starts_with("<TestLoader 0x"));
     OO_CHECK(loader->description().ends_with(">{{dir/desc.png -- loading}}"));
     OO_CHECK(loader->shortDescription().ends_with(">{desc.png}"));
@@ -199,7 +199,7 @@ OO_TEST(loadsScalesAndHandsOver) {
   {
     const int loads = gLoads;
     TestLoader* loader =
-        Loader("square.png", kOOTextureMinFilterLinear, 8, 8, kOOPixMapRGBA);
+        Loader("square.png", OOTextureFlags::kMinFilterLinear, 8, 8, kOOPixMapRGBA);
     OO_CHECK(Queue(loader));
     Result result = GetResult(loader);  // waits for the work thread
     OO_CHECK(gLoads == loads + 1);
@@ -219,7 +219,7 @@ OO_TEST(loadsScalesAndHandsOver) {
     // A 4 x 2 image is scaled to 2 x 2 (a power of two near two thirds of each
     // side).
     TestLoader* wide =
-        Loader("wide.png", kOOTextureMinFilterLinear, 4, 2, kOOPixMapRGBA);
+        Loader("wide.png", OOTextureFlags::kMinFilterLinear, 4, 2, kOOPixMapRGBA);
     OO_CHECK(Queue(wide));
     Result scaled = GetResult(wide);
     OO_CHECK(scaled.ok && scaled.pixMap.width == 2 &&
@@ -230,7 +230,7 @@ OO_TEST(loadsScalesAndHandsOver) {
 
     // Never scaled: as loaded.
     TestLoader* never =
-        Loader("never.png", kOOTextureNeverScale, 4, 2, kOOPixMapRGBA);
+        Loader("never.png", OOTextureFlags::kNeverScale, 4, 2, kOOPixMapRGBA);
     OO_CHECK(Queue(never));
     Result asLoaded = GetResult(never);
     OO_CHECK(asLoaded.ok && asLoaded.pixMap.width == 4 &&
@@ -244,7 +244,7 @@ OO_TEST(extractsAChannel) {
   SetUpLoaders();
   {
     TestLoader* loader = Loader(
-        "green.png", kOOTextureMinFilterLinear | kOOTextureExtractChannelG, 8,
+        "green.png", OOTextureFlags::kMinFilterLinear | OOTextureFlags::kExtractChannelG, 8,
         8, kOOPixMapRGBA);
     OO_CHECK(Queue(loader));
     Result result = GetResult(loader);
@@ -262,7 +262,7 @@ OO_TEST(mipMaps) {
   SetUpLoaders();
   {
     TestLoader* loader =
-        Loader("mip.png", kOOTextureMinFilterMipMap, 8, 8, kOOPixMapRGBA);
+        Loader("mip.png", OOTextureFlags::kMinFilterMipMap, 8, 8, kOOPixMapRGBA);
     OO_CHECK(Queue(loader));
     Result result = GetResult(loader);
     OO_CHECK(result.ok && result.pixMap.width == 8 &&
@@ -278,7 +278,7 @@ OO_TEST(failures) {
   SetUpLoaders();
   {
     TestLoader* empty =
-        Loader("empty.png", kOOTextureMinFilterLinear, 4, 4, kOOPixMapRGBA);
+        Loader("empty.png", OOTextureFlags::kMinFilterLinear, 4, 4, kOOPixMapRGBA);
     empty->_testEmpty = true;
     OO_CHECK(Queue(empty));
     Result none = GetResult(empty);
@@ -287,7 +287,7 @@ OO_TEST(failures) {
     OO_CHECK(empty->description().ends_with(">{{empty.png -- failed}}"));
 
     TestLoader* raising =
-        Loader("raise.png", kOOTextureMinFilterLinear, 4, 4, kOOPixMapRGBA);
+        Loader("raise.png", OOTextureFlags::kMinFilterLinear, 4, 4, kOOPixMapRGBA);
     raising->_testRaise = true;
     OO_CHECK(Queue(raising));
     Result raised =
@@ -324,15 +324,15 @@ OO_TEST(cxxApi) {
   OO_CHECK(OOTestGLContext());
   SetUpLoaders();
   {
-    OO_CHECK(!OOTextureLoader::loaderWithPath(std::nullopt, 0));
-    OO_CHECK(!OOTextureLoader::loaderWithPath(std::string("unknown.type"), 0));
+    OO_CHECK(!OOTextureLoader::loaderWithPath(std::nullopt, OOTextureFlags::kNone));
+    OO_CHECK(!OOTextureLoader::loaderWithPath(std::string("unknown.type"), OOTextureFlags::kNone));
     OO_CHECK(!OOTextureLoader::loaderWithTextureSpecifier(
-        oo::PList(3.0), 0, std::string("Textures")));
+        oo::PList(3.0), OOTextureFlags::kNone, std::string("Textures")));
 
     const oo::Ref<TestCxxLoader> loader = oo::makeRef<TestCxxLoader>();
-    OO_CHECK(!loader->initWithPath(std::nullopt, 0));
+    OO_CHECK(!loader->initWithPath(std::nullopt, OOTextureFlags::kNone));
     OO_CHECK(loader->initWithPath(std::string("dir/cxx.png"),
-                                  kOOTextureMinFilterLinear));
+                                  OOTextureFlags::kMinFilterLinear));
     OO_CHECK(loader->path() == std::optional<std::string>("dir/cxx.png") &&
              loader->_shrinkThreshold == 512);
     OO_CHECK(loader->cacheKey() ==

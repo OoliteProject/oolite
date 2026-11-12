@@ -112,7 +112,7 @@ std::vector<oo::Ref<TestGenerator>> gKeptGenerators;
 TestGenerator* MakeGenerator(const std::optional<std::string>& key,
                              bool accept) {
   const oo::Ref<TestGenerator> made = oo::makeRef<TestGenerator>();
-  if (!made->initWithPath(std::string("test generator"), 0)) return nullptr;
+  if (!made->initWithPath(std::string("test generator"), OOTextureFlags::kNone)) return nullptr;
   gKeptGenerators.push_back(made);
   TestGenerator* generator = made.get();
   generator->_key = key;
@@ -273,14 +273,14 @@ OO_TEST(namedTextureFromTheCache) {
     // extensions.
     const std::string key = OOGenerateTextureCacheKey(
         std::string("Textures"), "test.png",
-        kOOTextureMinFilterLinear | kOOTextureMagFilterLinear, 0.5f, -0.25f);
+        OOTextureFlags::kMinFilterLinear | OOTextureFlags::kMagFilterLinear, 0.5f, -0.25f);
     OO_CHECK(key == "Textures/test.png:0x0006/0/0");
     TestTexture* texture = MakeTexture(key);
 
     OO_CHECK(OOTexture::textureWithName(
                  std::string("test.png"), std::string("Textures"),
-                 kOOTextureMinFilterLinear | kOOTextureMagFilterLinear |
-                     kOOTextureNoFNFMessage,
+                 OOTextureFlags::kMinFilterLinear | OOTextureFlags::kMagFilterLinear |
+                     OOTextureFlags::kNoFNFMessage,
                  kOOTextureDefaultAnisotropy, kOOTextureDefaultLODBias)
                  .get() == texture);
     OO_CHECK(OOTexture::textureWithConfiguration(oo::PList(oo::PList::Dict{
@@ -288,7 +288,7 @@ OO_TEST(namedTextureFromTheCache) {
                  {"min_filter", oo::PList("linear")}})) == texture);
     OO_CHECK(OOTexture::textureWithConfiguration(
                  oo::PList(oo::PList::Dict{{"name", oo::PList("test.png")}}),
-                 kOOTextureMinFilterLinear) == texture);
+                 OOTextureFlags::kMinFilterLinear) == texture);
 
     // A specifier that names no texture.
     OO_CHECK(OOTexture::textureWithConfiguration(oo::PList(

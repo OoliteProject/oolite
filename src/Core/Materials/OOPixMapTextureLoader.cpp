@@ -33,13 +33,14 @@ SOFTWARE.
 #include "oofnd/String.hpp"
 
 oo::Ref<OOPixMapTextureLoader> OOPixMapTextureLoader::loaderWithPixMap(
-    OOPixMap pixMap, uint32_t options, bool freeWhenDone) {
+    OOPixMap pixMap, OOTextureFlags options, bool freeWhenDone) {
   oo::Ref<OOPixMapTextureLoader> result = oo::makeRef<OOPixMapTextureLoader>();
   if (!result->initWithPixMap(pixMap, options, freeWhenDone)) return {};
   return result;
 }
 
-bool OOPixMapTextureLoader::initWithPixMap(OOPixMap pixMap, uint32_t options,
+bool OOPixMapTextureLoader::initWithPixMap(OOPixMap pixMap,
+                                           OOTextureFlags options,
                                            bool freeWhenDone) {
   if (!initWithPath(
           std::format("OOPixMap@{}", oo::str::pointerDescription(this)),
@@ -63,15 +64,16 @@ OOPixMapTextureLoader::~OOPixMapTextureLoader() { OOFreePixMap(&_pixMap); }
 
 void OOPixMapTextureLoader::loadTexture() {
   // Generate mip maps if needed.
-  if ((_texOptions & kOOTextureMinFilterMask) == kOOTextureMinFilterMipMap) {
+  if ((_texOptions & OOTextureFlags::kMinFilterMask) ==
+      OOTextureFlags::kMinFilterMipMap) {
     size_t size = OOMinimumPixMapBufferSize(_pixMap) * 4 / 3;
     bool generateMipMaps = OOExpandPixMap(&_pixMap, size);
     if (generateMipMaps) {
       OOGenerateMipMaps(_pixMap.pixels, _pixMap.width, _pixMap.height,
                         _pixMap.format);
     } else {
-      _texOptions =
-          (_texOptions & ~kOOTextureMinFilterMask) | kOOTextureMinFilterMipMap;
+      _texOptions = (_texOptions & ~OOTextureFlags::kMinFilterMask) |
+                    OOTextureFlags::kMinFilterMipMap;
     }
   }
 
@@ -86,4 +88,4 @@ void OOPixMapTextureLoader::loadTexture() {
   _pixMap.pixels = nullptr;
 }
 
-uint32_t OOPixMapTextureLoader::textureOptions() { return _texOptions; }
+OOTextureFlags OOPixMapTextureLoader::textureOptions() { return _texOptions; }

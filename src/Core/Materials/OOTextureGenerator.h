@@ -47,9 +47,10 @@ class OOTextureGenerator : public OOTextureLoader {
  public:
   // Generators, unlike normal loaders, get to specify their own flags and other
   // settings.
-  virtual uint32_t textureOptions();  // Default: kOOTextureDefaultOptions
-  virtual GLfloat anisotropy();       // Default: kOOTextureDefaultAnisotropy
-  virtual GLfloat lodBias();          // Default: kOOTextureDefaultLODBias
+  virtual OOTextureFlags
+  textureOptions();              // Default: OOTextureFlags::kDefaultOptions
+  virtual GLfloat anisotropy();  // Default: kOOTextureDefaultAnisotropy
+  virtual GLfloat lodBias();     // Default: kOOTextureDefaultLODBias
 
   // Key for in-memory cache; nullopt for no cache.
   std::optional<std::string> cacheKey() override;

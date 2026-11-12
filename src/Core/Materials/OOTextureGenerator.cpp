@@ -30,8 +30,8 @@ SOFTWARE.
 #include "OOAsyncWorkManager.h"
 #include "OOTexture.h"
 
-uint32_t OOTextureGenerator::textureOptions() {
-  return kOOTextureDefaultOptions;
+OOTextureFlags OOTextureGenerator::textureOptions() {
+  return OOTextureFlags::kDefaultOptions;
 }
 
 GLfloat OOTextureGenerator::anisotropy() { return kOOTextureDefaultAnisotropy; }

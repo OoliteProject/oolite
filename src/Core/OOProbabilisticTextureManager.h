@@ -51,6 +51,7 @@ SOFTWARE.
 #include "OOFoundation.h"
 #include "OOMaths.h"
 #include "OOOpenGL.h"
+#include "OOTextureFlags.h"
 #include "oofnd/Ref.hpp"
 #include "oofnd/objc/OOObject.h"
 
@@ -71,11 +72,11 @@ class OOProbabilisticTextureManager : public oo::RefCounted {
           Null where no texture loads (-initWithPListName:... answered nil).
   */
   static oo::Ref<OOProbabilisticTextureManager> createWithPListName(
-      const std::string& plistName, uint32_t options, GLfloat anisotropy,
+      const std::string& plistName, OOTextureFlags options, GLfloat anisotropy,
       GLfloat lodBias);
 
   static oo::Ref<OOProbabilisticTextureManager> createWithPListName(
-      const std::string& plistName, uint32_t options, GLfloat anisotropy,
+      const std::string& plistName, OOTextureFlags options, GLfloat anisotropy,
       GLfloat lodBias, RANROTSeed seed);
 
   /*	Select a texture, weighted-randomly.
@@ -98,7 +99,7 @@ class OOProbabilisticTextureManager : public oo::RefCounted {
   OOProbabilisticTextureManager() =
       default;  // createWithPListName() runs initWithPListName()
 
-  bool initWithPListName(const std::string& plistName, uint32_t options,
+  bool initWithPListName(const std::string& plistName, OOTextureFlags options,
                          GLfloat anisotropy, GLfloat lodBias, RANROTSeed seed);
 
   unsigned _count = {};

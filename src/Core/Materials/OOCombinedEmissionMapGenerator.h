@@ -83,7 +83,7 @@ class OOCombinedEmissionMapGenerator : public OOTextureGenerator {
   std::optional<std::string> descriptionComponents() const override;
 #endif
 
-  uint32_t textureOptions() override;
+  OOTextureFlags textureOptions() override;
   GLfloat anisotropy() override;
   GLfloat lodBias() override;
   std::optional<std::string> cacheKey() override;
@@ -113,7 +113,7 @@ class OOCombinedEmissionMapGenerator : public OOTextureGenerator {
   oo::Ref<OOColor> _illuminationColor;
   bool _isCombinedMap = false;
 
-  uint32_t _textureOptions = 0;
+  OOTextureFlags _textureOptions = OOTextureFlags::kNone;
   GLfloat _anisotropy = 0;
   GLfloat _lodBias = 0;
 

@@ -68,11 +68,11 @@ class OOConcreteTexture : public OOTexture {
   */
   static oo::Ref<OOConcreteTexture> initWithLoader(
       OOTextureLoader* loader, const std::optional<std::string>& key,
-      uint32_t options, GLfloat anisotropy, GLfloat lodBias);
+      OOTextureFlags options, GLfloat anisotropy, GLfloat lodBias);
 
   static oo::Ref<OOConcreteTexture> initWithPath(
       const std::string& path, const std::optional<std::string>& key,
-      uint32_t options, float anisotropy, GLfloat lodBias);
+      OOTextureFlags options, float anisotropy, GLfloat lodBias);
 
   ~OOConcreteTexture() override;
 
@@ -101,8 +101,9 @@ class OOConcreteTexture : public OOTexture {
   // The part of -initWithLoader: that cannot fail; the factory adds the texture
   // to the caches.
   OOConcreteTexture(OOTextureLoader* loader,
-                    const std::optional<std::string>& key, uint32_t options,
-                    GLfloat anisotropy, GLfloat lodBias);
+                    const std::optional<std::string>& key,
+                    OOTextureFlags options, GLfloat anisotropy,
+                    GLfloat lodBias);
 
   void setUpTexture();
   void uploadTexture();
@@ -139,7 +140,7 @@ class OOConcreteTexture : public OOTexture {
   uint32_t _width = {}, _height = {}, _originalWidth = {}, _originalHeight = {};
 
   OOTextureDataFormat _format = {};
-  uint32_t _options = {};
+  OOTextureFlags _options = {};
 #if GL_EXT_texture_lod_bias
   GLfloat _lodBias = {};
 #endif

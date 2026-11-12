@@ -51,7 +51,7 @@ void SetUp() {
   OO_CHECK(OOTestGLContext());
   {
     oo::AutoreleaseScope pool;
-    (void)OOTextureLoader::loaderWithPath(std::string("unknown.type"), 0);
+    (void)OOTextureLoader::loaderWithPath(std::string("unknown.type"), OOTextureFlags::kNone);
   }
 }
 
@@ -184,8 +184,8 @@ OO_TEST(settings) {
     OO_CHECK(generator != nullptr &&
              (dynamic_cast<OOTextureGenerator*>(generator) != nullptr));
     OO_CHECK(generator->textureOptions() ==
-             (kOOTextureMinFilterLinear | kOOTextureMagFilterLinear |
-              kOOTextureRepeatS | kOOTextureNoShrink));
+             (OOTextureFlags::kMinFilterLinear | OOTextureFlags::kMagFilterLinear |
+              OOTextureFlags::kRepeatS | OOTextureFlags::kNoShrink));
     OO_CHECK(generator->path().value_or("").starts_with("OOPlanetTexture@"));
 
     // Keyed by what it feeds (nothing yet: baked), the scale (512: 2), the size
@@ -298,8 +298,8 @@ OO_TEST(cxxApi) {
             PlanetInfo(false), (RANROTSeed){12345, 67890});
     OO_CHECK(generator &&
              generator->textureOptions() ==
-                 (kOOTextureMinFilterLinear | kOOTextureMagFilterLinear |
-                  kOOTextureRepeatS | kOOTextureNoShrink));
+                 (OOTextureFlags::kMinFilterLinear | OOTextureFlags::kMagFilterLinear |
+                  OOTextureFlags::kRepeatS | OOTextureFlags::kNoShrink));
     OO_CHECK(generator->descriptionComponents() ==
              std::optional<std::string>("seed: 12345,67890 land: 0.25"));
     OO_CHECK(generator->cacheKey().value_or("").starts_with(

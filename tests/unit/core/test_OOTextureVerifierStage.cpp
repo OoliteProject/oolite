@@ -61,7 +61,7 @@ std::optional<std::string> ResourceManager::pathForFileNamed(
 */
 namespace {
 
-uint32_t gLoaderOptions = 0;
+OOTextureFlags gLoaderOptions = OOTextureFlags::kNone;
 int gPixMapsFreed = 0;
 
 }  // namespace
@@ -117,7 +117,7 @@ class StandInLoader final : public OOTextureLoader {
 };
 
 oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithPath(
-    const std::optional<std::string>& path, uint32_t options) {
+    const std::optional<std::string>& path, OOTextureFlags options) {
   gLoaderOptions = options;
   std::ifstream file(path.value_or(""), std::ios::binary);
   std::stringstream bytes;
@@ -275,8 +275,8 @@ OO_TEST(runLoadsTexturesAndImages) {
     stage->run();
 
     OO_CHECK(gLoaderOptions ==
-             (kOOTextureMinFilterNearest | kOOTextureNoShrink |
-              kOOTextureNoFNFMessage | kOOTextureNeverScale));
+             (OOTextureFlags::kMinFilterNearest | OOTextureFlags::kNoShrink |
+              OOTextureFlags::kNoFNFMessage | OOTextureFlags::kNeverScale));
     OO_CHECK(LogLinesContaining("- Textures/pot.png (64x32 px) OK.") == 1);
     OO_CHECK(LogLinesContaining(
                  "----- WARNING: image Textures/npot.png has non-power-of-two "

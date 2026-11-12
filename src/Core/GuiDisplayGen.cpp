@@ -108,7 +108,7 @@ std::optional<std::string> DescriptorName(const oo::PList& descriptor) {
 }
 
 oo::Ref<OOTexture> TextureForGUITexture(const oo::PList& descriptor,
-                                        uint32_t srgbaOption) {
+                                        OOTextureFlags srgbaOption) {
   /*
           GUI textures like backgrounds, foregrounds etc. are not processed in
      any way after loading. However, they are subject to tone nmapping and gamma
@@ -121,10 +121,10 @@ oo::Ref<OOTexture> TextureForGUITexture(const oo::PList& descriptor,
           Also, remember that if no shaders are in use (as in lower detail
      levels), then we don't need to declare anything.
   */
-  if (!GuiDisplayGenUniverseUseShaders()) srgbaOption = 0;
+  if (!GuiDisplayGenUniverseUseShaders()) srgbaOption = OOTextureFlags::kNone;
   return OOTexture::textureWithName(
       DescriptorName(descriptor), "Images",
-      kOOTextureDefaultOptions | kOOTextureNoShrink | srgbaOption,
+      OOTextureFlags::kDefaultOptions | OOTextureFlags::kNoShrink | srgbaOption,
       kOOTextureDefaultAnisotropy, kOOTextureDefaultLODBias);
 }
 
@@ -133,7 +133,7 @@ oo::Ref<OOTexture> TextureForGUITexture(const oo::PList& descriptor,
    texture.
 */
 oo::Ref<OOTextureSprite> NewTextureSpriteWithDescriptor(
-    const oo::PList& descriptor, uint32_t srgbaOption) {
+    const oo::PList& descriptor, OOTextureFlags srgbaOption) {
   oo::Ref<OOTexture> texture;
   NSSize size;
 
@@ -1028,20 +1028,20 @@ bool GuiDisplayGen::setBackgroundTextureDescriptor(
     const oo::PList& descriptor) {
   backgroundSpecial = GUI_BACKGROUND_SPECIAL_NONE;  // reset
   backgroundSprite =
-      NewTextureSpriteWithDescriptor(descriptor, kOOTextureSRGBA);
+      NewTextureSpriteWithDescriptor(descriptor, OOTextureFlags::kSRGBA);
   return backgroundSprite.get() != nullptr;
 }
 
 bool GuiDisplayGen::setForegroundTextureDescriptor(
     const oo::PList& descriptor) {
-  // FIXME: for some reason passing kOOTextureSRGBA when in SDR results in
-  // double gamma correction
-  uint32_t srgbaOption =
+  // FIXME: for some reason passing OOTextureFlags::kSRGBA when in SDR results
+  // in double gamma correction
+  OOTextureFlags srgbaOption =
       (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr
            ? UNIVERSE->getGameView()->hdrOutput()
            : false)
-          ? kOOTextureSRGBA
-          : 0;
+          ? OOTextureFlags::kSRGBA
+          : OOTextureFlags::kNone;
   foregroundSprite = NewTextureSpriteWithDescriptor(descriptor, srgbaOption);
   return foregroundSprite.get() != nullptr;
 }
@@ -1063,7 +1063,8 @@ bool GuiDisplayGen::setForegroundTextureKey(
 }
 
 bool GuiDisplayGen::preloadGUITexture(const oo::PList& descriptor) {
-  return TextureForGUITexture(descriptor, kOOTextureSRGBA).get() != nullptr;
+  return TextureForGUITexture(descriptor, OOTextureFlags::kSRGBA).get() !=
+         nullptr;
 }
 
 oo::PList GuiDisplayGen::textureDescriptorFromJSValue(

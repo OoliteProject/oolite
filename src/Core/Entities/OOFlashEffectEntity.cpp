@@ -139,12 +139,13 @@ OOTexture* OOFlashEffectEntity::texture() {
 
 void OOFlashEffectEntity::setUpTexture() {
   if (sFlashTexture == nullptr) {
-    sFlashTexture = OOTexture::textureWithName(
-                        "oolite-particle-flash.png", "Textures",
-                        kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear |
-                            kOOTextureAlphaMask,
-                        kOOTextureDefaultAnisotropy, 0.0)
-                        .leakRef();
+    sFlashTexture =
+        OOTexture::textureWithName("oolite-particle-flash.png", "Textures",
+                                   OOTextureFlags::kMinFilterMipMap |
+                                       OOTextureFlags::kMagFilterLinear |
+                                       OOTextureFlags::kAlphaMask,
+                                   kOOTextureDefaultAnisotropy, 0.0)
+            .leakRef();
     OOGraphicsResetManager::sharedManager()->registerCxxClient(
         new FlashTextureResetClient);
   }

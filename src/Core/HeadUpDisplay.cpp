@@ -285,8 +285,8 @@ static OOEncodingConverter* sEncodingCoverter = nullptr;
 static std::string distance_unit;
 
 constexpr OOTextureFlags kFontTextureOptions =
-    kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureNoShrink |
-    kOOTextureAlphaMask;
+    OOTextureFlags::kMinFilterMipMap | OOTextureFlags::kMagFilterLinear |
+    OOTextureFlags::kNoShrink | OOTextureFlags::kAlphaMask;
 
 static const GLfloat red_color[4] = {1.0, 0.0, 0.0, 1.0};
 static const GLfloat redplus_color[4] = {1.0, 0.0, 0.5, 1.0};
@@ -756,7 +756,7 @@ void HeadUpDisplay::addLegend(const oo::PList& info) {
   if (imageName.has_value()) {
     texture = OOTexture::textureWithName(
         imageName, std::string("Images"),
-        kOOTextureDefaultOptions | kOOTextureNoShrink,
+        OOTextureFlags::kDefaultOptions | OOTextureFlags::kNoShrink,
         kOOTextureDefaultAnisotropy, kOOTextureDefaultLODBias);
     if (texture == nullptr) {
       OO_LOG_ERR(cxx_kOOLogFileNotFound,
@@ -2230,7 +2230,7 @@ void HeadUpDisplay::drawCustomImage(const oo::PList& info) {
 
   oo::Ref<OOTexture> texture = OOTexture::textureWithName(
       textureFile, std::string("Images"),
-      kOOTextureDefaultOptions | kOOTextureNoShrink,
+      OOTextureFlags::kDefaultOptions | OOTextureFlags::kNoShrink,
       kOOTextureDefaultAnisotropy, kOOTextureDefaultLODBias);
   if (texture == nullptr) {
     OO_LOG_ERR(cxx_kOOLogFileNotFound,

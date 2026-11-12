@@ -49,7 +49,7 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict,
 
 oo::Ref<OOProbabilisticTextureManager>
 OOProbabilisticTextureManager::createWithPListName(const std::string& plistName,
-                                                   uint32_t options,
+                                                   OOTextureFlags options,
                                                    GLfloat anisotropy,
                                                    GLfloat lodBias) {
   return createWithPListName(plistName, options, anisotropy, lodBias,
@@ -59,7 +59,7 @@ OOProbabilisticTextureManager::createWithPListName(const std::string& plistName,
 // -initWithPListName:...seed: on a new object; null where it answered nil.
 oo::Ref<OOProbabilisticTextureManager>
 OOProbabilisticTextureManager::createWithPListName(const std::string& plistName,
-                                                   uint32_t options,
+                                                   OOTextureFlags options,
                                                    GLfloat anisotropy,
                                                    GLfloat lodBias,
                                                    RANROTSeed seed) {
@@ -72,7 +72,7 @@ OOProbabilisticTextureManager::createWithPListName(const std::string& plistName,
 }
 
 bool OOProbabilisticTextureManager::initWithPListName(
-    const std::string& plistName, uint32_t options, GLfloat anisotropy,
+    const std::string& plistName, OOTextureFlags options, GLfloat anisotropy,
     GLfloat lodBias, RANROTSeed seed) {
   bool OK = true;
   oo::PList config;

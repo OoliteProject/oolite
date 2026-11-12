@@ -40,7 +40,7 @@ namespace {
 void SetUpLoaders() {
   {
     oo::AutoreleaseScope pool;
-    (void)OOTextureLoader::loaderWithPath(std::string("unknown.type"), 0);
+    (void)OOTextureLoader::loaderWithPath(std::string("unknown.type"), OOTextureFlags::kNone);
   }
 }
 
@@ -63,7 +63,7 @@ OOTextureGenerator* Kept(oo::Ref<OOTextureGenerator> generator) {
 
 // Was [[OOPixMapTextureLoader alloc] initWithPixMap:...], autoreleased: the
 // loader as a generator.
-OOTextureGenerator* NewLoader(OOPixMap pixMap, uint32_t options,
+OOTextureGenerator* NewLoader(OOPixMap pixMap, OOTextureFlags options,
                               bool freeWhenDone) {
   return Kept(
       OOPixMapTextureLoader::loaderWithPixMap(pixMap, options, freeWhenDone));
@@ -84,12 +84,12 @@ OO_TEST(takesThePixMap) {
   {
     oo::AutoreleaseScope pool;
     OOTextureGenerator* loader = NewLoader(
-        TestPixMap(), kOOTextureMinFilterLinear | kOOTextureRepeatS, true);
+        TestPixMap(), OOTextureFlags::kMinFilterLinear | OOTextureFlags::kRepeatS, true);
     OO_CHECK(loader != nullptr &&
              dynamic_cast<OOTextureGenerator*>(loader) != nullptr);
     OO_CHECK(loader->textureOptions() ==
-             OOApplyTextureOptionDefaults(kOOTextureMinFilterLinear |
-                                          kOOTextureRepeatS));
+             OOApplyTextureOptionDefaults(OOTextureFlags::kMinFilterLinear |
+                                          OOTextureFlags::kRepeatS));
     OO_CHECK(loader->path().value_or("").starts_with("OOPixMap@"));
     OO_CHECK(!loader->cacheKey().has_value());  // a generator: not cached
 
@@ -113,14 +113,14 @@ OO_TEST(refusals) {
   {
     oo::AutoreleaseScope pool;
     // Not a pixmap.
-    OO_CHECK(NewLoader(kOONullPixMap, kOOTextureMinFilterLinear, true) ==
+    OO_CHECK(NewLoader(kOONullPixMap, OOTextureFlags::kMinFilterLinear, true) ==
              nullptr);
 
     // Not taken over: the initialiser duplicates its own (still empty) pixmap,
     // not the one it was given, so it answers nil and the caller keeps its
     // pixels. (As it has since 2010; kept.)
     OOPixMap kept = TestPixMap();
-    OO_CHECK(NewLoader(kept, kOOTextureMinFilterLinear, false) == nullptr);
+    OO_CHECK(NewLoader(kept, OOTextureFlags::kMinFilterLinear, false) == nullptr);
     OO_CHECK(OOIsValidPixMap(kept) && ((const uint8_t*)kept.pixels)[0] == 1);
     OOFreePixMap(&kept);
   }
@@ -132,9 +132,9 @@ OO_TEST(loadsWithMipMaps) {
   {
     oo::AutoreleaseScope pool;
     OOTextureGenerator* loader =
-        NewLoader(TestPixMap(), kOOTextureMinFilterMipMap, true);
+        NewLoader(TestPixMap(), OOTextureFlags::kMinFilterMipMap, true);
     OO_CHECK(loader->textureOptions() ==
-             OOApplyTextureOptionDefaults(kOOTextureMinFilterMipMap));
+             OOApplyTextureOptionDefaults(OOTextureFlags::kMinFilterMipMap));
     OO_CHECK(loader->enqueue());
     OOPixMap result = kOONullPixMap;
     OOTextureDataFormat format = kOOPixMapInvalidFormat;
@@ -153,7 +153,7 @@ OO_TEST(aTextureOfTheGenerator) {
   {
     oo::AutoreleaseScope pool;
     OOTextureGenerator* loader = NewLoader(
-        TestPixMap(), kOOTextureDefaultOptions | kOOTextureRepeatS, true);
+        TestPixMap(), OOTextureFlags::kDefaultOptions | OOTextureFlags::kRepeatS, true);
     OOTexture* texture = Autoreleased(OOTexture::textureWithGenerator(loader));
     OO_CHECK((dynamic_cast<OOConcreteTexture*>(texture) != nullptr));
     texture->ensureFinishedLoading();
@@ -172,14 +172,14 @@ OO_TEST(cxxApi) {
   SetUpLoaders();
   {
     oo::AutoreleaseScope pool;
-    OO_CHECK(!OOPixMapTextureLoader::loaderWithPixMap(kOONullPixMap, 0, true));
+    OO_CHECK(!OOPixMapTextureLoader::loaderWithPixMap(kOONullPixMap, OOTextureFlags::kNone, true));
 
     const oo::Ref<OOPixMapTextureLoader> loader =
         OOPixMapTextureLoader::loaderWithPixMap(
-            TestPixMap(), kOOTextureMinFilterLinear, true);
+            TestPixMap(), OOTextureFlags::kMinFilterLinear, true);
     OO_CHECK(loader &&
              loader->textureOptions() ==
-                 OOApplyTextureOptionDefaults(kOOTextureMinFilterLinear));
+                 OOApplyTextureOptionDefaults(OOTextureFlags::kMinFilterLinear));
     OO_CHECK(loader->path().value_or("").starts_with("OOPixMap@") &&
              !loader->cacheKey().has_value());
 

@@ -111,9 +111,9 @@ void OOTextureVerifierStage::checkTextureNamed(const std::string& name,
   if (!path.has_value()) return;
 
   loader = OOTextureLoader::loaderWithPath(
-      path, kOOTextureMinFilterNearest | kOOTextureMinFilterNearest |
-                kOOTextureNoShrink | kOOTextureNoFNFMessage |
-                kOOTextureNeverScale);
+      path, OOTextureFlags::kMinFilterNearest |
+                OOTextureFlags::kMinFilterNearest | OOTextureFlags::kNoShrink |
+                OOTextureFlags::kNoFNFMessage | OOTextureFlags::kNeverScale);
 
   displayName = fileScanner->displayNameForFile(name, folder);
   if (loader == nullptr) {

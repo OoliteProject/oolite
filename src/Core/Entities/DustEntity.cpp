@@ -116,8 +116,8 @@ void DustEntity::init() {
   if (hasPointSprites) {
     texture = OOTexture::textureWithName(
         "oolite-particle-dust.png", "Textures",
-        kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear |
-            kOOTextureAlphaMask,
+        OOTextureFlags::kMinFilterMipMap | OOTextureFlags::kMagFilterLinear |
+            OOTextureFlags::kAlphaMask,
         kOOTextureDefaultAnisotropy / 2.0, 0.0);
   }
 

@@ -357,9 +357,10 @@ std::string KeyFromTextureParameters(const std::string& name,
 
   // Extraction modes are ignored in synthesized shaders, since we use swizzling
   // instead.
-  options &= ~kOOTextureExtractChannelMask;
+  options &= ~OOTextureFlags::kExtractChannelMask;
 
-  return std::format("{}:{:X}:{:g}:{:g}", name, options, anisotropy, lodBias);
+  return std::format("{}:{:X}:{:g}:{:g}", name, oo::ToUnderlying(options),
+                     anisotropy, lodBias);
 }
 
 std::string KeyFromTextureSpec(const oo::PList& spec) {
@@ -397,7 +398,7 @@ std::size_t OODefaultShaderSynthesizer::assignIDForTexture(
     OORaiseException(OOGenericException, "Invalid texture specifier");
   }
 
-  if (texOptions & kOOTextureAllowCubeMap) {
+  if (oo::Any(texOptions & OOTextureFlags::kAllowCubeMap)) {
     // cube_map = true; fail regardless of whether actual texture qualifies.
     OO_LOG_ERR("material.synthesis.error.cubeMap",
                "The material \"{}\" of \"{}\" specifies a cube map texture, "

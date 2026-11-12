@@ -126,7 +126,7 @@ bool OOCombinedEmissionMapGenerator::initWithEmissionMapSpec(
 
   OOCParameterAssert(illuminationMapSpec.isNull() || !isCombinedMap);
 
-  uint32_t options;
+  OOTextureFlags options;
   GLfloat anisotropy;
   GLfloat lodBias;
   cxx_OOInterpretTextureSpecifier(spec, nullptr, &options, &anisotropy,
@@ -187,7 +187,7 @@ bool OOCombinedEmissionMapGenerator::initWithEmissionMapSpec(
       if (!_emissionSpec.isNull()) {
         const oo::Ref<OOTextureLoader> emissionMapLoader =
             OOTextureLoader::loaderWithTextureSpecifier(
-                _emissionSpec, 0, std::string("Textures"));
+                _emissionSpec, OOTextureFlags::kNone, std::string("Textures"));
         if (emissionMapLoader)
           emissionMapLoader->getResult(&_emissionPx, &format, nullptr, nullptr);
 #ifndef NDEBUG
@@ -199,7 +199,8 @@ bool OOCombinedEmissionMapGenerator::initWithEmissionMapSpec(
       if (!_illuminationSpec.isNull()) {
         const oo::Ref<OOTextureLoader> illuminationMapLoader =
             OOTextureLoader::loaderWithTextureSpecifier(
-                _illuminationSpec, 0, std::string("Textures"));
+                _illuminationSpec, OOTextureFlags::kNone,
+                std::string("Textures"));
         if (illuminationMapLoader)
           illuminationMapLoader->getResult(&_illuminationPx, &format, nullptr,
                                            nullptr);
@@ -312,7 +313,7 @@ OOCombinedEmissionMapGenerator::descriptionComponents() const {
 }
 #endif
 
-uint32_t OOCombinedEmissionMapGenerator::textureOptions() {
+OOTextureFlags OOCombinedEmissionMapGenerator::textureOptions() {
   return _textureOptions;
 }
 

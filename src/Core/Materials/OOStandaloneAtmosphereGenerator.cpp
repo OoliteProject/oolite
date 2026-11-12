@@ -69,9 +69,9 @@
     *x_ = NULL;                                   \
   } while (0)
 
-#define PLANET_TEXTURE_OPTIONS                                                 \
-  (kOOTextureMinFilterLinear | kOOTextureMagFilterLinear | kOOTextureRepeatS | \
-   kOOTextureNoShrink)
+#define PLANET_TEXTURE_OPTIONS                                           \
+  (OOTextureFlags::kMinFilterLinear | OOTextureFlags::kMagFilterLinear | \
+   OOTextureFlags::kRepeatS | OOTextureFlags::kNoShrink)
 
 constexpr int kRandomBufferSize = 128;
 
@@ -119,7 +119,7 @@ bool OOStandaloneAtmosphereGenerator::initWithPlanetInfo(
   // AllowCubeMap not used yet but might be in future
   if (initWithPath(std::format("OOStandaloneAtmosphereTexture@{}",
                                oo::str::pointerDescription(this)),
-                   kOOTextureAllowCubeMap)) {
+                   OOTextureFlags::kAllowCubeMap)) {
     OO_LOG("texture.planet.generate", "Extracting parameters for generator {}",
            description());
     _info.seed = seed;  // was a value box under "noise_map_seed" in planetInfo
@@ -184,7 +184,7 @@ OOStandaloneAtmosphereGenerator::descriptionComponents() const {
   return std::format("seed: {},{}", _info.seed.high, _info.seed.low);
 }
 
-uint32_t OOStandaloneAtmosphereGenerator::textureOptions() {
+OOTextureFlags OOStandaloneAtmosphereGenerator::textureOptions() {
   return PLANET_TEXTURE_OPTIONS;
 }
 

@@ -138,16 +138,19 @@ oo::Ref<OOTexture> OOTexture::loadTextureWithName(
   if (EXPECT_NOT(!sCheckedExtensions)) checkExtensions();
 
   if (!gOOTextureInfo.anisotropyAvailable ||
-      (options & kOOTextureMinFilterMask) != kOOTextureMinFilterMipMap) {
+      (options & OOTextureFlags::kMinFilterMask) !=
+          OOTextureFlags::kMinFilterMipMap) {
     anisotropy = 0.0f;
   }
   if (!gOOTextureInfo.textureLODBiasAvailable ||
-      (options & kOOTextureMinFilterMask) != kOOTextureMinFilterMipMap) {
+      (options & OOTextureFlags::kMinFilterMask) !=
+          OOTextureFlags::kMinFilterMipMap) {
     lodBias = 0.0f;
   }
 
-  noFNF = (options & kOOTextureNoFNFMessage) != 0;
-  options = OOApplyTextureOptionDefaults(options & ~kOOTextureNoFNFMessage);
+  noFNF = oo::Any(options & OOTextureFlags::kNoFNFMessage);
+  options =
+      OOApplyTextureOptionDefaults(options & ~OOTextureFlags::kNoFNFMessage);
 
   // Look for existing texture
   key =
@@ -173,7 +176,7 @@ oo::Ref<OOTexture> OOTexture::loadTextureWithName(
 oo::Ref<OOTexture> OOTexture::textureWithName(
     const std::optional<std::string>& name,
     const std::optional<std::string>& directory) {
-  return loadTextureWithName(name, directory, kOOTextureDefaultOptions,
+  return loadTextureWithName(name, directory, OOTextureFlags::kDefaultOptions,
                              kOOTextureDefaultAnisotropy,
                              kOOTextureDefaultLODBias);
 }
@@ -185,13 +188,13 @@ oo::Ref<OOTexture> OOTexture::textureWithConfiguration(
 
 oo::Ref<OOTexture> OOTexture::loadTextureWithConfiguration(
     const oo::PList& configuration) {
-  return textureWithConfiguration(configuration, 0);
+  return textureWithConfiguration(configuration, OOTextureFlags::kNone);
 }
 
 oo::Ref<OOTexture> OOTexture::textureWithConfiguration(
     const oo::PList& configuration, OOTextureFlags extraOptions) {
   std::string name;
-  OOTextureFlags options = 0;
+  OOTextureFlags options = OOTextureFlags::kNone;
   GLfloat anisotropy = 0.0f;
   GLfloat lodBias = 0.0f;
 
@@ -609,7 +612,7 @@ bool cxx_OOInterpretTextureSpecifier(const oo::PList& specifier,
                                      float* outAnisotropy, float* outLODBias,
                                      bool ignoreExtract) {
   std::string name;
-  OOTextureFlags options = kOOTextureDefaultOptions;
+  OOTextureFlags options = OOTextureFlags::kDefaultOptions;
   float anisotropy = kOOTextureDefaultAnisotropy;
   float lodBias = kOOTextureDefaultLODBias;
 
@@ -632,36 +635,37 @@ bool cxx_OOInterpretTextureSpecifier(const oo::PList& specifier,
     int quickFlags =
         specifier.get<int>(kOOTextureSpecifierFlagValueInternalKey, -1);
     if (quickFlags != -1) {
-      options = quickFlags;
+      options = static_cast<OOTextureFlags>(quickFlags);
     } else {
       std::string filterString = specifier.get<std::string>(
           cxx_kOOTextureSpecifierMinFilterKey, "default");
       if (filterString == "nearest")
-        options |= kOOTextureMinFilterNearest;
+        options |= OOTextureFlags::kMinFilterNearest;
       else if (filterString == "linear")
-        options |= kOOTextureMinFilterLinear;
+        options |= OOTextureFlags::kMinFilterLinear;
       else if (filterString == "mipmap")
-        options |= kOOTextureMinFilterMipMap;
+        options |= OOTextureFlags::kMinFilterMipMap;
       else
-        options |= kOOTextureMinFilterDefault;  // Covers "default"
+        options |= OOTextureFlags::kMinFilterDefault;  // Covers "default"
 
       filterString = specifier.get<std::string>(
           cxx_kOOTextureSpecifierMagFilterKey, "default");
       if (filterString == "nearest")
-        options |= kOOTextureMagFilterNearest;
+        options |= OOTextureFlags::kMagFilterNearest;
       else
-        options |= kOOTextureMagFilterLinear;  // Covers "default" and "linear"
+        options |=
+            OOTextureFlags::kMagFilterLinear;  // Covers "default" and "linear"
 
       if (specifier.get<bool>(cxx_kOOTextureSpecifierNoShrinkKey, false))
-        options |= kOOTextureNoShrink;
+        options |= OOTextureFlags::kNoShrink;
       if (specifier.get<bool>(cxx_kOOTextureSpecifierExtraShrinkKey, false))
-        options |= kOOTextureExtraShrink;
+        options |= OOTextureFlags::kExtraShrink;
       if (specifier.get<bool>(cxx_kOOTextureSpecifierRepeatSKey, false))
-        options |= kOOTextureRepeatS;
+        options |= OOTextureFlags::kRepeatS;
       if (specifier.get<bool>(cxx_kOOTextureSpecifierRepeatTKey, false))
-        options |= kOOTextureRepeatT;
+        options |= OOTextureFlags::kRepeatT;
       if (specifier.get<bool>(cxx_kOOTextureSpecifierCubeMapKey, false))
-        options |= kOOTextureAllowCubeMap;
+        options |= OOTextureFlags::kAllowCubeMap;
 
       if (!ignoreExtract) {
         const oo::PList* extractValue = specifier.find("extract_channel");
@@ -670,13 +674,13 @@ bool cxx_OOInterpretTextureSpecifier(const oo::PList& specifier,
           const std::string extractChannel =
               specifier.get<std::string>("extract_channel");
           if (extractChannel == "r")
-            options |= kOOTextureExtractChannelR;
+            options |= OOTextureFlags::kExtractChannelR;
           else if (extractChannel == "g")
-            options |= kOOTextureExtractChannelG;
+            options |= OOTextureFlags::kExtractChannelG;
           else if (extractChannel == "b")
-            options |= kOOTextureExtractChannelB;
+            options |= OOTextureFlags::kExtractChannelB;
           else if (extractChannel == "a")
-            options |= kOOTextureExtractChannelA;
+            options |= OOTextureFlags::kExtractChannelA;
           else {
             OO_LOG_WARN("texture.load.extractChannel.invalid",
                         "Unknown value \"{}\" for extract_channel in specifier "
@@ -730,71 +734,80 @@ oo::PList cxx_OOMakeTextureSpecifier(const std::string& name,
 
   if (internal) {
     result[kOOTextureSpecifierFlagValueInternalKey] =
-        oo::PList::unsignedInteger(options);
+        oo::PList::unsignedInteger(oo::ToUnderlying(options));
   } else {
     const char* value = nullptr;
-    switch (options & kOOTextureMinFilterMask) {
-      case kOOTextureMinFilterDefault:
+    switch (options & OOTextureFlags::kMinFilterMask) {
+      case OOTextureFlags::kMinFilterDefault:
         break;
 
-      case kOOTextureMinFilterNearest:
+      case OOTextureFlags::kMinFilterNearest:
         value = "nearest";
         break;
 
-      case kOOTextureMinFilterLinear:
+      case OOTextureFlags::kMinFilterLinear:
         value = "linear";
         break;
 
-      case kOOTextureMinFilterMipMap:
+      case OOTextureFlags::kMinFilterMipMap:
         value = "mipmap";
+        break;
+
+      default:  // the other enumerators are outside the mask
         break;
     }
     if (value != nullptr)
       result[cxx_kOOTextureSpecifierNoShrinkKey] = oo::PList(value);
 
     value = nullptr;
-    switch (options & kOOTextureMagFilterMask) {
-      case kOOTextureMagFilterNearest:
+    switch (options & OOTextureFlags::kMagFilterMask) {
+      case OOTextureFlags::kMagFilterNearest:
         value = "nearest";
         break;
 
-      case kOOTextureMagFilterLinear:
+      case OOTextureFlags::kMagFilterLinear:
+        break;
+
+      default:  // the other enumerators are outside the mask
         break;
     }
     if (value != nullptr)
       result[cxx_kOOTextureSpecifierMagFilterKey] = oo::PList(value);
 
     value = nullptr;
-    switch (options & kOOTextureExtractChannelMask) {
-      case kOOTextureExtractChannelNone:
+    switch (options & OOTextureFlags::kExtractChannelMask) {
+      case OOTextureFlags::kExtractChannelNone:
         break;
 
-      case kOOTextureExtractChannelR:
+      case OOTextureFlags::kExtractChannelR:
         value = "r";
         break;
 
-      case kOOTextureExtractChannelG:
+      case OOTextureFlags::kExtractChannelG:
         value = "g";
         break;
 
-      case kOOTextureExtractChannelB:
+      case OOTextureFlags::kExtractChannelB:
         value = "b";
         break;
 
-      case kOOTextureExtractChannelA:
+      case OOTextureFlags::kExtractChannelA:
         value = "a";
+        break;
+
+      default:  // the other enumerators are outside the mask
         break;
     }
     if (value != nullptr)
       result[cxx_kOOTextureSpecifierSwizzleKey] = oo::PList(value);
 
-    if (options & kOOTextureNoShrink)
+    if (oo::Any(options & OOTextureFlags::kNoShrink))
       result[cxx_kOOTextureSpecifierNoShrinkKey] = oo::PList(true);
-    if (options & kOOTextureRepeatS)
+    if (oo::Any(options & OOTextureFlags::kRepeatS))
       result[cxx_kOOTextureSpecifierRepeatSKey] = oo::PList(true);
-    if (options & kOOTextureRepeatT)
+    if (oo::Any(options & OOTextureFlags::kRepeatT))
       result[cxx_kOOTextureSpecifierRepeatTKey] = oo::PList(true);
-    if (options & kOOTextureAllowCubeMap)
+    if (oo::Any(options & OOTextureFlags::kAllowCubeMap))
       result[cxx_kOOTextureSpecifierCubeMapKey] = oo::PList(true);
   }
 
@@ -803,11 +816,12 @@ oo::PList cxx_OOMakeTextureSpecifier(const std::string& name,
 
 OOTextureFlags OOApplyTextureOptionDefaults(OOTextureFlags options) {
   // Set default flags if needed
-  if ((options & kOOTextureMinFilterMask) == kOOTextureMinFilterDefault) {
+  if ((options & OOTextureFlags::kMinFilterMask) ==
+      OOTextureFlags::kMinFilterDefault) {
     if ((UNIVERSE != nullptr ? UNIVERSE->reducedDetail() : false)) {
-      options |= kOOTextureMinFilterLinear;
+      options |= OOTextureFlags::kMinFilterLinear;
     } else {
-      options |= kOOTextureMinFilterMipMap;
+      options |= OOTextureFlags::kMinFilterMipMap;
     }
   }
 
@@ -817,30 +831,34 @@ OOTextureFlags OOApplyTextureOptionDefaults(OOTextureFlags options) {
      non-square textures, but extra logic for such a rare case isn't
      worth it.
      */
-    if ((options & kOOTextureMinFilterMask) == kOOTextureMinFilterMipMap) {
-      options ^= kOOTextureMinFilterMipMap ^ kOOTextureMinFilterLinear;
+    if ((options & OOTextureFlags::kMinFilterMask) ==
+        OOTextureFlags::kMinFilterMipMap) {
+      options ^=
+          OOTextureFlags::kMinFilterMipMap ^ OOTextureFlags::kMinFilterLinear;
     }
   }
 
-  if (options & kOOTextureAllowRectTexture) {
+  if (oo::Any(options & OOTextureFlags::kAllowRectTexture)) {
     // Apply rectangle texture restrictions (regardless of whether rectangle
     // textures are available, for consistency)
-    options &= kOOTextureFlagsAllowedForRectangleTexture;
-    if ((options & kOOTextureMinFilterMask) == kOOTextureMinFilterMipMap) {
-      options = (kOOTextureMinFilterMask & ~kOOTextureMinFilterMask) |
-                kOOTextureMinFilterLinear;
+    options &= OOTextureFlags::kFlagsAllowedForRectangleTexture;
+    if ((options & OOTextureFlags::kMinFilterMask) ==
+        OOTextureFlags::kMinFilterMipMap) {
+      options =
+          (OOTextureFlags::kMinFilterMask & ~OOTextureFlags::kMinFilterMask) |
+          OOTextureFlags::kMinFilterLinear;
     }
 
 #if GL_EXT_texture_rectangle
     if (!gOOTextureInfo.rectangleTextureAvailable) {
-      options &= ~kOOTextureAllowRectTexture;
+      options &= ~OOTextureFlags::kAllowRectTexture;
     }
 #else
-    options &= ~kOOTextureAllowRectTexture;
+    options &= ~OOTextureFlags::kAllowRectTexture;
 #endif
   }
 
-  options &= kOOTextureDefinedFlags;
+  options &= OOTextureFlags::kDefinedFlags;
 
   return options;
 }
@@ -849,26 +867,29 @@ std::string OOGenerateTextureCacheKey(
     const std::optional<std::string>& directory, const std::string& name,
     OOTextureFlags options, float anisotropy, float lodBias) {
   if (!gOOTextureInfo.anisotropyAvailable ||
-      (options & kOOTextureMinFilterMask) != kOOTextureMinFilterMipMap) {
+      (options & OOTextureFlags::kMinFilterMask) !=
+          OOTextureFlags::kMinFilterMipMap) {
     anisotropy = 0.0f;
   }
   if (!gOOTextureInfo.textureLODBiasAvailable ||
-      (options & kOOTextureMinFilterMask) != kOOTextureMinFilterMipMap) {
+      (options & OOTextureFlags::kMinFilterMask) !=
+          OOTextureFlags::kMinFilterMipMap) {
     lodBias = 0.0f;
   }
-  options = OOApplyTextureOptionDefaults(options & ~kOOTextureNoFNFMessage);
+  options =
+      OOApplyTextureOptionDefaults(options & ~OOTextureFlags::kNoFNFMessage);
 
   return std::format("{}{}{}:0x{:04X}/{:g}/{:g}",
                      directory.has_value() ? directory->c_str() : "",
-                     directory.has_value() ? "/" : "", name, options,
-                     anisotropy, lodBias);
+                     directory.has_value() ? "/" : "", name,
+                     oo::ToUnderlying(options), anisotropy, lodBias);
 }
 
 std::string cxx_OOTextureCacheKeyForSpecifier(const oo::PList& specifier) {
   // Left as initialised when the specifier is not understood (they were
   // uninitialised).
   std::string name;
-  OOTextureFlags options = 0;
+  OOTextureFlags options = OOTextureFlags::kNone;
   float anisotropy = 0.0f;
   float lodBias = 0.0f;
 

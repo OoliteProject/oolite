@@ -54,16 +54,16 @@ SOFTWARE.
 #include "OOAsyncWorkManager.h"
 #include "OOOpenGL.h"
 #include "OOPixMap.h"
+#include "OOTextureFlags.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 
 class OOTexture;
 
-/*	As OOTexture.h declares them. The loaders do not import OOTexture.h, so
+/*	As OOTexture.h declares it. The loaders do not import OOTexture.h, so
    a test that stands in for OOTexture can still see a C++
    generator; a file that uses the textures imports OOTexture.h itself.
 */
-typedef uint32_t OOTextureFlags;
 typedef OOPixMapFormat OOTextureDataFormat;
 
 /*	The path is a UTF-8 std::string (never empty once initialised: a nil
@@ -85,7 +85,7 @@ class OOTextureLoader : public ::OOAsyncWorkTask {
           queued on the work manager; null where they answered nil.
   */
   static oo::Ref<OOTextureLoader> loaderWithPath(
-      const std::optional<std::string>& path, uint32_t options);
+      const std::optional<std::string>& path, OOTextureFlags options);
 
   /*	Convenience method to load images not destined for normal texture use.
           Specifier is a string or a dictionary as with textures. ExtraOptions
@@ -94,7 +94,7 @@ class OOTextureLoader : public ::OOAsyncWorkTask {
           specifier which are applied at the OOTexture level will be ignored.
   */
   static oo::Ref<OOTextureLoader> loaderWithTextureSpecifier(
-      const oo::PList& specifier, uint32_t extraOptions,
+      const oo::PList& specifier, OOTextureFlags extraOptions,
       const std::optional<std::string>& folder);
 
   bool isReady();
@@ -132,7 +132,8 @@ class OOTextureLoader : public ::OOAsyncWorkTask {
      do much on init, because of the whole asynchronous thing): false where it
      answered nil, for no path.
   */
-  bool initWithPath(const std::optional<std::string>& path, uint32_t options);
+  bool initWithPath(const std::optional<std::string>& path,
+                    OOTextureFlags options);
 
   std::optional<std::string> path();
 

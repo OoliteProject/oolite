@@ -55,13 +55,13 @@
 #error Neither OOLITE_BIG_ENDIAN nor OOLITE_LITTLE_ENDIAN is defined as nonzero!
 #endif
 
-static bool DecodeFormat(OOTextureDataFormat format, uint32_t options,
+static bool DecodeFormat(OOTextureDataFormat format, OOTextureFlags options,
                          GLenum* outFormat, GLenum* outInternalFormat,
                          GLenum* outType);
 
 OOConcreteTexture::OOConcreteTexture(OOTextureLoader* loader,
                                      const std::optional<std::string>& key,
-                                     uint32_t options, GLfloat anisotropy,
+                                     OOTextureFlags options, GLfloat anisotropy,
                                      GLfloat lodBias) {
   _loader = oo::Ref<OOTextureLoader>(loader);
   _options = options;
@@ -85,7 +85,7 @@ OOConcreteTexture::OOConcreteTexture(OOTextureLoader* loader,
 
 oo::Ref<OOConcreteTexture> OOConcreteTexture::initWithLoader(
     OOTextureLoader* loader, const std::optional<std::string>& key,
-    uint32_t options, GLfloat anisotropy, GLfloat lodBias) {
+    OOTextureFlags options, GLfloat anisotropy, GLfloat lodBias) {
   if (loader == nullptr) {
     return nullptr;
   }
@@ -100,7 +100,7 @@ oo::Ref<OOConcreteTexture> OOConcreteTexture::initWithLoader(
 
 oo::Ref<OOConcreteTexture> OOConcreteTexture::initWithPath(
     const std::string& path, const std::optional<std::string>& key,
-    uint32_t options, float anisotropy, GLfloat lodBias) {
+    OOTextureFlags options, float anisotropy, GLfloat lodBias) {
   const oo::Ref<OOTextureLoader> loader =
       OOTextureLoader::loaderWithPath(path, options);
   if (loader == nullptr) {
@@ -192,21 +192,24 @@ std::optional<std::string> OOConcreteTexture::name() {
 #endif
 
   const char* channelSuffix = nullptr;
-  switch (_options & kOOTextureExtractChannelMask) {
-    case kOOTextureExtractChannelR:
+  switch (_options & OOTextureFlags::kExtractChannelMask) {
+    case OOTextureFlags::kExtractChannelR:
       channelSuffix = ":r";
       break;
 
-    case kOOTextureExtractChannelG:
+    case OOTextureFlags::kExtractChannelG:
       channelSuffix = ":g";
       break;
 
-    case kOOTextureExtractChannelB:
+    case OOTextureFlags::kExtractChannelB:
       channelSuffix = ":b";
       break;
 
-    case kOOTextureExtractChannelA:
+    case OOTextureFlags::kExtractChannelA:
       channelSuffix = ":a";
+      break;
+
+    default:  // the other enumerators are outside the mask
       break;
   }
 
@@ -334,7 +337,7 @@ NSSize OOConcreteTexture::texCoordsScale() {
     }
   } else {
     // Not loaded
-    if (!(_options & kOOTextureAllowRectTexture)) {
+    if (!oo::Any(_options & OOTextureFlags::kAllowRectTexture)) {
       return NSMakeSize(1.0f, 1.0f);
     } else {
       // Finishing may clear the rectangle texture flag (if the texture turns
@@ -369,8 +372,8 @@ void OOConcreteTexture::setUpTexture() {
     _height = pm.height;
 
 #if OO_TEXTURE_CUBE_MAP
-    if (_options & kOOTextureAllowCubeMap && _height == _width * 6 &&
-        gOOTextureInfo.cubeMapAvailable) {
+    if (oo::Any(_options & OOTextureFlags::kAllowCubeMap) &&
+        _height == _width * 6 && gOOTextureInfo.cubeMapAvailable) {
       _isCubeMap = true;
     }
 #endif
@@ -413,8 +416,10 @@ void OOConcreteTexture::uploadTexture() {
     // Select wrap mode
     GLint clampMode =
         gOOTextureInfo.clampToEdgeAvailable ? GL_CLAMP_TO_EDGE : GL_CLAMP;
-    GLint wrapS = (_options & kOOTextureRepeatS) ? GL_REPEAT : clampMode;
-    GLint wrapT = (_options & kOOTextureRepeatT) ? GL_REPEAT : clampMode;
+    GLint wrapS =
+        oo::Any(_options & OOTextureFlags::kRepeatS) ? GL_REPEAT : clampMode;
+    GLint wrapT =
+        oo::Any(_options & OOTextureFlags::kRepeatT) ? GL_REPEAT : clampMode;
 
 #if OO_TEXTURE_CUBE_MAP
     if (texTarget == GL_TEXTURE_CUBE_MAP) {
@@ -427,10 +432,10 @@ void OOConcreteTexture::uploadTexture() {
     OOGL(glTexParameteri(texTarget, GL_TEXTURE_WRAP_T, wrapT));
 
     // Select min filter
-    filter = _options & kOOTextureMinFilterMask;
-    if (filter == kOOTextureMinFilterNearest)
+    const OOTextureFlags minFilter = _options & OOTextureFlags::kMinFilterMask;
+    if (minFilter == OOTextureFlags::kMinFilterNearest)
       filter = GL_NEAREST;
-    else if (filter == kOOTextureMinFilterMipMap) {
+    else if (minFilter == OOTextureFlags::kMinFilterMipMap) {
       mipMap = true;
       filter = GL_LINEAR_MIPMAP_LINEAR;
     } else
@@ -445,8 +450,8 @@ void OOConcreteTexture::uploadTexture() {
 #endif
 
     // Select mag filter
-    filter = _options & kOOTextureMagFilterMask;
-    if (filter == kOOTextureMagFilterNearest)
+    const OOTextureFlags magFilter = _options & OOTextureFlags::kMagFilterMask;
+    if (magFilter == OOTextureFlags::kMagFilterNearest)
       filter = GL_NEAREST;
     else
       filter = GL_LINEAR;
@@ -585,7 +590,7 @@ bool OOConcreteTexture::isReloadable() { return _path.has_value(); }
 
 #endif
 
-static bool DecodeFormat(OOTextureDataFormat format, uint32_t options,
+static bool DecodeFormat(OOTextureDataFormat format, OOTextureFlags options,
                          GLenum* outFormat, GLenum* outInternalFormat,
                          GLenum* outType) {
   OOCParameterAssert(outFormat != nullptr && outInternalFormat != nullptr &&
@@ -594,12 +599,13 @@ static bool DecodeFormat(OOTextureDataFormat format, uint32_t options,
   switch (format) {
     case kOOTextureDataRGBA:
       *outFormat = GL_RGBA;
-      *outInternalFormat = options & kOOTextureSRGBA ? GL_SRGB_ALPHA : GL_RGBA;
+      *outInternalFormat =
+          oo::Any(options & OOTextureFlags::kSRGBA) ? GL_SRGB_ALPHA : GL_RGBA;
       *outType = RGBA_IMAGE_TYPE;
       return true;
 
     case kOOTextureDataGrayscale:
-      if (options & kOOTextureAlphaMask) {
+      if (oo::Any(options & OOTextureFlags::kAlphaMask)) {
         *outFormat = GL_ALPHA;
         *outInternalFormat = GL_ALPHA8;
       } else {

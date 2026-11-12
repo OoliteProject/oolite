@@ -45,17 +45,18 @@ class OOPixMapTextureLoader : public OOTextureGenerator {
      initWithPixMap:textureOptions:freeWhenDone:]: null where that answered nil.
   */
   static oo::Ref<OOPixMapTextureLoader> loaderWithPixMap(OOPixMap pixMap,
-                                                         uint32_t options,
+                                                         OOTextureFlags options,
                                                          bool freeWhenDone);
 
   // Was -initWithPixMap:textureOptions:freeWhenDone:; false where it answered
   // nil.
-  bool initWithPixMap(OOPixMap pixMap, uint32_t options, bool freeWhenDone);
+  bool initWithPixMap(OOPixMap pixMap, OOTextureFlags options,
+                      bool freeWhenDone);
 
   void loadTexture() override;
-  uint32_t textureOptions() override;
+  OOTextureFlags textureOptions() override;
 
  private:
   OOPixMap _pixMap = {};
-  uint32_t _texOptions = {};
+  OOTextureFlags _texOptions = {};
 };

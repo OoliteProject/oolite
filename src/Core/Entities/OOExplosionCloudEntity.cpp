@@ -98,8 +98,8 @@ bool OOExplosionCloudEntity::initExplosionCloudWithEntity(
 
   _texture = oo::Ref<OOTexture>(OOTexture::textureWithName(
       textureFile, std::string("Textures"),
-      kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear |
-          kOOTextureAlphaMask,
+      OOTextureFlags::kMinFilterMipMap | OOTextureFlags::kMagFilterLinear |
+          OOTextureFlags::kAlphaMask,
       kOOTextureDefaultAnisotropy, 0.0));
   if (_texture == nullptr) {
     return false;

@@ -279,21 +279,25 @@ OOTexture* OOLaserShotEntity::texture2() {
 
 void OOLaserShotEntity::setUpTexture() {
   if (sShotTexture == nullptr) {
-    sShotTexture = OOTexture::textureWithName(
-                       "oolite-laser-blur.png", "Textures",
-                       kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear |
-                           kOOTextureAlphaMask | kOOTextureRepeatT,
-                       kOOTextureDefaultAnisotropy / 2.0, 0.0)
-                       .leakRef();
+    sShotTexture =
+        OOTexture::textureWithName("oolite-laser-blur.png", "Textures",
+                                   OOTextureFlags::kMinFilterMipMap |
+                                       OOTextureFlags::kMagFilterLinear |
+                                       OOTextureFlags::kAlphaMask |
+                                       OOTextureFlags::kRepeatT,
+                                   kOOTextureDefaultAnisotropy / 2.0, 0.0)
+            .leakRef();
     OOGraphicsResetManager::sharedManager()->registerCxxClient(
         new ShotTextureResetClient);
 
-    sShotTexture2 = OOTexture::textureWithName(
-                        "oolite-laser-blur2.png", "Textures",
-                        kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear |
-                            kOOTextureAlphaMask | kOOTextureRepeatT,
-                        kOOTextureDefaultAnisotropy / 2.0, 0.0)
-                        .leakRef();
+    sShotTexture2 =
+        OOTexture::textureWithName("oolite-laser-blur2.png", "Textures",
+                                   OOTextureFlags::kMinFilterMipMap |
+                                       OOTextureFlags::kMagFilterLinear |
+                                       OOTextureFlags::kAlphaMask |
+                                       OOTextureFlags::kRepeatT,
+                                   kOOTextureDefaultAnisotropy / 2.0, 0.0)
+            .leakRef();
   }
 }
 

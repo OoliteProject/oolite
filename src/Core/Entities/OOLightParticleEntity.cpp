@@ -306,12 +306,13 @@ OOTexture* OOLightParticleEntity::texture() {
 
 void OOLightParticleEntity::setUpTexture() {
   if (sBlobTexture == nullptr) {
-    sBlobTexture = OOTexture::textureWithName(
-                       "oolite-particle-blur.png", "Textures",
-                       kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear |
-                           kOOTextureAlphaMask,
-                       kOOTextureDefaultAnisotropy / 2.0, 0.0)
-                       .leakRef();
+    sBlobTexture =
+        OOTexture::textureWithName("oolite-particle-blur.png", "Textures",
+                                   OOTextureFlags::kMinFilterMipMap |
+                                       OOTextureFlags::kMagFilterLinear |
+                                       OOTextureFlags::kAlphaMask,
+                                   kOOTextureDefaultAnisotropy / 2.0, 0.0)
+            .leakRef();
     OOGraphicsResetManager::sharedManager()->registerCxxClient(
         new BlobTextureResetClient);
   }
