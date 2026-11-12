@@ -770,7 +770,7 @@ OO_TEST(deleteReachesTheClassHookWithNoOwnProperty)
 		Owned result = Eval(context, "[vault.a, delete vault.a, vault.a === undefined].join('|')");
 		OO_CHECK_EQ(cxx_OOStringFromJSValue(context, result).value_or("<none>"), "11|true|true");
 		OO_CHECK(sVaultDels == 1 && !sVaultHasA);
-		OO_CHECK_EQ(cxx_OOStringFromJSValue(context, Eval(context, "delete globalThis.vault")).value_or("<none>"), "true");
+		OO_CHECK_EQ(cxx_OOStringFromJSValue(context, Eval(context, "delete global.vault")).value_or("<none>"), "true");
 		OOJSRelinquishContext(context);
 	}
 }
