@@ -1,89 +1,69 @@
 /*	oofnd/Ref.hpp
-        Intrusive reference counting that mirrors Objective-C's
-   retain/release/autorelease 1:1 (docs/architecture.md §3.4-3.5).
-   Replaces NSObject's refcount contract, the Foundation autorelease pool and
-   OOWeakReference; oofnd/WeakSet.hpp replaces OOWeakSet.
+        The transitional bridge (spec 009, contracts/ownership.md): the names
+   of the old intrusive reference counting (oo::RefCounted, oo::Ref<T>,
+   oo::WeakRef<T>, retain/release/autorelease) kept over the standard types,
+   so that the game builds and passes while its callers move to
+   std::shared_ptr and std::weak_ptr. The bridge is deleted last.
 
-            Objective-C (manual retain/release)       oofnd
-            ----------------------------------------
-   -------------------------------------------------
-            @interface Foo : NSObject                 class Foo : public
-   oo::RefCounted
-            [[Foo alloc] init]           (+1)         new Foo            (+1;
-   count starts at 1) [x retain]  /  [x release]                x->retain()  /
-   x->release() [x retain] / [x release] where x may be   oo::retain(x)  /
-   oo::release(x)   (null-safe, nil (messaging nil is a no-op) as nil is) [x
-   autorelease]                           oo::autorelease(x)  (consumes the
-   caller's +1) [x retainCount]                           x->retainCount() Foo
-   *strongIvar (retained by a setter)    oo::Ref<Foo> strongIvar
-            [[[Foo alloc] init] autorelease] kept     oo::makeRef<Foo>(...)
-   (adopts the +1) obj returned OO_RETURNS_RETAINED          oo::adopt(obj)  /
-   ref.leakRef() thing = [aThing weakRetain]               oo::WeakRef<Thing>
-   thing = aThing [thing weakRefUnderlyingObject]           thing.get() (nullptr
-   once aThing is gone) [thing frob] via the proxy (nil-safe)     if
-   (oo::Ref<Thing> t = thing.lock())  t->frob(); pool = [[<autorelease pool>
-   alloc] init] oo::AutoreleaseScope scope; [p release] / [p drain] end of scope
-   /  scope.drain()
+        Objective-C (manual retain/release)     oofnd
+        [[Foo alloc] init]          (+1)        new Foo  (+1: one manual hold)
+        [x retain] / [x release]                x->retain() / x->release()
+        [x autorelease]                         oo::autorelease(x)
+        Foo *strongIvar                         oo::Ref<Foo> (a std::shared_ptr)
+        [[[Foo alloc] init] autorelease] kept   oo::makeRef<Foo>(...)
+        OO_RETURNS_RETAINED                     oo::adopt(obj) / ref.leakRef()
+        [aThing weakRetain]                     oo::WeakRef<Thing> (a
+   std::weak_ptr)
 
-        SEMANTICS:
+        SEMANTICS (the old contract, kept):
 
-          * The count starts at 1, like +alloc. `new Foo` is an owning +1
-   pointer; hand it to oo::adopt() or oo::makeRef() (which adopt), never to
-   Ref's retaining constructor, or the object leaks. Ref<T>(T*) RETAINS, like
-   assigning through a retaining setter.
-          * When the count reaches 0 the object's weak references are zeroed
-   FIRST, then it is deleted through its virtual destructor (-dealloc). So no
-   WeakRef can reach an object whose destructor has started: stricter than
-   OOWeakReference, whose proxy kept forwarding until the root class's -dealloc
-   ran (the ARC-weak behaviour, and the only safe one in C++).
-          * CYCLES ARE NOT COLLECTED. Two objects that hold Refs to each other
-   are never freed, exactly as two ObjC objects that retain each other are not.
-   Break cycles with WeakRef, which is what the OOWeakReference edges in today's
-   entity graph already do.
-          * AutoreleaseScope follows the game's autorelease pool, which on this
-   toolchain is libobjc2's: per-thread, nested, the
-   innermost scope receives autoreleased objects, draining releases them
-   LAST-IN-FIRST-OUT, and an object autoreleased *while* draining is pushed on
-   top and so is
-            released next, before the older objects still pending (libobjc2's
-   emptyPool). oo::autorelease() with no scope on the thread leaks the object
-   (GNUstep's behaviour) and is counted in
-            AutoreleaseScope::leakedWithoutScope(). Scopes must end in LIFO
-   order on the thread that opened them; anything else is a programming error
-   and aborts.
+          * An object made with a bare `new` has no owner yet and counts as held
+   once by its creator (a manual hold). The first thing that shares it (a Ref,
+   a WeakRef, oo::adopt, oo::autorelease) creates its owning std::shared_ptr,
+   with oo::Dispose as the deleter. retain() and release() count manual holds;
+   while there is at least one, the object keeps a std::shared_ptr to itself.
+   An object that was never shared is disposed by its last release() directly.
+          * retainCount() is the owning references (the control block's
+   use_count, less the object's own) plus the manual holds.
+          * When the last owner goes, oo::Dispose runs willDispose() and deletes
+   the object. Weak references are already empty while willDispose() runs (the
+   standard behaviour; the old code kept them live until after it, which
+   test_ref.cpp:514 recorded, changed with Jon's sign-off). The count reads 1
+   in willDispose(), and a balanced retain and release inside it do not dispose
+   again; a retain left unbalanced aborts, as before.
+          * A WeakRef's identity (==, hashing) survives the object's death, and
+   comparing one with an object never creates anything. dropWeakReferences()
+   empties every WeakRef to the object now while it lives on; a WeakRef made
+   afterwards is a new identity. Each object keeps a small token for this: a
+   WeakRef holds a std::weak_ptr to the object and one to its token.
+          * CYCLES ARE NOT COLLECTED, as before: break them with WeakRef.
+          * AutoreleaseScope is oofnd/AutoreleaseScope.hpp's.
 
-        THREAD SAFETY (only the count is atomic; this header keeps exactly
-   that):
-
-          * retain()/release(), and so copying and destroying Ref<T>, are
-   thread-safe (atomic count), as NSObject's are. The final release runs the
-   destructor on whichever thread made it.
-          * WeakRef creation, get(), lock() and expired() on a given object, and
-   every WeakSet, must stay on one thread, which must also be the thread that
-   makes the object's final release - the contract OOWeakReference and OOWeakSet
-   have today (OOWeakSet.h says so). The weak control block's own count is
-   atomic, so a WeakRef handle may be copied or destroyed on any thread; only
-   dereferencing it is confined.
-          * AutoreleaseScope is per-thread by construction (thread_local scope
-   stack).
+        THREAD SAFETY: the counts are atomic (std::shared_ptr's), and the manual
+   holds and the token change under a small striped lock, so retain(),
+   release() and copying or destroying a Ref are thread-safe, as before. WeakRef
+   dereferencing and every WeakSet stay on one thread, as before.
 */
 
 #pragma once
 
-#include <atomic>
+#include <array>
 #include <compare>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <functional>
+#include <memory>
+#include <mutex>
 #include <type_traits>
 #include <utility>
-#include <vector>
+
+#include "oofnd/AutoreleaseScope.hpp"
+#include "oofnd/Object.hpp"
 
 namespace oo {
 
 class RefCounted;
-class AutoreleaseScope;
 template <class T>
 class Ref;
 template <class T>
@@ -93,133 +73,202 @@ class WeakSet;
 
 namespace detail {
 
-// The zeroing weak-reference control block: the C++ shape of OOWeakReference's
-// proxy. One per object, created lazily by the first WeakRef (as -weakRetain
-// created weakSelf lazily), owned jointly by the object (one count) and by
-// every WeakRef to it. The object clears object_ when its count reaches zero,
-// before its destructor runs.
-class WeakControl {
- public:
-  explicit WeakControl(const RefCounted* object) noexcept : object_(object) {}
-  WeakControl(const WeakControl&) = delete;
-  WeakControl& operator=(const WeakControl&) = delete;
-
-  void retain() noexcept { count_.fetch_add(1, std::memory_order_relaxed); }
-  void release() noexcept {
-    if (count_.fetch_sub(1, std::memory_order_acq_rel) == 1) delete this;
-  }
-
-  const RefCounted* object() const noexcept { return object_; }
-
- private:
-  friend class oo::RefCounted;
-  ~WeakControl() = default;
-
-  std::atomic<std::uint32_t> count_{1};  // the object's own reference
-  const RefCounted* object_;
-};
+// The bridge's lock for an object's manual holds and token: one of a fixed set,
+// chosen by the object's address, never destroyed.
+inline std::mutex& bridgeLock(const void* object) noexcept {
+  static auto& locks = *[]() noexcept {
+    try {
+      return new std::array<std::mutex, 64>();
+    } catch (...) {
+      std::abort();  // out of memory at the first lock
+    }
+  }();
+  return locks[(reinterpret_cast<std::uintptr_t>(object) >> 4) % locks.size()];
+}
 
 struct WeakAccess;
-inline void autoreleaseObject(const RefCounted* object) noexcept;
+template <class T>
+std::shared_ptr<T> bridgeShare(T* object);
 
 }  // namespace detail
 
 // --- RefCounted
 // --------------------------------------------------------------------------------
 
-class RefCounted {
+class RefCounted : public Object {
  public:
-  void retain() const noexcept { rc_.fetch_add(1, std::memory_order_relaxed); }
-
-  void release() const noexcept {
-    if (rc_.fetch_sub(1, std::memory_order_acq_rel) == 1) dispose();
+  void retain() const noexcept {
+    std::lock_guard<std::mutex> lock(detail::bridgeLock(this));
+    if (disposing()) {
+      ++holds_;
+      return;
+    }
+    if (holds_++ == 0 && owned_) self_ = selfShared();
   }
 
-  // -retainCount. For tests and diagnostics only, as in Objective-C: under
-  // concurrency the value is stale as soon as it is read.
+  void release() const noexcept {
+    std::shared_ptr<RefCounted> dropped;
+    bool disposeNow = false;
+    {
+      std::lock_guard<std::mutex> lock(detail::bridgeLock(this));
+      if (holds_ == 0) std::abort();  // over-released
+      if (--holds_ != 0 || disposing()) return;
+      if (owned_)
+        dropped = std::move(self_);  // may be the last owner: released below
+      else
+        disposeNow = true;
+    }
+    if (disposeNow) disposeUnowned();
+  }
+
+  // -retainCount. For tests and diagnostics only: stale as soon as read.
   std::uint32_t retainCount() const noexcept {
-    return rc_.load(std::memory_order_relaxed);
+    std::lock_guard<std::mutex> lock(detail::bridgeLock(this));
+    if (disposing()) return 1 + holds_;
+    if (!owned_) return holds_;
+    const long uses = weak_from_this().use_count();
+    return static_cast<std::uint32_t>(uses - (self_ != nullptr ? 1 : 0)) +
+           holds_;
   }
 
  protected:
   RefCounted() noexcept = default;
 
-  // Copying an object (the translation of -copyWithZone:) gives a NEW object
-  // with its own count of 1 and no weak references; assignment leaves the count
-  // and weak references alone.
-  RefCounted(const RefCounted&) noexcept {}
+  // Copying gives a NEW object, held once by its creator and with no weak
+  // references; assignment leaves holds and weak references alone.
+  RefCounted(const RefCounted& other) noexcept : Object(other) {}
   RefCounted& operator=(const RefCounted&) noexcept { return *this; }
 
-  virtual ~RefCounted() {
-    // Only reached with weak_ set if the object was destroyed without going
-    // through release() (e.g. a stack instance of a subclass); zero the weak
-    // refs regardless.
-    dropWeakControl();
+  ~RefCounted() override {
+    // An owned object reaches its destructor only through oo::Dispose, with no
+    // manual hold left; one left over is a retain unbalanced in willDispose().
+    if (owned_ && holds_ != 0) std::abort();
   }
 
-  // Zeroes the object's weak references now, while it is still alive: for an
-  // object whose identity dies before its count reaches zero. A WeakRef made
-  // afterwards gets a new control block.
-  void dropWeakReferences() const noexcept { dropWeakControl(); }
-
-  // Called once, when the count reaches zero, while the object is still whole
-  // and before the weak references are zeroed and the object is deleted. The
-  // count reads 1 while it runs, so a balanced retain and release inside it do
-  // not dispose again; a retain it leaves unbalanced would resurrect an object
-  // that is being destroyed, a programming error, and aborts.
-  virtual void willDispose() noexcept {}
+  // Empties the object's weak references now, while it is still alive: for an
+  // object whose identity dies before it does. A WeakRef made afterwards is a
+  // new identity.
+  void dropWeakReferences() const noexcept {
+    std::lock_guard<std::mutex> lock(detail::bridgeLock(this));
+    token_.reset();
+  }
 
  private:
   friend struct detail::WeakAccess;
+  template <class T>
+  friend std::shared_ptr<T> detail::bridgeShare(T* object);
 
-  void dispose() const noexcept {
-    rc_.store(1, std::memory_order_relaxed);
-    const_cast<RefCounted*>(this)->willDispose();
-    if (rc_.fetch_sub(1, std::memory_order_acq_rel) != 1) std::abort();
-    dropWeakControl();  // weak refs read nullptr before any destructor body
-                        // runs
-    delete this;
+  // The last owner has gone (or, never owned, the last release ran) and
+  // willDispose() or the destructor is running.
+  bool disposing() const noexcept {
+    return disposingUnowned_ || (owned_ && weak_from_this().expired());
   }
 
-  void dropWeakControl() const noexcept {
-    if (detail::WeakControl* w = weak_) {
-      weak_ = nullptr;
-      w->object_ = nullptr;
-      w->release();
+  std::shared_ptr<RefCounted> selfShared() const {
+    return std::static_pointer_cast<RefCounted>(
+        const_cast<RefCounted*>(this)->shared_from_this());
+  }
+
+  // Under the lock: gives a never-shared object its owner (it has a manual
+  // hold, so the owner is kept in self_).
+  void ensureOwned() const noexcept {
+    if (owned_) return;
+    owned_ = true;
+    try {
+      self_ =
+          std::shared_ptr<RefCounted>(const_cast<RefCounted*>(this), Dispose{});
+    } catch (...) {
+      std::abort();  // out of memory for a control block
     }
   }
 
-  detail::WeakControl* weakControl() const {
-    if (weak_ == nullptr) weak_ = new detail::WeakControl(this);
-    return weak_;
+  // Under the lock: the object's weak-identity token, made if it has none.
+  const std::shared_ptr<const void>& token() const noexcept {
+    if (token_ == nullptr) {
+      try {
+        token_ = std::make_shared<const char>('\0');
+      } catch (...) {
+        std::abort();
+      }
+    }
+    return token_;
   }
 
-  mutable std::atomic<std::uint32_t> rc_{1};
-  mutable detail::WeakControl* weak_ =
-      nullptr;  // replaces OOWeakReference *weakSelf
+  // The last release of an object that was never shared.
+  void disposeUnowned() const noexcept {
+    disposingUnowned_ = true;
+    const_cast<RefCounted*>(this)->willDispose();
+    {
+      std::lock_guard<std::mutex> lock(detail::bridgeLock(this));
+      if (holds_ != 0) std::abort();  // a retain left unbalanced in willDispose
+    }
+    delete this;
+  }
+
+  mutable std::uint32_t holds_ = 1;  // the manual holds (the +1 of new)
+  mutable bool owned_ = false;       // a std::shared_ptr owns it
+  mutable bool disposingUnowned_ = false;
+  mutable std::shared_ptr<RefCounted> self_;   // kept while holds_ > 0
+  mutable std::shared_ptr<const void> token_;  // the weak identity
 };
 
 namespace detail {
 
-struct WeakAccess {
-  static WeakControl* controlFor(const RefCounted* object) {
-    return object->weakControl();
+// An owning std::shared_ptr to object (made on first need). While the object is
+// being disposed, a pointer that owns nothing: a balanced use inside
+// willDispose() neither keeps it alive nor disposes it again.
+template <class T>
+std::shared_ptr<T> bridgeShare(T* object) {
+  static_assert(std::is_base_of_v<RefCounted, std::remove_const_t<T>>,
+                "oo::Ref requires an oo::RefCounted subclass");
+  const RefCounted* counted = object;
+  std::shared_ptr<RefCounted> owner;
+  {
+    std::lock_guard<std::mutex> lock(bridgeLock(counted));
+    if (counted->disposing())
+      return std::shared_ptr<T>(std::shared_ptr<void>(), object);
+    counted->ensureOwned();
+    owner = counted->selfShared();
   }
-  static WeakControl* existingControl(const RefCounted* object) noexcept {
-    return object->weak_;
+  return std::shared_ptr<T>(std::move(owner), object);
+}
+
+struct WeakAccess {
+  // The object's std::weak_ptr and its current token, made if it has none.
+  static std::pair<std::weak_ptr<Object>, std::weak_ptr<const void>> weakParts(
+      const RefCounted* object) noexcept {
+    std::lock_guard<std::mutex> lock(bridgeLock(object));
+    if (object->disposingUnowned_) return {};
+    if (!object->disposing()) object->ensureOwned();
+    return {const_cast<RefCounted*>(object)->weak_from_this(), object->token()};
+  }
+
+  // The object's token if it has one; never makes one.
+  static std::shared_ptr<const void> existingToken(
+      const RefCounted* object) noexcept {
+    std::lock_guard<std::mutex> lock(bridgeLock(object));
+    return object->token_;
+  }
+
+  // For tests: whether the object has a weak identity yet (null if not).
+  static const void* existingControl(const RefCounted* object) noexcept {
+    return existingToken(object).get();
   }
 };
+
+// Owner-equivalence: the same control block (or both empty).
+template <class A, class B>
+bool sameOwner(const A& a, const B& b) noexcept {
+  return !a.owner_before(b) && !b.owner_before(a);
+}
 
 }  // namespace detail
 
 // --- Ref<T>
 // ------------------------------------------------------------------------------------
 
-// A strong reference: retains on copy and on construction from a raw pointer,
-// releases on destruction, steals on move. Nullable, like an Objective-C object
-// pointer. T may be incomplete where a Ref<T> is only declared (an ivar of a
-// forward-declared class), as long as it is complete wherever a Ref<T> is
-// created, copied or destroyed.
+// A strong reference, over a std::shared_ptr<T>. Ref<T>(T*) shares the object
+// (as a retaining setter did); an owning +1 pointer goes to oo::adopt().
 template <class T>
 class Ref {
  public:
@@ -228,36 +277,32 @@ class Ref {
   constexpr Ref() noexcept = default;
   constexpr Ref(std::nullptr_t) noexcept {}
 
-  // Retains. For an owning +1 pointer (new, a copy, OO_RETURNS_RETAINED) use
-  // oo::adopt().
-  explicit Ref(T* object) noexcept : ptr_(object) {
-    if (ptr_ != nullptr) ptr_->retain();
+  explicit Ref(T* object) noexcept {
+    if (object != nullptr) {
+      try {
+        sp_ = detail::bridgeShare(object);
+      } catch (...) {
+        std::abort();
+      }
+    }
   }
 
-  Ref(const Ref& other) noexcept : ptr_(other.ptr_) {
-    if (ptr_ != nullptr) ptr_->retain();
-  }
-
-  Ref(Ref&& other) noexcept : ptr_(std::exchange(other.ptr_, nullptr)) {}
+  Ref(const Ref& other) noexcept = default;
+  Ref(Ref&& other) noexcept = default;
 
   template <class U>
     requires std::is_convertible_v<U*, T*>
-  Ref(const Ref<U>& other) noexcept : ptr_(other.get()) {
-    if (ptr_ != nullptr) ptr_->retain();
-  }
+  Ref(const Ref<U>& other) noexcept : sp_(other.shared()) {}
 
   template <class U>
     requires std::is_convertible_v<U*, T*>
-  Ref(Ref<U>&& other) noexcept : ptr_(other.leakRef()) {}
+  Ref(Ref<U>&& other) noexcept : sp_(std::move(other).takeShared()) {}
 
-  ~Ref() {
-    if (ptr_ != nullptr) ptr_->release();
-  }
+  ~Ref() = default;
 
   // Assignment installs the new object before releasing the old one, like a
-  // retaining setter
-  // ([new retain]; [old release]), so a destructor triggered by the release
-  // sees the new value.
+  // retaining setter, so a destructor triggered by the release sees the new
+  // value.
   Ref& operator=(const Ref& other) noexcept {
     Ref(other).swap(*this);
     return *this;
@@ -288,29 +333,43 @@ class Ref {
   }
 
   void reset() noexcept { Ref().swap(*this); }
-  void reset(T* object) noexcept {
-    Ref(object).swap(*this);
-  }  // retains, like the constructor
-  void swap(Ref& other) noexcept { std::swap(ptr_, other.ptr_); }
+  void reset(T* object) noexcept { Ref(object).swap(*this); }  // shares
+  void swap(Ref& other) noexcept { sp_.swap(other.sp_); }
 
-  T* get() const noexcept { return ptr_; }
-  T& operator*() const noexcept { return *ptr_; }
-  T* operator->() const noexcept { return ptr_; }
-  explicit operator bool() const noexcept { return ptr_ != nullptr; }
+  T* get() const noexcept { return sp_.get(); }
+  T& operator*() const noexcept { return *sp_; }
+  T* operator->() const noexcept { return sp_.get(); }
+  explicit operator bool() const noexcept { return sp_ != nullptr; }
 
-  // Gives up ownership without releasing: the caller now owns the +1 (a method
+  // Gives up ownership as a manual hold: the caller now owns the +1 (a method
   // that returns a retained object, or oo::autorelease(std::move(ref))).
-  [[nodiscard]] T* leakRef() noexcept { return std::exchange(ptr_, nullptr); }
+  [[nodiscard]] T* leakRef() noexcept {
+    T* object = sp_.get();
+    if (object != nullptr) {
+      object->retain();
+      sp_.reset();
+    }
+    return object;
+  }
 
-  // Takes over an owning +1 pointer without retaining it.
+  // Takes over an owning +1 pointer: shares it, then gives back the hold.
   [[nodiscard]] static Ref adopt(T* object) noexcept {
+    Ref result(object);
+    if (object != nullptr) object->release();
+    return result;
+  }
+
+  // The bridge's view of the standard type, for code moving to it.
+  const std::shared_ptr<T>& shared() const& noexcept { return sp_; }
+  std::shared_ptr<T> takeShared() && noexcept { return std::move(sp_); }
+  static Ref fromShared(std::shared_ptr<T> shared) noexcept {
     Ref result;
-    result.ptr_ = object;
+    result.sp_ = std::move(shared);
     return result;
   }
 
  private:
-  T* ptr_ = nullptr;
+  std::shared_ptr<T> sp_;
 };
 
 template <class T, class U>
@@ -346,6 +405,23 @@ template <class T, class... Args>
   return Ref<T>::adopt(new T(std::forward<Args>(args)...));
 }
 
+// The bridge's oo::makeShared and oo::share for an oo::RefCounted type: a
+// RefCounted object counts its creator's +1 and makes its owner on first need,
+// so it goes through the bridge (oofnd/Object.hpp's versions are for oo::Object
+// types that are off it).
+template <class T, class... Args>
+  requires std::is_base_of_v<RefCounted, T>
+[[nodiscard]] std::shared_ptr<T> makeShared(Args&&... args) {
+  return makeRef<T>(std::forward<Args>(args)...).takeShared();
+}
+
+template <class T>
+  requires std::is_base_of_v<RefCounted, std::remove_const_t<T>>
+std::shared_ptr<T> share(T* object) {
+  if (object == nullptr) return nullptr;
+  return detail::bridgeShare(object);
+}
+
 // Null-safe retain/release, for translating messages to a pointer that may be
 // nil.
 template <class T>
@@ -360,13 +436,25 @@ void release(T* object) noexcept {
 }
 
 // [object autorelease]: hands the caller's +1 to the innermost AutoreleaseScope
-// on this thread, which releases it when it drains. Null-safe. Returns object,
-// like -autorelease.
+// on this thread, which releases it when it drains. Null-safe. Returns object.
+// With no scope the +1 is kept forever and counted.
 template <class T>
 T* autorelease(T* object) noexcept {
-  static_assert(std::is_base_of_v<RefCounted, T>,
+  static_assert(std::is_base_of_v<RefCounted, std::remove_const_t<T>>,
                 "oo::autorelease requires an oo::RefCounted subclass");
-  if (object != nullptr) detail::autoreleaseObject(object);
+  if (object == nullptr) return object;
+  if (AutoreleaseScope::current() == nullptr) {
+    ++detail::tLeakedWithoutScope;  // the manual hold is never given back
+    return object;
+  }
+  std::shared_ptr<const void> owner;
+  try {
+    owner = detail::bridgeShare(object);
+  } catch (...) {
+    std::abort();
+  }
+  object->release();  // the hold becomes the scope's owner
+  detail::autoreleaseOwner(std::move(owner));
   return object;
 }
 
@@ -379,10 +467,10 @@ T* autorelease(Ref<T>&& ref) noexcept {
 // --- WeakRef<T>
 // --------------------------------------------------------------------------------
 
-// A zeroing weak reference: does not keep the object alive, and reads as null
-// once the object's count has reached zero. Identity (==, hashing) is the
-// identity of the referenced object, and survives its death, as an
-// OOWeakReference proxy's did.
+// A weak reference, over a std::weak_ptr: does not keep the object alive and
+// reads as null once the object's last owner has gone (or after
+// dropWeakReferences()). Identity (==, hashing) is the object's weak identity,
+// and survives its death.
 template <class T>
 class WeakRef {
  public:
@@ -391,41 +479,37 @@ class WeakRef {
   constexpr WeakRef() noexcept = default;
   constexpr WeakRef(std::nullptr_t) noexcept {}
 
-  WeakRef(T* object) : ptr_(object) {
-    static_assert(std::is_base_of_v<RefCounted, T>,
+  WeakRef(T* object) noexcept : ptr_(object) {
+    static_assert(std::is_base_of_v<RefCounted, std::remove_const_t<T>>,
                   "oo::WeakRef requires an oo::RefCounted subclass");
     if (object != nullptr) {
-      ctl_ = detail::WeakAccess::controlFor(object);
-      ctl_->retain();
+      auto parts = detail::WeakAccess::weakParts(object);
+      object_ = std::move(parts.first);
+      token_ = std::move(parts.second);
     }
   }
 
-  WeakRef(const Ref<T>& strong) : WeakRef(strong.get()) {}
+  WeakRef(const Ref<T>& strong) noexcept : WeakRef(strong.get()) {}
 
-  WeakRef(const WeakRef& other) noexcept : ctl_(other.ctl_), ptr_(other.ptr_) {
-    if (ctl_ != nullptr) ctl_->retain();
-  }
-
+  WeakRef(const WeakRef& other) noexcept = default;
   WeakRef(WeakRef&& other) noexcept
-      : ctl_(std::exchange(other.ctl_, nullptr)),
+      : object_(std::move(other.object_)),
+        token_(std::move(other.token_)),
         ptr_(std::exchange(other.ptr_, nullptr)) {}
 
   template <class U>
     requires std::is_convertible_v<U*, T*>
   WeakRef(const WeakRef<U>& other) noexcept
-      : ctl_(other.ctl_), ptr_(other.ptr_) {
-    if (ctl_ != nullptr) ctl_->retain();
-  }
+      : object_(other.object_), token_(other.token_), ptr_(other.ptr_) {}
 
   template <class U>
     requires std::is_convertible_v<U*, T*>
   WeakRef(WeakRef<U>&& other) noexcept
-      : ctl_(std::exchange(other.ctl_, nullptr)),
+      : object_(std::move(other.object_)),
+        token_(std::move(other.token_)),
         ptr_(std::exchange(other.ptr_, nullptr)) {}
 
-  ~WeakRef() {
-    if (ctl_ != nullptr) ctl_->release();
-  }
+  ~WeakRef() = default;
 
   WeakRef& operator=(const WeakRef& other) noexcept {
     WeakRef(other).swap(*this);
@@ -445,7 +529,8 @@ class WeakRef {
   void reset() noexcept { WeakRef().swap(*this); }
 
   void swap(WeakRef& other) noexcept {
-    std::swap(ctl_, other.ctl_);
+    object_.swap(other.object_);
+    token_.swap(other.token_);
     std::swap(ptr_, other.ptr_);
   }
 
@@ -455,26 +540,35 @@ class WeakRef {
 
   // A strong reference to the object, or a null Ref once it has gone. Use this,
   // not get(), whenever the object must survive the call being made on it.
-  Ref<T> lock() const noexcept { return Ref<T>(get()); }
+  Ref<T> lock() const noexcept {
+    if (token_.expired()) return Ref<T>();
+    std::shared_ptr<Object> owner = object_.lock();
+    if (owner == nullptr) return Ref<T>();
+    return Ref<T>::fromShared(std::shared_ptr<T>(std::move(owner), ptr_));
+  }
 
   bool expired() const noexcept {
-    return ctl_ == nullptr || ctl_->object() == nullptr;
+    return token_.expired() || object_.expired();
   }
 
   friend bool operator==(const WeakRef& a, const WeakRef& b) noexcept {
-    return a.ctl_ == b.ctl_;
+    return detail::sameOwner(a.token_, b.token_);
   }
 
-  // Does this refer to object? Never creates a control block, and never
-  // mistakes a new object allocated at a dead referent's address for the
-  // referent.
+  // Does this refer to object? Never creates anything, and never mistakes a new
+  // object allocated at a dead referent's address for the referent.
   friend bool operator==(const WeakRef& a, const T* object) noexcept {
-    return a.ctl_ != nullptr && object != nullptr &&
-           detail::WeakAccess::existingControl(object) == a.ctl_;
+    if (object == nullptr || a.ptr_ == nullptr) return false;
+    const std::shared_ptr<const void> token =
+        detail::WeakAccess::existingToken(object);
+    return token != nullptr && detail::sameOwner(a.token_, token);
   }
 
-  // Hash of the object's identity; stable across the object's death.
-  std::size_t hash() const noexcept { return std::hash<const void*>{}(ctl_); }
+  // Hash of the referent's address when the reference was made; stable across
+  // its death (equality, not the hash, tells two identities apart).
+  std::size_t hash() const noexcept {
+    return std::hash<const void*>{}(static_cast<const void*>(ptr_));
+  }
 
  private:
   template <class>
@@ -482,84 +576,10 @@ class WeakRef {
   template <class>
   friend class WeakSet;
 
-  detail::WeakControl* ctl_ = nullptr;
-  T* ptr_ = nullptr;  // meaningful only while ctl_->object() is non-null
+  std::weak_ptr<Object> object_;
+  std::weak_ptr<const void> token_;
+  T* ptr_ = nullptr;  // meaningful only while the reference is live
 };
-
-// --- AutoreleaseScope
-// --------------------------------------------------------------------------
-
-namespace detail {
-
-inline thread_local AutoreleaseScope* tInnermostScope = nullptr;
-inline thread_local std::size_t tLeakedWithoutScope = 0;
-
-}  // namespace detail
-
-// The Foundation autorelease pool as a stack-only RAII scope. See the banner
-// for the semantics.
-class AutoreleaseScope {
- public:
-  AutoreleaseScope() noexcept : parent_(detail::tInnermostScope) {
-    detail::tInnermostScope = this;
-  }
-
-  ~AutoreleaseScope() {
-    if (detail::tInnermostScope != this)
-      std::abort();  // not LIFO, or not this thread
-    drain();
-    detail::tInnermostScope = parent_;
-  }
-
-  AutoreleaseScope(const AutoreleaseScope&) = delete;
-  AutoreleaseScope& operator=(const AutoreleaseScope&) = delete;
-  static void* operator new(std::size_t) = delete;
-  static void* operator new[](std::size_t) = delete;
-
-  // Releases everything autoreleased into this scope so far, newest first,
-  // including objects autoreleased by those releases (each lands on top and is
-  // released next), exactly as libobjc2's objc_autoreleasePoolPop does;
-  // the scope stays open. This is the [pool release]; pool =
-  // [[<pool class> alloc] init]; idiom in long loops.
-  void drain() noexcept {
-    while (!pending_.empty()) {
-      const RefCounted* object = pending_.back();
-      pending_.pop_back();
-      object->release();  // may push_back onto pending_; that object is
-                          // released next
-    }
-  }
-
-  std::size_t pendingCount() const noexcept { return pending_.size(); }
-
-  // The innermost open scope on this thread, or nullptr.
-  static AutoreleaseScope* current() noexcept {
-    return detail::tInnermostScope;
-  }
-
-  // How many objects this thread autoreleased with no scope open (and therefore
-  // leaked).
-  static std::size_t leakedWithoutScope() noexcept {
-    return detail::tLeakedWithoutScope;
-  }
-
- private:
-  friend void detail::autoreleaseObject(const RefCounted* object) noexcept;
-
-  AutoreleaseScope* parent_;
-  std::vector<const RefCounted*> pending_;
-};
-
-namespace detail {
-
-inline void autoreleaseObject(const RefCounted* object) noexcept {
-  if (AutoreleaseScope* scope = tInnermostScope)
-    scope->pending_.push_back(object);
-  else
-    ++tLeakedWithoutScope;
-}
-
-}  // namespace detail
 
 }  // namespace oo
 
