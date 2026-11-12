@@ -507,7 +507,7 @@ void PlayerEntity::displayFunctionList(::GuiDisplayGen* gui, std::size_t skip) {
       gui->setKey(std::format("More:{}", previous), GUI_ROW_FUNCSTART);
     }
 
-    for (i = 0; i < (n_functions - skip) && (int)i < n_rows; i++) {
+    for (i = 0; i < (n_functions - skip) && static_cast<int>(i) < n_rows; i++) {
       const oo::PList& entry = StickFunctionAt(stickFunctions, i + skip);
       if (entry.find(KEY_HEADER) != nullptr) {
         const std::optional<std::string> header =

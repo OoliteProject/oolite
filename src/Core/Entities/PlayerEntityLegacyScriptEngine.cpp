@@ -570,11 +570,12 @@ bool PlayerEntity::scriptTestCondition(const oo::PList& scriptCondition) {
   double lhsValue, rhsValue;
   bool lhsFlag, rhsFlag;
 
-  opType = (OOOperationType)scriptCondition.at<unsigned int>(0);
+  opType = static_cast<OOOperationType>(scriptCondition.at<unsigned int>(0));
   if (opType == OOOperationType::kFalse) return false;
 
   selectorString = scriptCondition.at<std::string>(2);
-  comparator = (OOComparisonType)scriptCondition.at<unsigned int>(3);
+  comparator =
+      static_cast<OOComparisonType>(scriptCondition.at<unsigned int>(3));
   const oo::PList& operandArray = ElementAt(scriptCondition, 4);
 
   // Transform mission/local var ops into string ops.
@@ -1026,12 +1027,12 @@ oo::PList PlayerEntity::score_number()  // called by name
 
 oo::PList PlayerEntity::credits_number()  // called by name
 {
-  return oo::PList((double)(creditBalance()));
+  return oo::PList(creditBalance());
 }
 
 oo::PList PlayerEntity::scriptTimer_number()  // called by name
 {
-  return oo::PList((double)(scriptTimer()));
+  return oo::PList(static_cast<double>(scriptTimer()));
 }
 
 static int shipsFound;
@@ -1081,37 +1082,41 @@ oo::PList PlayerEntity::pseudoFixedD256_number()  // called by name
 oo::PList PlayerEntity::clock_number()  // called by name; returns the game time
                                         // in seconds
 {
-  return oo::PList((double)(ship_clock));
+  return oo::PList(ship_clock);
 }
 
 oo::PList PlayerEntity::clock_secs_number()  // called by name; returns the game
                                              // time in seconds
 {
-  return oo::PList::unsignedInteger((unsigned long long)(ship_clock));
+  return oo::PList::unsignedInteger(
+      static_cast<unsigned long long>(ship_clock));
 }
 
 oo::PList PlayerEntity::clock_mins_number()  // called by name; returns the game
                                              // time in minutes
 {
-  return oo::PList::unsignedInteger((unsigned long long)(ship_clock / 60.0));
+  return oo::PList::unsignedInteger(
+      static_cast<unsigned long long>(ship_clock / 60.0));
 }
 
 oo::PList PlayerEntity::clock_hours_number()  // called by name; returns the
                                               // game time in hours
 {
-  return oo::PList::unsignedInteger((unsigned long long)(ship_clock / 3600.0));
+  return oo::PList::unsignedInteger(
+      static_cast<unsigned long long>(ship_clock / 3600.0));
 }
 
 oo::PList PlayerEntity::clock_days_number()  // called by name; returns the game
                                              // time in days
 {
-  return oo::PList::unsignedInteger((unsigned long long)(ship_clock / 86400.0));
+  return oo::PList::unsignedInteger(
+      static_cast<unsigned long long>(ship_clock / 86400.0));
 }
 
 oo::PList PlayerEntity::fuelLevel_number()  // called by name; returns the fuel
                                             // level in LY
 {
-  return oo::PList::singleReal((float)(floor(0.1 * fuel)));
+  return oo::PList::singleReal(static_cast<float>(floor(0.1 * fuel)));
 }
 
 oo::PList PlayerEntity::dockedAtMainStation_bool()  // called by name
@@ -1300,7 +1305,7 @@ void PlayerEntity::awardCredits(
   */
   int64_t award = oo::str::intValue(valueString);
   award *= 10;
-  if (award < 0 && credits < (OOCreditsQuantity)-award)
+  if (award < 0 && credits < static_cast<OOCreditsQuantity>(-award))
     credits = 0;
   else
     credits += award;
@@ -1545,12 +1550,13 @@ void PlayerEntity::testForEquipment(
 void PlayerEntity::awardFuel(
     const std::string& valueString)  // called by name; add to fuel up to 7.0 LY
 {
-  int delta = 10 * (float)oo::str::doubleValue(valueString);
+  int delta = 10 * static_cast<float>(oo::str::doubleValue(valueString));
   OOFuelQuantity scriptTargetFuelBeforeAward =
       (::scriptTarget != nullptr ? ::scriptTarget->getFuel()
                                  : OOFuelQuantity{});
 
-  if (delta < 0 && scriptTargetFuelBeforeAward < (unsigned)-delta) {
+  if (delta < 0 &&
+      scriptTargetFuelBeforeAward < static_cast<unsigned>(-delta)) {
     if (::scriptTarget != nullptr) ::scriptTarget->setFuel(0);
   } else {
     if (::scriptTarget != nullptr)
@@ -1772,7 +1778,7 @@ void PlayerEntity::addShipsWithinRadius(
   double x = oo::str::doubleValue(tokens[3]);
   double y = oo::str::doubleValue(tokens[4]);
   double z = oo::str::doubleValue(tokens[5]);
-  GLfloat r = (float)oo::str::doubleValue(tokens[6]);
+  GLfloat r = static_cast<float>(oo::str::doubleValue(tokens[6]));
   HPVector posn = make_HPvector(x, y, z);
 
   if (number < 1) {
@@ -2267,7 +2273,7 @@ void PlayerEntity::showShipModel(const std::string& role)  // called by name
 
   ::ShipEntity* ship =
       (UNIVERSE != nullptr ? UNIVERSE->makeDemoShipWithRole(roleString, true)
-                           : (::ShipEntity*)nullptr);
+                           : static_cast<::ShipEntity*>(nullptr));
   OO_LOG(kOOLogNoteShowShipModel, "::::: showShipModel:'{}' ({}) ({})",
          roleString, oo::EntityDescription(ship),
          (ship != nullptr ? ship->getName() : std::optional<std::string>())
@@ -2331,7 +2337,7 @@ void PlayerEntity::setFuelLeak(const std::string& value)  // called by name
 
 oo::PList PlayerEntity::fuelLeakRate_number()  // called by name
 {
-  return oo::PList::singleReal((float)(fuelLeakRate()));
+  return oo::PList::singleReal(fuelLeakRate());
 }
 
 void PlayerEntity::setSunNovaIn(
@@ -2392,7 +2398,8 @@ void PlayerEntity::sendAllShipsAway() {
                           : false))  // exclude non jumping ships. Escorts will
                                      // still be able to follow a mother.
       {
-        ::AI* se1AI = (se1 != nullptr ? se1->getAI() : (::AI*)nullptr);
+        ::AI* se1AI =
+            (se1 != nullptr ? se1->getAI() : static_cast<::AI*>(nullptr));
         if (se1 != nullptr)
           se1->setFuel(
               MAX(PLAYER_MAX_FUEL,
@@ -2864,10 +2871,10 @@ bool PlayerEntity::processSceneString(const std::string& item, Vector off) {
 
     if (i_key == "ship" || i_key == "model") {
       ship = (UNIVERSE != nullptr ? UNIVERSE->newShipWithName(i_info[1])
-                                  : (::ShipEntity*)nullptr);
+                                  : static_cast<::ShipEntity*>(nullptr));
     } else if (i_key == "role") {
       ship = (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(i_info[1])
-                                  : (::ShipEntity*)nullptr);
+                                  : static_cast<::ShipEntity*>(nullptr));
     }
     if (!ship) return false;
 
@@ -2907,7 +2914,7 @@ bool PlayerEntity::processSceneString(const std::string& item, Vector off) {
     ::ShipEntity* doppelganger =
         (UNIVERSE != nullptr
              ? UNIVERSE->newShipWithName(shipDataKey().value_or(std::string()))
-             : (::ShipEntity*)nullptr);  // retain count = 1
+             : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
     if (!doppelganger) return false;
 
     cxx_ScanVectorAndQuaternionFromString(joined(1, 7), &model_p0, &model_q);

@@ -2118,14 +2118,14 @@ void PlayerEntity::pollFlightControls(double delta_t) {
                 setGuiToSystemDataScreen();
               break;
             default:
-              gui_screen = (OOGUIScreenID)
+              gui_screen =
                   saved_gui_screen;  // make sure we're back to the right screen
               break;
           }
           if (gameView != nullptr) gameView->allowStringInput(false);
           if (UNIVERSE != nullptr) UNIVERSE->clearPreviousMessage();
           if (UNIVERSE != nullptr)
-            UNIVERSE->setViewDirection((OOViewID)saved_view_direction);
+            UNIVERSE->setViewDirection(saved_view_direction);
           currentWeaponFacing = saved_weapon_facing;
           // make sure the light comes from the right direction after resuming
           // from pause!
@@ -3401,7 +3401,7 @@ void PlayerEntity::pollMarketScreenControls() {
               offset2 = 0;
             }
             if (offset1 == 1 && offset2 == 0 &&
-                goodsIndex < (std::ptrdiff_t)goods.size() - 1 &&
+                goodsIndex < static_cast<std::ptrdiff_t>(goods.size()) - 1 &&
                 goodsIndex - 15 > 0)
               offset2 = 1;
             goodsIndex -= (16 - (offset1 + offset2));
@@ -3413,15 +3413,17 @@ void PlayerEntity::pollMarketScreenControls() {
             // some edge cases
             if (offset1 == 0 && offset2 == 1 && goodsIndex > 1) offset1 = 1;
             if (offset2 == 1 &&
-                goodsIndex + 15 == (std::ptrdiff_t)goods.size() - 1)
+                goodsIndex + 15 ==
+                    static_cast<std::ptrdiff_t>(goods.size()) - 1)
               offset2 = 0;
             goodsIndex += (16 - (offset1 + offset2));
-            if (goodsIndex > ((std::ptrdiff_t)goods.size() - 1) ||
+            if (goodsIndex > (static_cast<std::ptrdiff_t>(goods.size()) - 1) ||
                 goods.size() <= 17)
-              goodsIndex = (std::ptrdiff_t)goods.size() - 1;
+              goodsIndex = static_cast<std::ptrdiff_t>(goods.size()) - 1;
           }
           marketSelectedCommodity =
-              (goodsIndex >= 0 && goodsIndex < (std::ptrdiff_t)goods.size())
+              (goodsIndex >= 0 &&
+               goodsIndex < static_cast<std::ptrdiff_t>(goods.size()))
                   ? std::optional<std::string>(goods[goodsIndex])
                   : std::nullopt;
           setGuiToMarketScreen();
@@ -3457,12 +3459,13 @@ void PlayerEntity::pollMarketScreenControls() {
             --goodsIndex;
           }
           if (goodsIndex < 0) {
-            goodsIndex = (std::ptrdiff_t)goods.size() - 1;
-          } else if (goodsIndex >= (std::ptrdiff_t)goods.size()) {
+            goodsIndex = static_cast<std::ptrdiff_t>(goods.size()) - 1;
+          } else if (goodsIndex >= static_cast<std::ptrdiff_t>(goods.size())) {
             goodsIndex = 0;
           }
           marketSelectedCommodity =
-              (goodsIndex >= 0 && goodsIndex < (std::ptrdiff_t)goods.size())
+              (goodsIndex >= 0 &&
+               goodsIndex < static_cast<std::ptrdiff_t>(goods.size()))
                   ? std::optional<std::string>(goods[goodsIndex])
                   : std::nullopt;
           setGuiToMarketInfoScreen();
@@ -3734,7 +3737,7 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
     const oo::PList modes =
         (controller != nullptr ? controller->getDisplayModes() : oo::PList());
 
-    if (displayModeIndex == (std::ptrdiff_t)oo::kNotFound) {
+    if (displayModeIndex == oo::kNotFound) {
       OO_LOG_WARN(
           "graphics.mode.notFound", "{}",
           "couldn't find current fullscreen setting, switching to default.");
@@ -3923,9 +3926,9 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
       if (checkKeyPress(n_key_gui_arrow_left) || joyButtonState[BUTTON_GUILEFT])
         mode--;
 
-      musicController->setMode((OOMusicMode)MAX(mode, 0));
+      musicController->setMode(static_cast<OOMusicMode>(MAX(mode, 0)));
 
-      if ((int)musicController->mode() != initialMode) {
+      if (static_cast<int>(musicController->mode()) != initialMode) {
         playChangedOption();
         const std::string musicMode =
             (UNIVERSE != nullptr
@@ -3986,7 +3989,7 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
       int vol = (volume / 5.0 + 0.5);
       if (rightKeyDown) vol++;
       if (leftKeyDown) vol--;
-      vol = (int)OOClampInteger(vol, 0, 20);
+      vol = static_cast<int>(OOClampInteger(vol, 0, 20));
       ::OOSound::setMasterVolume(0.05 * vol);
       playChangedOption();
 #if OOLITE_ESPEAK
@@ -4032,7 +4035,7 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
       if (fov < MIN_FOV_DEG) fov = MIN_FOV_DEG;
       if (gameView != nullptr) gameView->setFov(fov, false);
       fieldOfView = (gameView != nullptr ? gameView->fov(true) : 0.0f);
-      int fovTicks = (int)((fov - MIN_FOV_DEG) / fovStep);
+      int fovTicks = static_cast<int>((fov - MIN_FOV_DEG) / fovStep);
       const std::string fovWordDesc = OO_DESC("gameoptions-fov-value");
       std::string v1_string = "|||||||||||||||||||||||||";
       std::string v0_string = ".........................";
@@ -4042,7 +4045,7 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
       // written as its UTF-8 bytes
       gui->setText(
           std::format("{}{}{} ({}{}) ", fovWordDesc, v1_string, v0_string,
-                      (int)fov, "\xC2\xB0" /*the degrees symbol*/),
+                      static_cast<int>(fov), "\xC2\xB0" /*the degrees symbol*/),
           OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_FOV),
           OOGUIAlignment::kCenter);
       oo::Defaults::standard().setFloat(

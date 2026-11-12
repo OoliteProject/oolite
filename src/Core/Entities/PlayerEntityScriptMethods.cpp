@@ -136,7 +136,7 @@ void PlayerEntity::awardCommodityType(const std::string& type,
               ::ShipEntity* container =
                   (UNIVERSE != nullptr
                        ? UNIVERSE->newShipWithRole("1t-cargopod")
-                       : (::ShipEntity*)nullptr);
+                       : static_cast<::ShipEntity*>(nullptr));
               if (container) {
                 // the cargopod ship is just being set up. If ejected,  will
                 // call UNIVERSE addEntity [container wasAddedToUniverse]; //
@@ -162,7 +162,7 @@ void PlayerEntity::awardCommodityType(const std::string& type,
           if (cargo.size() < maxAvailableCargoSpace()) {
             ::ShipEntity* container =
                 (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("1t-cargopod")
-                                     : (::ShipEntity*)nullptr);
+                                     : static_cast<::ShipEntity*>(nullptr));
             if (container) {
               // the cargopod ship is just being set up. If ejected, will call
               // UNIVERSE addEntity [container wasAddedToUniverse]; // seems to
@@ -279,7 +279,7 @@ double PlayerEntity::systemPseudoRandomFloat() {
   unsigned c = gen_rnd_number();
 
   a = (a << 16) | (b << 8) | c;
-  return (double)a / (double)0x01000000;
+  return static_cast<double>(a) / static_cast<double>(0x01000000);
 }
 
 oo::PList PlayerEntity::passengerContractMarker(OOSystemID system) {
@@ -378,7 +378,7 @@ std::optional<std::string> PlayerEntity::getKeyBindingDescription(
   for (i = 0; i < count; i++) {
     if (i != 0) final += " or ";
     const oo::PList* def = keyList.at(i);
-    OOKeyCode k_int = (OOKeyCode)IntegerValueOf(def->find("key"));
+    OOKeyCode k_int = static_cast<OOKeyCode>(IntegerValueOf(def->find("key")));
     const std::string desc =
         keyCodeDescription(k_int).value_or("(null)");  // %@ of nil
     // 0 = key not set
@@ -591,11 +591,11 @@ std::optional<std::string> PlayerEntity::keyCodeDescriptionShort(
 }
 
 Vector OOGalacticCoordinatesFromInternal(NSPoint internalCoordinates) {
-  return (Vector){(float)internalCoordinates.x * 0.4f,
-                  (float)internalCoordinates.y * 0.2f, 0.0f};
+  return (Vector){static_cast<float>(internalCoordinates.x) * 0.4f,
+                  static_cast<float>(internalCoordinates.y) * 0.2f, 0.0f};
 }
 
 NSPoint OOInternalCoordinatesFromGalactic(Vector galacticCoordinates) {
-  return (NSPoint){(float)galacticCoordinates.x * 2.5f,
-                   (float)galacticCoordinates.y * 5.0f};
+  return (NSPoint){static_cast<float>(galacticCoordinates.x) * 2.5f,
+                   static_cast<float>(galacticCoordinates.y) * 5.0f};
 }
