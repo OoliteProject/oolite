@@ -75,7 +75,7 @@
   (kOOTextureMinFilterLinear | kOOTextureMagFilterLinear | kOOTextureRepeatS | \
    kOOTextureNoShrink)
 
-enum { kRandomBufferSize = 128 };
+constexpr int kRandomBufferSize = 128;
 
 /*	The planet generator actually generates two textures when shaders are
         active, but the texture loader interface assumes we only load/generate

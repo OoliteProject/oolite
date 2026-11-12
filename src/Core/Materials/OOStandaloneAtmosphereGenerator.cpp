@@ -73,7 +73,7 @@
   (kOOTextureMinFilterLinear | kOOTextureMagFilterLinear | kOOTextureRepeatS | \
    kOOTextureNoShrink)
 
-enum { kRandomBufferSize = 128 };
+constexpr int kRandomBufferSize = 128;
 
 namespace {
 
