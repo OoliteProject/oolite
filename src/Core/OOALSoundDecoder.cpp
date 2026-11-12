@@ -30,6 +30,7 @@ SOFTWARE.
 
 #include <vorbis/vorbisfile.h>
 
+#include <array>
 #include <cstring>
 #include <format>
 
@@ -194,9 +195,8 @@ bool OOALSoundVorbisCodec::initWithPath(
         OO_LOG(cxx_kOOLogFileNotFound, "Could not unzip OXZ at {}", zipFile);
         return false;
       } else {
-        const char* filename = containedFile.c_str();
         // unzLocateFile(*, *, 1) = case-sensitive extract
-        if (unzLocateFile(uf, filename, 1) != UNZ_OK) {
+        if (unzLocateFile(uf, containedFile.c_str(), 1) != UNZ_OK) {
           unzClose(uf);
           return false;
         } else {
@@ -321,21 +321,21 @@ bool OOALSoundVorbisCodec::readCreatingBuffer(char** outBuffer,
         MIN(frameSize * sizeInFrames, static_cast<size_t>(INT_MAX)));
     dst = buffer;
 
-    char pcmout[4096];
+    std::array<char, 4096> pcmout{};
 
     do {
-      int toRead = sizeof(pcmout);
+      int toRead = static_cast<int>(pcmout.size());
       if (remaining < toRead) {
         toRead = remaining;
       }
-      framesRead = ov_read(&_vf, pcmout, toRead, 0, 2, 1, nullptr);
+      framesRead = ov_read(&_vf, pcmout.data(), toRead, 0, 2, 1, nullptr);
       if (framesRead <= 0) {
         if (OV_HOLE == framesRead) continue;
         // else:
         break;
       }
 
-      memcpy(dst, &pcmout, sizeof(char) * framesRead);
+      memcpy(dst, pcmout.data(), sizeof(char) * framesRead);
 
       remaining -= framesRead;
       dst += framesRead;
@@ -359,20 +359,20 @@ size_t OOALSoundVorbisCodec::streamToBuffer(char* buffer) {
   long framesRead;
 
   char* dst = buffer;
-  char pcmout[4096];
+  std::array<char, 4096> pcmout{};
   _readStarted = true;
   do {
-    int toRead = sizeof(pcmout);
+    int toRead = static_cast<int>(pcmout.size());
     if (remaining < toRead) {
       toRead = remaining;
     }
-    framesRead = ov_read(&_vf, pcmout, toRead, 0, 2, 1, nullptr);
+    framesRead = ov_read(&_vf, pcmout.data(), toRead, 0, 2, 1, nullptr);
     if (framesRead <= 0) {
       if (OV_HOLE == framesRead) continue;
       // else:
       break;
     }
-    memcpy(dst, &pcmout, sizeof(char) * framesRead);
+    memcpy(dst, pcmout.data(), sizeof(char) * framesRead);
     remaining -= sizeof(char) * framesRead;
     dst += sizeof(char) * framesRead;
     streamed += sizeof(char) * framesRead;

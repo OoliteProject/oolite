@@ -135,15 +135,15 @@ constexpr int DEMO_FLY_OUT = DEMO_SHOW_THING + 1;
 // currently twice scanner radius
 #define LANE_WIDTH 51200.0
 
-static const char* const kOOLogUniversePopulateError =
+constexpr std::string_view kOOLogUniversePopulateError =
     "universe.populate.error";
-static const char* const kOOLogUniversePopulateWitchspace =
+constexpr std::string_view kOOLogUniversePopulateWitchspace =
     "universe.populate.witchspace";
 #ifndef NDEBUG  // read only by the #ifndef NDEBUG list checks below (unused,
                 // and so a warning, in deployment builds)
-static const char* const kOOLogEntityVerificationError =
+constexpr std::string_view kOOLogEntityVerificationError =
     "entity.linkedList.verify.error";
-static const char* const kOOLogEntityVerificationRebuild =
+constexpr std::string_view kOOLogEntityVerificationRebuild =
     "entity.linkedList.verify.rebuild";
 #endif
 
@@ -190,7 +190,7 @@ OOGraphicsDetail OOGraphicsDetailFromNumber(unsigned int number) {
 
 // Defined with the configuration readers and the shipyard helpers below.
 oo::PList PListForKeyIn(const oo::PList& dict, std::string_view key);
-std::string ExpandKeyWith(const std::string& key, const char* name,
+std::string ExpandKeyWith(const std::string& key, std::string_view name,
                           const oo::PList& value);
 
 // Adds to a set of held entities (compared by identity): once each, in the
@@ -572,13 +572,13 @@ std::string DemoClassAt(const oo::PList& demoShips, std::size_t index) {
 
 // A string setting of the library entry, <fallback> where absent; a null entry
 // answered nil.
-std::optional<std::string> LibrarySetting(const oo::PList& settings,
-                                          std::string_view key,
-                                          const char* fallback) {
+std::optional<std::string> LibrarySetting(
+    const oo::PList& settings, std::string_view key,
+    std::optional<std::string_view> fallback) {
   if (settings.isNull()) return std::nullopt;
   const std::optional<std::string> value = OptionalStringIn(settings, key);
-  if (value.has_value() || fallback == nullptr) return value;
-  return std::string(fallback);
+  if (value.has_value() || !fallback.has_value()) return value;
+  return std::string(*fallback);
 }
 
 // cxx_OOExpand(text).
@@ -588,11 +588,11 @@ std::optional<std::string> ExpandText(const std::string& text) {
 
 // The DESC(descKey) format given cxx_OOExpand(override): a nil expansion
 // printed "(null)".
-std::string CustomLibraryText(const char* descKey,
+std::string CustomLibraryText(std::string_view descKey,
                               const std::string& override) {
   const std::optional<std::string> expanded = ExpandText(override);
   return oo::str::formatRuntime(
-      cxx_OOLookUpDescriptionPRIV(descKey),
+      cxx_OOLookUpDescriptionPRIV(std::string(descKey)),
       {expanded.has_value() ? oo::str::FormatArg(*expanded)
                             : oo::str::FormatArg::null()});
 }
@@ -1064,12 +1064,12 @@ void SetInDict(oo::PList& dict, std::string_view key,
    argument dictionary keyed by the variable's name; a number keeps the number
    type cxx_OOCastParam boxed it as. Nothing expanded is "".
 */
-std::string ExpandKeyWith(const std::string& key, const char* name,
+std::string ExpandKeyWith(const std::string& key, std::string_view name,
                           const oo::PList& value) {
   return cxx_OOExpandDescriptionString(
              OOStringExpanderDefaultRandomSeed(), key,
-             cxx_OOExpandArgumentDictionary({{name, value}}), oo::PList(),
-             std::nullopt, OOExpandOptions::kKey)
+             cxx_OOExpandArgumentDictionary({{std::string(name), value}}),
+             oo::PList(), std::nullopt, OOExpandOptions::kKey)
       .value_or(std::string());
 }
 
@@ -2709,7 +2709,7 @@ HPVector Universe::coordinatesForPosition(HPVector pos,
   HPVector p_pos = the_planet->position;
   HPVector s_pos = the_sun->position;
 
-  const char* c_sys = l_sys.c_str();
+  const std::string& c_sys = l_sys;
   HPVector p0, p1, p2;
 
   switch (c_sys[0]) {
@@ -2824,7 +2824,7 @@ HPVector Universe::legacyPositionFrom(HPVector pos, const std::string& system) {
   HPVector p_pos = the_planet->position;
   HPVector s_pos = the_sun->position;
 
-  const char* c_sys = l_sys.c_str();
+  const std::string& c_sys = l_sys;
   HPVector p0, p1, p2;
 
   switch (c_sys[0]) {
@@ -3879,7 +3879,7 @@ void Universe::setLibraryTextForDemoShip() {
   field2 = (demo_ship != nullptr ? demo_ship->getShipClassName()
                                  : std::optional<std::string>());
 
-  override = LibrarySetting(librarySettings, kOODemoShipSummary, nullptr);
+  override = LibrarySetting(librarySettings, kOODemoShipSummary, std::nullopt);
   if (override.has_value()) {
     field3 = ExpandText(*override);
   } else {
@@ -3896,7 +3896,7 @@ void Universe::setLibraryTextForDemoShip() {
   } else {
     /* Row 2: Speed, Turn Rate, Cargo */
 
-    override = LibrarySetting(librarySettings, kOODemoShipSpeed, nullptr);
+    override = LibrarySetting(librarySettings, kOODemoShipSpeed, std::nullopt);
     if (override.has_value()) {
       if (override->empty()) {
         field1 = std::string();
@@ -3908,7 +3908,8 @@ void Universe::setLibraryTextForDemoShip() {
       field1 = OOShipLibrarySpeed(demo_ship);
     }
 
-    override = LibrarySetting(librarySettings, kOODemoShipTurnRate, nullptr);
+    override =
+        LibrarySetting(librarySettings, kOODemoShipTurnRate, std::nullopt);
     if (override.has_value()) {
       if (override->empty()) {
         field2 = std::string();
@@ -3920,7 +3921,7 @@ void Universe::setLibraryTextForDemoShip() {
       field2 = OOShipLibraryTurnRate(demo_ship);
     }
 
-    override = LibrarySetting(librarySettings, kOODemoShipCargo, nullptr);
+    override = LibrarySetting(librarySettings, kOODemoShipCargo, std::nullopt);
     if (override.has_value()) {
       if (override->empty()) {
         field3 = std::string();
@@ -3935,7 +3936,8 @@ void Universe::setLibraryTextForDemoShip() {
     gui->setArray(FieldsUpToNil({field1, field2, field3}), 3);
 
     /* Row 3: recharge rate, energy banks, witchspace */
-    override = LibrarySetting(librarySettings, kOODemoShipGenerator, nullptr);
+    override =
+        LibrarySetting(librarySettings, kOODemoShipGenerator, std::nullopt);
     if (override.has_value()) {
       if (override->empty()) {
         field1 = std::string();
@@ -3947,7 +3949,8 @@ void Universe::setLibraryTextForDemoShip() {
       field1 = OOShipLibraryGenerator(demo_ship);
     }
 
-    override = LibrarySetting(librarySettings, kOODemoShipShields, nullptr);
+    override =
+        LibrarySetting(librarySettings, kOODemoShipShields, std::nullopt);
     if (override.has_value()) {
       if (override->empty()) {
         field2 = std::string();
@@ -3959,7 +3962,8 @@ void Universe::setLibraryTextForDemoShip() {
       field2 = OOShipLibraryShields(demo_ship);
     }
 
-    override = LibrarySetting(librarySettings, kOODemoShipWitchspace, nullptr);
+    override =
+        LibrarySetting(librarySettings, kOODemoShipWitchspace, std::nullopt);
     if (override.has_value()) {
       if (override->empty()) {
         field3 = std::string();
@@ -3974,7 +3978,8 @@ void Universe::setLibraryTextForDemoShip() {
     gui->setArray(FieldsUpToNil({field1, field2, field3}), 4);
 
     /* Row 4: weapons, turrets, size */
-    override = LibrarySetting(librarySettings, kOODemoShipWeapons, nullptr);
+    override =
+        LibrarySetting(librarySettings, kOODemoShipWeapons, std::nullopt);
     if (override.has_value()) {
       if (override->empty()) {
         field1 = std::string();
@@ -3986,7 +3991,8 @@ void Universe::setLibraryTextForDemoShip() {
       field1 = OOShipLibraryWeapons(demo_ship);
     }
 
-    override = LibrarySetting(librarySettings, kOODemoShipTurrets, nullptr);
+    override =
+        LibrarySetting(librarySettings, kOODemoShipTurrets, std::nullopt);
     if (override.has_value()) {
       if (override->empty()) {
         field2 = std::string();
@@ -3998,7 +4004,7 @@ void Universe::setLibraryTextForDemoShip() {
       field2 = OOShipLibraryTurrets(demo_ship);
     }
 
-    override = LibrarySetting(librarySettings, kOODemoShipSize, nullptr);
+    override = LibrarySetting(librarySettings, kOODemoShipSize, std::nullopt);
     if (override.has_value()) {
       if (override->empty()) {
         field3 = std::string();
@@ -4013,7 +4019,8 @@ void Universe::setLibraryTextForDemoShip() {
     gui->setArray(FieldsUpToNil({field1, field2, field3}), 5);
   }
 
-  override = LibrarySetting(librarySettings, kOODemoShipDescription, nullptr);
+  override =
+      LibrarySetting(librarySettings, kOODemoShipDescription, std::nullopt);
   if (override.has_value()) {
     gui->addLongText(ExpandText(*override), descRow, OOGUIAlignment::kLeft);
   }
@@ -4484,7 +4491,8 @@ Entity* Universe::newVisualEffectWithName(const std::string& effectKey) {
   } catch (...) {
     const auto exception = oo::CurrentOOException();
     if (!exception) throw;  // not an OOException: it goes on up, as before
-    if (strcmp(exception->name(), OOLITE_EXCEPTION_DATA_NOT_FOUND) == 0) {
+    if (std::string_view(exception->name()) ==
+        OOLITE_EXCEPTION_DATA_NOT_FOUND) {
       OO_LOG(cxx_kOOLogException,
              "***** Oolite Exception : '{}' in [Universe "
              "newVisualEffectWithName: {} ] *****",
@@ -4550,7 +4558,8 @@ Entity* Universe::newVisualEffectWithName(const std::string& effectKey) {
   } catch (...) {
     const auto exception = oo::CurrentOOException();
     if (!exception) throw;  // not an OOException: it goes on up, as before
-    if (strcmp(exception->name(), OOLITE_EXCEPTION_DATA_NOT_FOUND) == 0) {
+    if (std::string_view(exception->name()) ==
+        OOLITE_EXCEPTION_DATA_NOT_FOUND) {
       OO_LOG(cxx_kOOLogException,
              "***** Oolite Exception : '{}' in [Universe newShipWithName: {} ] "
              "*****",
@@ -4590,7 +4599,8 @@ Entity* Universe::newVisualEffectWithName(const std::string& effectKey) {
   } catch (...) {
     const auto exception = oo::CurrentOOException();
     if (!exception) throw;  // not an OOException: it goes on up, as before
-    if (strcmp(exception->name(), OOLITE_EXCEPTION_DATA_NOT_FOUND) == 0) {
+    if (std::string_view(exception->name()) ==
+        OOLITE_EXCEPTION_DATA_NOT_FOUND) {
       OO_LOG(cxx_kOOLogException,
              "***** Oolite Exception : '{}' in [Universe newDockWithName: {} ] "
              "*****",
@@ -5714,7 +5724,7 @@ void Universe::drawUniverse() {
       no_update =
           false;  // make sure we don't get stuck in all subsequent frames.
 
-      if (strncmp(exception->name(), "Oolite", 6) == 0) {
+      if (std::string_view(exception->name()).starts_with("Oolite")) {
         handleOoliteException(exception->object());
       } else {
         OO_LOG(cxx_kOOLogException, "***** Exception: {} : {} *****",
@@ -6438,10 +6448,11 @@ void Universe::addLaserHitEffectsAt(HPVector pos, ::ShipEntity* target,
   if ((target != nullptr ? target->showDamage() : false) &&
       (target != nullptr ? target->getEnergy() : 0.0f) <
           (target != nullptr ? target->getMaxEnergy() : 0.0f) / 2) {
-    const char* key =
+    const std::string_view key =
         (randf() < 0.5) ? "oolite-hull-spark" : "oolite-hull-spark-b";
     const oo::PList settings =
-        (UNIVERSE != nullptr ? UNIVERSE->explosionSetting(key) : oo::PList());
+        (UNIVERSE != nullptr ? UNIVERSE->explosionSetting(std::string(key))
+                             : oo::PList());
     oo::Ref<::OOExplosionCloudEntity> burst =
         ::OOExplosionCloudEntity::explosionCloudFromEntity(target, settings);
     if (burst != nullptr) burst->setPosition(pos);
@@ -7559,8 +7570,7 @@ void Universe::update(OOTimeDelta inDeltaT) {
 
       update_stage = "update:entity";
       std::vector<oo::EntityHold> zombies;  // each once, in the order found
-      OO_LOG("universe.profile.update", "{}",
-             const_cast<const char*>(update_stage));
+      OO_LOG("universe.profile.update", "{}", std::string_view(update_stage));
       for (i = 0; i < ent_count; i++) {
         Entity* thing = my_entities[i];
 #ifndef NDEBUG
@@ -7645,8 +7655,7 @@ void Universe::update(OOTimeDelta inDeltaT) {
 
       // Maintain x/y/z order lists
       update_stage = "updating linked lists";
-      OO_LOG("universe.profile.update", "{}",
-             const_cast<const char*>(update_stage));
+      OO_LOG("universe.profile.update", "{}", std::string_view(update_stage));
       for (i = 0; i < ent_count; i++) {
         my_entities[i]->updateLinkedLists();
       }
@@ -7654,8 +7663,7 @@ void Universe::update(OOTimeDelta inDeltaT) {
       // detect collisions and light ships that can see the sun
 
       update_stage = "collision and shadow detection";
-      OO_LOG("universe.profile.update", "{}",
-             const_cast<const char*>(update_stage));
+      OO_LOG("universe.profile.update", "{}", std::string_view(update_stage));
       filterSortedLists();
       findCollisionsAndShadows();
 
@@ -7668,7 +7676,7 @@ void Universe::update(OOTimeDelta inDeltaT) {
     } catch (...) {
       const auto exception = oo::CurrentOOException();
       if (!exception) throw;  // not an OOException: it goes on up, as before
-      if (strncmp(exception->name(), "Oolite", 6) == 0) {
+      if (std::string_view(exception->name()).starts_with("Oolite")) {
         handleOoliteException(exception->object());
       } else {
         std::string stage = update_stage;
@@ -7687,8 +7695,7 @@ void Universe::update(OOTimeDelta inDeltaT) {
 
     // dispose of the non-mutable copy and everything it references neatly
     update_stage = "clean up";
-    OO_LOG("universe.profile.update", "{}",
-           const_cast<const char*>(update_stage));
+    OO_LOG("universe.profile.update", "{}", std::string_view(update_stage));
     for (i = 0; i < ent_count; i++) {
       oo::ReleaseEntity(my_entities[i]);  // explicitly release each one
     }
@@ -7701,8 +7708,7 @@ void Universe::update(OOTimeDelta inDeltaT) {
      * time. - CIM: 4/8/2013
      */
     update_stage = "JS Garbage Collection";
-    OO_LOG("universe.profile.update", "{}",
-           const_cast<const char*>(update_stage));
+    OO_LOG("universe.profile.update", "{}", std::string_view(update_stage));
     OOJavaScriptEngine::sharedEngine()->garbageCollectionOpportunity(false);
 
   } else {
@@ -9865,7 +9871,7 @@ OOCreditsQuantity Universe::tradeInValueForCommanderDictionary(
   OOCreditsQuantity scrap_value = 351;  // translates to 250 cr.
 
   auto weaponTypeForKey =
-      [&dict](const char* key) -> OOWeaponType  // nil for a missing key
+      [&dict](std::string_view key) -> OOWeaponType  // nil for a missing key
   {
     const std::optional<std::string> identifier = OptionalStringIn(dict, key);
     return identifier.has_value()
@@ -10427,7 +10433,7 @@ bool Universe::useShaders() {
 void Universe::handleOoliteException(const oo::Exception* exception) {
   if (exception != nullptr) {
     const oo::CaughtOOException caught(exception);
-    if (strcmp(caught.name(), OOLITE_EXCEPTION_FATAL) == 0) {
+    if (std::string_view(caught.name()) == OOLITE_EXCEPTION_FATAL) {
       ::PlayerEntity* player = PLAYER;
       if (player != nullptr) player->setStatus(OOEntityStatus::kHandlingError);
 
@@ -10456,11 +10462,11 @@ void Universe::setAirResistanceFactor(GLfloat newFactor) {
 #if OOLITE_ESPEAK
 
 void Universe::startSpeakingString(const std::string& text) {
-  // the UTF-8 bytes of the text
-  const char* stringToSay = text.c_str();
+  // the UTF-8 bytes of the text, up to its first NUL (as strlen measured it)
   espeak_Synth(
-      stringToSay, strlen(stringToSay) + 1 /* inc. NULL */, 0, POS_CHARACTER, 0,
-      espeakCHARS_UTF8 | espeakPHONEMES | espeakENDPAUSE, nullptr, nullptr);
+      text.c_str(), std::string_view(text.c_str()).size() + 1 /* inc. NULL */,
+      0, POS_CHARACTER, 0, espeakCHARS_UTF8 | espeakPHONEMES | espeakENDPAUSE,
+      nullptr, nullptr);
 }
 
 void Universe::stopSpeaking() { espeak_Cancel(); }
@@ -10473,13 +10479,12 @@ std::optional<std::string> Universe::voiceName(unsigned int index) {
 }
 
 unsigned int Universe::voiceNumber(const std::string& name) {
-  const char* const label = name.c_str();
-
   // clang-tidy's own fixes (bugprone-inc-dec-in-conditions,
   // bugprone-suspicious-string-compare), as the line changed: the same search
   // from the first voice.
   unsigned int index = 0;
-  while (espeak_voices[index] && strcmp(espeak_voices[index]->name, label) != 0)
+  while (espeak_voices[index] &&
+         std::string_view(espeak_voices[index]->name) != name)
     ++index;
   return (index < espeak_voice_count) ? index : UINT_MAX;
 }

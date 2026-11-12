@@ -107,7 +107,7 @@ class OOMusicController : public oo::RefCounted {
 
  private:
   // The private category (the iTunes integration, Mac only).
-  void playiTunesPlaylist(const char* playlistName);
+  void playiTunesPlaylist(std::string_view playlistName);
   void pauseiTunes();
 
   OOMusicMode _mode = {};

@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 
 #include <cstring>
 #include <format>
+#include <string_view>
 
 #include "Entity.h"  // for NO_DRAW_DISTANCE_FACTOR.
 #include "OOBasicMaterial.h"
@@ -76,9 +77,9 @@ constexpr int kOctreeSmallSizeThreshold = 20;
 
 enum class OOMeshNormalMode : int { kPerFace, kSmooth, kExplicit };
 
-static const char* const kOOLogMeshDataNotFound =
+constexpr std::string_view kOOLogMeshDataNotFound =
     "mesh.load.failed.fileNotFound";  // an OO_LOG message class
-static const char* const kOOLogMeshTooManyMaterials =
+constexpr std::string_view kOOLogMeshTooManyMaterials =
     "mesh.load.failed.tooManyMaterials";
 
 #if OOMESH_PROFILE
@@ -86,7 +87,8 @@ static const char* const kOOLogMeshTooManyMaterials =
   do {                                                                       \
     _stopwatchLastTime = Profile(tag, _stopwatch.get(), _stopwatchLastTime); \
   } while (0)
-static OOTimeDelta Profile(const char* tag, OOProfilingStopwatch* stopwatch,
+static OOTimeDelta Profile(std::string_view tag,
+                           OOProfilingStopwatch* stopwatch,
                            OOTimeDelta lastTime) {
   OOTimeDelta now = stopwatch->currentTime();
   OO_LOG("mesh.profile", "Mesh profile: stage {}, {:g} seconds (delta {:g})",
@@ -261,7 +263,7 @@ OOMesh::~OOMesh() {
 
 namespace {
 
-const char* NormalModeDescription(OOMeshNormalMode mode) {
+std::string_view NormalModeDescription(OOMeshNormalMode mode) {
   switch (mode) {
     case OOMeshNormalMode::kPerFace:
       return "per-face";
@@ -439,7 +441,7 @@ void OOMesh::renderOpaqueParts() {
              exception->reason());
       brokenInRender = true;
     }
-    if (strncmp(exception->name(), "Oolite", 6) == 0) {
+    if (std::string_view(exception->name()).starts_with("Oolite")) {
       if (UNIVERSE != nullptr)
         UNIVERSE->handleOoliteException(exception->object());
     }  // handle these ourself

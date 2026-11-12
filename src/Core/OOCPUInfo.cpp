@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 
 #include <stdlib.h>
 
+#include <array>
 #include <bit>
 #include <cstring>
 
@@ -134,7 +135,7 @@ std::string OOCPUDescription(void) {
   // This code taken from https://stackoverflow.com/questions/850774
   int CPUInfo[4] = {-1};
   unsigned nExIds, i = 0;
-  char CPUBrandString[0x40];
+  std::array<char, 0x40> CPUBrandString{};
   // Get the information associated with each extended ID.
   OOCPUID(CPUInfo, 0x80000000);
   nExIds = CPUInfo[0];
@@ -142,13 +143,13 @@ std::string OOCPUDescription(void) {
     OOCPUID(CPUInfo, i);
     // Interpret CPU brand string
     if (i == 0x80000002)
-      memcpy(CPUBrandString, CPUInfo, sizeof(CPUInfo));
+      memcpy(CPUBrandString.data(), CPUInfo, sizeof(CPUInfo));
     else if (i == 0x80000003)
-      memcpy(CPUBrandString + 16, CPUInfo, sizeof(CPUInfo));
+      memcpy(CPUBrandString.data() + 16, CPUInfo, sizeof(CPUInfo));
     else if (i == 0x80000004)
-      memcpy(CPUBrandString + 32, CPUInfo, sizeof(CPUInfo));
+      memcpy(CPUBrandString.data() + 32, CPUInfo, sizeof(CPUInfo));
   }
-  return std::string(CPUBrandString);
+  return std::string(CPUBrandString.data());
 }
 
 OOMemoryStatus OOSystemMemoryStatus(void) {

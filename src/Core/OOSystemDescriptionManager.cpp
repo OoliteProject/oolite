@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #include "OOSystemDescriptionManager.h"
 
 #include <format>
+#include <string_view>
 
 #include "OOStringParsing.h"
 #include "OOTypes.h"
@@ -82,7 +83,7 @@ oo::PList ValueForKey(const oo::PList& dict, const std::string& key) {
 // get<std::string> as the string extractor answered it: nullopt where that was
 // nil (no such key, or neither a string nor a number).
 std::optional<std::string> StringForKey(const oo::PList& dict,
-                                        const char* key) {
+                                        std::string_view key) {
   const oo::PList* value = dict.find(key);
   if (value == nullptr || !(value->isString() || value->isNumber()))
     return std::nullopt;

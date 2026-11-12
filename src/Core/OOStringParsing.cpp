@@ -24,7 +24,9 @@ MA 02110-1301, USA.
 
 #include "OOStringParsing.h"
 
+#include <array>
 #include <format>
+#include <string_view>
 
 #include "HeadUpDisplay.h"
 #include "OOFunctionAttributes.h"
@@ -43,19 +45,19 @@ bool cxx_ScanVectorFromString(const std::optional<std::string>& xyzString,
                               Vector* outVector) {
   GLfloat xyz[] = {0.0, 0.0, 0.0};
   int i = 0;
-  const char* error = nullptr;
+  std::string_view error;
 
   assert(outVector != nullptr);
   if (!xyzString.has_value()) return false;
 
   oo::str::Scanner scanner(*xyzString);
-  while (!scanner.isAtEnd() && i < 3 && !error) {
+  while (!scanner.isAtEnd() && i < 3 && error.empty()) {
     if (!scanner.scanFloat(&xyz[i++])) error = "could not scan a float value.";
   }
 
-  if (!error && i < 3) error = "found less than three float values.";
+  if (error.empty() && i < 3) error = "found less than three float values.";
 
-  if (!error) {
+  if (error.empty()) {
     *outVector = make_vector(xyz[0], xyz[1], xyz[2]);
     return true;
   } else {
@@ -81,19 +83,19 @@ bool cxx_ScanQuaternionFromString(const std::optional<std::string>& wxyzString,
                                   Quaternion* outQuaternion) {
   GLfloat wxyz[] = {1.0, 0.0, 0.0, 0.0};
   int i = 0;
-  const char* error = nullptr;
+  std::string_view error;
 
   assert(outQuaternion != nullptr);
   if (!wxyzString.has_value()) return false;
 
   oo::str::Scanner scanner(*wxyzString);
-  while (!scanner.isAtEnd() && i < 4 && !error) {
+  while (!scanner.isAtEnd() && i < 4 && error.empty()) {
     if (!scanner.scanFloat(&wxyz[i++])) error = "could not scan a float value.";
   }
 
-  if (!error && i < 4) error = "found less than four float values.";
+  if (error.empty() && i < 4) error = "found less than four float values.";
 
-  if (!error) {
+  if (error.empty()) {
     outQuaternion->w = wxyz[0];
     outQuaternion->x = wxyz[1];
     outQuaternion->y = wxyz[2];
@@ -112,20 +114,20 @@ bool cxx_ScanVectorAndQuaternionFromString(
     Quaternion* outQuaternion) {
   GLfloat xyzwxyz[] = {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0};
   int i = 0;
-  const char* error = nullptr;
+  std::string_view error;
 
   assert(outVector != nullptr && outQuaternion != nullptr);
   if (!xyzwxyzString.has_value()) return false;
 
   oo::str::Scanner scanner(*xyzwxyzString);
-  while (!scanner.isAtEnd() && i < 7 && !error) {
+  while (!scanner.isAtEnd() && i < 7 && error.empty()) {
     if (!scanner.scanFloat(&xyzwxyz[i++]))
       error = "Could not scan a float value.";
   }
 
-  if (!error && i < 7) error = "Found less than seven float values.";
+  if (error.empty() && i < 7) error = "Found less than seven float values.";
 
-  if (error) {
+  if (!error.empty()) {
     OO_LOG_ERR("strings.conversion.quaternion",
                "cannot make vector and quaternion from '{}': {}",
                *xyzwxyzString, error);
@@ -177,17 +179,17 @@ Random_Seed cxx_RandomSeedFromString(
   Random_Seed result;
   int abcdef[] = {0, 0, 0, 0, 0, 0};
   int i = 0;
-  const char* error = nullptr;
+  std::string_view error;
   oo::str::Scanner scanner(
       abcdefString.value_or(""));  // a nil string scans as an empty one
 
-  while (!scanner.isAtEnd() && i < 6 && !error) {
+  while (!scanner.isAtEnd() && i < 6 && error.empty()) {
     if (!scanner.scanInt(&abcdef[i++])) error = "could not scan a int value.";
   }
 
-  if (!error && i < 6) error = "found less than six int values.";
+  if (error.empty() && i < 6) error = "found less than six int values.";
 
-  if (!error) {
+  if (error.empty()) {
     result.a = abcdef[0];
     result.b = abcdef[1];
     result.c = abcdef[2];
@@ -318,20 +320,18 @@ std::string cxx_ClockToString(double clock, bool adjusting) {
 #if DEBUG_GRAPHVIZ
 
 std::string cxx_EscapedGraphVizString(const std::string& string) {
-  const char* const srcStrings[] = {
+  static constexpr std::array<std::string_view, 6> srcStrings = {
       // Note: backslash must be first.
-      "\\", "\"", "\'", "\r", "\n", "\t", nullptr};
-  const char* const subStrings[] = {
+      "\\", "\"", "\'", "\r", "\n", "\t"};
+  static constexpr std::array<std::string_view, 6> subStrings = {
       // Note: must be same order.
-      "\\\\", "\\\"", "\\\'", "\\r", "\\n", "\\t", nullptr};
+      "\\\\", "\\\"", "\\\'", "\\r", "\\n", "\\t"};
 
-  const char* const* src = srcStrings;
-  const char* const* sub = subStrings;
   std::string result = string;
 
-  while (*src != nullptr) {
+  for (std::size_t i = 0; i < srcStrings.size(); ++i) {
     // -replaceOccurrencesOfString:withString:options:0 range:(the whole string)
-    result = oo::str::replaceOccurrences(result, *src++, *sub++);
+    result = oo::str::replaceOccurrences(result, srcStrings[i], subStrings[i]);
   }
 
   return result;

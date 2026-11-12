@@ -29,6 +29,7 @@ SOFTWARE.
 
 #include <algorithm>
 #include <format>
+#include <string_view>
 
 #include "OOCacheManager.h"
 #include "OOColor.h"
@@ -84,7 +85,8 @@ std::vector<oo::PList> EquipmentItems(const oo::PList& equipmentData) {
 }
 
 std::optional<std::vector<std::string>> EquipmentKeysFrom(
-    const oo::PList& extra, const char* key, const std::string& identifier) {
+    const oo::PList& extra, std::string_view key,
+    const std::string& identifier) {
   const oo::PList* value = extra.find(key);
   if (value == nullptr) return std::nullopt;
   std::vector<std::string> keys;
@@ -380,7 +382,7 @@ bool OOEquipmentType::initWithInfo(const oo::PList& info) {
         // starting a game so the application of any default key settings on
         // equipment will only happen then
         for (const bool activate : {true, false}) {
-          const char* keyName =
+          const std::string_view keyName =
               activate ? "default_activate_key" : "default_mode_key";
           oo::PList& defaultKey =
               activate ? _defaultActivateKey : _defaultModeKey;

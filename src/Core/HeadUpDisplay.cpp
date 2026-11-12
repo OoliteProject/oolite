@@ -245,7 +245,7 @@ static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz,
                             GLfloat step, GLfloat* color4v);
 
 namespace {
-void SetGLColourFromInfo(const oo::PList& info, const char* key,
+void SetGLColourFromInfo(const oo::PList& info, std::string_view key,
                          const GLfloat defaultColor[4], GLfloat alpha);
 void GetRGBAArrayFromInfo(const oo::PList& info, GLfloat ioColor[4]);
 }  // namespace
@@ -4774,7 +4774,7 @@ void OOHUDBeaconCodeIcon::drawHUDBeaconIconAt(NSPoint where, NSSize size,
 
 namespace {
 
-void SetGLColourFromInfo(const oo::PList& info, const char* key,
+void SetGLColourFromInfo(const oo::PList& info, std::string_view key,
                          const GLfloat defaultColor[4], GLfloat alpha) {
   oo::Ref<OOColor> color;
   const oo::PList colorDesc = PListForKeyIn(info, key);

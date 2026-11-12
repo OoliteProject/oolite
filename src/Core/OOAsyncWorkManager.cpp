@@ -39,6 +39,7 @@ SOFTWARE.
 #include <mutex>
 #include <stop_token>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <vector>
 
@@ -227,7 +228,7 @@ void PendingRemove(std::vector<oo::Ref<OOAsyncWorkTask>>& pending,
 */
 static OOAsyncWorkManager* MakeAsyncWorkManager() {
   OOAsyncWorkManager* manager = nullptr;
-  const char* className = nullptr;
+  std::string_view className;
   if (OOOperationQueueAsyncWorkManager::canBeUsed()) {
     manager = oo::makeRef<OOOperationQueueAsyncWorkManager>().leakRef();
     className = "OOOperationQueueAsyncWorkManager";

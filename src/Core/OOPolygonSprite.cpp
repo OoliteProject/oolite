@@ -43,6 +43,7 @@ SOFTWARE.
 #include "OOPolygonSprite.h"
 
 #include <format>
+#include <string_view>
 
 #include "OOGraphicsResetManager.h"
 #include "OOMacroOpenGL.h"
@@ -106,7 +107,7 @@ static bool AppendVertex(TessPolygonData* data, NSPoint vertex);
 static void SVGDumpBegin(TessPolygonData* data);
 static void SVGDumpEnd(TessPolygonData* data);
 namespace {
-void SVGDumpBeginGroup(TessPolygonData* data, const char* name);
+void SVGDumpBeginGroup(TessPolygonData* data, std::string_view name);
 }
 static void SVGDumpEndGroup(TessPolygonData* data);
 namespace {
@@ -813,7 +814,7 @@ static void SVGDumpEnd(TessPolygonData* data) {
 }
 
 namespace {
-void SVGDumpBeginGroup(TessPolygonData* data, const char* name) {
+void SVGDumpBeginGroup(TessPolygonData* data, std::string_view name) {
   if (!data->debugSVG.has_value()) return;
 
   *data->debugSVG += std::format("\t<g id=\"{} {}\">\n", name, data->svgID++);

@@ -31,6 +31,8 @@ MA 02110-1301, USA.
 #include <stdint.h>
 #include <stdio.h>
 
+#include <format>
+
 const Random_Seed kNilRandomSeed = {0};
 
 static RNG_Seed rnd_seed;
@@ -129,7 +131,9 @@ float bellf(int n) {
   float total = 0;
 
   if (EXPECT_NOT(i <= 0)) {
-    printf("***** ERROR - attempt to generate bellf(%d)\n", n);
+    std::fputs(
+        std::format("***** ERROR - attempt to generate bellf({})\n", n).c_str(),
+        stdout);
     return 0.0f;  // catch possible div-by-zero problem
   }
 

@@ -28,6 +28,7 @@ SOFTWARE.
 #include "OOShipRegistry.h"
 
 #include <format>
+#include <string_view>
 
 #include "GameController.h"
 #include "OOCacheManager.h"
@@ -75,12 +76,12 @@ std::optional<std::string> StringForKey(const oo::PList* dict,
 // get<Vector> / get<Quaternion>: OOCollectionExtractors' readers (unmigrated)
 // of the value, handed back to them as a Foundation object; the defaults of a
 // missing key are theirs.
-Vector VectorForKey(const oo::PList& dict, const char* key) {
+Vector VectorForKey(const oo::PList& dict, std::string_view key) {
   const oo::PList* value = dict.find(key);
   return OOVectorFromPList(value, kZeroVector);
 }
 
-Quaternion QuaternionForKey(const oo::PList& dict, const char* key) {
+Quaternion QuaternionForKey(const oo::PList& dict, std::string_view key) {
   const oo::PList* value = dict.find(key);
   return OOQuaternionFromPList(value, kIdentityQuaternion);
 }
@@ -713,8 +714,8 @@ oo::PList OOShipRegistry::mergeShip(const oo::PList& child,
   AddEntries(entries, child);
   entries.erase("like_ship");
 
-  auto hasString = [](const oo::PList& dict, const char* key) {
-    return StringForKey(&dict, key).has_value();
+  auto hasString = [](const oo::PList& dict, std::string_view key) {
+    return StringForKey(&dict, std::string(key)).has_value();
   };
 
   // Certain properties cannot be inherited.
@@ -952,7 +953,7 @@ bool OOShipRegistry::sanitizeConditions(oo::PList& ioData) {
   // (ships in key order; was the hash order of -allKeys)
   for (auto& [shipKey, shipEntry] : Entries(ioData)) {
     oo::PList::Dict& entry = Entries(shipEntry);
-    const char* key = shipKey.c_str();
+    const std::string& key = shipKey;
 
     oo::PList conditions = valueOrNull(shipEntry.find("conditions"));
     addConditionScript(StringForKey(&shipEntry, "condition_script"));

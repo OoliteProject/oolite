@@ -35,9 +35,10 @@ namespace {
    macro builds from the variable's name. A key that expanded to nothing expands
    to nothing (""), as a nil key did.
 */
-std::string ExpandCategoryKey(const char* pattern,
+std::string ExpandCategoryKey(std::string_view pattern,
                               const std::string& category) {
-  const std::optional<std::string> key = cxx_OOExpand(pattern, category);
+  const std::optional<std::string> key =
+      cxx_OOExpand(std::string(pattern), category);
   return key.has_value() ? cxx_OOExpandKey(*key).value_or(std::string())
                          : std::string();
 }

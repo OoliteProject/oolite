@@ -27,9 +27,11 @@ MA 02110-1301, USA.
 #include "OOOXZManager.h"
 
 #include <algorithm>
+#include <array>
 #include <format>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "GameController.h"
@@ -80,7 +82,7 @@ oo::PList PListArrayFromFile(const std::optional<std::string>& path) {
 namespace {
 /*const char *const kOOOXZDataURL =
  * "http://addons.oolite.org/api/1.0/overview";*/
-const char* const kOOOXZDataURL =
+constexpr std::string_view kOOOXZDataURL =
     "https://addons.oolite.space/api/1.0/overview";
 /* The config parameter to use a non-default URL at runtime */
 const char* const kOOOXZDataConfig = "oxz-index-url";
@@ -441,7 +443,7 @@ std::optional<std::string> OOOXZManager::dataURL() {
   if (url.has_value()) {
     return url;
   }
-  return kOOOXZDataURL;
+  return std::string(kOOOXZDataURL);
 }
 
 std::optional<std::string> OOOXZManager::humanSize(std::size_t bytes) {
@@ -2381,9 +2383,7 @@ std::string OOOXZManager::extractOXZ(std::size_t item) {
     extractionLog += OO_DESC("oolite-oxzmanager-extract-log-no-original");
     return extractionLog;
   }
-  const char* zipname = oxzfile->c_str();
-  unzFile uf = nullptr;
-  uf = unzOpen64(zipname);
+  unzFile uf = unzOpen64(oxzfile->c_str());
   if (uf == nullptr) {
     OO_LOG("oxz.manager.error", "Could not open .oxz at {} as zip file",
            path.value_or("(null)"));
@@ -2410,14 +2410,14 @@ std::string OOOXZManager::extractOXZ(std::size_t item) {
   }
   extractionLog += OO_DESC("oolite-oxzmanager-extract-log-main-created");
   std::size_t counter = 0;
-  char rawComponentName[512];
+  std::array<char, 512> rawComponentName{};
   bool error = false;
   unz_file_info64 file_info = {};
   if (unzGoToFirstFile(uf) == UNZ_OK) {
     do {
-      unzGetCurrentFileInfo64(uf, &file_info, rawComponentName, 512, nullptr, 0,
-                              nullptr, 0);
-      const std::string componentName = rawComponentName;
+      unzGetCurrentFileInfo64(uf, &file_info, rawComponentName.data(),
+                              rawComponentName.size(), nullptr, 0, nullptr, 0);
+      const std::string componentName = rawComponentName.data();
       if (oo::str::hasSuffix(componentName, "/")) {
         const std::string folderPath =
             oo::str::appendingPathComponent(*path, componentName);
