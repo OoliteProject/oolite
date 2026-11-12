@@ -206,17 +206,17 @@ OOINLINE HPVector2D MakeHPVector2D(OOHPScalar vx, OOHPScalar vy) {
 
 OOINLINE HPVector vectorToHPVector(Vector v) {
   HPVector result;
-  result.x = (OOHPScalar)v.x;
-  result.y = (OOHPScalar)v.y;
-  result.z = (OOHPScalar)v.z;
+  result.x = static_cast<OOHPScalar>(v.x);
+  result.y = static_cast<OOHPScalar>(v.y);
+  result.z = static_cast<OOHPScalar>(v.z);
   return result;
 }
 
 OOINLINE Vector HPVectorToVector(HPVector v) {
   Vector result;
-  result.x = (OOScalar)v.x;
-  result.y = (OOScalar)v.y;
-  result.z = (OOScalar)v.z;
+  result.x = static_cast<OOScalar>(v.x);
+  result.y = static_cast<OOScalar>(v.y);
+  result.z = static_cast<OOScalar>(v.z);
   return result;
 }
 

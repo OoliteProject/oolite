@@ -262,7 +262,8 @@ void ReplaceArrayElement(oo::PList& array, std::size_t index,
     OORaiseException(
         OORangeException,
         "Index %lu is out of range %lu (in 'replaceObjectAtIndex:withObject:')",
-        (unsigned long)index, (unsigned long)elements.size());
+        static_cast<unsigned long>(index),
+        static_cast<unsigned long>(elements.size()));
   }
   elements[index] = value;
 }

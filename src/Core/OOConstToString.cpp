@@ -255,7 +255,7 @@ OOCargoType cxx_StringToCargoType(const std::string& string) {
   // Backwards compatibility.
   if (string == "CARGO_CARRIED") return OOCargoType::kRandom;
 
-  return (OOCargoType)kOOCargoTypeDefault;
+  return kOOCargoTypeDefault;
 }
 
 std::string cxx_EnergyUnitTypeToString(OOEnergyUnitType unit) {
@@ -273,7 +273,7 @@ OOEnergyUnitType cxx_StringToEnergyUnitType(const std::string& string) {
   if (const std::optional<OOEnergyUnitType> value = kNames.value(string))
     return *value;
 
-  return (OOEnergyUnitType)kOOEnergyUnitTypeDefault;
+  return kOOEnergyUnitTypeDefault;
 }
 
 std::optional<std::string> cxx_OODisplayRatingStringFromKillCount(
@@ -415,7 +415,7 @@ OORouteType cxx_StringToRouteType(const std::string& string) {
   if (const std::optional<OORouteType> value = kNames.value(string))
     return *value;
 
-  return (OORouteType)kOORouteTypeDefault;
+  return kOORouteTypeDefault;
 }
 
 std::string cxx_DockingClearanceStatusToString(

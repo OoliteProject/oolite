@@ -76,12 +76,14 @@ Octree::Octree(const oo::Data& data, GLfloat radius) {
 
     std::size_t nodeCount = _data.length() / sizeof *_octree;
     OOCParameterAssert(nodeCount < UINT32_MAX);
-    _nodeCount = (uint32_t)nodeCount;
+    _nodeCount = static_cast<uint32_t>(nodeCount);
 
     // (no bytes read as NULL, as they did for empty Foundation data)
-    _octree = (_data.length() != 0) ? (const int*)_data.bytes() : nullptr;
+    _octree = (_data.length() != 0)
+                  ? reinterpret_cast<const int*>(_data.bytes())
+                  : nullptr;
 
-    _collisionOctree = (unsigned char*)calloc(1, _nodeCount);
+    _collisionOctree = static_cast<unsigned char*>(calloc(1, _nodeCount));
   }
 }
 
@@ -130,9 +132,9 @@ oo::Ref<Octree> Octree::octreeScaledBy(GLfloat factor) {
 }
 
 static Vector offsetForOctant(int oct, GLfloat r) {
-  return make_vector((0.5f - (GLfloat)((oct >> 2) & 1)) * r,
-                     (0.5f - (GLfloat)((oct >> 1) & 1)) * r,
-                     (0.5f - (GLfloat)(oct & 1)) * r);
+  return make_vector((0.5f - static_cast<GLfloat>((oct >> 2) & 1)) * r,
+                     (0.5f - static_cast<GLfloat>((oct >> 1) & 1)) * r,
+                     (0.5f - static_cast<GLfloat>(oct & 1)) * r);
 }
 
 #ifndef OODEBUGLDRAWING_DISABLE
@@ -268,11 +270,11 @@ void Octree::drawOctreeCollisionFromLocation(uint32_t loc, GLfloat scale,
   }
 
   if ((_octree[loc] != 0) &&
-      (_collisionOctree[loc] != (unsigned char)0))  // full - draw
+      (_collisionOctree[loc] != static_cast<unsigned char>(0)))  // full - draw
   {
     OO_ENTER_OPENGL();
 
-    GLfloat red = (GLfloat)(_collisionOctree[loc]) / 255.0;
+    GLfloat red = static_cast<GLfloat>(_collisionOctree[loc]) / 255.0;
     glColor4f(1.0, 0.0, 0.0, red);  // 50% translucent
 
     drawTestForCollisions = true;
@@ -556,8 +558,8 @@ static bool isHitByOctree(Octree_details axialDetails,
     // we are SOLID - is the other octree?
     if (otherBuffer[0] == -1) {
       // YES so octrees collide
-      axialCollisionBuffer[0] = (unsigned char)255;  // mark
-      otherCollisionBuffer[0] = (unsigned char)255;  // mark
+      axialCollisionBuffer[0] = static_cast<unsigned char>(255);  // mark
+      otherCollisionBuffer[0] = static_cast<unsigned char>(255);  // mark
 
       OctreeDebugLog("{}", "DEBUG Octrees collide!");
       return true;
@@ -804,7 +806,7 @@ OOINLINE void OOOctreeBuilder::InsertNode(OOOctreeBuilder* self, int value) {
 OOOctreeBuilder::OOOctreeBuilder() {
   {
     _capacity = kMinimumBuilderCapacity;
-    _octree = (int*)malloc(_capacity * sizeof *_octree);
+    _octree = static_cast<int*>(malloc(_capacity * sizeof *_octree));
     if (_octree == nullptr) {
       // -init released itself and returned nil; a constructor cannot, so it
       // raises what SetNode_slow() raises.
@@ -829,7 +831,7 @@ oo::Ref<Octree> OOOctreeBuilder::buildOctreeWithRadius(GLfloat radius) {
             "state.");
 
   size_t dataSize = _nodeCount * sizeof *_octree;
-  int* resized = (int*)realloc(_octree, dataSize);
+  int* resized = static_cast<int*>(realloc(_octree, dataSize));
   if (resized == nullptr) resized = _octree;
 
   /*	Copy the bytes into the data object, which will be used directly by
@@ -855,7 +857,7 @@ void OOOctreeBuilder::beginInnerNode() {
 
   // Insert relative offset to next free space.
   uint32_t newInsertionPoint = _nodeCount;
-  InsertNode(this, (int)_nodeCount - State(this)->insertionPoint);
+  InsertNode(this, static_cast<int>(_nodeCount) - State(this)->insertionPoint);
 
   /*
           Leave space for eight nodes.
@@ -911,8 +913,8 @@ void OOOctreeBuilder::SetNode_slow(OOOctreeBuilder* self, uint32_t index,
       MAX(self->_capacity * 2, (uint32_t)kMinimumBuilderCapacity);
   newCapacity = MAX(newCapacity, index + 1);
 
-  int* newBuffer =
-      (int*)realloc(self->_octree, newCapacity * sizeof *newBuffer);
+  int* newBuffer = static_cast<int*>(
+      realloc(self->_octree, newCapacity * sizeof *newBuffer));
   if (EXPECT_NOT(newBuffer == nullptr)) {
     OORaiseException(OOMallocException,
                      "Failed to allocate memory for octree.");

@@ -355,7 +355,7 @@ NSPoint OOJoystickSplineAxisProfile::pointAtIndex(std::ptrdiff_t index) {
   if (index < 0) {
     point.x = 0.0;
     point.y = 0.0;
-  } else if (index >= (std::ptrdiff_t)controlPoints_.size()) {
+  } else if (index >= static_cast<std::ptrdiff_t>(controlPoints_.size())) {
     point.x = 1.0;
     point.y = 1.0;
   } else {
@@ -428,7 +428,8 @@ bool OOJoystickSplineAxisProfile::makeSegments() {
 }
 
 void OOJoystickSplineAxisProfile::removeControl(std::ptrdiff_t index) {
-  if (index >= 0 && index < (std::ptrdiff_t)controlPoints_.size()) {
+  if (index >= 0 &&
+      index < static_cast<std::ptrdiff_t>(controlPoints_.size())) {
     controlPoints_.erase(controlPoints_.begin() + index);
     makeSegments();
   }
@@ -446,7 +447,8 @@ void OOJoystickSplineAxisProfile::moveControl(std::ptrdiff_t index,
 
   point.x = OOClamp_0_1_d(point.x);
   point.y = OOClamp_0_1_d(point.y);
-  if (index < 0 || index >= (std::ptrdiff_t)controlPoints_.size()) {
+  if (index < 0 ||
+      index >= static_cast<std::ptrdiff_t>(controlPoints_.size())) {
     return;
   }
   if (index == 0) {
@@ -455,7 +457,7 @@ void OOJoystickSplineAxisProfile::moveControl(std::ptrdiff_t index,
   } else {
     left = controlPoints_[index - 1];
   }
-  if (index == (std::ptrdiff_t)controlPoints_.size() - 1) {
+  if (index == static_cast<std::ptrdiff_t>(controlPoints_.size()) - 1) {
     right.x = 1.0;
     right.y = 1.0;
   } else {

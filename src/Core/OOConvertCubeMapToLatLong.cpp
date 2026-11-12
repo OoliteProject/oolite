@@ -48,22 +48,23 @@ OOPixMap OOConvertCubeMapToLatLong(OOPixMap sourcePixMap,
 
   height *= 2;
   OOPixMapDimension width = height * 2;
-  OOPixMap outPixMap = OOAllocatePixMap(width, height, (OOPixMapFormat)4, 0, 0);
+  OOPixMap outPixMap =
+      OOAllocatePixMap(width, height, static_cast<OOPixMapFormat>(4), 0, 0);
   if (!OOIsValidPixMap(outPixMap)) return kOONullPixMap;
 
   OOPixMapDimension x, y;
-  uint32_t* pixel = (uint32_t*)outPixMap.pixels;
+  uint32_t* pixel = static_cast<uint32_t*>(outPixMap.pixels);
   float fheight = height;
   float rheight = 1.0f / fheight;
 
   float halfSize = (sourcePixMap.width - 1) * 0.5f;
-  uint8_t* srcBytes = (uint8_t*)sourcePixMap.pixels;
+  uint8_t* srcBytes = static_cast<uint8_t*>(sourcePixMap.pixels);
 
   // Build tables of sin/cos of longitude.
   std::vector<float> sinTable(width);
   std::vector<float> cosTable(width);
   for (x = 0; x < width; x++) {
-    float lon = ((float)x * rheight) * kPiF;
+    float lon = (static_cast<float>(x) * rheight) * kPiF;
     sinTable[x] = sin(lon);
     cosTable[x] = cos(lon);
   }
@@ -141,7 +142,8 @@ OOPixMap OOConvertCubeMapToLatLong(OOPixMap sourcePixMap,
       // Look up pixel.
       iy += sourcePixMap.width * yOffset;
 
-      uint32_t* row = (uint32_t*)(srcBytes + iy * sourcePixMap.rowBytes);
+      uint32_t* row =
+          reinterpret_cast<uint32_t*>(srcBytes + iy * sourcePixMap.rowBytes);
       *pixel++ = row[ix];
     }
   }

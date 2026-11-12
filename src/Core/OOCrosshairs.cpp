@@ -86,9 +86,10 @@ void OOCrosshairs::setUpDataWithPoints(const oo::PList& points, GLfloat scale,
   _count = points.count();
   if (_count == 0) return;
 
-  _data = (GLfloat*)malloc(sizeof(GLfloat) * 12 *
-                           _count);  // 2 coordinates, 4 colour components for
-                                     // each endpoint of each line segment
+  _data = static_cast<GLfloat*>(
+      malloc(sizeof(GLfloat) * 12 *
+             _count));  // 2 coordinates, 4 colour components for
+                        // each endpoint of each line segment
   if (color != nullptr)
     color->getRed(&colorComps[0], &colorComps[1], &colorComps[2],
                   &colorComps[3]);

@@ -216,13 +216,13 @@ std::string cxx_OOPadStringToEms(const std::string& string, float padEms) {
   float numEms = padEms - cxx_OOStringWidthInEm(result);
   if (numEms > 0) {
     numEms /= cxx_OOStringWidthInEm(" ");  // start with wide space
-    result = std::string((std::size_t)numEms, ' ') + result;
+    result = std::string(static_cast<std::size_t>(numEms), ' ') + result;
   }
   // most of the way there, so switch to narrow space
   numEms = padEms - cxx_OOStringWidthInEm(result);
   if (numEms > 0) {
     numEms /= cxx_OOStringWidthInEm("\037");  // 037 is narrow space
-    result = std::string((std::size_t)numEms, '\037') + result;
+    result = std::string(static_cast<std::size_t>(numEms), '\037') + result;
   }
   return result;
 }
@@ -274,7 +274,7 @@ std::string cxx_OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits,
   OOJSRelinquishContext(context);
 
   if (EXPECT_NOT(!result.has_value()))
-    result = std::format("{}", (long)(tenthsOfCredits) / 10);
+    result = std::format("{}", static_cast<long>(tenthsOfCredits) / 10);
 
   reentrancyLock = false;
 

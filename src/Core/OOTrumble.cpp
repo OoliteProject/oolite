@@ -66,8 +66,8 @@ void OOTrumble::setupForPlayer(::PlayerEntity* p1,
   player = p1;
 
   // set color points
-  int r0 = (int)digram[0];
-  int r1 = (int)digram[1];
+  int r0 = static_cast<int>(digram[0]);
+  int r1 = static_cast<int>(digram[1]);
   int pointscheme[6] = {1, 1, 0, 0, 1, 1};
   int ps = r0 >> 2;  // first digram determines pattern of points
   pointscheme[0] = (ps >> 3) & 1;
@@ -108,12 +108,12 @@ void OOTrumble::setupForPlayer(::PlayerEntity* p1,
     else
       col2 = ranrot_rand() & 7;
   }
-  c1[0] = (GLfloat)(col1 & 1);
-  c1[1] = (GLfloat)((col1 >> 1) & 1);
-  c1[2] = (GLfloat)((col1 >> 2) & 1);
-  c2[0] = (GLfloat)(col2 & 1);
-  c2[1] = (GLfloat)((col2 >> 1) & 1);
-  c2[2] = (GLfloat)((col2 >> 2) & 1);
+  c1[0] = static_cast<GLfloat>(col1 & 1);
+  c1[1] = static_cast<GLfloat>((col1 >> 1) & 1);
+  c1[2] = static_cast<GLfloat>((col1 >> 2) & 1);
+  c2[0] = static_cast<GLfloat>(col2 & 1);
+  c2[1] = static_cast<GLfloat>((col2 >> 1) & 1);
+  c2[2] = static_cast<GLfloat>((col2 >> 2) & 1);
   if (col1 == 0) {
     c1[0] = 0.5 + 0.1 * c2[1];
     c1[1] = 0.5 + 0.1 * c2[2];
@@ -526,11 +526,11 @@ void OOTrumble::updateTrumble(double delta_t) {
     ::ShipEntity* selectedCargopod = nullptr;
     float mostYummy = 0.0;
     std::vector<oo::EntityHold>* cargopods =
-        (player != nullptr
-             ? player->getCargo()
-             : (std::vector<oo::EntityHold>*)nullptr);  // the cargo pods (live:
-                                                        // eaten ones are
-                                                        // removed)
+        (player != nullptr ? player->getCargo()
+                           : static_cast<std::vector<oo::EntityHold>*>(
+                                 nullptr));  // the cargo pods (live:
+                                             // eaten ones are
+                                             // removed)
     std::size_t i, n_pods = cargopods != nullptr ? cargopods->size() : 0;
     for (i = 0; i < n_pods; i++) {
       ::ShipEntity* cargopod = oo::ToShip((*cargopods)[i].get());

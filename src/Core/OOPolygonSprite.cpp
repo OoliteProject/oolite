@@ -311,13 +311,15 @@ bool OOPolygonSprite::loadPolygons(const oo::PList& dataArray,
 
   /*** Tesselate polygon fill ***/
   gluTessCallback(tesselator, GLU_TESS_BEGIN_DATA,
-                  (TessFuncPtr)TessBeginCallback);
+                  reinterpret_cast<TessFuncPtr>(TessBeginCallback));
   gluTessCallback(tesselator, GLU_TESS_VERTEX_DATA,
-                  (TessFuncPtr)TessVertexCallback);
-  gluTessCallback(tesselator, GLU_TESS_END_DATA, (TessFuncPtr)TessEndCallback);
-  gluTessCallback(tesselator, GLU_TESS_ERROR_DATA, (TessFuncPtr)ErrorCallback);
+                  reinterpret_cast<TessFuncPtr>(TessVertexCallback));
+  gluTessCallback(tesselator, GLU_TESS_END_DATA,
+                  reinterpret_cast<TessFuncPtr>(TessEndCallback));
+  gluTessCallback(tesselator, GLU_TESS_ERROR_DATA,
+                  reinterpret_cast<TessFuncPtr>(ErrorCallback));
   gluTessCallback(tesselator, GLU_TESS_COMBINE_DATA,
-                  (TessFuncPtr)TessCombineCallback);
+                  reinterpret_cast<TessFuncPtr>(TessCombineCallback));
 
   gluTessBeginPolygon(tesselator, &polygonData);
   SVGDumpBeginGroup(&polygonData, "Fill");
@@ -336,8 +338,8 @@ bool OOPolygonSprite::loadPolygons(const oo::PList& dataArray,
     _solidCount = polygonData.count;
 
     if (_solidCount != 0) {
-      _solidData = (GLfloat*)realloc(polygonData.data,
-                                     polygonData.count * sizeof(GLfloat) * 2);
+      _solidData = static_cast<GLfloat*>(
+          realloc(polygonData.data, polygonData.count * sizeof(GLfloat) * 2));
       if (_solidData != nullptr)
         polygonData.data = nullptr;  // realloc succeded.
       else {
@@ -371,13 +373,15 @@ bool OOPolygonSprite::loadPolygons(const oo::PList& dataArray,
 #endif
 
   gluTessCallback(tesselator, GLU_TESS_BEGIN_DATA,
-                  (TessFuncPtr)TessBeginCallback);
+                  reinterpret_cast<TessFuncPtr>(TessBeginCallback));
   gluTessCallback(tesselator, GLU_TESS_VERTEX_DATA,
-                  (TessFuncPtr)TessVertexCallback);
-  gluTessCallback(tesselator, GLU_TESS_END_DATA, (TessFuncPtr)TessEndCallback);
-  gluTessCallback(tesselator, GLU_TESS_ERROR_DATA, (TessFuncPtr)ErrorCallback);
+                  reinterpret_cast<TessFuncPtr>(TessVertexCallback));
+  gluTessCallback(tesselator, GLU_TESS_END_DATA,
+                  reinterpret_cast<TessFuncPtr>(TessEndCallback));
+  gluTessCallback(tesselator, GLU_TESS_ERROR_DATA,
+                  reinterpret_cast<TessFuncPtr>(ErrorCallback));
   gluTessCallback(tesselator, GLU_TESS_COMBINE_DATA,
-                  (TessFuncPtr)TessCombineCallback);
+                  reinterpret_cast<TessFuncPtr>(TessCombineCallback));
   gluTessProperty(tesselator, GLU_TESS_WINDING_RULE, GLU_TESS_WINDING_POSITIVE);
 
   gluTessBeginPolygon(tesselator, &polygonData);
@@ -403,8 +407,8 @@ bool OOPolygonSprite::loadPolygons(const oo::PList& dataArray,
   if (polygonData.OK) {
     if (polygonData.count != 0) {
       _outlineCount = polygonData.count;
-      _outlineData = (GLfloat*)realloc(polygonData.data,
-                                       polygonData.count * sizeof(GLfloat) * 2);
+      _outlineData = static_cast<GLfloat*>(
+          realloc(polygonData.data, polygonData.count * sizeof(GLfloat) * 2));
       if (_outlineData != nullptr)
         polygonData.data = nullptr;  // realloc succeded.
       else {
@@ -614,14 +618,14 @@ static bool GrowTessPolygonData(TessPolygonData* data, size_t capacityHint) {
   size_t minCapacity = data->capacity + 1;
   size_t desiredCapacity = MAX(capacityHint, minCapacity);
   size_t newCapacity = 0;
-  GLfloat* newData =
-      (GLfloat*)realloc(data->data, desiredCapacity * sizeof(GLfloat) * 2);
+  GLfloat* newData = static_cast<GLfloat*>(
+      realloc(data->data, desiredCapacity * sizeof(GLfloat) * 2));
   if (newData != nullptr) {
     newCapacity = desiredCapacity;
   } else {
     desiredCapacity = minCapacity;
-    newData =
-        (GLfloat*)realloc(data->data, desiredCapacity * sizeof(GLfloat) * 2);
+    newData = static_cast<GLfloat*>(
+        realloc(data->data, desiredCapacity * sizeof(GLfloat) * 2));
     if (newData != nullptr) newCapacity = desiredCapacity;
   }
 
@@ -648,7 +652,7 @@ static bool AppendVertex(TessPolygonData* data, NSPoint vertex) {
 }
 
 static void APIENTRY TessBeginCallback(GLenum type, void* polygonData) {
-  TessPolygonData* data = (TessPolygonData*)polygonData;
+  TessPolygonData* data = static_cast<TessPolygonData*>(polygonData);
   OOCParameterAssert(data != nullptr);
 
   data->mode = type;
@@ -658,7 +662,7 @@ static void APIENTRY TessBeginCallback(GLenum type, void* polygonData) {
 }
 
 static void APIENTRY TessVertexCallback(void* vertexData, void* polygonData) {
-  TessPolygonData* data = (TessPolygonData*)polygonData;
+  TessPolygonData* data = static_cast<TessPolygonData*>(polygonData);
   const NSPoint* vertPoint = static_cast<const NSPoint*>(vertexData);
   OOCParameterAssert(vertPoint != nullptr && data != nullptr);
   if (!data->OK) return;
@@ -751,14 +755,14 @@ static void APIENTRY TessVertexCallback(void* vertexData, void* polygonData) {
 void APIENTRY TessCombineCallback(GLdouble coords[3], void* /*vertexData*/[4],
                                   GLfloat /*weight*/[4], void** outData,
                                   void* polygonData) {
-  TessPolygonData* data = (TessPolygonData*)polygonData;
+  TessPolygonData* data = static_cast<TessPolygonData*>(polygonData);
   NSPoint point = {coords[0], coords[1]};
   data->combinedVertices.push_back(std::make_unique<NSPoint>(point));
   *outData = data->combinedVertices.back().get();
 }
 
 static void APIENTRY TessEndCallback(void* polygonData) {
-  TessPolygonData* data = (TessPolygonData*)polygonData;
+  TessPolygonData* data = static_cast<TessPolygonData*>(polygonData);
   OOCParameterAssert(data != nullptr);
 
   data->mode = 0;
@@ -768,7 +772,7 @@ static void APIENTRY TessEndCallback(void* polygonData) {
 }
 
 static void APIENTRY ErrorCallback(GLenum error, void* polygonData) {
-  TessPolygonData* data = (TessPolygonData*)polygonData;
+  TessPolygonData* data = static_cast<TessPolygonData*>(polygonData);
   OOCParameterAssert(data != nullptr);
 
   std::string name;
@@ -776,7 +780,7 @@ static void APIENTRY ErrorCallback(GLenum error, void* polygonData) {
   name = std::format(" \"{}\"", data->name);
 #endif
 
-  char* errStr = (char*)gluErrorString(error);
+  const char* errStr = reinterpret_cast<const char*>(gluErrorString(error));
 
   OO_LOG("polygonSprite.tesselate.error",
          "Error {} ({}) while tesselating polygon{}.", errStr,

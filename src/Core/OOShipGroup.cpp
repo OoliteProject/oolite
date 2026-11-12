@@ -350,7 +350,7 @@ std::size_t OOShipGroup::updateCount() { return _updateCount; }
     OORaiseException(
         OOGenericException,
         "Collection <OOShipGroup: %p> was mutated while being enumerated.",
-        (void*)group);
+        static_cast<void*>(group));
   }
 
   while (enumerator->_index < group->_count) {

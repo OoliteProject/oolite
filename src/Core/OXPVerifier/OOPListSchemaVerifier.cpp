@@ -510,11 +510,11 @@ bool OOPListSchemaVerifier::verifyPList(
   } catch (...) {
     const auto exception = oo::CurrentOOException();
     if (!exception) throw;  // not an OOException: it goes on up, as before
-    error = Error(
-        OOPListSchemaVerifierErrorCode::kInternal, (BackLinkChain*)&keyPath,
-        "Uncaught exception %s: %s in plist verifier for \"%s\" at %s.",
-        exception->name(), exception->reason(), name.c_str(),
-        KeyPathToString(keyPath).c_str());
+    error =
+        Error(OOPListSchemaVerifierErrorCode::kInternal, &keyPath,
+              "Uncaught exception %s: %s in plist verifier for \"%s\" at %s.",
+              exception->name(), exception->reason(), name.c_str(),
+              KeyPathToString(keyPath).c_str());
   }
 
   DebugDumpPopIndent();
@@ -656,7 +656,7 @@ std::u16string SubstringToIndex(const std::u16string& units,
     OORaiseException(
         OORangeException,
         "in substringWithRange:, range { 0, %llu } extends beyond size (%llu)",
-        index, (unsigned long long)units.size());
+        index, static_cast<unsigned long long>(units.size()));
   }
   return units.substr(0, index);
 }
@@ -702,12 +702,12 @@ std::string ApplyStringFilter(
         result = oo::utf8ToUtf16(oo::str::capitalized(oo::utf16ToUtf8(result)));
       else if (oo::str::hasPrefix(*filter, "truncFront:")) {
         result = SubstringToIndex(
-            result, (unsigned long long)(std::size_t)oo::str::intValue(
-                        oo::utf16ToUtf8(argument(11))));
+            result, static_cast<unsigned long long>(static_cast<std::size_t>(
+                        oo::str::intValue(oo::utf16ToUtf8(argument(11))))));
       } else if (oo::str::hasPrefix(*filter, "truncBack:")) {
         result = SubstringToIndex(
-            result, (unsigned long long)(std::size_t)oo::str::intValue(
-                        oo::utf16ToUtf8(argument(10))));
+            result, static_cast<unsigned long long>(static_cast<std::size_t>(
+                        oo::str::intValue(oo::utf16ToUtf8(argument(10))))));
       } else if (oo::str::hasPrefix(*filter, "subStringTo:")) {
         const std::u16string sub = argument(12);
         const std::size_t location = FindSubString(result, sub);

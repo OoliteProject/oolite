@@ -41,7 +41,7 @@ static int32_t checksum;
 void clear_checksum() { checksum = 0; }
 
 int16_t munge_checksum(long long value_) {
-  uint32_t value = (uint32_t)value_;
+  uint32_t value = static_cast<uint32_t>(value_);
   int32_t mult1 = (value & 15) + 8;
   checksum += value;
   checksum *= mult1;
@@ -59,12 +59,12 @@ double cunningFee(double value, double precision) {
   double min = 1 - precision;
   unsigned long long rounded_fee = superfee * floor(0.5 + fee / superfee);
   if (rounded_fee == 0) rounded_fee = 1;
-  double ratio = fee / (double)rounded_fee;
+  double ratio = fee / static_cast<double>(rounded_fee);
 
   while ((ratio < min || ratio > max) && superfee > 1) {
     rounded_fee = superfee * floor(0.5 + fee / superfee);
     if (rounded_fee == 0) rounded_fee = 1;
-    ratio = fee / (double)rounded_fee;
+    ratio = fee / static_cast<double>(rounded_fee);
     superfee /= 10.0;
   }
 

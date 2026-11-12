@@ -92,10 +92,10 @@ ALuint OOALStreamedSound::soundBuffer() {
   } else {
     if (!_stereo) {
       alBufferData(buffer, AL_FORMAT_MONO16, _buffer.data(),
-                   (ALsizei)transferred, _sampleRate);
+                   static_cast<ALsizei>(transferred), _sampleRate);
     } else {
       alBufferData(buffer, AL_FORMAT_STEREO16, _buffer.data(),
-                   (ALsizei)transferred, _sampleRate);
+                   static_cast<ALsizei>(transferred), _sampleRate);
     }
     return buffer;
   }

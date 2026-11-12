@@ -342,10 +342,11 @@ void OOSkyDrawable::setUpNebulae(OOColor* color1, OOColor* color2,
 #if DEBUG_COLORS
       currQuad->color = DebugColor(vk);
 #else
-      currQuad->color = (color != nullptr)
-                            ? color->colorWithBrightnessFactor(
-                                  nebulaAlpha * (0.5f + (float)r1 / 32.0f))
-                            : nullptr;
+      currQuad->color =
+          (color != nullptr)
+              ? color->colorWithBrightnessFactor(
+                    nebulaAlpha * (0.5f + static_cast<float>(r1) / 32.0f))
+              : nullptr;
 #endif
       currQuad->texture = (sNebulaTextures != nullptr)
                               ? sNebulaTextures->selectTexture()
@@ -488,8 +489,8 @@ oo::Ref<OOSkyQuadSet> OOSkyQuadSet::initWithQuadsWithTexture(
   unsigned count = 0;
   // -integerForKey: gives 0 wherever get<std::ptrdiff_t>(key, 0) fell back to
   // the default.
-  int skyColorCorrection =
-      (int)oo::Defaults::standard().integerForKey("sky-color-correction");
+  int skyColorCorrection = static_cast<int>(
+      oo::Defaults::standard().integerForKey("sky-color-correction"));
 
 // Hejl / Burgess-Dawson filmic tone mapping
 // this algorithm has gamma correction already embedded
@@ -520,9 +521,9 @@ oo::Ref<OOSkyQuadSet> OOSkyQuadSet::initWithQuadsWithTexture(
     colSize =
         sizeof *self->_colors * vertexCount * kSkyQuadSetColorEntriesPerVertex;
 
-    self->_positions = (GLfloat*)malloc(posSize);
-    self->_texCoords = (GLfloat*)malloc(tcSize);
-    self->_colors = (GLfloat*)malloc(colSize);
+    self->_positions = static_cast<GLfloat*>(malloc(posSize));
+    self->_texCoords = static_cast<GLfloat*>(malloc(tcSize));
+    self->_colors = static_cast<GLfloat*>(malloc(colSize));
 
     if (self->_positions == nullptr || self->_texCoords == nullptr ||
         self->_colors == nullptr)

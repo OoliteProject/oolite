@@ -283,7 +283,7 @@ std::optional<std::string> OOMesh::descriptionComponents() const {
       "\"{}\", {} vertices, {} faces, radius: {:g} m normals: {}",
       modelName ? modelName->c_str() : "(null)", mesh->getVertexCount(),
       mesh->getFaceCount(), mesh->collisionRadius(),
-      NormalModeDescription((OOMeshNormalMode)_normalMode));
+      NormalModeDescription(static_cast<OOMeshNormalMode>(_normalMode)));
 }
 
 oo::Ref<OOMesh> OOMesh::copyWithZone(OOZone* zone) {
@@ -499,7 +499,7 @@ void OOMesh::rebindMaterials() {
             materialKeys[i], _cacheKey, _materialDict, _shadersDict,
             _shaderMacros,
             _shaderBindingTarget.get(),  // Windows DEP fix.
-            IsPerVertexNormalMode((OOMeshNormalMode)_normalMode));
+            IsPerVertexNormalMode(static_cast<OOMeshNormalMode>(_normalMode)));
       } else {
         material = nullptr;
       }
@@ -837,7 +837,8 @@ oo::Ref<OOMesh> OOMesh::mutableCopyWithZone(OOZone* /*zone*/) {
 oo::PList OOMesh::modelData() {
   OOJS_PROFILE_ENTER
 
-  bool includeNormals = IsPerVertexNormalMode((OOMeshNormalMode)_normalMode);
+  bool includeNormals =
+      IsPerVertexNormalMode(static_cast<OOMeshNormalMode>(_normalMode));
 
   // Prepare cache data elements.
   const auto vertData = _retainedObjects.find("vertices");
@@ -900,7 +901,8 @@ bool OOMesh::setModelFromModelData(const oo::PList& dict,
 
   const oo::PList* mtlKeys = dict.get<oo::PList::Array>("material keys");
   _normalMode = dict.get<unsigned char>("normal mode");
-  bool includeNormals = IsPerVertexNormalMode((OOMeshNormalMode)_normalMode);
+  bool includeNormals =
+      IsPerVertexNormalMode(static_cast<OOMeshNormalMode>(_normalMode));
 
   // Ensure we have all the required data elements.
   if (vertData == nullptr || faceData == nullptr || mtlKeys == nullptr) {
@@ -939,21 +941,18 @@ bool OOMesh::setModelFromModelData(const oo::PList& dict,
   // Retain data: each is copied into a buffer of this mesh's, and the pointers
   // taken from it.
   setRetainedObject(*vertData->getIf<oo::PList::Data>(), "vertices");
-  _vertices =
-      (Vector*)_retainedObjects.find("vertices")->second->data().mutableBytes();
+  _vertices = reinterpret_cast<Vector*>(
+      _retainedObjects.find("vertices")->second->data().mutableBytes());
   setRetainedObject(*faceData->getIf<oo::PList::Data>(), "faces");
-  _faces = (OOMeshFace*)_retainedObjects.find("faces")
-               ->second->data()
-               .mutableBytes();
+  _faces = reinterpret_cast<OOMeshFace*>(
+      _retainedObjects.find("faces")->second->data().mutableBytes());
   if (includeNormals) {
     setRetainedObject(*normData->getIf<oo::PList::Data>(), "normals");
-    _normals = (Vector*)_retainedObjects.find("normals")
-                   ->second->data()
-                   .mutableBytes();
+    _normals = reinterpret_cast<Vector*>(
+        _retainedObjects.find("normals")->second->data().mutableBytes());
     setRetainedObject(*tanData->getIf<oo::PList::Data>(), "tangents");
-    _tangents = (Vector*)_retainedObjects.find("tangents")
-                    ->second->data()
-                    .mutableBytes();
+    _tangents = reinterpret_cast<Vector*>(
+        _retainedObjects.find("tangents")->second->data().mutableBytes());
   } else {
     _normals = nullptr;
     _tangents = nullptr;
@@ -1192,7 +1191,7 @@ bool OOMesh::loadData(const std::string& filename, float scale) {
 
           if (!failFlag) {
             int vi;
-            for (i = 0; (int)i < n_v; i++) {
+            for (i = 0; static_cast<int>(i) < n_v; i++) {
               if (scanner->scanInt(&vi)) {
                 _faces[j].vertex[i] = vi;
                 if (faceRefs != nullptr) VFRAddFace(&faceRefs[vi], j);
@@ -1292,7 +1291,7 @@ bool OOMesh::loadData(const std::string& filename, float scale) {
 
     if (scanner->scanString("NAMES")) {
       unsigned int count;
-      if (!scanner->scanInt((int*)&count)) {
+      if (!scanner->scanInt(reinterpret_cast<int*>(&count))) {
         failFlag = true;
         failString += "Expected count after NAMES\n";
       } else {
@@ -1362,7 +1361,7 @@ bool OOMesh::loadData(const std::string& filename, float scale) {
 
     PROFILE("finished parsing");
 
-    if (IsLegacyNormalMode((OOMeshNormalMode)_normalMode)) {
+    if (IsLegacyNormalMode(static_cast<OOMeshNormalMode>(_normalMode))) {
       checkNormalsAndAdjustWinding();
       PROFILE("finished checkNormalsAndAdjustWinding");
     }
@@ -1383,7 +1382,8 @@ bool OOMesh::loadData(const std::string& filename, float scale) {
       calculateVertexNormalsAndTangentsWithFaceRefs(faceRefs);
       PROFILE("finished calculateVertexNormalsAndTangents");
 
-    } else if (IsPerVertexNormalMode((OOMeshNormalMode)_normalMode) &&
+    } else if (IsPerVertexNormalMode(
+                   static_cast<OOMeshNormalMode>(_normalMode)) &&
                !explicitTangents) {
       calculateVertexTangentsWithFaceRefs(faceRefs);
       PROFILE("finished calculateVertexTangents");
@@ -1491,7 +1491,8 @@ bool OOMesh::setUpVertexArrays() {
       if (_faces[fi].materialIndex == mi) {
         for (vi = 0; vi < 3; vi++) {
           int v = _faces[fi].vertex[vi];
-          if (IsPerVertexNormalMode((OOMeshNormalMode)_normalMode)) {
+          if (IsPerVertexNormalMode(
+                  static_cast<OOMeshNormalMode>(_normalMode))) {
             if (is_edge_vertex[v]) {
               getNormal(&normal, &tangent, v, _faces[fi].smoothGroup);
             } else {
@@ -1602,36 +1603,36 @@ void* OOMesh::allocateBytesWithSize(size_t size, std::size_t count,
 }
 
 bool OOMesh::allocateVertexBuffersWithCount(std::size_t /*count*/) {
-  _vertices = (Vector*)allocateBytesWithSize(sizeof *_vertices, vertexCount,
-                                             "vertices");
+  _vertices = static_cast<Vector*>(
+      allocateBytesWithSize(sizeof *_vertices, vertexCount, "vertices"));
   return _vertices != nullptr;
 }
 
 bool OOMesh::allocateNormalBuffersWithCount(std::size_t /*count*/) {
-  _normals =
-      (Vector*)allocateBytesWithSize(sizeof *_normals, vertexCount, "normals");
-  _tangents = (Vector*)allocateBytesWithSize(sizeof *_tangents, vertexCount,
-                                             "tangents");
+  _normals = static_cast<Vector*>(
+      allocateBytesWithSize(sizeof *_normals, vertexCount, "normals"));
+  _tangents = static_cast<Vector*>(
+      allocateBytesWithSize(sizeof *_tangents, vertexCount, "tangents"));
   return _normals != nullptr && _tangents != nullptr;
 }
 
 bool OOMesh::allocateFaceBuffersWithCount(std::size_t /*count*/) {
-  _faces =
-      (OOMeshFace*)allocateBytesWithSize(sizeof *_faces, faceCount, "faces");
+  _faces = static_cast<OOMeshFace*>(
+      allocateBytesWithSize(sizeof *_faces, faceCount, "faces"));
   return _faces != nullptr;
 }
 
 bool OOMesh::allocateVertexArrayBuffersWithCount(std::size_t count) {
-  _displayLists.indexArray = (GLint*)allocateBytesWithSize(
-      sizeof *_displayLists.indexArray, count * 3, "indexArray");
-  _displayLists.textureUVArray = (GLfloat*)allocateBytesWithSize(
-      sizeof *_displayLists.textureUVArray, count * 6, "textureUVArray");
-  _displayLists.vertexArray = (Vector*)allocateBytesWithSize(
-      sizeof *_displayLists.vertexArray, count * 3, "vertexArray");
-  _displayLists.normalArray = (Vector*)allocateBytesWithSize(
-      sizeof *_displayLists.normalArray, count * 3, "normalArray");
-  _displayLists.tangentArray = (Vector*)allocateBytesWithSize(
-      sizeof *_displayLists.tangentArray, count * 3, "tangentArray");
+  _displayLists.indexArray = static_cast<GLint*>(allocateBytesWithSize(
+      sizeof *_displayLists.indexArray, count * 3, "indexArray"));
+  _displayLists.textureUVArray = static_cast<GLfloat*>(allocateBytesWithSize(
+      sizeof *_displayLists.textureUVArray, count * 6, "textureUVArray"));
+  _displayLists.vertexArray = static_cast<Vector*>(allocateBytesWithSize(
+      sizeof *_displayLists.vertexArray, count * 3, "vertexArray"));
+  _displayLists.normalArray = static_cast<Vector*>(allocateBytesWithSize(
+      sizeof *_displayLists.normalArray, count * 3, "normalArray"));
+  _displayLists.tangentArray = static_cast<Vector*>(allocateBytesWithSize(
+      sizeof *_displayLists.tangentArray, count * 3, "tangentArray"));
 
   return _faces != nullptr && _displayLists.indexArray != nullptr &&
          _displayLists.textureUVArray != nullptr &&

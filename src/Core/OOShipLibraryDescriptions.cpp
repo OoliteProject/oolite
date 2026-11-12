@@ -143,8 +143,8 @@ std::string OOShipLibraryWitchspace(ShipEntity* demo_ship) {
 }
 
 std::string OOShipLibraryWeapons(ShipEntity* demo_ship) {
-  OOWeaponFacingSet facings =
-      demo_ship ? demo_ship->weaponFacings() : OOWeaponFacingSet(0);
+  OOWeaponFacingSet facings = demo_ship ? demo_ship->weaponFacings()
+                                        : static_cast<OOWeaponFacingSet>(0);
   std::size_t fixed =
       (facings & 1) + (facings & 2) / 2 + (facings & 4) / 4 + (facings & 8) / 8;
   std::size_t pylons = (demo_ship ? demo_ship->missileCapacity() : 0);
@@ -169,7 +169,7 @@ std::string OOShipLibrarySize(ShipEntity* demo_ship) {
   BoundingBox bb = {};
   if (demo_ship) bb = demo_ship->totalBoundingBox;
   return oo::str::format(OO_DESC("oolite-ship-library-size-u-u-u").c_str(),
-                         (unsigned)(bb.max.x - bb.min.x),
-                         (unsigned)(bb.max.y - bb.min.y),
-                         (unsigned)(bb.max.z - bb.min.z));
+                         static_cast<unsigned>(bb.max.x - bb.min.x),
+                         static_cast<unsigned>(bb.max.y - bb.min.y),
+                         static_cast<unsigned>(bb.max.z - bb.min.z));
 }

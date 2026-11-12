@@ -507,6 +507,7 @@ std::string OORGBAComponentsDescription(OORGBAComponents components) {
 }
 
 std::string OOHSBAComponentsDescription(OOHSBAComponents components) {
-  return std::format("{{{}, {:.3g}, {:.3g}, {:.3g}}}", (int)components.h,
-                     components.s, components.b, components.a);
+  return std::format("{{{}, {:.3g}, {:.3g}, {:.3g}}}",
+                     static_cast<int>(components.h), components.s, components.b,
+                     components.a);
 }

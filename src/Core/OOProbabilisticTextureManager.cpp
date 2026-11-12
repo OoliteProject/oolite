@@ -92,11 +92,11 @@ bool OOProbabilisticTextureManager::initWithPListName(
   if (OK) {
     count = config.count();
 
-    _textures = (OOTexture**)malloc(sizeof *_textures * count);
-    _prob = (float*)malloc(sizeof *_prob * count);
-    _galaxy = (int*)malloc(sizeof *_galaxy * count);
-    _probMaxGal =
-        (float*)malloc(sizeof *_probMaxGal * (kOOMaximumGalaxyID + 1));
+    _textures = static_cast<OOTexture**>(malloc(sizeof *_textures * count));
+    _prob = static_cast<float*>(malloc(sizeof *_prob * count));
+    _galaxy = static_cast<int*>(malloc(sizeof *_galaxy * count));
+    _probMaxGal = static_cast<float*>(
+        malloc(sizeof *_probMaxGal * (kOOMaximumGalaxyID + 1)));
 
     if (_textures == nullptr || _prob == nullptr || _galaxy == nullptr)
       OK = false;
@@ -183,10 +183,9 @@ OOTexture* OOProbabilisticTextureManager::selectTexture() {
   float selection;
   unsigned i;
   int hold = -1;
-  int galID =
-      (int)(PLAYER != nullptr ? PLAYER->PlayerEntity::currentGalaxyID()
-                              : 0);  // qualified: the final overrider, so the
-                                     // binding test stands in for it
+  int galID = (PLAYER != nullptr ? PLAYER->PlayerEntity::currentGalaxyID()
+                                 : 0);  // qualified: the final overrider, so
+                                        // the binding test stands in for it
 
   selection = randfWithSeed(&_seed);
 

@@ -246,12 +246,12 @@ GameController::GameController() {
     // Unset to keep wall-clock seeding.
     const char* seedEnv = getenv("OO_RANDOM_SEED");
     if (seedEnv != nullptr && *seedEnv != '\0') {
-      ranrot_srand((uint32_t)strtoul(seedEnv, nullptr, 10));
+      ranrot_srand(static_cast<uint32_t>(strtoul(seedEnv, nullptr, 10)));
       OO_LOG("rand.seed", "RANROT seeded from OO_RANDOM_SEED={}", seedEnv);
     } else {
-      ranrot_srand(
-          (uint32_t)oo::date::timeIntervalSince1970());  // reset randomiser
-                                                         // with current time
+      ranrot_srand(static_cast<uint32_t>(
+          oo::date::timeIntervalSince1970()));  // reset randomiser
+                                                // with current time
     }
 
     _splashStart = oo::date::monotonicSeconds();
@@ -517,8 +517,8 @@ void GameController::runFrameLoop() {
 #if OOLITE_WINDOWS
             Sleep((DWORD)ceil(remaining * 1000.0));
 #else
-            std::this_thread::sleep_for(
-                std::chrono::milliseconds((long long)ceil(remaining * 1000.0)));
+            std::this_thread::sleep_for(std::chrono::milliseconds(
+                static_cast<long long>(ceil(remaining * 1000.0))));
 #endif
           }
         }
