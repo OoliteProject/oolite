@@ -1188,7 +1188,7 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
         if ([name length] > 42)
             name = [[name substringToIndex:40] stringByAppendingString:@"..."];
 
-        damaged = !oo::PListView(info).at<BOOL>(1);
+        damaged = !oo::PListView(info).at<bool>(1);
         if (damaged) {
             // Damaged items show up orange.
             [self setGLColorFromSetting:@"status_equipment_damaged_color" defaultValue:[OOColor orangeColor] alpha:1.0];
@@ -1667,7 +1667,7 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
         for (i = 0; i < 256; i++) {
 
             NSDictionary* sys_info = [UNIVERSE generateSystemData:i];
-            if (EXPECT_NOT(oo::PListView(sys_info).get<BOOL>(@"sun_gone_nova"))) {
+            if (EXPECT_NOT(oo::PListView(sys_info).get<bool>(@"sun_gone_nova"))) {
                 nearby_systems[num_nearby_systems].gov = -1; // Flag up nova systems!
             } else {
                 nearby_systems[num_nearby_systems].tec = oo::PListView(sys_info).get<int>(KEY_TECHLEVEL);
@@ -1676,7 +1676,7 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
             }
             nearby_systems[num_nearby_systems].sysid = i;
             nearby_systems[num_nearby_systems].p_name = [oo::PListView(sys_info).get<NSString*>(KEY_NAME) retain];
-            nearby_systems[num_nearby_systems].nova = oo::PListView([UNIVERSE generateSystemData:i]).get<BOOL>(@"sun_gone_nova");
+            nearby_systems[num_nearby_systems].nova = oo::PListView([UNIVERSE generateSystemData:i]).get<bool>(@"sun_gone_nova");
             num_nearby_systems++;
         }
         saved_galaxy_id = [player galaxyNumber];

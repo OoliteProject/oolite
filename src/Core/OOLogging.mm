@@ -360,10 +360,10 @@ static void LoadExplicitSettings(void)
     // Load display settings.
     NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
     oo::log::Options options;
-    options.showFunction = oo::PListView(prefs).get<BOOL>(@"logging-show-function", NO);
-    options.showFileAndLine = oo::PListView(prefs).get<BOOL>(@"logging-show-file-and-line", NO);
-    options.showTime = oo::PListView(prefs).get<BOOL>(@"logging-show-time", YES);
-    options.showClass = oo::PListView(prefs).get<BOOL>(@"logging-show-class", YES);
+    options.showFunction = oo::PListView(prefs).get<bool>(@"logging-show-function", NO);
+    options.showFileAndLine = oo::PListView(prefs).get<bool>(@"logging-show-file-and-line", NO);
+    options.showTime = oo::PListView(prefs).get<bool>(@"logging-show-time", YES);
+    options.showClass = oo::PListView(prefs).get<bool>(@"logging-show-class", YES);
     oo::log::logger().setOptions(options);
 
     /*

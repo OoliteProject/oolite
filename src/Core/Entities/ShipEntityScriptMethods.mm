@@ -74,7 +74,7 @@ static NSString* const kOOLogNoteAddShips = @"script.debug.note.addShips";
         spawned = [UNIVERSE spawnShipWithRole:role near:ship];
         if (spawned != nil) {
             [spawned setTemperature:[self randomEjectaTemperature]];
-            if ([self isMissileFlagSet] && oo::PListView([spawned shipInfoDictionary]).get<BOOL>(@"is_submunition")) {
+            if ([self isMissileFlagSet] && oo::PListView([spawned shipInfoDictionary]).get<bool>(@"is_submunition")) {
                 [spawned setOwner:[self owner]];
                 [spawned addTarget:[self primaryTarget]];
                 [spawned setIsMissileFlag:YES];

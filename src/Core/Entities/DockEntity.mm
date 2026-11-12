@@ -351,7 +351,7 @@ MA 02110-1301, USA.
     docking_stage = oo::PListView(nextCoords).get<int>(@"docking_stage");
     speedAdvised = oo::PListView(nextCoords).get<float>(@"speed");
     rangeAdvised = oo::PListView(nextCoords).get<float>(@"range");
-    BOOL match_rotation = oo::PListView(nextCoords).get<BOOL>(@"match_rotation");
+    BOOL match_rotation = oo::PListView(nextCoords).get<bool>(@"match_rotation");
     NSString* comms_message = oo::PListView(nextCoords).get<NSString*>(@"comms_message");
 
     if (comms_message) {

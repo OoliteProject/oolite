@@ -550,7 +550,7 @@
                 [self removeTarget:[self primaryTarget]];
             }
         }
-        docking_match_rotation = oo::PListView(dockingInstructions).get<BOOL>(@"match_rotation"); // NOLINT(bugprone-signed-char-misuse): BOOL bitfield assign, pre-existing; behaviour unchanged by this retarget.
+        docking_match_rotation = oo::PListView(dockingInstructions).get<bool>(@"match_rotation"); // NOLINT(bugprone-signed-char-misuse): BOOL bitfield assign, pre-existing; behaviour unchanged by this retarget.
     }
 }
 

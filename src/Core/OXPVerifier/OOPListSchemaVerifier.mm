@@ -908,7 +908,7 @@ static NSError* Verify_Dictionary(OOPListSchemaVerifier* verifier, id value, NSD
     // Get schema.
     schema = oo::PListView(params).get<NSDictionary*>(@"schema");
     valueType = [params objectForKey:@"valueType"];
-    allowOthers = oo::PListView(params).get<BOOL>(@"allowOthers", YES);
+    allowOthers = oo::PListView(params).get<bool>(@"allowOthers", YES);
     requiredKeyList = oo::PListView(params).get<NSArray*>(@"requiredKeys");
 
     // If these conditions are met, all members must pass:

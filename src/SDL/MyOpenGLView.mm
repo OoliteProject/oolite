@@ -131,7 +131,7 @@ extern "C" int SaveEXRSnapshot(const char* outfilename, int width, int height, c
      * doesn't give any problems (other than speed on low-end graphics
      * cards) a game options entry might be useful. - CIM, 24 Aug 2013*/
 
-    if (oo::PListView(prefs).get<BOOL>(@"anti-aliasing", NO)) {
+    if (oo::PListView(prefs).get<bool>(@"anti-aliasing", NO)) {
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
     }
@@ -315,9 +315,9 @@ extern "C" int SaveEXRSnapshot(const char* outfilename, int width, int height, c
     // SDL splash screen  settings
 
     NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
-    showSplashScreen = oo::PListView(prefs).get<BOOL>(@"splash-screen", YES);
-    vSyncPreference = oo::PListView(prefs).get<BOOL>(@"v-sync", YES);
-    bitsPerColorComponent = oo::PListView(prefs).get<BOOL>(@"hdr", NO) ? 16 : 8;
+    showSplashScreen = oo::PListView(prefs).get<bool>(@"splash-screen", YES);
+    vSyncPreference = oo::PListView(prefs).get<bool>(@"v-sync", YES);
+    bitsPerColorComponent = oo::PListView(prefs).get<bool>(@"hdr", NO) ? 16 : 8;
 
     NSString* arg = nil;
     BOOL noSplashArgFound = NO;

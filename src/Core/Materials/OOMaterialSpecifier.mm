@@ -231,7 +231,7 @@ NSString* const kOOMaterialLightMapsName = @"light_map";
 
 - (BOOL)oo_gammaCorrect
 {
-    return oo::PListView(self).get<BOOL>(kOOMaterialGammaCorrectName, ![[NSUserDefaults standardUserDefaults] boolForKey:@"no-gamma-correct"]);
+    return oo::PListView(self).get<bool>(kOOMaterialGammaCorrectName, ![[NSUserDefaults standardUserDefaults] boolForKey:@"no-gamma-correct"]);
 }
 
 - (float)oo_gloss

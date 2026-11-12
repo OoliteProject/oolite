@@ -182,7 +182,7 @@ static NSString* MacrosToString(NSDictionary* macros);
 			if (shaderProgram == nil)
 			{
 
-				BOOL canFallBack = !oo::PListView(modifiedMacros).get<BOOL>(@"OO_REDUCED_COMPLEXITY");
+				BOOL canFallBack = !oo::PListView(modifiedMacros).get<bool>(@"OO_REDUCED_COMPLEXITY");
 #ifdef OO_DEBUG_MONITOR_ENABLED
 				if (gDebugFlags & DEBUG_NO_SHADER_FALLBACK)  canFallBack = NO;
 #endif
@@ -250,7 +250,7 @@ static NSString* MacrosToString(NSDictionary* macros);
         }
 
         if (![uniforms objectForKey:@"uGammaCorrect"]) {
-            BOOL gammaCorrect = oo::PListView(configuration).get<BOOL>(@"gamma_correct", ![[NSUserDefaults standardUserDefaults] boolForKey:@"no-gamma-correct"]);
+            BOOL gammaCorrect = oo::PListView(configuration).get<bool>(@"gamma_correct", ![[NSUserDefaults standardUserDefaults] boolForKey:@"no-gamma-correct"]);
             [self setUniform:@"uGammaCorrect" floatValue:(float)gammaCorrect];
         }
     }
@@ -552,7 +552,7 @@ static NSString* MacrosToString(NSDictionary* macros);
             gotValue = YES;
         } else if ([type isEqualToString:@"quaternion"]) {
             if ([definition isKindOfClass:[NSDictionary class]]) {
-                quatAsMatrix = oo::PListView(definition).get<BOOL>(@"asMatrix", quatAsMatrix);
+                quatAsMatrix = oo::PListView(definition).get<bool>(@"asMatrix", quatAsMatrix);
             }
             [self setUniform:name
                 quaternionValue:OOQuaternionFromObject(value, kIdentityQuaternion)
@@ -561,14 +561,14 @@ static NSString* MacrosToString(NSDictionary* macros);
         } else if (target != nil && [type isEqualToString:@"binding"]) {
             if ([definition isKindOfClass:[NSDictionary class]]) {
                 convertOptions = 0;
-                if (oo::PListView(definition).get<BOOL>(@"clamped", NO))
+                if (oo::PListView(definition).get<bool>(@"clamped", NO))
                     convertOptions |= kOOUniformConvertClamp;
-                if (oo::PListView(definition).get<BOOL>(@"normalized", oo::PListView(definition).get<BOOL>(@"normalised", NO))) {
+                if (oo::PListView(definition).get<bool>(@"normalized", oo::PListView(definition).get<bool>(@"normalised", NO))) {
                     convertOptions |= kOOUniformConvertNormalize;
                 }
-                if (oo::PListView(definition).get<BOOL>(@"asMatrix", YES))
+                if (oo::PListView(definition).get<bool>(@"asMatrix", YES))
                     convertOptions |= kOOUniformConvertToMatrix;
-                if (!oo::PListView(definition).get<BOOL>(@"bindToSubentity", NO))
+                if (!oo::PListView(definition).get<bool>(@"bindToSubentity", NO))
                     convertOptions |= kOOUniformBindToSuperTarget;
             } else {
                 convertOptions = kOOUniformConvertDefaults;

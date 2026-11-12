@@ -118,7 +118,7 @@ enum {
 #else
         _planetScale = kPlanetScale4096x4096;
 #endif
-        _info.perlin3d = oo::PListView(planetInfo).get<BOOL>(@"perlin_3d", detailLevel > DETAIL_LEVEL_SHADERS);
+        _info.perlin3d = oo::PListView(planetInfo).get<bool>(@"perlin_3d", detailLevel > DETAIL_LEVEL_SHADERS);
         _info.planetAspectRatio = _info.perlin3d ? 2 : 1;
         _info.planetScaleOffset = 8 - _info.planetAspectRatio;
     }

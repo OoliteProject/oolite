@@ -111,7 +111,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
             // Since this is new for 1.75.1, we must give it a default values as we could be loading an old savegame
             estimated_arrival_time = oo::PListView(dict).get<double>(@"estimated_arrival_time", arrival_time);
             position = oo::PListView(dict).get<HPVector>(@"position");
-            _misjump = oo::PListView(dict).get<BOOL>(@"misjump", NO);
+            _misjump = oo::PListView(dict).get<bool>(@"misjump", NO);
 
             // Setup shipsInTransit
             NSArray* shipDictsArray = oo::PListView(dict).get<NSArray*>(@"ships");
