@@ -815,10 +815,8 @@ static constexpr char kCompiledScriptKeyHash[] = "source hash";
 static constexpr char kCompiledScriptKeyEngine[] = "engine";
 static constexpr char kCompiledScriptKeyFormat[] = "format";
 static constexpr char kCompiledScriptKeyBytecode[] = "bytecode";
-enum {
-  kCompiledScriptFormat =
-      1  // Increment when the compiled text or the way it is run changes.
-};
+// Increment when the compiled text or the way it is run changes.
+constexpr int kCompiledScriptFormat = 1;
 
 // 64-bit FNV-1a and length. Only needs to detect changed source, not resist
 // tampering.

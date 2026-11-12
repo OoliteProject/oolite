@@ -742,7 +742,7 @@ void OODebugTCPConsoleClient::sendPacket(const std::string& packetType,
 }
 
 void OODebugTCPConsoleClient::readData() {
-  enum { kBufferSize = 16 << 10 };
+  constexpr std::size_t kBufferSize = 16 << 10;
 
   uint8_t buffer[kBufferSize];
   std::ptrdiff_t length;

@@ -75,7 +75,7 @@ static JSValue OoliteCompareVersion(OOJS_NATIVE_ARGS);
    implements a superset of ES5. jsVersionString was "1.8.5"; it now names the
    engine.
 */
-enum { kOOJSCompatibleJSVersion = 185 };
+constexpr int32_t kOOJSCompatibleJSVersion = 185;
 
 static JSClassID sOoliteClassID;
 static JSClassDef sOoliteClass = {

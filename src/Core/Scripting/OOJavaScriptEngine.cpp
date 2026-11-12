@@ -1377,7 +1377,7 @@ static std::string DescribeValue(JSContext* context, JSValueConst value,
 
   if (JS_IsString(value) ||
       (classID != JS_INVALID_CLASS_ID && classID == gOOJSStringClassID)) {
-    enum { kMaxLength = 200 };
+    constexpr std::size_t kMaxLength = 200;
 
     // Truncated to kMaxLength UTF-16 units.
     const std::u16string units = oo::utf8ToUtf16(
