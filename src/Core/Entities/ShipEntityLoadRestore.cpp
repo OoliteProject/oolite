@@ -25,6 +25,8 @@ MA 02110-1301, USA.
 
 #include "ShipEntityLoadRestore.h"
 
+#include <array>
+
 #include "AI.h"
 #include "OOConstToString.h"
 #include "OOEquipmentType.h"
@@ -351,26 +353,15 @@ void ShipEntity::simplifyShipdata(oo::PList::Dict& data,
 namespace {
 
 void StripIgnoredKeys(oo::PList::Dict& dict) {
-  static const char* const ignoredKeys[] = {"ai_type",
-                                            "has_ecm",
-                                            "has_scoop",
-                                            "has_escape_pod",
-                                            "has_energy_bomb",
-                                            "has_fuel_injection",
-                                            "has_cloaking_device",
-                                            "has_military_jammer",
-                                            "has_military_scanner_filter",
-                                            "has_shield_booster",
-                                            "has_shield_enhancer",
-                                            "escorts",
-                                            "escort_role",
-                                            "escort-ship",
-                                            "conditions",
-                                            "missiles",
-                                            "auto_ai"};
+  static constexpr auto ignoredKeys = std::to_array<std::string_view>(
+      {"ai_type", "has_ecm", "has_scoop", "has_escape_pod", "has_energy_bomb",
+       "has_fuel_injection", "has_cloaking_device", "has_military_jammer",
+       "has_military_scanner_filter", "has_shield_booster",
+       "has_shield_enhancer", "escorts", "escort_role", "escort-ship",
+       "conditions", "missiles", "auto_ai"});
 
-  for (const char* key : ignoredKeys) {
-    const auto found = dict.find(std::string_view(key));
+  for (std::string_view key : ignoredKeys) {
+    const auto found = dict.find(key);
     if (found != dict.end()) dict.erase(found);
   }
 }

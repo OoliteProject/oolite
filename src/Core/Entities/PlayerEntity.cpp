@@ -367,8 +367,8 @@ std::optional<std::string> OoliteInfoString(std::string_view key) {
     if (!exception) throw; /* not an OOException: it goes on up, as before */ \
     OO_LOG(cxx_kOOLogException,                                               \
            "***** Exception during [{}] in {} : {} : {} *****",               \
-           static_cast<const char*>(updateStage),                             \
-           static_cast<const char*>(__PRETTY_FUNCTION__), exception->name(),  \
+           std::string_view(updateStage),                                     \
+           std::string_view(__PRETTY_FUNCTION__), exception->name(),          \
            exception->reason());                                              \
     throw;                                                                    \
   }                                                                           \

@@ -865,10 +865,9 @@ oo::PList WormholeEntity::getDict() {
   return oo::PList(std::move(myDict));
 }
 
-const char* WormholeEntity::scanInfoString() {
+std::string_view WormholeEntity::scanInfoString() {
   const std::string_view name = OOEnumName(scan_info);
-  return name.empty() ? "WH_SCANINFO_UNDEFINED"
-                      : name.data();  // a literal: NUL-terminated
+  return name.empty() ? std::string_view("WH_SCANINFO_UNDEFINED") : name;
 }
 
 void WormholeEntity::dumpSelfState() {

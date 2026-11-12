@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #include "PlayerEntityScriptMethods.h"
 
 #include <format>
+#include <string_view>
 
 #include "OOCommodities.h"
 #include "OOConstToString.h"
@@ -42,7 +43,8 @@ namespace {
 
 // A contract marker, as the four marker methods built it (the system a
 // +numberWithInt:).
-oo::PList MarkerFor(OOSystemID system, const char* color, const char* shape) {
+oo::PList MarkerFor(OOSystemID system, std::string_view color,
+                    std::string_view shape) {
   oo::PList::Dict marker;
   marker["system"] = oo::PList::signedInteger(system);
   marker["name"] = std::string(MISSION_DEST_LEGACY);

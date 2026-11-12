@@ -78,7 +78,7 @@ bool IsWhitespace(char16_t c) {
 // otherwise.
 std::optional<std::string> DebugContext(
     Entity* entity,
-    const char* suffix)  // the entity's object's short description
+    std::string_view suffix)  // the entity's object's short description
 {
 #ifndef NDEBUG
   return std::format("{} {}", oo::EntityShortDescription(entity), suffix);
@@ -583,7 +583,7 @@ void ShipEntity::broadcastDistressMessageWithDumping(bool dumpCargo) {
   if (messageTime > 2.0 * randf()) return;
 
   bool is_buoy = (scanClass == OOScanClass::kBuoy);
-  const char* distress_message =
+  const std::string_view distress_message =
       is_buoy ? "[buoy-distress-call]" : "[distress-call]";
 
   unsigned i;
@@ -610,7 +610,7 @@ void ShipEntity::broadcastDistressMessageWithDumping(bool dumpCargo) {
       } else if (getBounty() == 0) {
         // only send distress message to player if plausibly sending
         // one more generally
-        sendExpandedMessage(distress_message, ship);
+        sendExpandedMessage(std::string(distress_message), ship);
       }
 
       // reset the thanked_ship_id
@@ -802,7 +802,7 @@ void ShipEntity::acceptDistressMessageFrom(::ShipEntity* other) {
 // are written out.
 namespace {
 
-void LogNotAStation(ShipEntity* ship, const char* method) {
+void LogNotAStation(ShipEntity* ship, std::string_view method) {
   OO_LOG("ai.invalid.notAStation",
          "Attempt to use station AI method \"{}\" on non-station {}.", method,
          oo::EntityDescription(ship));
