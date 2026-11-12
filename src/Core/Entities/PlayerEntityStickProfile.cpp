@@ -37,12 +37,12 @@ MA 02110-1301, USA.
 #include "PlayerEntityStickMapper.h"
 #include "oofnd/String.hpp"
 
-#define GUI_ROW_STICKPROFILE_BACK 20
-#define GUI_ROW_STICKPROFILE_AXIS 1
-#define GUI_ROW_STICKPROFILE_DEADZONE 2
-#define GUI_ROW_STICKPROFILE_PROFILE_TYPE 3
-#define GUI_ROW_STICKPROFILE_POWER 4
-#define GUI_ROW_STICKPROFILE_PARAM 5
+constexpr int GUI_ROW_STICKPROFILE_BACK = 20;
+constexpr int GUI_ROW_STICKPROFILE_AXIS = 1;
+constexpr int GUI_ROW_STICKPROFILE_DEADZONE = 2;
+constexpr int GUI_ROW_STICKPROFILE_PROFILE_TYPE = 3;
+constexpr int GUI_ROW_STICKPROFILE_POWER = 4;
+constexpr int GUI_ROW_STICKPROFILE_PARAM = 5;
 
 static bool stickProfileArrow_pressed;
 

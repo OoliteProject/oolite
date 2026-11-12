@@ -39,19 +39,19 @@ MA 02110-1301, USA.
 #include "MyOpenGLView.h"
 #include "Universe.h"
 
-#define EXITROW 1
-#define LABELROW 2
-#define BACKROW 3
-#define STARTROW 4
-#define ENDROW 17
-#define MOREROW 17
-#define NUMROWS 13
-#define COLUMNS 2
-#define INPUTROW 21
-#define CDRDESCROW 19
-#define SAVE_OVERWRITE_WARN_ROW 5
-#define SAVE_OVERWRITE_YES_ROW 8
-#define SAVE_OVERWRITE_NO_ROW 9
+inline constexpr int EXITROW = 1;
+inline constexpr int LABELROW = 2;
+inline constexpr int BACKROW = 3;
+inline constexpr int STARTROW = 4;
+inline constexpr int ENDROW = 17;
+inline constexpr int MOREROW = 17;
+inline constexpr int NUMROWS = 13;
+inline constexpr int COLUMNS = 2;
+inline constexpr int INPUTROW = 21;
+inline constexpr int CDRDESCROW = 19;
+inline constexpr int SAVE_OVERWRITE_WARN_ROW = 5;
+inline constexpr int SAVE_OVERWRITE_YES_ROW = 8;
+inline constexpr int SAVE_OVERWRITE_NO_ROW = 9;
 
 // The load / save macros (USE_CUSTOM_LOAD_SAVE_ON_MAC_DEBUG,
 // OOLITE_USE_APPKIT_LOAD_SAVE, OO_USE_APPKIT_LOAD_SAVE_ALWAYS,

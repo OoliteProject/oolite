@@ -54,30 +54,31 @@ MA 02110-1301, USA.
 #include "Universe.h"
 #include "oofnd/PList.hpp"
 
-#define MAX_ROWS_KC_FUNCTIONS 12
+inline constexpr int MAX_ROWS_KC_FUNCTIONS = 12;
 
-#define GUI_ROW_KC_SELECTKBD 1
-#define GUI_ROW_KC_HEADING 4
-#define GUI_ROW_KC_FUNCSTART 5
-#define GUI_ROW_KC_FUNCEND (GUI_ROW_KC_FUNCSTART + MAX_ROWS_KC_FUNCTIONS - 1)
-#define GUI_ROW_KC_ERROR 17
-#define GUI_ROW_KC_INSTRUCT 18
+inline constexpr int GUI_ROW_KC_SELECTKBD = 1;
+inline constexpr int GUI_ROW_KC_HEADING = 4;
+inline constexpr int GUI_ROW_KC_FUNCSTART = 5;
+inline constexpr int GUI_ROW_KC_FUNCEND =
+    GUI_ROW_KC_FUNCSTART + MAX_ROWS_KC_FUNCTIONS - 1;
+inline constexpr int GUI_ROW_KC_ERROR = 17;
+inline constexpr int GUI_ROW_KC_INSTRUCT = 18;
 
-#define GUI_ROW_KC_CONFIRMCLEAR 5
-#define GUI_ROW_KC_CONFIRMCLEAR_YES 8
-#define GUI_ROW_KC_CONFIRMCLEAR_NO 9
+inline constexpr int GUI_ROW_KC_CONFIRMCLEAR = 5;
+inline constexpr int GUI_ROW_KC_CONFIRMCLEAR_YES = 8;
+inline constexpr int GUI_ROW_KC_CONFIRMCLEAR_NO = 9;
 
-#define GUI_ROW_KC_UPDATE_FUNCNAME 1
-#define GUI_ROW_KC_KEY 3
-#define GUI_ROW_KC_SHIFT 4
-#define GUI_ROW_KC_MOD1 5
-#define GUI_ROW_KC_MOD2 6
-#define GUI_ROW_KC_UPDATE_INFO 13
-#define GUI_ROW_KC_VALIDATION 16
-#define GUI_ROW_KC_SAVE 17
-#define GUI_ROW_KC_CANCEL 18
+inline constexpr int GUI_ROW_KC_UPDATE_FUNCNAME = 1;
+inline constexpr int GUI_ROW_KC_KEY = 3;
+inline constexpr int GUI_ROW_KC_SHIFT = 4;
+inline constexpr int GUI_ROW_KC_MOD1 = 5;
+inline constexpr int GUI_ROW_KC_MOD2 = 6;
+inline constexpr int GUI_ROW_KC_UPDATE_INFO = 13;
+inline constexpr int GUI_ROW_KC_VALIDATION = 16;
+inline constexpr int GUI_ROW_KC_SAVE = 17;
+inline constexpr int GUI_ROW_KC_CANCEL = 18;
 
-#define GUI_ROW_KC_ENTRY_INFO 2
+inline constexpr int GUI_ROW_KC_ENTRY_INFO = 2;
 
 // Dictionary keys
 inline constexpr std::string_view KEY_KC_GUIDESC = "guiDesc";

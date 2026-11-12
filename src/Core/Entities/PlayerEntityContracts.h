@@ -56,15 +56,15 @@ inline constexpr std::string_view CONTRACT_KEY_RISK = "risk";
 
 #define MAX_CONTRACT_REP 70
 
-#define GUI_ROW_PASSENGERS_LABELS 1
-#define GUI_ROW_PASSENGERS_START 2
-#define GUI_ROW_CARGO_LABELS 8
-#define GUI_ROW_CARGO_START 9
-#define GUI_ROW_CONTRACT_INFO_START 15
+inline constexpr int GUI_ROW_PASSENGERS_LABELS = 1;
+inline constexpr int GUI_ROW_PASSENGERS_START = 2;
+inline constexpr int GUI_ROW_CARGO_LABELS = 8;
+inline constexpr int GUI_ROW_CARGO_START = 9;
+inline constexpr int GUI_ROW_CONTRACT_INFO_START = 15;
 
-#define GUI_ROW_SHIPYARD_LABELS 1
-#define GUI_ROW_SHIPYARD_START 2
-#define GUI_ROW_SHIPYARD_INFO_START 15
-#define GUI_ROW_NO_SHIPS 10
+inline constexpr int GUI_ROW_SHIPYARD_LABELS = 1;
+inline constexpr int GUI_ROW_SHIPYARD_START = 2;
+inline constexpr int GUI_ROW_SHIPYARD_INFO_START = 15;
+inline constexpr int GUI_ROW_NO_SHIPS = 10;
 
-#define MAX_ROWS_SHIPS_FOR_SALE 12
+inline constexpr int MAX_ROWS_SHIPS_FOR_SALE = 12;

@@ -9164,7 +9164,8 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
     ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
     GUI_ROW_INIT(gui);
 
-    int first_sel_row = GUI_FIRST_ROW(GAME) - 4;  // repositioned menu
+    int first_sel_row = OOGUIFirstRow(GUI_ROW_GAMEOPTIONS_END_OF_LIST) -
+                        4;  // repositioned menu
 
     gui->clear();
     gui->setTitle(oo::str::formatRuntime(
@@ -9208,11 +9209,15 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
     const std::optional<std::string> displayModeString =
         screenModeStringForWidth(modeWidth, modeHeight, modeRefresh);
 
-    gui->setText(displayModeString, GUI_ROW(GAME, DISPLAY), GUI_ALIGN_CENTER);
+    gui->setText(displayModeString,
+                 OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_DISPLAY),
+                 GUI_ALIGN_CENTER);
     if (runningOnPrimaryDisplayDevice) {
-      gui->setKey(std::string(GUI_KEY_OK), GUI_ROW(GAME, DISPLAY));
+      gui->setKey(std::string(GUI_KEY_OK),
+                  OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_DISPLAY));
     } else {
-      gui->setColor(OOColor::grayColor().get(), GUI_ROW(GAME, DISPLAY));
+      gui->setColor(OOColor::grayColor().get(),
+                    OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_DISPLAY));
     }
 #endif  // OO_RESOLUTIOM_OPTION
 
@@ -9251,19 +9256,24 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
           cxx_OOExpandKey("gameoptions-hdr-maxbrightness", brightnessValue)
               .value_or(std::string());
 
-      gui->setText(maxBrightnessString, GUI_ROW(GAME, HDRMAXBRIGHTNESS),
+      gui->setText(maxBrightnessString,
+                   OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_HDRMAXBRIGHTNESS),
                    GUI_ALIGN_CENTER);
-      gui->setKey(std::string(GUI_KEY_OK), GUI_ROW(GAME, HDRMAXBRIGHTNESS));
+      gui->setKey(std::string(GUI_KEY_OK),
+                  OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_HDRMAXBRIGHTNESS));
     }
 #endif
 
     if ((UNIVERSE != nullptr ? UNIVERSE->getAutoSave() : false))
-      gui->setText(OO_DESC("gameoptions-autosave-yes"), GUI_ROW(GAME, AUTOSAVE),
+      gui->setText(OO_DESC("gameoptions-autosave-yes"),
+                   OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_AUTOSAVE),
                    GUI_ALIGN_CENTER);
     else
-      gui->setText(OO_DESC("gameoptions-autosave-no"), GUI_ROW(GAME, AUTOSAVE),
+      gui->setText(OO_DESC("gameoptions-autosave-no"),
+                   OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_AUTOSAVE),
                    GUI_ALIGN_CENTER);
-    gui->setKey(std::string(GUI_KEY_OK), GUI_ROW(GAME, AUTOSAVE));
+    gui->setKey(std::string(GUI_KEY_OK),
+                OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_AUTOSAVE));
 
     // volume control
     if (::OOSound::isSoundOK())  // (+respondsToSelector:@selector(masterVolume)
@@ -9276,15 +9286,19 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
       if (vol > 0)
         gui->setText(
             std::format("{}{} ", soundVolumeWordDesc, SliderString(vol)),
-            GUI_ROW(GAME, VOLUME), GUI_ALIGN_CENTER);
+            OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_VOLUME), GUI_ALIGN_CENTER);
       else
         gui->setText(OO_DESC("gameoptions-sound-volume-mute"),
-                     GUI_ROW(GAME, VOLUME), GUI_ALIGN_CENTER);
-      gui->setKey(std::string(GUI_KEY_OK), GUI_ROW(GAME, VOLUME));
+                     OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_VOLUME),
+                     GUI_ALIGN_CENTER);
+      gui->setKey(std::string(GUI_KEY_OK),
+                  OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_VOLUME));
     } else {
       gui->setText(OO_DESC("gameoptions-volume-external-only"),
-                   GUI_ROW(GAME, VOLUME), GUI_ALIGN_CENTER);
-      gui->setColor(OOColor::grayColor().get(), GUI_ROW(GAME, VOLUME));
+                   OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_VOLUME),
+                   GUI_ALIGN_CENTER);
+      gui->setColor(OOColor::grayColor().get(),
+                    OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_VOLUME));
     }
 
     // field of view control
@@ -9297,8 +9311,9 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
     gui->setText(
         std::format("{}{} ({}{}) ", fovWordDesc, SliderString(fovTicks),
                     (int)fov, "\xC2\xB0" /*the degrees symbol*/),
-        GUI_ROW(GAME, FOV), GUI_ALIGN_CENTER);
-    gui->setKey(std::string(GUI_KEY_OK), GUI_ROW(GAME, FOV));
+        OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_FOV), GUI_ALIGN_CENTER);
+    gui->setKey(std::string(GUI_KEY_OK),
+                OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_FOV));
 
     // color blind mode
     int colorblindMode = (UNIVERSE != nullptr ? UNIVERSE->colorblindMode() : 0);
@@ -9316,12 +9331,15 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
     const std::string colorblindModeMsg = ExpandKeyWithSeed(
         OOStringExpanderDefaultRandomSeed(), "gameoptions-colorblind-mode",
         {{"colorblindModeDesc", oo::PList(colorblindModeDesc)}});
-    gui->setText(colorblindModeMsg, GUI_ROW(GAME, COLORBLINDMODE),
+    gui->setText(colorblindModeMsg,
+                 OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_COLORBLINDMODE),
                  GUI_ALIGN_CENTER);
     if ((UNIVERSE != nullptr ? UNIVERSE->useShaders() : false)) {
-      gui->setKey(std::string(GUI_KEY_OK), GUI_ROW(GAME, COLORBLINDMODE));
+      gui->setKey(std::string(GUI_KEY_OK),
+                  OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_COLORBLINDMODE));
     } else {
-      gui->setColor(OOColor::grayColor().get(), GUI_ROW(GAME, COLORBLINDMODE));
+      gui->setColor(OOColor::grayColor().get(),
+                    OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_COLORBLINDMODE));
     }
 
 #if OOLITE_SPEECH_SYNTH
@@ -9329,18 +9347,22 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
     switch (isSpeechOn) {
       case OOSpeechSettings::kOff:
         gui->setText(OO_DESC("gameoptions-spoken-messages-no"),
-                     GUI_ROW(GAME, SPEECH), GUI_ALIGN_CENTER);
+                     OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SPEECH),
+                     GUI_ALIGN_CENTER);
         break;
       case OOSpeechSettings::kComms:
         gui->setText(OO_DESC("gameoptions-spoken-messages-comms"),
-                     GUI_ROW(GAME, SPEECH), GUI_ALIGN_CENTER);
+                     OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SPEECH),
+                     GUI_ALIGN_CENTER);
         break;
       case OOSpeechSettings::kAll:
         gui->setText(OO_DESC("gameoptions-spoken-messages-yes"),
-                     GUI_ROW(GAME, SPEECH), GUI_ALIGN_CENTER);
+                     OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SPEECH),
+                     GUI_ALIGN_CENTER);
         break;
     }
-    OO_SETACCESSCONDITIONFORROW(!startingGame, GUI_ROW(GAME, SPEECH));
+    OO_SETACCESSCONDITIONFORROW(
+        !startingGame, OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SPEECH));
 
 #if OOLITE_ESPEAK
     {
@@ -9351,36 +9373,49 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
       std::string message = ExpandKeyWithSeed(
           OOStringExpanderDefaultRandomSeed(), "gameoptions-voice-name",
           {{"voiceName", oo::PList(voiceName)}});
-      gui->setText(message, GUI_ROW(GAME, SPEECH_LANGUAGE), GUI_ALIGN_CENTER);
-      OO_SETACCESSCONDITIONFORROW(!startingGame,
-                                  GUI_ROW(GAME, SPEECH_LANGUAGE));
+      gui->setText(message,
+                   OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SPEECH_LANGUAGE),
+                   GUI_ALIGN_CENTER);
+      OO_SETACCESSCONDITIONFORROW(
+          !startingGame,
+          OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SPEECH_LANGUAGE));
 
       message = OO_DESC(voice_gender_m ? "gameoptions-voice-M"
                                        : "gameoptions-voice-F");
-      gui->setText(message, GUI_ROW(GAME, SPEECH_GENDER), GUI_ALIGN_CENTER);
-      OO_SETACCESSCONDITIONFORROW(!startingGame, GUI_ROW(GAME, SPEECH_GENDER));
+      gui->setText(message,
+                   OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SPEECH_GENDER),
+                   GUI_ALIGN_CENTER);
+      OO_SETACCESSCONDITIONFORROW(
+          !startingGame,
+          OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SPEECH_GENDER));
     }
 #endif
 #endif
     // window/fullscreen
     if ((gameView != nullptr ? gameView->inFullScreenMode() : false)) {
       gui->setText(OO_DESC("gameoptions-play-in-window"),
-                   GUI_ROW(GAME, DISPLAYSTYLE), GUI_ALIGN_CENTER);
+                   OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE),
+                   GUI_ALIGN_CENTER);
     } else {
       gui->setText(OO_DESC("gameoptions-play-in-fullscreen"),
-                   GUI_ROW(GAME, DISPLAYSTYLE), GUI_ALIGN_CENTER);
+                   OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE),
+                   GUI_ALIGN_CENTER);
     }
-    gui->setKey(std::string(GUI_KEY_OK), GUI_ROW(GAME, DISPLAYSTYLE));
+    gui->setKey(std::string(GUI_KEY_OK),
+                OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE));
 
     gui->setText(OO_DESC("gameoptions-joystick-configuration"),
-                 GUI_ROW(GAME, STICKMAPPER), GUI_ALIGN_CENTER);
+                 OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_STICKMAPPER),
+                 GUI_ALIGN_CENTER);
     OO_SETACCESSCONDITIONFORROW(
         OOJoystickManager::sharedStickHandler()->joystickCount(),
-        GUI_ROW(GAME, STICKMAPPER));
+        OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_STICKMAPPER));
 
     gui->setText(OO_DESC("gameoptions-keyboard-configuration"),
-                 GUI_ROW(GAME, KEYMAPPER), GUI_ALIGN_CENTER);
-    gui->setKey(std::string(GUI_KEY_OK), GUI_ROW(GAME, KEYMAPPER));
+                 OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_KEYMAPPER),
+                 GUI_ALIGN_CENTER);
+    gui->setKey(std::string(GUI_KEY_OK),
+                OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_KEYMAPPER));
 
     const std::string musicMode =
         (UNIVERSE != nullptr
@@ -9391,17 +9426,22 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
     const std::string message = ExpandKeyWithSeed(
         OOStringExpanderDefaultRandomSeed(), "gameoptions-music-mode",
         {{"musicMode", oo::PList(musicMode)}});
-    gui->setText(message, GUI_ROW(GAME, MUSIC), GUI_ALIGN_CENTER);
-    gui->setKey(std::string(GUI_KEY_OK), GUI_ROW(GAME, MUSIC));
+    gui->setText(message, OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_MUSIC),
+                 GUI_ALIGN_CENTER);
+    gui->setKey(std::string(GUI_KEY_OK),
+                OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_MUSIC));
 
     if (!(gameView != nullptr ? gameView->hdrOutput() : false)) {
       if ((UNIVERSE != nullptr ? UNIVERSE->getWireframeGraphics() : false))
         gui->setText(OO_DESC("gameoptions-wireframe-graphics-yes"),
-                     GUI_ROW(GAME, WIREFRAMEGRAPHICS), GUI_ALIGN_CENTER);
+                     OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS),
+                     GUI_ALIGN_CENTER);
       else
         gui->setText(OO_DESC("gameoptions-wireframe-graphics-no"),
-                     GUI_ROW(GAME, WIREFRAMEGRAPHICS), GUI_ALIGN_CENTER);
-      gui->setKey(std::string(GUI_KEY_OK), GUI_ROW(GAME, WIREFRAMEGRAPHICS));
+                     OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS),
+                     GUI_ALIGN_CENTER);
+      gui->setKey(std::string(GUI_KEY_OK),
+                  OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS));
     }
 #if OOLITE_WINDOWS
     else {
@@ -9414,8 +9454,10 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
       gui->setText(std::format("{}{} ({}) ", paperWhiteWordDesc,
                                SliderString(paperWhiteTicks),
                                static_cast<int>(paperWhite)),
-                   GUI_ROW(GAME, HDRPAPERWHITE), GUI_ALIGN_CENTER);
-      gui->setKey(std::string(GUI_KEY_OK), GUI_ROW(GAME, HDRPAPERWHITE));
+                   OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_HDRPAPERWHITE),
+                   GUI_ALIGN_CENTER);
+      gui->setKey(std::string(GUI_KEY_OK),
+                  OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_HDRPAPERWHITE));
     }
 #endif
 
@@ -9427,28 +9469,38 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
             .value_or(std::string());
     gui->setText(ExpandKeyWithSeed(OOStringExpanderDefaultRandomSeed(),
                                    shaderEffectsOptionsString, {}),
-                 GUI_ROW(GAME, SHADEREFFECTS), GUI_ALIGN_CENTER);
+                 OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SHADEREFFECTS),
+                 GUI_ALIGN_CENTER);
     if (!OOOpenGLExtensionManager::sharedManager()->shadersForceDisabled()) {
-      gui->setKey(std::string(GUI_KEY_OK), GUI_ROW(GAME, SHADEREFFECTS));
+      gui->setKey(std::string(GUI_KEY_OK),
+                  OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SHADEREFFECTS));
     } else {
       // deactivate this option if shaders have been disabled from the commend
       // line
-      gui->setColor(OOColor::grayColor().get(), GUI_ROW(GAME, SHADEREFFECTS));
+      gui->setColor(OOColor::grayColor().get(),
+                    OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SHADEREFFECTS));
     }
 
     if ((UNIVERSE != nullptr ? UNIVERSE->dockingClearanceProtocolActive()
                              : false)) {
       gui->setText(OO_DESC("gameoptions-docking-clearance-yes"),
-                   GUI_ROW(GAME, DOCKINGCLEARANCE), GUI_ALIGN_CENTER);
+                   OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_DOCKINGCLEARANCE),
+                   GUI_ALIGN_CENTER);
     } else {
       gui->setText(OO_DESC("gameoptions-docking-clearance-no"),
-                   GUI_ROW(GAME, DOCKINGCLEARANCE), GUI_ALIGN_CENTER);
+                   OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_DOCKINGCLEARANCE),
+                   GUI_ALIGN_CENTER);
     }
-    OO_SETACCESSCONDITIONFORROW(!startingGame, GUI_ROW(GAME, DOCKINGCLEARANCE));
+    OO_SETACCESSCONDITIONFORROW(
+        !startingGame,
+        OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_DOCKINGCLEARANCE));
 
     // Back menu option
-    gui->setText(OO_DESC("gui-back"), GUI_ROW(GAME, BACK), GUI_ALIGN_CENTER);
-    gui->setKey(std::string(GUI_KEY_OK), GUI_ROW(GAME, BACK));
+    gui->setText(OO_DESC("gui-back"),
+                 OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_BACK),
+                 GUI_ALIGN_CENTER);
+    gui->setKey(std::string(GUI_KEY_OK),
+                OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_BACK));
 
     gui->setSelectableRange(
         NSMakeRange(first_sel_row, GUI_ROW_GAMEOPTIONS_END_OF_LIST));
@@ -9509,57 +9561,68 @@ void PlayerEntity::setGuiToLoadSaveScreen() {
     ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
     GUI_ROW_INIT(gui);
 
-    int first_sel_row =
-        (canLoadOrSave) ? GUI_ROW(, SAVE) : GUI_ROW(, GAMEOPTIONS);
-    if (canQuickSave) first_sel_row = GUI_ROW(, QUICKSAVE);
+    int first_sel_row = (canLoadOrSave)
+                            ? OOGUIOptionsRow(GUI_ROW_OPTIONS_SAVE)
+                            : OOGUIOptionsRow(GUI_ROW_OPTIONS_GAMEOPTIONS);
+    if (canQuickSave)
+      first_sel_row = OOGUIOptionsRow(GUI_ROW_OPTIONS_QUICKSAVE);
 
     gui->clear();
     gui->setTitle(oo::str::formatRuntime(
         OO_DESC("status-commander-@"),
         {TextArg(commanderName())}));  // Same title as status screen.
 
-    gui->setText(OO_DESC("options-quick-save"), GUI_ROW(, QUICKSAVE),
-                 GUI_ALIGN_CENTER);
+    gui->setText(OO_DESC("options-quick-save"),
+                 OOGUIOptionsRow(GUI_ROW_OPTIONS_QUICKSAVE), GUI_ALIGN_CENTER);
     if (canQuickSave)
-      gui->setKey(std::string(GUI_KEY_OK), GUI_ROW(, QUICKSAVE));
+      gui->setKey(std::string(GUI_KEY_OK),
+                  OOGUIOptionsRow(GUI_ROW_OPTIONS_QUICKSAVE));
     else
-      gui->setColor(OOColor::grayColor().get(), GUI_ROW(, QUICKSAVE));
+      gui->setColor(OOColor::grayColor().get(),
+                    OOGUIOptionsRow(GUI_ROW_OPTIONS_QUICKSAVE));
 
-    gui->setText(OO_DESC("options-save-commander"), GUI_ROW(, SAVE),
-                 GUI_ALIGN_CENTER);
-    gui->setText(OO_DESC("options-load-commander"), GUI_ROW(, LOAD),
-                 GUI_ALIGN_CENTER);
+    gui->setText(OO_DESC("options-save-commander"),
+                 OOGUIOptionsRow(GUI_ROW_OPTIONS_SAVE), GUI_ALIGN_CENTER);
+    gui->setText(OO_DESC("options-load-commander"),
+                 OOGUIOptionsRow(GUI_ROW_OPTIONS_LOAD), GUI_ALIGN_CENTER);
     if (canLoadOrSave) {
-      gui->setKey(std::string(GUI_KEY_OK), GUI_ROW(, SAVE));
-      gui->setKey(std::string(GUI_KEY_OK), GUI_ROW(, LOAD));
+      gui->setKey(std::string(GUI_KEY_OK),
+                  OOGUIOptionsRow(GUI_ROW_OPTIONS_SAVE));
+      gui->setKey(std::string(GUI_KEY_OK),
+                  OOGUIOptionsRow(GUI_ROW_OPTIONS_LOAD));
     } else {
-      gui->setColor(OOColor::grayColor().get(), GUI_ROW(, SAVE));
-      gui->setColor(OOColor::grayColor().get(), GUI_ROW(, LOAD));
+      gui->setColor(OOColor::grayColor().get(),
+                    OOGUIOptionsRow(GUI_ROW_OPTIONS_SAVE));
+      gui->setColor(OOColor::grayColor().get(),
+                    OOGUIOptionsRow(GUI_ROW_OPTIONS_LOAD));
     }
 
-    gui->setText(OO_DESC("options-return-to-menu"), GUI_ROW(, BEGIN_NEW),
-                 GUI_ALIGN_CENTER);
-    gui->setKey(std::string(GUI_KEY_OK), GUI_ROW(, BEGIN_NEW));
+    gui->setText(OO_DESC("options-return-to-menu"),
+                 OOGUIOptionsRow(GUI_ROW_OPTIONS_BEGIN_NEW), GUI_ALIGN_CENTER);
+    gui->setKey(std::string(GUI_KEY_OK),
+                OOGUIOptionsRow(GUI_ROW_OPTIONS_BEGIN_NEW));
 
-    gui->setText(OO_DESC("options-game-options"), GUI_ROW(, GAMEOPTIONS),
+    gui->setText(OO_DESC("options-game-options"),
+                 OOGUIOptionsRow(GUI_ROW_OPTIONS_GAMEOPTIONS),
                  GUI_ALIGN_CENTER);
-    gui->setKey(std::string(GUI_KEY_OK), GUI_ROW(, GAMEOPTIONS));
+    gui->setKey(std::string(GUI_KEY_OK),
+                OOGUIOptionsRow(GUI_ROW_OPTIONS_GAMEOPTIONS));
 
 #if OOLITE_SDL
     // GNUstep needs a quit option at present (no Cmd-Q) but
     // doesn't need speech.
 
     // quit menu option
-    gui->setText(OO_DESC("options-exit-game"), GUI_ROW(, QUIT),
-                 GUI_ALIGN_CENTER);
-    gui->setKey(std::string(GUI_KEY_OK), GUI_ROW(, QUIT));
+    gui->setText(OO_DESC("options-exit-game"),
+                 OOGUIOptionsRow(GUI_ROW_OPTIONS_QUIT), GUI_ALIGN_CENTER);
+    gui->setKey(std::string(GUI_KEY_OK), OOGUIOptionsRow(GUI_ROW_OPTIONS_QUIT));
 #endif
 
     gui->setSelectableRange(
         NSMakeRange(first_sel_row, GUI_ROW_OPTIONS_END_OF_LIST));
 
     if (gamePaused || (!canLoadOrSave && status() == OOEntityStatus::kDocked)) {
-      gui->setSelectedRow(GUI_ROW(, GAMEOPTIONS));
+      gui->setSelectedRow(OOGUIOptionsRow(GUI_ROW_OPTIONS_GAMEOPTIONS));
     } else {
       gui->setSelectedRow(first_sel_row);
     }

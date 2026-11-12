@@ -2719,7 +2719,7 @@ void PlayerEntity::pollGuiArrowKeyControls(double delta_t) {
 
       if (selectKeyPress)  // 'enter'
       {
-        if ((guiSelectedRow == GUI_ROW(, QUICKSAVE)) &&
+        if ((guiSelectedRow == OOGUIOptionsRow(GUI_ROW_OPTIONS_QUICKSAVE)) &&
             (!disc_operation_in_progress)) {
           try {
             disc_operation_in_progress = true;
@@ -2749,12 +2749,12 @@ void PlayerEntity::pollGuiArrowKeyControls(double delta_t) {
             }
           }
         }
-        if ((guiSelectedRow == GUI_ROW(, SAVE)) &&
+        if ((guiSelectedRow == OOGUIOptionsRow(GUI_ROW_OPTIONS_SAVE)) &&
             (!disc_operation_in_progress)) {
           disc_operation_in_progress = true;
           savePlayer();
         }
-        if ((guiSelectedRow == GUI_ROW(, LOAD)) &&
+        if ((guiSelectedRow == OOGUIOptionsRow(GUI_ROW_OPTIONS_LOAD)) &&
             (!disc_operation_in_progress)) {
           disc_operation_in_progress = true;
           if (!loadPlayer()) {
@@ -2763,7 +2763,7 @@ void PlayerEntity::pollGuiArrowKeyControls(double delta_t) {
           }
         }
 
-        if ((guiSelectedRow == GUI_ROW(, BEGIN_NEW)) &&
+        if ((guiSelectedRow == OOGUIOptionsRow(GUI_ROW_OPTIONS_BEGIN_NEW)) &&
             (!disc_operation_in_progress)) {
           disc_operation_in_progress = true;
           if (UNIVERSE != nullptr)
@@ -2782,14 +2782,16 @@ void PlayerEntity::pollGuiArrowKeyControls(double delta_t) {
       // quit only appears in GNUstep as users aren't
       // used to Cmd-Q equivs. Same goes for window
       // vs fullscreen.
-      if ((guiSelectedRow == GUI_ROW(, QUIT)) && selectKeyPress) {
+      if ((guiSelectedRow == OOGUIOptionsRow(GUI_ROW_OPTIONS_QUIT)) &&
+          selectKeyPress) {
         if (UNIVERSE != nullptr && UNIVERSE->gameController() != nullptr)
           UNIVERSE->gameController()->exitAppWithContext(
               "Exit Game selected on options screen");
       }
 #endif
 
-      if ((guiSelectedRow == GUI_ROW(, GAMEOPTIONS)) && selectKeyPress) {
+      if ((guiSelectedRow == OOGUIOptionsRow(GUI_ROW_OPTIONS_GAMEOPTIONS)) &&
+          selectKeyPress) {
         if (gameView != nullptr) gameView->clearKeys();
         setGuiToGameOptionsScreen();
       }
@@ -3610,14 +3612,17 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
     if (gameView != nullptr) gameView->clearMouse();
   }
 
-  if ((guiSelectedRow == GUI_ROW(GAME, STICKMAPPER)) && selectKeyPress) {
+  if ((guiSelectedRow ==
+       OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_STICKMAPPER)) &&
+      selectKeyPress) {
     selFunctionIdx = 0;
     resetStickFunctions();  // reset the list of stick functions, so changes in
                             // oxp equipment are reflected
     OOJoystickManager::sharedStickHandler()->clearStickStates();
     setGuiToStickMapperScreen(0, true);
   }
-  if ((guiSelectedRow == GUI_ROW(GAME, KEYMAPPER)) && selectKeyPress) {
+  if ((guiSelectedRow == OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_KEYMAPPER)) &&
+      selectKeyPress) {
     selFunctionIdx = 0;
     resetKeyFunctions();  // reset the list of key functions, so changes in oxp
                           // equipment are reflected
@@ -3627,7 +3632,8 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
 
 #if OOLITE_WINDOWS
   if ((gameView != nullptr ? gameView->hdrOutput() : false)) {
-    if ((guiSelectedRow == GUI_ROW(GAME, HDRMAXBRIGHTNESS)) &&
+    if ((guiSelectedRow ==
+         OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_HDRMAXBRIGHTNESS)) &&
         ((checkKeyPress(n_key_gui_arrow_right) ||
           joyButtonState[BUTTON_GUIRIGHT]) ||
          (checkKeyPress(n_key_gui_arrow_left) ||
@@ -3688,7 +3694,8 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
             cxx_OOExpandKey("gameoptions-hdr-maxbrightness", brightnessValue)
                 .value_or(std::string());
 
-        gui->setText(maxBrightnessString, GUI_ROW(GAME, HDRMAXBRIGHTNESS),
+        gui->setText(maxBrightnessString,
+                     OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_HDRMAXBRIGHTNESS),
                      GUI_ALIGN_CENTER);
 
         hdrMaxBrightnessControlPressed = true;
@@ -3699,7 +3706,8 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
 #endif
 
 #if OO_RESOLUTION_OPTION
-  if (!switching_resolution && guiSelectedRow == GUI_ROW(GAME, DISPLAY) &&
+  if (!switching_resolution &&
+      guiSelectedRow == OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_DISPLAY) &&
       (checkKeyPress(n_key_gui_arrow_right) ||
        checkKeyPress(n_key_gui_arrow_left) || joyButtonState[BUTTON_GUIRIGHT] ||
        joyButtonState[BUTTON_GUILEFT])) {
@@ -3740,7 +3748,9 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
             .value_or("");
 
     playChangedOption();
-    gui->setText(displayModeString, GUI_ROW(GAME, DISPLAY), GUI_ALIGN_CENTER);
+    gui->setText(displayModeString,
+                 OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_DISPLAY),
+                 GUI_ALIGN_CENTER);
     switching_resolution = true;
 
 #if OOLITE_SDL
@@ -3761,7 +3771,7 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
 
 #if OOLITE_SPEECH_SYNTH
 
-  if ((guiSelectedRow == GUI_ROW(GAME, SPEECH)) &&
+  if ((guiSelectedRow == OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SPEECH)) &&
       ((checkKeyPress(n_key_gui_arrow_right) ||
         joyButtonState[BUTTON_GUIRIGHT]) ||
        (checkKeyPress(n_key_gui_arrow_left) ||
@@ -3795,7 +3805,8 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
             message = OO_DESC("gameoptions-spoken-messages-yes");
             break;
         }
-        gui->setText(message, GUI_ROW(GAME, SPEECH), GUI_ALIGN_CENTER);
+        gui->setText(message, OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SPEECH),
+                     GUI_ALIGN_CENTER);
 
         if (isSpeechOn == OOSpeechSettings::kAll) {
           if (UNIVERSE != nullptr) UNIVERSE->stopSpeaking();
@@ -3809,7 +3820,8 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
     speech_settings_pressed = false;
   }
 #if OOLITE_ESPEAK
-  if (guiSelectedRow == GUI_ROW(GAME, SPEECH_LANGUAGE)) {
+  if (guiSelectedRow ==
+      OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SPEECH_LANGUAGE)) {
     if (checkKeyPress(n_key_gui_arrow_right) ||
         checkKeyPress(n_key_gui_arrow_left) ||
         joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUILEFT]) {
@@ -3828,7 +3840,9 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
                 .value_or("");
         const std::string message = ExpandKeyWithArguments(
             "gameoptions-voice-name", {{"voiceName", oo::PList(voiceName)}});
-        gui->setText(message, GUI_ROW(GAME, SPEECH_LANGUAGE), GUI_ALIGN_CENTER);
+        gui->setText(message,
+                     OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SPEECH_LANGUAGE),
+                     GUI_ALIGN_CENTER);
         if (isSpeechOn == OOSpeechSettings::kAll) {
           if (UNIVERSE != nullptr) UNIVERSE->stopSpeaking();
           if (const std::optional<std::string> spokenVoiceName =
@@ -3845,7 +3859,8 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
       speechVoiceSelectKeyPressed = false;
   }
 
-  if (guiSelectedRow == GUI_ROW(GAME, SPEECH_GENDER)) {
+  if (guiSelectedRow ==
+      OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SPEECH_GENDER)) {
     if (checkKeyPress(n_key_gui_arrow_right) ||
         checkKeyPress(n_key_gui_arrow_left) ||
         joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUILEFT]) {
@@ -3858,7 +3873,9 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
           if (UNIVERSE != nullptr) UNIVERSE->setVoice(voice_no, voice_gender_m);
           const std::string message = OO_DESC(
               voice_gender_m ? "gameoptions-voice-M" : "gameoptions-voice-F");
-          gui->setText(message, GUI_ROW(GAME, SPEECH_GENDER), GUI_ALIGN_CENTER);
+          gui->setText(message,
+                       OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SPEECH_GENDER),
+                       GUI_ALIGN_CENTER);
           if (isSpeechOn == OOSpeechSettings::kAll) {
             if (UNIVERSE != nullptr) UNIVERSE->stopSpeaking();
             if (const std::optional<std::string> spokenVoiceName =
@@ -3877,7 +3894,7 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
 #endif
 #endif
 
-  if ((guiSelectedRow == GUI_ROW(GAME, MUSIC)) &&
+  if ((guiSelectedRow == OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_MUSIC)) &&
       ((checkKeyPress(n_key_gui_arrow_right) ||
         joyButtonState[BUTTON_GUIRIGHT]) ||
        (checkKeyPress(n_key_gui_arrow_left) ||
@@ -3907,14 +3924,15 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
                 .value_or("");
         const std::string message = ExpandKeyWithArguments(
             "gameoptions-music-mode", {{"musicMode", oo::PList(musicMode)}});
-        gui->setText(message, GUI_ROW(GAME, MUSIC), GUI_ALIGN_CENTER);
+        gui->setText(message, OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_MUSIC),
+                     GUI_ALIGN_CENTER);
       }
     }
     musicModeKeyPressed = true;
   } else
     musicModeKeyPressed = false;
 
-  if ((guiSelectedRow == GUI_ROW(GAME, AUTOSAVE)) &&
+  if ((guiSelectedRow == OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_AUTOSAVE)) &&
       ((checkKeyPress(n_key_gui_arrow_right) ||
         joyButtonState[BUTTON_GUIRIGHT]) ||
        (checkKeyPress(n_key_gui_arrow_left) ||
@@ -3929,16 +3947,18 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
     if ((UNIVERSE != nullptr ? UNIVERSE->getAutoSave() : false)) {
       // if just enabled, we want to autosave immediately
       if (UNIVERSE != nullptr) UNIVERSE->setAutoSaveNow(true);
-      gui->setText(OO_DESC("gameoptions-autosave-yes"), GUI_ROW(GAME, AUTOSAVE),
+      gui->setText(OO_DESC("gameoptions-autosave-yes"),
+                   OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_AUTOSAVE),
                    GUI_ALIGN_CENTER);
     } else {
       if (UNIVERSE != nullptr) UNIVERSE->setAutoSaveNow(false);
-      gui->setText(OO_DESC("gameoptions-autosave-no"), GUI_ROW(GAME, AUTOSAVE),
+      gui->setText(OO_DESC("gameoptions-autosave-no"),
+                   OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_AUTOSAVE),
                    GUI_ALIGN_CENTER);
     }
   }
 
-  if ((guiSelectedRow == GUI_ROW(GAME, VOLUME)) &&
+  if ((guiSelectedRow == OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_VOLUME)) &&
       ((checkKeyPress(n_key_gui_arrow_right) ||
         joyButtonState[BUTTON_GUIRIGHT]) ||
        (checkKeyPress(n_key_gui_arrow_left) ||
@@ -3968,17 +3988,18 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
         v0_string = v0_string.substr(0, static_cast<std::size_t>(20 - vol));
         gui->setText(
             std::format("{}{}{} ", soundVolumeWordDesc, v1_string, v0_string),
-            GUI_ROW(GAME, VOLUME), GUI_ALIGN_CENTER);
+            OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_VOLUME), GUI_ALIGN_CENTER);
       } else
         gui->setText(OO_DESC("gameoptions-sound-volume-mute"),
-                     GUI_ROW(GAME, VOLUME), GUI_ALIGN_CENTER);
+                     OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_VOLUME),
+                     GUI_ALIGN_CENTER);
       timeLastKeyPress = script_time;
     }
     volumeControlPressed = true;
   } else
     volumeControlPressed = false;
 
-  if ((guiSelectedRow == GUI_ROW(GAME, FOV)) &&
+  if ((guiSelectedRow == OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_FOV)) &&
       ((checkKeyPress(n_key_gui_arrow_right) ||
         joyButtonState[BUTTON_GUIRIGHT]) ||
        (checkKeyPress(n_key_gui_arrow_left) ||
@@ -4008,7 +4029,7 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
       gui->setText(
           std::format("{}{}{} ({}{}) ", fovWordDesc, v1_string, v0_string,
                       (int)fov, "\xC2\xB0" /*the degrees symbol*/),
-          GUI_ROW(GAME, FOV), GUI_ALIGN_CENTER);
+          OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_FOV), GUI_ALIGN_CENTER);
       oo::Defaults::standard().setFloat(
           "fov-value", (gameView != nullptr ? gameView->fov(false) : 0.0f));
       timeLastKeyPress = script_time;
@@ -4018,7 +4039,8 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
     fovControlPressed = false;
 
   // color blind mode
-  if ((guiSelectedRow == GUI_ROW(GAME, COLORBLINDMODE)) &&
+  if ((guiSelectedRow ==
+       OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_COLORBLINDMODE)) &&
       ((checkKeyPress(n_key_gui_arrow_right) ||
         joyButtonState[BUTTON_GUIRIGHT]) ||
        (checkKeyPress(n_key_gui_arrow_left) ||
@@ -4052,7 +4074,8 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
       const std::string colorblindModeMsg = ExpandKeyWithArguments(
           "gameoptions-colorblind-mode",
           {{"colorblindModeDesc", oo::PList(colorblindModeDesc)}});
-      gui->setText(colorblindModeMsg, GUI_ROW(GAME, COLORBLINDMODE),
+      gui->setText(colorblindModeMsg,
+                   OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_COLORBLINDMODE),
                    GUI_ALIGN_CENTER);
     }
     colorblindModeControlPressed = true;
@@ -4060,7 +4083,8 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
     colorblindModeControlPressed = false;
 
   if (!(gameView != nullptr ? gameView->hdrOutput() : false)) {
-    if ((guiSelectedRow == GUI_ROW(GAME, WIREFRAMEGRAPHICS)) &&
+    if ((guiSelectedRow ==
+         OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS)) &&
         ((checkKeyPress(n_key_gui_arrow_right) ||
           joyButtonState[BUTTON_GUIRIGHT]) ||
          (checkKeyPress(n_key_gui_arrow_left) ||
@@ -4074,15 +4098,18 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
                                        joyButtonState[BUTTON_GUIRIGHT]);
       if ((UNIVERSE != nullptr ? UNIVERSE->getWireframeGraphics() : false))
         gui->setText(OO_DESC("gameoptions-wireframe-graphics-yes"),
-                     GUI_ROW(GAME, WIREFRAMEGRAPHICS), GUI_ALIGN_CENTER);
+                     OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS),
+                     GUI_ALIGN_CENTER);
       else
         gui->setText(OO_DESC("gameoptions-wireframe-graphics-no"),
-                     GUI_ROW(GAME, WIREFRAMEGRAPHICS), GUI_ALIGN_CENTER);
+                     OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS),
+                     GUI_ALIGN_CENTER);
     }
   }
 #if OOLITE_WINDOWS
   else {
-    if ((guiSelectedRow == GUI_ROW(GAME, HDRPAPERWHITE)) &&
+    if ((guiSelectedRow ==
+         OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_HDRPAPERWHITE)) &&
         ((checkKeyPress(n_key_gui_arrow_right) ||
           joyButtonState[BUTTON_GUIRIGHT]) ||
          (checkKeyPress(n_key_gui_arrow_left) ||
@@ -4115,7 +4142,8 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
             v0_string.substr(0, static_cast<std::size_t>(20 - paperWhiteNorm));
         gui->setText(std::format("{}{}{} ({}) ", paperWhiteWordDesc, v1_string,
                                  v0_string, static_cast<int>(paperWhite)),
-                     GUI_ROW(GAME, HDRPAPERWHITE), GUI_ALIGN_CENTER);
+                     OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_HDRPAPERWHITE),
+                     GUI_ALIGN_CENTER);
       }
       hdrPaperWhiteControlPressed = true;
     } else
@@ -4123,7 +4151,8 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
   }
 #endif
 
-  if (guiSelectedRow == GUI_ROW(GAME, SHADEREFFECTS) &&
+  if (guiSelectedRow ==
+          OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SHADEREFFECTS) &&
       (checkKeyPress(n_key_gui_arrow_right) ||
        checkKeyPress(n_key_gui_arrow_left) || joyButtonState[BUTTON_GUIRIGHT] ||
        joyButtonState[BUTTON_GUILEFT])) {
@@ -4174,29 +4203,35 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
               .value_or(std::string());
       gui->setText(
           ExpandKeyWithArguments(shaderEffectsOptionsString.c_str(), {}),
-          GUI_ROW(GAME, SHADEREFFECTS), GUI_ALIGN_CENTER);
-      gui->setKey(std::string(GUI_KEY_OK), GUI_ROW(GAME, SHADEREFFECTS));
+          OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SHADEREFFECTS),
+          GUI_ALIGN_CENTER);
+      gui->setKey(std::string(GUI_KEY_OK),
+                  OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SHADEREFFECTS));
 
       timeLastKeyPress = script_time;
 
       // changing detail level may result in changes to other settings too
       // (e.g. colorblind mode status), so refresh the page
       setGuiToGameOptionsScreen();
-      gui->setSelectedRow(GUI_ROW(GAME, SHADEREFFECTS));
+      gui->setSelectedRow(
+          OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_SHADEREFFECTS));
     }
     shaderSelectKeyPressed = true;
   } else
     shaderSelectKeyPressed = false;
 
 #if OOLITE_SDL
-  if ((guiSelectedRow == GUI_ROW(GAME, DISPLAYSTYLE)) && selectKeyPress) {
+  if ((guiSelectedRow ==
+       OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE)) &&
+      selectKeyPress) {
     if (gameView != nullptr) gameView->toggleScreenMode();
     // redraw GUI
     setGuiToGameOptionsScreen();
   }
 #endif
 
-  if ((guiSelectedRow == GUI_ROW(GAME, DOCKINGCLEARANCE)) &&
+  if ((guiSelectedRow ==
+       OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_DOCKINGCLEARANCE)) &&
       ((checkKeyPress(n_key_gui_arrow_right) ||
         joyButtonState[BUTTON_GUIRIGHT]) ||
        (checkKeyPress(n_key_gui_arrow_left) ||
@@ -4213,13 +4248,16 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
     if ((UNIVERSE != nullptr ? UNIVERSE->dockingClearanceProtocolActive()
                              : false))
       gui->setText(OO_DESC("gameoptions-docking-clearance-yes"),
-                   GUI_ROW(GAME, DOCKINGCLEARANCE), GUI_ALIGN_CENTER);
+                   OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_DOCKINGCLEARANCE),
+                   GUI_ALIGN_CENTER);
     else
       gui->setText(OO_DESC("gameoptions-docking-clearance-no"),
-                   GUI_ROW(GAME, DOCKINGCLEARANCE), GUI_ALIGN_CENTER);
+                   OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_DOCKINGCLEARANCE),
+                   GUI_ALIGN_CENTER);
   }
 
-  if ((guiSelectedRow == GUI_ROW(GAME, BACK)) && selectKeyPress) {
+  if ((guiSelectedRow == OOGUIGameOptionsRow(GUI_ROW_GAMEOPTIONS_BACK)) &&
+      selectKeyPress) {
     if (gameView != nullptr) gameView->clearKeys();
     setGuiToLoadSaveScreen();
   }
