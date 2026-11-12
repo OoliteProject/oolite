@@ -13,7 +13,9 @@
    list is fixed at removal, while the entity is still owned, and its last
    release changes nothing more. The cases add three beacon waypoints to a
    universe, remove the head and then the tail, and read the list after the
-   removal and again after the entity's last release.
+   removal and again after disposal: the universe's dead list keeps a removed
+   entity until the update ends and the autorelease pool drains, which is
+   its last release.
 
         The test links the whole game but main (['*']) and uses a Universe that
    was never initialised and a plain player, as test_OOWaypointEntity does;
@@ -112,8 +114,15 @@ OO_TEST(removingTheFirstBeaconMovesTheHeadBeforeItsLastRelease) {
     OO_CHECK(oo::PrevBeacon(b) == nullptr && oo::NextBeacon(b) == c);
     OO_CHECK(!oo::EntityIsBeacon(a));  // clearBeacon cleared its code
 
-    oo::ReleaseEntity(a);  // disposal: the list is as removal left it
-    OO_CHECK(u->firstBeacon() == headAfterRemoval);
+    oo::WeakRef<Entity> removed(a);
+    oo::ReleaseEntity(a);  // the test's hold; the universe's dead list keeps it
+    {
+      oo::AutoreleaseScope frame;
+      u->no_update = true;
+      u->update(1.0);  // the dead are autoreleased
+    }  // the pool drains: the last release, and disposal
+    OO_CHECK(removed.get() == nullptr);  // it was disposed
+    OO_CHECK(u->firstBeacon() == headAfterRemoval);  // as removal left it
     OO_CHECK(u->lastBeacon() == tailAfterRemoval);
 
     u->removeEntity(b);
@@ -141,8 +150,15 @@ OO_TEST(removingTheLastBeaconMovesTheTailBeforeItsLastRelease) {
     OO_CHECK(tailAfterRemoval == b);  // the tail moved to the previous beacon
     OO_CHECK(!oo::EntityIsBeacon(c));
 
-    oo::ReleaseEntity(c);  // disposal: the list is as removal left it
-    OO_CHECK(u->firstBeacon() == headAfterRemoval);
+    oo::WeakRef<Entity> removed(c);
+    oo::ReleaseEntity(c);  // the test's hold; the universe's dead list keeps it
+    {
+      oo::AutoreleaseScope frame;
+      u->no_update = true;
+      u->update(1.0);  // the dead are autoreleased
+    }  // the pool drains: the last release, and disposal
+    OO_CHECK(removed.get() == nullptr);  // it was disposed
+    OO_CHECK(u->firstBeacon() == headAfterRemoval);  // as removal left it
     OO_CHECK(u->lastBeacon() == tailAfterRemoval);
 
     u->removeEntity(a);
