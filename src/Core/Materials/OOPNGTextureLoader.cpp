@@ -32,6 +32,7 @@ SOFTWARE.
 // After OOLogging.h, in a block of its own: which header comes first decides
 // whether MinGW's or the UCRT's printf family is used.
 #include <cstring>
+#include <format>
 
 #include "OOCPUInfo.h"
 #include "oofnd/FileSystem.hpp"
@@ -167,9 +168,9 @@ void OOPNGTextureLoader::readBytes(png_bytep bytes, png_size_t count) {
     // (static: png_error() longjmps out of this frame, so nothing here may need
     // destroying)
     static thread_local std::string message;
-    message = oo::str::format(
-        "attempt to read beyond end of file (%s), file may be truncated.",
-        _path.c_str());
+    message = std::format(
+        "attempt to read beyond end of file ({}), file may be truncated.",
+        _path);
     png_error(png, message.c_str());  // Will not return
   }
 

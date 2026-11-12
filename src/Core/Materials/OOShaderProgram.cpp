@@ -30,6 +30,7 @@ SOFTWARE.
 #if OO_SHADERS
 
 #include <cstddef>
+#include <format>
 #include <map>
 #include <optional>
 #include <regex>
@@ -288,8 +289,7 @@ bool ValidateShaderObject(GLhandleARB object,
 #endif
 
       default:
-        subtypeString =
-            oo::str::format("<unknown shader type 0x%.4X>", subtype);
+        subtypeString = std::format("<unknown shader type 0x{:04X}>", subtype);
     }
     actionString = "compilation";
     statusType = GL_OBJECT_COMPILE_STATUS_ARB;
@@ -298,7 +298,7 @@ bool ValidateShaderObject(GLhandleARB object,
   OOGL(glGetObjectParameterivARB(object, statusType, &status));
   if (status == GL_FALSE) {
     const std::string msgClass =
-        oo::str::format("shader.%s.failure", linking ? "link" : "compile");
+        std::format("shader.{}.failure", linking ? "link" : "compile");
     OO_LOG_ERR(msgClass, "GLSL {} {} failed for {}:\n>>>>> GLSL log:\n{}\n",
                subtypeString, actionString, name.value_or("(null)"),
                GetGLSLInfoLog(object));
@@ -311,8 +311,8 @@ bool ValidateShaderObject(GLhandleARB object,
     OOGL(glGetObjectParameterivARB(object, GL_OBJECT_VALIDATE_STATUS_ARB,
                                    &status));
     if (status == GL_FALSE) {
-      const std::string msgClass = oo::str::format(
-          "shader.%s.validationFailure", linking ? "link" : "compile");
+      const std::string msgClass = std::format("shader.{}.validationFailure",
+                                               linking ? "link" : "compile");
       OO_LOG_WARN(msgClass, "GLSL {} {} failed for {}:\n>>>>> GLSL log:\n{}\n",
                   subtypeString, "validation", name.value_or("(null)"),
                   GetGLSLInfoLog(object));

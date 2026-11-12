@@ -29,6 +29,7 @@
 // OOTEXTURE_RELOADABLE, which OOConcreteTexture.h defines.
 #include <cstddef>
 #include <cstdint>
+#include <format>
 #include <map>
 #include <optional>
 #include <string>
@@ -393,17 +394,16 @@ std::string ClassName(const OOTexture& texture) {
 }  // namespace
 
 std::string OOTexture::description() const {
-  std::string result =
-      oo::str::format("<%s %s>", ClassName(*this).c_str(),
-                      oo::str::pointerDescription(this).c_str());
+  std::string result = std::format("<{} {}>", ClassName(*this),
+                                   oo::str::pointerDescription(this));
   if (const std::optional<std::string> components = descriptionComponents())
     result += "{" + *components + "}";
   return result;
 }
 
 std::string OOTexture::shortDescription() const {
-  std::string result = oo::str::format(
-      "<OOTexture %s>", oo::str::pointerDescription(this).c_str());
+  std::string result =
+      std::format("<OOTexture {}>", oo::str::pointerDescription(this));
   if (const std::optional<std::string> components =
           shortDescriptionComponents())
     result += "{" + *components + "}";
@@ -858,10 +858,10 @@ std::string OOGenerateTextureCacheKey(
   }
   options = OOApplyTextureOptionDefaults(options & ~kOOTextureNoFNFMessage);
 
-  return oo::str::format("%s%s%s:0x%.4X/%g/%g",
-                         directory.has_value() ? directory->c_str() : "",
-                         directory.has_value() ? "/" : "", name.c_str(),
-                         options, anisotropy, lodBias);
+  return std::format("{}{}{}:0x{:04X}/{:g}/{:g}",
+                     directory.has_value() ? directory->c_str() : "",
+                     directory.has_value() ? "/" : "", name, options,
+                     anisotropy, lodBias);
 }
 
 std::string cxx_OOTextureCacheKeyForSpecifier(const oo::PList& specifier) {

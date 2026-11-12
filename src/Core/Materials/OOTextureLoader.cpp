@@ -32,6 +32,7 @@ SOFTWARE.
 #include <stdlib.h>
 
 #include <cstring>
+#include <format>
 #include <typeinfo>
 
 #include "OOConvertCubeMapToLatLong.h"
@@ -216,7 +217,7 @@ std::optional<std::string> OOTextureLoader::descriptionComponents() const {
 #endif
   }
 
-  return oo::str::format("{%s -- %s}", _path.c_str(), state);
+  return std::format("{{{} -- {}}}", _path, state);
 }
 
 std::optional<std::string> OOTextureLoader::shortDescriptionComponents() const {
@@ -238,8 +239,7 @@ std::string OOTextureLoader::className() const {
 
 std::string OOTextureLoader::description() const {
   std::string result =
-      oo::str::format("<%s %s>", className().c_str(),
-                      oo::str::pointerDescription(this).c_str());
+      std::format("<{} {}>", className(), oo::str::pointerDescription(this));
   if (const std::optional<std::string> components = descriptionComponents())
     result += "{" + *components + "}";
   return result;
@@ -250,8 +250,8 @@ std::string OOTextureLoader::shortDescription() const {
       (dynamic_cast<const OOTextureGenerator*>(this) != nullptr)
           ? "OOTextureGenerator"
           : "OOTextureLoader";
-  std::string result = oo::str::format(
-      "<%s %s>", facadeClass, oo::str::pointerDescription(this).c_str());
+  std::string result =
+      std::format("<{} {}>", facadeClass, oo::str::pointerDescription(this));
   if (const std::optional<std::string> components =
           shortDescriptionComponents())
     result += "{" + *components + "}";
@@ -295,8 +295,8 @@ bool OOTextureLoader::getResult(OOPixMap* result,
 }
 
 std::optional<std::string> OOTextureLoader::cacheKey() {
-  return oo::str::format("%s:0x%.4X",
-                         oo::str::lastPathComponent(*path()).c_str(), _options);
+  return std::format("{}:0x{:04X}", oo::str::lastPathComponent(*path()),
+                     _options);
 }
 
 void OOTextureLoader::loadTexture() { OOLogGenericSubclassResponsibility(); }
@@ -443,8 +443,7 @@ void OOTextureLoader::applySettings() {
     std::string dumpName = oo::str::lastPathComponent(_path);
     const std::string::size_type dot = dumpName.rfind('.');
     if (dot != std::string::npos && dot != 0) dumpName.erase(dot);
-    OODumpPixMap(pixMap,
-                 oo::str::format("converted cube map %s", dumpName.c_str()));
+    OODumpPixMap(pixMap, std::format("converted cube map {}", dumpName));
 #endif
   }
 

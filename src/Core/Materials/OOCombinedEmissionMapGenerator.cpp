@@ -27,6 +27,8 @@ SOFTWARE.
 
 #include "OOCombinedEmissionMapGenerator.h"
 
+#include <format>
+
 #include "OOColor.h"
 #include "OOMaterialSpecifier.h"
 #include "OOPixMapChannelOperations.h"
@@ -229,10 +231,10 @@ std::string OOCombinedEmissionMapGenerator::constructCacheKey() {
   std::string emissionDesc;
   if (!_emissionSpec.isNull()) {
     emissionDesc = cxx_OOTextureCacheKeyForSpecifier(_emissionSpec);
-    cacheKey += oo::str::format("emission:{%s}", emissionDesc.c_str());
+    cacheKey += std::format("emission:{{{}}}", emissionDesc);
     if (_emissionColor) {
       const std::optional<std::string> rgba = _emissionColor->rgbaDescription();
-      cacheKey += oo::str::format("*%s", rgba ? rgba->c_str() : "");
+      cacheKey += std::format("*{}", rgba ? rgba->c_str() : "");
     }
     cacheKey += ";";
   }
@@ -245,15 +247,13 @@ std::string OOCombinedEmissionMapGenerator::constructCacheKey() {
   }
 
   if (!illuminationDesc.empty()) {
-    cacheKey +=
-        oo::str::format("illumination:{%s}*{%s}", illuminationDesc.c_str(),
-                        (_diffuseMap ? _diffuseMap->cacheKey() : std::nullopt)
-                            .value_or("")
-                            .c_str());
+    cacheKey += std::format(
+        "illumination:{{{}}}*{{{}}}", illuminationDesc,
+        (_diffuseMap ? _diffuseMap->cacheKey() : std::nullopt).value_or(""));
     if (_illuminationColor) {
       const std::optional<std::string> rgba =
           _illuminationColor->rgbaDescription();
-      cacheKey += oo::str::format("*%s", rgba ? rgba->c_str() : "");
+      cacheKey += std::format("*{}", rgba ? rgba->c_str() : "");
     }
     cacheKey += ";";
   }
@@ -276,37 +276,35 @@ OOCombinedEmissionMapGenerator::descriptionComponents() const {
   bool haveIllumination = false;
 
   if (!_emissionDesc.empty()) {
-    result += oo::str::format("emission map: %s", _emissionDesc.c_str());
+    result += std::format("emission map: {}", _emissionDesc);
     if (_isCombinedMap) {
       result += ".rgb";
     }
     if (_emissionColor) {
       const std::optional<std::string> rgba = _emissionColor->rgbaDescription();
-      result += oo::str::format(" * %s", rgba ? rgba->c_str() : "");
+      result += std::format(" * {}", rgba ? rgba->c_str() : "");
     }
 
     if (_isCombinedMap) {
-      result +=
-          oo::str::format(", illumination map: %s.a", _emissionDesc.c_str());
+      result += std::format(", illumination map: {}.a", _emissionDesc);
       haveIllumination = true;
     }
   }
 
   if (!_illuminationDesc.empty()) {
     if (!_emissionDesc.empty()) result += ", ";
-    result +=
-        oo::str::format("illumination map: %s", _illuminationDesc.c_str());
+    result += std::format("illumination map: {}", _illuminationDesc);
     haveIllumination = true;
   }
 
   if (haveIllumination) {
     if (!_diffuseDesc.empty()) {
-      result += oo::str::format(" * %s", _diffuseDesc.c_str());
+      result += std::format(" * {}", _diffuseDesc);
     }
     if (_illuminationColor) {
       const std::optional<std::string> rgba =
           _illuminationColor->rgbaDescription();
-      result += oo::str::format(" * %s", rgba ? rgba->c_str() : "");
+      result += std::format(" * {}", rgba ? rgba->c_str() : "");
     }
   }
 
@@ -335,8 +333,8 @@ void OOCombinedEmissionMapGenerator::loadTexture() {
   unsigned texID = ++sTexID, dumpCount = 0;
 
 #define DUMP(pm, label) \
-  OODumpPixMap(         \
-      pm, oo::str::format("lightmap %u.%u - %s", texID, ++dumpCount, label));
+  OODumpPixMap(pm,      \
+               std::format("lightmap {}.{} - {}", texID, ++dumpCount, label));
 #else
 #define DUMP(pm, label) \
   do {                  \

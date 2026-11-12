@@ -27,6 +27,7 @@ SOFTWARE.
 
 #include "OOMaterial.h"
 
+#include <format>
 #include <typeinfo>
 
 #include "OODemangle.h"
@@ -61,8 +62,8 @@ std::optional<std::string> OOMaterial::descriptionComponents() const {
 
 std::string OOMaterial::description() const {
   const std::string name = OODemangle(typeid(*this).name());
-  std::string result = oo::str::format(
-      "<%s %s>", name.c_str(), oo::str::pointerDescription(this).c_str());
+  std::string result =
+      std::format("<{} {}>", name, oo::str::pointerDescription(this));
   if (const std::optional<std::string> components = descriptionComponents())
     result += "{" + *components + "}";
   return result;
