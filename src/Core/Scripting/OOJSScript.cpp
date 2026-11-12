@@ -745,7 +745,8 @@ static bool RunScriptWithName(JSContext* context,
   if (modern) {
     OO_LOG("script.javaScript.load.modern", "Script {} uses modern scoping.",
            path.value_or("(null)"));
-    const char* lineEnd = oo::str::hasSuffix(*utf8Contents, "\n") ? "" : "\n";
+    const std::string lineEnd =
+        oo::str::hasSuffix(*utf8Contents, "\n") ? "" : "\n";
     wrapped = "(function(){" + *utf8Contents + lineEnd + "})";
   } else {
     wrapped = "(function(){" +
@@ -832,7 +833,7 @@ static std::string SourceHash(std::string_view source) {
 
 // The entry's member, or null.
 static const oo::PList* EntryMember(const oo::PList::Dict& entry,
-                                    const char* key) {
+                                    std::string_view key) {
   auto found = entry.find(key);
   return (found != entry.end()) ? &found->second : nullptr;
 }

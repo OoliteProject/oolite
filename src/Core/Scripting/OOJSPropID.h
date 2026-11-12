@@ -36,7 +36,7 @@ typedef JSAtom OOJSPropID;
 typedef JSValue OOJSVal;
 
 /*
-        OOJSID(const char * [literal])
+        OOJSID(string literal)
         Macro to create a property ID. The string is interned the first time the
         macro is hit, then cached; the atom lives as long as the runtime.
 */
