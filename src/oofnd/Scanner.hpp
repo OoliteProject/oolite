@@ -51,7 +51,7 @@
    and a target starting with a combining unit (GNUstep raises). The value
    out-parameters may be null, as in Foundation.
 
-        Header-only, C++20, compiles with -fno-exceptions.
+        Header-only, C++23.
 */
 
 #pragma once

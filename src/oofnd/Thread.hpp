@@ -40,7 +40,7 @@
    scales linearly between the current policy's sched_get_priority_min and _max,
    as GNUstep's pthread path does. Returns false if the platform call failed.
 
-        Header-only, C++20; compiles with -fno-exceptions.
+        Header-only, C++23.
 */
 
 #pragma once

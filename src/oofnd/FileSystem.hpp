@@ -60,7 +60,7 @@
    and renames it over the destination, so readers see the old or the new
    contents, never a torn file.
 
-        Header-only, C++20, compiles with -fno-exceptions.
+        Header-only, C++23.
 */
 
 #pragma once

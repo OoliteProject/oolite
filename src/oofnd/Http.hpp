@@ -48,7 +48,7 @@
         certificate store, not a bundle path under the MSYS2 prefix. file: URLs are
         read from disk and need no libcurl.
 
-        Header-only, C++20, compiles with -fno-exceptions.
+        Header-only, C++23.
 */
 // clang-format on
 

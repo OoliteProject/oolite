@@ -31,7 +31,7 @@
         64, placed before the time), and the time stamp (local "HH:MM:SS.mmm",
    milliseconds truncated).
 
-        Header-only, C++20. std::format itself may report a malformed format
+        Header-only, C++23. std::format itself may report a malformed format
    string at compile time; nothing here throws.
 */
 

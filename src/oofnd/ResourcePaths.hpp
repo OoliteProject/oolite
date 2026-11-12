@@ -58,7 +58,7 @@
    here creates a directory: creating and falling back is the consumer's job, as
    it is today (oofnd/FileSystem.hpp).
 
-        Header-only, C++20, compiles with -fno-exceptions.
+        Header-only, C++23.
 */
 
 #pragma once
