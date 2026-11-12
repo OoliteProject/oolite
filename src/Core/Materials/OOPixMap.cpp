@@ -70,8 +70,8 @@ OOPixMap OOAllocatePixMap(OOPixMapDimension width, OOPixMapDimension height,
                           OOPixMapFormat format, size_t rowBytes,
                           size_t bufferSize) {
   // Create pixmap struct with dummy pixel pointer to test validity.
-  OOPixMap pixMap =
-      OOMakePixMap((void*)-1, width, height, format, rowBytes, bufferSize);
+  OOPixMap pixMap = OOMakePixMap(reinterpret_cast<void*>(-1), width, height,
+                                 format, rowBytes, bufferSize);
   if (EXPECT_NOT(!OOIsValidPixMap(pixMap))) return kOONullPixMap;
 
   pixMap.pixels = malloc(pixMap.bufferSize);
@@ -143,23 +143,24 @@ void OODumpPixMap(OOPixMap pixMap, const std::string& name) {
 
     case kOOPixMapGrayscale:
       if (gameView != nullptr)
-        gameView->dumpGrayToFileNamed(name, (uint8_t*)pixMap.pixels,
-                                      pixMap.width, pixMap.height,
-                                      pixMap.rowBytes);
+        gameView->dumpGrayToFileNamed(
+            name, static_cast<uint8_t*>(pixMap.pixels), pixMap.width,
+            pixMap.height, pixMap.rowBytes);
       break;
 
     case kOOPixMapGrayscaleAlpha:
       if (gameView != nullptr)
-        gameView->dumpGrayAlphaToFileNamed(name, (uint8_t*)pixMap.pixels,
-                                           pixMap.width, pixMap.height,
-                                           pixMap.rowBytes);
+        gameView->dumpGrayAlphaToFileNamed(
+            name, static_cast<uint8_t*>(pixMap.pixels), pixMap.width,
+            pixMap.height, pixMap.rowBytes);
       break;
 
     case kOOPixMapRGBA:
       if (gameView != nullptr)
         gameView->dumpRGBAToRGBFileNamed(name + " rgb", name + " alpha",
-                                         (uint8_t*)pixMap.pixels, pixMap.width,
-                                         pixMap.height, pixMap.rowBytes);
+                                         static_cast<uint8_t*>(pixMap.pixels),
+                                         pixMap.width, pixMap.height,
+                                         pixMap.rowBytes);
       break;
   }
 }
@@ -207,7 +208,7 @@ std::string OOPixMapFormatName(OOPixMapFormat format) {
       return "RGBA";
   }
 
-  return std::format("invalid<{}>", (int)format);
+  return std::format("invalid<{}>", static_cast<int>(format));
 }
 
 bool OOPixMapFormatHasAlpha(OOPixMapFormat format) {

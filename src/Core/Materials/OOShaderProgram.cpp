@@ -562,10 +562,10 @@ std::string GetGLSLInfoLog(GLhandleARB shaderObject) {
 
   OOGL(glGetObjectParameterivARB(shaderObject, GL_OBJECT_INFO_LOG_LENGTH_ARB,
                                  &length));
-  log = (GLcharARB*)malloc(length);
+  log = static_cast<GLcharARB*>(malloc(length));
   if (log == nullptr) {
     length = 1024;
-    log = (GLcharARB*)malloc(length);
+    log = static_cast<GLcharARB*>(malloc(length));
     if (log == nullptr) return "<out of memory>";
   }
   OOGL(glGetInfoLogARB(shaderObject, length, nullptr, log));

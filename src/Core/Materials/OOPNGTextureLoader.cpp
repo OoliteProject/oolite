@@ -108,11 +108,11 @@ void OOPNGTextureLoader::doLoadTexture() {
   }
 
   if (colorType == PNG_COLOR_TYPE_GRAY) {
-    _format = (OOTextureDataFormat)kOOTextureDataGrayscale;
+    _format = kOOTextureDataGrayscale;
   } else if (colorType == PNG_COLOR_TYPE_GRAY_ALPHA) {
-    _format = (OOTextureDataFormat)kOOTextureDataGrayscaleAlpha;
+    _format = kOOTextureDataGrayscaleAlpha;
   } else {
-    _format = (OOTextureDataFormat)kOOTextureDataRGBA;
+    _format = kOOTextureDataRGBA;
 
 #if OOLITE_BIG_ENDIAN
     png_set_bgr(png);
@@ -134,7 +134,7 @@ void OOPNGTextureLoader::doLoadTexture() {
   _rowBytes = png_get_rowbytes(png, pngInfo);
 
   // png_read_png
-  rows = (png_bytepp)malloc(sizeof *rows * _height);
+  rows = static_cast<png_bytepp>(malloc(sizeof *rows * _height));
   _data = malloc(_rowBytes * _height);
   if (EXPECT_NOT(rows == nullptr || _data == nullptr)) {
     if (rows != nullptr) {
@@ -152,7 +152,7 @@ void OOPNGTextureLoader::doLoadTexture() {
   }
 
   for (i = 0; i != _height; ++i) {
-    rows[i] = ((png_bytep)_data) + i * _rowBytes;
+    rows[i] = (static_cast<png_bytep>(_data)) + i * _rowBytes;
   }
   png_read_image(png, rows);
   png_read_end(png, pngEndInfo);
@@ -177,7 +177,8 @@ void OOPNGTextureLoader::readBytes(png_bytep bytes, png_size_t count) {
   assert(bytes != nullptr);
 
   // Copy bytes
-  memcpy(bytes, (const char*)fileData->bytes() + offset, count);
+  memcpy(bytes, reinterpret_cast<const char*>(fileData->bytes()) + offset,
+         count);
   offset += count;
 }
 

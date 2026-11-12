@@ -63,7 +63,7 @@ OOShaderUniformType OOShaderUniformTypeFromEncoding(const char* typeCode) {
   for (i = kOOShaderUniformTypeInvalid + 1; i != kOOShaderUniformTypeCount;
        ++i) {
     if (sTemplates[i] != nullptr && strcmp(sTemplates[i], typeCode) == 0)
-      return (OOShaderUniformType)i;
+      return static_cast<OOShaderUniformType>(i);
   }
   return kOOShaderUniformTypeInvalid;
 }

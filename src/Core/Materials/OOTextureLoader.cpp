@@ -276,7 +276,8 @@ bool OOTextureLoader::getResult(OOPixMap* result,
   if (OK) {
     *result = OOMakePixMap(
         _data, _width, _height,
-        (OOPixMapFormat)OOTextureComponentsForFormat(_format), 0, 0);
+        static_cast<OOPixMapFormat>(OOTextureComponentsForFormat(_format)), 0,
+        0);
     _data = nullptr;
     *outFormat = _format;
     OK = OOIsValidPixMap(*result);
@@ -286,7 +287,7 @@ bool OOTextureLoader::getResult(OOPixMap* result,
 
   if (!OK) {
     *result = kOONullPixMap;
-    *outFormat = (OOTextureDataFormat)kOOTextureDataInvalid;
+    *outFormat = kOOTextureDataInvalid;
   }
 
   return OK;
@@ -381,8 +382,8 @@ void OOTextureLoader::generateMipMapsForCubeMap() {
 
   unsigned i;
   for (i = 0; i < 6; i++) {
-    void* srcBytes = ((uint8_t*)_data) + srcSideSize * i;
-    void* dstBytes = ((uint8_t*)newData) + newSideSize * i;
+    void* srcBytes = (static_cast<uint8_t*>(_data)) + srcSideSize * i;
+    void* dstBytes = (static_cast<uint8_t*>(newData)) + newSideSize * i;
 
     memcpy(dstBytes, srcBytes, srcSideSize);
     OOGenerateMipMaps(dstBytes, _width, _width, _format);
@@ -406,12 +407,12 @@ void OOTextureLoader::applySettings() {
   if (_originalHeight == 0) _originalHeight = _height;
   if (_rowBytes == 0) _rowBytes = _width * components;
 
-  pixMap = OOMakePixMap(_data, _width, _height, (OOPixMapFormat)components,
-                        _rowBytes, 0);
+  pixMap = OOMakePixMap(_data, _width, _height,
+                        static_cast<OOPixMapFormat>(components), _rowBytes, 0);
 
   if (_extractChannel) {
     if (OOExtractPixMapChannel(&pixMap, _extractChannelIndex, false)) {
-      _format = (OOTextureDataFormat)kOOTextureDataGrayscale;
+      _format = kOOTextureDataGrayscale;
       components = 1;
     } else {
       OO_LOG_WARN("texture.load.extractChannel.invalid",

@@ -463,7 +463,7 @@ void OOShaderUniform::applyBinding() {
     case kOOShaderUniformTypeUnsignedInt:
     case kOOShaderUniformTypeLong:
     case kOOShaderUniformTypeUnsignedLong:
-      iVal = (GLint)member.i;
+      iVal = static_cast<GLint>(member.i);
       isInt = true;
       break;
 
@@ -486,9 +486,9 @@ void OOShaderUniform::applyBinding() {
     case kOOShaderUniformTypeHPVector:
       hpvVal = member.hpv;
       if (convertNormalize) hpvVal = HPvector_normal(hpvVal);
-      expVVal[0] = (GLfloat)hpvVal.x;
-      expVVal[1] = (GLfloat)hpvVal.y;
-      expVVal[2] = (GLfloat)hpvVal.z;
+      expVVal[0] = static_cast<GLfloat>(hpvVal.x);
+      expVVal[1] = static_cast<GLfloat>(hpvVal.y);
+      expVVal[2] = static_cast<GLfloat>(hpvVal.z);
       expVVal[3] = 1.0f;
       isVector = true;
       break;
@@ -542,7 +542,8 @@ void OOShaderUniform::applyBinding() {
     if (convertClamp) iVal = iVal ? 1 : 0;
     OOGL(glUniform1iARB(location, iVal));
   } else if (isPoint) {
-    GLfloat v2[2] = {(GLfloat)pVal.x, (GLfloat)pVal.y};
+    GLfloat v2[2] = {static_cast<GLfloat>(pVal.x),
+                     static_cast<GLfloat>(pVal.y)};
     OOGL(glUniform2fvARB(location, 1, v2));
   } else if (isVector) {
     OOGL(glUniform4fvARB(location, 1, expVVal));

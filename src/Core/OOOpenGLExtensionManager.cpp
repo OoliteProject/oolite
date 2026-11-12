@@ -58,153 +58,170 @@ static void OOBadOpenGLExtensionUsed(void) GCC_ATTR((noreturn, used));
 #if OO_SHADERS
 
 PFNGLUSEPROGRAMOBJECTARBPROC glUseProgramObjectARB =
-    (PFNGLUSEPROGRAMOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLUSEPROGRAMOBJECTARBPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLGETUNIFORMLOCATIONARBPROC glGetUniformLocationARB =
-    (PFNGLGETUNIFORMLOCATIONARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLGETUNIFORMLOCATIONARBPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLUNIFORM1IARBPROC glUniform1iARB =
-    (PFNGLUNIFORM1IARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLUNIFORM1IARBPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLUNIFORM1FARBPROC glUniform1fARB =
-    (PFNGLUNIFORM1FARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLUNIFORM1FARBPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLUNIFORMMATRIX3FVARBPROC glUniformMatrix3fvARB =
-    (PFNGLUNIFORMMATRIX3FVARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLUNIFORMMATRIX3FVARBPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLUNIFORMMATRIX4FVARBPROC glUniformMatrix4fvARB =
-    (PFNGLUNIFORMMATRIX4FVARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLUNIFORMMATRIX4FVARBPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLUNIFORM4FVARBPROC glUniform4fvARB =
-    (PFNGLUNIFORM4FVARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLUNIFORM4FVARBPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLGETOBJECTPARAMETERIVARBPROC glGetObjectParameterivARB =
-    (PFNGLGETOBJECTPARAMETERIVARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLGETOBJECTPARAMETERIVARBPROC>(
+        &OOBadOpenGLExtensionUsed);
 PFNGLCREATESHADEROBJECTARBPROC glCreateShaderObjectARB =
-    (PFNGLCREATESHADEROBJECTARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLCREATESHADEROBJECTARBPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLGETINFOLOGARBPROC glGetInfoLogARB =
-    (PFNGLGETINFOLOGARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLGETINFOLOGARBPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLCREATEPROGRAMOBJECTARBPROC glCreateProgramObjectARB =
-    (PFNGLCREATEPROGRAMOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLCREATEPROGRAMOBJECTARBPROC>(
+        &OOBadOpenGLExtensionUsed);
 PFNGLATTACHOBJECTARBPROC glAttachObjectARB =
-    (PFNGLATTACHOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLATTACHOBJECTARBPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLDELETEOBJECTARBPROC glDeleteObjectARB =
-    (PFNGLDELETEOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLDELETEOBJECTARBPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLLINKPROGRAMARBPROC glLinkProgramARB =
-    (PFNGLLINKPROGRAMARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLLINKPROGRAMARBPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLCOMPILESHADERARBPROC glCompileShaderARB =
-    (PFNGLCOMPILESHADERARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLCOMPILESHADERARBPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLSHADERSOURCEARBPROC glShaderSourceARB =
-    (PFNGLSHADERSOURCEARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLSHADERSOURCEARBPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLUNIFORM2FVARBPROC glUniform2fvARB =
-    (PFNGLUNIFORM2FVARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLUNIFORM2FVARBPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLBINDATTRIBLOCATIONARBPROC glBindAttribLocationARB =
-    (PFNGLBINDATTRIBLOCATIONARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLBINDATTRIBLOCATIONARBPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLENABLEVERTEXATTRIBARRAYARBPROC glEnableVertexAttribArrayARB =
-    (PFNGLENABLEVERTEXATTRIBARRAYARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLENABLEVERTEXATTRIBARRAYARBPROC>(
+        &OOBadOpenGLExtensionUsed);
 PFNGLVERTEXATTRIBPOINTERARBPROC glVertexAttribPointerARB =
-    (PFNGLVERTEXATTRIBPOINTERARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLVERTEXATTRIBPOINTERARBPROC>(
+        &OOBadOpenGLExtensionUsed);
 PFNGLDISABLEVERTEXATTRIBARRAYARBPROC glDisableVertexAttribArrayARB =
-    (PFNGLDISABLEVERTEXATTRIBARRAYARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLDISABLEVERTEXATTRIBARRAYARBPROC>(
+        &OOBadOpenGLExtensionUsed);
 PFNGLVALIDATEPROGRAMARBPROC glValidateProgramARB =
-    (PFNGLVALIDATEPROGRAMARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLVALIDATEPROGRAMARBPROC>(&OOBadOpenGLExtensionUsed);
 #endif
 
 #if OO_SHADERS || OO_MULTITEXTURE
 PFNGLACTIVETEXTUREARBPROC glActiveTextureARB =
-    (PFNGLACTIVETEXTUREARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLACTIVETEXTUREARBPROC>(&OOBadOpenGLExtensionUsed);
 #endif
 
 #if OO_MULTITEXTURE
 PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTextureARB =
-    (PFNGLCLIENTACTIVETEXTUREARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLCLIENTACTIVETEXTUREARBPROC>(
+        &OOBadOpenGLExtensionUsed);
 #endif
 
 #if OO_USE_VBO
 PFNGLGENBUFFERSARBPROC glGenBuffersARB =
-    (PFNGLGENBUFFERSARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLGENBUFFERSARBPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLDELETEBUFFERSARBPROC glDeleteBuffersARB =
-    (PFNGLDELETEBUFFERSARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLDELETEBUFFERSARBPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLBINDBUFFERARBPROC glBindBufferARB =
-    (PFNGLBINDBUFFERARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLBINDBUFFERARBPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLBUFFERDATAARBPROC glBufferDataARB =
-    (PFNGLBUFFERDATAARBPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLBUFFERDATAARBPROC>(&OOBadOpenGLExtensionUsed);
 #endif
 
 #if OO_USE_FBO
 PFNGLGENFRAMEBUFFERSEXTPROC glGenFramebuffersEXT =
-    (PFNGLGENFRAMEBUFFERSEXTPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLGENFRAMEBUFFERSEXTPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLBINDFRAMEBUFFEREXTPROC glBindFramebufferEXT =
-    (PFNGLBINDFRAMEBUFFEREXTPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLBINDFRAMEBUFFEREXTPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLGENRENDERBUFFERSEXTPROC glGenRenderbuffersEXT =
-    (PFNGLGENRENDERBUFFERSEXTPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLGENRENDERBUFFERSEXTPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLBINDRENDERBUFFEREXTPROC glBindRenderbufferEXT =
-    (PFNGLBINDRENDERBUFFEREXTPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLBINDRENDERBUFFEREXTPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLRENDERBUFFERSTORAGEEXTPROC glRenderbufferStorageEXT =
-    (PFNGLRENDERBUFFERSTORAGEEXTPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLRENDERBUFFERSTORAGEEXTPROC>(
+        &OOBadOpenGLExtensionUsed);
 PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC glFramebufferRenderbufferEXT =
-    (PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC>(
+        &OOBadOpenGLExtensionUsed);
 PFNGLFRAMEBUFFERTEXTURE2DEXTPROC glFramebufferTexture2DEXT =
-    (PFNGLFRAMEBUFFERTEXTURE2DEXTPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLFRAMEBUFFERTEXTURE2DEXTPROC>(
+        &OOBadOpenGLExtensionUsed);
 PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC glCheckFramebufferStatusEXT =
-    (PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC>(
+        &OOBadOpenGLExtensionUsed);
 PFNGLDELETEFRAMEBUFFERSEXTPROC glDeleteFramebuffersEXT =
-    (PFNGLDELETEFRAMEBUFFERSEXTPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLDELETEFRAMEBUFFERSEXTPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLDELETERENDERBUFFERSEXTPROC glDeleteRenderbuffersEXT =
-    (PFNGLDELETERENDERBUFFERSEXTPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLDELETERENDERBUFFERSEXTPROC>(
+        &OOBadOpenGLExtensionUsed);
 PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers =
-    (PFNGLGENRENDERBUFFERSPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLGENRENDERBUFFERSPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLBINDRENDERBUFFERPROC glBindRenderbuffer =
-    (PFNGLBINDRENDERBUFFERPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLBINDRENDERBUFFERPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLRENDERBUFFERSTORAGEPROC glRenderbufferStorage =
-    (PFNGLRENDERBUFFERSTORAGEPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLRENDERBUFFERSTORAGEPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers =
-    (PFNGLGENFRAMEBUFFERSPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLGENFRAMEBUFFERSPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer =
-    (PFNGLBINDFRAMEBUFFERPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLBINDFRAMEBUFFERPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer =
-    (PFNGLFRAMEBUFFERRENDERBUFFERPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLFRAMEBUFFERRENDERBUFFERPROC>(
+        &OOBadOpenGLExtensionUsed);
 PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D =
-    (PFNGLFRAMEBUFFERTEXTURE2DPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLFRAMEBUFFERTEXTURE2DPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLGENVERTEXARRAYSPROC glGenVertexArrays =
-    (PFNGLGENVERTEXARRAYSPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLGENVERTEXARRAYSPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLGENBUFFERSPROC glGenBuffers =
-    (PFNGLGENBUFFERSPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLGENBUFFERSPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLBINDVERTEXARRAYPROC glBindVertexArray =
-    (PFNGLBINDVERTEXARRAYPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLBINDVERTEXARRAYPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLBINDBUFFERPROC glBindBuffer =
-    (PFNGLBINDBUFFERPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLBINDBUFFERPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLBUFFERDATAPROC glBufferData =
-    (PFNGLBUFFERDATAPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLBUFFERDATAPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer =
-    (PFNGLVERTEXATTRIBPOINTERPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLVERTEXATTRIBPOINTERPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray =
-    (PFNGLENABLEVERTEXATTRIBARRAYPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLENABLEVERTEXATTRIBARRAYPROC>(
+        &OOBadOpenGLExtensionUsed);
 PFNGLUSEPROGRAMPROC glUseProgram =
-    (PFNGLUSEPROGRAMPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLUSEPROGRAMPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation =
-    (PFNGLGETUNIFORMLOCATIONPROC)&OOBadOpenGLExtensionUsed;
-PFNGLUNIFORM1IPROC glUniform1i = (PFNGLUNIFORM1IPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLGETUNIFORMLOCATIONPROC>(&OOBadOpenGLExtensionUsed);
+PFNGLUNIFORM1IPROC glUniform1i =
+    reinterpret_cast<PFNGLUNIFORM1IPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLACTIVETEXTUREPROC glActiveTexture =
-    (PFNGLACTIVETEXTUREPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLACTIVETEXTUREPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLBLENDFUNCSEPARATEPROC glBlendFuncSeparate =
-    (PFNGLBLENDFUNCSEPARATEPROC)&OOBadOpenGLExtensionUsed;
-PFNGLUNIFORM1FPROC glUniform1f = (PFNGLUNIFORM1FPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLBLENDFUNCSEPARATEPROC>(&OOBadOpenGLExtensionUsed);
+PFNGLUNIFORM1FPROC glUniform1f =
+    reinterpret_cast<PFNGLUNIFORM1FPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLUNIFORM2FVPROC glUniform2fv =
-    (PFNGLUNIFORM2FVPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLUNIFORM2FVPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLDELETERENDERBUFFERSPROC glDeleteRenderbuffers =
-    (PFNGLDELETERENDERBUFFERSPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLDELETERENDERBUFFERSPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLDELETEFRAMEBUFFERSPROC glDeleteFramebuffers =
-    (PFNGLDELETEFRAMEBUFFERSPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLDELETEFRAMEBUFFERSPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays =
-    (PFNGLDELETEVERTEXARRAYSPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLDELETEVERTEXARRAYSPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLDELETEBUFFERSPROC glDeleteBuffers =
-    (PFNGLDELETEBUFFERSPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLDELETEBUFFERSPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLDRAWBUFFERSPROC glDrawBuffers =
-    (PFNGLDRAWBUFFERSPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLDRAWBUFFERSPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFramebufferStatus =
-    (PFNGLCHECKFRAMEBUFFERSTATUSPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLCHECKFRAMEBUFFERSTATUSPROC>(
+        &OOBadOpenGLExtensionUsed);
 PFNGLTEXIMAGE2DMULTISAMPLEPROC glTexImage2DMultisample =
-    (PFNGLTEXIMAGE2DMULTISAMPLEPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLTEXIMAGE2DMULTISAMPLEPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC glRenderbufferStorageMultisample =
-    (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC>(
+        &OOBadOpenGLExtensionUsed);
 PFNGLBLITFRAMEBUFFERPROC glBlitFramebuffer =
-    (PFNGLBLITFRAMEBUFFERPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLBLITFRAMEBUFFERPROC>(&OOBadOpenGLExtensionUsed);
 PFNGLCLAMPCOLORPROC glClampColor =
-    (PFNGLCLAMPCOLORPROC)&OOBadOpenGLExtensionUsed;
+    reinterpret_cast<PFNGLCLAMPCOLORPROC>(&OOBadOpenGLExtensionUsed);
 #endif
 #endif
 
@@ -593,52 +610,54 @@ void OOOpenGLExtensionManager::checkShadersSupported() {
 
 #if OOLITE_WINDOWS
   glGetObjectParameterivARB =
-      (PFNGLGETOBJECTPARAMETERIVARBPROC)wglGetProcAddress(
-          "glGetObjectParameterivARB");
-  glCreateShaderObjectARB = (PFNGLCREATESHADEROBJECTARBPROC)wglGetProcAddress(
-      "glCreateShaderObjectARB");
-  glGetInfoLogARB =
-      (PFNGLGETINFOLOGARBPROC)wglGetProcAddress("glGetInfoLogARB");
-  glCreateProgramObjectARB = (PFNGLCREATEPROGRAMOBJECTARBPROC)wglGetProcAddress(
-      "glCreateProgramObjectARB");
-  glAttachObjectARB =
-      (PFNGLATTACHOBJECTARBPROC)wglGetProcAddress("glAttachObjectARB");
-  glDeleteObjectARB =
-      (PFNGLDELETEOBJECTARBPROC)wglGetProcAddress("glDeleteObjectARB");
-  glLinkProgramARB =
-      (PFNGLLINKPROGRAMARBPROC)wglGetProcAddress("glLinkProgramARB");
-  glCompileShaderARB =
-      (PFNGLCOMPILESHADERARBPROC)wglGetProcAddress("glCompileShaderARB");
-  glShaderSourceARB =
-      (PFNGLSHADERSOURCEARBPROC)wglGetProcAddress("glShaderSourceARB");
-  glUseProgramObjectARB =
-      (PFNGLUSEPROGRAMOBJECTARBPROC)wglGetProcAddress("glUseProgramObjectARB");
-  glActiveTextureARB =
-      (PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress("glActiveTextureARB");
-  glGetUniformLocationARB = (PFNGLGETUNIFORMLOCATIONARBPROC)wglGetProcAddress(
-      "glGetUniformLocationARB");
-  glUniform1iARB = (PFNGLUNIFORM1IARBPROC)wglGetProcAddress("glUniform1iARB");
-  glUniform1fARB = (PFNGLUNIFORM1FARBPROC)wglGetProcAddress("glUniform1fARB");
-  glUniformMatrix3fvARB =
-      (PFNGLUNIFORMMATRIX3FVARBPROC)wglGetProcAddress("glUniformMatrix3fvARB");
-  glUniformMatrix4fvARB =
-      (PFNGLUNIFORMMATRIX4FVARBPROC)wglGetProcAddress("glUniformMatrix4fvARB");
-  glUniform4fvARB =
-      (PFNGLUNIFORM4FVARBPROC)wglGetProcAddress("glUniform4fvARB");
-  glUniform2fvARB =
-      (PFNGLUNIFORM2FVARBPROC)wglGetProcAddress("glUniform2fvARB");
-  glBindAttribLocationARB = (PFNGLBINDATTRIBLOCATIONARBPROC)wglGetProcAddress(
-      "glBindAttribLocationARB");
+      reinterpret_cast<PFNGLGETOBJECTPARAMETERIVARBPROC>(
+          wglGetProcAddress("glGetObjectParameterivARB"));
+  glCreateShaderObjectARB = reinterpret_cast<PFNGLCREATESHADEROBJECTARBPROC>(
+      wglGetProcAddress("glCreateShaderObjectARB"));
+  glGetInfoLogARB = reinterpret_cast<PFNGLGETINFOLOGARBPROC>(
+      wglGetProcAddress("glGetInfoLogARB"));
+  glCreateProgramObjectARB = reinterpret_cast<PFNGLCREATEPROGRAMOBJECTARBPROC>(
+      wglGetProcAddress("glCreateProgramObjectARB"));
+  glAttachObjectARB = reinterpret_cast<PFNGLATTACHOBJECTARBPROC>(
+      wglGetProcAddress("glAttachObjectARB"));
+  glDeleteObjectARB = reinterpret_cast<PFNGLDELETEOBJECTARBPROC>(
+      wglGetProcAddress("glDeleteObjectARB"));
+  glLinkProgramARB = reinterpret_cast<PFNGLLINKPROGRAMARBPROC>(
+      wglGetProcAddress("glLinkProgramARB"));
+  glCompileShaderARB = reinterpret_cast<PFNGLCOMPILESHADERARBPROC>(
+      wglGetProcAddress("glCompileShaderARB"));
+  glShaderSourceARB = reinterpret_cast<PFNGLSHADERSOURCEARBPROC>(
+      wglGetProcAddress("glShaderSourceARB"));
+  glUseProgramObjectARB = reinterpret_cast<PFNGLUSEPROGRAMOBJECTARBPROC>(
+      wglGetProcAddress("glUseProgramObjectARB"));
+  glActiveTextureARB = reinterpret_cast<PFNGLACTIVETEXTUREARBPROC>(
+      wglGetProcAddress("glActiveTextureARB"));
+  glGetUniformLocationARB = reinterpret_cast<PFNGLGETUNIFORMLOCATIONARBPROC>(
+      wglGetProcAddress("glGetUniformLocationARB"));
+  glUniform1iARB = reinterpret_cast<PFNGLUNIFORM1IARBPROC>(
+      wglGetProcAddress("glUniform1iARB"));
+  glUniform1fARB = reinterpret_cast<PFNGLUNIFORM1FARBPROC>(
+      wglGetProcAddress("glUniform1fARB"));
+  glUniformMatrix3fvARB = reinterpret_cast<PFNGLUNIFORMMATRIX3FVARBPROC>(
+      wglGetProcAddress("glUniformMatrix3fvARB"));
+  glUniformMatrix4fvARB = reinterpret_cast<PFNGLUNIFORMMATRIX4FVARBPROC>(
+      wglGetProcAddress("glUniformMatrix4fvARB"));
+  glUniform4fvARB = reinterpret_cast<PFNGLUNIFORM4FVARBPROC>(
+      wglGetProcAddress("glUniform4fvARB"));
+  glUniform2fvARB = reinterpret_cast<PFNGLUNIFORM2FVARBPROC>(
+      wglGetProcAddress("glUniform2fvARB"));
+  glBindAttribLocationARB = reinterpret_cast<PFNGLBINDATTRIBLOCATIONARBPROC>(
+      wglGetProcAddress("glBindAttribLocationARB"));
   glEnableVertexAttribArrayARB =
-      (PFNGLENABLEVERTEXATTRIBARRAYARBPROC)wglGetProcAddress(
-          "glEnableVertexAttribArrayARB");
-  glVertexAttribPointerARB = (PFNGLVERTEXATTRIBPOINTERARBPROC)wglGetProcAddress(
-      "glVertexAttribPointerARB");
+      reinterpret_cast<PFNGLENABLEVERTEXATTRIBARRAYARBPROC>(
+          wglGetProcAddress("glEnableVertexAttribArrayARB"));
+  glVertexAttribPointerARB = reinterpret_cast<PFNGLVERTEXATTRIBPOINTERARBPROC>(
+      wglGetProcAddress("glVertexAttribPointerARB"));
   glDisableVertexAttribArrayARB =
-      (PFNGLDISABLEVERTEXATTRIBARRAYARBPROC)wglGetProcAddress(
-          "glDisableVertexAttribArrayARB");
-  glValidateProgramARB =
-      (PFNGLVALIDATEPROGRAMARBPROC)wglGetProcAddress("glValidateProgramARB");
+      reinterpret_cast<PFNGLDISABLEVERTEXATTRIBARRAYARBPROC>(
+          wglGetProcAddress("glDisableVertexAttribArrayARB"));
+  glValidateProgramARB = reinterpret_cast<PFNGLVALIDATEPROGRAMARBPROC>(
+      wglGetProcAddress("glValidateProgramARB"));
 #endif
 
   glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &textureImageUnitCount_);
@@ -658,14 +677,14 @@ void OOOpenGLExtensionManager::checkVBOSupported() {
 
 #if OOLITE_WINDOWS
   if (vboSupported_) {
-    glGenBuffersARB =
-        (PFNGLGENBUFFERSARBPROC)wglGetProcAddress("glGenBuffersARB");
-    glDeleteBuffersARB =
-        (PFNGLDELETEBUFFERSARBPROC)wglGetProcAddress("glDeleteBuffersARB");
-    glBindBufferARB =
-        (PFNGLBINDBUFFERARBPROC)wglGetProcAddress("glBindBufferARB");
-    glBufferDataARB =
-        (PFNGLBUFFERDATAARBPROC)wglGetProcAddress("glBufferDataARB");
+    glGenBuffersARB = reinterpret_cast<PFNGLGENBUFFERSARBPROC>(
+        wglGetProcAddress("glGenBuffersARB"));
+    glDeleteBuffersARB = reinterpret_cast<PFNGLDELETEBUFFERSARBPROC>(
+        wglGetProcAddress("glDeleteBuffersARB"));
+    glBindBufferARB = reinterpret_cast<PFNGLBINDBUFFERARBPROC>(
+        wglGetProcAddress("glBindBufferARB"));
+    glBufferDataARB = reinterpret_cast<PFNGLBUFFERDATAARBPROC>(
+        wglGetProcAddress("glBufferDataARB"));
   }
 #endif
 }
@@ -681,88 +700,97 @@ void OOOpenGLExtensionManager::checkFBOSupported() {
 
 #if OOLITE_WINDOWS
   if (fboSupported_) {
-    glGenFramebuffersEXT =
-        (PFNGLGENFRAMEBUFFERSEXTPROC)wglGetProcAddress("glGenFramebuffersEXT");
-    glBindFramebufferEXT =
-        (PFNGLBINDFRAMEBUFFEREXTPROC)wglGetProcAddress("glBindFramebufferEXT");
-    glGenRenderbuffersEXT = (PFNGLGENRENDERBUFFERSEXTPROC)wglGetProcAddress(
-        "glGenRenderbuffersEXT");
-    glBindRenderbufferEXT = (PFNGLBINDRENDERBUFFEREXTPROC)wglGetProcAddress(
-        "glBindRenderbufferEXT");
+    glGenFramebuffersEXT = reinterpret_cast<PFNGLGENFRAMEBUFFERSEXTPROC>(
+        wglGetProcAddress("glGenFramebuffersEXT"));
+    glBindFramebufferEXT = reinterpret_cast<PFNGLBINDFRAMEBUFFEREXTPROC>(
+        wglGetProcAddress("glBindFramebufferEXT"));
+    glGenRenderbuffersEXT = reinterpret_cast<PFNGLGENRENDERBUFFERSEXTPROC>(
+        wglGetProcAddress("glGenRenderbuffersEXT"));
+    glBindRenderbufferEXT = reinterpret_cast<PFNGLBINDRENDERBUFFEREXTPROC>(
+        wglGetProcAddress("glBindRenderbufferEXT"));
     glRenderbufferStorageEXT =
-        (PFNGLRENDERBUFFERSTORAGEEXTPROC)wglGetProcAddress(
-            "glRenderbufferStorageEXT");
+        reinterpret_cast<PFNGLRENDERBUFFERSTORAGEEXTPROC>(
+            wglGetProcAddress("glRenderbufferStorageEXT"));
     glFramebufferRenderbufferEXT =
-        (PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC)wglGetProcAddress(
-            "glFramebufferRenderbufferEXT");
+        reinterpret_cast<PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC>(
+            wglGetProcAddress("glFramebufferRenderbufferEXT"));
     glFramebufferTexture2DEXT =
-        (PFNGLFRAMEBUFFERTEXTURE2DEXTPROC)wglGetProcAddress(
-            "glFramebufferTexture2DEXT");
+        reinterpret_cast<PFNGLFRAMEBUFFERTEXTURE2DEXTPROC>(
+            wglGetProcAddress("glFramebufferTexture2DEXT"));
     glCheckFramebufferStatusEXT =
-        (PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC)wglGetProcAddress(
-            "glCheckFramebufferStatusEXT");
-    glDeleteFramebuffersEXT = (PFNGLDELETEFRAMEBUFFERSEXTPROC)wglGetProcAddress(
-        "glDeleteFramebuffersEXT");
+        reinterpret_cast<PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC>(
+            wglGetProcAddress("glCheckFramebufferStatusEXT"));
+    glDeleteFramebuffersEXT = reinterpret_cast<PFNGLDELETEFRAMEBUFFERSEXTPROC>(
+        wglGetProcAddress("glDeleteFramebuffersEXT"));
     glDeleteRenderbuffersEXT =
-        (PFNGLDELETERENDERBUFFERSEXTPROC)wglGetProcAddress(
-            "glDeleteRenderbuffersEXT");
-    glGenRenderbuffers =
-        (PFNGLGENRENDERBUFFERSPROC)wglGetProcAddress("glGenRenderbuffers");
-    glBindRenderbuffer =
-        (PFNGLBINDRENDERBUFFERPROC)wglGetProcAddress("glBindRenderbuffer");
-    glRenderbufferStorage = (PFNGLRENDERBUFFERSTORAGEPROC)wglGetProcAddress(
-        "glRenderbufferStorage");
-    glGenFramebuffers =
-        (PFNGLGENFRAMEBUFFERSPROC)wglGetProcAddress("glGenFramebuffers");
-    glBindFramebuffer =
-        (PFNGLBINDFRAMEBUFFERPROC)wglGetProcAddress("glBindFramebuffer");
+        reinterpret_cast<PFNGLDELETERENDERBUFFERSEXTPROC>(
+            wglGetProcAddress("glDeleteRenderbuffersEXT"));
+    glGenRenderbuffers = reinterpret_cast<PFNGLGENRENDERBUFFERSPROC>(
+        wglGetProcAddress("glGenRenderbuffers"));
+    glBindRenderbuffer = reinterpret_cast<PFNGLBINDRENDERBUFFERPROC>(
+        wglGetProcAddress("glBindRenderbuffer"));
+    glRenderbufferStorage = reinterpret_cast<PFNGLRENDERBUFFERSTORAGEPROC>(
+        wglGetProcAddress("glRenderbufferStorage"));
+    glGenFramebuffers = reinterpret_cast<PFNGLGENFRAMEBUFFERSPROC>(
+        wglGetProcAddress("glGenFramebuffers"));
+    glBindFramebuffer = reinterpret_cast<PFNGLBINDFRAMEBUFFERPROC>(
+        wglGetProcAddress("glBindFramebuffer"));
     glFramebufferRenderbuffer =
-        (PFNGLFRAMEBUFFERRENDERBUFFERPROC)wglGetProcAddress(
-            "glFramebufferRenderbuffer");
-    glFramebufferTexture2D = (PFNGLFRAMEBUFFERTEXTURE2DPROC)wglGetProcAddress(
-        "glFramebufferTexture2D");
-    glGenVertexArrays =
-        (PFNGLGENVERTEXARRAYSPROC)wglGetProcAddress("glGenVertexArrays");
-    glGenBuffers = (PFNGLGENBUFFERSPROC)wglGetProcAddress("glGenBuffers");
-    glBindVertexArray =
-        (PFNGLBINDVERTEXARRAYPROC)wglGetProcAddress("glBindVertexArray");
-    glBindBuffer = (PFNGLBINDBUFFERPROC)wglGetProcAddress("glBindBuffer");
-    glBufferData = (PFNGLBUFFERDATAPROC)wglGetProcAddress("glBufferData");
-    glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)wglGetProcAddress(
-        "glVertexAttribPointer");
+        reinterpret_cast<PFNGLFRAMEBUFFERRENDERBUFFERPROC>(
+            wglGetProcAddress("glFramebufferRenderbuffer"));
+    glFramebufferTexture2D = reinterpret_cast<PFNGLFRAMEBUFFERTEXTURE2DPROC>(
+        wglGetProcAddress("glFramebufferTexture2D"));
+    glGenVertexArrays = reinterpret_cast<PFNGLGENVERTEXARRAYSPROC>(
+        wglGetProcAddress("glGenVertexArrays"));
+    glGenBuffers = reinterpret_cast<PFNGLGENBUFFERSPROC>(
+        wglGetProcAddress("glGenBuffers"));
+    glBindVertexArray = reinterpret_cast<PFNGLBINDVERTEXARRAYPROC>(
+        wglGetProcAddress("glBindVertexArray"));
+    glBindBuffer = reinterpret_cast<PFNGLBINDBUFFERPROC>(
+        wglGetProcAddress("glBindBuffer"));
+    glBufferData = reinterpret_cast<PFNGLBUFFERDATAPROC>(
+        wglGetProcAddress("glBufferData"));
+    glVertexAttribPointer = reinterpret_cast<PFNGLVERTEXATTRIBPOINTERPROC>(
+        wglGetProcAddress("glVertexAttribPointer"));
     glEnableVertexAttribArray =
-        (PFNGLENABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress(
-            "glEnableVertexAttribArray");
-    glUseProgram = (PFNGLUSEPROGRAMPROC)wglGetProcAddress("glUseProgram");
-    glGetUniformLocation =
-        (PFNGLGETUNIFORMLOCATIONPROC)wglGetProcAddress("glGetUniformLocation");
-    glUniform1i = (PFNGLUNIFORM1IPROC)wglGetProcAddress("glUniform1i");
-    glActiveTexture =
-        (PFNGLACTIVETEXTUREPROC)wglGetProcAddress("glActiveTexture");
-    glBlendFuncSeparate =
-        (PFNGLBLENDFUNCSEPARATEPROC)wglGetProcAddress("glBlendFuncSeparate");
-    glUniform1f = (PFNGLUNIFORM1FPROC)wglGetProcAddress("glUniform1f");
-    glUniform2fv = (PFNGLUNIFORM2FVPROC)wglGetProcAddress("glUniform2fv");
-    glDeleteRenderbuffers =
-        (PFNGLDELETERENDERBUFFERSPROC)wglGetProcAddress("glDeleteRenderbuffer");
-    glDeleteFramebuffers =
-        (PFNGLDELETEFRAMEBUFFERSPROC)wglGetProcAddress("glDeleteFramebuffers");
-    glDeleteVertexArrays =
-        (PFNGLDELETEVERTEXARRAYSPROC)wglGetProcAddress("glDeleteVertexArrays");
-    glDeleteBuffers =
-        (PFNGLDELETEBUFFERSPROC)wglGetProcAddress("glDeleteBuffers");
-    glDrawBuffers = (PFNGLDRAWBUFFERSPROC)wglGetProcAddress("glDrawBuffers");
+        reinterpret_cast<PFNGLENABLEVERTEXATTRIBARRAYPROC>(
+            wglGetProcAddress("glEnableVertexAttribArray"));
+    glUseProgram = reinterpret_cast<PFNGLUSEPROGRAMPROC>(
+        wglGetProcAddress("glUseProgram"));
+    glGetUniformLocation = reinterpret_cast<PFNGLGETUNIFORMLOCATIONPROC>(
+        wglGetProcAddress("glGetUniformLocation"));
+    glUniform1i =
+        reinterpret_cast<PFNGLUNIFORM1IPROC>(wglGetProcAddress("glUniform1i"));
+    glActiveTexture = reinterpret_cast<PFNGLACTIVETEXTUREPROC>(
+        wglGetProcAddress("glActiveTexture"));
+    glBlendFuncSeparate = reinterpret_cast<PFNGLBLENDFUNCSEPARATEPROC>(
+        wglGetProcAddress("glBlendFuncSeparate"));
+    glUniform1f =
+        reinterpret_cast<PFNGLUNIFORM1FPROC>(wglGetProcAddress("glUniform1f"));
+    glUniform2fv = reinterpret_cast<PFNGLUNIFORM2FVPROC>(
+        wglGetProcAddress("glUniform2fv"));
+    glDeleteRenderbuffers = reinterpret_cast<PFNGLDELETERENDERBUFFERSPROC>(
+        wglGetProcAddress("glDeleteRenderbuffer"));
+    glDeleteFramebuffers = reinterpret_cast<PFNGLDELETEFRAMEBUFFERSPROC>(
+        wglGetProcAddress("glDeleteFramebuffers"));
+    glDeleteVertexArrays = reinterpret_cast<PFNGLDELETEVERTEXARRAYSPROC>(
+        wglGetProcAddress("glDeleteVertexArrays"));
+    glDeleteBuffers = reinterpret_cast<PFNGLDELETEBUFFERSPROC>(
+        wglGetProcAddress("glDeleteBuffers"));
+    glDrawBuffers = reinterpret_cast<PFNGLDRAWBUFFERSPROC>(
+        wglGetProcAddress("glDrawBuffers"));
     glCheckFramebufferStatus =
-        (PFNGLCHECKFRAMEBUFFERSTATUSPROC)wglGetProcAddress(
-            "glCheckFramebufferStatus");
-    glTexImage2DMultisample = (PFNGLTEXIMAGE2DMULTISAMPLEPROC)wglGetProcAddress(
-        "glTexImage2DMultisample");
+        reinterpret_cast<PFNGLCHECKFRAMEBUFFERSTATUSPROC>(
+            wglGetProcAddress("glCheckFramebufferStatus"));
+    glTexImage2DMultisample = reinterpret_cast<PFNGLTEXIMAGE2DMULTISAMPLEPROC>(
+        wglGetProcAddress("glTexImage2DMultisample"));
     glRenderbufferStorageMultisample =
-        (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC)wglGetProcAddress(
-            "glRenderbufferStorageMultisample");
-    glBlitFramebuffer =
-        (PFNGLBLITFRAMEBUFFERPROC)wglGetProcAddress("glBlitFramebuffer");
-    glClampColor = (PFNGLCLAMPCOLORPROC)wglGetProcAddress("glClampColor");
+        reinterpret_cast<PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC>(
+            wglGetProcAddress("glRenderbufferStorageMultisample"));
+    glBlitFramebuffer = reinterpret_cast<PFNGLBLITFRAMEBUFFERPROC>(
+        wglGetProcAddress("glBlitFramebuffer"));
+    glClampColor = reinterpret_cast<PFNGLCLAMPCOLORPROC>(
+        wglGetProcAddress("glClampColor"));
   }
 #endif
 }
@@ -777,12 +805,12 @@ void OOOpenGLExtensionManager::checkTextureCombinersSupported() {
 
 #if OOLITE_WINDOWS
     // Duplicated in checkShadersSupported. but that's not really a problem.
-    glActiveTextureARB =
-        (PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress("glActiveTextureARB");
+    glActiveTextureARB = reinterpret_cast<PFNGLACTIVETEXTUREARBPROC>(
+        wglGetProcAddress("glActiveTextureARB"));
 
     glClientActiveTextureARB =
-        (PFNGLCLIENTACTIVETEXTUREARBPROC)wglGetProcAddress(
-            "glClientActiveTextureARB");
+        reinterpret_cast<PFNGLCLIENTACTIVETEXTUREARBPROC>(
+            wglGetProcAddress("glClientActiveTextureARB"));
 #endif
   } else {
     textureUnitCount_ = 1;

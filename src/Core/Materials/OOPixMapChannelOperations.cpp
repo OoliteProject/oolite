@@ -76,11 +76,12 @@ void ExtractChannel_4(OOPixMap* ioPixMap, uint8_t channelIndex) {
   uint8_t shift;
   uint32_t xCount, y;
 
-  dst = (uint8_t*)ioPixMap->pixels;
+  dst = static_cast<uint8_t*>(ioPixMap->pixels);
   shift = 8 * channelIndex;
 
   for (y = 0; y < ioPixMap->height; y++) {
-    src = (uint32_t*)((char*)ioPixMap->pixels + y * ioPixMap->rowBytes);
+    src = reinterpret_cast<uint32_t*>(static_cast<char*>(ioPixMap->pixels) +
+                                      y * ioPixMap->rowBytes);
     xCount = ioPixMap->width;
 
     do {
@@ -96,7 +97,7 @@ bool OOPixMapToRGBA(OOPixMap* ioPixMap) {
   if (ioPixMap->format == kOOPixMapRGBA) return true;
 
   OOPixMap temp = OOAllocatePixMap(ioPixMap->width, ioPixMap->height,
-                                   (OOPixMapFormat)4, 0, 0);
+                                   static_cast<OOPixMapFormat>(4), 0, 0);
   if (EXPECT_NOT(OOIsNullPixMap(temp))) return false;
 
   bool OK = false;
@@ -138,10 +139,11 @@ void ToRGBA_1(OOPixMap srcPx, OOPixMap dstPx) {
   uint32_t* dst;
   uint32_t xCount, y;
 
-  dst = (uint32_t*)dstPx.pixels;
+  dst = static_cast<uint32_t*>(dstPx.pixels);
 
   for (y = 0; y < srcPx.height; y++) {
-    src = (uint8_t*)((char*)srcPx.pixels + y * srcPx.rowBytes);
+    src = reinterpret_cast<uint8_t*>(static_cast<char*>(srcPx.pixels) +
+                                     y * srcPx.rowBytes);
     xCount = srcPx.width;
 
     do {
@@ -162,10 +164,11 @@ void ToRGBA_2(OOPixMap srcPx, OOPixMap dstPx) {
   uint32_t* dst;
   uint32_t xCount, y;
 
-  dst = (uint32_t*)dstPx.pixels;
+  dst = static_cast<uint32_t*>(dstPx.pixels);
 
   for (y = 0; y < srcPx.height; y++) {
-    src = (uint16_t*)((char*)srcPx.pixels + y * srcPx.rowBytes);
+    src = reinterpret_cast<uint16_t*>(static_cast<char*>(srcPx.pixels) +
+                                      y * srcPx.rowBytes);
     xCount = srcPx.width;
 
     do {
@@ -205,7 +208,8 @@ void ModulateUniform_4(OOPixMap pixMap, uint16_t f3, uint16_t f2, uint16_t f1,
   uint32_t xCount, y;
 
   for (y = 0; y < pixMap.height; y++) {
-    curr = (uint32_t*)((char*)pixMap.pixels + y * pixMap.rowBytes);
+    curr = reinterpret_cast<uint32_t*>(static_cast<char*>(pixMap.pixels) +
+                                       y * pixMap.rowBytes);
     xCount = pixMap.width;
 
     do {
@@ -263,8 +267,10 @@ void ModulatePixMap_4(OOPixMap mainPx, OOPixMap otherPx) {
   uint32_t xCount, y;
 
   for (y = 0; y < mainPx.height; y++) {
-    dst = (uint32_t*)((char*)mainPx.pixels + y * mainPx.rowBytes);
-    other = (uint32_t*)((char*)otherPx.pixels + y * otherPx.rowBytes);
+    dst = reinterpret_cast<uint32_t*>(static_cast<char*>(mainPx.pixels) +
+                                      y * mainPx.rowBytes);
+    other = reinterpret_cast<uint32_t*>(static_cast<char*>(otherPx.pixels) +
+                                        y * otherPx.rowBytes);
     xCount = mainPx.width;
 
     do {
@@ -322,8 +328,10 @@ void AddPixMap_4(OOPixMap mainPx, OOPixMap otherPx) {
   uint32_t xCount, y;
 
   for (y = 0; y < mainPx.height; y++) {
-    dst = (uint32_t*)((char*)mainPx.pixels + y * mainPx.rowBytes);
-    other = (uint32_t*)((char*)otherPx.pixels + y * otherPx.rowBytes);
+    dst = reinterpret_cast<uint32_t*>(static_cast<char*>(mainPx.pixels) +
+                                      y * mainPx.rowBytes);
+    other = reinterpret_cast<uint32_t*>(static_cast<char*>(otherPx.pixels) +
+                                        y * otherPx.rowBytes);
     xCount = mainPx.width;
 
     do {

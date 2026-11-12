@@ -120,8 +120,8 @@ oo::PList OOMaterial::synthesizeMaterialDictionaryWithName(
           configuration.isNull() ? oo::PList(oo::PList::Dict{}) : configuration,
       .outConfig = oo::PList::Dict{},
       .texturesUsed = 0,
-      .maxTextures = (std::size_t)OOOpenGLExtensionManager::sharedManager()
-                         ->textureImageUnitCount(),
+      .maxTextures = static_cast<std::size_t>(
+          OOOpenGLExtensionManager::sharedManager()->textureImageUnitCount()),
 
       .macros = std::move(macrosCopy),
       .textures = {},
@@ -628,7 +628,7 @@ void SynthSpecular(OOMaterialSynthContext* context) {
   // quick and can be used also for the shader materials in a not too different
   // way
   // - Nikos 20181001
-  SetUniformFloat(context, "uGammaCorrect", (float)gammaCorrect);
+  SetUniformFloat(context, "uGammaCorrect", static_cast<float>(gammaCorrect));
 }
 
 }  // namespace

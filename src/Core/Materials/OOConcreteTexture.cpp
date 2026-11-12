@@ -295,7 +295,7 @@ OOPixMap OOConcreteTexture::copyPixMapRepresentation() {
     else {
       px = OOAllocatePixMap(_width, _width * 6, _format, 0, 0);
       if (!OOIsValidPixMap(px)) return kOONullPixMap;
-      uint8_t* pixels = (uint8_t*)px.pixels;
+      uint8_t* pixels = static_cast<uint8_t*>(px.pixels);
 
       unsigned i;
       for (i = 0; i < 6; i++) {
@@ -493,7 +493,7 @@ void OOConcreteTexture::uploadTextureDataWithMipMap(
     bool mipMap, OOTextureDataFormat format) {
   GLenum glFormat = 0, internalFormat = 0, type = 0;
   unsigned w = _width, h = _height, level = 0;
-  char* bytes = (char*)_bytes;
+  char* bytes = static_cast<char*>(_bytes);
   uint8_t components = OOTextureComponentsForFormat(format);
 
   OO_ENTER_OPENGL();
@@ -534,7 +534,7 @@ void OOConcreteTexture::uploadTextureCubeMapDataWithMipMap(
 
   unsigned side;
   for (side = 0; side < 6; side++) {
-    char* bytes = (char*)_bytes;
+    char* bytes = static_cast<char*>(_bytes);
     bytes += side * sideSize;
 
     unsigned w = _width, level = 0;
