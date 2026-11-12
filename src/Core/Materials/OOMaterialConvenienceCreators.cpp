@@ -40,6 +40,7 @@ SOFTWARE.
 #endif
 
 #include <cstddef>
+#include <format>
 #include <map>
 #include <optional>
 #include <string>
@@ -189,9 +190,8 @@ oo::Ref<OOMaterial> OOMaterial::defaultShaderMaterialWithName(
     cache = OOCacheManager::sharedCache();
     // configuration must be in cache key, as otherwise changes in
     // non-diffuse map can end up miscached
-    cacheKeyStr = oo::str::format("%s/%s/%s", cacheKey->c_str(),
-                                  name.value_or("").c_str(),
-                                  oo::DescriptionOf(configuration).c_str());
+    cacheKeyStr = std::format("{}/{}/{}", *cacheKey, name.value_or(""),
+                              oo::DescriptionOf(configuration));
     synthesizedConfig =
         cache->pListForKey(cacheKeyStr, "synthesized shader materials");
   }
@@ -275,7 +275,7 @@ oo::Ref<OOMaterial> OOMaterial::defaultShaderMaterialWithName(
     const char* cacheKeyText = cacheKey ? cacheKey->c_str() : "(null)";
     const char* nameText = name ? name->c_str() : "(null)";
     std::string dumpPath =
-        oo::str::format("Synthesized Materials/%s/%s", cacheKeyText, nameText);
+        std::format("Synthesized Materials/{}/{}", cacheKeyText, nameText);
 
                 ResourceManager::writeDiagnosticString(synthesized ?, std::string(), dumpPath + ".vertex");
                 ResourceManager::writeDiagnosticString(synthesized ?, std::string(), dumpPath + ".fragment");
@@ -289,9 +289,9 @@ oo::Ref<OOMaterial> OOMaterial::defaultShaderMaterialWithName(
                 humanFriendlyConfig.erase(
                     kOOIsSynthesizedMaterialConfigurationKey);
                 humanFriendlyConfig[kOOVertexShaderNameKey] =
-                    oo::PList(oo::str::format("%s.vertex", nameText));
+                    oo::PList(std::format("{}.vertex", nameText));
                 humanFriendlyConfig[kOOFragmentShaderNameKey] =
-                    oo::PList(oo::str::format("%s.fragment", nameText));
+                    oo::PList(std::format("{}.fragment", nameText));
 
                 ResourceManager::writeDiagnosticPList(
                     oo::PList(humanFriendlyConfig), dumpPath + ".plist");
@@ -453,9 +453,10 @@ void AddColorIfAppropriate(OOMaterialSynthContext* context, OOColor* color,
 void AddMacroColorIfAppropriate(OOMaterialSynthContext* context, OOColor* color,
                                 const char* macroName) {
   if (color != nullptr) {
-    std::string macroText = oo::str::format(
-        "vec4(%g, %g, %g, %g)", color->redComponent(), color->greenComponent(),
-        color->blueComponent(), color->alphaComponent());
+    std::string macroText =
+        std::format("vec4({:g}, {:g}, {:g}, {:g})", color->redComponent(),
+                    color->greenComponent(), color->blueComponent(),
+                    color->alphaComponent());
     context->macros[macroName] = oo::PList(std::move(macroText));
   }
 }

@@ -27,6 +27,8 @@ SOFTWARE.
 
 #include "OOPixMapTextureLoader.h"
 
+#include <format>
+
 #include "OOTextureScaling.h"
 #include "oofnd/String.hpp"
 
@@ -39,9 +41,9 @@ oo::Ref<OOPixMapTextureLoader> OOPixMapTextureLoader::loaderWithPixMap(
 
 bool OOPixMapTextureLoader::initWithPixMap(OOPixMap pixMap, uint32_t options,
                                            bool freeWhenDone) {
-  if (!initWithPath(oo::str::format("OOPixMap@%s",
-                                    oo::str::pointerDescription(this).c_str()),
-                    options))
+  if (!initWithPath(
+          std::format("OOPixMap@{}", oo::str::pointerDescription(this)),
+          options))
     return false;
 
   if (freeWhenDone)

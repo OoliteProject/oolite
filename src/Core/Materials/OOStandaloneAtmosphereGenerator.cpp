@@ -37,6 +37,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <format>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -116,8 +117,8 @@ bool OOStandaloneAtmosphereGenerator::initWithPlanetInfo(
          "Initialising standalone atmosphere generator");
 
   // AllowCubeMap not used yet but might be in future
-  if (initWithPath(oo::str::format("OOStandaloneAtmosphereTexture@%s",
-                                   oo::str::pointerDescription(this).c_str()),
+  if (initWithPath(std::format("OOStandaloneAtmosphereTexture@{}",
+                               oo::str::pointerDescription(this)),
                    kOOTextureAllowCubeMap)) {
     OO_LOG("texture.planet.generate", "Extracting parameters for generator {}",
            description());
@@ -180,7 +181,7 @@ bool OOStandaloneAtmosphereGenerator::generateAtmosphereTexture(
 
 std::optional<std::string>
 OOStandaloneAtmosphereGenerator::descriptionComponents() const {
-  return oo::str::format("seed: %u,%u", _info.seed.high, _info.seed.low);
+  return std::format("seed: {},{}", _info.seed.high, _info.seed.low);
 }
 
 uint32_t OOStandaloneAtmosphereGenerator::textureOptions() {
@@ -188,9 +189,9 @@ uint32_t OOStandaloneAtmosphereGenerator::textureOptions() {
 }
 
 std::optional<std::string> OOStandaloneAtmosphereGenerator::cacheKey() {
-  return oo::str::format(
-      "OOStandaloneAtmosphereGenerator-@%u\n%u,%u/%u,%u/%f/%f/%f,%f,%f/"
-      "%f,%f,%f/%f,%f,%f",
+  return std::format(
+      "OOStandaloneAtmosphereGenerator-@{}\n{},{}/{},{}/{:f}/{:f}/"
+      "{:f},{:f},{:f}/{:f},{:f},{:f}/{:f},{:f},{:f}",
       _planetScale, _info.width, _info.height, _info.seed.high, _info.seed.low,
       _info.cloudAlpha, _info.cloudFraction, _info.airColor.r, _info.airColor.g,
       _info.airColor.b, _info.cloudColor.r, _info.cloudColor.g,
@@ -299,10 +300,10 @@ END:
 
 #if DEBUG_DUMP
   if (success) {
-    const std::string diffuseName = oo::str::format(
-        "atmosphere-%u-%u-diffuse-new", _info.seed.high, _info.seed.low);
-    const std::string lightsName = oo::str::format(
-        "atmosphere-%u-%u-alpha-new", _info.seed.high, _info.seed.low);
+    const std::string diffuseName = std::format(
+        "atmosphere-{}-{}-diffuse-new", _info.seed.high, _info.seed.low);
+    const std::string lightsName = std::format("atmosphere-{}-{}-alpha-new",
+                                               _info.seed.high, _info.seed.low);
 
     if (MyOpenGLView* gameView =
             (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr))
@@ -315,8 +316,8 @@ END:
 #if DEBUG_DUMP_RAW
 
 void OOStandaloneAtmosphereGenerator::dumpNoiseBuffer(float* noise) {
-  const std::string noiseName = oo::str::format(
-      "atmosphere-%u-%u-noise-new", _info.seed.high, _info.seed.low);
+  const std::string noiseName = std::format("atmosphere-{}-{}-noise-new",
+                                            _info.seed.high, _info.seed.low);
 
   uint8_t* noisePx = static_cast<uint8_t*>(malloc(_width * _height));
   unsigned x, y;

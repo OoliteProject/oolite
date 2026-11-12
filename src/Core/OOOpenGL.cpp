@@ -24,6 +24,8 @@ MA 02110-1301, USA.
 
 #include "OOOpenGL.h"
 
+#include <format>
+
 #include "OOFunctionAttributes.h"
 #include "OOLogging.h"
 #include "OOMacroOpenGL.h"
@@ -292,8 +294,8 @@ std::string OOGLColorToString(GLfloat color[4]) {
   COLOR_CASE(1, 0, 1, 1, "magenta");
   COLOR_CASE(1, 1, 0, 1, "yellow");
 
-  return oo::str::format("(%.2ff, %.2ff, %.2ff, %.2ff)", color[0], color[1],
-                         color[2], color[3]);
+  return std::format("({:.2f}f, {:.2f}f, {:.2f}f, {:.2f}f)", color[0], color[1],
+                     color[2], color[3]);
 }
 
 static void GLDumpLightState(unsigned lightIdx) {
@@ -539,7 +541,7 @@ std::string OOGLEnumToString(GLenum value) {
 #endif
 
     default:
-      return oo::str::format("unknown: %u", value);
+      return std::format("unknown: {}", value);
   }
 }
 

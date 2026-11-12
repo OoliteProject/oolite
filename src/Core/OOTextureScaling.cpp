@@ -28,6 +28,8 @@ SOFTWARE.
 
 #include <stdlib.h>
 
+#include <format>
+
 #include "OOCPUInfo.h"
 #include "OOFunctionAttributes.h"
 #include "OOLogging.h"
@@ -261,9 +263,10 @@ static void DumpMipMap(void* data, OOPixMapDimension width,
 #define DUMP_SCALE_DUMP(PM, stage)                                           \
   do {                                                                       \
     OOPixMap* pm = &(PM);                                                    \
-    OODumpPixMap(                                                            \
-        *pm, oo::str::format("scaling dump ID %u stage %u-%s %ux%u", dumpID, \
-                             dumpCount++, stage, pm->width, pm->height));    \
+    OODumpPixMap(*pm, std::format("scaling dump ID {} stage {}-{} {}x{}",    \
+                                  static_cast<unsigned>(dumpID),             \
+                                  static_cast<unsigned>(dumpCount++), stage, \
+                                  pm->width, pm->height));                   \
   } while (0)  // stage: a C string
 #else
 #define DUMP_SCALE_PREPARE()
@@ -894,9 +897,9 @@ static void DumpMipMap(void* data, OOPixMapDimension width,
                        OOPixMapDimension height, OOPixMapFormat format,
                        int32_t ID, uint32_t level) {
   OOPixMap pixMap = OOMakePixMap(data, width, height, format, 0, 0);
-  OODumpPixMap(pixMap, oo::str::format(
-                           "mipmap dump ID %u lv%u %s %ux%u", ID, level,
-                           OOPixMapFormatName(format).c_str(), width, height));
+  OODumpPixMap(pixMap, std::format("mipmap dump ID {} lv{} {} {}x{}",
+                                   static_cast<unsigned>(ID), level,
+                                   OOPixMapFormatName(format), width, height));
 }
 #endif
 

@@ -28,6 +28,7 @@ SOFTWARE.
 #include "OOPixMap.h"
 
 #include <cstring>
+#include <format>
 
 #include "oofnd/String.hpp"
 
@@ -206,7 +207,7 @@ std::string OOPixMapFormatName(OOPixMapFormat format) {
       return "RGBA";
   }
 
-  return oo::str::format("invalid<%i>", (int)format);
+  return std::format("invalid<{}>", (int)format);
 }
 
 bool OOPixMapFormatHasAlpha(OOPixMapFormat format) {

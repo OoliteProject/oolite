@@ -26,6 +26,8 @@
 
 #include "OOConcreteTexture.h"
 
+#include <format>
+
 #include "OOCPUInfo.h"
 #include "OOLogging.h"
 #include "OOMacroOpenGL.h"
@@ -155,7 +157,7 @@ std::optional<std::string> OOConcreteTexture::descriptionComponents() const {
 
   if (_loaded) {
     if (_valid) {
-      stateDesc = oo::str::format("%u x %u", _width, _height);
+      stateDesc = std::format("{} x {}", _width, _height);
     } else {
       stateDesc = "LOAD ERROR";
     }
@@ -376,7 +378,7 @@ void OOConcreteTexture::setUpTexture() {
 #if defined(OO_DEBUG_MONITOR_ENABLED) && OOTEXTURE_RELOADABLE
     if (_trace) {
       static unsigned dumpID = 0;
-      const std::string name = oo::str::format("tex dump %u \"", ++dumpID) +
+      const std::string name = std::format("tex dump {} \"", ++dumpID) +
                                this->name().value_or("(null)") + "\"";
       OO_LOG("texture.trace.dump", "Dumped traced texture {} to '{}.png'",
              description(), name);

@@ -37,6 +37,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <format>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -178,9 +179,9 @@ bool OOPlanetTextureGenerator::initWithPlanetInfo(const oo::PList& planetInfo,
   OO_LOG("texture.planet.generate", "{}", "Initialising planetary generator");
 
   // AllowCubeMap not used yet but might be in future
-  if (initWithPath(oo::str::format("OOPlanetTexture@%s",
-                                   oo::str::pointerDescription(this).c_str()),
-                   kOOTextureAllowCubeMap)) {
+  if (initWithPath(
+          std::format("OOPlanetTexture@{}", oo::str::pointerDescription(this)),
+          kOOTextureAllowCubeMap)) {
     OO_LOG("texture.planet.generate", "Extracting parameters for generator {}",
            description());
 
@@ -335,8 +336,8 @@ OOPlanetTextureGenerator::~OOPlanetTextureGenerator() {}
 
 std::optional<std::string> OOPlanetTextureGenerator::descriptionComponents()
     const {
-  return oo::str::format("seed: %u,%u land: %g", _info.seed.high,
-                         _info.seed.low, _info.landFraction);
+  return std::format("seed: {},{} land: {:g}", _info.seed.high, _info.seed.low,
+                     _info.landFraction);
 }
 
 uint32_t OOPlanetTextureGenerator::textureOptions() {
@@ -345,16 +346,16 @@ uint32_t OOPlanetTextureGenerator::textureOptions() {
 
 std::optional<std::string> OOPlanetTextureGenerator::cacheKey() {
   std::string type = (!_nMapGenerator) ? "diffuse-baked" : "diffuse-raw";
-  if (_atmoGenerator) type = oo::str::format("%s-atmo", type.c_str());
+  if (_atmoGenerator) type = std::format("{}-atmo", type);
   return cacheKeyForType(type);
 }
 
 std::optional<std::string> OOPlanetTextureGenerator::cacheKeyForType(
     const std::string& type) {
-  return oo::str::format(
-      "OOPlanetTextureGenerator-%s@%u\n%u,%u/%g/%u,%u/%f,%f,%f/%f,%f,%f/"
-      "%f,%f,%f/%f,%f,%f",
-      type.c_str(), _planetScale, _info.width, _info.height, _info.landFraction,
+  return std::format(
+      "OOPlanetTextureGenerator-{}@{}\n{},{}/{:g}/{},{}/{:f},{:f},{:f}/"
+      "{:f},{:f},{:f}/{:f},{:f},{:f}/{:f},{:f},{:f}",
+      type, _planetScale, _info.width, _info.height, _info.landFraction,
       _info.seed.high, _info.seed.low, _info.landColor.r, _info.landColor.g,
       _info.landColor.b, _info.seaColor.r, _info.seaColor.g, _info.seaColor.b,
       _info.paleLandColor.r, _info.paleLandColor.g, _info.paleLandColor.b,
@@ -600,10 +601,10 @@ END:
 
 #if DEBUG_DUMP
   if (success) {
-    const std::string diffuseName = oo::str::format(
-        "planet-%u-%u-diffuse-new", _info.seed.high, _info.seed.low);
-    const std::string lightsName = oo::str::format(
-        "planet-%u-%u-lights-new", _info.seed.high, _info.seed.low);
+    const std::string diffuseName = std::format(
+        "planet-{}-{}-diffuse-new", _info.seed.high, _info.seed.low);
+    const std::string lightsName =
+        std::format("planet-{}-{}-lights-new", _info.seed.high, _info.seed.low);
 
     if (MyOpenGLView* gameView =
             (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr))
@@ -616,8 +617,8 @@ END:
 #if DEBUG_DUMP_RAW
 
 void OOPlanetTextureGenerator::dumpNoiseBuffer(float* noise) {
-  const std::string noiseName = oo::str::format(
-      "planet-%u-%u-noise-new", _info.seed.high, _info.seed.low);
+  const std::string noiseName =
+      std::format("planet-{}-{}-noise-new", _info.seed.high, _info.seed.low);
 
   uint8_t* noisePx = static_cast<uint8_t*>(malloc(_width * _height));
   unsigned x, y;
@@ -1161,8 +1162,8 @@ static void SetMixConstants(OOPlanetTextureGeneratorInfo* info,
 bool OOPlanetNormalMapGenerator::initWithCacheKey(const std::string& cacheKey,
                                                   RANROTSeed seed) {
   // AllowCubeMap not used yet but might be in future
-  if (initWithPath(oo::str::format("OOPlanetNormalTexture@%s",
-                                   oo::str::pointerDescription(this).c_str()),
+  if (initWithPath(std::format("OOPlanetNormalTexture@{}",
+                               oo::str::pointerDescription(this)),
                    kOOTextureAllowCubeMap)) {
     _enqueued = false;
     _cacheKey = cacheKey;
@@ -1208,9 +1209,9 @@ void OOPlanetNormalMapGenerator::completeWithData(void* data_, unsigned width_,
 
 #if DEBUG_DUMP
   const std::string normalName =
-      oo::str::format("planet-%u-%u-normal-new", _seed.high, _seed.low);
+      std::format("planet-{}-{}-normal-new", _seed.high, _seed.low);
   const std::string specularName =
-      oo::str::format("planet-%u-%u-specular-new", _seed.high, _seed.low);
+      std::format("planet-{}-{}-specular-new", _seed.high, _seed.low);
 
   if (MyOpenGLView* gameView =
           (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr))
@@ -1225,8 +1226,8 @@ bool OOPlanetAtmosphereGenerator::initWithCacheKey(
   OO_LOG("texture.planet.generate", "Initialising atmosphere generator {}",
          cacheKey);
   // AllowCubeMap not used yet but might be in future
-  if (initWithPath(oo::str::format("OOPlanetAtmoTexture@%s",
-                                   oo::str::pointerDescription(this).c_str()),
+  if (initWithPath(std::format("OOPlanetAtmoTexture@{}",
+                               oo::str::pointerDescription(this)),
                    kOOTextureAllowCubeMap)) {
     _cacheKey = cacheKey;
     _seed = seed;
@@ -1291,9 +1292,9 @@ void OOPlanetAtmosphereGenerator::completeWithData(void* data_, unsigned width_,
 
 #if DEBUG_DUMP
   const std::string rgbName =
-      oo::str::format("planet-%u-%u-atmosphere-rgb-new", _seed.high, _seed.low);
-  const std::string alphaName = oo::str::format(
-      "planet-%u-%u-atmosphere-alpha-new", _seed.high, _seed.low);
+      std::format("planet-{}-{}-atmosphere-rgb-new", _seed.high, _seed.low);
+  const std::string alphaName =
+      std::format("planet-{}-{}-atmosphere-alpha-new", _seed.high, _seed.low);
 
   if (MyOpenGLView* gameView =
           (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr))

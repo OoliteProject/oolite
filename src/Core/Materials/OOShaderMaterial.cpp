@@ -29,6 +29,7 @@ SOFTWARE.
 
 #include <cstddef>
 #include <cstdint>
+#include <format>
 #include <map>
 #include <optional>
 #include <string>
@@ -198,8 +199,8 @@ bool OOShaderMaterial::initWithName(const std::optional<std::string>& name,
       }
 
       // %@ of a nil string printed "(null)"; keep that text in the cache key.
-      const std::optional<std::string> cacheKey = oo::str::format(
-          "$VERTEX:\n%s\n\n$FRAGMENT:\n%s\n\n$MACROS:\n%s\n",
+      const std::optional<std::string> cacheKey = std::format(
+          "$VERTEX:\n{}\n\n$FRAGMENT:\n{}\n\n$MACROS:\n{}\n",
           vsCacheKey.has_value() ? vsCacheKey->c_str() : "(null)",
           fsCacheKey.has_value() ? fsCacheKey->c_str() : "(null)",
           macroString.has_value() ? macroString->c_str() : "(null)");

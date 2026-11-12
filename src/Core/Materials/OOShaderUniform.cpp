@@ -33,6 +33,8 @@ SOFTWARE.
 
 #include <string.h>
 
+#include <format>
+
 #include "OOFunctionAttributes.h"
 #include "OOMaths.h"
 #include "OOOpenGLExtensionManager.h"
@@ -225,18 +227,17 @@ std::optional<std::string> OOShaderUniform::description() {
     // An entity's member: the class, the entity's address and the property.
     oo::RefCounted* cxxObject = cxxTarget.get();
     if (cxxObject != nullptr)
-      valueDesc = oo::str::format(
-          "[<%s %s> %s]", "Entity",
-          oo::str::pointerDescription(cxxObject).c_str(), cxxProperty.c_str());
+      valueDesc =
+          std::format("[<{} {}> {}]", "Entity",
+                      oo::str::pointerDescription(cxxObject), cxxProperty);
     else
       valueDesc = "0";
   } else if (isBinding && cxxTargetOnly) {
     // A C++ target: its address and the member's name.
     oo::RefCounted* cxxObject = cxxTarget.get();
     if (cxxObject != nullptr)
-      valueDesc = oo::str::format(
-          "[<%s> %s]", oo::str::pointerDescription(cxxObject).c_str(),
-          cxxProperty.c_str());
+      valueDesc = std::format(
+          "[<{}> {}]", oo::str::pointerDescription(cxxObject), cxxProperty);
     else
       valueDesc = "0";
   } else if (isBinding) {
@@ -245,11 +246,11 @@ std::optional<std::string> OOShaderUniform::description() {
   } else {
     switch (type) {
       case kOOShaderUniformTypeInt:
-        valueDesc = oo::str::format("%i", value.constInt);
+        valueDesc = std::format("{}", value.constInt);
         break;
 
       case kOOShaderUniformTypeFloat:
-        valueDesc = oo::str::format("%g", value.constFloat);
+        valueDesc = std::format("{:g}", value.constFloat);
         break;
 
       case kOOShaderUniformTypeVector: {
@@ -312,10 +313,10 @@ std::optional<std::string> OOShaderUniform::description() {
                   <OOShaderUniform 0xf00>{3: float laser_heat_level =
      [<ShipEntity 0xba8> laserHeatLevel];} The class is named as a literal.
   */
-  return oo::str::format("<%s %s>{%i: %s %s = %s;}", "OOShaderUniform",
-                         oo::str::pointerDescription(this).c_str(), location,
-                         valueType != nullptr ? valueType : "(null)",
-                         name.c_str(), valueDesc->c_str());
+  return std::format("<{} {}>{{{}: {} {} = {};}}", "OOShaderUniform",
+                     oo::str::pointerDescription(this), location,
+                     valueType != nullptr ? valueType : "(null)", name,
+                     *valueDesc);
 }
 
 void OOShaderUniform::apply() {

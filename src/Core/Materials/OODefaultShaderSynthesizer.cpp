@@ -28,6 +28,7 @@ SOFTWARE.
 #include "OODefaultShaderSynthesizer.h"
 
 #include <cstddef>
+#include <format>
 #include <map>
 #include <optional>
 #include <string>
@@ -291,7 +292,7 @@ std::optional<std::string> OODefaultShaderSynthesizer::defineBindingUniform(
   name = baseName;
   unsigned idx = 1;
   while (_uniforms.contains(name)) {
-    name = oo::str::format("%s%u", baseName.c_str(), ++idx);
+    name = std::format("{}{}", baseName, ++idx);
   }
 
   addFragmentUniform(name, type);
@@ -358,8 +359,7 @@ std::string KeyFromTextureParameters(const std::string& name,
   // instead.
   options &= ~kOOTextureExtractChannelMask;
 
-  return oo::str::format("%s:%X:%g:%g", name.c_str(), options, anisotropy,
-                         lodBias);
+  return std::format("{}:{:X}:{:g}:{:g}", name, options, anisotropy, lodBias);
 }
 
 std::string KeyFromTextureSpec(const oo::PList& spec) {
@@ -413,7 +413,7 @@ std::size_t OODefaultShaderSynthesizer::assignIDForTexture(
   std::size_t texID;
   if (_texturesByName.find(key) == _texturesByName.end()) {
     texID = _texturesByName.size();
-    std::string texUniform = oo::str::format("uTexture%zu", texID);
+    std::string texUniform = std::format("uTexture{}", texID);
 
 #ifndef NDEBUG
     bool useInternalFormat = false;
@@ -454,12 +454,11 @@ void OODefaultShaderSynthesizer::setUpOneTexture(const oo::PList& textureSpec) {
 
   std::size_t texID = assignIDForTexture(textureSpec);
   if (_sampledTextures.insert(texID).second) {
-    _fragmentTextureLookups += oo::str::format(
-        "\tvec4 tex%zuSample = texture2D(uTexture%zu, texCoords);  // %s\n",
+    _fragmentTextureLookups += std::format(
+        "\tvec4 tex{}Sample = texture2D(uTexture{}, texCoords);  // {}\n",
         texID, texID,
         OptionalStringFor(textureSpec, cxx_kOOTextureSpecifierNameKey)
-            .value_or("(null)")
-            .c_str());
+            .value_or("(null)"));
   }
 }
 
@@ -472,7 +471,7 @@ void OODefaultShaderSynthesizer::getSampleName(std::string* outSampleName,
   setUpOneTexture(textureSpec);
   std::size_t texID = textureIDForSpec(textureSpec);
 
-  *outSampleName = oo::str::format("tex%zuSample", texID);
+  *outSampleName = std::format("tex{}Sample", texID);
   *outSwizzleOp = GetExtractMode(textureSpec).value_or(std::string());
 }
 
@@ -618,21 +617,21 @@ void OODefaultShaderSynthesizer::writeTextureCoordRead() {
         _fragmentPreTextures += "\t// Parallax mapping\n";
 
         std::size_t texID = assignIDForTexture(parallaxMap);
-        _fragmentPreTextures += oo::str::format(
-            "\tfloat parallax = texture2D(uTexture%zu, vTexCoords).%s;\n",
-            texID, swizzle.c_str());
+        _fragmentPreTextures += std::format(
+            "\tfloat parallax = texture2D(uTexture{}, vTexCoords).{};\n", texID,
+            swizzle);
 
         if (parallaxScale != 1.0f) {
           _fragmentPreTextures +=
-              oo::str::format("\tparallax *= %s;  // Parallax scale\n",
-                              FormatFloat(parallaxScale).c_str());
+              std::format("\tparallax *= {};  // Parallax scale\n",
+                          FormatFloat(parallaxScale));
         }
 
         float parallaxBias = cxx_OOMaterialParallaxBias(_configuration);
         if (parallaxBias != 0.0) {
           _fragmentPreTextures +=
-              oo::str::format("\tparallax += %s;  // Parallax bias\n",
-                              FormatFloat(parallaxBias).c_str());
+              std::format("\tparallax += {};  // Parallax bias\n",
+                          FormatFloat(parallaxBias));
         }
 
         _fragmentPreTextures +=
@@ -669,8 +668,7 @@ void OODefaultShaderSynthesizer::writeDiffuseColorTermIfNeeded() {
     if (EXPECT_NOT(!readInstr.has_value())) {
       _fragmentBody += "\t// INVALID EXTRACTION KEY\n\t\n";
     } else {
-      _fragmentBody +=
-          oo::str::format("\tvec3 diffuseColor = %s;\n", readInstr->c_str());
+      _fragmentBody += std::format("\tvec3 diffuseColor = {};\n", *readInstr);
       haveDiffuseColor = true;
     }
   }
@@ -679,14 +677,13 @@ void OODefaultShaderSynthesizer::writeDiffuseColorTermIfNeeded() {
     float rgba[4];
     diffuseColor->getRed(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
     if (haveDiffuseColor) {
-      _fragmentBody += oo::str::format(
-          "\tdiffuseColor *= vec3(%s, %s, %s);\n", FormatFloat(rgba[0]).c_str(),
-          FormatFloat(rgba[1]).c_str(), FormatFloat(rgba[2]).c_str());
+      _fragmentBody += std::format("\tdiffuseColor *= vec3({}, {}, {});\n",
+                                   FormatFloat(rgba[0]), FormatFloat(rgba[1]),
+                                   FormatFloat(rgba[2]));
     } else {
-      _fragmentBody += oo::str::format(
-          "\tconst vec3 diffuseColor = vec3(%s, %s, %s);\n",
-          FormatFloat(rgba[0]).c_str(), FormatFloat(rgba[1]).c_str(),
-          FormatFloat(rgba[2]).c_str());
+      _fragmentBody += std::format(
+          "\tconst vec3 diffuseColor = vec3({}, {}, {});\n",
+          FormatFloat(rgba[0]), FormatFloat(rgba[1]), FormatFloat(rgba[2]));
       haveDiffuseColor = true;
     }
   }
@@ -718,9 +715,9 @@ void OODefaultShaderSynthesizer::writeDiffuseLighting() {
   const char* normalDotLight =
       _constZNormal ? "lightVector.z" : "dot(normal, lightVector)";
 
-  _fragmentBody += oo::str::format(
-      "\t// Diffuse (Lambertian) and ambient lighting\n"
-      "\tvec3 diffuseLight = (gl_LightSource[1].diffuse * max(0.0, %s) + "
+  _fragmentBody += std::format(
+      "\t// Diffuse (Lambertian) and ambient lighting\n\tvec3 diffuseLight = "
+      "(gl_LightSource[1].diffuse * max(0.0, {}) + "
       "gl_LightModel.ambient).rgb;\n\t\n",
       normalDotLight);
 
@@ -775,9 +772,8 @@ void OODefaultShaderSynthesizer::writeNormalIfNeeded() {
     getSampleName(&sample, &swizzle, normalMap);
     if (swizzle.empty()) swizzle = "rgb";
     if (swizzle.size() == 3) {
-      _fragmentBody +=
-          oo::str::format("\tvec3 normal = normalize(%s.%s - 0.5);\n\t\n",
-                          sample.c_str(), swizzle.c_str());
+      _fragmentBody += std::format(
+          "\tvec3 normal = normalize({}.{} - 0.5);\n\t\n", sample, swizzle);
       _usesNormalMap = true;
       return;
     } else {
@@ -848,8 +844,7 @@ void OODefaultShaderSynthesizer::writeSpecularLighting() {
       return;
     }
 
-    _fragmentBody +=
-        oo::str::format("\tvec3 specularColor = %s;\n", readInstr->c_str());
+    _fragmentBody += std::format("\tvec3 specularColor = {};\n", *readInstr);
     haveSpecularColor = true;
   }
 
@@ -871,24 +866,22 @@ void OODefaultShaderSynthesizer::writeSpecularLighting() {
     scaleFactor = 1.0;
 
     if (haveSpecularColor) {
-      _fragmentBody += oo::str::format(
-          "\tspecularColor *= vec3(%s, %s, %s);  // %s\n",
-          FormatFloat(rgba[0]).c_str(), FormatFloat(rgba[1]).c_str(),
-          FormatFloat(rgba[2]).c_str(), comment);
+      _fragmentBody += std::format(
+          "\tspecularColor *= vec3({}, {}, {});  // {}\n", FormatFloat(rgba[0]),
+          FormatFloat(rgba[1]), FormatFloat(rgba[2]), comment);
     } else {
-      _fragmentBody += oo::str::format(
-          "\tvec3 specularColor = vec3(%s, %s, %s);  // %s\n",
-          FormatFloat(rgba[0]).c_str(), FormatFloat(rgba[1]).c_str(),
-          FormatFloat(rgba[2]).c_str(), comment);
+      _fragmentBody +=
+          std::format("\tvec3 specularColor = vec3({}, {}, {});  // {}\n",
+                      FormatFloat(rgba[0]), FormatFloat(rgba[1]),
+                      FormatFloat(rgba[2]), comment);
       haveSpecularColor = true;
     }
   }
 
   // Handle scale_factor if no constant colour.
   if (haveSpecularColor && scaleFactor != 1.0f) {
-    _fragmentBody +=
-        oo::str::format("\tspecularColor *= %s;  // Scale factor\n",
-                        FormatFloat(scaleFactor).c_str());
+    _fragmentBody += std::format("\tspecularColor *= {};  // Scale factor\n",
+                                 FormatFloat(scaleFactor));
   }
 
   // Handle self_color.
@@ -906,13 +899,13 @@ void OODefaultShaderSynthesizer::writeSpecularLighting() {
       return;
     }
 
-    _fragmentBody += oo::str::format("\tfloat specularExponent = %s * %.1f;\n",
-                                     readInstr->c_str(), specularExponent);
+    _fragmentBody += std::format("\tfloat specularExponent = {} * {:.1f};\n",
+                                 *readInstr, specularExponent);
     haveSpecularExponent = true;
   }
   if (!haveSpecularExponent) {
-    _fragmentBody += oo::str::format("\tconst float specularExponent = %.1f;\n",
-                                     specularExponent);
+    _fragmentBody += std::format("\tconst float specularExponent = {:.1f};\n",
+                                 specularExponent);
   }
 
   if (_usesNormalMap) {
@@ -1000,19 +993,17 @@ void OODefaultShaderSynthesizer::writeLightMaps() {
         continue;
       }
 
-      _fragmentBody +=
-          oo::str::format("\tlightMapColor = %s;\n", readInstr->c_str());
+      _fragmentBody += std::format("\tlightMapColor = {};\n", *readInstr);
 
       if (rgba[0] != 1.0f || rgba[1] != 1.0f || rgba[2] != 1.0f) {
-        _fragmentBody += oo::str::format(
-            "\tlightMapColor *= vec3(%s, %s, %s);\n",
-            FormatFloat(rgba[0]).c_str(), FormatFloat(rgba[1]).c_str(),
-            FormatFloat(rgba[2]).c_str());
+        _fragmentBody += std::format("\tlightMapColor *= vec3({}, {}, {});\n",
+                                     FormatFloat(rgba[0]), FormatFloat(rgba[1]),
+                                     FormatFloat(rgba[2]));
       }
     } else {
-      _fragmentBody += oo::str::format(
-          "\tlightMapColor = vec3(%s, %s, %s);\n", FormatFloat(rgba[0]).c_str(),
-          FormatFloat(rgba[1]).c_str(), FormatFloat(rgba[2]).c_str());
+      _fragmentBody += std::format("\tlightMapColor = vec3({}, {}, {});\n",
+                                   FormatFloat(rgba[0]), FormatFloat(rgba[1]),
+                                   FormatFloat(rgba[2]));
     }
 
     const oo::PList* binding =
@@ -1041,9 +1032,9 @@ void OODefaultShaderSynthesizer::writeLightMaps() {
       if (glslType != nullptr) {
         std::optional<std::string> uniformName =
             defineBindingUniform(*binding, bindingType.value_or(std::string()));
-        _fragmentBody += oo::str::format(
-            "\tlightMapColor *= %s%s;\n",
-            uniformName.value_or(std::string()).c_str(), swizzle);
+        _fragmentBody +=
+            std::format("\tlightMapColor *= {}{};\n",
+                        uniformName.value_or(std::string()), swizzle);
       } else {
         if (!bindingType.has_value()) {
           OO_LOG_ERR("material.binding.error.unknown",
@@ -1402,9 +1393,9 @@ oo::PList CanonicalizeMaterialSpecifier(
 std::string FormatFloat(double value) {
   long long intValue = value;
   if (value == intValue) {
-    return oo::str::format("%lli.0", intValue);
+    return std::format("{}.0", intValue);
   } else {
-    return oo::str::format("%g", value);
+    return std::format("{:g}", value);
   }
 }
 
