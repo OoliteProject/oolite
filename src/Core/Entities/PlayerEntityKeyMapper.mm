@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #import "GameController.h"
 #import "HeadUpDisplay.h"
 #import "OOEquipmentType.h"
+#import "OOPListView.h"
 #import "OOJoystickManager.h"
 #import "OOTexture.h"
 #import "PlayerEntityControls.h"
@@ -1033,10 +1034,10 @@ static NSArray* camera_keys = nil;
         [funcList addObject:[self makeKeyGuiDictHeader:DESC(@"oolite-keydesc-header-oxp-equip")]];
         int i;
         for (i = 0; i < [customEquipActivation count]; i++) {
-            [funcList addObject:[self makeKeyGuiDict:[NSString stringWithFormat:@"%@ '%@'", DESC(@"oolite-keyconfig-cust-activate"), [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPNAME]]
-                                              keyDef:[NSString stringWithFormat:@"activate_%@", [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPKEY]]]];
-            [funcList addObject:[self makeKeyGuiDict:[NSString stringWithFormat:@"%@ '%@'", DESC(@"oolite-keyconfig-cust-mode"), [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPNAME]]
-                                              keyDef:[NSString stringWithFormat:@"mode_%@", [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPKEY]]]];
+            [funcList addObject:[self makeKeyGuiDict:[NSString stringWithFormat:@"%@ '%@'", DESC(@"oolite-keyconfig-cust-activate"), oo::PListView([customEquipActivation objectAtIndex:i]).get<NSString*>(CUSTOMEQUIP_EQUIPNAME)]
+                                              keyDef:[NSString stringWithFormat:@"activate_%@", oo::PListView([customEquipActivation objectAtIndex:i]).get<NSString*>(CUSTOMEQUIP_EQUIPKEY)]]];
+            [funcList addObject:[self makeKeyGuiDict:[NSString stringWithFormat:@"%@ '%@'", DESC(@"oolite-keyconfig-cust-mode"), oo::PListView([customEquipActivation objectAtIndex:i]).get<NSString*>(CUSTOMEQUIP_EQUIPNAME)]
+                                              keyDef:[NSString stringWithFormat:@"mode_%@", oo::PListView([customEquipActivation objectAtIndex:i]).get<NSString*>(CUSTOMEQUIP_EQUIPKEY)]]];
         }
     }
     return funcList;
