@@ -68,6 +68,7 @@
 #include <cstdarg>
 #include <cstdint>
 #include <cstdio>
+#include <format>
 #include <initializer_list>
 #include <iterator>
 #include <memory>
@@ -992,7 +993,7 @@ inline std::string pointerDescription(const void* pointer) {
   if (pointer == nullptr) return "(null)";
   const auto low = static_cast<unsigned>(
       reinterpret_cast<std::uintptr_t>(pointer) & 0xFFFFFFFFu);
-  return format("%#x", low);
+  return std::format("{:#x}", low);
 }
 
 // --- ordering
@@ -1232,12 +1233,12 @@ inline std::string objectText(const FormatArg& a) {
     case FormatArg::Kind::Text:
       return a.text();
     case FormatArg::Kind::Signed:
-      return format("%lld", a.asSigned());
+      return std::format("{}", a.asSigned());
     case FormatArg::Kind::Unsigned:
-      return format("%llu", a.asUnsigned());
+      return std::format("{}", a.asUnsigned());
     case FormatArg::Kind::Real:
-      return a.isSingle() ? format("%0.7g", a.asReal())
-                          : format("%0.16g", a.asReal());
+      return a.isSingle() ? std::format("{:0.7g}", a.asReal())
+                          : std::format("{:0.16g}", a.asReal());
     case FormatArg::Kind::Pointer:
       return pointerDescription(reinterpret_cast<const void*>(
           static_cast<std::uintptr_t>(a.asUnsigned())));

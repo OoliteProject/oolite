@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 
 #include <algorithm>
 #include <cstddef>
+#include <format>
 #include <map>
 #include <optional>
 #include <string>
@@ -266,7 +267,7 @@ void PlayerEntity::setGuiToKeyMapperScreen(unsigned skip,
   gui->setArray(
       Columns({OO_DESC("oolite-keyconfig-keyboard"), keyboardDescription(kbd)}),
       GUI_ROW_KC_SELECTKBD);
-  gui->setKey(oo::str::format("kbd:%s", kbd.c_str()), GUI_ROW_KC_SELECTKBD);
+  gui->setKey(std::format("kbd:{}", kbd), GUI_ROW_KC_SELECTKBD);
   gui->setColor(OOColor::yellowColor().get(), GUI_ROW_KC_SELECTKBD);
 
   displayKeyFunctionList(gui, skip);
@@ -583,13 +584,11 @@ void PlayerEntity::setGuiToKeyConfigScreen(bool resetSelectedRow) {
       selected_entry.get<std::string>(std::string(KEY_KC_DEFINITION));
   std::optional<std::string> helper = OO_DESC("oolite-keyconfig-update-helper");
   if (Contains(nav_keys, definition))
-    helper =
-        oo::str::format("%s %s", DescriptionOfString(helper).c_str(),
-                        OO_DESC("oolite-keyconfig-update-navkeys").c_str());
+    helper = std::format("{} {}", DescriptionOfString(helper),
+                         OO_DESC("oolite-keyconfig-update-navkeys").c_str());
   if (Contains(camera_keys, definition))
-    helper =
-        oo::str::format("%s %s", DescriptionOfString(helper).c_str(),
-                        OO_DESC("oolite-keyconfig-update-camkeys").c_str());
+    helper = std::format("{} {}", DescriptionOfString(helper),
+                         OO_DESC("oolite-keyconfig-update-camkeys").c_str());
   gui->addLongText(helper, GUI_ROW_KC_UPDATE_INFO, GUI_ALIGN_LEFT);
 
   gui->setText("", GUI_ROW_KC_VALIDATION);
@@ -768,11 +767,10 @@ void PlayerEntity::setGuiToKeyConfigEntryScreen() {
                    GUI_ROW_KC_ENTRY_INFO, GUI_ALIGN_LEFT);
 
   gui->setText(
-      oo::str::format("%s: %s", OO_DESC("oolite-keyconfig-update-key").c_str(),
-                      DescriptionOfString((gameView != nullptr
-                                               ? gameView->getTypedString()
-                                               : std::optional<std::string>()))
-                          .c_str()),
+      std::format("{}: {}", OO_DESC("oolite-keyconfig-update-key").c_str(),
+                  DescriptionOfString((gameView != nullptr
+                                           ? gameView->getTypedString()
+                                           : std::optional<std::string>()))),
       end_row, GUI_ALIGN_LEFT);
   gui->setColor(OOColor::cyanColor().get(), end_row);
   gui->setSelectableRange(NSMakeRange(0, 0));
@@ -803,11 +801,10 @@ void PlayerEntity::handleKeyConfigEntryKeys(::GuiDisplayGen* gui,
     last_shift = true;
 
   gui->setText(
-      oo::str::format("%s: %s", OO_DESC("oolite-keyconfig-update-key").c_str(),
-                      DescriptionOfString((gameView != nullptr
-                                               ? gameView->getTypedString()
-                                               : std::optional<std::string>()))
-                          .c_str()),
+      std::format("{}: {}", OO_DESC("oolite-keyconfig-update-key").c_str(),
+                  DescriptionOfString((gameView != nullptr
+                                           ? gameView->getTypedString()
+                                           : std::optional<std::string>()))),
       end_row);
   gui->setColor(OOColor::cyanColor().get(), end_row);
 
@@ -1022,7 +1019,7 @@ void PlayerEntity::displayKeyFunctionList(::GuiDisplayGen* gui,
       gui->setColor(OOColor::greenColor().get(), GUI_ROW_KC_FUNCSTART);
       gui->setArray(Columns({OO_DESC("gui-back"), " <-- "}),
                     GUI_ROW_KC_FUNCSTART);
-      gui->setKey(oo::str::format("More:%zd", previous), GUI_ROW_KC_FUNCSTART);
+      gui->setKey(std::format("More:{}", previous), GUI_ROW_KC_FUNCSTART);
     }
 
     for (i = 0; i < (n_functions - skip) && (int)i < n_rows; i++) {
@@ -1106,7 +1103,7 @@ void PlayerEntity::displayKeyFunctionList(::GuiDisplayGen* gui,
             Columns({OptionalStringForKey(entry, std::string(KEY_KC_GUIDESC)),
                      assignment, override}),
             i + start_row);
-        gui->setKey(oo::str::format("Index:%zu", i + skip), i + start_row);
+        gui->setKey(std::format("Index:{}", i + skip), i + start_row);
         if (validate) {
           gui->setColor(OOColor::orangeColor().get(), i + start_row);
         }
@@ -1115,7 +1112,7 @@ void PlayerEntity::displayKeyFunctionList(::GuiDisplayGen* gui,
     if (i < n_functions - skip) {
       gui->setColor(OOColor::greenColor().get(), start_row + i);
       gui->setArray(Columns({OO_DESC("gui-more"), " --> "}), start_row + i);
-      gui->setKey(oo::str::format("More:%zu", n_rows + skip), start_row + i);
+      gui->setKey(std::format("More:{}", n_rows + skip), start_row + i);
       i++;
     }
 
@@ -1470,15 +1467,14 @@ std::vector<oo::PList> PlayerEntity::keyFunctionList() {
       const std::string equipKey = DescriptionOfString(
           OptionalStringForKey(equip, std::string(CUSTOMEQUIP_EQUIPKEY)));
       funcList.push_back(makeKeyGuiDict(
-          oo::str::format("%s '%s'",
-                          OO_DESC("oolite-keyconfig-cust-activate").c_str(),
-                          equipName.c_str()),
-          oo::str::format("activate_%s", equipKey.c_str())));
+          std::format("{} '{}'",
+                      OO_DESC("oolite-keyconfig-cust-activate").c_str(),
+                      equipName),
+          std::format("activate_{}", equipKey)));
       funcList.push_back(makeKeyGuiDict(
-          oo::str::format("%s '%s'",
-                          OO_DESC("oolite-keyconfig-cust-mode").c_str(),
-                          equipName.c_str()),
-          oo::str::format("mode_%s", equipKey.c_str())));
+          std::format("{} '{}'", OO_DESC("oolite-keyconfig-cust-mode").c_str(),
+                      equipName),
+          std::format("mode_{}", equipKey)));
     }
   }
   return funcList;
@@ -1691,7 +1687,7 @@ void PlayerEntity::displayKeyboardLayoutList(::GuiDisplayGen* gui,
       gui->setColor(OOColor::greenColor().get(), GUI_ROW_KC_FUNCSTART);
       gui->setArray(Columns({OO_DESC("gui-back"), " <-- "}),
                     GUI_ROW_KC_FUNCSTART);
-      gui->setKey(oo::str::format("More:%zd", previous), GUI_ROW_KC_FUNCSTART);
+      gui->setKey(std::format("More:{}", previous), GUI_ROW_KC_FUNCSTART);
     }
 
     const std::string kbd = KeyboardCode();
@@ -1704,12 +1700,12 @@ void PlayerEntity::displayKeyboardLayoutList(::GuiDisplayGen* gui,
       if (OptionalStringForKey(entry, "key") == kbd)
         selected = OO_DESC("oolite-keyconfig-kbd-current");
       gui->setArray(Columns({desc, selected}), i + start_row);
-      gui->setKey(oo::str::format("Index:%zu", i + skip), i + start_row);
+      gui->setKey(std::format("Index:{}", i + skip), i + start_row);
     }
     if (i < n_functions - skip) {
       gui->setColor(OOColor::greenColor().get(), start_row + i);
       gui->setArray(Columns({OO_DESC("gui-more"), " --> "}), start_row + i);
-      gui->setKey(oo::str::format("More:%zu", n_rows + skip), start_row + i);
+      gui->setKey(std::format("More:{}", n_rows + skip), start_row + i);
       i++;
     }
 
@@ -1848,10 +1844,10 @@ std::optional<std::string> PlayerEntity::validateKey(
     for (i = 0; i < customEquipActivation.size(); i++) {
       const std::optional<std::string> equipKey = OptionalStringForKey(
           customEquipActivation[i], std::string(CUSTOMEQUIP_EQUIPKEY));
-      inflight_keys.push_back(oo::str::format(
-          "activate_%s", DescriptionOfString(equipKey).c_str()));
       inflight_keys.push_back(
-          oo::str::format("mode_%s", DescriptionOfString(equipKey).c_str()));
+          std::format("activate_{}", DescriptionOfString(equipKey)));
+      inflight_keys.push_back(
+          std::format("mode_{}", DescriptionOfString(equipKey)));
     }
   }
 

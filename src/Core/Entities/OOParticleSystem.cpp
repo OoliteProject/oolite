@@ -26,6 +26,8 @@ MA 02110-1301, USA.
 
 #include "OOParticleSystem.h"
 
+#include <format>
+
 #include "MyOpenGLView.h"
 #include "OOLightParticleEntity.h"
 #include "OOMacroOpenGL.h"
@@ -86,7 +88,7 @@ void OOParticleSystem::initWithPosition(HPVector pos, Vector vel,
 }
 
 std::optional<std::string> OOParticleSystem::descriptionComponents() const {
-  return oo::str::format("ttl: %.3fs", _duration - _timePassed);
+  return std::format("ttl: {:.3f}s", _duration - _timePassed);
 }
 
 bool OOParticleSystem::canCollide() { return false; }

@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #include "OOSunEntity.h"
 
 #include <cstring>
+#include <format>
 
 #include "AI.h"
 #include "MyOpenGLView.h"
@@ -211,9 +212,9 @@ void OOSunEntity::initSunWithColor(OOColor* sun_color, const oo::PList& dict) {
 std::optional<std::string> OOSunEntity::descriptionComponents() const {
   // The getters read these members (or answer from them).
   OOSunEntity* sun = const_cast<OOSunEntity*>(this);
-  std::string result = oo::str::format(
-      "ID: %u position: %s radius: %.3fkm", universalID,
-      cxx_HPVectorDescription(position).c_str(), 0.001 * sun->radius());
+  std::string result =
+      std::format("ID: {} position: {} radius: {:.3f}km", universalID,
+                  cxx_HPVectorDescription(position), 0.001 * sun->radius());
   if (sun->goneNova()) {
     result += " (gone nova)";
   } else if (sun->willGoNova()) {

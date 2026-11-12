@@ -24,6 +24,8 @@ MA 02110-1301, USA.
 
 #include "PlayerEntityStickProfile.h"
 
+#include <format>
+
 #include "HeadUpDisplay.h"
 #include "OOJoystickManager.h"
 #include "OOJoystickProfile.h"
@@ -534,11 +536,10 @@ void StickProfileScreen::showScreen() {
   bars = (int)(20 * value / STICK_MAX_DEADZONE + 0.5);
   if (bars < 0) bars = 0;
   if (bars > 20) bars = 20;
-  gui->setArray(
-      ColumnsUpToNil({OO_DESC("oolite-stickprofile-deadzone"),
-                      oo::str::format("%s%s (%0.4f)", Bars('|', bars).c_str(),
-                                      Bars('.', 20 - bars).c_str(), value)}),
-      GUI_ROW_STICKPROFILE_DEADZONE);
+  gui->setArray(ColumnsUpToNil({OO_DESC("oolite-stickprofile-deadzone"),
+                                std::format("{}{} ({:0.4f})", Bars('|', bars),
+                                            Bars('.', 20 - bars), value)}),
+                GUI_ROW_STICKPROFILE_DEADZONE);
   gui->setKey(std::string(GUI_KEY_OK), GUI_ROW_STICKPROFILE_DEADZONE);
   gui->setArray(ColumnsUpToNil({OO_DESC("oolite-stickprofile-profile-type"),
                                 profileType()}),
@@ -550,21 +551,20 @@ void StickProfileScreen::showScreen() {
     bars = (int)(20 * power / STICKPROFILE_MAX_POWER + 0.5);
     if (bars < 0) bars = 0;
     if (bars > 20) bars = 20;
-    gui->setArray(
-        ColumnsUpToNil({OO_DESC("oolite-stickprofile-range"),
-                        oo::str::format("%s%s (%.1f) ", Bars('|', bars).c_str(),
-                                        Bars('.', 20 - bars).c_str(), power)}),
-        GUI_ROW_STICKPROFILE_POWER);
+    gui->setArray(ColumnsUpToNil({OO_DESC("oolite-stickprofile-range"),
+                                  std::format("{}{} ({:.1f}) ", Bars('|', bars),
+                                              Bars('.', 20 - bars), power)}),
+                  GUI_ROW_STICKPROFILE_POWER);
     gui->setKey(std::string(GUI_KEY_OK), GUI_ROW_STICKPROFILE_POWER);
     value = standard_profile->parameter();
     bars = 20 * value;
     if (bars < 0) bars = 0;
     if (bars > 20) bars = 20;
-    gui->setArray(ColumnsUpToNil(
-                      {OO_DESC("oolite-stickprofile-sensitivity"),
-                       oo::str::format("%s%s (%0.2f) ", Bars('|', bars).c_str(),
-                                       Bars('.', 20 - bars).c_str(), value)}),
-                  GUI_ROW_STICKPROFILE_PARAM);
+    gui->setArray(
+        ColumnsUpToNil({OO_DESC("oolite-stickprofile-sensitivity"),
+                        std::format("{}{} ({:0.2f}) ", Bars('|', bars),
+                                    Bars('.', 20 - bars), value)}),
+        GUI_ROW_STICKPROFILE_PARAM);
     gui->setKey(std::string(GUI_KEY_OK), GUI_ROW_STICKPROFILE_PARAM);
     gui->setColor(OOColor::yellowColor().get(), GUI_ROW_STICKPROFILE_PARAM);
   } else {

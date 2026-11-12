@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #include "WormholeEntity.h"
 
 #include <cstddef>
+#include <format>
 #include <functional>
 #include <map>
 #include <optional>
@@ -626,14 +627,14 @@ oo::PList WormholeEntity::getShipsInTransit() {
 
 std::optional<std::string> WormholeEntity::descriptionComponents() const {
   double now = (PLAYER != nullptr ? PLAYER->clockTime() : 0.0);
-  return oo::str::format(
-      "destination: %s ttl: %.2fs arrival: %s",
+  return std::format(
+      "destination: {} ttl: {:.2f}s arrival: {}",
       _misjump ? "Interstellar Space"
                : (UNIVERSE != nullptr ? UNIVERSE->getSystemName(destination)
                                       : std::optional<std::string>())
                      .value_or("(null)")
                      .c_str(),
-      expiry_time - now, cxx_ClockToString(arrival_time, false).c_str());
+      expiry_time - now, cxx_ClockToString(arrival_time, false));
 }
 
 std::optional<std::string> WormholeEntity::identFromShip(::ShipEntity* ship) {

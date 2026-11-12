@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <format>
 #include <functional>
 #include <map>
 #include <optional>
@@ -489,8 +490,7 @@ OOComparisonResult ComparePlanetsBySurfaceDistance(
 Vector cxx_positionOffsetForShipInRotationToAlignment(
     ShipEntity* ship, Quaternion q, const std::string& align) {
   // indexed in UTF-16 units, as -characterAtIndex: was
-  const std::u16string padAlign =
-      oo::utf8ToUtf16(oo::str::format("%s---", align.c_str()));
+  const std::u16string padAlign = oo::utf8ToUtf16(std::format("{}---", align));
   Vector i = vector_right_from_quaternion(q);
   Vector j = vector_up_from_quaternion(q);
   Vector k = vector_forward_from_quaternion(q);
@@ -792,8 +792,8 @@ bool ShipEntity::setUpFromDictionary(const oo::PList& inShipDict) {
   if (modelName.has_value()) {
     const oo::Ref<::OOMesh> mesh = ::OOMesh::meshWithName(
         *modelName,
-        oo::str::format("%s-%.3f", _shipKey.value_or("(null)").c_str(),
-                        _scaleFactor),  // %@ printed nil as (null)
+        std::format("{}-{:.3f}", _shipKey.value_or("(null)"),
+                    _scaleFactor),  // %@ printed nil as (null)
         DictionaryForKey(shipDict, "materials"),
         DictionaryForKey(shipDict, "shaders"),
         shipDict.get<bool>("smooth", false), OODefaultShipShaderMacros(),
@@ -1473,7 +1473,7 @@ void ShipEntity::setSubEntityRotationalVelocity(Quaternion rv) {
 }
 
 std::optional<std::string> ShipEntity::shortDescriptionComponents() {
-  return oo::str::format("\"%s\"", getName().value_or("(null)").c_str());
+  return std::format("\"{}\"", getName().value_or("(null)"));
 }
 
 GLfloat ShipEntity::getSunGlareFilter() { return sunGlareFilter; }
@@ -1628,11 +1628,9 @@ std::optional<std::string> ShipEntity::descriptionComponents() const {
       const_cast<ShipEntity*>(this);  // the getters it called are not const
   if (!self->getIsSubEntity()) {
     // [super cxx_descriptionComponents]: the entity's own components.
-    return oo::str::format("\"%s\" %s",
-                           self->getName().value_or("(null)").c_str(),
-                           OOEntityWithDrawable::descriptionComponents()
-                               .value_or("(null)")
-                               .c_str());
+    return std::format(
+        "\"{}\" {}", self->getName().value_or("(null)"),
+        OOEntityWithDrawable::descriptionComponents().value_or("(null)"));
   } else {
     // ID, scanClass and status are of no interest for subentities.
     const char* subtype = nullptr;
@@ -1641,9 +1639,9 @@ std::optional<std::string> ShipEntity::descriptionComponents() const {
     else
       subtype = "(subentity)";
 
-    return oo::str::format(
-        "\"%s\" position: %s %s", self->getName().value_or("(null)").c_str(),
-        cxx_HPVectorDescription(self->getPosition()).c_str(), subtype);
+    return std::format("\"{}\" position: {} {}",
+                       self->getName().value_or("(null)"),
+                       cxx_HPVectorDescription(self->getPosition()), subtype);
   }
 }
 
@@ -1943,7 +1941,7 @@ void ShipEntity::setUpEscorts() {
                                  : (::ShipEntity*)nullptr)))) {
       escortShipKey = std::nullopt;
     } else {
-      escortRole = oo::str::format("[%s]", escortShipKey->c_str());
+      escortRole = std::format("[{}]", *escortShipKey);
     }
   }
 
@@ -2267,9 +2265,9 @@ void ShipEntity::setUpOneEscort(::ShipEntity* escorter,
 std::optional<std::string> ShipEntity::shipDataKey() { return _shipKey; }
 
 std::optional<std::string> ShipEntity::shipDataKeyAutoRole() {
-  return oo::str::format(
-      "[%s]",
-      shipDataKey().value_or("(null)").c_str());  // %@ printed nil as (null)
+  return std::format(
+      "[{}]",
+      shipDataKey().value_or("(null)"));  // %@ printed nil as (null)
 }
 
 void ShipEntity::setShipDataKey(const std::optional<std::string>& key) {
@@ -2468,7 +2466,7 @@ bool ShipEntity::checkCloseCollisionWith(Entity* otherPart) {
         (otherShip != nullptr ? otherShip->getPosition() : HPVector{});
     OOUniversalID otherID =
         (otherShip != nullptr ? otherShip->getUniversalID() : OOUniversalID{});
-    const std::string other_key = oo::str::format("%d", otherID);
+    const std::string other_key = std::format("{}", otherID);
 
     if (!closeContactsInfo.contains(other_key) &&
         HPdistance2(position, otherPos) < collision_radius * collision_radius) {
@@ -2478,7 +2476,7 @@ bool ShipEntity::checkCloseCollisionWith(Entity* otherPart) {
           make_vector(dot_product(dpos, v_right), dot_product(dpos, v_up),
                       dot_product(dpos, v_forward));
       closeContactsInfo[other_key] =
-          oo::str::format("%f %f %f", rpos.x, rpos.y, rpos.z);
+          std::format("{:f} {:f} {:f}", rpos.x, rpos.y, rpos.z);
 
       // send AI a message about the touch
       const oo::WeakRef<Entity> temp = _primaryTarget;
@@ -6940,11 +6938,9 @@ std::optional<std::string> ShipEntity::getDisplayName() {
     } else {
       // %@ printed nil as (null)
       if (!shipClassName.has_value()) {
-        return oo::str::format("%s: %s", name.value_or("(null)").c_str(),
-                               shipUniqueName->c_str());
+        return std::format("{}: {}", name.value_or("(null)"), *shipUniqueName);
       } else {
-        return oo::str::format("%s: %s", shipClassName->c_str(),
-                               shipUniqueName->c_str());
+        return std::format("{}: {}", *shipClassName, *shipUniqueName);
       }
     }
   }
@@ -7620,8 +7616,8 @@ void ShipEntity::setShipScript(const std::optional<std::string>& script_name) {
     actions = ArrayForKey(shipinfoDictionary, "launch_actions");
     if (actions) {
       cxx_OOStandardsDeprecated(
-          oo::str::format("The launch_actions ship key is deprecated on %s.",
-                          getDisplayName().value_or("(null)").c_str()));
+          std::format("The launch_actions ship key is deprecated on {}.",
+                      getDisplayName().value_or("(null)")));
       if (!OOEnforceStandards()) {
         properties["legacy_launchActions"] = *actions;
       }
@@ -7630,8 +7626,8 @@ void ShipEntity::setShipScript(const std::optional<std::string>& script_name) {
     actions = ArrayForKey(shipinfoDictionary, "script_actions");
     if (actions) {
       cxx_OOStandardsDeprecated(
-          oo::str::format("The script_actions ship key is deprecated on %s.",
-                          getDisplayName().value_or("(null)").c_str()));
+          std::format("The script_actions ship key is deprecated on {}.",
+                      getDisplayName().value_or("(null)")));
       if (!OOEnforceStandards()) {
         properties["legacy_scriptActions"] = *actions;
       }
@@ -7640,8 +7636,8 @@ void ShipEntity::setShipScript(const std::optional<std::string>& script_name) {
     actions = ArrayForKey(shipinfoDictionary, "death_actions");
     if (actions) {
       cxx_OOStandardsDeprecated(
-          oo::str::format("The death_actions ship key is deprecated on %s.",
-                          getDisplayName().value_or("(null)").c_str()));
+          std::format("The death_actions ship key is deprecated on {}.",
+                      getDisplayName().value_or("(null)")));
       if (!OOEnforceStandards()) {
         properties["legacy_deathActions"] = *actions;
       }
@@ -7650,8 +7646,8 @@ void ShipEntity::setShipScript(const std::optional<std::string>& script_name) {
     actions = ArrayForKey(shipinfoDictionary, "setup_actions");
     if (actions) {
       cxx_OOStandardsDeprecated(
-          oo::str::format("The setup_actions ship key is deprecated on %s.",
-                          getDisplayName().value_or("(null)").c_str()));
+          std::format("The setup_actions ship key is deprecated on {}.",
+                      getDisplayName().value_or("(null)")));
       if (!OOEnforceStandards()) {
         properties["legacy_setupActions"] = *actions;
       }
@@ -8286,8 +8282,8 @@ void ShipEntity::dealEnergyDamage(GLfloat baseDamage, GLfloat range,
 // Exposed to AI
 void ShipEntity::dealEnergyDamageWithinDesiredRange() {
   cxx_OOStandardsDeprecated(
-      oo::str::format("dealEnergyDamageWithinDesiredRange is deprecated for %s",
-                      oo::EntityDescription(this).c_str()));
+      std::format("dealEnergyDamageWithinDesiredRange is deprecated for {}",
+                  oo::EntityDescription(this)));
   // not over scannerRange
   const std::vector<oo::EntityHold> targets =
       (UNIVERSE != nullptr
@@ -8429,8 +8425,8 @@ void ShipEntity::rescaleBy(GLfloat factor, bool writeToCache) {
   if (modelName.has_value()) {
     mesh = ::OOMesh::meshWithName(
         *modelName,
-        oo::str::format("%s-%.3f", _shipKey.value_or("(null)").c_str(),
-                        _scaleFactor),  // %@ printed nil as (null)
+        std::format("{}-{:.3f}", _shipKey.value_or("(null)"),
+                    _scaleFactor),  // %@ printed nil as (null)
         DictionaryForKey(shipDict, "materials"),
         DictionaryForKey(shipDict, "shaders"),
         shipDict.get<bool>("smooth", false), OODefaultShipShaderMacros(),
@@ -8962,8 +8958,7 @@ void ShipEntity::subEntityReallyDied(::ShipEntity* sub) {
 
 Vector ShipEntity::positionOffsetForAlignment(const std::string& align) {
   // indexed in UTF-16 units, as -characterAtIndex: was
-  const std::u16string padAlign =
-      oo::utf8ToUtf16(oo::str::format("%s---", align.c_str()));
+  const std::u16string padAlign = oo::utf8ToUtf16(std::format("{}---", align));
   Vector result = kZeroVector;
   switch (padAlign[0]) {
     case (uint16_t)'c':
@@ -13631,8 +13626,8 @@ void ShipEntity::setTrackCloseContacts(bool value) {
 namespace {
 std::string RoleSetDescription(::OORoleSet* roleSet) {
   if (roleSet == nullptr) return "(null)";
-  std::string result = oo::str::format(
-      "<OORoleSet %s>", oo::str::pointerDescription(roleSet).c_str());
+  std::string result =
+      std::format("<OORoleSet {}>", oo::str::pointerDescription(roleSet));
   if (const std::optional<std::string> components =
           roleSet->descriptionComponents())
     result += "{" + *components + "}";
@@ -13970,17 +13965,16 @@ void ShipEntity::doNothing() {}
 std::optional<std::string> ShipEntity::descriptionForObjDump() {
   // DescriptionOf(nil) was "(null)"; preserve that for a disengaged super
   // result.
-  std::string desc = oo::str::format(
-      "%s mass %g",
-      OOEntityWithDrawable::descriptionForObjDump().value_or("(null)").c_str(),
+  std::string desc = std::format(
+      "{} mass {:g}",
+      OOEntityWithDrawable::descriptionForObjDump().value_or("(null)"),
       getMass());
   if (!getIsPlayer()) {
-    desc = oo::str::format(
-        "%s AI: %s", desc.c_str(),
-        (getAI() != nullptr ? getAI()->shortDescriptionComponents()
-                            : std::optional<std::string>())
-            .value_or("(null)")
-            .c_str());
+    desc =
+        std::format("{} AI: {}", desc,
+                    (getAI() != nullptr ? getAI()->shortDescriptionComponents()
+                                        : std::optional<std::string>())
+                        .value_or("(null)"));
   }
   return desc;
 }

@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <format>
 #include <map>
 #include <optional>
 #include <string>
@@ -1884,14 +1885,14 @@ void PlayerEntity::increment(
         ConditionString(missionVariableForKey(missionVariableString))
             .value_or(std::string()));
     value++;
-    setMissionVariable(oo::PList(oo::str::format("%d", value)),
+    setMissionVariable(oo::PList(std::format("{}", value)),
                        missionVariableString);
   } else if (hasLocalPrefix) {
     value = oo::str::intValue(
         localVariableForKey(missionVariableString, sCurrentMissionKey)
             .value_or(std::string()));
     value++;
-    setLocalVariable(oo::str::format("%d", value), missionVariableString,
+    setLocalVariable(std::format("{}", value), missionVariableString,
                      sCurrentMissionKey);
   } else {
     OO_LOG(kOOLogSyntaxIncrement,
@@ -1916,14 +1917,14 @@ void PlayerEntity::decrement(
         ConditionString(missionVariableForKey(missionVariableString))
             .value_or(std::string()));
     value--;
-    setMissionVariable(oo::PList(oo::str::format("%d", value)),
+    setMissionVariable(oo::PList(std::format("{}", value)),
                        missionVariableString);
   } else if (hasLocalPrefix) {
     value = oo::str::intValue(
         localVariableForKey(missionVariableString, sCurrentMissionKey)
             .value_or(std::string()));
     value--;
-    setLocalVariable(oo::str::format("%d", value), missionVariableString,
+    setLocalVariable(std::format("{}", value), missionVariableString,
                      sCurrentMissionKey);
   } else {
     OO_LOG(kOOLogSyntaxDecrement,
@@ -1960,14 +1961,14 @@ void PlayerEntity::add(
         ConditionString(missionVariableForKey(missionVariableString))
             .value_or(std::string()));
     value += oo::str::doubleValue(valueString);
-    setMissionVariable(oo::PList(oo::str::format("%f", value)),
+    setMissionVariable(oo::PList(std::format("{:f}", value)),
                        missionVariableString);
   } else if (hasLocalPrefix) {
     value = oo::str::doubleValue(
         localVariableForKey(missionVariableString, sCurrentMissionKey)
             .value_or(std::string()));
     value += oo::str::doubleValue(valueString);
-    setLocalVariable(oo::str::format("%f", value), missionVariableString,
+    setLocalVariable(std::format("{:f}", value), missionVariableString,
                      sCurrentMissionKey);
   } else {
     OO_LOG(kOOLogSyntaxAdd,
@@ -2005,14 +2006,14 @@ void PlayerEntity::subtract(
         ConditionString(missionVariableForKey(missionVariableString))
             .value_or(std::string()));
     value -= oo::str::doubleValue(valueString);
-    setMissionVariable(oo::PList(oo::str::format("%f", value)),
+    setMissionVariable(oo::PList(std::format("{:f}", value)),
                        missionVariableString);
   } else if (hasLocalPrefix) {
     value = oo::str::doubleValue(
         localVariableForKey(missionVariableString, sCurrentMissionKey)
             .value_or(std::string()));
     value -= oo::str::doubleValue(valueString);
-    setLocalVariable(oo::str::format("%f", value), missionVariableString,
+    setLocalVariable(std::format("{:f}", value), missionVariableString,
                      sCurrentMissionKey);
   } else {
     OO_LOG(kOOLogSyntaxSubtract,

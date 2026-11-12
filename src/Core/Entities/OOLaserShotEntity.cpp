@@ -25,6 +25,8 @@ MA 02110-1301, USA.
 
 #include "OOLaserShotEntity.h"
 
+#include <format>
+
 #include "MyOpenGLView.h"
 #include "OOGraphicsResetManager.h"
 #include "OOMacroOpenGL.h"
@@ -148,10 +150,9 @@ oo::Ref<OOLaserShotEntity> OOLaserShotEntity::laserFromShip(
 
 std::optional<std::string> OOLaserShotEntity::descriptionComponents() const {
   // The getter read this ivar.
-  return oo::str::format(
-      "ttl: %.3fs - %s orientation %s", _lifetime,
-      Entity::descriptionComponents().value_or("(null)").c_str(),
-      QuaternionDescription(orientation).c_str());
+  return std::format("ttl: {:.3f}s - {} orientation {}", _lifetime,
+                     Entity::descriptionComponents().value_or("(null)"),
+                     QuaternionDescription(orientation));
 }
 
 void OOLaserShotEntity::setColor(OOColor* color) {

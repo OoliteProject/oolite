@@ -25,6 +25,7 @@
 #include "PlayerEntityLoadSave.h"
 
 #include <algorithm>
+#include <format>
 
 #include "GameController.h"
 #include "OOColor.h"
@@ -229,7 +230,7 @@ void PlayerEntity::setGuiToScenarioScreen(int page) {
     if (page > 0) {
       gui->setArray({OO_DESC("gui-back"), " <-- "}, start_row - 1);
       gui->setColor(OOColor::greenColor().get(), start_row - 1);
-      gui->setKey(oo::str::format("__page:%i", page - 1), start_row - 1);
+      gui->setKey(std::format("__page:{}", page - 1), start_row - 1);
     }
 
     setShowDemoShips(false);
@@ -243,14 +244,14 @@ void PlayerEntity::setGuiToScenarioScreen(int page) {
       const std::string scenarioName =
           " " + scenarioTitle.value_or("(null)") + " ";  // @" %@ "
       gui->setText(cxx_OOExpand(scenarioName).value_or(std::string()), row);
-      gui->setKey(oo::str::format("Scenario:%zu", i), row);
+      gui->setKey(std::format("Scenario:{}", i), row);
       ++row;
     }
 
     if ((std::size_t)(page + 1) * n_rows < count) {
       gui->setArray({OO_DESC("gui-more"), " --> "}, row);
       gui->setColor(OOColor::greenColor().get(), row);
-      gui->setKey(oo::str::format("__page:%i", page + 1), row);
+      gui->setKey(std::format("__page:{}", page + 1), row);
       ++row;
     }
 
@@ -1339,12 +1340,12 @@ void PlayerEntity::showCommanderShip(int cdrArrayIndex) {
   std::string locationEco;
   std::string locationTL;
   if (cdr.find("current_system_techlevel") != nullptr) {
-    locationTL = oo::str::format(
-        "%u", cdr.get<unsigned int>("current_system_techlevel") + 1);
-    locationGov = oo::str::format(
-        "%c", cdr.get<unsigned char>("current_system_government"));
-    locationEco = oo::str::format(
-        " %c", (7 - cdr.get<unsigned char>("current_system_economy")) + 16);
+    locationTL = std::format(
+        "{}", cdr.get<unsigned int>("current_system_techlevel") + 1);
+    locationGov = std::format(
+        "{:c}", cdr.get<unsigned char>("current_system_government"));
+    locationEco = std::format(
+        " {:c}", (7 - cdr.get<unsigned char>("current_system_economy")) + 16);
   }
 
   timeStamp = cxx_ClockToString(

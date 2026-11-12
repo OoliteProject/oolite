@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 
 #include "PlayerEntityContracts.h"
 
+#include <format>
 #include <set>
 
 #include "AI.h"
@@ -138,8 +139,8 @@ PlayerEntity::processEscapePods()  // removes pods from cargo bay and treats
     } else if (!rescuee->legacyScript().isNull()) {
       runUnsanitizedScriptActions(
           rescuee->legacyScript(), true,
-          oo::str::format("<character \"%s\" script>",
-                          rescuee->name().value_or("(null)").c_str()),
+          std::format("<character \"{}\" script>",
+                      rescuee->name().value_or("(null)")),
           nullptr);
     } else if (rescuee->insuranceCredits() && rescuee->legalStatus()) {
       float reward = (5.0 + government) * rescuee->legalStatus();
@@ -1046,7 +1047,7 @@ bool PlayerEntity::awardContract(unsigned qty, const std::string& type,
   unsigned sr1 = Ranrot() & 0x111111;
   int sr2 = Ranrot() & 0x111111;
 
-  std::string cargo_ID = oo::str::format("%06x-%06x", sr1, sr2);
+  std::string cargo_ID = std::format("{:06x}-{:06x}", sr1, sr2);
 
   if (!((UNIVERSE != nullptr ? UNIVERSE->getCommodities() : nullptr) != nullptr
             ? UNIVERSE->getCommodities()->goodDefined(type)
@@ -1057,7 +1058,7 @@ bool PlayerEntity::awardContract(unsigned qty, const std::string& type,
   // avoid duplicate cargo_IDs
   while (contract_record.find(cargo_ID) != contract_record.end()) {
     sr2++;
-    cargo_ID = oo::str::format("%06x-%06x", sr1, sr2);
+    cargo_ID = std::format("{:06x}-{:06x}", sr1, sr2);
   }
 
   // the number kinds the old dictionary held: +numberWithInt:,
@@ -1699,8 +1700,7 @@ void PlayerEntity::setGuiToShipyardScreen(std::size_t skip) {
                           .get(),
                       GUI_ROW_SHIPYARD_START);
         gui->setArray({OO_DESC("gui-back"), " <-- "}, GUI_ROW_SHIPYARD_START);
-        gui->setKey(oo::str::format("More:%zd", previous),
-                    GUI_ROW_SHIPYARD_START);
+        gui->setKey(std::format("More:{}", previous), GUI_ROW_SHIPYARD_START);
       }
       for (i = 0; i < (shipCount - skip) && (int)i < rowCount; i++) {
         const oo::PList& ship_info = shipyard[i + skip];
@@ -1728,7 +1728,7 @@ void PlayerEntity::setGuiToShipyardScreen(std::size_t skip) {
                           .get(),
                       startRow + i);
         gui->setArray({OO_DESC("gui-more"), " --> "}, startRow + i);
-        gui->setKey(oo::str::format("More:%zu", rowCount + skip), startRow + i);
+        gui->setKey(std::format("More:{}", rowCount + skip), startRow + i);
         i++;
       }
 

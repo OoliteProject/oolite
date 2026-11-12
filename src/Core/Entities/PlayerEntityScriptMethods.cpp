@@ -24,6 +24,8 @@ MA 02110-1301, USA.
 
 #include "PlayerEntityScriptMethods.h"
 
+#include <format>
+
 #include "OOCommodities.h"
 #include "OOConstToString.h"
 #include "OOStringExpander.h"
@@ -335,17 +337,17 @@ PlayerEntity::creditsFormattedForLegacySubstitution() {
   unsigned long long integerCredits = tenthsOfCredits / 10;
   unsigned long long tenths = tenthsOfCredits % 10;
 
-  return oo::str::format("%llu.%llu", integerCredits, tenths);
+  return std::format("{}.{}", integerCredits, tenths);
 }
 
 // Implements string expansion code [commander_bounty].
 std::optional<std::string> PlayerEntity::commanderBountyAsString() {
-  return oo::str::format("%i", getLegalStatus());
+  return std::format("{}", getLegalStatus());
 }
 
 // Implements string expansion code [commander_kills].
 std::optional<std::string> PlayerEntity::commanderKillsAsString() {
-  return oo::str::format("%i", score());
+  return std::format("{}", static_cast<int>(score()));
 }
 
 // utilising new keyconfig2.plist data

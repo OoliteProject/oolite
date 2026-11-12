@@ -24,6 +24,8 @@ MA 02110-1301, USA.
 
 #include "Entity.h"
 
+#include <format>
+
 #include "CollisionRegion.h"
 #include "DockEntity.h"
 #include "EntityOOJavaScriptExtensions.h"
@@ -138,12 +140,11 @@ void Entity::willDispose() noexcept {
 
 std::optional<std::string> Entity::descriptionComponents() const {
   // The getters read these ivars.
-  return oo::str::format(
-      "position: %s scanClass: %s status: %s",
-      cxx_HPVectorDescription(position).c_str(),
-      cxx_OOStringFromScanClass(const_cast<Entity*>(this)->getScanClass())
-          .c_str(),
-      cxx_OOStringFromEntityStatus(_status).c_str());
+  return std::format(
+      "position: {} scanClass: {} status: {}",
+      cxx_HPVectorDescription(position),
+      cxx_OOStringFromScanClass(const_cast<Entity*>(this)->getScanClass()),
+      cxx_OOStringFromEntityStatus(_status));
 }
 
 std::size_t Entity::sessionID() { return _sessionID; }
@@ -539,8 +540,8 @@ std::string oo::EntityWeakPListForeign::description() const {
   // What "%@" printed for the weak reference: its object's description, or
   // <Dead ...> once gone.
   if (Entity* entity = _entity.get()) return EntityDescription(entity);
-  return str::format("<Dead OOWeakReference %s>",
-                     str::pointerDescription(this).c_str());
+  return std::format("<Dead OOWeakReference {}>",
+                     str::pointerDescription(this));
 }
 
 Entity* Entity::parentEntity() {
@@ -890,8 +891,7 @@ oo::Ref<OOColor> Entity::fogUniform() { return atmosphereFogging; }
 std::optional<std::string> Entity::descriptionForObjDumpBasic() {
   const std::optional<std::string> components = descriptionComponents();
   if (components.has_value())
-    return oo::str::format("%s %s", oo::EntityClassName(this).c_str(),
-                           components->c_str());
+    return std::format("{} {}", oo::EntityClassName(this), *components);
   if (!hasObject()) return std::nullopt;  // -cxx_description sent to nil
   return oo::EntityDescription(this);
 }
@@ -901,11 +901,11 @@ std::optional<std::string> Entity::descriptionForObjDump() {
   if (!result) return std::nullopt;  // -stringByAppendingFormat: sent to nil
 
   return *result +
-         oo::str::format(" range: %g (visible: %s)",
-                         HPdistance(getPosition(),
-                                    (PLAYER != nullptr ? PLAYER->getPosition()
-                                                       : HPVector{})),
-                         isVisible() ? "yes" : "no");
+         std::format(" range: {:g} (visible: {})",
+                     HPdistance(getPosition(),
+                                (PLAYER != nullptr ? PLAYER->getPosition()
+                                                   : HPVector{})),
+                     isVisible() ? "yes" : "no");
 }
 
 std::vector<oo::Ref<OOTexture>> Entity::allTextures() { return {}; }

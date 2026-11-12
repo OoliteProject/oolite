@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 
 #include <algorithm>
 #include <cstddef>
+#include <format>
 #include <initializer_list>
 #include <map>
 #include <optional>
@@ -3955,9 +3956,9 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
         std::string v0_string = ".........................";
         v1_string = v1_string.substr(0, static_cast<std::size_t>(vol));
         v0_string = v0_string.substr(0, static_cast<std::size_t>(20 - vol));
-        gui->setText(oo::str::format("%s%s%s ", soundVolumeWordDesc.c_str(),
-                                     v1_string.c_str(), v0_string.c_str()),
-                     GUI_ROW(GAME, VOLUME), GUI_ALIGN_CENTER);
+        gui->setText(
+            std::format("{}{}{} ", soundVolumeWordDesc, v1_string, v0_string),
+            GUI_ROW(GAME, VOLUME), GUI_ALIGN_CENTER);
       } else
         gui->setText(OO_DESC("gameoptions-sound-volume-mute"),
                      GUI_ROW(GAME, VOLUME), GUI_ALIGN_CENTER);
@@ -3994,10 +3995,10 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
       v0_string = v0_string.substr(0, static_cast<std::size_t>(20 - fovTicks));
       // %c 176 gave U+00B0 (probed on GNUstep base with this toolchain);
       // written as its UTF-8 bytes
-      gui->setText(oo::str::format("%s%s%s (%d%s) ", fovWordDesc.c_str(),
-                                   v1_string.c_str(), v0_string.c_str(),
-                                   (int)fov, "\xC2\xB0" /*the degrees symbol*/),
-                   GUI_ROW(GAME, FOV), GUI_ALIGN_CENTER);
+      gui->setText(
+          std::format("{}{}{} ({}{}) ", fovWordDesc, v1_string, v0_string,
+                      (int)fov, "\xC2\xB0" /*the degrees symbol*/),
+          GUI_ROW(GAME, FOV), GUI_ALIGN_CENTER);
       oo::Defaults::standard().setFloat(
           "fov-value", (gameView != nullptr ? gameView->fov(false) : 0.0f));
       timeLastKeyPress = script_time;
@@ -4102,9 +4103,8 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
             v1_string.substr(0, static_cast<std::size_t>(paperWhiteNorm));
         v0_string =
             v0_string.substr(0, static_cast<std::size_t>(20 - paperWhiteNorm));
-        gui->setText(oo::str::format("%s%s%s (%d) ", paperWhiteWordDesc.c_str(),
-                                     v1_string.c_str(), v0_string.c_str(),
-                                     (int)paperWhite),
+        gui->setText(std::format("{}{}{} ({}) ", paperWhiteWordDesc, v1_string,
+                                 v0_string, static_cast<int>(paperWhite)),
                      GUI_ROW(GAME, HDRPAPERWHITE), GUI_ALIGN_CENTER);
       }
       hdrPaperWhiteControlPressed = true;

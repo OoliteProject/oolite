@@ -40,6 +40,7 @@ MA 02110-1301, USA.
 #endif
 
 #include <cstring>
+#include <format>
 
 #include "PlayerEntity.h"
 #include "oofnd/String.hpp"
@@ -179,10 +180,10 @@ void DustEntity::update(OOTimeDelta /*delta_t*/) {
 #if OO_SHADERS
 OOShaderProgram* DustEntity::getShader() {
   if (shader == nullptr) {
-    std::string prefix = oo::str::format(
-        "#define OODUST_SCALE_MAX    (float(%g))\n"
-        "#define OODUST_SCALE_FACTOR (float(%g))\n"
-        "#define OODUST_SIZE         (float(%g))\n",
+    std::string prefix = std::format(
+        "#define OODUST_SCALE_MAX    (float({:g}))\n#define "
+        "OODUST_SCALE_FACTOR (float({:g}))\n#define OODUST_SIZE         "
+        "(float({:g}))\n",
         FAR_PLANE / NEAR_PLANE, 1.0f / (FAR_PLANE - NEAR_PLANE),
         (float)DUST_SCALE);
 
