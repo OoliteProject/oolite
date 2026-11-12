@@ -53,7 +53,7 @@ oo::Ref<OOTexture> OOTexture::textureWithName(
     GLfloat anisotropy, GLfloat lodBias) {
   gLog.push_back(
       "texture " + name.value_or("-") + " in " + directory.value_or("-") +
-      " options " + std::to_string(options) + " anisotropy " +
+      " options " + std::to_string(oo::ToUnderlying(options)) + " anisotropy " +
       std::to_string(anisotropy) + " lodBias " + std::to_string(lodBias));
   return oo::makeRef<OOTexture>();
 }
