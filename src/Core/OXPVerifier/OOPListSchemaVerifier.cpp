@@ -164,7 +164,7 @@ using SchemaType = enum {
 struct BackLinkChain {
   BackLinkChain* link;
   const std::string* key;  // a dictionary key (the caller keeps it alive), or
-  NSUInteger index;        // an array index when isIndex; neither for the root
+  std::size_t index;       // an array index when isIndex; neither for the root
   bool isIndex;
 };
 
@@ -175,7 +175,7 @@ OOINLINE BackLinkChain BackLink(BackLinkChain* link, const std::string* key) {
   return result;
 }
 
-OOINLINE BackLinkChain BackLinkIndex(BackLinkChain* link, NSUInteger index) {
+OOINLINE BackLinkChain BackLinkIndex(BackLinkChain* link, std::size_t index) {
   BackLinkChain result = {link, nullptr, index, true};
   return result;
 }
@@ -701,11 +701,11 @@ std::string ApplyStringFilter(
         result = oo::utf8ToUtf16(oo::str::capitalized(oo::utf16ToUtf8(result)));
       else if (oo::str::hasPrefix(*filter, "truncFront:")) {
         result = SubstringToIndex(
-            result, (unsigned long long)(NSUInteger)oo::str::intValue(
+            result, (unsigned long long)(std::size_t)oo::str::intValue(
                         oo::utf16ToUtf8(argument(11))));
       } else if (oo::str::hasPrefix(*filter, "truncBack:")) {
         result = SubstringToIndex(
-            result, (unsigned long long)(NSUInteger)oo::str::intValue(
+            result, (unsigned long long)(std::size_t)oo::str::intValue(
                         oo::utf16ToUtf8(argument(10))));
       } else if (oo::str::hasPrefix(*filter, "subStringTo:")) {
         const std::u16string sub = argument(12);
@@ -855,7 +855,7 @@ std::string ArrayForErrorReport(const oo::PList& array) {
   const oo::PList::Array* elements = array.getIf<oo::PList::Array>();
   std::string result;
   std::string string;
-  NSUInteger i, count;
+  std::size_t i, count;
 
   count = (elements != nullptr) ? elements->size() : 0;
   if (count == 0) return "( )";
@@ -925,8 +925,8 @@ static std::optional<OOPListSchemaVerifierError> Verify_String(
     bool* /*outStop*/) {
   std::string filteredString;
   const oo::PList* testValue = nullptr;
-  NSUInteger length;
-  NSUInteger lengthConstraint;
+  std::size_t length;
+  std::size_t lengthConstraint;
   std::optional<OOPListSchemaVerifierError> error;
 
   REQUIRE_PLIST_TYPE(isString, "string");
@@ -994,7 +994,7 @@ static std::optional<OOPListSchemaVerifierError> Verify_String(
 
   // Apply length bounds (UTF-16 units, as -length counted them).
   length = oo::str::length(filteredString);
-  lengthConstraint = params.get<NSUInteger>("minLength");
+  lengthConstraint = params.get<std::size_t>("minLength");
   if (length < lengthConstraint) {
     return Error(kPListErrorMinimumConstraintNotMet, &keyPath,
                  "String \"%s\" is too short (%u bytes, minimum is %u).",
@@ -1002,7 +1002,7 @@ static std::optional<OOPListSchemaVerifierError> Verify_String(
                  lengthConstraint);
   }
 
-  lengthConstraint = params.get<NSUInteger>("maxLength", NSUIntegerMax);
+  lengthConstraint = params.get<std::size_t>("maxLength", SIZE_MAX);
   if (lengthConstraint < length) {
     return Error(kPListErrorMaximumConstraintNotMet, &keyPath,
                  "String \"%s\" is too long (%u bytes, maximum is %u).",
@@ -1025,8 +1025,8 @@ static std::optional<OOPListSchemaVerifierError> Verify_Array(
     bool* outStop) {
   const oo::PList* valueType = nullptr;
   bool OK = true, stop = false;
-  NSUInteger i, count;
-  NSUInteger constraint;
+  std::size_t i, count;
+  std::size_t constraint;
 
   REQUIRE_PLIST_TYPE(isArray, "array");
   const oo::PList::Array& elements = *value.getIf<oo::PList::Array>();
@@ -1035,14 +1035,14 @@ static std::optional<OOPListSchemaVerifierError> Verify_Array(
 
   // Apply count bounds.
   count = elements.size();
-  constraint = params.get<NSUInteger>("minCount", 0);
+  constraint = params.get<std::size_t>("minCount", 0);
   if (count < constraint) {
     return Error(kPListErrorMinimumConstraintNotMet, &keyPath,
                  "Array has too few members (%u, minimum is %u).", count,
                  constraint);
   }
 
-  constraint = params.get<NSUInteger>("maxCount", NSUIntegerMax);
+  constraint = params.get<std::size_t>("maxCount", SIZE_MAX);
   if (constraint < count) {
     return Error(kPListErrorMaximumConstraintNotMet, &keyPath,
                  "Array has too many members (%u, maximum is %u).", count,
@@ -1086,7 +1086,7 @@ static std::optional<OOPListSchemaVerifierError> Verify_Dictionary(
   bool allowOthers;
   std::set<std::string> requiredKeys;
   const oo::PList* requiredKeyList = nullptr;
-  NSUInteger count, constraint;
+  std::size_t count, constraint;
 
   REQUIRE_PLIST_TYPE(isDict, "dictionary");
   const oo::PList::Dict& members = *value.getIf<oo::PList::Dict>();
@@ -1095,13 +1095,13 @@ static std::optional<OOPListSchemaVerifierError> Verify_Dictionary(
 
   // Apply count bounds.
   count = members.size();
-  constraint = params.get<NSUInteger>("minCount", 0);
+  constraint = params.get<std::size_t>("minCount", 0);
   if (count < constraint) {
     return Error(kPListErrorMinimumConstraintNotMet, &keyPath,
                  "Dictionary has too few pairs (%u, minimum is %u).", count,
                  constraint);
   }
-  constraint = params.get<NSUInteger>("maxCount", NSUIntegerMax);
+  constraint = params.get<std::size_t>("maxCount", SIZE_MAX);
   if (constraint < count) {
     return Error(kPListErrorMaximumConstraintNotMet, &keyPath,
                  "Dictionary has too manu pairs (%u, maximum is %u).", count,

@@ -667,14 +667,14 @@ bool ShipEntity::performHyperSpaceExitReplace(bool replace,
   }
 
   OOSystemID targetSystem;
-  NSUInteger i = 0;
+  std::size_t i = 0;
 
   // get a list of destinations within range
   const oo::PList sDests =
       (UNIVERSE != nullptr
            ? UNIVERSE->nearbyDestinationsWithinRange(0.1f * fuel)
            : oo::PList());
-  NSUInteger n_dests = sDests.count();
+  std::size_t n_dests = sDests.count();
 
   // if none available report to the AI and exit
   if (n_dests == 0) {
@@ -1854,12 +1854,12 @@ void ShipEntity::escortCheckMother() {
 }
 
 void ShipEntity::checkGroupOddsVersusTarget() {
-  NSUInteger ownGroupCount = (group() != nullptr ? group()->count() : 0) +
-                             (ranrot_rand() & 3);  // add a random fudge factor
+  std::size_t ownGroupCount = (group() != nullptr ? group()->count() : 0) +
+                              (ranrot_rand() & 3);  // add a random fudge factor
   ::ShipEntity* target = oo::ToShip(primaryTarget());
   ::OOShipGroup* targetGroup =
       (target != nullptr ? target->group() : (OOShipGroup*)nullptr);
-  NSUInteger targetGroupCount =
+  std::size_t targetGroupCount =
       (targetGroup != nullptr ? targetGroup->count() : 0) +
       (ranrot_rand() & 3);  // add a random fudge factor
 
@@ -2718,11 +2718,11 @@ void ShipEntity::targetNextBeaconWithCode(
                    [current_beacon](const oo::EntityHold& beacon) {
                      return beacon.get() == current_beacon;
                    });
-  NSUInteger i = found != all_beacons.end()
-                     ? (NSUInteger)(found - all_beacons.begin())
-                     : NSNotFound;
+  std::size_t i = found != all_beacons.end()
+                      ? (std::size_t)(found - all_beacons.begin())
+                      : oo::kNotFound;
 
-  if (i == NSNotFound) {
+  if (i == oo::kNotFound) {
     if (shipAI != nullptr) shipAI->message("NOTHING_FOUND");
     return;
   }

@@ -103,7 +103,7 @@ class OOVisualEffectEntity
   void setNoDrawDistance();
   std::vector<oo::EntityHold>
   subEntities();  // a snapshot; empty before the first subentity (was nil)
-  NSUInteger subEntityCount();
+  std::size_t subEntityCount();
   std::optional<std::vector<oo::EntityHold>>
   visualEffectSubEntityEnumerator();  // the visual-effect subentities' objects;
                                       // nullopt where the array was nil

@@ -202,7 +202,7 @@ void OOExplosionCloudEntity::update(OOTimeDelta delta_t) {
   float newAlpha = _alpha * (1 - (_timePassed / _cloudDuration));
   const std::string color_order =
       _settings.get<std::string>(kExplosionColors, "rgb");
-  NSUInteger primary = 0, secondary = 1, tertiary = 2;
+  std::size_t primary = 0, secondary = 1, tertiary = 2;
 
   if (color_order == "rgb") {
     primary = 0;

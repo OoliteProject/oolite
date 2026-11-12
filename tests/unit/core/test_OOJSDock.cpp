@@ -69,15 +69,15 @@ public:
 	void setDisallowedDockingCollides(bool ddc);
 	bool allowsLaunching();
 	void setAllowsLaunching(bool allowed);
-	NSUInteger countOfShipsInDockingQueue();
-	NSUInteger countOfShipsInLaunchQueue();
+	std::size_t countOfShipsInDockingQueue();
+	std::size_t countOfShipsInLaunchQueue();
 	bool shipIsInDockingQueue(::ShipEntity *ship);
 
 	bool _allowsDocking = false;
 	bool _disallowedDockingCollides = false;
 	bool _allowsLaunching = false;
-	NSUInteger _dockingQueue = 0;
-	NSUInteger _launchQueue = 0;
+	std::size_t _dockingQueue = 0;
+	std::size_t _launchQueue = 0;
 	::ShipEntity *_queued = nullptr;
 };
 
@@ -108,10 +108,10 @@ bool DockEntity::disallowedDockingCollides()  { return _disallowedDockingCollide
 void DockEntity::setDisallowedDockingCollides(bool ddc)  { _disallowedDockingCollides = ddc; }
 bool DockEntity::allowsLaunching()  { return _allowsLaunching; }
 void DockEntity::setAllowsLaunching(bool allowed)  { _allowsLaunching = allowed; }
-NSUInteger DockEntity::countOfShipsInLaunchQueue()  { return _launchQueue; }
+std::size_t DockEntity::countOfShipsInLaunchQueue()  { return _launchQueue; }
 bool DockEntity::shipIsInDockingQueue(::ShipEntity *ship)  { return ship == _queued; }
 
-NSUInteger DockEntity::countOfShipsInDockingQueue()
+std::size_t DockEntity::countOfShipsInDockingQueue()
 {
 	if (_dockingQueue == 99)  OORaiseException(OOInvalidArgumentException, "queue %s", "boom");
 	if (_dockingQueue == 98)  throw std::runtime_error("cxx boom");

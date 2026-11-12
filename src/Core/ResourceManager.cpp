@@ -1677,7 +1677,7 @@ oo::PList ResourceManager::arrayFromFilesNamed(
 // the earliest.
 void ResourceManager::handleEquipmentListMerging(oo::PList& arrayToProcess,
                                                  unsigned lookupIndex) {
-  NSUInteger i, j, k;
+  std::size_t i, j, k;
   oo::PList::Array& lists = *arrayToProcess.getIf<oo::PList::Array>();
   oo::PList& refArray = lists[lists.size() - 1];
 
@@ -1685,7 +1685,7 @@ void ResourceManager::handleEquipmentListMerging(oo::PList& arrayToProcess,
 
   for (i = 0; i < refArray.count(); i++) {
     for (j = 0; j < lists.size() - 1; j++) {
-      NSUInteger count = lists[j].isArray() ? lists[j].count() : 0;
+      std::size_t count = lists[j].isArray() ? lists[j].count() : 0;
       if (count == 0) continue;
 
       for (k = 0; k < count; k++) {
@@ -1799,14 +1799,14 @@ void ResourceManager::handleEquipmentOverrides(oo::PList& arrayToProcess) {
 // nebulatextures.plist and startextures.plist entries. uses the "texture"
 // filename as the key value, or "key" if found
 void ResourceManager::handleStarNebulaListMerging(oo::PList& arrayToProcess) {
-  NSUInteger i, j, k;
+  std::size_t i, j, k;
   oo::PList::Array& lists = *arrayToProcess.getIf<oo::PList::Array>();
   oo::PList& refArray = lists[lists.size() - 1];
 
   // Any change to refArray will directly modify arrayToProcess.
   for (i = 0; i < refArray.count(); i++) {
     for (j = 0; j < lists.size() - 1; j++) {
-      NSUInteger count = lists[j].isArray() ? lists[j].count() : 0;
+      std::size_t count = lists[j].isArray() ? lists[j].count() : 0;
       if (count == 0) continue;
 
       for (k = 0; k < count; k++) {

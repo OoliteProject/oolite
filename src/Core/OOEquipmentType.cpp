@@ -562,9 +562,9 @@ oo::PList OOEquipmentType::defaultActivateKey() { return _defaultActivateKey; }
 
 oo::PList OOEquipmentType::defaultModeKey() { return _defaultModeKey; }
 
-NSUInteger OOEquipmentType::installTime() { return _installTime; }
+std::size_t OOEquipmentType::installTime() { return _installTime; }
 
-NSUInteger OOEquipmentType::repairTime() {
+std::size_t OOEquipmentType::repairTime() {
   if (_repairTime > 0) {
     return _repairTime;
   } else {
@@ -661,7 +661,7 @@ OOTechLevelID OOEquipmentType::effectiveTechLevel() {
                : oo::PList());  // OOUIntegerFromObject:
                                 // OOUnsignedLongLongFromObject on this 64-bit
                                 // build
-      tl = static_cast<NSInteger>(oo::plist_get::unsignedLongLongFrom(
+      tl = static_cast<std::ptrdiff_t>(oo::plist_get::unsignedLongLongFrom(
           !missionValue.isNull() ? &missionValue : nullptr, tl));
     }
   }

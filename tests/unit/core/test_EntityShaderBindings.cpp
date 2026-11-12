@@ -209,7 +209,7 @@ OO_TEST(subclassesAnswerToo) {
 // Every name whitelist.plist permits a shader to bind on an entity (its four
 // shader_*_binding_methods arrays) is a row of the member table, with the
 // uniform type the selector path read; laserColor, which nothing answers, and
-// the NSUInteger names, whose type no uniform takes, bind neither way. The rows
+// the std::size_t names, whose type no uniform takes, bind neither way. The rows
 // and the bindings they make are checked.
 OO_TEST(everyPermittedNameBindsAsBySelector) {
   {

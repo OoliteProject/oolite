@@ -59,12 +59,12 @@ class DockEntity : public ShipEntity {
   void setAllowsDocking(bool allowed);
   bool disallowedDockingCollides();
   void setDisallowedDockingCollides(bool ddc);
-  NSUInteger countOfShipsInDockingQueue();
+  std::size_t countOfShipsInDockingQueue();
 
   // Launching
   bool allowsLaunching();
   void setAllowsLaunching(bool allowed);
-  NSUInteger countOfShipsInLaunchQueue();
+  std::size_t countOfShipsInLaunchQueue();
 
   // Geometry
   void setDimensionsAndCorridor(bool docking, bool ddc, bool launching);
@@ -85,7 +85,7 @@ class DockEntity : public ShipEntity {
   void abortDockingForShip(::ShipEntity* ship);
   void abortAllDockings();
   void autoDockShipsOnApproach();
-  NSUInteger pruneAndCountShipsOnApproach();
+  std::size_t pruneAndCountShipsOnApproach();
   void noteDockingForShip(::ShipEntity* ship);
   void autoDockShipsInQueue(
       std::map<unsigned short, std::vector<oo::PList>>& queue);
@@ -97,7 +97,7 @@ class DockEntity : public ShipEntity {
   void abortAllLaunches();
   void addShipToLaunchQueue(::ShipEntity* ship, bool priority);
   void launchShip(::ShipEntity* ship);
-  NSUInteger countOfShipsInLaunchQueueWithPrimaryRole(const std::string& role);
+  std::size_t countOfShipsInLaunchQueueWithPrimaryRole(const std::string& role);
   bool allowsLaunchingOf(::ShipEntity* ship);
   bool dockingCorridorIsEmpty();
   void clearDockingCorridor();

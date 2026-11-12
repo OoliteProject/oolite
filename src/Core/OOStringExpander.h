@@ -50,7 +50,7 @@ enum {
 
   kOOExpandNoOptions = 0
 };
-typedef NSUInteger OOExpandOptions;
+typedef std::size_t OOExpandOptions;
 
 /*
         OOExpandDescriptionString(string, seed, overrides, locals, systemName,

@@ -132,9 +132,9 @@ void ProxyPlayerEntity::setAlertCondition(OOAlertCondition value) {
   _alertCondition = value;
 }
 
-NSUInteger ProxyPlayerEntity::trumbleCount() { return _trumbleCount; }
+std::size_t ProxyPlayerEntity::trumbleCount() { return _trumbleCount; }
 
-void ProxyPlayerEntity::setTrumbleCount(NSUInteger value) {
+void ProxyPlayerEntity::setTrumbleCount(std::size_t value) {
   _trumbleCount = value;
 }
 

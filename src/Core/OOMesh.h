@@ -224,7 +224,7 @@ class OOMesh : public OODrawable, public OOGraphicsResetClient {
   BoundingBox _lastBoundingBox = {};
 
 #if OO_MULTITEXTURE
-  NSUInteger _textureUnitCount = {};
+  std::size_t _textureUnitCount = {};
 #endif
 
 #if OOMESH_PROFILE
@@ -249,14 +249,14 @@ class OOMesh : public OODrawable, public OOGraphicsResetClient {
 
   // Manage the set of refcounted buffers we need to hang on to.
   void setRetainedObject(oo::Data object, const std::string& key);
-  void* allocateBytesWithSize(size_t size, NSUInteger count,
+  void* allocateBytesWithSize(size_t size, std::size_t count,
                               const std::string& key);
 
   // Allocate all per-vertex/per-face buffers.
-  bool allocateVertexBuffersWithCount(NSUInteger count);
-  bool allocateNormalBuffersWithCount(NSUInteger count);
-  bool allocateFaceBuffersWithCount(NSUInteger count);
-  bool allocateVertexArrayBuffersWithCount(NSUInteger count);
+  bool allocateVertexBuffersWithCount(std::size_t count);
+  bool allocateNormalBuffersWithCount(std::size_t count);
+  bool allocateFaceBuffersWithCount(std::size_t count);
+  bool allocateVertexArrayBuffersWithCount(std::size_t count);
 
   void renameTexturesFrom(const std::string& from, const std::string& to);
 

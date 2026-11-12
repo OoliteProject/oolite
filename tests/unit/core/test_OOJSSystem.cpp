@@ -806,7 +806,7 @@ OO_TEST(shipCreators)
 	OO_CHECK_EVAL("system.addShipsToRoute('trader', 2).length", "2");
 	OO_CHECK_EVAL("system.addGroupToRoute('trader', 2, 0.5, 'WP').name", "convoy");
 	OO_CHECK_LOG(sUniverse->_log, oo::str::format("addShipsAt 7 8 9 trader 2 %g 0; addShipsAt 1 2 3 trader 1 500 0; addShipsAt 7 8 9 trader 2 %g 1; addShipsToRoute st trader 2 %g 0; addShipsToRoute wp trader 2 0.5 1",
-													  static_cast<double>(static_cast<GLfloat>(SCANNER_MAX_RANGE)), static_cast<double>(static_cast<GLfloat>(SCANNER_MAX_RANGE)), static_cast<double>(NSNotFound)));
+													  static_cast<double>(static_cast<GLfloat>(SCANNER_MAX_RANGE)), static_cast<double>(static_cast<GLfloat>(SCANNER_MAX_RANGE)), static_cast<double>(oo::kNotFound)));
 
 	// None added: null, for ships and for a group.
 	sUniverse->_shipsToAdd.clear();

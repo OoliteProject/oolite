@@ -68,7 +68,7 @@ void OOFlasherEntity::setUpColors(const oo::PList* colorSpecifiers) {
 }
 
 // The colour at index; null past the end (-objectAtIndex: raised there).
-OOColor* OOFlasherEntity::flasherColorAtIndex(NSUInteger index) {
+OOColor* OOFlasherEntity::flasherColorAtIndex(std::size_t index) {
   return index < _colors.size() ? _colors[index].get() : nullptr;
 }
 
@@ -106,7 +106,7 @@ void OOFlasherEntity::update(OOTimeDelta delta_t) {
 
   if (_frequency != 0) {
     float wave = sinf(_frequency * M_PI * (_time + _phase));
-    NSUInteger count = _colors.size();
+    std::size_t count = _colors.size();
     if (count > 1 && wave < 0) {
       if (!_justSwitched &&
           wave > _wave)  // don't test for wave >= _wave - could give wrong

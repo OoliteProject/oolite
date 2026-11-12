@@ -213,7 +213,7 @@ oo::PList StationEntity::launchPolice()  // called by name
                                   : OOUniversalID{});
   unsigned i;
   OOTechLevelID techlevel = getEquivalentTechLevel();
-  if (techlevel == NSNotFound) techlevel = 6;
+  if (techlevel == oo::kNotFound) techlevel = 6;
 
   result.reserve(4);
 
@@ -295,7 +295,7 @@ oo::PList StationEntity::launchPolice()  // called by name
   OOTechLevelID techlevel;
 
   techlevel = getEquivalentTechLevel();
-  if (techlevel == NSNotFound) techlevel = 6;
+  if (techlevel == oo::kNotFound) techlevel = 6;
   if ((Ranrot() & 7) + 6 <= techlevel)
     default_defense_ship_role = "interceptor";
   else
@@ -684,7 +684,7 @@ oo::PList StationEntity::launchPolice()  // called by name
     OOTechLevelID techlevel;
 
     techlevel = getEquivalentTechLevel();
-    if (techlevel == NSNotFound) techlevel = 6;
+    if (techlevel == oo::kNotFound) techlevel = 6;
 
     if ((Ranrot() & 7) + 6 <= techlevel)
       patrol_ship =
@@ -812,7 +812,7 @@ std::optional<std::string> StationEntity::jsClassName() {
 }
 
 OOTechLevelID StationEntity::getEquivalentTechLevel() {
-  if (equivalentTechLevel == NSNotFound) {
+  if (equivalentTechLevel == oo::kNotFound) {
     return (UNIVERSE != nullptr ? UNIVERSE->currentSystemData() : oo::PList())
         .get<int>(std::string(KEY_TECHLEVEL));
   } else {
@@ -1018,7 +1018,7 @@ bool StationEntity::setUpShipFromDictionary(const oo::PList& dict) {
   if (!ShipEntity::setUpShipFromDictionary(dict)) return false;
 
   equivalentTechLevel =
-      dict.get<NSUInteger>("equivalent_tech_level", NSNotFound);
+      dict.get<std::size_t>("equivalent_tech_level", oo::kNotFound);
   max_scavengers = dict.get<unsigned int>("max_scavengers", 3);
   max_defense_ships = dict.get<unsigned int>("max_defense_ships", 3);
   max_police = dict.get<unsigned int>("max_police", STATION_MAX_POLICE);
@@ -1201,7 +1201,7 @@ bool StationEntity::getAllowsSaving() {
 bool StationEntity::isRotatingStation() {
   if (shipinfoDictionary.get<bool>("rotating", false)) return true;
   // legacy. -rangeOfString: of the roles string; absent, a message to nil gave
-  // a zeroed range, which is not NSNotFound.
+  // a zeroed range, which is not oo::kNotFound.
   const oo::PList* roles = shipinfoDictionary.find("roles");
   if (roles == nullptr) return true;
   const std::string* rolesString = roles->getIf<std::string>();
@@ -1546,7 +1546,7 @@ oo::PList StationEntity::dockingInstructionsForShip(::ShipEntity* ship) {
 
   ::DockEntity* chosenDock = nullptr;
   std::optional<std::string> docking;  // nullopt: no dock asked yet (was nil)
-  NSUInteger queue = 100;
+  std::size_t queue = 100;
 
   bool alldockstoosmall = true;
   for (const oo::EntityHold& dock : dockSubEntities()) {

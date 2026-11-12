@@ -42,19 +42,19 @@ Universe* gSharedUniverse =
 
 // OODumpPixMap's view dumps: members of the view; never called here.
 #ifndef NDEBUG
-void MyOpenGLView::dumpGrayToFileNamed(const std::string&, uint8_t*, NSUInteger,
-                                       NSUInteger, NSUInteger) {
+void MyOpenGLView::dumpGrayToFileNamed(const std::string&, uint8_t*, std::size_t,
+                                       std::size_t, std::size_t) {
   std::abort();
 }
 void MyOpenGLView::dumpGrayAlphaToFileNamed(const std::string&, uint8_t*,
-                                            NSUInteger, NSUInteger,
-                                            NSUInteger) {
+                                            std::size_t, std::size_t,
+                                            std::size_t) {
   std::abort();
 }
 void MyOpenGLView::dumpRGBAToRGBFileNamed(const std::optional<std::string>&,
                                           const std::optional<std::string>&,
-                                          uint8_t*, NSUInteger, NSUInteger,
-                                          NSUInteger) {
+                                          uint8_t*, std::size_t, std::size_t,
+                                          std::size_t) {
   std::abort();
 }
 #endif

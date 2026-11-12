@@ -542,8 +542,8 @@ std::optional<std::string> OptionalStringIn(
 
 // The demo ship entry at <index>, <subindex> of the demo list: null where the
 // old array / dictionary lookup chain gave nil.
-oo::PList DemoShipEntry(const oo::PList& demoShips, NSUInteger index,
-                        NSUInteger subindex) {
+oo::PList DemoShipEntry(const oo::PList& demoShips, std::size_t index,
+                        std::size_t subindex) {
   const oo::PList* subList = demoShips.at(index);
   const oo::PList* entry = (subList != nullptr && subList->isArray())
                                ? subList->at(subindex)
@@ -552,14 +552,14 @@ oo::PList DemoShipEntry(const oo::PList& demoShips, NSUInteger index,
 }
 
 // -count of the demo class at <index> (0 where it was nil).
-NSUInteger DemoClassCount(const oo::PList& demoShips, NSUInteger index) {
+std::size_t DemoClassCount(const oo::PList& demoShips, std::size_t index) {
   const oo::PList* subList = demoShips.at(index);
   return (subList != nullptr) ? subList->count() : 0;
 }
 
 // The class of the first ship of the demo class at <index>; "" where it was nil
 // (oo::StdString(nil)).
-std::string DemoClassAt(const oo::PList& demoShips, NSUInteger index) {
+std::string DemoClassAt(const oo::PList& demoShips, std::size_t index) {
   return OptionalStringIn(DemoShipEntry(demoShips, index, 0), kOODemoShipClass)
       .value_or(std::string());
 }
@@ -1184,7 +1184,7 @@ std::string cxx_OOLookUpDescriptionPRIV(const std::string& key) {
 
 // There's a hint of gettext about this...
 std::string cxx_OOLookUpPluralDescriptionPRIV(const std::string& key,
-                                              NSInteger count) {
+                                              std::ptrdiff_t count) {
   const oo::PList* descriptions = OOUniverseDescriptions();
   const oo::PList* conditions =
       (descriptions != nullptr)
@@ -3305,7 +3305,7 @@ Entity* Universe::addVisualEffectAt(HPVector pos, const std::string& key) {
   OOJS_PROFILE_ENTER
 
   // minimise the time between creating ship & assigning position.
-  if (radius == static_cast<GLfloat>(NSNotFound)) {
+  if (radius == static_cast<GLfloat>(oo::kNotFound)) {
     GLfloat scalar = 1.0;
     coordinatesForPosition(pos, "abs", &scalar);
     //	randomise
@@ -3756,7 +3756,7 @@ void Universe::setupIntroFirstGo(bool justCobra) {
      * available, and at least the Ships category. */
     const oo::PList::Array* demoClasses = demo_ships.getIf<oo::PList::Array>();
     if (demoClasses != nullptr) {
-      for (NSUInteger k = 0; k < demoClasses->size(); k++) {
+      for (std::size_t k = 0; k < demoClasses->size(); k++) {
         const oo::PList& subList = (*demoClasses)[k];
         if (OptionalStringIn(DemoShipEntry(demo_ships, k, 0),
                              kOODemoShipClass) == "ship") {
@@ -3861,7 +3861,7 @@ void Universe::setLibraryTextForDemoShip() {
   std::optional<std::string> override;
 
   // clear rows
-  for (NSUInteger i = 1; i <= 26; i++) {
+  for (std::size_t i = 1; i <= 26; i++) {
     gui->setText("", i);
   }
 
@@ -4033,8 +4033,8 @@ void Universe::setLibraryTextForDemoShip() {
   const oo::PList* subListEntry = demo_ships.at(demo_ship_index);
   const oo::PList subList =
       (subListEntry != nullptr) ? *subListEntry : oo::PList();
-  NSUInteger i, start = demo_ship_subindex - (demo_ship_subindex % 5);
-  NSUInteger end = start + 4;
+  std::size_t i, start = demo_ship_subindex - (demo_ship_subindex % 5);
+  std::size_t end = start + 4;
   if (end >= subList.count()) {
     end = subList.count() - 1;
   }
@@ -4068,7 +4068,7 @@ void Universe::setLibraryTextForDemoShip() {
 
 void Universe::selectIntro2Previous() {
   demo_stage = DEMO_SHOW_THING;
-  NSUInteger subcount = DemoClassCount(demo_ships, demo_ship_index);
+  std::size_t subcount = DemoClassCount(demo_ships, demo_ship_index);
   demo_ship_subindex = (demo_ship_subindex + subcount - 2) % subcount;
   demo_stage_time = universal_time - 1.0;  // force change
 }
@@ -4712,9 +4712,9 @@ std::vector<oo::EntityHold> Universe::getContainersOfGoods(
   */
   std::vector<oo::EntityHold> accumulator;
   accumulator.reserve(how_many);
-  NSUInteger i = 0,
-             commodityCount =
-                 (commodityMarket != nullptr ? commodityMarket->count() : 0);
+  std::size_t i = 0,
+              commodityCount =
+                  (commodityMarket != nullptr ? commodityMarket->count() : 0);
   std::vector<OOCargoQuantity> quantities(commodityCount);
   OOCargoQuantity total_quantity = 0;
 
@@ -4747,14 +4747,14 @@ std::vector<oo::EntityHold> Universe::getContainersOfGoods(
   }
   // quantities is now used to determine which good get into the containers
   for (i = 0; i < how_many; i++) {
-    NSUInteger co_type = 0;
+    std::size_t co_type = 0;
 
     int qr = 0;
     if (total_quantity) {
       qr = 1 + (Ranrot() % total_quantity);
       co_type = 0;
       while (qr > 0) {
-        OOCAssert((NSUInteger)co_type < commodityCount,
+        OOCAssert((std::size_t)co_type < commodityCount,
                   "Commodity type index out of range.");
         qr -= quantities[co_type++];
       }
@@ -7240,7 +7240,7 @@ void Universe::speakWithSubstitutions(const std::optional<std::string>& text) {
           const std::optional<std::string> original_phrase =
               OptionalStringAt(thePair, 0);
 
-          NSUInteger replacementIndex;
+          std::size_t replacementIndex;
 #if OOLITE_ESPEAK
           replacementIndex = thePair.count() > 2 ? 2 : 1;
 #endif
@@ -7388,7 +7388,7 @@ void Universe::repopulateSystem() {
 
 void Universe::update(OOTimeDelta inDeltaT) {
   volatile OOTimeDelta delta_t = inDeltaT * getTimeAccelerationFactor();
-  NSUInteger sessionID = _sessionID;
+  std::size_t sessionID = _sessionID;
   OO_LOG("universe.profile.update", "{}", "Begin update");
   if (EXPECT(!no_update)) {
     next_repopulation -= delta_t;
@@ -8844,7 +8844,7 @@ OOSystemID Universe::findConnectedSystemAtCoords(NSPoint coords, OOGalaxyID g) {
 OOSystemID Universe::findSystemNumberAtCoords(NSPoint coords, OOGalaxyID g,
                                               bool hidden) {
   /*
-          NOTE: this previously used NSNotFound as the default value, but
+          NOTE: this previously used oo::kNotFound as the default value, but
           returned an int, which would truncate on 64-bit systems. I assume
           no-one was using it in a context where the default value was returned.
           -- Ahruman 2012-08-25
@@ -8860,7 +8860,7 @@ OOSystemID Universe::findSystemNumberAtCoords(NSPoint coords, OOGalaxyID g,
           (systemManager != nullptr
                ? systemManager->getPropertiesForSystem(i, g)
                : oo::PList());
-      NSInteger concealment =
+      std::ptrdiff_t concealment =
           systemInfo.get<int>("concealment", OO_SYSTEMCONCEALMENT_NONE);
       if (concealment >= OO_SYSTEMCONCEALMENT_NOTHING) {
         // system is not known
@@ -8917,7 +8917,7 @@ NSPoint Universe::findSystemCoordinatesWithPrefix(const std::string& p_fix,
           (systemManager != nullptr
                ? systemManager->getPropertiesForSystem(i, galaxyID)
                : oo::PList());
-      NSInteger concealment =
+      std::ptrdiff_t concealment =
           systemInfo.get<int>("concealment", OO_SYSTEMCONCEALMENT_NONE);
       if (concealment >= OO_SYSTEMCONCEALMENT_NONAME) {
         // system is not known
@@ -8983,7 +8983,7 @@ oo::PList Universe::routeFromSystem(OOSystemID start, OOSystemID goal,
         (systemManager != nullptr
              ? systemManager->getPropertiesForSystem(i, galaxyID)
              : oo::PList());
-    NSInteger concealment =
+    std::ptrdiff_t concealment =
         systemInfo.get<int>("concealment", OO_SYSTEMCONCEALMENT_NONE);
     if (concealment >= OO_SYSTEMCONCEALMENT_NOTHING) {
       // system is not known
@@ -9388,7 +9388,7 @@ oo::PList Universe::shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL,
 
     const oo::PList systemInfo = generateSystemData(s);
     OOTechLevelID techlevel;
-    if (specialTL != NSNotFound) {
+    if (specialTL != oo::kNotFound) {
       // if we are passed a tech level use that
       techlevel = specialTL;
     } else {
@@ -9973,13 +9973,13 @@ OOCreditsQuantity Universe::tradeInValueForCommanderDictionary(
   extra_equipment_value += ship_other_weapons_value;
   extra_equipment_value += ship_main_weapons_value - base_weapons_value;
 
-  NSInteger i;
+  std::ptrdiff_t i;
   std::optional<std::string> eq_key;
 
   // shipyard.plist settings might have duplicate keys.
   // cull possible duplicates from inside base equipment
   // (the search range 0..i-2 never looks at the entry just before)
-  for (i = (NSInteger)base_extra_equipment.size() - 1; i > 0; i--) {
+  for (i = (std::ptrdiff_t)base_extra_equipment.size() - 1; i > 0; i--) {
     eq_key = base_extra_equipment[i];
     const auto searchEnd = base_extra_equipment.begin() + (i - 1);
     if (eq_key.has_value() &&
@@ -9988,7 +9988,7 @@ OOCreditsQuantity Universe::tradeInValueForCommanderDictionary(
   }
 
   // do we at least have the same equipment as a standard ship?
-  for (i = (NSInteger)base_extra_equipment.size() - 1; i >= 0; i--) {
+  for (i = (std::ptrdiff_t)base_extra_equipment.size() - 1; i >= 0; i--) {
     eq_key = base_extra_equipment[i];
     if (eq_key.has_value() &&
         std::find(ship_extra_equipment.begin(), ship_extra_equipment.end(),
@@ -10002,7 +10002,7 @@ OOCreditsQuantity Universe::tradeInValueForCommanderDictionary(
   // remove portable equipment from the totals
   ::OOEquipmentType* item = nullptr;
 
-  for (i = (NSInteger)ship_extra_equipment.size() - 1; i >= 0; i--) {
+  for (i = (std::ptrdiff_t)ship_extra_equipment.size() - 1; i >= 0; i--) {
     item = OOEquipmentType::equipmentTypeWithIdentifier(ship_extra_equipment[i])
                .get();
     if ((item != nullptr ? item->isPortableBetweenShips() : false))
@@ -10010,7 +10010,7 @@ OOCreditsQuantity Universe::tradeInValueForCommanderDictionary(
   }
 
   // add up what we've got left.
-  for (i = (NSInteger)ship_extra_equipment.size() - 1; i >= 0; i--)
+  for (i = (std::ptrdiff_t)ship_extra_equipment.size() - 1; i >= 0; i--)
     extra_equipment_value +=
         ((UNIVERSE != nullptr
               ? UNIVERSE->getEquipmentPriceForKey(ship_extra_equipment[i])
@@ -10834,7 +10834,8 @@ Vector Universe::randomPlaceWithinScannerFrom(Vector pos, Vector route,
 
 HPVector Universe::fractionalPositionFrom(HPVector point0, HPVector point1,
                                           double routeFraction) {
-  if (routeFraction == static_cast<double>(NSNotFound)) routeFraction = randf();
+  if (routeFraction == static_cast<double>(oo::kNotFound))
+    routeFraction = randf();
 
   point1 = OOHPVectorInterpolate(point0, point1, routeFraction);
 
@@ -11028,7 +11029,7 @@ void Universe::dumpSystemDescriptionGraphViz() {
   std::string graphViz;
   const oo::PList* systemDescriptions = nullptr;
   const oo::PList* thisDesc = nullptr;
-  NSUInteger i, count, j, subCount;
+  std::size_t i, count, j, subCount;
   std::string descLine;
   const oo::PList* curses = nullptr;
   std::string label;
@@ -11144,7 +11145,7 @@ void Universe::dumpSystemDescriptionGraphViz() {
 void Universe::addNumericRefsInString(const std::string& string,
                                       std::string& graphViz,
                                       const std::string& fromNode,
-                                      NSUInteger nodeCount) {
+                                      std::size_t nodeCount) {
   std::size_t start, end, remaining = 0;
   unsigned i;
 
@@ -11222,7 +11223,7 @@ void Universe::runLocalizationTools() {
 void Universe::prunePreloadingPlanetMaterials() {
   OOAsyncWorkManager::sharedAsyncWorkManager()->completePendingTasks();
 
-  NSUInteger i = _preloadingPlanetMaterials.size();
+  std::size_t i = _preloadingPlanetMaterials.size();
   while (i--) {
     if (_preloadingPlanetMaterials[i]->isFinishedLoading()) {
       _preloadingPlanetMaterials.erase(_preloadingPlanetMaterials.begin() + i);
@@ -11717,7 +11718,7 @@ void Universe::drawTargetTextureIntoDefaultFramebuffer() {
   OOGL(glEnable(GL_BLEND));
 }
 
-NSUInteger Universe::sessionID() { return _sessionID; }
+std::size_t Universe::sessionID() { return _sessionID; }
 
 bool Universe::doingStartUp() { return _doingStartUp; }
 
@@ -11747,7 +11748,7 @@ bool Universe::setUseAddOns(const std::string& newUse, bool saveGame,
   return reinitAndShowDemo(!saveGame);
 }
 
-NSUInteger Universe::entityCount() { return entities.size(); }
+std::size_t Universe::entityCount() { return entities.size(); }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 void Universe::debugDumpEntities() {

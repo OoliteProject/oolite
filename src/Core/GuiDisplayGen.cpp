@@ -154,12 +154,12 @@ oo::Ref<OOTextureSprite> NewTextureSpriteWithDescriptor(
 
     if (haveWidth) {
       // Width specified, but not height; preserve aspect ratio.
-      CGFloat ratio = originalDimensions.height / originalDimensions.width;
+      double ratio = originalDimensions.height / originalDimensions.width;
       size.width = specifiedWidth;
       size.height = ratio * size.width;
     } else if (haveHeight) {
       // Height specified, but not width; preserve aspect ratio.
-      CGFloat ratio = originalDimensions.width / originalDimensions.height;
+      double ratio = originalDimensions.width / originalDimensions.height;
       size.height = specifiedHeight;
       size.width = ratio * size.height;
     } else {
@@ -513,7 +513,7 @@ bool GuiDisplayGen::setNextRow(int direction) {
 }
 
 bool GuiDisplayGen::setFirstSelectableRow() {
-  NSUInteger row = selectableRange.location;
+  std::size_t row = selectableRange.location;
   while (RowInRange(row, selectableRange)) {
     if (!IsSkipKey(rowKey[row])) {
       selectedRow = row;
@@ -527,7 +527,7 @@ bool GuiDisplayGen::setFirstSelectableRow() {
 }
 
 bool GuiDisplayGen::setLastSelectableRow() {
-  NSUInteger row = selectableRange.location + selectableRange.length - 1;
+  std::size_t row = selectableRange.location + selectableRange.length - 1;
   while (RowInRange(row, selectableRange)) {
     if (!IsSkipKey(rowKey[row])) {
       selectedRow = row;
@@ -599,16 +599,16 @@ void GuiDisplayGen::setTabStops(OOGUITabSettings stops) {
 }
 
 void GuiDisplayGen::overrideTabs(OOGUITabSettings stops,
-                                 const std::string& setting, NSUInteger len) {
+                                 const std::string& setting, std::size_t len) {
   const oo::PList* override =
       guiUserSettings.get<oo::PList::Array>(setting, nullptr);
-  NSUInteger i;
+  std::size_t i;
   if (stops != nullptr && override != nullptr) {
     if (len > GUI_MAX_COLUMNS) {
       len = GUI_MAX_COLUMNS;
     }
     for (i = 0; i < len; i++) {
-      stops[i] = override->at<NSUInteger>(i, stops[i]);
+      stops[i] = override->at<std::size_t>(i, stops[i]);
     }
   }
 }
@@ -705,7 +705,7 @@ std::optional<std::string> GuiDisplayGen::reflowTextForMFD(
     const std::optional<std::string>& input) {
   std::string output;
   NSSize chSize = pixel_text_size;
-  NSUInteger limit = chSize.width * 15;
+  std::size_t limit = chSize.width * 15;
   // nil split into no lines: the result was an empty string, not nil.
   if (!input.has_value()) return output;
   for (const std::string& line : oo::str::split(*input, "\n")) {
@@ -875,7 +875,7 @@ void GuiDisplayGen::insertItemsFromArray(const oo::PList& items,
   if (items.isNull()) return;
   if (items.count() == 0) return;
 
-  NSUInteger n_items = items.count();
+  std::size_t n_items = items.count();
   if ((!item_keys.isNull()) && (item_keys.count() != n_items)) {
     // throw exception
     OORaiseException(
@@ -1110,22 +1110,22 @@ oo::PList GuiDisplayGen::textureDescriptorFromJSValue(
   OOJS_PROFILE_EXIT
 }
 
-void GuiDisplayGen::setStatusPage(NSInteger pageNum) {
-  if (pageNum == 0 || (pageNum < 0 && ((NSUInteger)-pageNum) >= statusPage)) {
+void GuiDisplayGen::setStatusPage(std::ptrdiff_t pageNum) {
+  if (pageNum == 0 || (pageNum < 0 && ((std::size_t)-pageNum) >= statusPage)) {
     statusPage = 1;
   } else {
     statusPage += pageNum;
   }
 }
 
-NSUInteger GuiDisplayGen::getStatusPage() { return statusPage; }
+std::size_t GuiDisplayGen::getStatusPage() { return statusPage; }
 
 void GuiDisplayGen::drawEquipmentList(const oo::PList& eqptList, GLfloat z) {
   const oo::PList::Array* eqptArray = eqptList.getIf<oo::PList::Array>();
   if (eqptArray == nullptr || eqptArray->empty()) return;
 
   OOGUIRow firstRow = STATUS_EQUIPMENT_FIRST_ROW;
-  NSUInteger maxRows = STATUS_EQUIPMENT_MAX_ROWS;
+  std::size_t maxRows = STATUS_EQUIPMENT_MAX_ROWS;
   HeadUpDisplay* hud =
       (PLAYER != nullptr ? PLAYER->getHud() : (HeadUpDisplay*)nullptr);
   if (hud != nullptr &&
@@ -1133,13 +1133,14 @@ void GuiDisplayGen::drawEquipmentList(const oo::PList& eqptList, GLfloat z) {
   {
     maxRows += STATUS_EQUIPMENT_BIGGUI_EXTRA_ROWS;
   }
-  NSUInteger itemsPerColumn = maxRows;
+  std::size_t itemsPerColumn = maxRows;
 
-  NSInteger firstY = 40;  // firstRow =10 :-> 40  - firstRow=11 -> 24 etc...
-  NSUInteger eqptCount = eqptArray->size();
-  NSUInteger pageCount = 1;
-  NSUInteger i;
-  NSInteger start;
+  std::ptrdiff_t firstY =
+      40;  // firstRow =10 :-> 40  - firstRow=11 -> 24 etc...
+  std::size_t eqptCount = eqptArray->size();
+  std::size_t pageCount = 1;
+  std::size_t i;
+  std::ptrdiff_t start;
   bool damaged;
 
   // Paging calculations. Assuming 10 lines we get - one page:20 items per page
@@ -1167,7 +1168,7 @@ void GuiDisplayGen::drawEquipmentList(const oo::PList& eqptList, GLfloat z) {
     } else  // three or more
     {
       pageCount = ceil((float)(eqptCount - i) / (itemsPerColumn * 2)) + 2;
-      statusPage = (NSInteger)OOClampInteger(statusPage, 1, pageCount);
+      statusPage = (std::ptrdiff_t)OOClampInteger(statusPage, 1, pageCount);
       start = (statusPage == 1) ? 0 : (statusPage - 1) * itemsPerColumn * 2 + 2;
     }
   } else {
@@ -1222,7 +1223,7 @@ void GuiDisplayGen::drawEquipmentList(const oo::PList& eqptList, GLfloat z) {
   if (statusPage > 1 && statusPage < pageCount) {
     setSelectableRange(NSMakeRange(
         firstRow, MIN(firstRow + maxRows,
-                      static_cast<NSUInteger>(GUI_DEFAULT_ROWS - firstRow))));
+                      static_cast<std::size_t>(GUI_DEFAULT_ROWS - firstRow))));
     // default selected row to 'More -->' if we are looking at one of the middle
     // pages
     if (getSelectedRow() == -1) setSelectedRow(firstRow + maxRows);
@@ -1230,7 +1231,7 @@ void GuiDisplayGen::drawEquipmentList(const oo::PList& eqptList, GLfloat z) {
 
   if (statusPage == 1 || statusPage == pageCount) itemsPerColumn++;
   eqptCount =
-      (NSInteger)OOClampInteger(eqptCount, 1, start + itemsPerColumn * 2);
+      (std::ptrdiff_t)OOClampInteger(eqptCount, 1, start + itemsPerColumn * 2);
   for (i = start; i < eqptCount; i++) {
     const oo::PList& info = (*eqptArray)[i];
     std::string name = info.at<std::string>(0);
@@ -1254,12 +1255,12 @@ void GuiDisplayGen::drawEquipmentList(const oo::PList& eqptList, GLfloat z) {
     }
 
     if (i - start < itemsPerColumn) {
-      cxx_OODrawString(name, -220, firstY - 16 * (NSInteger)(i - start), z,
+      cxx_OODrawString(name, -220, firstY - 16 * (std::ptrdiff_t)(i - start), z,
                        NSMakeSize(15, 15));
     } else {
-      cxx_OODrawString(name, 50,
-                       firstY - 16 * (NSInteger)(i - itemsPerColumn - start), z,
-                       NSMakeSize(15, 15));
+      cxx_OODrawString(
+          name, 50, firstY - 16 * (std::ptrdiff_t)(i - itemsPerColumn - start),
+          z, NSMakeSize(15, 15));
     }
   }
 }
@@ -1574,7 +1575,7 @@ void GuiDisplayGen::drawGLDisplay(GLfloat x, GLfloat y, GLfloat z,
     }
     if (rowText[i].isArray()) {
       const oo::PList& array = rowText[i];
-      NSUInteger j, max_columns = MIN(array.count(), n_columns);
+      std::size_t j, max_columns = MIN(array.count(), n_columns);
       bool isLeftAligned;
 
       for (j = 0; j < max_columns; j++) {
@@ -1587,7 +1588,7 @@ void GuiDisplayGen::drawGLDisplay(GLfloat x, GLfloat y, GLfloat z,
           // we don't want to highlight leading space(s) or narrow spaces
           // (\037s)
           std::string hilitedText = TrimmedForHighlight(text);
-          // -rangeOfString: of an empty string answered NSNotFound.
+          // -rangeOfString: of an empty string answered oo::kNotFound.
           const std::size_t txtLocation =
               hilitedText.empty() ? std::string::npos : text.find(hilitedText);
           unsigned leadingSpaces = 0;
@@ -1674,7 +1675,7 @@ void GuiDisplayGen::setStarChartTitle() {
   ::PlayerEntity* player = PLAYER;
   OOGalaxyID galaxy_number =
       (player != nullptr ? player->galaxyNumber() : OOGalaxyID{});
-  NSInteger system_id =
+  std::ptrdiff_t system_id =
       (UNIVERSE != nullptr
            ? UNIVERSE->findSystemNumberAtCoords(
                  (player != nullptr ? player->getCursor_coordinates()
@@ -1852,8 +1853,8 @@ void GuiDisplayGen::drawAdvancedNavArrayAtX(float x, float y, float z,
                             ? (PLAYER != nullptr ? PLAYER->dialFuel() : 0.0f)
                             : 1.0);
 
-  NSInteger concealment[256];
-  for (NSUInteger i = 0; i < 256; i++) {
+  std::ptrdiff_t concealment[256];
+  for (std::size_t i = 0; i < 256; i++) {
     concealment[i] = systemManager->getPropertiesForSystem(i, g).get<int>(
         "concealment", OO_SYSTEMCONCEALMENT_NONE);
   }
@@ -1953,7 +1954,7 @@ void GuiDisplayGen::drawAdvancedNavArrayAtX(float x, float y, float z,
     const oo::PList route = (routeInfo.find("route") != nullptr)
                                 ? *routeInfo.find("route")
                                 : oo::PList();
-    NSUInteger i,
+    std::size_t i,
         route_hops = ((routeArray != nullptr) ? routeArray->count() : 0) - 1;
 
     if (optimizeBy == OPTIMIZED_BY_JUMPS) {
@@ -2035,7 +2036,7 @@ void GuiDisplayGen::drawStarChart(GLfloat x, GLfloat y, GLfloat z,
   GLfloat r = 1.0, g = 1.0, b = 1.0;
   bool noNova;
   NSPoint cu;
-  NSUInteger systemParameter;
+  std::size_t systemParameter;
 
   double fuel = 35.0 * (player != nullptr ? player->dialFuel() : 0.0f);
 
@@ -2070,7 +2071,7 @@ void GuiDisplayGen::drawStarChart(GLfloat x, GLfloat y, GLfloat z,
       (player != nullptr ? player->ANAMode() : OORouteType{});
   bool routeExists = false;
 
-  NSInteger concealment[256];
+  std::ptrdiff_t concealment[256];
   for (i = 0; i < 256; i++) {
     const oo::PList systemInfo =
         systemManager->getPropertiesForSystem(i, galaxy_id);
@@ -2096,7 +2097,7 @@ void GuiDisplayGen::drawStarChart(GLfloat x, GLfloat y, GLfloat z,
     pixelRatio = viewSize.width / 640.0;
   }
 
-  NSInteger textRow =
+  std::ptrdiff_t textRow =
       compact ? GUI_ROW_CHART_SYSTEM_COMPACT : GUI_ROW_CHART_SYSTEM;
 
   clipRect = NSMakeRect(

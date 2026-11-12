@@ -220,7 +220,7 @@ void PlayerEntity::setGuiToScenarioScreen(int page) {
     gui->setTabStops(tab_stops);
 
     unsigned n_rows = GUI_MAX_ROWS_SCENARIOS;
-    NSUInteger i, count = scenarios.count();
+    std::size_t i, count = scenarios.count();
 
     gui->setArray({OO_DESC("oolite-scenario-exit"), " <----- "}, start_row - 2);
     gui->setColor(OOColor::redColor().get(), start_row - 2);
@@ -234,7 +234,7 @@ void PlayerEntity::setGuiToScenarioScreen(int page) {
 
     setShowDemoShips(false);
 
-    for (i = (NSUInteger)page * n_rows; i < count && row < start_row + n_rows;
+    for (i = (std::size_t)page * n_rows; i < count && row < start_row + n_rows;
          i++) {
       const oo::PList* scenario = scenarios.at(i);
       const std::optional<std::string> scenarioTitle =
@@ -247,7 +247,7 @@ void PlayerEntity::setGuiToScenarioScreen(int page) {
       ++row;
     }
 
-    if ((NSUInteger)(page + 1) * n_rows < count) {
+    if ((std::size_t)(page + 1) * n_rows < count) {
       gui->setArray({OO_DESC("gui-more"), " --> "}, row);
       gui->setColor(OOColor::greenColor().get(), row);
       gui->setKey(oo::str::format("__page:%i", page + 1), row);
@@ -284,7 +284,7 @@ void PlayerEntity::showScenarioDetails() {
         (UNIVERSE != nullptr ? UNIVERSE->scenarios() : oo::PList());
     const oo::PList* scenario = scenarios.at(item);
     setShowDemoShips(false);
-    for (NSUInteger i = GUI_ROW_SCENARIOS_DETAIL; i <= 27; i++) {
+    for (std::size_t i = GUI_ROW_SCENARIOS_DETAIL; i <= 27; i++) {
       gui->setText("", i);
     }
     if (scenario) {

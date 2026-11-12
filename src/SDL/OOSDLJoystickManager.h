@@ -72,18 +72,18 @@ class OOSDLJoystickManager : public OOJoystickManager {
 
   bool handleSDLEvent(SDL_Event* evt);
   std::optional<std::string> nameOfJoystick(
-      NSUInteger stickNumber) override;  // nullopt: the device has no name
-  int16_t getAxisWithStick(NSUInteger stickNum, NSUInteger axisNum) override;
+      std::size_t stickNumber) override;  // nullopt: the device has no name
+  int16_t getAxisWithStick(std::size_t stickNum, std::size_t axisNum) override;
   SDL_JoyAxisEvent makeJoyAxisEvent(SDL_JoyAxisEvent* sdlevt);
   SDL_JoyButtonEvent makeJoyButtonEvent(SDL_JoyButtonEvent* sdlevt);
   SDL_JoyHatEvent makeJoyHatEvent(SDL_JoyHatEvent* sdlevt);
-  NSInteger getJoystickIndexFromId(SDL_JoystickID joystickId);
+  std::ptrdiff_t getJoystickIndexFromId(SDL_JoystickID joystickId);
   void decodeAxisEvent(SDL_JoyAxisEvent* evt);
   void decodeButtonEvent(SDL_JoyButtonEvent* evt);
   void decodeHatEvent(SDL_JoyHatEvent* evt);
 
   // Overrides of OOJoystickManager.
-  NSUInteger joystickCount() override;
+  std::size_t joystickCount() override;
 
  private:
   std::map<std::string, int, std::less<>> joystickIdMap =

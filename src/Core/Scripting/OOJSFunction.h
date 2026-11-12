@@ -62,8 +62,8 @@ class OOJSFunction : public oo::RefCounted {
       JSValueConst scope,  // Ignored; QuickJS compiles functions in the global
                            // scope. Pass JS_UNDEFINED.
       const std::optional<std::string>& code,  // Function body.
-      NSUInteger argCount, const char** argNames,
-      const std::optional<std::string>& fileName, NSUInteger lineNumber,
+      std::size_t argCount, const char** argNames,
+      const std::optional<std::string>& fileName, std::size_t lineNumber,
       JSContext* context);  // may be NULL.
 
   ~OOJSFunction() override;

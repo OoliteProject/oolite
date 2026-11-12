@@ -94,7 +94,7 @@ void OOPlasmaShotEntity::update(double delta_t) {
   const std::vector<oo::EntityHold> colliding =
       collidingEntities;  // a snapshot (enumerating the live array while it
                           // changed raised)
-  NSUInteger i, count = colliding.size();
+  std::size_t i, count = colliding.size();
   for (i = 0; i < count; i++) {
     Entity* e = colliding[i].get();
     if ((e != nullptr ? e->rootShipEntity() : nullptr) !=

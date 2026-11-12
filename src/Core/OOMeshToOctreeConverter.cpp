@@ -173,7 +173,7 @@ static OOScalar MaxDimensionFromOrigin(GeometryData* data);
                 depth: recursion limit.
 */
 void BuildSubOctree(GeometryData* data, OOOctreeBuilder* builder,
-                    OOScalar halfWidth, NSUInteger depth);
+                    OOScalar halfWidth, std::size_t depth);
 
 /*
         SplitGeometry{X|Y|Z}(data, dPlus, dMinus, offset)
@@ -233,7 +233,7 @@ OOINLINE void AddTriangle(GeometryData* data, Triangle tri) {
   }
 }
 
-OOMeshToOctreeConverter::OOMeshToOctreeConverter(NSUInteger capacity) {
+OOMeshToOctreeConverter::OOMeshToOctreeConverter(std::size_t capacity) {
   OOCParameterAssert(capacity < UINT32_MAX);
   if (capacity == 0) capacity = 1;  // Happens for models with no faces.
 
@@ -247,7 +247,7 @@ OOMeshToOctreeConverter::~OOMeshToOctreeConverter() {
 }
 
 oo::Ref<OOMeshToOctreeConverter> OOMeshToOctreeConverter::converterWithCapacity(
-    NSUInteger capacity) {
+    std::size_t capacity) {
   return oo::makeRef<OOMeshToOctreeConverter>(capacity);
 }
 
@@ -262,7 +262,7 @@ void OOMeshToOctreeConverter::addTriangle(Triangle tri) {
   }
 }
 
-oo::Ref<Octree> OOMeshToOctreeConverter::findOctreeToDepth(NSUInteger depth) {
+oo::Ref<Octree> OOMeshToOctreeConverter::findOctreeToDepth(std::size_t depth) {
   oo::Ref<OOOctreeBuilder> builder = oo::makeRef<OOOctreeBuilder>();
   OOScalar halfWidth =
       0.5f +
@@ -290,7 +290,7 @@ static OOScalar MaxDimensionFromOrigin(GeometryData* data) {
 }
 
 void BuildSubOctree(GeometryData* data, OOOctreeBuilder* builder,
-                    OOScalar halfWidth, NSUInteger depth) {
+                    OOScalar halfWidth, std::size_t depth) {
   OOCParameterAssert(data != nullptr);
 
   OOScalar subHalfWidth = 0.5f * halfWidth;

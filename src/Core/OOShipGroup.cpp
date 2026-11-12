@@ -89,8 +89,8 @@ class OOShipGroupMembers {
     }
 
     OOShipGroup* _group;
-    NSUInteger _updateCount;
-    NSUInteger _index = 0, _batchCount = 0, _position = 0;
+    std::size_t _updateCount;
+    std::size_t _index = 0, _batchCount = 0, _position = 0;
     oo::EntityHold _buffer[kBatchSize];  // held, as the autoreleased objects
                                          // were
   };
@@ -100,8 +100,8 @@ class OOShipGroupMembers {
 
  private:
   // One batch of live members (a friend of OOShipGroup, for its ivars).
-  static NSUInteger FillBatch(OOShipGroup* group, NSUInteger* ioIndex,
-                              oo::EntityHold* buffer, NSUInteger length);
+  static std::size_t FillBatch(OOShipGroup* group, std::size_t* ioIndex,
+                               oo::EntityHold* buffer, std::size_t length);
 
   OOShipGroup* _group;
 };
@@ -252,7 +252,7 @@ bool OOShipGroup::addShip(::ShipEntity* ship) {
 
 bool OOShipGroup::removeShip(::ShipEntity* ship) {
   ::ShipEntity* containedShip = nullptr;
-  NSUInteger index;
+  std::size_t index;
   bool foundIt = false;
 
   _updateCount++;
@@ -288,8 +288,8 @@ bool OOShipGroup::removeShip(::ShipEntity* ship) {
  * removal in ShipEntity::dealloc keeps the data consistent anyway -
  * CIM */
 
-NSUInteger OOShipGroup::count() {
-  NSUInteger result = 0;
+std::size_t OOShipGroup::count() {
+  std::size_t result = 0;
 
   if (_count != 0) {
     OOShipGroupCursor memberEnum(this);
@@ -307,7 +307,7 @@ bool OOShipGroup::isEmpty() {
   return OOShipGroupCursor(this).next() == nullptr;
 }
 
-bool OOShipGroup::resizeTo(NSUInteger newCapacity) {
+bool OOShipGroup::resizeTo(std::size_t newCapacity) {
   if (newCapacity < _count) return false;
 
   _members.resize(newCapacity);  // the realloc: the first _count kept
@@ -316,7 +316,7 @@ bool OOShipGroup::resizeTo(NSUInteger newCapacity) {
 }
 
 void OOShipGroup::cleanUp() {
-  NSUInteger newCapacity = _capacity;
+  std::size_t newCapacity = _capacity;
 
   if (_count >= kMaxFreeSpace) {
     if (_capacity > _count + kMaxFreeSpace) {
@@ -334,7 +334,7 @@ void OOShipGroup::cleanUp() {
   if (newCapacity != _capacity) resizeTo(newCapacity);
 }
 
-NSUInteger OOShipGroup::updateCount() { return _updateCount; }
+std::size_t OOShipGroup::updateCount() { return _updateCount; }
 
 ::ShipEntity* OOShipGroupCursor::next() {
   // The cursor is a friend of OOShipGroup, so that we can have access to both
@@ -377,11 +377,11 @@ NSUInteger OOShipGroup::updateCount() { return _updateCount; }
 
 // One batch of live members for OOShipGroupMembers: the body of the former
 // -countByEnumeratingWithState:objects:count:, unchanged.
-NSUInteger OOShipGroupMembers::FillBatch(OOShipGroup* group,
-                                         NSUInteger* ioIndex,
-                                         oo::EntityHold* buffer,
-                                         NSUInteger length) {
-  NSUInteger srcIndex, dstIndex = 0;
+std::size_t OOShipGroupMembers::FillBatch(OOShipGroup* group,
+                                          std::size_t* ioIndex,
+                                          oo::EntityHold* buffer,
+                                          std::size_t length) {
+  std::size_t srcIndex, dstIndex = 0;
   ::ShipEntity* item = nullptr;
   bool cleanupNeeded = false;
 

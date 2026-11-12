@@ -103,7 +103,7 @@ void FireDeferredCalls() {
 
 }  // namespace
 
-void OOScheduleDeferredCall(std::function<void()> call, NSTimeInterval delay) {
+void OOScheduleDeferredCall(std::function<void()> call, double delay) {
   gDeferred.push_back({std::move(call), delay});
 }
 

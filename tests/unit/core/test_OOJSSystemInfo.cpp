@@ -683,7 +683,7 @@ OO_TEST(wrappedObject)
 	OO_CHECK(!cxxA->isEqual(cxxB));
 	OO_CHECK(!cxxA->isEqual(nullptr));
 	OO_CHECK_EQ(cxxA->hash(), cxxC->hash());
-	OO_CHECK_EQ(cxxB->hash(), static_cast<NSUInteger>((3u << 16) | 7u));
+	OO_CHECK_EQ(cxxB->hash(), static_cast<std::size_t>((3u << 16) | 7u));
 	OO_CHECK(cxxA->description().find(">{galaxy 0, system 7}") != std::string::npos);
 	// toString() is the engine's OOJSCxxObjectWrapperToString: the system info's jsDescription().
 	OO_CHECK_EVAL("String(lave)", "[SystemInfo galaxy 0, system 7]");

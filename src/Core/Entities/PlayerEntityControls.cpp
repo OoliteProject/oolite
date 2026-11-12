@@ -177,7 +177,7 @@ static bool extra_gui_key_pressed;
 static NSPoint mouse_click_position;
 static NSPoint centre_at_mouse_click;
 
-static NSUInteger searchStringLength;
+static std::size_t searchStringLength;
 static double timeLastKeyPress;
 // static OOGUIRow			oldSelection;
 static int saved_view_direction;
@@ -186,7 +186,7 @@ static int saved_gui_screen;
 static OOWeaponFacing saved_weapon_facing;
 static int pressedArrow = 0;
 static bool mouse_x_axis_map_to_yaw = false;
-static NSTimeInterval time_last_frame;
+static double time_last_frame;
 
 namespace {
 
@@ -1475,7 +1475,7 @@ void PlayerEntity::pollFlightControls(double delta_t) {
             joyButtonState[BUTTON_PRIMEEQUIPMENT_PREV]) {
           if (!prime_equipment_pressed) {
             // cycle through all the relevant equipment.
-            NSUInteger c = eqScripts.size();
+            std::size_t c = eqScripts.size();
 
             // if Ctrl is held down at the same time as the prime equipment key,
             // cycle relevant equipment in reverse
@@ -1938,7 +1938,7 @@ void PlayerEntity::pollFlightControls(double delta_t) {
           UNIVERSE->messageGUI()->leaveLastLine();
         else
           UNIVERSE->messageGUI()->clear();
-        NSTimeInterval time_this_frame =
+        double time_this_frame =
             oo::date::monotonicSeconds();  // intervals only (time_last_frame)
         OOTimeDelta time_delta;
         if (!::GameController::sharedController()->isGamePaused()) {
@@ -3036,7 +3036,7 @@ void PlayerEntity::pollGuiArrowKeyControls(double delta_t) {
           joyButtonState[BUTTON_GUIPAGEDOWN]) {
         if ((!leftRightKeyPressed) ||
             (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)) {
-          NSUInteger maxRows =
+          std::size_t maxRows =
               (getHud() != nullptr && getHud()->getAllowBigGui())
                   ? STATUS_EQUIPMENT_MAX_ROWS +
                         STATUS_EQUIPMENT_BIGGUI_EXTRA_ROWS
@@ -3364,10 +3364,10 @@ void PlayerEntity::pollMarketScreenControls() {
           const auto found =
               selected ? std::find(goods.begin(), goods.end(), *selected)
                        : goods.end();
-          NSInteger goodsIndex =
-              (found != goods.end()) ? (found - goods.begin()) : NSNotFound;
-          NSInteger offset1 = 0;
-          NSInteger offset2 = 0;
+          std::ptrdiff_t goodsIndex =
+              (found != goods.end()) ? (found - goods.begin()) : oo::kNotFound;
+          std::ptrdiff_t offset1 = 0;
+          std::ptrdiff_t offset2 = 0;
           if (gui->keyForRow(GUI_ROW_MARKET_START) == "<<<") offset1 += 1;
           if (gui->keyForRow(GUI_ROW_MARKET_LAST) == ">>>") offset2 += 1;
           if (page_up) {
@@ -3378,7 +3378,8 @@ void PlayerEntity::pollMarketScreenControls() {
               offset2 = 0;
             }
             if (offset1 == 1 && offset2 == 0 &&
-                goodsIndex < (NSInteger)goods.size() - 1 && goodsIndex - 15 > 0)
+                goodsIndex < (std::ptrdiff_t)goods.size() - 1 &&
+                goodsIndex - 15 > 0)
               offset2 = 1;
             goodsIndex -= (16 - (offset1 + offset2));
             if (goodsIndex < 0) goodsIndex = 0;
@@ -3388,15 +3389,16 @@ void PlayerEntity::pollMarketScreenControls() {
             playMenuPageNext();
             // some edge cases
             if (offset1 == 0 && offset2 == 1 && goodsIndex > 1) offset1 = 1;
-            if (offset2 == 1 && goodsIndex + 15 == (NSInteger)goods.size() - 1)
+            if (offset2 == 1 &&
+                goodsIndex + 15 == (std::ptrdiff_t)goods.size() - 1)
               offset2 = 0;
             goodsIndex += (16 - (offset1 + offset2));
-            if (goodsIndex > ((NSInteger)goods.size() - 1) ||
+            if (goodsIndex > ((std::ptrdiff_t)goods.size() - 1) ||
                 goods.size() <= 17)
-              goodsIndex = (NSInteger)goods.size() - 1;
+              goodsIndex = (std::ptrdiff_t)goods.size() - 1;
           }
           marketSelectedCommodity =
-              (goodsIndex >= 0 && goodsIndex < (NSInteger)goods.size())
+              (goodsIndex >= 0 && goodsIndex < (std::ptrdiff_t)goods.size())
                   ? std::optional<std::string>(goods[goodsIndex])
                   : std::nullopt;
           setGuiToMarketScreen();
@@ -3424,20 +3426,20 @@ void PlayerEntity::pollMarketScreenControls() {
           const auto found =
               selected ? std::find(goods.begin(), goods.end(), *selected)
                        : goods.end();
-          NSInteger goodsIndex =
-              (found != goods.end()) ? (found - goods.begin()) : NSNotFound;
+          std::ptrdiff_t goodsIndex =
+              (found != goods.end()) ? (found - goods.begin()) : oo::kNotFound;
           if (arrow_down) {
             ++goodsIndex;
           } else {
             --goodsIndex;
           }
           if (goodsIndex < 0) {
-            goodsIndex = (NSInteger)goods.size() - 1;
-          } else if (goodsIndex >= (NSInteger)goods.size()) {
+            goodsIndex = (std::ptrdiff_t)goods.size() - 1;
+          } else if (goodsIndex >= (std::ptrdiff_t)goods.size()) {
             goodsIndex = 0;
           }
           marketSelectedCommodity =
-              (goodsIndex >= 0 && goodsIndex < (NSInteger)goods.size())
+              (goodsIndex >= 0 && goodsIndex < (std::ptrdiff_t)goods.size())
                   ? std::optional<std::string>(goods[goodsIndex])
                   : std::nullopt;
           setGuiToMarketInfoScreen();
@@ -3633,10 +3635,10 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
                 ? *brightnessesValue
                 : oo::PList();
         // -indexOfObject: with the %d string: only string elements ever
-        // matched; not found was NSNotFound narrowed to int
+        // matched; not found was oo::kNotFound narrowed to int
         const std::string currentBrightness = std::to_string(
             (int)(gameView != nullptr ? gameView->hdrMaxBrightness() : 0.0f));
-        int brightnessIdx = static_cast<int>(NSNotFound);
+        int brightnessIdx = static_cast<int>(oo::kNotFound);
         for (std::size_t i = 0; i < brightnesses.count(); i++) {
           const oo::PList* element = brightnesses.at(i);
           if (element->isString() &&
@@ -3646,7 +3648,7 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
           }
         }
 
-        if (static_cast<NSInteger>(brightnessIdx) == NSNotFound) {
+        if (static_cast<std::ptrdiff_t>(brightnessIdx) == oo::kNotFound) {
           OO_LOG_WARN("hdr.maxBrightness.notFound", "{}",
                       "couldn't find current max brightness setting, switching "
                       "to lowest.");
@@ -3698,12 +3700,12 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
                      joyButtonState[BUTTON_GUIRIGHT])
                         ? 1
                         : -1;
-    NSInteger displayModeIndex =
+    std::ptrdiff_t displayModeIndex =
         (controller != nullptr ? controller->indexOfCurrentDisplayMode() : 0);
     const oo::PList modes =
         (controller != nullptr ? controller->getDisplayModes() : oo::PList());
 
-    if (displayModeIndex == (NSInteger)NSNotFound) {
+    if (displayModeIndex == (std::ptrdiff_t)oo::kNotFound) {
       OO_LOG_WARN(
           "graphics.mode.notFound", "{}",
           "couldn't find current fullscreen setting, switching to default.");
@@ -4363,7 +4365,7 @@ void PlayerEntity::pollCustomViewControls() {
   static NSPoint mouse_clicked_position;
   static bool shift_down;
   static bool caps_on = false;
-  static NSTimeInterval last_time = 0.0;
+  static double last_time = 0.0;
   ::MyOpenGLView* gameView =
       (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr);
   const bool* joyButtonState =
@@ -4394,7 +4396,7 @@ void PlayerEntity::pollCustomViewControls() {
     customView_pressed = true;
   } else
     customView_pressed = false;
-  NSTimeInterval this_time =
+  double this_time =
       oo::date::monotonicSeconds();  // intervals only (last_time)
   if ((UNIVERSE != nullptr ? UNIVERSE->getViewDirection() : OOViewID{}) >
           VIEW_STARBOARD &&
@@ -4692,7 +4694,7 @@ void PlayerEntity::pollFlightArrowKeyControls(double delta_t) {
   ::MyOpenGLView* gameView =
       (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr);
   OOJoystickManager* stickHandler = OOJoystickManager::sharedStickHandler();
-  NSUInteger numSticks = stickHandler->joystickCount();
+  std::size_t numSticks = stickHandler->joystickCount();
   NSPoint virtualStick = NSZeroPoint;
   double reqYaw = 0.0;
 
@@ -5256,7 +5258,7 @@ void PlayerEntity::pollDemoControls(double /*delta_t*/) {
   ::MyOpenGLView* gameView =
       (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr);
   ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
-  NSUInteger end_row = 21;
+  std::size_t end_row = 21;
   ::OOOXZManager* oxzmanager = ::OOOXZManager::sharedManager();
   const bool* joyButtonState =
       OOJoystickManager::sharedStickHandler()->getAllButtonStates();

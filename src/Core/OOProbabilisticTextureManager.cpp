@@ -74,7 +74,7 @@ bool OOProbabilisticTextureManager::initWithPListName(
     GLfloat lodBias, RANROTSeed seed) {
   bool OK = true;
   oo::PList config;
-  NSUInteger i, count, j;
+  std::size_t i, count, j;
   const oo::PList* entry = nullptr;
   std::optional<std::string> name;
   float probability = 0.0f;  // set wherever name is (GCC -Wmaybe-uninitialized)

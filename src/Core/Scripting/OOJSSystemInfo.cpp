@@ -301,8 +301,8 @@ bool OOSystemInfo::isEqual(const OOSystemInfo* other) const {
                            other->system() == _system);
 }
 
-NSUInteger OOSystemInfo::hash() const {
-  NSUInteger hash = _galaxy;
+std::size_t OOSystemInfo::hash() const {
+  std::size_t hash = _galaxy;
   hash <<= 16;
   hash |= (uint16_t)_system;
   return hash;
@@ -715,7 +715,7 @@ static int SystemInfoExoticGetOwnPropertyNames(JSContext* context,
       (info != nullptr)
           ? info->allKeys()
           : std::vector<std::string>();  // (none from a message to nil)
-  NSUInteger count = keys.size();
+  std::size_t count = keys.size();
   assert(count <= INT32_MAX);
 
   JSPropertyEnum* tab =

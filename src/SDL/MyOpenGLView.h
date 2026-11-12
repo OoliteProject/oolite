@@ -265,22 +265,22 @@ class MyOpenGLView : public oo::RefCounted {
 #ifndef NDEBUG
   // General image-dumping method.
   void dumpRGBAToFileNamed(const std::string& name, uint8_t* bytes,
-                           NSUInteger width, NSUInteger height,
-                           NSUInteger rowBytes);
+                           std::size_t width, std::size_t height,
+                           std::size_t rowBytes);
   void dumpRGBToFileNamed(const std::string& name, uint8_t* bytes,
-                          NSUInteger width, NSUInteger height,
-                          NSUInteger rowBytes);
+                          std::size_t width, std::size_t height,
+                          std::size_t rowBytes);
   void dumpGrayToFileNamed(const std::string& name, uint8_t* bytes,
-                           NSUInteger width, NSUInteger height,
-                           NSUInteger rowBytes);
+                           std::size_t width, std::size_t height,
+                           std::size_t rowBytes);
   void dumpGrayAlphaToFileNamed(const std::string& name, uint8_t* bytes,
-                                NSUInteger width, NSUInteger height,
-                                NSUInteger rowBytes);
+                                std::size_t width, std::size_t height,
+                                std::size_t rowBytes);
   // A nullopt name skips that file.
   void dumpRGBAToRGBFileNamed(const std::optional<std::string>& rgbName,
                               const std::optional<std::string>& grayName,
-                              uint8_t* bytes, NSUInteger width,
-                              NSUInteger height, NSUInteger rowBytes);
+                              uint8_t* bytes, std::size_t width,
+                              std::size_t height, std::size_t rowBytes);
 #endif
 
   // Input (MyOpenGLView+Input.cpp): the former (Input) category. A getter named
@@ -348,8 +348,8 @@ class MyOpenGLView : public oo::RefCounted {
   NSPoint mouseDragStartPoint = {};
   bool mouseWarped = {};
 
-  NSTimeInterval timeIntervalAtLastClick = {};
-  NSTimeInterval timeSinceLastMouseWheel = {};
+  double timeIntervalAtLastClick = {};
+  double timeSinceLastMouseWheel = {};
   bool doubleClick = {};
 
   std::string typedString;  // UTF-8; empty, never nil

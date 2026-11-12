@@ -41,7 +41,7 @@ SOFTWARE.
 
 #define PROFILE_ENCODING_CONVERTER 0
 
-static const NSUInteger kCachePruneThreshold = 200;
+static const std::size_t kCachePruneThreshold = 200;
 
 #if PROFILE_ENCODING_CONVERTER
 #include <chrono>
@@ -115,11 +115,11 @@ OOEncodingConverter::~OOEncodingConverter() {
 // oo::DescriptionOf (OODescription.h) wraps this as "<OOEncodingConverter
 // 0x...>{...}".
 std::optional<std::string> OOEncodingConverter::descriptionComponents() const {
-  // (an unknown encoding printed as NSNotFound's low 32 bits, 4294967295)
+  // (an unknown encoding printed as oo::kNotFound's low 32 bits, 4294967295)
   return oo::str::format("encoding: %u",
                          _encoding.has_value()
                              ? static_cast<unsigned>(*_encoding)
-                             : static_cast<unsigned>(NSNotFound));
+                             : static_cast<unsigned>(oo::kNotFound));
 }
 
 oo::Data OOEncodingConverter::convertString(const std::string& string) {
@@ -172,7 +172,7 @@ std::optional<oo::str::Encoding> OOEncodingConverter::encoding() {
 
 std::optional<oo::Data> OOEncodingConverter::performConversionForString(
     const std::string& string) {
-  // (an unknown encoding, NSNotFound: the conversion gave nil)
+  // (an unknown encoding, oo::kNotFound: the conversion gave nil)
   if (!_encoding.has_value()) return std::nullopt;
 
   return oo::str::convertForFont(string, *_encoding, _substitutions);

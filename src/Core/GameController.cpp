@@ -147,7 +147,7 @@ std::vector<OODeferredCall> sDeferredCalls;  // in scheduling order
 }  // namespace
 
 // namespace
-void OOScheduleDeferredCall(std::function<void()> call, NSTimeInterval delay) {
+void OOScheduleDeferredCall(std::function<void()> call, double delay) {
   if (!oo::thread::isMainThread() || !call) return;
 
   if (delay <= 0.0) delay = 0.0001;  // as the Foundation timer did
@@ -424,7 +424,7 @@ void GameController::doPerformGameTick() {
 
 void GameController::startAnimationTimer() {
   if (!sGameTickScheduled) {
-    NSTimeInterval ti =
+    double ti =
         _animationTimerInterval;  // default one two-hundredth of a second
                                   // (should be a fair bit faster than expected
                                   // frame rate ~60Hz to avoid problems with

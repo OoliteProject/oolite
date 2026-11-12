@@ -88,9 +88,9 @@ class OOOpenGLExtensionManager : public oo::RefCounted {
   GLint textureUnitCount();  // Fixed function multitexture limit, does not
                              // apply to shaders. (GL_MAX_TEXTURE_UNITS_ARB)
 
-  NSUInteger majorVersionNumber();
-  NSUInteger minorVersionNumber();
-  NSUInteger releaseVersionNumber();
+  std::size_t majorVersionNumber();
+  std::size_t minorVersionNumber();
+  std::size_t releaseVersionNumber();
   void getVersionMajor(unsigned* outMajor, unsigned* outMinor,
                        unsigned* outRelease);
   bool versionIsAtLeastMajor(unsigned maj, unsigned min);

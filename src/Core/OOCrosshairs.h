@@ -55,6 +55,6 @@ class OOCrosshairs : public oo::RefCounted {
                             float colorComps[4], GLfloat alpha,
                             GLfloat* ioBuffer);
 
-  NSUInteger _count = {};
+  std::size_t _count = {};
   GLfloat* _data = {};
 };

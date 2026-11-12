@@ -5,7 +5,7 @@ OOStringWidth.h
 cxx_OOStringWidthInEm(), declared here, not in HeadUpDisplay.h, so a plain C++
 translation unit (OOJSFont) can call it without including HeadUpDisplay.h.
 HeadUpDisplay.h includes it back; the definition stays in HeadUpDisplay.cpp.
-CGFloat is the floor's C type.
+double is the floor's C type.
 
 
 Oolite
@@ -34,4 +34,4 @@ MA 02110-1301, USA.
 
 #include "oofnd/objc/OOFoundationTypes.h"
 
-CGFloat cxx_OOStringWidthInEm(const std::string& text);
+double cxx_OOStringWidthInEm(const std::string& text);

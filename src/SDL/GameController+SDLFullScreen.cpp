@@ -140,15 +140,15 @@ oo::PList GameController::getDisplayModes() {
   return oo::PList(displayModes);  // an array of mode dictionaries
 }
 
-NSUInteger GameController::indexOfCurrentDisplayMode() {
+std::size_t GameController::indexOfCurrentDisplayMode() {
   const oo::PList* mode = FindDisplayMode(displayModes, width, height, refresh);
   if (mode == nullptr)
-    return NSNotFound;
+    return oo::kNotFound;
   else
-    return (NSUInteger)(mode - displayModes.data());  // the first match, as
-                                                      // -indexOfObject: found
+    return (std::size_t)(mode - displayModes.data());  // the first match, as
+                                                       // -indexOfObject: found
 
-  return NSNotFound;
+  return oo::kNotFound;
 }
 
 void GameController::pauseFullScreenModeToPerform(const char* selectorName,

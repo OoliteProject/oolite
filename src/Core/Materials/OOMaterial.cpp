@@ -113,7 +113,7 @@ void OOMaterial::setBindingTarget(Entity* /*target*/) {}
 bool OOMaterial::wantsNormalsAsTextureCoordinates() { return false; }
 
 #if OO_MULTITEXTURE
-NSUInteger OOMaterial::countOfTextureUnitsWithBaseCoordinates() { return 1; }
+std::size_t OOMaterial::countOfTextureUnitsWithBaseCoordinates() { return 1; }
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED

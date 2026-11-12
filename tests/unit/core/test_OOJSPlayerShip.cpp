@@ -119,7 +119,7 @@ class FakePlayer : public PlayerEntity {
   std::optional<std::string> _specialCargo, _fastA, _fastB;
   std::string _primed;
   std::vector<std::optional<std::string>> _mfds;
-  NSUInteger _passengers = {}, _capacity = {}, _parcels = {};
+  std::size_t _passengers = {}, _capacity = {}, _parcels = {};
   double _clockTime = {};
   bool _contractsAccept = {};
   std::vector<std::string> _log;
@@ -129,7 +129,7 @@ class FakePlayer : public PlayerEntity {
   bool _hyperspaceMotor = {};
 
   void setScriptTarget(::ShipEntity* /*ship*/) override {}
-  NSUInteger getActiveMissile() override { return 2; }
+  std::size_t getActiveMissile() override { return 2; }
   float fuelLeakRate() override { return 0.5f; }
   bool isDocked() override { return _docked; }
   // The stand-in entity's C++ part, which only crosses back to its
@@ -200,9 +200,9 @@ class FakePlayer : public PlayerEntity {
   GLfloat getFlightPitch() override { return 0.25f; }
   GLfloat getFlightRoll() override { return -0.5f; }
   GLfloat getFlightYaw() override { return 0.125f; }
-  NSUInteger passengerCount() override { return _passengers; }
-  NSUInteger passengerCapacity() override { return _capacity; }
-  NSUInteger parcelCount() override { return _parcels; }
+  std::size_t passengerCount() override { return _passengers; }
+  std::size_t passengerCapacity() override { return _capacity; }
+  std::size_t parcelCount() override { return _parcels; }
   double clockTime() override { return _clockTime; }
   void setFuelLeakRate(float value) override {
     _log.push_back(oo::str::format("setFuelLeakRate %g", value));
@@ -376,7 +376,7 @@ class FakePlayer : public PlayerEntity {
   void playGalacticHyperspace() override {
     _log.push_back("playGalacticHyperspace");
   }
-  bool setMultiFunctionDisplay(NSUInteger index,
+  bool setMultiFunctionDisplay(std::size_t index,
                                const std::optional<std::string>& key) override {
     _log.push_back(oo::str::format("setMultiFunctionDisplay %u %s",
                                    static_cast<unsigned>(index),

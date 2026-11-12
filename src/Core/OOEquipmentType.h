@@ -128,8 +128,8 @@ class OOEquipmentType : public oo::PListForeign, public ::OOJSPrivateObject {
   oo::PList defaultActivateKey();  // an array; null: none
   oo::PList defaultModeKey();      // an array; null: none
 
-  NSUInteger installTime();
-  NSUInteger repairTime();
+  std::size_t installTime();
+  std::size_t repairTime();
 
   std::vector<std::string> providesForScripting();
   bool provides(const std::string& key);
@@ -194,8 +194,8 @@ class OOEquipmentType : public oo::PListForeign, public ::OOJSPrivateObject {
         _fastAffinityA : 1 = 0, _fastAffinityB : 1 = 0,
         _canCarryMultiple : 1 = 0, _hideValues : 1 = 0;
   oo::Ref<OOColor> _displayColor;
-  NSUInteger _installTime = {};
-  NSUInteger _repairTime = {};
+  std::size_t _installTime = {};
+  std::size_t _repairTime = {};
   GLfloat _damageProbability = {};
   OOCargoQuantity _requiredCargoSpace = {};
   // Sorted, de-duplicated equipment keys; nullopt when the key is absent (was

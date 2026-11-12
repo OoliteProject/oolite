@@ -50,19 +50,19 @@ struct StickCallbackTarget {
 // decodes the events (upstream #742).
 class TestStickManager : public OOSDLJoystickManager {
  public:
-  NSUInteger joystickCount() override { return 2; }
+  std::size_t joystickCount() override { return 2; }
 
-  std::optional<std::string> nameOfJoystick(NSUInteger stickNumber) override {
+  std::optional<std::string> nameOfJoystick(std::size_t stickNumber) override {
     if (stickNumber == 1) return std::nullopt;
     return "stick " + std::to_string(stickNumber);
   }
 
-  int16_t getAxisWithStick(NSUInteger /*stickNum*/,
-                           NSUInteger axisNum) override {
+  int16_t getAxisWithStick(std::size_t /*stickNum*/,
+                           std::size_t axisNum) override {
     return axisNum == 1 ? 16384 : 0;
   }
 
-  std::optional<std::string> superNameOfJoystick(NSUInteger stickNumber) {
+  std::optional<std::string> superNameOfJoystick(std::size_t stickNumber) {
     // OOJoystickManager's own member (the SDL manager, its superclass,
     // overrides it).
     return OOJoystickManager::nameOfJoystick(stickNumber);
@@ -74,15 +74,15 @@ class TestStickManager : public OOSDLJoystickManager {
 // joystick", axes at 0), so the decoding cases see the base's tables only.
 class DecodingStickManager : public OOSDLJoystickManager {
  public:
-  NSUInteger joystickCount() override {
+  std::size_t joystickCount() override {
     return OOJoystickManager::joystickCount();
   }
 
-  std::optional<std::string> nameOfJoystick(NSUInteger stickNumber) override {
+  std::optional<std::string> nameOfJoystick(std::size_t stickNumber) override {
     return OOJoystickManager::nameOfJoystick(stickNumber);
   }
 
-  int16_t getAxisWithStick(NSUInteger stickNum, NSUInteger axisNum) override {
+  int16_t getAxisWithStick(std::size_t stickNum, std::size_t axisNum) override {
     return OOJoystickManager::getAxisWithStick(stickNum, axisNum);
   }
 };

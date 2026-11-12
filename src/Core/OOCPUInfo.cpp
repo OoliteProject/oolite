@@ -58,7 +58,7 @@ MA 02110-1301, USA.
 
 static bool sInited = false;
 
-static NSUInteger sNumberOfCPUs = 0;  // Yes, really 0.
+static std::size_t sNumberOfCPUs = 0;  // Yes, really 0.
 
 void OOCPUInfoInit() {
   if (sInited) return;
@@ -99,7 +99,7 @@ void OOCPUInfoInit() {
   sInited = true;
 }
 
-NSUInteger OOCPUCount() {
+std::size_t OOCPUCount() {
   if (!sInited) OOCPUInfoInit();
   return (sNumberOfCPUs != 0) ? sNumberOfCPUs : 1;
 }

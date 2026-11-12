@@ -51,10 +51,10 @@ class OOMultiTextureMaterial : public OOBasicMaterial {
       const std::optional<std::string>& name,
       const oo::PList& configuration);  // shared with OOBasicMaterial
 
-  NSUInteger textureUnitCount();
+  std::size_t textureUnitCount();
 
   std::optional<std::string> descriptionComponents() const override;
-  NSUInteger countOfTextureUnitsWithBaseCoordinates() override;
+  std::size_t countOfTextureUnitsWithBaseCoordinates() override;
   void ensureFinishedLoading() override;
   void apply() override;
   void unapplyWithNext(OOMaterial* next) override;
@@ -67,7 +67,7 @@ class OOMultiTextureMaterial : public OOBasicMaterial {
   oo::Ref<OOTexture> _diffuseMap = {};
   oo::Ref<OOTexture> _emissionMap = {};
 
-  NSUInteger _unitsUsed = {};
+  std::size_t _unitsUsed = {};
 };
 
 #endif /* OO_MULTITEXTURE */

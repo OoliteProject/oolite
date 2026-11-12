@@ -115,7 +115,7 @@ public:
 	int getAlertFlags();
 	double escapePodRescueTime();
 	void setEscapePodRescueTime(double seconds);
-	NSUInteger getTrumbleCount();
+	std::size_t getTrumbleCount();
 	int contractReputation();
 	int passengerReputation();
 	int parcelReputation();
@@ -135,7 +135,7 @@ public:
 	void addToAdjustTime(double seconds);
 	void setTargetSystemID(OOSystemID sid);
 	void addRoleToPlayer(const std::string &role);
-	void addRoleToPlayer(const std::string &role, NSUInteger slot);
+	void addRoleToPlayer(const std::string &role, std::size_t slot);
 
 	std::optional<std::string> _commanderName;
 	unsigned _score = {};
@@ -145,7 +145,7 @@ public:
 	OOAlertCondition _alertCondition = {};
 	int _alertFlags = {};
 	double _escapePodRescueTime = {};
-	NSUInteger _trumbleCount = {};
+	std::size_t _trumbleCount = {};
 	int _contractReputation = {}, _passengerReputation = {}, _parcelReputation = {};
 	OODockingClearanceStatus _dockingClearanceStatus = {};
 	std::vector<std::string> _roleWeights;
@@ -161,7 +161,7 @@ public:
 	double _adjustTime = {};
 	OOSystemID _targetSystem = {};
 	std::string _lastRole;
-	NSUInteger _lastRoleSlot = {};
+	std::size_t _lastRoleSlot = {};
 	int _scriptTargetSets = {};
 	bool _raise = {};
 	bool _throwCxx = {};
@@ -313,7 +313,7 @@ OOAlertCondition PlayerEntity::getAlertCondition()  { return _alertCondition; }
 int PlayerEntity::getAlertFlags()  { return _alertFlags; }
 double PlayerEntity::escapePodRescueTime()  { return _escapePodRescueTime; }
 void PlayerEntity::setEscapePodRescueTime(double seconds)  { _escapePodRescueTime = seconds; }
-NSUInteger PlayerEntity::getTrumbleCount()  { return _trumbleCount; }
+std::size_t PlayerEntity::getTrumbleCount()  { return _trumbleCount; }
 int PlayerEntity::contractReputation()  { return _contractReputation; }
 int PlayerEntity::passengerReputation()  { return _passengerReputation; }
 int PlayerEntity::parcelReputation()  { return _parcelReputation; }
@@ -348,7 +348,7 @@ void PlayerEntity::setDockTarget(::ShipEntity *entity)  { _dockTarget = entity; 
 void PlayerEntity::addToAdjustTime(double seconds)  { _adjustTime += seconds; }
 void PlayerEntity::setTargetSystemID(OOSystemID sid)  { _targetSystem = sid; }
 void PlayerEntity::addRoleToPlayer(const std::string &role)  { _lastRole = role; _lastRoleSlot = 999; }
-void PlayerEntity::addRoleToPlayer(const std::string &role, NSUInteger slot)  { _lastRole = role; _lastRoleSlot = slot; }
+void PlayerEntity::addRoleToPlayer(const std::string &role, std::size_t slot)  { _lastRole = role; _lastRoleSlot = slot; }
 
 
 void Universe::addCommsMessage(const std::optional<std::string> &text, OOTimeDelta count)	{ _comms.push_back(text.value_or("(nil)")); _counts.push_back(count); }

@@ -962,7 +962,7 @@ void PlayerEntity::setMissionInstructionsList(
   }
 
   oo::PList::Array expandedList;
-  NSUInteger i, ct = list.count();
+  std::size_t i, ct = list.count();
   for (i = 0; i < ct; i++) {
     const std::optional<std::string> text = StringAtIndex(list, i);
     if (text.has_value()) {
@@ -1505,7 +1505,7 @@ void PlayerEntity::removeAllCargo(bool forceRemoval) {
   }
 
   if (forceRemoval && status() != STATUS_DOCKED) {
-    NSInteger i;
+    std::ptrdiff_t i;
     for (i = cargo.size() - 1; i >= 0; i--) {
       ::ShipEntity* canister = oo::ToShip(cargo[i].get());
       if (!canister) break;
@@ -2104,7 +2104,7 @@ void PlayerEntity::setMissionChoicesDictionary(const oo::PList& choicesDict) {
   // Press Space Commander...
   //
 
-  NSUInteger end_row = 21;
+  std::size_t end_row = 21;
   if (getHud() != nullptr && getHud()->getAllowBigGui()) {
     end_row = 27;
   }
@@ -2121,7 +2121,7 @@ void PlayerEntity::setMissionChoicesDictionary(const oo::PList& choicesDict) {
                      return oo::str::caseInsensitiveCompare(a, b) < 0;
                    });
 
-  NSInteger keysCount = choiceKeys.size();
+  std::ptrdiff_t keysCount = choiceKeys.size();
   if ((end_row + 1) < choiceKeys.size()) {
     OO_LOG_ERR(cxx_kOOLogException,
                "in mission.runScreen choices: number of choices defined ({}) "
@@ -2145,7 +2145,7 @@ void PlayerEntity::setMissionChoicesDictionary(const oo::PList& choicesDict) {
   std::string choiceText;
 
   bool selectableRowExists = false;
-  NSUInteger firstSelectableRow = end_row;
+  std::size_t firstSelectableRow = end_row;
 
   for (const std::string& choiceKey : choiceKeys) {
     const oo::PList& choiceValue = *choicesDict.find(choiceKey);
@@ -2203,7 +2203,7 @@ void PlayerEntity::setMissionChoicesDictionary(const oo::PList& choicesDict) {
       gui->setKey(std::string(GUI_KEY_SKIP), choicesRow);
     }
     choicesRow++;
-    if (static_cast<NSUInteger>(choicesRow) > (end_row + 1)) break;
+    if (static_cast<std::size_t>(choicesRow) > (end_row + 1)) break;
   }
 
   if (!selectableRowExists) {
@@ -2662,7 +2662,7 @@ void PlayerEntity::refreshMissionScreenTextEntry() {
   ::MyOpenGLView* gameView =
       (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr);
   ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
-  NSUInteger end_row = 21;
+  std::size_t end_row = 21;
   if (getHud() != nullptr && getHud()->getAllowBigGui()) {
     end_row = 27;
   }
@@ -2685,7 +2685,7 @@ void PlayerEntity::refreshMissionScreenTextEntry() {
 void PlayerEntity::setGuiToMissionScreenWithCallback(bool callback) {
   ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
   OOGUIScreenID oldScreen = gui_screen;
-  NSUInteger end_row = 21;
+  std::size_t end_row = 21;
   if (getHud() != nullptr && getHud()->getAllowBigGui()) {
     end_row = 27;
   }
@@ -3050,7 +3050,7 @@ bool PlayerEntity::addEqScriptForKey(const std::string& eq_key) {
 }
 
 void PlayerEntity::removeEqScriptForKey(const std::string& eq_key) {
-  NSUInteger i, count = eqScripts.size();
+  std::size_t i, count = eqScripts.size();
 
   for (i = 0; i < count; i++) {
     // (count is not updated after a removal: an index past the end read nil,
@@ -3079,8 +3079,8 @@ void PlayerEntity::removeEqScriptForKey(const std::string& eq_key) {
   }
 }
 
-NSUInteger PlayerEntity::eqScriptIndexForKey(const std::string& eq_key) {
-  NSUInteger i, count = eqScripts.size();
+std::size_t PlayerEntity::eqScriptIndexForKey(const std::string& eq_key) {
+  std::size_t i, count = eqScripts.size();
 
   for (i = 0; i < count; i++) {
     if (eqScripts[i].first == eq_key) return i;

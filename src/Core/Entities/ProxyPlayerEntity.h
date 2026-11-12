@@ -98,8 +98,8 @@ class ProxyPlayerEntity : public ShipEntity {
   void setAlertCondition(OOAlertCondition value);
 
   // Default: 0
-  NSUInteger trumbleCount();
-  void setTrumbleCount(NSUInteger value);
+  std::size_t trumbleCount();
+  void setTrumbleCount(std::size_t value);
 
   void setTradeInFactor(int tif);
   int tradeInFactor();
@@ -112,7 +112,7 @@ class ProxyPlayerEntity : public ShipEntity {
   OOFuelScoopStatus _fuelScoopStatus = {};
   OOCompassMode _compassMode = {};
   OOAlertCondition _alertCondition = {};
-  NSUInteger _trumbleCount = 0;
+  std::size_t _trumbleCount = 0;
   int _tradeInFactor = 0;
   unsigned _massLocked : 1 = 0, _atHyperspeed : 1 = 0,
                          _dialIdentEngaged : 1 = 0;

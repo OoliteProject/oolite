@@ -321,7 +321,7 @@ static JSValue EquipmentInfoGetProperty(OOJS_GETTER_ARGS) {
   OOJS_NATIVE_ENTER(context)
 
   oo::PList result;  // null maps to null
-  NSUInteger inst_time;
+  std::size_t inst_time;
 
   OOEquipmentType* type = nullptr;  // null for the prototype: see Ask()
   if (EXPECT_NOT(!JSEquipmentInfoGetEquipmentType(context, thisObj, &type)))

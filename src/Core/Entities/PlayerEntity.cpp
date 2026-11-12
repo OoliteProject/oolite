@@ -203,13 +203,14 @@ oo::str::FormatArg TextArg(const std::optional<std::string>& text) {
                           : oo::str::FormatArg::null();
 }
 
-// -indexOfObject: on the goods list: NSNotFound when absent, or for nil.
-NSUInteger IndexOfGood(const std::vector<std::string>& goods,
-                       const std::optional<std::string>& good) {
-  if (!good.has_value()) return NSNotFound;
+// -indexOfObject: on the goods list: oo::kNotFound when absent, or for nil.
+std::size_t IndexOfGood(const std::vector<std::string>& goods,
+                        const std::optional<std::string>& good) {
+  if (!good.has_value()) return oo::kNotFound;
   const auto found = std::find(goods.begin(), goods.end(), *good);
-  return (found != goods.end()) ? static_cast<NSUInteger>(found - goods.begin())
-                                : NSNotFound;
+  return (found != goods.end())
+             ? static_cast<std::size_t>(found - goods.begin())
+             : oo::kNotFound;
 }
 
 // The market sorters, as orderings (< 0, 0, > 0 for OOOrderedAscending, Same,
@@ -406,7 +407,7 @@ void PrepareMarkedDestination(std::map<int, std::vector<oo::PList>>& markers,
 
 namespace {
 
-std::string SliderString(NSInteger amountIn20ths) {
+std::string SliderString(std::ptrdiff_t amountIn20ths) {
   std::string filledSlider =
       std::string("|||||||||||||||||||||||||")
           .substr(0, static_cast<std::size_t>(amountIn20ths));
@@ -577,7 +578,7 @@ GLfloat PlayerEntity::baseMass() {
 
 void PlayerEntity::unloadAllCargoPodsForType(const std::string& type,
                                              ::OOCommodityMarket* manifest) {
-  NSInteger i, cargoCount = cargo.size();
+  std::ptrdiff_t i, cargoCount = cargo.size();
   if (cargoCount == 0) return;
 
   // step through the cargo pods adding in the quantities
@@ -605,7 +606,7 @@ void PlayerEntity::unloadAllCargoPodsForType(const std::string& type,
 
 void PlayerEntity::unloadCargoPodsForType(const std::string& type,
                                           OOCargoQuantity quantity) {
-  NSInteger i, n_cargo = cargo.size();
+  std::ptrdiff_t i, n_cargo = cargo.size();
   if (n_cargo == 0) return;
 
   ::ShipEntity* cargoItem = nullptr;
@@ -1092,7 +1093,7 @@ void PlayerEntity::nextInfoSystem() {
            ? UNIVERSE->routeFromSystem(system_id, target_system_id, ANA_mode)
            : oo::PList());
   const oo::PList* route = routeInfo.get<oo::PList::Array>("route");
-  NSUInteger i;
+  std::size_t i;
   if (route == nullptr) {
     setInfoSystemID(target_system_id, true);
     return;
@@ -1120,7 +1121,7 @@ void PlayerEntity::previousInfoSystem() {
            ? UNIVERSE->routeFromSystem(system_id, target_system_id, ANA_mode)
            : oo::PList());
   const oo::PList* route = routeInfo.get<oo::PList::Array>("route");
-  NSUInteger i;
+  std::size_t i;
   if (route == nullptr) {
     setInfoSystemID(system_id, true);
     return;
@@ -1154,7 +1155,7 @@ bool PlayerEntity::infoSystemOnRoute() {
            ? UNIVERSE->routeFromSystem(system_id, target_system_id, ANA_mode)
            : oo::PList());
   const oo::PList* route = routeInfo.get<oo::PList::Array>("route");
-  NSUInteger i;
+  std::size_t i;
   if (route == nullptr) {
     return false;
   }
@@ -1233,7 +1234,7 @@ oo::PList PlayerEntity::commanderDataDictionary() {
     result["current_system_government"] =
         oo::PList::unsignedInteger((unsigned short)government);
     result["current_system_techlevel"] =
-        oo::PList::unsignedInteger((NSUInteger)techlevel);
+        oo::PList::unsignedInteger((std::size_t)techlevel);
     result["current_system_economy"] =
         oo::PList::unsignedInteger((unsigned short)economy);
   }
@@ -1596,7 +1597,7 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
 
   // newer savegames use galaxy_id
   if (StringForKey(dict, "galaxy_id").has_value()) {
-    galaxy_number = dict.get<NSUInteger>("galaxy_id");
+    galaxy_number = dict.get<std::size_t>("galaxy_id");
     if (galaxy_number >= OO_GALAXIES_AVAILABLE) {
       return false;
     }
@@ -1648,7 +1649,7 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
   } else
   // compatibility for loading 1.80 savegames
   {
-    galaxy_number = dict.get<NSUInteger>("galaxy_number");
+    galaxy_number = dict.get<std::size_t>("galaxy_number");
 
     if (UNIVERSE != nullptr) UNIVERSE->setGalaxyTo(galaxy_number, true);
 
@@ -1864,15 +1865,15 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
                   : oo::PList::Array();  // -oo_arrayForKey:, empty if none
 
   // iterate downwards; lets us remove invalid ones as we go
-  for (NSInteger i = (NSInteger)contracts.size() - 1; i >= 0; i--) {
+  for (std::ptrdiff_t i = (std::ptrdiff_t)contracts.size() - 1; i >= 0; i--) {
     oo::PList contractInfo =
         contracts[i].isDict() ? contracts[i] : oo::PList(oo::PList::Dict());
     const oo::PList* cargoType = contractInfo.find(std::string(CARGO_KEY_TYPE));
     // if the trade good ID is an int
     if (cargoType != nullptr && cargoType->isNumber()) {
       // look it up, and replace with a string
-      NSUInteger legacy_type =
-          contractInfo.get<NSUInteger>(std::string(CARGO_KEY_TYPE));
+      std::size_t legacy_type =
+          contractInfo.get<std::size_t>(std::string(CARGO_KEY_TYPE));
       (*contractInfo.getIf<oo::PList::Dict>())[std::string(CARGO_KEY_TYPE)] =
           oo::PList(
               OOCommodities::legacyCommodityType(legacy_type).value_or(""));
@@ -1973,8 +1974,8 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
                 "({}). Removing extra passengers.",
                 getName().value_or("(null)"), passengers.size(),
                 static_cast<unsigned>(max_passengers));
-    for (NSInteger i = (NSInteger)passengers.size() - 1; i >= max_passengers;
-         i--) {
+    for (std::ptrdiff_t i = (std::ptrdiff_t)passengers.size() - 1;
+         i >= max_passengers; i--) {
       const oo::PList* passengerName =
           passengers[i].find(std::string(PASSENGER_KEY_NAME));
       if (passengerName != nullptr &&
@@ -1986,8 +1987,8 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
   }
 
   // too much cargo?
-  NSInteger excessCargo =
-      (NSInteger)cargoQuantityOnBoard() - (NSInteger)maxAvailableCargoSpace();
+  std::ptrdiff_t excessCargo = (std::ptrdiff_t)cargoQuantityOnBoard() -
+                               (std::ptrdiff_t)maxAvailableCargoSpace();
   if (excessCargo > 0) {
     OO_LOG_WARN("setCommanderDataFromDictionary.inconsistency.cargo",
                 "player ship {} had more cargo ({}) than it can hold ({}). "
@@ -2111,7 +2112,7 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
 
   // role weights
   const oo::PList savedRoles = ValueForKey(dict, "role_weights");
-  NSUInteger rc = maxPlayerRoles();
+  std::size_t rc = maxPlayerRoles();
   roleWeights.clear();
   if (!savedRoles.isArray()) {
     roleWeights.assign(rc, "player-unknown");
@@ -2192,13 +2193,13 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
 
   // set up missiles
   setActiveMissile(0);
-  for (NSUInteger i = 0; i < PLAYER_MAX_MISSILES; i++) {
+  for (std::size_t i = 0; i < PLAYER_MAX_MISSILES; i++) {
     missile_entity[i] = nullptr;
   }
   const oo::PList* missileRoles = dict.get<oo::PList::Array>("missile_roles");
   if (missileRoles != nullptr) {
     unsigned missileCount = 0;
-    for (NSUInteger roleIndex = 0;
+    for (std::size_t roleIndex = 0;
          roleIndex < missileRoles->count() && missileCount < max_missiles;
          roleIndex++) {
       const std::optional<std::string> missile_desc =
@@ -2225,7 +2226,7 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
     }
   } else  // no missile_roles
   {
-    for (NSUInteger i = 0; i < missiles; i++) {
+    for (std::size_t i = 0; i < missiles; i++) {
       missile_list[i] =
           OOEquipmentType::equipmentTypeWithIdentifier("EQ_MISSILE").get();
       missile_entity[i] = oo::EntityHold::adopt(
@@ -2861,7 +2862,7 @@ bool PlayerEntity::setUpShipFromDictionary(const oo::PList& shipDict) {
   return true;
 }
 
-NSUInteger PlayerEntity::sessionID() {
+std::size_t PlayerEntity::sessionID() {
   // The player ship always belongs to the current session.
   return (UNIVERSE != nullptr ? UNIVERSE->sessionID() : 0);
 }
@@ -3922,7 +3923,7 @@ void PlayerEntity::checkScriptsIfAppropriate() {
 
 void PlayerEntity::updateTrumbles(OOTimeDelta delta_t) {
   oo::Ref<OOTrumble>* trumbles = trumbleArray();
-  NSUInteger i;
+  std::size_t i;
 
   for (i = getTrumbleCount(); i > 0; i--) {
     oo::Ref<OOTrumble> trum = trumbles[i - 1];
@@ -4822,8 +4823,8 @@ bool PlayerEntity::switchHudTo(const std::string& hudFileName) {
   bool wasHidden = false;
   bool wasCompassActive = true;
   double scannerZoom = 1.0;
-  NSUInteger lastMFD = 0;
-  NSUInteger i;
+  std::size_t lastMFD = 0;
+  std::size_t i;
 
   // (a nil name returns NO in the bridged -switchHudTo:)
   // is the HUD in the process of being rendered? If yes, set it to defer state
@@ -5201,7 +5202,7 @@ void PlayerEntity::addRoleForAggression(::ShipEntity* victim) {
   if (!role.has_value()) {
     return;
   }
-  NSUInteger times = RoleFlagCount(roleWeightFlags, *role);
+  std::size_t times = RoleFlagCount(roleWeightFlags, *role);
   times++;
   roleWeightFlags.insert_or_assign(
       *role, oo::PList::signedInteger(static_cast<std::int64_t>(times)));
@@ -5213,7 +5214,7 @@ void PlayerEntity::addRoleForAggression(::ShipEntity* victim) {
 
 void PlayerEntity::addRoleForMining() {
   const std::string role = "miner";
-  NSUInteger times = RoleFlagCount(roleWeightFlags, role);
+  std::size_t times = RoleFlagCount(roleWeightFlags, role);
   times++;
   roleWeightFlags.insert_or_assign(
       role, oo::PList::signedInteger(static_cast<std::int64_t>(times)));
@@ -5224,11 +5225,11 @@ void PlayerEntity::addRoleForMining() {
 }
 
 void PlayerEntity::addRoleToPlayer(const std::string& role) {
-  NSUInteger slot = Ranrot() & (maxPlayerRoles() - 1);
+  std::size_t slot = Ranrot() & (maxPlayerRoles() - 1);
   addRoleToPlayer(role, slot);
 }
 
-void PlayerEntity::addRoleToPlayer(const std::string& role, NSUInteger slot) {
+void PlayerEntity::addRoleToPlayer(const std::string& role, std::size_t slot) {
   if (slot >= maxPlayerRoles()) {
     slot = maxPlayerRoles() - 1;
   }
@@ -5240,7 +5241,7 @@ void PlayerEntity::addRoleToPlayer(const std::string& role, NSUInteger slot) {
 }
 
 void PlayerEntity::clearRoleFromPlayer(bool includingLongRange) {
-  NSUInteger slot = Ranrot() % roleWeights.size();
+  std::size_t slot = Ranrot() % roleWeights.size();
   if (!includingLongRange) {
     const std::string& role = roleWeights[slot];
     // long range roles cleared at 1/2 normal rate
@@ -5252,7 +5253,7 @@ void PlayerEntity::clearRoleFromPlayer(bool includingLongRange) {
 }
 
 void PlayerEntity::clearRolesFromPlayer(float chance) {
-  NSUInteger i, count = roleWeights.size();
+  std::size_t i, count = roleWeights.size();
   for (i = 0; i < count; i++) {
     if (randf() < chance) {
       roleWeights[i] = "player-unknown";
@@ -5260,7 +5261,7 @@ void PlayerEntity::clearRolesFromPlayer(float chance) {
   }
 }
 
-NSUInteger PlayerEntity::maxPlayerRoles() {
+std::size_t PlayerEntity::maxPlayerRoles() {
   if (ship_kills >= 6400) {
     return 32;
   } else if (ship_kills >= 128) {
@@ -5275,7 +5276,7 @@ void PlayerEntity::updateSystemMemory() {
   if (sys < 0) {
     return;
   }
-  NSUInteger memory = 4;
+  std::size_t memory = 4;
   if (ship_kills >= 6400) {
     memory = 32;
   } else if (ship_kills >= 256) {
@@ -5527,11 +5528,13 @@ void PlayerEntity::setNextCompassMode() {
   }
 }
 
-NSUInteger PlayerEntity::getActiveMissile() { return activeMissile; }
+std::size_t PlayerEntity::getActiveMissile() { return activeMissile; }
 
-void PlayerEntity::setActiveMissile(NSUInteger value) { activeMissile = value; }
+void PlayerEntity::setActiveMissile(std::size_t value) {
+  activeMissile = value;
+}
 
-NSUInteger PlayerEntity::dialMaxMissiles() { return max_missiles; }
+std::size_t PlayerEntity::dialMaxMissiles() { return max_missiles; }
 
 bool PlayerEntity::dialIdentEngaged() { return ident_engaged; }
 
@@ -5571,7 +5574,7 @@ PlayerEntity::multiFunctionDisplayList() {
   return multiFunctionDisplaySettings;
 }
 
-std::optional<std::string> PlayerEntity::multiFunctionText(NSUInteger i) {
+std::optional<std::string> PlayerEntity::multiFunctionText(std::size_t i) {
   if (i >= multiFunctionDisplaySettings.size() ||
       !multiFunctionDisplaySettings[i].has_value()) {
     return std::nullopt;
@@ -5597,7 +5600,7 @@ void PlayerEntity::setMultiFunctionText(const std::optional<std::string>& text,
 }
 
 bool PlayerEntity::setMultiFunctionDisplay(
-    NSUInteger index, const std::optional<std::string>& key) {
+    std::size_t index, const std::optional<std::string>& key) {
   if (index >=
       ((hud != nullptr) ? hud->mfdCount() : 0))  // a nil HUD answered 0
   {
@@ -5608,8 +5611,8 @@ bool PlayerEntity::setMultiFunctionDisplay(
     if (inactive == multiFunctionDisplaySettings.end()) {
       return false;
     }
-    index = static_cast<NSUInteger>(inactive -
-                                    multiFunctionDisplaySettings.begin());
+    index = static_cast<std::size_t>(inactive -
+                                     multiFunctionDisplaySettings.begin());
   }
 
   if (index < ((hud != nullptr) ? hud->mfdCount() : 0)) {
@@ -5620,7 +5623,7 @@ bool PlayerEntity::setMultiFunctionDisplay(
   }
 }
 
-void PlayerEntity::cycleNextMultiFunctionDisplay(NSUInteger index) {
+void PlayerEntity::cycleNextMultiFunctionDisplay(std::size_t index) {
   if (getHud() == nullptr || getHud()->mfdCount() == 0) return;
   std::vector<std::string> keys;  // byte order (was -allKeys hash order)
   keys.reserve(multiFunctionDisplayText.size());
@@ -5638,11 +5641,11 @@ void PlayerEntity::cycleNextMultiFunctionDisplay(NSUInteger index) {
     setMultiFunctionDisplay(index, key);
   } else {
     const auto currentKey = std::find(keys.begin(), keys.end(), *current);
-    const NSUInteger cIndex =
+    const std::size_t cIndex =
         (currentKey != keys.end())
-            ? static_cast<NSUInteger>(currentKey - keys.begin())
-            : NSNotFound;
-    if (cIndex == NSNotFound || cIndex + 1 >= keys.size()) {
+            ? static_cast<std::size_t>(currentKey - keys.begin())
+            : oo::kNotFound;
+    if (cIndex == oo::kNotFound || cIndex + 1 >= keys.size()) {
       key = std::nullopt;
       setMultiFunctionDisplay(index, std::nullopt);
     } else {
@@ -5658,7 +5661,7 @@ void PlayerEntity::cycleNextMultiFunctionDisplay(NSUInteger index) {
   OOJSRelinquishContext(context);
 }
 
-void PlayerEntity::cyclePreviousMultiFunctionDisplay(NSUInteger index) {
+void PlayerEntity::cyclePreviousMultiFunctionDisplay(std::size_t index) {
   if (getHud() == nullptr || getHud()->mfdCount() == 0) return;
   std::vector<std::string> keys;  // byte order (was -allKeys hash order)
   keys.reserve(multiFunctionDisplayText.size());
@@ -5676,11 +5679,11 @@ void PlayerEntity::cyclePreviousMultiFunctionDisplay(NSUInteger index) {
     setMultiFunctionDisplay(index, key);
   } else {
     const auto currentKey = std::find(keys.begin(), keys.end(), *current);
-    const NSUInteger cIndex =
+    const std::size_t cIndex =
         (currentKey != keys.end())
-            ? static_cast<NSUInteger>(currentKey - keys.begin())
-            : NSNotFound;
-    if (cIndex == NSNotFound || cIndex == 0) {
+            ? static_cast<std::size_t>(currentKey - keys.begin())
+            : oo::kNotFound;
+    if (cIndex == oo::kNotFound || cIndex == 0) {
       key = std::nullopt;
       setMultiFunctionDisplay(index, std::nullopt);
     } else {
@@ -5699,7 +5702,7 @@ void PlayerEntity::cyclePreviousMultiFunctionDisplay(NSUInteger index) {
 void PlayerEntity::selectNextMultiFunctionDisplay() {
   if (getHud() == nullptr || getHud()->mfdCount() == 0) return;
   activeMFD = (activeMFD + 1) % getHud()->mfdCount();
-  NSUInteger mfdID = activeMFD + 1;
+  std::size_t mfdID = activeMFD + 1;
   if (UNIVERSE != nullptr)
     UNIVERSE->addMessage(cxx_OOExpandKey("mfd-N-selected", mfdID), 3.0);
   JSContext* context = OOJSAcquireContext();
@@ -5715,7 +5718,7 @@ void PlayerEntity::selectPreviousMultiFunctionDisplay() {
   } else {
     activeMFD = (activeMFD - 1);
   }
-  NSUInteger mfdID = activeMFD + 1;
+  std::size_t mfdID = activeMFD + 1;
   if (UNIVERSE != nullptr)
     UNIVERSE->addMessage(cxx_OOExpandKey("mfd-N-selected", mfdID), 3.0);
   JSContext* context = OOJSAcquireContext();
@@ -5724,9 +5727,9 @@ void PlayerEntity::selectPreviousMultiFunctionDisplay() {
   OOJSRelinquishContext(context);
 }
 
-NSUInteger PlayerEntity::getActiveMFD() { return activeMFD; }
+std::size_t PlayerEntity::getActiveMFD() { return activeMFD; }
 
-::ShipEntity* PlayerEntity::missileForPylon(NSUInteger value) {
+::ShipEntity* PlayerEntity::missileForPylon(std::size_t value) {
   if (value < max_missiles) return oo::ToShip(missile_entity[value].get());
   return nullptr;
 }
@@ -6212,7 +6215,7 @@ bool PlayerEntity::fireMainWeapon() {
 
   currentWeaponStats();
 
-  NSUInteger multiplier = 1;
+  std::size_t multiplier = 1;
   if (_multiplyWeapons) {
     // multiple fitted
     multiplier = laserPortOffset(currentWeaponFacing).size();
@@ -6742,7 +6745,7 @@ void PlayerEntity::dumpCargo() {
 }
 
 void PlayerEntity::rotateCargo() {
-  NSInteger i, n_cargo = cargo.size();
+  std::ptrdiff_t i, n_cargo = cargo.size();
   if (n_cargo == 0) return;
 
   ::ShipEntity* pod = oo::ToShip(oo::RetainEntity(cargo[0].get()));
@@ -6755,7 +6758,7 @@ void PlayerEntity::rotateCargo() {
         return other.has_value() && current_contents.has_value() &&
                *other == *current_contents;
       };
-  NSInteger rotates = 0;
+  std::ptrdiff_t rotates = 0;
 
   do {
     cargo.erase(cargo.begin());  // take it from the eject position
@@ -7788,7 +7791,7 @@ void PlayerEntity::enterWitchspace() {
   OOJSRelinquishContext(context);
 
   updateSystemMemory();
-  NSUInteger legality = legalStatusOfCargoList();
+  std::size_t legality = legalStatusOfCargoList();
   OOCargoQuantity maxSpace = maxAvailableCargoSpace();
   OOCargoQuantity availSpace = availableCargoSpace();
   if (roleWeightFlags.contains("bought-legal")) {
@@ -8043,7 +8046,7 @@ void PlayerEntity::setGuiToStatusScreen() {
            ? UNIVERSE->getSystemManager()->getPropertiesForSystem(
                  target_system_id, galaxy_number)
            : oo::PList());
-  NSInteger concealment =
+  std::ptrdiff_t concealment =
       systemInfo.get<int>("concealment", OO_SYSTEMCONCEALMENT_NONE);
   if (concealment >= OO_SYSTEMCONCEALMENT_NONAME)
     targetSystemName = OO_DESC("status-unknown-system");
@@ -8213,7 +8216,7 @@ std::vector<oo::PList> PlayerEntity::equipmentList() {
                                : std::optional<std::string>())
                 .value_or("");
         const std::string damagedIdentifier = identifier + "_DAMAGED";
-        NSUInteger count = 0, okcount = 0;
+        std::size_t count = 0, okcount = 0;
         okcount = countEquipmentItem(identifier);
         count = okcount + countEquipmentItem(damagedIdentifier);
         if (count == 0) {
@@ -8394,11 +8397,12 @@ std::vector<oo::PList> PlayerEntity::equipmentList() {
   return quip1;
 }
 
-NSUInteger PlayerEntity::primedEquipmentCount() { return eqScripts.size(); }
+std::size_t PlayerEntity::primedEquipmentCount() { return eqScripts.size(); }
 
-std::optional<std::string> PlayerEntity::primedEquipmentName(NSInteger offset) {
-  NSUInteger c = primedEquipmentCount();
-  NSUInteger idx = (primedEquipment + (c + 1) + offset) % (c + 1);
+std::optional<std::string> PlayerEntity::primedEquipmentName(
+    std::ptrdiff_t offset) {
+  std::size_t c = primedEquipmentCount();
+  std::size_t idx = (primedEquipment + (c + 1) + offset) % (c + 1);
   if (idx == c) {
     return OO_DESC("equipment-primed-none-hud-label");
   } else {
@@ -8414,7 +8418,7 @@ std::optional<std::string> PlayerEntity::primedEquipmentName(NSInteger offset) {
 
 std::string PlayerEntity::currentPrimedEquipment() {
   std::string result;  // "": primed-none
-  NSUInteger c = eqScripts.size();
+  std::size_t c = eqScripts.size();
   if (primedEquipment != c && primedEquipment < c) {
     result = eqScripts[primedEquipment].first;
   }
@@ -8424,8 +8428,8 @@ std::string PlayerEntity::currentPrimedEquipment() {
 bool PlayerEntity::setPrimedEquipment(const std::string& eqKey, bool showMsg) {
   // (a nil key primed nothing and answered NO: the bridged
   // -setPrimedEquipment:showMessage:)
-  NSUInteger c = eqScripts.size();
-  NSUInteger current = primedEquipment;
+  std::size_t c = eqScripts.size();
+  std::size_t current = primedEquipment;
   primedEquipment = eqScriptIndexForKey(
       eqKey);  // if key not found primedEquipment is set to primed-none
   bool unprimeEq = eqKey.empty();
@@ -8463,7 +8467,7 @@ bool PlayerEntity::setPrimedEquipment(const std::string& eqKey, bool showMsg) {
   return result;
 }
 
-void PlayerEntity::activatePrimableEquipment(NSUInteger index,
+void PlayerEntity::activatePrimableEquipment(std::size_t index,
                                              OOPrimedEquipmentMode mode) {
   // index == eqScripts.size() means we don't want to activate any equipment.
   if (index < eqScripts.size()) {
@@ -8548,11 +8552,11 @@ std::vector<std::string> PlayerEntity::cargoList() {
   for (size_t commodityIndex = 0; commodityIndex < list.count();
        commodityIndex++) {
     const oo::PList& commodity = *list.at(commodityIndex);
-    NSInteger quantity = commodity.get<NSInteger>("quantity");
+    std::ptrdiff_t quantity = commodity.get<std::ptrdiff_t>("quantity");
     const std::optional<std::string> units = StringForKey(commodity, "unit");
     const std::optional<std::string> commodityName =
         StringForKey(commodity, "displayName");
-    NSInteger containers = commodity.get<int>("containers");
+    std::ptrdiff_t containers = commodity.get<int>("containers");
     bool extended =
         !(units.has_value() && *units == OO_DESC("cargo-tons-symbol")) &&
         containers > 0;
@@ -8585,7 +8589,7 @@ oo::PList PlayerEntity::cargoListForScripting() {
   const std::vector<std::string> goods =
       (shipCommodityData != nullptr ? shipCommodityData->goods()
                                     : std::vector<std::string>());
-  NSUInteger i, commodityCount = goods.size();
+  std::size_t i, commodityCount = goods.size();
   std::vector<OOCargoQuantity> quantityInHold(commodityCount, 0);
   std::vector<OOCargoQuantity> containersInHold(commodityCount, 0);
 
@@ -8656,7 +8660,7 @@ unsigned PlayerEntity::legalStatusOfCargoList() {
 oo::PList::Array PlayerEntity::contractsListForScriptingFromArray(
     const oo::PList::Array& contracts_array, bool forCargo) {
   oo::PList::Array result;
-  NSUInteger i;
+  std::size_t i;
 
   // (a nil value raised in -setObject:forKey: before; it is left out)
   const auto setString = [](oo::PList::Dict& contract, const std::string& key,
@@ -8734,7 +8738,7 @@ void PlayerEntity::setGuiToSystemDataScreenRefreshBackground(
   const oo::PList infoSystemData =
       (UNIVERSE != nullptr ? UNIVERSE->generateSystemData(info_system_id)
                            : oo::PList());
-  NSInteger concealment =
+  std::ptrdiff_t concealment =
       infoSystemData.get<int>("concealment", OO_SYSTEMCONCEALMENT_NONE);
   const std::string infoSystemName =
       StringForKey(infoSystemData, std::string(KEY_NAME))
@@ -8767,7 +8771,7 @@ void PlayerEntity::setGuiToSystemDataScreenRefreshBackground(
     gui->overrideTabs(tab_stops, cxx_kGuiSystemdataTabs, 3);
     gui->setTabStops(tab_stops);
 
-    NSUInteger techLevel =
+    std::size_t techLevel =
         infoSystemData.get<int>(std::string(KEY_TECHLEVEL)) + 1;
     int population = infoSystemData.get<int>(std::string(KEY_POPULATION));
     int productivity = infoSystemData.get<int>(std::string(KEY_PRODUCTIVITY));
@@ -9150,9 +9154,9 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
     ::GameController* controller =
         (UNIVERSE != nullptr ? UNIVERSE->gameController() : nullptr);
 
-    NSUInteger displayModeIndex =
+    std::size_t displayModeIndex =
         (controller != nullptr ? controller->indexOfCurrentDisplayMode() : 0);
-    if (displayModeIndex == NSNotFound) {
+    if (displayModeIndex == oo::kNotFound) {
       OO_LOG_WARN(
           "display.currentMode.notFound", "{}",
           "couldn't find current fullscreen setting, switching to default.");
@@ -9200,10 +9204,10 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
       const oo::PList brightnesses =
           brightnessesValue.isArray() ? brightnessesValue : oo::PList();
       // -indexOfObject: with the %d string: only string elements ever matched;
-      // not found was NSNotFound narrowed to int
+      // not found was oo::kNotFound narrowed to int
       const std::string currentBrightness = std::to_string(
           (int)(gameView != nullptr ? gameView->hdrMaxBrightness() : 0.0f));
-      int brightnessIdx = static_cast<int>(NSNotFound);
+      int brightnessIdx = static_cast<int>(oo::kNotFound);
       for (std::size_t i = 0; i < brightnesses.count(); i++) {
         const oo::PList* element = brightnesses.at(i);
         if (element->isString() &&
@@ -9213,7 +9217,7 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
         }
       }
 
-      if (static_cast<NSInteger>(brightnessIdx) == NSNotFound) {
+      if (static_cast<std::ptrdiff_t>(brightnessIdx) == oo::kNotFound) {
         OO_LOG_WARN("hdr.maxBrightness.notFound", "{}",
                     "couldn't find current max brightness setting, switching "
                     "to 400 nits.");
@@ -9663,7 +9667,7 @@ void PlayerEntity::setGuiToEquipShipScreen(
         (dockedStation != nullptr ? dockedStation->getEquipmentPriceFactor()
                                   : 0.0f);
     if ((dockedStation != nullptr ? dockedStation->getEquivalentTechLevel()
-                                  : 0) != NSNotFound)
+                                  : 0) != oo::kNotFound)
       techlevel =
           (dockedStation != nullptr ? dockedStation->getEquivalentTechLevel()
                                     : 0);
@@ -9814,7 +9818,7 @@ void PlayerEntity::setGuiToEquipShipScreen(
     gui->setTabStops(tab_stops);
 
     unsigned n_rows = GUI_MAX_ROWS_EQUIPMENT;
-    NSUInteger count = equipmentAllowed.size();
+    std::size_t count = equipmentAllowed.size();
 
     if (count > 0) {
       if (skip > 0)  // lose the first row to Back <--
@@ -9883,7 +9887,7 @@ void PlayerEntity::setGuiToEquipShipScreen(
 
         price *= priceFactor;  // increased prices at some stations
 
-        NSUInteger installTime =
+        std::size_t installTime =
             (eqInfo != nullptr ? eqInfo->installTime() : 0);
         if (installTime == 0) {
           installTime = 600 + price;
@@ -9914,7 +9918,7 @@ void PlayerEntity::setGuiToEquipShipScreen(
         if (eqKeyForSelectFacing == eqKey) {
           // Weapons purchase subscreen.
           while (facing_count < 5) {
-            NSUInteger multiplier = 1;
+            std::size_t multiplier = 1;
             switch (facing_count) {
               case 0:
                 break;
@@ -10176,14 +10180,14 @@ void PlayerEntity::setGuiToInterfacesScreen(int skip) {
     gui->setTabStops(tab_stops);
 
     unsigned n_rows = GUI_MAX_ROWS_INTERFACES;
-    NSUInteger count = interfaceKeys.size();
+    std::size_t count = interfaceKeys.size();
 
     if (count > 0) {
       if (skip > 0)  // lose the first row to Back <--
       {
         unsigned previous;
 
-        if (count <= n_rows || skip < (NSInteger)n_rows) {
+        if (count <= n_rows || skip < (std::ptrdiff_t)n_rows) {
           previous = 0;  // single page
         } else {
           previous = skip - (n_rows - 2);  // multi-page.
@@ -10203,7 +10207,8 @@ void PlayerEntity::setGuiToInterfacesScreen(int skip) {
       }
 
       for (i = skip;
-           i < (NSInteger)count && (row - start_row < (OOGUIRow)n_rows); i++) {
+           i < (std::ptrdiff_t)count && (row - start_row < (OOGUIRow)n_rows);
+           i++) {
         const std::string& interfaceKey = interfaceKeys[i];
         ::OOJSInterfaceDefinition* definition =
             interfaces->find(interfaceKey)->second.get();
@@ -10226,7 +10231,7 @@ void PlayerEntity::setGuiToInterfacesScreen(int skip) {
         row++;
       }
 
-      if (i < (NSInteger)count) {
+      if (i < (std::ptrdiff_t)count) {
         // just overwrite the last item :-)
         gui->setColor(gui->colorFromSetting(cxx_kGuiInterfaceScrollColor,
                                             OOColor::greenColor().get())
@@ -10686,7 +10691,7 @@ void PlayerEntity::buySelectedItem() {
       // adjust time before playerBoughtEquipment gets to change credits
       // dynamically wind the clock forward by 10 minutes plus 10 minutes for
       // every 60 credits spent
-      NSUInteger adjust = 0;
+      std::size_t adjust = 0;
       if (isRepair) {
         adjust = (eqInfo != nullptr ? eqInfo->repairTime() : 0);
       } else {
@@ -10818,7 +10823,7 @@ bool PlayerEntity::tryBuyingItem(const std::string& eqKey) {
         cxx_OOWeaponTypeFromEquipmentIdentifierStrict(eqKey);
     OOWeaponType current_weapon = nullptr;
 
-    NSUInteger multiplier = 1;
+    std::size_t multiplier = 1;
 
     switch (chosen_weapon_facing) {
       case WEAPON_FACING_FORWARD:
@@ -10981,12 +10986,12 @@ bool PlayerEntity::tryBuyingItem(const std::string& eqKey) {
 
   // maintain ship
   if ((eqKey == "EQ_RENOVATION")) {
-    OOTechLevelID techLevel = NSNotFound;
+    OOTechLevelID techLevel = oo::kNotFound;
     if (dockedStation != nullptr)
       techLevel =
           (dockedStation != nullptr ? dockedStation->getEquivalentTechLevel()
                                     : 0);
-    if (techLevel == NSNotFound)
+    if (techLevel == oo::kNotFound)
       techLevel =
           (UNIVERSE != nullptr ? UNIVERSE->currentSystemData() : oo::PList())
               .get<unsigned int>(std::string(KEY_TECHLEVEL));
@@ -11168,7 +11173,7 @@ OOCargoQuantity PlayerEntity::cargoQuantityForType(const std::string& type) {
                                     : 0);
 
   if (status() != STATUS_DOCKED) {
-    NSInteger i;
+    std::ptrdiff_t i;
     ::ShipEntity* cargoItem = nullptr;
 
     for (i = cargo.size() - 1; i >= 0; i--) {
@@ -11452,7 +11457,7 @@ void PlayerEntity::showMarketScreenDataLine(OOGUIRow row,
                              : OO_DESC("commodity-quantity-none")),
       2.5);
 
-  NSUInteger priceDecimal = pricePerUnit % 10;
+  std::size_t priceDecimal = pricePerUnit % 10;
   const std::string price =
       oo::str::format(" %s.%zu ",
                       cxx_OOPadStringToEms(
@@ -11474,9 +11479,9 @@ void PlayerEntity::showMarketScreenDataLine(OOGUIRow row,
   const std::string units_owned =
       oo::str::format(" %s %s ", owned.c_str(), units.c_str());
 
-  NSUInteger import_legality =
+  std::size_t import_legality =
       (localMarket != nullptr ? localMarket->importLegalityForGood(good) : 0);
-  NSUInteger export_legality =
+  std::size_t export_legality =
       (localMarket != nullptr ? localMarket->exportLegalityForGood(good) : 0);
   std::string legaldesc;
   if (import_legality == 0) {
@@ -11583,29 +11588,29 @@ void PlayerEntity::setGuiToMarketScreen() {
                                                 : std::vector<std::string>()),
                         localMarket),
       localMarket);
-  NSInteger maxOffset = 0;
+  std::ptrdiff_t maxOffset = 0;
   if (goods.size() > (GUI_ROW_MARKET_END - GUI_ROW_MARKET_START)) {
     maxOffset = goods.size() - (GUI_ROW_MARKET_END - GUI_ROW_MARKET_START);
   }
 
-  NSUInteger commodityCount =
+  std::size_t commodityCount =
       (shipCommodityData != nullptr ? shipCommodityData->count() : 0);
   std::vector<OOCargoQuantity> quantityInHold(commodityCount);
 
-  for (NSUInteger i = 0; i < commodityCount; i++) {
+  for (std::size_t i = 0; i < commodityCount; i++) {
     quantityInHold[i] =
         (i < goods.size()) ? (shipCommodityData != nullptr
                                   ? shipCommodityData->quantityForGood(goods[i])
                                   : 0)
                            : 0;  // (a nil good had none)
   }
-  for (NSUInteger i = 0; i < cargo.size(); i++) {
+  for (std::size_t i = 0; i < cargo.size(); i++) {
     ::ShipEntity* container = oo::ToShip(cargo[i].get());
-    NSUInteger goodsIndex = IndexOfGood(
+    std::size_t goodsIndex = IndexOfGood(
         goods, (container != nullptr ? container->commodityType()
                                      : std::optional<std::string>()));
     // can happen with filters
-    if (goodsIndex != NSNotFound) {
+    if (goodsIndex != oo::kNotFound) {
       quantityInHold[goodsIndex] +=
           (container != nullptr ? container->commodityAmount() : 0);
     }
@@ -11616,14 +11621,14 @@ void PlayerEntity::setGuiToMarketScreen() {
     // nothing?
   } else {
     if (!marketSelectedCommodity.has_value() ||
-        IndexOfGood(goods, marketSelectedCommodity) == NSNotFound) {
+        IndexOfGood(goods, marketSelectedCommodity) == oo::kNotFound) {
       marketSelectedCommodity.reset();
       if (goods.size() > 0) {
         marketSelectedCommodity = goods[0];
       }
     }
     if (maxOffset > 0) {
-      NSInteger goodsIndex = IndexOfGood(goods, marketSelectedCommodity);
+      std::ptrdiff_t goodsIndex = IndexOfGood(goods, marketSelectedCommodity);
       // validate marketOffset when returning from infoscreen
       if (goodsIndex <= marketOffset) {
         // is off top of list, move list upwards
@@ -11669,7 +11674,7 @@ void PlayerEntity::setGuiToMarketScreen() {
     if (goods.size() > 0) {
       const std::optional<std::string> selectedCommodity =
           marketSelectedCommodity;
-      NSInteger i = 0;
+      std::ptrdiff_t i = 0;
       for (const std::string& good : goods) {
         if (i < marketOffset) {
           ++i;
@@ -11804,7 +11809,7 @@ void PlayerEntity::setGuiToMarketInfoScreen() {
                         localMarket),
       localMarket);
 
-  NSUInteger i, j,
+  std::size_t i, j,
       commodityCount =
           (shipCommodityData != nullptr ? shipCommodityData->count() : 0);
   std::vector<OOCargoQuantity> quantityInHold(commodityCount);
@@ -11828,11 +11833,11 @@ void PlayerEntity::setGuiToMarketInfoScreen() {
   // GUI stuff
   {
     if (EXPECT_NOT(!marketSelectedCommodity.has_value())) {
-      j = NSNotFound;
+      j = oo::kNotFound;
     } else {
       j = IndexOfGood(goods, marketSelectedCommodity);
     }
-    if (j == NSNotFound) {
+    if (j == oo::kNotFound) {
       marketSelectedCommodity.reset();
       setGuiToMarketScreen();
       return;
@@ -12162,7 +12167,7 @@ std::vector<oo::PList>* PlayerEntity::customEquipmentActivation() {
 
 void PlayerEntity::addEquipmentWithScriptToCustomKeyArray(
     const std::string& equipmentKey) {
-  NSUInteger i, j;
+  std::size_t i, j;
   oo::PList object;
 
   for (i = 0; i < eqScripts.size(); i++) {
@@ -12250,7 +12255,7 @@ void PlayerEntity::addEquipmentFromCollection(const oo::PList& equipment) {
   oo::PList dict;  // null unless the collection is a dictionary
   std::vector<std::string>
       eqKeys;  // the keys / elements in the collection's enumeration order
-  NSUInteger i, count;
+  std::size_t i, count;
 
   // Pass 1: Load the entire collection.
   if (const oo::PList::Dict* equipmentDict =
@@ -12296,7 +12301,7 @@ void PlayerEntity::addEquipmentFromCollection(const oo::PList& equipment) {
     // excluding valid equipment, just because the required equipment existed
     // but had not been yet added to the equipment list at the time of the
     // canAddEquipment validation check. Nikos, 20080817.
-    count = dict.get<NSUInteger>(
+    count = dict.get<std::size_t>(
         eqDesc);  // (0 for a list: nothing is added from one here, as before)
     for (i = 0; i < count; i++) {
       addEquipmentItem(eqDesc, false, "loading");
@@ -12388,7 +12393,7 @@ bool PlayerEntity::removeExternalStore(::OOEquipmentType* eqType) {
   return false;
 }
 
-bool PlayerEntity::removeFromPylon(NSUInteger pylon) {
+bool PlayerEntity::removeFromPylon(std::size_t pylon) {
   if (pylon >= max_missiles) return false;
 
   if (missile_entity[pylon]) {
@@ -12424,11 +12429,11 @@ bool PlayerEntity::removeFromPylon(NSUInteger pylon) {
   return false;
 }
 
-NSUInteger PlayerEntity::parcelCount() { return parcels.size(); }
+std::size_t PlayerEntity::parcelCount() { return parcels.size(); }
 
-NSUInteger PlayerEntity::passengerCount() { return passengers.size(); }
+std::size_t PlayerEntity::passengerCount() { return passengers.size(); }
 
-NSUInteger PlayerEntity::passengerCapacity() { return max_passengers; }
+std::size_t PlayerEntity::passengerCapacity() { return max_passengers; }
 
 bool PlayerEntity::hasHostileTarget() {
   ::ShipEntity* playersTarget = oo::ToShip(primaryTarget());
@@ -12600,13 +12605,13 @@ void PlayerEntity::removeTrumble(OOTrumble* deadTrumble) {
   if (trumbleCount <= 0) {
     return;
   }
-  NSUInteger trumble_index = NSNotFound;
-  NSUInteger i;
+  std::size_t trumble_index = oo::kNotFound;
+  std::size_t i;
 
-  for (i = 0; (trumble_index == NSNotFound) && (i < trumbleCount); i++) {
+  for (i = 0; (trumble_index == oo::kNotFound) && (i < trumbleCount); i++) {
     if (trumble[i] == deadTrumble) trumble_index = i;
   }
-  if (trumble_index == NSNotFound) {
+  if (trumble_index == oo::kNotFound) {
     OO_LOG("trumble.zombie", "DEBUG can't get rid of inactive trumble {}",
            static_cast<const void*>(deadTrumble));
     return;
@@ -12618,7 +12623,7 @@ void PlayerEntity::removeTrumble(OOTrumble* deadTrumble) {
 
 oo::Ref<OOTrumble>* PlayerEntity::trumbleArray() { return trumble; }
 
-NSUInteger PlayerEntity::getTrumbleCount() { return trumbleCount; }
+std::size_t PlayerEntity::getTrumbleCount() { return trumbleCount; }
 
 // Trumble values, checksums, screen modes, target memory, missile ident,
 // rotating and panning the custom view. (Sends to self are member calls.)
@@ -12814,22 +12819,22 @@ void PlayerEntity::addTarget(Entity* targetEntity)  // the C++ entity
         oo::WeakRef<Entity>(targetEntity);  // was [targetEntity weakSelf]
     // -indexOfObject: compared the weak references (proxies) by identity;
     // WeakRef's == compares the same identity
-    const auto slotFor = [this](const oo::WeakRef<Entity>& ref) -> NSUInteger {
+    const auto slotFor = [this](const oo::WeakRef<Entity>& ref) -> std::size_t {
       const auto found = std::find_if(
           target_memory.begin(), target_memory.end(),
           [&ref](const oo::WeakRef<Entity>& slot) { return slot == ref; });
       return (found != target_memory.end())
-                 ? static_cast<NSUInteger>(found - target_memory.begin())
-                 : NSNotFound;
+                 ? static_cast<std::size_t>(found - target_memory.begin())
+                 : oo::kNotFound;
     };
-    NSUInteger i = slotFor(targetRef);
+    std::size_t i = slotFor(targetRef);
     // if already in target memory, preserve that and just change the index
-    if (i != NSNotFound) {
+    if (i != oo::kNotFound) {
       target_memory_index = i;
     } else {
       i = slotFor(oo::WeakRef<Entity>());  // an empty slot
       // find and use a blank space in memory
-      if (i != NSNotFound) {
+      if (i != oo::kNotFound) {
         target_memory.at(i) = targetRef;
         target_memory_index = i;
       } else {
@@ -12866,8 +12871,8 @@ void PlayerEntity::addTarget(Entity* targetEntity)  // the C++ entity
 }
 
 void PlayerEntity::clearTargetMemory() {
-  NSUInteger memoryCount = target_memory.size();
-  for (NSUInteger i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++) {
+  std::size_t memoryCount = target_memory.size();
+  for (std::size_t i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++) {
     if (i < memoryCount) {
       target_memory[i] = nullptr;
     } else {
@@ -12881,11 +12886,11 @@ std::vector<oo::WeakRef<Entity>> PlayerEntity::targetMemory() {
   return target_memory;
 }
 
-bool PlayerEntity::moveTargetMemoryBy(NSInteger delta) {
+bool PlayerEntity::moveTargetMemoryBy(std::ptrdiff_t delta) {
   unsigned i = 0;
   while (i++ < PLAYER_TARGET_MEMORY_SIZE)  // limit loops
   {
-    NSInteger idx = (NSInteger)target_memory_index + delta;
+    std::ptrdiff_t idx = (std::ptrdiff_t)target_memory_index + delta;
     while (idx < 0) idx += PLAYER_TARGET_MEMORY_SIZE;
     while (idx >= PLAYER_TARGET_MEMORY_SIZE) idx -= PLAYER_TARGET_MEMORY_SIZE;
     target_memory_index = idx;

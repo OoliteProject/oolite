@@ -68,15 +68,15 @@ OOJavaScriptEngine* OOJavaScriptEngine::sharedEngine() {
 // as a function expression in the global scope, as OOJSFunction.mm does.
 oo::Ref<OOJSFunction> OOJSFunction::initWithName(
     const std::optional<std::string>& name, JSValueConst scope,
-    const std::optional<std::string>& code, NSUInteger argCount,
+    const std::optional<std::string>& code, std::size_t argCount,
     const char** argNames, const std::optional<std::string>& fileName,
-    NSUInteger lineNumber, JSContext* context) {
+    std::size_t lineNumber, JSContext* context) {
   (void)scope;
   (void)lineNumber;
   sFunctionsMade++;
   if (sFailCompile) return nullptr;
   std::string source = "(function " + name.value_or(std::string()) + "(";
-  for (NSUInteger i = 0; i < argCount; i++)
+  for (std::size_t i = 0; i < argCount; i++)
     source += std::string(i != 0 ? "," : "") + argNames[i];
   source += ") {\n" + code.value_or(std::string()) + "\n})";
   JSValue function =
@@ -153,7 +153,7 @@ void OOJSReportPendingException(JSContext* context) {
 namespace {
 
 bool Matches(const std::string& string, const std::string& regExp,
-             NSUInteger flags = 0) {
+             std::size_t flags = 0) {
   oo::Ref<OORegExpMatcher> matcher = OORegExpMatcher::regExpMatcher();
   return matcher != nullptr && matcher->string(string, regExp, flags);
 }

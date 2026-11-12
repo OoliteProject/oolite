@@ -73,7 +73,7 @@ class TestObjCEntity : public Entity {
   bool isPlanet() override { return true; }
   bool canCollide() override { return false; }
   GLfloat frustumRadius() override { return _frustumRadius; }
-  NSUInteger sessionID() override { return _session; }
+  std::size_t sessionID() override { return _session; }
   bool isVisible() override { return _visible; }
   void updateCameraRelativePosition() override {
     _cameraUpdates++;
@@ -94,7 +94,7 @@ class TestObjCEntity : public Entity {
   int _selfStateDumps = 0;
   int _draws = 0;
   GLfloat _frustumRadius = 0;
-  NSUInteger _session = 0;
+  std::size_t _session = 0;
   bool _visible = false;
 };
 
@@ -180,7 +180,7 @@ void SetUpUniverse() {
     sUniverse = new Universe();  // never released
   }
   gSharedUniverse = sUniverse;
-  UniverseIvar<NSUInteger>("_sessionID") = 0;
+  UniverseIvar<std::size_t>("_sessionID") = 0;
   UniverseIvar<OOTimeAbsolute>("universal_time") = 0;
   sUniverse->n_entities = 0;
   sUniverse->x_list_start = sUniverse->y_list_start = sUniverse->z_list_start =
@@ -223,7 +223,7 @@ OO_TEST(defaults) {
     oo::AutoreleaseScope scope;
     SetUpUniverse();
     SetUpPlayer(kZeroHPVector, kZeroHPVector);
-    UniverseIvar<NSUInteger>("_sessionID") = 7;
+    UniverseIvar<std::size_t>("_sessionID") = 7;
     UniverseIvar<OOTimeAbsolute>("universal_time") = 12.5;
 
     Entity* entity = oo::MadeEntity(oo::makeRef<Entity>());
@@ -557,7 +557,7 @@ OO_TEST(sessionAndShaderBindings) {
 
     Entity* entity = MakeEntity(make_HPvector(0, 0, 3), 1.0f);
     OO_CHECK(entity->validForAddToUniverse());
-    UniverseIvar<NSUInteger>("_sessionID") = 1;  // a new game started since
+    UniverseIvar<std::size_t>("_sessionID") = 1;  // a new game started since
     OO_CHECK(!entity->validForAddToUniverse());
 
     UniverseIvar<OOTimeAbsolute>("universal_time") = 104.5;

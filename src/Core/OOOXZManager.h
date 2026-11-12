@@ -143,7 +143,7 @@ class OOOXZManager : public oo::RefCounted {
       const std::string& version);  // nullopt: no user root
   std::optional<std::string> dataURL();
   std::optional<std::string> humanSize(
-      NSUInteger bytes);  // nullopt: the missing-field description is missing
+      std::size_t bytes);  // nullopt: the missing-field description is missing
 
   bool ensureInstallPath();
 
@@ -158,11 +158,11 @@ class OOOXZManager : public oo::RefCounted {
   std::optional<std::string> installStatusForManifest(
       const oo::PList& manifest);  // nullopt: its description is missing
 
-  bool installOXZ(NSUInteger item);
+  bool installOXZ(std::size_t item);
   bool updateAllOXZ();
-  bool removeOXZ(NSUInteger item);
+  bool removeOXZ(std::size_t item);
 
-  std::string extractOXZ(NSUInteger item);  // the extraction log
+  std::string extractOXZ(std::size_t item);  // the extraction log
 
   std::vector<oo::PList> installOptions();  // the manifests on the current page
   std::vector<oo::PList> removeOptions();  // empty: nothing removable (was nil)
@@ -215,13 +215,13 @@ class OOOXZManager : public oo::RefCounted {
   std::string _currentDownloadName;
 
   OXZDownloadStatus _downloadStatus = {};
-  NSUInteger _downloadProgress = {};
-  NSUInteger _downloadExpected = {};
-  NSUInteger _item = {};
+  std::size_t _downloadProgress = {};
+  std::size_t _downloadExpected = {};
+  std::size_t _item = {};
 
   bool _downloadAllDependencies = {};
 
-  NSUInteger _offset = {};
+  std::size_t _offset = {};
 
   std::string _progressStatus;  // "" when there is none
   // Unique by oo::PList::operator==; "any" is front() (order-sensitive: named

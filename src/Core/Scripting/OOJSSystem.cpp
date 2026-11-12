@@ -1641,7 +1641,7 @@ static JSValue SystemAddShipsOrGroup(JSContext* context, int argc,
   int32_t count = 0;
   int consumed = 0;
   HPVector where;
-  double radius = (double)NSNotFound;  // a negative value means
+  double radius = (double)oo::kNotFound;  // a negative value means
   oo::PList result;
 
   std::string func = isGroup ? "addGroup" : "addShips";
@@ -1722,7 +1722,7 @@ static JSValue SystemAddShipsOrGroupToRoute(JSContext* context, int argc,
                                                     "sw", "sp", "ps"};
   int32_t count = 0;
   double where =
-      (double)NSNotFound;  // a negative value means random positioning!
+      (double)oo::kNotFound;  // a negative value means random positioning!
   oo::PList result;
 
   std::string func = isGroup ? "addGroup" : "addShips";

@@ -74,7 +74,7 @@ Octree::Octree(const oo::Data& data, GLfloat radius) {
     _data = data;
     _radius = radius;
 
-    NSUInteger nodeCount = _data.length() / sizeof *_octree;
+    std::size_t nodeCount = _data.length() / sizeof *_octree;
     OOCParameterAssert(nodeCount < UINT32_MAX);
     _nodeCount = (uint32_t)nodeCount;
 

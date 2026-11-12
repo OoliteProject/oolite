@@ -267,14 +267,14 @@ class Universe : public oo::RefCounted {
   void deleteOpenGLObjects();
   void resizeTargetFramebufferWithViewSize(NSSize viewSize);
   void drawTargetTextureIntoDefaultFramebuffer();
-  NSUInteger sessionID();
+  std::size_t sessionID();
   bool doingStartUp();
   bool getDoProcedurallyTexturedPlanets();
   void setDoProcedurallyTexturedPlanets(bool value);
   std::optional<std::string> getUseAddOns();
   bool setUseAddOns(const std::string& newUse, bool saveGame);
   bool setUseAddOns(const std::string& newUse, bool saveGame, bool force);
-  NSUInteger entityCount();
+  std::size_t entityCount();
 #ifdef OO_DEBUG_MONITOR_ENABLED
   void debugDumpEntities();
   std::vector<oo::EntityHold> entityList();
@@ -298,7 +298,7 @@ class Universe : public oo::RefCounted {
 
   GLfloat stars_ambient[4] = {};
 
-  NSUInteger _sessionID = 0;
+  std::size_t _sessionID = 0;
 
   // colors
   GLfloat sun_diffuse[4] = {};
@@ -365,8 +365,8 @@ class Universe : public oo::RefCounted {
   OOTimeAbsolute demo_start_time = 0;
   GLfloat demo_start_z = 0;
   int demo_stage = 0;
-  NSUInteger demo_ship_index = 0;
-  NSUInteger demo_ship_subindex = 0;
+  std::size_t demo_ship_index = 0;
+  std::size_t demo_ship_subindex = 0;
   oo::PList demo_ships;  // arrays (one per class) of demo ship dictionaries
 
   GLfloat main_light_position[4] = {};
@@ -460,7 +460,7 @@ class Universe : public oo::RefCounted {
   std::vector<oo::EntityHold>
       entitiesDeadThisUpdate;  // each once, in the order removed
   int framesDoneThisUpdate = 0;
-  NSUInteger drawCounter = 0;
+  std::size_t drawCounter = 0;
 
 #if OOLITE_SPEECH_SYNTH
 #if OOLITE_ESPEAK
@@ -985,7 +985,7 @@ class Universe : public oo::RefCounted {
 #if OO_LOCALIZATION_TOOLS
   void addNumericRefsInString(const std::string& string, std::string& graphViz,
                               const std::string& fromNode,
-                              NSUInteger nodeCount);
+                              std::size_t nodeCount);
   void runLocalizationTools();
 #endif
   void prunePreloadingPlanetMaterials();
@@ -1017,7 +1017,7 @@ OOINLINE Universe* OOGetUniverse(void) {
 // itself when there is none.
 std::string cxx_OOLookUpDescriptionPRIV(const std::string& key);
 std::string cxx_OOLookUpPluralDescriptionPRIV(const std::string& key,
-                                              NSInteger count);
+                                              std::ptrdiff_t count);
 
 /*	The bodies of the custom-sound categories of OOSound and OOSoundSource
    The sound for a customsounds.plist key (borrowed: the resource

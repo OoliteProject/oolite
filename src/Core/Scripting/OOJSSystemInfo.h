@@ -72,7 +72,7 @@ class OOSystemInfo : public oo::PListForeign, public ::OOJSPrivateObject {
   std::optional<std::string> oo_jsClassName() const;
 
   bool isEqual(const OOSystemInfo* other) const;  // null: not equal
-  NSUInteger hash() const;
+  std::size_t hash() const;
 
   oo::PList valueForKey(
       const std::optional<std::string>& key);  // null for none

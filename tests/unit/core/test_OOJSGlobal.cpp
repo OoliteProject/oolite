@@ -502,7 +502,7 @@ namespace {
 std::vector<std::function<void()>> sDeferredCalls;
 }
 
-void OOScheduleDeferredCall(std::function<void()> call, NSTimeInterval delay)
+void OOScheduleDeferredCall(std::function<void()> call, double delay)
 {
 	(void)delay;
 	sDeferredCalls.push_back(std::move(call));

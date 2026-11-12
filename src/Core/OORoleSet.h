@@ -92,7 +92,7 @@ class OORoleSet : public oo::RefCounted {
   // -isEqual: and -hash: equal role sets have the same roles with the same
   // probabilities.
   bool isEqual(OORoleSet* other);
-  NSUInteger hash();
+  std::size_t hash();
 
   // What "%@" prints between the braces of <OORoleSet 0x...>{...}
   // (OODescription.h).

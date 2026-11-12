@@ -33,10 +33,10 @@ MA 02110-1301, USA.
 #include "OOMacroOpenGL.h"
 #include "Universe.h"
 
-void OOBreakPatternEntity::initWithPolygonSides(NSUInteger sides,
+void OOBreakPatternEntity::initWithPolygonSides(std::size_t sides,
                                                 float startAngleDegrees,
                                                 float aspectRatio) {
-  sides = MIN(MAX((NSUInteger)3, sides), (NSUInteger)kOOBreakPatternMaxSides);
+  sides = MIN(MAX((std::size_t)3, sides), (std::size_t)kOOBreakPatternMaxSides);
 
   // [super init] could not fail: the constructor ran Entity's -init body.
   {
@@ -46,8 +46,8 @@ void OOBreakPatternEntity::initWithPolygonSides(NSUInteger sides,
     float xAspect = fmin(1.0f, aspectRatio);
     float yAspect = fmin(1.0f, 1.0f / aspectRatio);
 
-    NSUInteger vi = 0;
-    for (NSUInteger i = 0; i < sides; i++) {
+    std::size_t vi = 0;
+    for (std::size_t i = 0; i < sides; i++) {
       float s = sin(angle) * xAspect;
       float c = cos(angle) * yAspect;
 
@@ -71,7 +71,7 @@ void OOBreakPatternEntity::initWithPolygonSides(NSUInteger sides,
 }
 
 oo::Ref<OOBreakPatternEntity>
-OOBreakPatternEntity::breakPatternWithPolygonSides(NSUInteger sides,
+OOBreakPatternEntity::breakPatternWithPolygonSides(std::size_t sides,
                                                    float startAngleDegrees,
                                                    float aspectRatio) {
   const oo::Ref<OOBreakPatternEntity> ring =
@@ -95,7 +95,7 @@ void OOBreakPatternEntity::setInnerColorComponents(GLfloat color1[4],
                                                    GLfloat color2[4]) {
   GLfloat* colors[2] = {color1, color2};
 
-  for (NSUInteger i = 0; i < _vertexCount; i++) {
+  for (std::size_t i = 0; i < _vertexCount; i++) {
     GLfloat* color = colors[i & 1];
     memcpy(&_vertexColor[i], color, sizeof(GLfloat) * 4);
   }

@@ -496,11 +496,13 @@ GLint OOOpenGLExtensionManager::textureUnitCount() {
 #endif
 }
 
-NSUInteger OOOpenGLExtensionManager::majorVersionNumber() { return major; }
+std::size_t OOOpenGLExtensionManager::majorVersionNumber() { return major; }
 
-NSUInteger OOOpenGLExtensionManager::minorVersionNumber() { return minor; }
+std::size_t OOOpenGLExtensionManager::minorVersionNumber() { return minor; }
 
-NSUInteger OOOpenGLExtensionManager::releaseVersionNumber() { return release_; }
+std::size_t OOOpenGLExtensionManager::releaseVersionNumber() {
+  return release_;
+}
 
 void OOOpenGLExtensionManager::getVersionMajor(unsigned* outMajor,
                                                unsigned* outMinor,

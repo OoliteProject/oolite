@@ -100,14 +100,14 @@ int NumberAfterColon(const std::string& key) {
 }
 
 // -oo_integerForKey: of an entry that may be absent (nil: 0).
-NSInteger IntegerIn(const oo::PList* dict, std::string_view key) {
-  return dict != nullptr ? dict->get<NSInteger>(key) : 0;
+std::ptrdiff_t IntegerIn(const oo::PList* dict, std::string_view key) {
+  return dict != nullptr ? dict->get<std::ptrdiff_t>(key) : 0;
 }
 
 // stickFunctions entry <index>: a null PList past the end (-objectAtIndex:
 // raised there).
 const oo::PList& StickFunctionAt(const std::vector<oo::PList>& entries,
-                                 NSUInteger index) {
+                                 std::size_t index) {
   static const oo::PList none;
   return (index < entries.size()) ? entries[index] : none;
 }
@@ -115,7 +115,7 @@ const oo::PList& StickFunctionAt(const std::vector<oo::PList>& entries,
 // customEquipActivation entry <index>: a null PList past the end
 // (-objectAtIndex: raised there).
 const oo::PList& CustomEquipEntry(const std::vector<oo::PList>& entries,
-                                  NSUInteger index) {
+                                  std::size_t index) {
   static const oo::PList none;
   return (index < entries.size()) ? entries[index] : none;
 }
@@ -124,7 +124,7 @@ const oo::PList& CustomEquipEntry(const std::vector<oo::PList>& entries,
 // past the end or when the entry is not a dictionary (its -setObject:forKey: /
 // -removeObjectForKey: raised there).
 oo::PList::Dict* CustomEquipFields(std::vector<oo::PList>& entries,
-                                   NSUInteger index) {
+                                   std::size_t index) {
   return (index < entries.size()) ? entries[index].getIf<oo::PList::Dict>()
                                   : nullptr;
 }
@@ -388,15 +388,17 @@ void PlayerEntity::checkCustomEquipButtons(const oo::PList& stickFn, int idx) {
       oo::PList::Dict* custEquipDict = custEquip.getIf<oo::PList::Dict>();
       const oo::PList* bf = original.find(activateKey);
       if (IntegerIn(bf, stickNumberKey) ==
-              stickFn.get<NSInteger>(stickNumberKey) &&
-          IntegerIn(bf, stickAxBtKey) == stickFn.get<NSInteger>(stickAxBtKey) &&
+              stickFn.get<std::ptrdiff_t>(stickNumberKey) &&
+          IntegerIn(bf, stickAxBtKey) ==
+              stickFn.get<std::ptrdiff_t>(stickAxBtKey) &&
           custEquip.find(activateKey) != nullptr) {
         custEquipDict->erase(activateKey);
       }
       bf = original.find(modeKey);
       if (IntegerIn(bf, stickNumberKey) ==
-              stickFn.get<NSInteger>(stickNumberKey) &&
-          IntegerIn(bf, stickAxBtKey) == stickFn.get<NSInteger>(stickAxBtKey) &&
+              stickFn.get<std::ptrdiff_t>(stickNumberKey) &&
+          IntegerIn(bf, stickAxBtKey) ==
+              stickFn.get<std::ptrdiff_t>(stickAxBtKey) &&
           custEquip.find(modeKey) != nullptr) {
         custEquipDict->erase(modeKey);
       }
@@ -453,7 +455,7 @@ void PlayerEntity::removeFunction(int idx) {
   setGuiToStickMapperScreen(skip);
 }
 
-void PlayerEntity::displayFunctionList(::GuiDisplayGen* gui, NSUInteger skip) {
+void PlayerEntity::displayFunctionList(::GuiDisplayGen* gui, std::size_t skip) {
   OOJoystickManager* stickHandler = OOJoystickManager::sharedStickHandler();
 
   gui->setColor(OOColor::greenColor().get(), GUI_ROW_HEADING);
@@ -471,8 +473,8 @@ void PlayerEntity::displayFunctionList(::GuiDisplayGen* gui, NSUInteger skip) {
   const oo::PList assignedButs = stickHandler->buttonFunctions();
   const oo::PList assignedGuiButs = stickHandler->guiButtonFunctions();
 
-  NSUInteger i, n_functions = stickFunctions.size();
-  NSInteger n_rows, start_row, previous = 0;
+  std::size_t i, n_functions = stickFunctions.size();
+  std::ptrdiff_t n_rows, start_row, previous = 0;
 
   if (skip >= n_functions) skip = n_functions - 1;
 

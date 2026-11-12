@@ -105,14 +105,14 @@ class OOFlasherEntity : public OOLightParticleEntity,
   void setUpColors(
       const oo::PList* colorSpecifiers);  // an array node, or nullptr
   void getCurrentColorComponents();
-  OOColor* flasherColorAtIndex(NSUInteger index);
+  OOColor* flasherColorAtIndex(std::size_t index);
 
   float _frequency = {};
   float _phase = {};
   float _wave = {};
   float _brightfraction = {};
   std::vector<oo::Ref<OOColor>> _colors;
-  NSUInteger _activeColor = {};
+  std::size_t _activeColor = {};
 
   OOTimeDelta _time = {};
 

@@ -1,6 +1,6 @@
 /*	test_foundation_types.cpp
         oofnd/objc/OOFoundationTypes.h must be GNUstep's
-   NSInteger/NSRange/NSPoint/NSSize/NSRect family bit for bit.
+   std::ptrdiff_t/NSRange/NSPoint/NSSize/NSRect family bit for bit.
 
         The header refuses to compile beside Foundation, so GNUstep's side
    cannot be in this TU. Every expected number below was recorded from a
@@ -19,20 +19,20 @@
 #include "oo_test.hpp"
 #include "oofnd/objc/OOFoundationTypes.h"
 
-// Recorded: sizeof NSInteger 8 align 8 signed, same as intptr_t and long long;
-// NSUInteger 8, same as uintptr_t and unsigned long long.
-static_assert(std::is_same_v<NSInteger, intptr_t>);
-static_assert(std::is_same_v<NSUInteger, uintptr_t>);
-static_assert(std::is_same_v<NSInteger, long long>);
-static_assert(std::is_same_v<NSUInteger, unsigned long long>);
-static_assert(sizeof(NSInteger) == 8 && alignof(NSInteger) == 8);
-static_assert(sizeof(NSUInteger) == 8 && alignof(NSUInteger) == 8);
+// Recorded: sizeof std::ptrdiff_t 8 align 8 signed, same as intptr_t and long long;
+// std::size_t 8, same as uintptr_t and unsigned long long.
+static_assert(std::is_same_v<std::ptrdiff_t, intptr_t>);
+static_assert(std::is_same_v<std::size_t, uintptr_t>);
+static_assert(std::is_same_v<std::ptrdiff_t, long long>);
+static_assert(std::is_same_v<std::size_t, unsigned long long>);
+static_assert(sizeof(std::ptrdiff_t) == 8 && alignof(std::ptrdiff_t) == 8);
+static_assert(sizeof(std::size_t) == 8 && alignof(std::size_t) == 8);
 
-// Recorded: CGFloat is double (8 bytes), CGFLOAT_IS_DOUBLE 1; NSTimeInterval is
-// double.
-static_assert(std::is_same_v<CGFloat, double>);
-static_assert(CGFLOAT_IS_DOUBLE == 1);
-static_assert(std::is_same_v<NSTimeInterval, double>);
+// Recorded: CGFloat was double (8 bytes), CGFLOAT_IS_DOUBLE 1, and NSTimeInterval
+// double; since spec 009 (T033) the geometry structs and intervals are double.
+static_assert(std::is_same_v<decltype(CGPoint::x), double>);
+static_assert(std::is_same_v<decltype(CGSize::width), double>);
+static_assert(std::is_same_v<double, double>);
 
 // Recorded: NSPoint/NSSize/NSRect are CGPoint/CGSize/CGRect.
 static_assert(std::is_same_v<NSPoint, CGPoint>);
@@ -52,17 +52,17 @@ static_assert(offsetof(NSRect, origin) == 0 && offsetof(NSRect, size) == 16);
 static_assert(offsetof(NSRect, origin.y) == 8 &&
               offsetof(NSRect, size.height) == 24);
 
-// Recorded: NSNotFound is a const NSInteger.
+// Recorded: oo::kNotFound is a const std::ptrdiff_t.
 static_assert(
-    std::is_same_v<std::remove_cv_t<decltype(NSNotFound)>, NSInteger>);
+    std::is_same_v<std::remove_cv_t<decltype(oo::kNotFound)>, std::ptrdiff_t>);
 
 OO_TEST(constantsMatchGNUstep) {
-  // Recorded: NSNotFound 9223372036854775807, NSIntegerMax the same,
-  // NSIntegerMin -9223372036854775808, NSUIntegerMax 18446744073709551615.
-  OO_CHECK_EQ(static_cast<long long>(NSNotFound), 9223372036854775807LL);
-  OO_CHECK_EQ(static_cast<long long>(NSIntegerMax), 9223372036854775807LL);
-  OO_CHECK_EQ(static_cast<long long>(NSIntegerMin), -9223372036854775807LL - 1);
-  OO_CHECK_EQ(static_cast<unsigned long long>(NSUIntegerMax),
+  // Recorded: oo::kNotFound 9223372036854775807, PTRDIFF_MAX the same,
+  // PTRDIFF_MIN -9223372036854775808, SIZE_MAX 18446744073709551615.
+  OO_CHECK_EQ(static_cast<long long>(oo::kNotFound), 9223372036854775807LL);
+  OO_CHECK_EQ(static_cast<long long>(PTRDIFF_MAX), 9223372036854775807LL);
+  OO_CHECK_EQ(static_cast<long long>(PTRDIFF_MIN), -9223372036854775807LL - 1);
+  OO_CHECK_EQ(static_cast<unsigned long long>(SIZE_MAX),
               18446744073709551615ULL);
 }
 
@@ -86,15 +86,15 @@ OO_TEST(rangeFunctionsMatchGNUstep) {
   OO_CHECK_EQ(NSLocationInRange(6, r), true);
   OO_CHECK_EQ(NSLocationInRange(7, r), false);
   OO_CHECK_EQ(NSLocationInRange(0, NSMakeRange(0, 0)), false);
-  // Recorded: NSMakeRange(NSNotFound, 0) = {9223372036854775807, 0} (not an
+  // Recorded: NSMakeRange(oo::kNotFound, 0) = {9223372036854775807, 0} (not an
   // overflow).
-  const NSRange notFound = NSMakeRange(NSNotFound, 0);
-  OO_CHECK_EQ(notFound.location, static_cast<NSUInteger>(NSNotFound));
+  const NSRange notFound = NSMakeRange(oo::kNotFound, 0);
+  OO_CHECK_EQ(notFound.location, static_cast<std::size_t>(oo::kNotFound));
   OO_CHECK_EQ(notFound.length, 0u);
   // Recorded: NSEqualRanges same -> 1, different length -> 0.
   OO_CHECK_EQ(NSEqualRanges(r, NSMakeRange(3, 4)), true);
   OO_CHECK_EQ(NSEqualRanges(r, NSMakeRange(3, 5)), false);
-  // (Recorded: NSMakeRange(NSUIntegerMax, 2) raised NSRangeException; here it
+  // (Recorded: NSMakeRange(SIZE_MAX, 2) raised NSRangeException; here it
   // aborts, by design.)
 }
 

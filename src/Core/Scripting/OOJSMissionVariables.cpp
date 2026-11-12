@@ -196,11 +196,11 @@ static int MissionVariablesGetOwnPropertyNames(JSContext* context,
             missionVariables.getIf<oo::PList::Dict>()) {
       for (const auto& entry : *dict) mvars.push_back(entry.first);
     }
-    NSUInteger count = mvars.size();
+    std::size_t count = mvars.size();
     assert(count <= INT32_MAX);
 
     JSPropertyEnum* table = (JSPropertyEnum*)js_malloc(
-        context, sizeof *table * MAX(count, (NSUInteger)1));
+        context, sizeof *table * MAX(count, (std::size_t)1));
     if (table == nullptr) return -1;
 
     uint32_t used = 0;

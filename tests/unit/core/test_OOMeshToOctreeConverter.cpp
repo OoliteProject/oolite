@@ -58,7 +58,7 @@ float Radius(const oo::Ref<Octree>& octree) {
 
 // The octree at a depth (Nodes and Radius read its representation).
 oo::Ref<Octree> At(const oo::Ref<OOMeshToOctreeConverter>& converter,
-                   NSUInteger depth) {
+                   std::size_t depth) {
   return converter->findOctreeToDepth(depth);
 }
 

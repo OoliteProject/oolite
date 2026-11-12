@@ -206,7 +206,7 @@ std::optional<std::string> ExtractionBase(const std::string& identifier,
   return Manager()->extractionBasePathForIdentifier(identifier, version);
 }
 std::optional<std::string> DataURL() { return Manager()->dataURL(); }
-std::optional<std::string> HumanSize(NSUInteger bytes) {
+std::optional<std::string> HumanSize(std::size_t bytes) {
   return Manager()->humanSize(bytes);
 }
 bool EnsureInstallPath() { return Manager()->ensureInstallPath(); }
@@ -564,10 +564,10 @@ std::string InstallStatus(const oo::PList& manifest) {
 std::string Color(const oo::PList& manifest) {
   return ColorName(Manager()->colorForManifest(manifest).get());
 }
-bool InstallOXZ(NSUInteger item) { return Manager()->installOXZ(item); }
+bool InstallOXZ(std::size_t item) { return Manager()->installOXZ(item); }
 bool UpdateAllOXZ() { return Manager()->updateAllOXZ(); }
-bool RemoveOXZ(NSUInteger item) { return Manager()->removeOXZ(item); }
-std::string ExtractOXZ(NSUInteger item) { return Manager()->extractOXZ(item); }
+bool RemoveOXZ(std::size_t item) { return Manager()->removeOXZ(item); }
+std::string ExtractOXZ(std::size_t item) { return Manager()->extractOXZ(item); }
 bool IsRestarting() { return OOOXZManager::sharedManager()->isRestarting(); }
 
 // Deliver the download's events until it is no longer under way (at most 20 s).
@@ -582,7 +582,7 @@ void FinishDownload() {
   }
 }
 
-std::string Element(const oo::PList& list, NSUInteger index) {
+std::string Element(const oo::PList& list, std::size_t index) {
   const oo::PList* element = list.at(index);
   return (element != nullptr) ? Str(*element, kOOManifestTitle) : "(none)";
 }

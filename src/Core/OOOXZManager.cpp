@@ -148,7 +148,7 @@ std::optional<std::string> ManifestString(const oo::PList& manifest,
 }
 
 // [haystack rangeOfString:needle options:NSCaseInsensitiveSearch].location !=
-// NSNotFound, each UTF-16 unit folded with oo::str::toLower as
+// oo::kNotFound, each UTF-16 unit folded with oo::str::toLower as
 // -caseInsensitiveCompare: folds. An empty needle is found (location 0,
 // captured), and so is anything in a nil haystack: the nil message's range is
 // zero-filled, location 0 (captured on GNUstep 1.31.1).
@@ -185,7 +185,7 @@ const oo::PList::Array& Elements(const oo::PList& list) {
 }
 
 // Element index of an Array node; null when out of range.
-oo::PList ElementAt(const oo::PList& list, NSUInteger index) {
+oo::PList ElementAt(const oo::PList& list, std::size_t index) {
   const oo::PList* element = list.at(index);
   return (element != nullptr) ? *element : oo::PList();
 }
@@ -445,13 +445,13 @@ std::optional<std::string> OOOXZManager::dataURL() {
   return kOOOXZDataURL;
 }
 
-std::optional<std::string> OOOXZManager::humanSize(NSUInteger bytes) {
+std::optional<std::string> OOOXZManager::humanSize(std::size_t bytes) {
   if (bytes == 0) {
     return OO_DESC("oolite-oxzmanager-missing-field");
   } else if (bytes < 1024) {
     return "<1 kB";
-  } else if (bytes <
-             static_cast<NSUInteger>(1024) * 1024)  // the product in NSUInteger
+  } else if (bytes < static_cast<std::size_t>(1024) *
+                         1024)  // the product in std::size_t
   {
     return oo::str::format("%zu kB", (size_t)(bytes >> 10));
   } else {
@@ -576,13 +576,14 @@ bool OOOXZManager::applyFilterByAuthor(const oo::PList& manifest,
 
 bool OOOXZManager::applyFilterByDays(const oo::PList& manifest,
                                      const std::string& days) {
-  NSInteger i = (NSInteger)oo::str::longLongValue(days);  // -integerValue
+  std::ptrdiff_t i =
+      (std::ptrdiff_t)oo::str::longLongValue(days);  // -integerValue
   if (i < 1) {
     return false;
   } else {
-    NSUInteger updated =
+    std::size_t updated =
         manifest.get<unsigned long long>(std::string(kOOManifestUploadDate));
-    NSUInteger now = (NSUInteger)oo::date::timeIntervalSince1970();
+    std::size_t now = (std::size_t)oo::date::timeIntervalSince1970();
     return (updated + (86400 * i) > now);
   }
 }
@@ -976,7 +977,7 @@ bool OOOXZManager::processDownloadedOXZ() {
   if (!_dependencyStack.empty()) {
     bool undownloadedRequirement = false;
     bool foundDownload = false;
-    NSUInteger index = 0;
+    std::size_t index = 0;
     std::optional<std::string> needsIdentifier;
     oo::PList requirement;
 
@@ -996,7 +997,7 @@ bool OOOXZManager::processDownloadedOXZ() {
       needsIdentifier = ManifestString(
           requirement, std::string(kOOManifestRelationIdentifier));
 
-      for (NSUInteger i = 0; i < _oxzList.count(); i++) {
+      for (std::size_t i = 0; i < _oxzList.count(); i++) {
         const oo::PList& availableDownload = *_oxzList.at(i);
         const std::optional<std::string> availableIdentifier = ManifestString(
             availableDownload, std::string(kOOManifestIdentifier));
@@ -1253,7 +1254,7 @@ bool OOOXZManager::isRestarting() {
   }
 }
 
-bool OOOXZManager::installOXZ(NSUInteger item) {
+bool OOOXZManager::installOXZ(std::size_t item) {
   if (_filteredList.count() <= item) {
     return false;
   }
@@ -1305,8 +1306,8 @@ bool OOOXZManager::updateAllOXZ() {
           ? std::nullopt
           : ManifestString(_dependencyStack.front(),
                            std::string(kOOManifestRelationIdentifier));
-  NSUInteger item = NSUIntegerMax;
-  for (NSUInteger i = 0; i < _oxzList.count(); i++) {
+  std::size_t item = SIZE_MAX;
+  for (std::size_t i = 0; i < _oxzList.count(); i++) {
     const std::optional<std::string> availableIdentifier =
         ManifestString(*_oxzList.at(i), std::string(kOOManifestIdentifier));
     if (availableIdentifier.has_value() && identifier.has_value() &&
@@ -1318,7 +1319,7 @@ bool OOOXZManager::updateAllOXZ() {
   return installOXZ(item);
 }
 
-bool OOOXZManager::removeOXZ(NSUInteger item) {
+bool OOOXZManager::removeOXZ(std::size_t item) {
   if (_filteredList.count() <= item) {
     OO_LOG("oxz.manager.debug", "Unable to remove item {} as only {} in list",
            item, _filteredList.count());
@@ -1734,7 +1735,7 @@ void OOOXZManager::processSelection() {
     processOptionsNext();
     return;
   } else {
-    NSUInteger item = _offset + selection - OXZ_GUI_ROW_LISTSTART;
+    std::size_t item = _offset + selection - OXZ_GUI_ROW_LISTSTART;
     if (_interfaceState == OXZ_STATE_PICK_REMOVE) {
       removeOXZ(item);
     } else if (_interfaceState == OXZ_STATE_PICK_INSTALL) {
@@ -1944,12 +1945,12 @@ void OOOXZManager::processExtractKey() {
 }
 
 std::vector<oo::PList> OOOXZManager::installOptions() {
-  NSUInteger start = _offset;
+  std::size_t start = _offset;
   if (start >= _filteredList.count()) {
     start = 0;
     _offset = 0;
   }
-  NSUInteger end = start + OXZ_GUI_NUM_LISTROWS;
+  std::size_t end = start + OXZ_GUI_NUM_LISTROWS;
   if (end > _filteredList.count()) {
     end = _filteredList.count();
   }
@@ -1961,7 +1962,7 @@ OOGUIRow OOOXZManager::showInstallOptions() {
   // shows the current installation options page
   OOGUIRow startRow = OXZ_GUI_ROW_LISTPREV;
   const std::vector<oo::PList> options = installOptions();
-  NSUInteger optCount = _filteredList.count();
+  std::size_t optCount = _filteredList.count();
   ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
   OOGUITabSettings tab_stops;
   tab_stops[0] = 0;
@@ -2012,7 +2013,7 @@ OOGUIRow OOOXZManager::showInstallOptions() {
   }
 
   // clear any previous longtext
-  for (NSUInteger i = OXZ_GUI_ROW_LISTSTATUS; i < OXZ_GUI_ROW_INSTALL - 1;
+  for (std::size_t i = OXZ_GUI_ROW_LISTSTATUS; i < OXZ_GUI_ROW_INSTALL - 1;
        i++) {
     if (gui != nullptr) {
       gui->setText("", i, GUI_ALIGN_LEFT);
@@ -2020,7 +2021,7 @@ OOGUIRow OOOXZManager::showInstallOptions() {
     }
   }
   // and any previous listed entries
-  for (NSUInteger i = OXZ_GUI_ROW_LISTSTART; i < OXZ_GUI_ROW_LISTNEXT; i++) {
+  for (std::size_t i = OXZ_GUI_ROW_LISTSTART; i < OXZ_GUI_ROW_LISTNEXT; i++) {
     if (gui != nullptr) {
       gui->setText("", i, GUI_ALIGN_LEFT);
       gui->setKey(std::string(GUI_KEY_SKIP), i);
@@ -2114,10 +2115,10 @@ OOGUIRow OOOXZManager::showInstallOptions() {
               Columns({OO_DESC("oolite-oxzmanager-infoline-url"), infoUrl}),
               OXZ_GUI_ROW_LISTINFO1);
       }
-      NSUInteger size =
+      std::size_t size =
           manifest.get<unsigned int>(std::string(kOOManifestFileSize), 0);
 
-      NSUInteger timestamp = manifest.get<unsigned long long>(
+      std::size_t timestamp = manifest.get<unsigned long long>(
           std::string(kOOManifestUploadDate), 0);
       if (timestamp > 0) {
         // list of installable OXZs
@@ -2171,12 +2172,12 @@ std::vector<oo::PList> OOOXZManager::removeOptions() {
   if (_filteredList.count() == 0) {
     return {};
   }
-  NSUInteger start = _offset;
+  std::size_t start = _offset;
   if (start >= _filteredList.count()) {
     start = 0;
     _offset = 0;
   }
-  NSUInteger end = start + OXZ_GUI_NUM_LISTROWS;
+  std::size_t end = start + OXZ_GUI_NUM_LISTROWS;
   if (end > _filteredList.count()) {
     end = _filteredList.count();
   }
@@ -2242,14 +2243,14 @@ OOGUIRow OOOXZManager::showRemoveOptions() {
   }
 
   // clear any previous longtext
-  for (NSUInteger i = OXZ_GUI_ROW_LISTDESC; i < OXZ_GUI_ROW_INSTALL - 1; i++) {
+  for (std::size_t i = OXZ_GUI_ROW_LISTDESC; i < OXZ_GUI_ROW_INSTALL - 1; i++) {
     if (gui != nullptr) {
       gui->setText("", i, GUI_ALIGN_LEFT);
       gui->setKey(std::string(GUI_KEY_SKIP), i);
     }
   }
   // and any previous listed entries
-  for (NSUInteger i = OXZ_GUI_ROW_LISTSTART; i < OXZ_GUI_ROW_LISTNEXT; i++) {
+  for (std::size_t i = OXZ_GUI_ROW_LISTSTART; i < OXZ_GUI_ROW_LISTNEXT; i++) {
     if (gui != nullptr) {
       gui->setText("", i, GUI_ALIGN_LEFT);
       gui->setKey(std::string(GUI_KEY_SKIP), i);
@@ -2355,7 +2356,7 @@ void OOOXZManager::showOptionsNext() {
   }
 }
 
-std::string OOOXZManager::extractOXZ(NSUInteger item) {
+std::string OOOXZManager::extractOXZ(std::size_t item) {
   std::string extractionLog;
   const oo::PList manifest = ElementAt(_filteredList, item);
   const std::optional<std::string> version =
@@ -2402,7 +2403,7 @@ std::string OOOXZManager::extractOXZ(NSUInteger item) {
     return extractionLog;
   }
   extractionLog += OO_DESC("oolite-oxzmanager-extract-log-main-created");
-  NSUInteger counter = 0;
+  std::size_t counter = 0;
   char rawComponentName[512];
   bool error = false;
   unz_file_info64 file_info = {};

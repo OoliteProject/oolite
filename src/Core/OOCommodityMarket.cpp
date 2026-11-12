@@ -54,7 +54,7 @@ std::optional<std::string> SavedGoodKey(const oo::PList& entry) {
 
 }  // namespace
 
-NSUInteger OOCommodityMarket::count() { return _commodityList.size(); }
+std::size_t OOCommodityMarket::count() { return _commodityList.size(); }
 
 void OOCommodityMarket::setGood(const std::string& key, const oo::PList& info) {
   // A nil info made an empty definition, as +dictionaryWithDictionary:nil did.
@@ -193,7 +193,7 @@ OOMassUnit OOCommodityMarket::massUnitForGood(const std::string& good) {
   return OOMassUnitFromNumber(definition->get<unsigned int>(kContainer));
 }
 
-NSUInteger OOCommodityMarket::exportLegalityForGood(const std::string& good) {
+std::size_t OOCommodityMarket::exportLegalityForGood(const std::string& good) {
   const oo::PList* definition = definitionPointerForGood(good);
   if (definition == nullptr) {
     return 0;
@@ -201,7 +201,7 @@ NSUInteger OOCommodityMarket::exportLegalityForGood(const std::string& good) {
   return definition->get<unsigned long long>(kLegalityExport);
 }
 
-NSUInteger OOCommodityMarket::importLegalityForGood(const std::string& good) {
+std::size_t OOCommodityMarket::importLegalityForGood(const std::string& good) {
   const oo::PList* definition = definitionPointerForGood(good);
   if (definition == nullptr) {
     return 0;

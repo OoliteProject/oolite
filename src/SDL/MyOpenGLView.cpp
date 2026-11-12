@@ -501,7 +501,7 @@ bool MyOpenGLView::init() {
   isAlphabetKeyDown = false;
 
   timeIntervalAtLastClick =
-      (NSTimeInterval)SDL_GetTicksNS() /
+      (double)SDL_GetTicksNS() /
       1e9;  // the clock SDL stamps events on (MyOpenGLView+Input.cpp)
   timeSinceLastMouseWheel =
       oo::date::monotonicSeconds();  // intervals only (MyOpenGLView+Input.cpp)
@@ -1370,8 +1370,8 @@ bool MyOpenGLView::snapShot(const std::optional<std::string>& filename) {
 
 #ifndef NDEBUG
 void MyOpenGLView::dumpRGBAToFileNamed(const std::string& name, uint8_t* bytes,
-                                       NSUInteger width, NSUInteger height,
-                                       NSUInteger rowBytes) {
+                                       std::size_t width, std::size_t height,
+                                       std::size_t rowBytes) {
   if (bytes == nullptr || width == 0 || height == 0 || rowBytes < width * 4)
     return;
 
@@ -1390,8 +1390,8 @@ void MyOpenGLView::dumpRGBAToFileNamed(const std::string& name, uint8_t* bytes,
 }
 
 void MyOpenGLView::dumpRGBToFileNamed(const std::string& name, uint8_t* bytes,
-                                      NSUInteger width, NSUInteger height,
-                                      NSUInteger rowBytes) {
+                                      std::size_t width, std::size_t height,
+                                      std::size_t rowBytes) {
   if (bytes == nullptr || width == 0 || height == 0 || rowBytes < width * 3)
     return;
 
@@ -1410,8 +1410,8 @@ void MyOpenGLView::dumpRGBToFileNamed(const std::string& name, uint8_t* bytes,
 }
 
 void MyOpenGLView::dumpGrayToFileNamed(const std::string& name, uint8_t* bytes,
-                                       NSUInteger width, NSUInteger height,
-                                       NSUInteger rowBytes) {
+                                       std::size_t width, std::size_t height,
+                                       std::size_t rowBytes) {
   if (bytes == nullptr || width == 0 || height == 0 || rowBytes < width) return;
 
   // use the snapshots directory
@@ -1424,10 +1424,10 @@ void MyOpenGLView::dumpGrayToFileNamed(const std::string& name, uint8_t* bytes,
 
   SDL_Surface* tmpSurface =
       SDL_CreateSurface(width, height, SDL_PIXELFORMAT_RGBA32);
-  for (int y = 0; static_cast<NSUInteger>(y) < height; y++) {
+  for (int y = 0; static_cast<std::size_t>(y) < height; y++) {
     uint8_t* srcRow = bytes + rowBytes * y;
     uint8_t* dstRow = (uint8_t*)tmpSurface->pixels + y * tmpSurface->pitch;
-    for (int x = 0; static_cast<NSUInteger>(x) < width; x++) {
+    for (int x = 0; static_cast<std::size_t>(x) < width; x++) {
       dstRow[4 * x + 0] = srcRow[x];
       dstRow[4 * x + 1] = srcRow[x];
       dstRow[4 * x + 2] = srcRow[x];
@@ -1439,9 +1439,9 @@ void MyOpenGLView::dumpGrayToFileNamed(const std::string& name, uint8_t* bytes,
 }
 
 void MyOpenGLView::dumpGrayAlphaToFileNamed(const std::string& name,
-                                            uint8_t* bytes, NSUInteger width,
-                                            NSUInteger height,
-                                            NSUInteger rowBytes) {
+                                            uint8_t* bytes, std::size_t width,
+                                            std::size_t height,
+                                            std::size_t rowBytes) {
   if (bytes == nullptr || width == 0 || height == 0 || rowBytes < width * 2)
     return;
 
@@ -1457,10 +1457,10 @@ void MyOpenGLView::dumpGrayAlphaToFileNamed(const std::string& name,
       width, height,
       SDL_PIXELFORMAT_RGBA32);  // its own pixels, as -dumpGray: never the
                                 // caller's 2-byte-a-pixel buffer
-  for (int y = 0; static_cast<NSUInteger>(y) < height; y++) {
+  for (int y = 0; static_cast<std::size_t>(y) < height; y++) {
     uint8_t* srcRow = bytes + rowBytes * y;
     uint8_t* dstRow = (uint8_t*)tmpSurface->pixels + y * tmpSurface->pitch;
-    for (int x = 0; static_cast<NSUInteger>(x) < width; x++) {
+    for (int x = 0; static_cast<std::size_t>(x) < width; x++) {
       dstRow[4 * x + 0] = srcRow[2 * x];
       dstRow[4 * x + 1] = srcRow[2 * x];
       dstRow[4 * x + 2] = srcRow[2 * x];
@@ -1474,13 +1474,13 @@ void MyOpenGLView::dumpGrayAlphaToFileNamed(const std::string& name,
 void MyOpenGLView::dumpRGBAToRGBFileNamed(
     const std::optional<std::string>& rgbName,
     const std::optional<std::string>& grayName, uint8_t* bytes,
-    NSUInteger width, NSUInteger height, NSUInteger rowBytes) {
+    std::size_t width, std::size_t height, std::size_t rowBytes) {
   if ((!rgbName.has_value() && !grayName.has_value()) || bytes == nullptr ||
       width == 0 || height == 0 || rowBytes < width * 4)
     return;
 
   uint8_t *rgbPx, *grayPx, *srcPx;
-  NSUInteger x, y;
+  std::size_t x, y;
   bool trivalAlpha = true;
 
   std::vector<uint8_t> rgbBytes(width * height * 3);

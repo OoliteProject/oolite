@@ -58,7 +58,7 @@ struct OOShipSaveContext {
   unsigned nextGroupID = 0;
   std::vector<oo::Ref<OOShipGroup>>
       groups;  // keeps the groups alive while they have IDs
-  std::map<NSUInteger, oo::Ref<OOShipGroup>> groupsByID;
+  std::map<std::size_t, oo::Ref<OOShipGroup>> groupsByID;
 };
 
 /*	The ShipEntity (LoadRestore) members are declared in ShipEntity.h and

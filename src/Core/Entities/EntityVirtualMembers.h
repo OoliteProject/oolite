@@ -59,7 +59,7 @@ class Entity;
 // clang-format off
 #define OO_ENTITY_VIRTUAL_MEMBERS(VOID_BODY, VALUE_BODY) \
     /* The session in which the entity was created. */ \
-    virtual NSUInteger sessionID() VALUE_BODY \
+    virtual std::size_t sessionID() VALUE_BODY \
     virtual bool isDock() VALUE_BODY \
     virtual bool isPlanet() VALUE_BODY \
     virtual bool isSun() VALUE_BODY \

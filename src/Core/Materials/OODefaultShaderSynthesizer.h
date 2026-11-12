@@ -107,8 +107,8 @@ class OODefaultShaderSynthesizer : public oo::RefCounted {
       const std::string& mapName);  // Generate a read for a single channel.
 
   // Details of texture setup; generally use read*ForTextureSpec() instead.
-  NSUInteger assignIDForTexture(const oo::PList& textureSpec);
-  NSUInteger textureIDForSpec(const oo::PList& textureSpec);
+  std::size_t assignIDForTexture(const oo::PList& textureSpec);
+  std::size_t textureIDForSpec(const oo::PList& textureSpec);
   void setUpOneTexture(const oo::PList& textureSpec);
   void getSampleName(std::string* outSampleName, std::string* outSwizzleOp,
                      const oo::PList& textureSpec);  // swizzle "" = none
@@ -234,32 +234,35 @@ class OODefaultShaderSynthesizer : public oo::RefCounted {
   std::map<std::string, oo::PList> _texturesByName;
   // _textureIDs: dictionary mapping texture file names to numerical IDs used to
   // name variables.
-  std::map<std::string, NSUInteger> _textureIDs;
+  std::map<std::string, std::size_t> _textureIDs;
   // _sampledTextures: hash of integer texture IDs for which we’ve set up a
   // sample.
-  std::unordered_set<NSUInteger> _sampledTextures;  // was an integer hash table
+  std::unordered_set<std::size_t>
+      _sampledTextures;  // was an integer hash table
 
   // _uniformBindingNames: binding specification -> uniform name (compared with
   // oo::PList ==).
   std::vector<std::pair<oo::PList, std::string>> _uniformBindingNames;
 
-  NSUInteger _usesNormalMap : 1 = 0, _usesDiffuseTerm : 1 = 0,
-                              _constZNormal : 1 = 0, _haveDiffuseLight : 1 = 0,
+  std::size_t _usesNormalMap
+      : 1 = 0,
+        _usesDiffuseTerm : 1 = 0, _constZNormal : 1 = 0,
+        _haveDiffuseLight : 1 = 0,
 
-                              // Completion flags for various generation stages.
+        // Completion flags for various generation stages.
       _completed_writeFinalColorComposite : 1 = 0,
-                              _completed_writeDiffuseColorTerm : 1 = 0,
-                              _completed_writeSpecularLighting : 1 = 0,
-                              _completed_writeLightMaps : 1 = 0,
-                              _completed_writeDiffuseLighting : 1 = 0,
-                              _completed_writeDiffuseColorTermIfNeeded : 1 = 0,
-                              _completed_writeVertexPosition : 1 = 0,
-                              _completed_writeNormalIfNeeded : 1 = 0,
-                              //		_completedwriteNormal: 1,
+        _completed_writeDiffuseColorTerm : 1 = 0,
+        _completed_writeSpecularLighting : 1 = 0,
+        _completed_writeLightMaps : 1 = 0,
+        _completed_writeDiffuseLighting : 1 = 0,
+        _completed_writeDiffuseColorTermIfNeeded : 1 = 0,
+        _completed_writeVertexPosition : 1 = 0,
+        _completed_writeNormalIfNeeded : 1 = 0,
+        //		_completedwriteNormal: 1,
       _completed_writeLightVector : 1 = 0, _completed_writeEyeVector : 1 = 0,
-                              _completed_writeTotalColor : 1 = 0,
-                              _completed_writeTextureCoordRead : 1 = 0,
-                              _completed_writeVertexTangentBasis : 1 = 0;
+        _completed_writeTotalColor : 1 = 0,
+        _completed_writeTextureCoordRead : 1 = 0,
+        _completed_writeVertexTangentBasis : 1 = 0;
 
 #ifndef NDEBUG
   std::unordered_set<std::string_view>

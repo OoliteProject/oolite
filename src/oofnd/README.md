@@ -46,7 +46,7 @@ Rules that hold for every component:
 | `src/oofnd/objc/OOObject.h` | `OOZone`, the opaque zone type (always null) that OOMesh's copy members take |
 | `src/oofnd/objc/OOException.h` | forwards to `oofnd/Exception.hpp` (`oo::Exception`, `OORaiseException`) |
 | `src/oofnd/objc/OOAssert.h` | `OOCAssert` / `OOCParameterAssert`: gnustep-base's assertion semantics, live in every flavour |
-| `src/oofnd/objc/OOFoundationTypes.h` | Foundation's C types (`NSInteger`/`NSUInteger`, `NSRange`, `NSNotFound`, `NSPoint`/`NSSize`/`NSRect`, `NSMake*`, `NSEqual*`, `NSTimeInterval`, `CGFloat`) with GNUstep's exact definitions and names; refuses to compile beside a Foundation header. Pinned by `tests/unit/oofnd/test_foundation_types.cpp` |
+| `src/oofnd/objc/OOFoundationTypes.h` | Foundation's C types (`std::ptrdiff_t`/`std::size_t`, `NSRange`, `oo::kNotFound`, `NSPoint`/`NSSize`/`NSRect`, `NSMake*`, `NSEqual*`, `double`, `double`) with GNUstep's exact definitions and names; refuses to compile beside a Foundation header. Pinned by `tests/unit/oofnd/test_foundation_types.cpp` |
 | `src/oofnd/meson.build` | `oofnd_dep` (include path `src/`, so consumers write `#include "oofnd/X.hpp"`) |
 | `tests/unit/oofnd/test_*.cpp` | one executable per component, plain C++23 |
 | `tests/unit/oofnd/oo_test.hpp` | the whole test harness: `OO_TEST`, `OO_CHECK`, `OO_CHECK_EQ`, `OO_TEST_MAIN` |

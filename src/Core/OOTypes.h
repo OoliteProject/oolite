@@ -32,8 +32,8 @@ MA 02110-1301, USA.
 #include "OOFoundation.h"
 #else
 /*	A plain C or C++ translation unit (OOConstToJSString) needs only the C
-   types OOFoundation.h's floor gives (NSInteger, NSUInteger). OOFoundation.h
-   itself declares more.
+   types OOFoundation.h's floor gives (std::ptrdiff_t, std::size_t).
+   OOFoundation.h itself declares more.
 */
 #include <limits.h>
 
@@ -104,7 +104,7 @@ Everything else is data-driven. COMMODITY_FOOD,		//	=  0
         COMMODITY_GEM_STONES,
         COMMODITY_ALIEN_ITEMS
 };
-typedef NSInteger OOCommodityType;
+typedef std::ptrdiff_t OOCommodityType;
 */
 
 typedef enum {
@@ -182,8 +182,8 @@ enum {
 };
 
 enum { kOOVariableTechLevel = 99 };
-typedef NSUInteger OOTechLevelID;  // 0..14, 99 is special. NSNotFound is used,
-                                   // so NSUInteger required.
+typedef std::size_t OOTechLevelID;  // 0..14, 99 is special. oo::kNotFound is
+                                    // used, so std::size_t required.
 
 typedef uint8_t OOGovernmentID;  // 0..7
 typedef uint8_t OOEconomyID;     // 0..7

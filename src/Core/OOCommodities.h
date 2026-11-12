@@ -56,7 +56,7 @@ class OOCommodities : public oo::RefCounted {
   OOCommodities();  // reads trade-goods.plist
 
   static std::optional<std::string> legacyCommodityType(
-      NSUInteger i);  // always a key (the old method never returned nil)
+      std::size_t i);  // always a key (the old method never returned nil)
 
   oo::Ref<OOCommodityMarket> generateManifestForPlayer();
   oo::Ref<OOCommodityMarket> generateBlankMarket();
@@ -69,7 +69,7 @@ class OOCommodities : public oo::RefCounted {
       const std::string& commodity, OOEconomyID economy,
       const std::optional<std::string>& scriptName, OOSystemID system);
 
-  NSUInteger count();
+  std::size_t count();
   std::vector<std::string> goods();  // commodity keys, in key order
   bool goodDefined(const std::string& key);
   std::optional<std::string> goodNamed(

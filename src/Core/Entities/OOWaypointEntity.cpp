@@ -221,7 +221,7 @@ OOHUDBeaconIcon* OOWaypointEntity::beaconDrawable() {
   if (_beaconDrawable == nullptr) {
     const std::u16string beaconCode =
         oo::utf8ToUtf16(_beaconCode.value_or(std::string()));
-    NSUInteger length = beaconCode.size();  // -length: UTF-16 units
+    std::size_t length = beaconCode.size();  // -length: UTF-16 units
 
     if (length > 1) {
       const oo::PList* iconEntry = UNIVERSE->descriptions()->find(*_beaconCode);

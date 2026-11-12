@@ -201,7 +201,7 @@ public:
 	::StationEntity * dockedStation();
 	OOGUIScreenID guiScreen();
 	void setGuiToMarketScreen();
-	void setGuiToShipyardScreen(NSUInteger skip);
+	void setGuiToShipyardScreen(std::size_t skip);
 	bool isDocked();
 	void setDockingClearanceStatus(OODockingClearanceStatus newValue);
 	void safeAllMissiles();
@@ -476,7 +476,7 @@ bool StationEntity::getMarketMonitored()  { std::abort(); }
 ::StationEntity * PlayerEntity::dockedStation()  { return _dockedStation; }
 OOGUIScreenID PlayerEntity::guiScreen()  { return _screen; }
 void PlayerEntity::setGuiToMarketScreen()  { _marketRefreshes++; }
-void PlayerEntity::setGuiToShipyardScreen(NSUInteger skip)  { (void)skip; _shipyardRefreshes++; }
+void PlayerEntity::setGuiToShipyardScreen(std::size_t skip)  { (void)skip; _shipyardRefreshes++; }
 bool PlayerEntity::isDocked()  { return _docked; }
 void PlayerEntity::setDockingClearanceStatus(OODockingClearanceStatus newValue)
 {

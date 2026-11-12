@@ -272,8 +272,8 @@ class Entity : public oo::RefCounted, public ::OOJSPrivateObject {
   // subEntityReallyDied(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS
   // (EntityVirtualMembers.h)
 
-  NSUInteger getLastDrawCounter();
-  void setLastDrawCounter(NSUInteger drawCounter);
+  std::size_t getLastDrawCounter();
+  void setLastDrawCounter(std::size_t drawCounter);
 
   // Subclass repsonsibilities
   // findCollisionRadius(): virtual, in OO_ENTITY_VIRTUAL_MEMBERS
@@ -405,7 +405,7 @@ class Entity : public oo::RefCounted, public ::OOJSPrivateObject {
 
   JSValue _jsSelf = {};  // Zero-filled (not an object) until created; test with
                          // JS_IsObject().
-  NSUInteger lastDrawCounter = {};
+  std::size_t lastDrawCounter = {};
 
  private:
   bool checkLinkedLists();
@@ -413,7 +413,7 @@ class Entity : public oo::RefCounted, public ::OOJSPrivateObject {
   bool _hasObject = false;  // made by a creator
   bool _disposing = false;  // in its last release
 
-  NSUInteger _sessionID = {};
+  std::size_t _sessionID = {};
 
   oo::WeakRef<Entity> _owner;  // the owner's C++ part
   OOEntityStatus _status = {};

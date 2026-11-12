@@ -48,13 +48,13 @@ MA 02110-1301, USA.
 */
 
 using TableEntry = struct {
-  NSInteger value;
+  std::ptrdiff_t value;
   const char* cString;
   JSAtom atom;
 };
 
 using ConstTable = struct ConstTable {
-  NSUInteger count;
+  std::size_t count;
   TableEntry* entries;
 };
 
@@ -181,7 +181,7 @@ static int CompareEntries(const void* a, const void* b) {
 static void InitTable(JSContext* context, ConstTable* table) {
   OOCParameterAssert(context != nullptr && table != nullptr);
 
-  NSUInteger i;
+  std::size_t i;
   for (i = 0; i < table->count; i++) {
     table->entries[i].atom = JS_NewAtom(context, table->entries[i].cString);
   }
@@ -191,7 +191,7 @@ static void InitTable(JSContext* context, ConstTable* table) {
 
 // MARK: Lookup
 
-JSValue OOJSValueFromConstantPRIVATE(JSContext* context, NSInteger value,
+JSValue OOJSValueFromConstantPRIVATE(JSContext* context, std::ptrdiff_t value,
                                      struct ConstTable* table) {
   OOCAssert(sInited, "%s called before OOConstToJSStringInit().",
             __PRETTY_FUNCTION__);
@@ -200,10 +200,10 @@ JSValue OOJSValueFromConstantPRIVATE(JSContext* context, NSInteger value,
 
   // Binary search. (Signed bounds: the SpiderMonkey version underflowed for
   // values below the first entry.)
-  NSInteger min = 0, max = (NSInteger)table->count - 1;
-  NSInteger current;
+  std::ptrdiff_t min = 0, max = (std::ptrdiff_t)table->count - 1;
+  std::ptrdiff_t current;
   while (min <= max) {
-    NSInteger mid = (min + max) / 2;
+    std::ptrdiff_t mid = (min + max) / 2;
     current = table->entries[mid].value;
     if (current < value) {
       min = mid + 1;
@@ -217,9 +217,9 @@ JSValue OOJSValueFromConstantPRIVATE(JSContext* context, NSInteger value,
   return JS_AtomToString(context, sUndefinedAtom);
 }
 
-NSUInteger OOConstantFromJSValuePRIVATE(JSContext* context, JSValueConst value,
-                                        struct ConstTable* table,
-                                        NSInteger defaultValue) {
+std::size_t OOConstantFromJSValuePRIVATE(JSContext* context, JSValueConst value,
+                                         struct ConstTable* table,
+                                         std::ptrdiff_t defaultValue) {
   OOCAssert(sInited, "%s called before OOConstToJSStringInit().",
             __PRETTY_FUNCTION__);
   OOCParameterAssert(context != nullptr && table != nullptr);
@@ -234,8 +234,8 @@ NSUInteger OOConstantFromJSValuePRIVATE(JSContext* context, JSValueConst value,
     return defaultValue;
   }
 
-  NSInteger result = defaultValue;
-  NSUInteger i, count = table->count;
+  std::ptrdiff_t result = defaultValue;
+  std::size_t i, count = table->count;
   for (i = 0; i < count; i++) {
     if (table->entries[i].atom == atom) {
       result = table->entries[i].value;

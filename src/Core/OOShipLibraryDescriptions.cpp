@@ -145,9 +145,9 @@ std::string OOShipLibraryWitchspace(ShipEntity* demo_ship) {
 std::string OOShipLibraryWeapons(ShipEntity* demo_ship) {
   OOWeaponFacingSet facings =
       demo_ship ? demo_ship->weaponFacings() : OOWeaponFacingSet(0);
-  NSUInteger fixed =
+  std::size_t fixed =
       (facings & 1) + (facings & 2) / 2 + (facings & 4) / 4 + (facings & 8) / 8;
-  NSUInteger pylons = (demo_ship ? demo_ship->missileCapacity() : 0);
+  std::size_t pylons = (demo_ship ? demo_ship->missileCapacity() : 0);
   if (fixed == 0 && pylons == 0) {
     return OO_DESC("oolite-ship-library-weapons-none");
   }
@@ -156,7 +156,7 @@ std::string OOShipLibraryWeapons(ShipEntity* demo_ship) {
 }
 
 std::string OOShipLibraryTurrets(ShipEntity* demo_ship) {
-  NSUInteger turretCount = (demo_ship ? demo_ship->turretCount() : 0);
+  std::size_t turretCount = (demo_ship ? demo_ship->turretCount() : 0);
   if (turretCount > 0) {
     return oo::str::format(OO_DESC("oolite-ship-library-turrets-u").c_str(),
                            turretCount);

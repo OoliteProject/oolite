@@ -163,7 +163,7 @@ class OOTimeProfileEntry : public oo::RefCounted {
   std::optional<std::string> description();
 
   std::optional<std::string> function();  // nullopt: none
-  NSUInteger hitCount();
+  std::size_t hitCount();
   double totalTimeSum();
   double selfTimeSum();
   double totalTimeAverage();

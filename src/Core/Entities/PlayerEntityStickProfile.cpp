@@ -440,7 +440,7 @@ void StickProfileScreen::graphProfile(GLfloat alpha, Vector at, NSSize size) {
   OOJoystickAxisProfile* profile =
       stickHandler->getProfileForAxis(current_axis);
   OOJoystickSplineAxisProfile* spline_profile;
-  NSInteger i;
+  std::ptrdiff_t i;
   NSPoint point;
   std::vector<NSPoint> control_points;
 
@@ -472,7 +472,7 @@ void StickProfileScreen::graphProfile(GLfloat alpha, Vector at, NSSize size) {
   spline_profile = dynamic_cast<OOJoystickSplineAxisProfile*>(profile);
   if (spline_profile != nullptr) {
     control_points = spline_profile->controlPoints();
-    for (i = 0; i < (NSInteger)control_points.size(); i++) {
+    for (i = 0; i < (std::ptrdiff_t)control_points.size(); i++) {
       if (i == selected_control_point) {
         OOGL(glColor4f(1.0, 0.0, 0.0, alpha));
       } else {

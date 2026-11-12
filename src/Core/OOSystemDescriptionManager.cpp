@@ -62,7 +62,7 @@ OOSystemLayer OOSystemLayerFromNumber(unsigned int number) {
                                           : static_cast<OOSystemLayer>(number);
 }
 
-// ScanTokensFromString(key) as a property-list array, so at<NSUInteger>(i)
+// ScanTokensFromString(key) as a property-list array, so at<std::size_t>(i)
 // reads a token as the collection extractors read it from the token array.
 oo::PList KeyTokens(const std::string& key) {
   const std::vector<std::string> tokens = oo::str::tokens(key);
@@ -90,7 +90,7 @@ std::optional<std::string> StringForKey(const oo::PList& dict,
 OOSystemDescriptionManager::OOSystemDescriptionManager() {
   universalProperties = oo::PList(oo::PList::Dict());
   interstellarSpace = oo::makeRef<OOSystemDescriptionEntry>();
-  for (NSUInteger i = 0; i < OO_SYSTEM_CACHE_LENGTH; i++) {
+  for (std::size_t i = 0; i < OO_SYSTEM_CACHE_LENGTH; i++) {
     propertyCache[i] = oo::PList(oo::PList::Dict());
     // hub count of 24 is considerably higher than occurs in
     // standard planetinfo
@@ -100,7 +100,7 @@ OOSystemDescriptionManager::OOSystemDescriptionManager() {
 }
 
 void OOSystemDescriptionManager::buildRouteCache() {
-  NSUInteger i, j, k, jIndex, kIndex;
+  std::size_t i, j, k, jIndex, kIndex;
   // firstly, cache all coordinates
   for (i = 0; i < OO_SYSTEM_CACHE_LENGTH; i++) {
     // (nil and "" both have no tokens: the zero point)
@@ -136,7 +136,7 @@ void OOSystemDescriptionManager::setUniversalProperties(
       propertiesInUse.insert(property);
     }
   }
-  for (NSUInteger i = 0; i < OO_SYSTEM_CACHE_LENGTH; i++) {
+  for (std::size_t i = 0; i < OO_SYSTEM_CACHE_LENGTH; i++) {
     updateCacheEntry(i);
   }
 }
@@ -160,11 +160,12 @@ void OOSystemDescriptionManager::setProperties(const oo::PList& properties,
   }
 
   const oo::PList tokens = KeyTokens(key);
-  if (tokens.count() == 2 && tokens.at<NSUInteger>(0) < OO_GALAXIES_AVAILABLE &&
-      tokens.at<NSUInteger>(1) < OO_SYSTEMS_PER_GALAXY) {
-    OOGalaxyID g = tokens.at<NSUInteger>(0);
-    OOSystemID s = tokens.at<NSUInteger>(1);
-    NSUInteger index = (g * OO_SYSTEMS_PER_GALAXY) + s;
+  if (tokens.count() == 2 &&
+      tokens.at<std::size_t>(0) < OO_GALAXIES_AVAILABLE &&
+      tokens.at<std::size_t>(1) < OO_SYSTEMS_PER_GALAXY) {
+    OOGalaxyID g = tokens.at<std::size_t>(0);
+    OOSystemID s = tokens.at<std::size_t>(1);
+    std::size_t index = (g * OO_SYSTEMS_PER_GALAXY) + s;
     if (index >= OO_SYSTEM_CACHE_LENGTH) {
       OO_LOG("system.description.error",
              "'{}' is an invalid system key. This is an internal error. Please "
@@ -188,13 +189,14 @@ void OOSystemDescriptionManager::setProperty(
   propertiesInUse.insert(property);
 
   const oo::PList tokens = KeyTokens(key);
-  if (tokens.count() == 2 && tokens.at<NSUInteger>(0) < OO_GALAXIES_AVAILABLE &&
-      tokens.at<NSUInteger>(1) < OO_SYSTEMS_PER_GALAXY) {
+  if (tokens.count() == 2 &&
+      tokens.at<std::size_t>(0) < OO_GALAXIES_AVAILABLE &&
+      tokens.at<std::size_t>(1) < OO_SYSTEMS_PER_GALAXY) {
     saveScriptedChangeToProperty(property, key, layer, value, manifest);
 
-    OOGalaxyID g = tokens.at<NSUInteger>(0);
-    OOSystemID s = tokens.at<NSUInteger>(1);
-    NSUInteger index = (g * OO_SYSTEMS_PER_GALAXY) + s;
+    OOGalaxyID g = tokens.at<std::size_t>(0);
+    OOSystemID s = tokens.at<std::size_t>(1);
+    std::size_t index = (g * OO_SYSTEMS_PER_GALAXY) + s;
     if (index >= OO_SYSTEM_CACHE_LENGTH) {
       OO_LOG("system.description.error",
              "'{}' is an invalid system key. This is an internal error. Please "
@@ -206,9 +208,9 @@ void OOSystemDescriptionManager::setProperty(
   }
   // for interstellar updates, save but don't update cache
   else if (tokens.count() == 4 &&
-           tokens.at<NSUInteger>(1) < OO_GALAXIES_AVAILABLE &&
-           tokens.at<NSUInteger>(2) < OO_SYSTEMS_PER_GALAXY &&
-           tokens.at<NSUInteger>(3) < OO_SYSTEMS_PER_GALAXY) {
+           tokens.at<std::size_t>(1) < OO_GALAXIES_AVAILABLE &&
+           tokens.at<std::size_t>(2) < OO_SYSTEMS_PER_GALAXY &&
+           tokens.at<std::size_t>(3) < OO_SYSTEMS_PER_GALAXY) {
     saveScriptedChangeToProperty(property, key, layer, value, manifest);
   }
 }
@@ -310,7 +312,7 @@ oo::PList OOSystemDescriptionManager::exportScriptedChanges() {
 oo::PList OOSystemDescriptionManager::getPropertiesForCurrentSystem() {
   OOSystemID s = (UNIVERSE != nullptr ? UNIVERSE->currentSystemID() : 0);
   if (s >= 0) {
-    NSUInteger index =
+    std::size_t index =
         ((PLAYER != nullptr ? PLAYER->PlayerEntity::galaxyNumber()
                             : OOGalaxyID{}) *
          OO_SYSTEMS_PER_GALAXY) +
@@ -336,11 +338,12 @@ oo::PList OOSystemDescriptionManager::getPropertiesForCurrentSystem() {
 oo::PList OOSystemDescriptionManager::getPropertiesForSystemKey(
     const std::string& key) {
   const oo::PList tokens = KeyTokens(key);
-  if (tokens.count() == 2 && tokens.at<NSUInteger>(0) < OO_GALAXIES_AVAILABLE &&
-      tokens.at<NSUInteger>(1) < OO_SYSTEMS_PER_GALAXY) {
-    OOGalaxyID g = tokens.at<NSUInteger>(0);
-    OOSystemID s = tokens.at<NSUInteger>(1);
-    NSUInteger index = (g * OO_SYSTEMS_PER_GALAXY) + s;
+  if (tokens.count() == 2 &&
+      tokens.at<std::size_t>(0) < OO_GALAXIES_AVAILABLE &&
+      tokens.at<std::size_t>(1) < OO_SYSTEMS_PER_GALAXY) {
+    OOGalaxyID g = tokens.at<std::size_t>(0);
+    OOSystemID s = tokens.at<std::size_t>(1);
+    std::size_t index = (g * OO_SYSTEMS_PER_GALAXY) + s;
     if (index >= OO_SYSTEM_CACHE_LENGTH) {
       OO_LOG("system.description.error",
              "'{}' is an invalid system key. This is an internal error. Please "
@@ -356,7 +359,7 @@ oo::PList OOSystemDescriptionManager::getPropertiesForSystemKey(
 
 oo::PList OOSystemDescriptionManager::getPropertiesForSystem(OOSystemID s,
                                                              OOGalaxyID g) {
-  NSUInteger index = (g * OO_SYSTEMS_PER_GALAXY) + s;
+  std::size_t index = (g * OO_SYSTEMS_PER_GALAXY) + s;
   if (index >= OO_SYSTEM_CACHE_LENGTH) {
     OO_LOG("system.description.error",
            "'{}, {}' is an invalid system. This is an internal error. Please "
@@ -381,7 +384,7 @@ oo::PList OOSystemDescriptionManager::getProperty(const std::string& property,
            static_cast<int>(g), static_cast<int>(s));
     return oo::PList();
   }
-  NSUInteger index = (g * OO_SYSTEMS_PER_GALAXY) + s;
+  std::size_t index = (g * OO_SYSTEMS_PER_GALAXY) + s;
   if (index >= OO_SYSTEM_CACHE_LENGTH) {
     OO_LOG("system.description.error",
            "'{} {}' is an invalid system key. This is an internal error. "
@@ -508,8 +511,8 @@ oo::PList OOSystemDescriptionManager::calculatePropertiesForSystemKey(
   return oo::PList(std::move(dict));
 }
 
-void OOSystemDescriptionManager::updateCacheEntry(NSUInteger i) {
-  OOCAssert(i < static_cast<NSUInteger>(OO_SYSTEM_CACHE_LENGTH),
+void OOSystemDescriptionManager::updateCacheEntry(std::size_t i) {
+  OOCAssert(i < static_cast<std::size_t>(OO_SYSTEM_CACHE_LENGTH),
             "Invalid cache entry number");  // (the cast: tier-a re-keyed a
                                             // pre-existing widening finding
                                             // when OOAssert became OOCAssert)
@@ -518,9 +521,9 @@ void OOSystemDescriptionManager::updateCacheEntry(NSUInteger i) {
   propertyCache[i] = calculatePropertiesForSystemKey(key);
 }
 
-void OOSystemDescriptionManager::updateCacheEntry(NSUInteger i,
+void OOSystemDescriptionManager::updateCacheEntry(std::size_t i,
                                                   const std::string& property) {
-  OOCAssert(i < static_cast<NSUInteger>(OO_SYSTEM_CACHE_LENGTH),
+  OOCAssert(i < static_cast<std::size_t>(OO_SYSTEM_CACHE_LENGTH),
             "Invalid cache entry number");  // (the cast: tier-a re-keyed a
                                             // pre-existing widening finding
                                             // when OOAssert became OOCAssert)
@@ -544,7 +547,7 @@ NSPoint OOSystemDescriptionManager::getCoordinatesForSystem(OOSystemID s,
            static_cast<int>(g), static_cast<int>(s));
     return (NSPoint){0, 0};
   }
-  NSUInteger index = (g * OO_SYSTEMS_PER_GALAXY) + s;
+  std::size_t index = (g * OO_SYSTEMS_PER_GALAXY) + s;
   if (index >= OO_SYSTEM_CACHE_LENGTH) {
     OO_LOG("system.description.error",
            "'{} {}' is an invalid system key. This is an internal error. "
@@ -564,7 +567,7 @@ std::vector<OOSystemID> OOSystemDescriptionManager::getNeighbourIDsForSystem(
            static_cast<int>(g), static_cast<int>(s));
     return {};
   }
-  NSUInteger index = (g * OO_SYSTEMS_PER_GALAXY) + s;
+  std::size_t index = (g * OO_SYSTEMS_PER_GALAXY) + s;
   if (index >= OO_SYSTEM_CACHE_LENGTH) {
     OO_LOG("system.description.error",
            "'{} {}' is an invalid system key. This is an internal error. "
@@ -581,7 +584,7 @@ Random_Seed OOSystemDescriptionManager::getRandomSeedForCurrentSystem() {
     return kNilRandomSeed;
   } else {
     OOSystemID s = (UNIVERSE != nullptr ? UNIVERSE->currentSystemID() : 0);
-    NSUInteger index =
+    std::size_t index =
         ((PLAYER != nullptr ? PLAYER->PlayerEntity::galaxyNumber()
                             : OOGalaxyID{}) *
          OO_SYSTEMS_PER_GALAXY) +
@@ -609,7 +612,7 @@ Random_Seed OOSystemDescriptionManager::getRandomSeedForSystem(OOSystemID s,
            static_cast<int>(g), static_cast<int>(s));
     return kNilRandomSeed;
   }
-  NSUInteger index = (g * OO_SYSTEMS_PER_GALAXY) + s;
+  std::size_t index = (g * OO_SYSTEMS_PER_GALAXY) + s;
   if (index >= OO_SYSTEM_CACHE_LENGTH) {
     OO_LOG("system.description.error",
            "'{} {}' is an invalid system key. This is an internal error. "
@@ -622,7 +625,7 @@ Random_Seed OOSystemDescriptionManager::getRandomSeedForSystem(OOSystemID s,
 }
 
 OOSystemDescriptionEntry::OOSystemDescriptionEntry() {
-  for (NSUInteger i = 0; i < OO_SYSTEM_LAYERS; i++) {
+  for (std::size_t i = 0; i < OO_SYSTEM_LAYERS; i++) {
     layers[i] = oo::PList(oo::PList::Dict());
   }
 }

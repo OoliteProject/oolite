@@ -407,7 +407,7 @@ OO_TEST(dumpGrayAlphaLeavesTheCallersBytes) {
     stdfs::create_directories(stdfs::current_path() / "oolite-saves" /
                               "snapshots");
 
-    const NSUInteger width = 3, height = 2, rowBytes = 2 * width;
+    const std::size_t width = 3, height = 2, rowBytes = 2 * width;
     std::vector<uint8_t> buffer(rowBytes * height + 64,
                                 0xA5);  // the image, then a guard
     for (size_t i = 0; i < rowBytes * height; i++)

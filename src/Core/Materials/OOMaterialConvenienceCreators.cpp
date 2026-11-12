@@ -66,8 +66,8 @@ namespace {
 struct OOMaterialSynthContext {
   oo::PList inConfig;
   oo::PList::Dict outConfig;
-  NSUInteger texturesUsed;
-  NSUInteger maxTextures;
+  std::size_t texturesUsed;
+  std::size_t maxTextures;
 
   oo::PList::Dict macros;
   std::vector<oo::PList> textures;
@@ -119,7 +119,7 @@ oo::PList OOMaterial::synthesizeMaterialDictionaryWithName(
           configuration.isNull() ? oo::PList(oo::PList::Dict{}) : configuration,
       .outConfig = oo::PList::Dict{},
       .texturesUsed = 0,
-      .maxTextures = (NSUInteger)OOOpenGLExtensionManager::sharedManager()
+      .maxTextures = (std::size_t)OOOpenGLExtensionManager::sharedManager()
                          ->textureImageUnitCount(),
 
       .macros = std::move(macrosCopy),

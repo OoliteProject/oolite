@@ -130,13 +130,13 @@ std::vector<oo::EntityHold> ShipEntity::subEntityEnumerator()  { std::abort(); }
 class PlayerEntity
 {
 public:
-	NSUInteger dialMaxMissiles();
-	::ShipEntity *missileForPylon(NSUInteger value);
+	std::size_t dialMaxMissiles();
+	::ShipEntity *missileForPylon(std::size_t value);
 	std::vector<oo::EntityHold> getScannedWormholes();
 };
 
-NSUInteger PlayerEntity::dialMaxMissiles()  { std::abort(); }
-::ShipEntity *PlayerEntity::missileForPylon(NSUInteger /*value*/)  { std::abort(); }
+std::size_t PlayerEntity::dialMaxMissiles()  { std::abort(); }
+::ShipEntity *PlayerEntity::missileForPylon(std::size_t /*value*/)  { std::abort(); }
 std::vector<oo::EntityHold> PlayerEntity::getScannedWormholes()  { return {}; }	// no wormholes (the memory statistics' stand-in player asks)
 
 PlayerEntity *gOOPlayer = nullptr;

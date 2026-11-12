@@ -50,25 +50,25 @@ oo::PList OOFullScreenController::currentDisplayMode() {
   const oo::PList modes = displayModes();
   const oo::PList::Array* arr = modes.getIf<oo::PList::Array>();
   if (arr == nullptr) return oo::PList();
-  const NSUInteger idx = indexOfCurrentDisplayMode();
+  const std::size_t idx = indexOfCurrentDisplayMode();
   if (idx >= arr->size()) return oo::PList();
   return (*arr)[idx];
 }
 
-NSUInteger OOFullScreenController::indexOfCurrentDisplayMode() {
+std::size_t OOFullScreenController::indexOfCurrentDisplayMode() {
   OOLogGenericSubclassResponsibility();
-  return NSNotFound;
+  return oo::kNotFound;
 }
 
-bool OOFullScreenController::setDisplayWidth(NSUInteger /*width*/,
-                                             NSUInteger /*height*/,
-                                             NSUInteger /*refresh*/) {
+bool OOFullScreenController::setDisplayWidth(std::size_t /*width*/,
+                                             std::size_t /*height*/,
+                                             std::size_t /*refresh*/) {
   OOLogGenericSubclassResponsibility();
   return false;
 }
 
 oo::PList OOFullScreenController::findDisplayModeForWidth(
-    NSUInteger /*width*/, NSUInteger /*height*/, NSUInteger /*d_refresh*/) {
+    std::size_t /*width*/, std::size_t /*height*/, std::size_t /*d_refresh*/) {
   OOLogGenericSubclassResponsibility();
   return oo::PList();
 }

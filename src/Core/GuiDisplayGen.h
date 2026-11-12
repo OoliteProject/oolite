@@ -239,8 +239,8 @@ class OOSound;
 
 class OOTextureSprite;  // C++ (OOTextureSprite.h)
 
-typedef NSInteger OOGUIRow;      // -1 for none
-typedef NSInteger OOGUITabStop;  // negative value = right align text
+typedef std::ptrdiff_t OOGUIRow;      // -1 for none
+typedef std::ptrdiff_t OOGUITabStop;  // negative value = right align text
 typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 
 /*	The members marked virtual are the ones the whole-game unit tests
@@ -328,7 +328,7 @@ class GuiDisplayGen : public oo::RefCounted {
 
   virtual void setTabStops(OOGUITabSettings stops);
   void overrideTabs(OOGUITabSettings stops, const std::string& setting,
-                    NSUInteger len);
+                    std::size_t len);
 
   void clear();
   virtual void clearAndKeepBackground(bool keepBackground);
@@ -407,8 +407,8 @@ class GuiDisplayGen : public oo::RefCounted {
   // click uses it so that it activates the row under the pointer NOW, not the
   // row of the last render.
   int rowAtVirtualJoystickPosition(NSPoint vjpos);
-  void setStatusPage(NSInteger pageNum);
-  NSUInteger getStatusPage();
+  void setStatusPage(std::ptrdiff_t pageNum);
+  std::size_t getStatusPage();
   void drawEquipmentList(const oo::PList& eqptList, GLfloat z);
 
   int drawGUI(GLfloat alpha, bool drawCursor);
@@ -468,10 +468,10 @@ class GuiDisplayGen : public oo::RefCounted {
   bool showTextCursor = {};
   OOGUIRow currentRow = {};
 
-  GLfloat max_alpha = {};      // main alpha setting
-  GLfloat fade_alpha = {};     // for fade-in / fade-out
-  GLfloat fade_sign = {};      //	-1.0 to 1.0
-  NSUInteger statusPage = {};  // status  screen: paging equipped items
+  GLfloat max_alpha = {};       // main alpha setting
+  GLfloat fade_alpha = {};      // for fade-in / fade-out
+  GLfloat fade_sign = {};       //	-1.0 to 1.0
+  std::size_t statusPage = {};  // status  screen: paging equipped items
   OOSystemID foundSystem = {};
 
   void drawGLDisplay(GLfloat x, GLfloat y, GLfloat z, GLfloat alpha);

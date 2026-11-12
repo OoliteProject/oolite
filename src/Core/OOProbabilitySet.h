@@ -73,7 +73,7 @@ class OOProbabilitySet : public oo::RefCounted {
   static oo::Ref<OOProbabilitySet>
   probabilitySet();  // the empty set: one shared object
   static oo::Ref<OOProbabilitySet> probabilitySetWithObjects(
-      const oo::PList* objects, const float* weights, NSUInteger count);
+      const oo::PList* objects, const float* weights, std::size_t count);
   static oo::Ref<OOProbabilitySet> probabilitySetWithPropertyListRepresentation(
       const oo::PList& plist);
 
@@ -81,7 +81,7 @@ class OOProbabilitySet : public oo::RefCounted {
   // objects.
   virtual oo::PList propertyListRepresentation() = 0;
 
-  virtual NSUInteger count() = 0;
+  virtual std::size_t count() = 0;
   virtual oo::PList randomObject() = 0;  // A null PList for none (an empty set,
                                          // or every weight zero).
 
@@ -112,7 +112,7 @@ class OOMutableProbabilitySet : public OOProbabilitySet {
   // The same factories, for a mutable set (+probabilitySet: a new empty one).
   static oo::Ref<OOMutableProbabilitySet> probabilitySet();
   static oo::Ref<OOMutableProbabilitySet> probabilitySetWithObjects(
-      const oo::PList* objects, const float* weights, NSUInteger count);
+      const oo::PList* objects, const float* weights, std::size_t count);
   static oo::Ref<OOMutableProbabilitySet>
   probabilitySetWithPropertyListRepresentation(const oo::PList& plist);
 

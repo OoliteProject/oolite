@@ -180,7 +180,7 @@ void OOJoystickManager::saveProfileForAxis(int axis) {
   std::vector<NSPoint> controlPoints;
   oo::PList::Array points;
   NSPoint point;
-  NSUInteger i;
+  std::size_t i;
 
   profile = getProfileForAxis(axis);
   if (!profile) return;
@@ -251,7 +251,7 @@ void OOJoystickManager::loadProfileForAxis(int axis) {
     const oo::PList *points = dict.get<oo::PList::Array>("ControlPoints"),
                     *pointArray;
     NSPoint point;
-    NSUInteger i;
+    std::size_t i;
 
     for (i = 0; points != nullptr && i < points->count(); i++) {
       pointArray = points->at<oo::PList::Array>(i);
@@ -267,7 +267,7 @@ void OOJoystickManager::loadProfileForAxis(int axis) {
 }
 
 std::vector<std::string> OOJoystickManager::listSticks() {
-  NSUInteger i, stickCount = joystickCount();
+  std::size_t i, stickCount = joystickCount();
 
   std::vector<std::string> stickList;
   for (i = 0; i < stickCount; i++) {
@@ -543,14 +543,14 @@ void OOJoystickManager::loadStickSettings() {
 }
 
 // These get overidden by subclasses
-NSUInteger OOJoystickManager::joystickCount() { return 0; }
+std::size_t OOJoystickManager::joystickCount() { return 0; }
 
 std::optional<std::string> OOJoystickManager::nameOfJoystick(
-    NSUInteger /*stickNumber*/) {
+    std::size_t /*stickNumber*/) {
   return std::string("Dummy joystick");
 }
 
-int16_t OOJoystickManager::getAxisWithStick(NSUInteger /*stickNum*/,
-                                            NSUInteger /*axisNum*/) {
+int16_t OOJoystickManager::getAxisWithStick(std::size_t /*stickNum*/,
+                                            std::size_t /*axisNum*/) {
   return 0;
 }

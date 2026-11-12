@@ -160,7 +160,7 @@ class GameController : public oo::RefCounted {
       unsigned int d_width, unsigned int d_height,
       unsigned int d_refresh);  // a mode dictionary; null: none
   oo::PList getDisplayModes();  // an array of mode dictionaries
-  NSUInteger indexOfCurrentDisplayMode();
+  std::size_t indexOfCurrentDisplayMode();
   void pauseFullScreenModeToPerform(
       const char* selectorName, oo::RefCounted* target);  // by name (was a SEL)
 #endif
@@ -174,7 +174,7 @@ class GameController : public oo::RefCounted {
   ::MyOpenGLView* _gameView =
       {};  // retained; was gameView, named like its getter
 
-  NSTimeInterval last_timeInterval = {};
+  double last_timeInterval = {};
   double delta_t = {};
 
   int my_mouse_x = {}, my_mouse_y = {};
@@ -191,9 +191,9 @@ class GameController : public oo::RefCounted {
       expansionPathsToInclude;  // expansion folders opened with the application
                                 // (Mac)
 
-  NSTimeInterval _animationTimerInterval = {};
+  double _animationTimerInterval = {};
 
-  NSTimeInterval _splashStart = {};  // oo::date::monotonicSeconds() at start-up
+  double _splashStart = {};  // oo::date::monotonicSeconds() at start-up
 
   std::string pauseSelector = {};  // the selector's name; "" none
   oo::RefCounted* pauseTarget =
@@ -248,7 +248,7 @@ class GameController : public oo::RefCounted {
    An OOException from it is caught and logged as the perform's was, and the
    call is then never destroyed, as the performer leaked its target.
 */
-void OOScheduleDeferredCall(std::function<void()> call, NSTimeInterval delay);
+void OOScheduleDeferredCall(std::function<void()> call, double delay);
 
 #if OO_DEBUG
 #define OO_DEBUG_PROGRESS(message) \

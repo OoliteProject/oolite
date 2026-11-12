@@ -366,11 +366,11 @@ void AI::setState(const std::string& stateName) {
   }
 }
 
-void AI::setStateMachine(const std::string& smName, NSTimeInterval delay) {
+void AI::setStateMachine(const std::string& smName, double delay) {
   performDeferredCall("setStateMachine:", smName, delay);
 }
 
-void AI::setState(const std::string& stateName, NSTimeInterval delay) {
+void AI::setState(const std::string& stateName, double delay) {
   performDeferredCall("deferredSetState:", stateName, delay);
 }
 
@@ -385,7 +385,7 @@ std::optional<std::string> AI::associatedJS() {
 
 std::optional<std::string> AI::state() { return currentState; }
 
-NSUInteger AI::stackDepth() { return aiStack.size(); }
+std::size_t AI::stackDepth() { return aiStack.size(); }
 
 #ifndef NDEBUG
 using AIStackElement = struct AIStackElement;
@@ -690,8 +690,7 @@ void AI::dumpState() {
         -- Ahruman 20070706
 */
 void AI::performDeferredCall(const char* selectorName,
-                             const std::string& argument,
-                             NSTimeInterval delay) {
+                             const std::string& argument, double delay) {
   if (selectorName != nullptr) {
     // The call keeps the AI alive until it has run.
     oo::Ref<AI> ai(this);

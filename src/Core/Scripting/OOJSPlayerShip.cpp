@@ -96,7 +96,7 @@ HeadUpDisplay* HudOf(PlayerEntity* player) {
   return (player != nullptr ? player->getHud() : (HeadUpDisplay*)nullptr);
 }
 
-oo::Ref<OOColor> HudReticleColor(PlayerEntity* player, NSUInteger idx) {
+oo::Ref<OOColor> HudReticleColor(PlayerEntity* player, std::size_t idx) {
   HeadUpDisplay* hud =
       (player != nullptr ? player->getHud() : (HeadUpDisplay*)nullptr);
   return (hud != nullptr) ? hud->reticleColorForIndex(idx) : oo::Ref<OOColor>();

@@ -93,8 +93,8 @@ using CallbackEntry = struct {
    observer is needed.
 */
 static CallbackEntry* sCallbacks;
-static NSUInteger sCount;  // Number of slots in use.
-static NSUInteger sSpace;  // Number of slots allocated.
+static std::size_t sCount;  // Number of slots in use.
+static std::size_t sSpace;  // Number of slots allocated.
 // A deferred add or remove.
 using DeferredOperation = struct {
   std::string operation;  // "add" or "remove"
@@ -126,14 +126,14 @@ static bool GrowCallbackList(JSContext* context,
 }  // namespace
 
 namespace {
-static bool GetIndexForTrackingID(uint32_t trackingID, NSUInteger* outIndex);
+static bool GetIndexForTrackingID(uint32_t trackingID, std::size_t* outIndex);
 }  // namespace
 
 namespace {
 static bool RemoveCallbackWithTrackingID(JSContext* context,
                                          uint32_t trackingID);
 }  // namespace
-static void RemoveCallbackAtIndex(JSContext* context, NSUInteger index);
+static void RemoveCallbackAtIndex(JSContext* context, std::size_t index);
 
 namespace {
 static void QueueDeferredOperation(const std::string& opType,
@@ -179,7 +179,7 @@ void OOJSFrameCallbacksInvoke(OOTimeDelta inDeltaT) {
     // As with JS_CallFunctionValue() with a NULL this, callbacks are called
     // with the global object as this.
     JSValue global = JS_GetGlobalObject(context);
-    NSUInteger i;
+    std::size_t i;
 
     // Block mutations.
     sRunning = true;
@@ -322,7 +322,7 @@ static JSValue GlobalIsValidFrameCallback(OOJS_NATIVE_ARGS) {
     OOJS_RETURN_BOOL(false);
   }
 
-  NSUInteger index;
+  std::size_t index;
   OOJS_RETURN_BOOL(GetIndexForTrackingID(trackingID, &index));
 
   OOJS_NATIVE_EXIT
@@ -360,7 +360,7 @@ static bool GrowCallbackList(JSContext* context,
   OOCParameterAssert(context != nullptr);
   OOCParameterAssert(errorString != nullptr);
 
-  NSUInteger newSpace = MAX(sSpace * 2, (NSUInteger)kMinCount);
+  std::size_t newSpace = MAX(sSpace * 2, (std::size_t)kMinCount);
 
   CallbackEntry* newCallbacks =
       (CallbackEntry*)calloc(sizeof(CallbackEntry), newSpace);
@@ -383,7 +383,7 @@ static bool GrowCallbackList(JSContext* context,
 }  // namespace
 
 namespace {
-static bool GetIndexForTrackingID(uint32_t trackingID, NSUInteger* outIndex) {
+static bool GetIndexForTrackingID(uint32_t trackingID, std::size_t* outIndex) {
   OOCParameterAssert(outIndex != nullptr);
 
   /*	It is assumed that few frame callbacks will be active at once, so a
@@ -391,7 +391,7 @@ static bool GetIndexForTrackingID(uint32_t trackingID, NSUInteger* outIndex) {
           can switch to a sorted list or a separate lookup table without
      changing the API.
   */
-  NSUInteger i;
+  std::size_t i;
   for (i = 0; i < sCount; i++) {
     if (sCallbacks[i].trackingID == trackingID) {
       *outIndex = i;
@@ -410,7 +410,7 @@ static bool RemoveCallbackWithTrackingID(JSContext* context,
   OOCAssert(!sRunning, "%s cannot be called while frame callbacks are running.",
             __PRETTY_FUNCTION__);
 
-  NSUInteger index = 0;
+  std::size_t index = 0;
   if (GetIndexForTrackingID(trackingID, &index)) {
     RemoveCallbackAtIndex(context, index);
     return true;
@@ -420,7 +420,7 @@ static bool RemoveCallbackWithTrackingID(JSContext* context,
 }
 }  // namespace
 
-static void RemoveCallbackAtIndex(JSContext* context, NSUInteger index) {
+static void RemoveCallbackAtIndex(JSContext* context, std::size_t index) {
   OOCParameterAssert(context != nullptr);
   OOCParameterAssert(index < sCount && sCallbacks != nullptr);
   OOCAssert(!sRunning, "%s cannot be called while frame callbacks are running.",

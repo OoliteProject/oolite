@@ -60,11 +60,13 @@ OOINLINE INLINE_CONST_FUNC uint64_t OORoundUpToPowerOf2_64(uint64_t value) {
 
 #ifndef OO_PLAIN_CPP_UNIT
 #if OOLITE_64_BIT
-OOINLINE INLINE_CONST_FUNC NSUInteger OORoundUpToPowerOf2_NS(NSUInteger value) {
+OOINLINE INLINE_CONST_FUNC
+    std::size_t OORoundUpToPowerOf2_NS(std::size_t value) {
   return OORoundUpToPowerOf2_64(value);
 }
 #else
-OOINLINE INLINE_CONST_FUNC NSUInteger OORoundUpToPowerOf2_NS(NSUInteger value) {
+OOINLINE INLINE_CONST_FUNC
+    std::size_t OORoundUpToPowerOf2_NS(std::size_t value) {
   return OORoundUpToPowerOf2_32(value);
 }
 #endif

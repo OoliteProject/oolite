@@ -320,7 +320,7 @@ bool OOPolygonSprite::loadPolygons(const oo::PList& dataArray,
   gluTessBeginPolygon(tesselator, &polygonData);
   SVGDumpBeginGroup(&polygonData, "Fill");
 
-  NSUInteger contourCount, contourIndex;
+  std::size_t contourCount, contourIndex;
   contourCount = contours.size();
   for (contourIndex = 0; contourIndex < contourCount && polygonData.OK;
        contourIndex++) {
@@ -428,7 +428,7 @@ namespace {
 
 void SubmitVertices(GLUtesselator* tesselator, TessPolygonData* polygonData,
                     const OOPolygonContour& contour) {
-  NSUInteger vertexCount = contour.size(), vertexIndex;
+  std::size_t vertexCount = contour.size(), vertexIndex;
   if (vertexCount > 2) {
     gluTessBeginContour(tesselator);
 
@@ -460,22 +460,22 @@ std::vector<OOPolygonContour> DataArrayToPoints(TessPolygonData* data,
 
   SVGDumpBeginGroup(data, "Base contours");
 
-  NSUInteger polyIter, polyCount = dataArray.count();
+  std::size_t polyIter, polyCount = dataArray.count();
   std::vector<OOPolygonContour> subArrays(polyCount);
 
   for (polyIter = 0; polyIter < polyCount; polyIter++) {
     const oo::PList& polyDef = *dataArray.at(polyIter);
-    NSUInteger vertIter, vertCount = polyDef.count() / 2;
+    std::size_t vertIter, vertCount = polyDef.count() / 2;
     OOPolygonContour newPolyDef;
     newPolyDef.reserve(vertCount);
-    CGFloat area = 0;
+    double area = 0;
 
-    CGFloat oldX = polyDef.at<double>((vertCount - 1) * 2);
-    CGFloat oldY = polyDef.at<double>((vertCount - 1) * 2 + 1);
+    double oldX = polyDef.at<double>((vertCount - 1) * 2);
+    double oldY = polyDef.at<double>((vertCount - 1) * 2 + 1);
 
     for (vertIter = 0; vertIter < vertCount; vertIter++) {
-      CGFloat x = polyDef.at<double>(vertIter * 2);
-      CGFloat y = polyDef.at<double>(vertIter * 2 + 1);
+      double x = polyDef.at<double>(vertIter * 2);
+      double y = polyDef.at<double>(vertIter * 2 + 1);
 
       // Skip bad or duplicate vertices.
       if (x == oldX && y == oldY) continue;
@@ -513,7 +513,7 @@ std::vector<OOPolygonContour> DataArrayToPoints(TessPolygonData* data,
 
 OOPolygonContour BuildOutlineContour(const OOPolygonContour& dataArray,
                                      GLfloat width, bool inner) {
-  NSUInteger i, count = dataArray.size();
+  std::size_t i, count = dataArray.size();
   if (count < 2) return dataArray;
 
   /*
@@ -567,7 +567,7 @@ OOPolygonContour BuildOutlineContour(const OOPolygonContour& dataArray,
     NSPoint a = PtNormal(PtSub(current, prev));
     NSPoint b = PtNormal(PtSub(next, current));
 
-    CGFloat dot = PtDot(a, b);
+    double dot = PtDot(a, b);
     bool clockwise = PtCross(a, b) < 0.0f;
 
     if (-dot < kCosMitreLimit || !clockwise) {
@@ -832,7 +832,7 @@ void SVGDumpAppendBaseContour(TessPolygonData* data,
       "stroke-width=\"0.05\" d=\"",
       groupName.c_str());
 
-  NSUInteger i, count = points.size();
+  std::size_t i, count = points.size();
   for (i = 0; i < count; i++) {
     NSPoint p = points[i];
     *data->debugSVG +=
