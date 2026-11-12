@@ -117,7 +117,7 @@ class OOPlanetTextureGenerator : public OOTextureGenerator {
                                     RANROTSeed seed);
 
   std::optional<std::string> descriptionComponents() const override;
-  uint32_t textureOptions() override;
+  OOTextureFlags textureOptions() override;
   std::optional<std::string> cacheKey() override;
 
   /*	Was -getResult:format:width:height:, whose keywords are not the root's

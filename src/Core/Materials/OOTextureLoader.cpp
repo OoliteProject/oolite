@@ -73,7 +73,7 @@ static bool sHaveNPOTTextures =
 static bool sHaveSetUp = false;
 
 oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithPath(
-    const std::optional<std::string>& inPath, uint32_t options) {
+    const std::optional<std::string>& inPath, OOTextureFlags options) {
   std::string extension;
   oo::Ref<OOTextureLoader> result;
 
@@ -110,11 +110,11 @@ oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithPath(
 }
 
 oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithTextureSpecifier(
-    const oo::PList& specifier, uint32_t extraOptions,
+    const oo::PList& specifier, OOTextureFlags extraOptions,
     const std::optional<std::string>& folder) {
   std::string name;
   std::optional<std::string> path;
-  uint32_t options = 0;
+  OOTextureFlags options = OOTextureFlags::kNone;
 
   if (!cxx_OOInterpretTextureSpecifier(specifier, &name, &options, nullptr,
                                        nullptr, false))
@@ -122,7 +122,7 @@ oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithTextureSpecifier(
   options |= extraOptions;
   path = ResourceManager::pathForFileNamed(name, folder);
   if (!path.has_value()) {
-    if (!(options & kOOTextureNoFNFMessage)) {
+    if (!oo::Any(options & OOTextureFlags::kNoFNFMessage)) {
       OO_LOG_WARN(cxx_kOOLogFileNotFound, "Could not find texture file \"{}\".",
                   name);
       cxx_OOStandardsError("Texture file not found");
@@ -139,7 +139,7 @@ OOTextureLoader::OOTextureLoader() {}
    it released the receiver and answered nil.
 */
 bool OOTextureLoader::initWithPath(const std::optional<std::string>& inPath,
-                                   uint32_t options) {
+                                   OOTextureFlags options) {
   if (EXPECT_NOT(!inPath.has_value())) {
     return false;
   }
@@ -149,38 +149,38 @@ bool OOTextureLoader::initWithPath(const std::optional<std::string>& inPath,
 
   _maxSize = MIN(sUserMaxSize, sGLMaxSize);
 
-  _generateMipMaps =
-      (options & kOOTextureMinFilterMask) == kOOTextureMinFilterMipMap;
-  _avoidShrinking = (options & kOOTextureNoShrink) != 0;
-  _noScalingWhatsoever = (options & kOOTextureNeverScale) != 0;
+  _generateMipMaps = (options & OOTextureFlags::kMinFilterMask) ==
+                     OOTextureFlags::kMinFilterMipMap;
+  _avoidShrinking = oo::Any(options & OOTextureFlags::kNoShrink);
+  _noScalingWhatsoever = oo::Any(options & OOTextureFlags::kNeverScale);
   if (_avoidShrinking || _noScalingWhatsoever) {
     _shrinkThreshold = kNeverShrinkThreshold;
-  } else if (options & kOOTextureExtraShrink) {
+  } else if (oo::Any(options & OOTextureFlags::kExtraShrink)) {
     _shrinkThreshold = kExtraShrinkThreshold;
     _maxSize = MIN(_maxSize, (uint32_t)kExtraShrinkMaxSize);
   } else {
     _shrinkThreshold = kDefaultShrinkThreshold;
   }
 #if OO_TEXTURE_CUBE_MAP
-  _allowCubeMap = (options & kOOTextureAllowCubeMap) != 0;
+  _allowCubeMap = oo::Any(options & OOTextureFlags::kAllowCubeMap);
 #endif
 
-  if (options & kOOTextureExtractChannelMask) {
+  if (oo::Any(options & OOTextureFlags::kExtractChannelMask)) {
     _extractChannel = true;
-    switch (options & kOOTextureExtractChannelMask) {
-      case kOOTextureExtractChannelR:
+    switch (options & OOTextureFlags::kExtractChannelMask) {
+      case OOTextureFlags::kExtractChannelR:
         _extractChannelIndex = 0;
         break;
 
-      case kOOTextureExtractChannelG:
+      case OOTextureFlags::kExtractChannelG:
         _extractChannelIndex = 1;
         break;
 
-      case kOOTextureExtractChannelB:
+      case OOTextureFlags::kExtractChannelB:
         _extractChannelIndex = 2;
         break;
 
-      case kOOTextureExtractChannelA:
+      case OOTextureFlags::kExtractChannelA:
         _extractChannelIndex = 3;
         break;
 
@@ -189,7 +189,8 @@ bool OOTextureLoader::initWithPath(const std::optional<std::string>& inPath,
             "texture.load.unknownExtractChannelMask",
             "Unknown texture extract channel mask (0x{:04X}). This is an "
             "internal error, please report it.",
-            static_cast<unsigned>(options & kOOTextureExtractChannelMask));
+            static_cast<unsigned>(options &
+                                  OOTextureFlags::kExtractChannelMask));
         _extractChannel = false;
     }
   }
@@ -296,7 +297,7 @@ bool OOTextureLoader::getResult(OOPixMap* result,
 
 std::optional<std::string> OOTextureLoader::cacheKey() {
   return std::format("{}:0x{:04X}", oo::str::lastPathComponent(*path()),
-                     _options);
+                     oo::ToUnderlying(_options));
 }
 
 void OOTextureLoader::loadTexture() { OOLogGenericSubclassResponsibility(); }
@@ -376,8 +377,8 @@ void OOTextureLoader::generateMipMapsForCubeMap() {
   void* newData = malloc(newSize);
   if (EXPECT_NOT(newData == nullptr)) {
     _generateMipMaps = false;
-    _options =
-        (_options & ~kOOTextureMinFilterMask) | kOOTextureMinFilterLinear;
+    _options = (_options & ~OOTextureFlags::kMinFilterMask) |
+               OOTextureFlags::kMinFilterLinear;
     return;
   }
 

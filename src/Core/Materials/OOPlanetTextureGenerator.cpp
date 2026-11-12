@@ -71,9 +71,9 @@
     *x_ = NULL;                                   \
   } while (0)
 
-#define PLANET_TEXTURE_OPTIONS                                                 \
-  (kOOTextureMinFilterLinear | kOOTextureMagFilterLinear | kOOTextureRepeatS | \
-   kOOTextureNoShrink)
+#define PLANET_TEXTURE_OPTIONS                                           \
+  (OOTextureFlags::kMinFilterLinear | OOTextureFlags::kMagFilterLinear | \
+   OOTextureFlags::kRepeatS | OOTextureFlags::kNoShrink)
 
 constexpr int kRandomBufferSize = 128;
 
@@ -92,7 +92,7 @@ class OOPlanetNormalMapGenerator : public OOTextureGenerator {
   bool enqueued();
 
   std::optional<std::string> cacheKey() override;
-  uint32_t textureOptions() override;
+  OOTextureFlags textureOptions() override;
   bool enqueue() override;
   void loadTexture() override;
 
@@ -114,7 +114,7 @@ class OOPlanetAtmosphereGenerator : public OOTextureGenerator {
   bool enqueued();
 
   std::optional<std::string> cacheKey() override;
-  uint32_t textureOptions() override;
+  OOTextureFlags textureOptions() override;
   bool enqueue() override;
   void loadTexture() override;
   bool getResult(OOPixMap* result, OOTextureDataFormat* outFormat,
@@ -181,7 +181,7 @@ bool OOPlanetTextureGenerator::initWithPlanetInfo(const oo::PList& planetInfo,
   // AllowCubeMap not used yet but might be in future
   if (initWithPath(
           std::format("OOPlanetTexture@{}", oo::str::pointerDescription(this)),
-          kOOTextureAllowCubeMap)) {
+          OOTextureFlags::kAllowCubeMap)) {
     OO_LOG("texture.planet.generate", "Extracting parameters for generator {}",
            description());
 
@@ -340,7 +340,7 @@ std::optional<std::string> OOPlanetTextureGenerator::descriptionComponents()
                      _info.landFraction);
 }
 
-uint32_t OOPlanetTextureGenerator::textureOptions() {
+OOTextureFlags OOPlanetTextureGenerator::textureOptions() {
   return PLANET_TEXTURE_OPTIONS;
 }
 
@@ -1164,7 +1164,7 @@ bool OOPlanetNormalMapGenerator::initWithCacheKey(const std::string& cacheKey,
   // AllowCubeMap not used yet but might be in future
   if (initWithPath(std::format("OOPlanetNormalTexture@{}",
                                oo::str::pointerDescription(this)),
-                   kOOTextureAllowCubeMap)) {
+                   OOTextureFlags::kAllowCubeMap)) {
     _enqueued = false;
     _cacheKey = cacheKey;
     _seed = seed;
@@ -1177,7 +1177,7 @@ std::optional<std::string> OOPlanetNormalMapGenerator::cacheKey() {
   return _cacheKey;
 }
 
-uint32_t OOPlanetNormalMapGenerator::textureOptions() {
+OOTextureFlags OOPlanetNormalMapGenerator::textureOptions() {
   return PLANET_TEXTURE_OPTIONS;
 }
 
@@ -1228,7 +1228,7 @@ bool OOPlanetAtmosphereGenerator::initWithCacheKey(
   // AllowCubeMap not used yet but might be in future
   if (initWithPath(std::format("OOPlanetAtmoTexture@{}",
                                oo::str::pointerDescription(this)),
-                   kOOTextureAllowCubeMap)) {
+                   OOTextureFlags::kAllowCubeMap)) {
     _cacheKey = cacheKey;
     _seed = seed;
     _parent = oo::Ref<OOPlanetTextureGenerator>(parent);
@@ -1242,7 +1242,7 @@ std::optional<std::string> OOPlanetAtmosphereGenerator::cacheKey() {
   return _cacheKey;
 }
 
-uint32_t OOPlanetAtmosphereGenerator::textureOptions() {
+OOTextureFlags OOPlanetAtmosphereGenerator::textureOptions() {
   return PLANET_TEXTURE_OPTIONS;
 }
 

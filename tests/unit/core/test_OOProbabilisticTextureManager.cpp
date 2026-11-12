@@ -172,7 +172,7 @@ bool SameSeed(RANROTSeed a, RANROTSeed b) {
 }
 
 oo::Ref<OOProbabilisticTextureManager> Manager(RANROTSeed seed) {
-  return OOProbabilisticTextureManager::createWithPListName("test.plist", 0x803,
+  return OOProbabilisticTextureManager::createWithPListName("test.plist", static_cast<OOTextureFlags>(0x803),
                                                             0.5f, -0.25f, seed);
 }
 
@@ -236,7 +236,7 @@ OO_TEST(seed) {
     RANROTSeed global = MakeRanrotSeed(77);
     RANROTSetFullSeed(global);
     oo::Ref<OOProbabilisticTextureManager> manager =
-        OOProbabilisticTextureManager::createWithPListName("test.plist", 0, 0,
+        OOProbabilisticTextureManager::createWithPListName("test.plist", OOTextureFlags::kNone, 0,
                                                            0);
     OO_CHECK(SameSeed(manager->seed(), global));  // copied from the global seed
     OO_CHECK(SameSeed(RANROTGetFullSeed(), global));  // and that is left alone

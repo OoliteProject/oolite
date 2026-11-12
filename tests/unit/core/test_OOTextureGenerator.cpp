@@ -46,8 +46,8 @@ class BareGenerator : public OOTextureGenerator {
 // A generator that chooses its own settings and cache key.
 class ChoosyGenerator : public BareGenerator {
  public:
-  uint32_t textureOptions() override {
-    return kOOTextureMinFilterNearest | kOOTextureMagFilterNearest;
+  OOTextureFlags textureOptions() override {
+    return OOTextureFlags::kMinFilterNearest | OOTextureFlags::kMagFilterNearest;
   }
   GLfloat anisotropy() override { return 0.25f; }
   GLfloat lodBias() override { return 0.5f; }
@@ -71,7 +71,7 @@ namespace {
 void SetUpLoaders() {
   {
     oo::AutoreleaseScope pool;
-    (void)OOTextureLoader::loaderWithPath(std::string("unknown.type"), 0);
+    (void)OOTextureLoader::loaderWithPath(std::string("unknown.type"), OOTextureFlags::kNone);
   }
 }
 
@@ -80,7 +80,7 @@ void SetUpLoaders() {
 std::vector<oo::Ref<OOTextureGenerator>> gKeptGenerators;
 
 template <class G>
-G* Generator(const char* path, uint32_t options) {
+G* Generator(const char* path, OOTextureFlags options) {
   const oo::Ref<G> made = oo::makeRef<G>();
   if (!made->initWithPath(std::string(path), options)) return nullptr;
   gKeptGenerators.push_back(made);
@@ -102,8 +102,8 @@ OO_TEST(defaults) {
   {
     oo::AutoreleaseScope pool;
     BareGenerator* generator =
-        Generator<BareGenerator>("bare generator", kOOTextureMinFilterLinear);
-    OO_CHECK(generator->textureOptions() == kOOTextureDefaultOptions);
+        Generator<BareGenerator>("bare generator", OOTextureFlags::kMinFilterLinear);
+    OO_CHECK(generator->textureOptions() == OOTextureFlags::kDefaultOptions);
     OO_CHECK(generator->anisotropy() == (GLfloat)kOOTextureDefaultAnisotropy &&
              generator->lodBias() == (GLfloat)kOOTextureDefaultLODBias);
     OO_CHECK(!generator->cacheKey()
@@ -112,7 +112,7 @@ OO_TEST(defaults) {
     OO_CHECK(dynamic_cast<OOTextureLoader*>(generator) != nullptr);
     OO_CHECK(
         generator->description().ends_with(">{{bare generator -- loading}}"));
-    OO_CHECK(!oo::makeRef<BareGenerator>()->initWithPath(std::nullopt, 0));
+    OO_CHECK(!oo::makeRef<BareGenerator>()->initWithPath(std::nullopt, OOTextureFlags::kNone));
   }
 }
 
@@ -123,7 +123,7 @@ OO_TEST(enqueueLoadsOnTheWorkManager) {
     oo::AutoreleaseScope pool;
     const int loads = gLoads;
     BareGenerator* generator =
-        Generator<BareGenerator>("queued generator", kOOTextureMinFilterLinear);
+        Generator<BareGenerator>("queued generator", OOTextureFlags::kMinFilterLinear);
     OO_CHECK(generator->enqueue());
     OOPixMap pixMap = kOONullPixMap;
     OOTextureDataFormat format = kOOPixMapInvalidFormat;
@@ -143,9 +143,9 @@ OO_TEST(aTextureTakesTheGeneratorsSettings) {
   {
     oo::AutoreleaseScope pool;
     ChoosyGenerator* generator =
-        Generator<ChoosyGenerator>("choosy generator", 0);
+        Generator<ChoosyGenerator>("choosy generator", OOTextureFlags::kNone);
     OO_CHECK(generator->textureOptions() ==
-             (kOOTextureMinFilterNearest | kOOTextureMagFilterNearest));
+             (OOTextureFlags::kMinFilterNearest | OOTextureFlags::kMagFilterNearest));
     OO_CHECK(generator->anisotropy() == 0.25f && generator->lodBias() == 0.5f);
 
     OOTexture* texture =
@@ -182,8 +182,8 @@ class TestCxxGenerator final : public OOTextureGenerator {
     _format = kOOPixMapRGBA;
   }
 
-  uint32_t textureOptions() override {
-    return kOOTextureMinFilterLinear | kOOTextureMagFilterLinear;
+  OOTextureFlags textureOptions() override {
+    return OOTextureFlags::kMinFilterLinear | OOTextureFlags::kMagFilterLinear;
   }
   std::optional<std::string> cacheKey() override {
     return std::string("test:cxxgen");
@@ -198,13 +198,13 @@ OO_TEST(cxxApi) {
   {
     oo::AutoreleaseScope pool;
     const oo::Ref<TestCxxGenerator> generator = oo::makeRef<TestCxxGenerator>();
-    OO_CHECK(generator->initWithPath(std::string("cxx generator"), 0));
+    OO_CHECK(generator->initWithPath(std::string("cxx generator"), OOTextureFlags::kNone));
     OO_CHECK(generator->anisotropy() == (GLfloat)kOOTextureDefaultAnisotropy &&
              generator->lodBias() == (GLfloat)kOOTextureDefaultLODBias);
 
     // A texture takes it.
     OO_CHECK(generator->textureOptions() ==
-             (kOOTextureMinFilterLinear | kOOTextureMagFilterLinear));
+             (OOTextureFlags::kMinFilterLinear | OOTextureFlags::kMagFilterLinear));
     OO_CHECK(generator->cacheKey() ==
              std::optional<std::string>("test:cxxgen"));
     OOTexture* texture =
@@ -215,7 +215,7 @@ OO_TEST(cxxApi) {
 
     // The bare class's own answers.
     const oo::Ref<OOTextureGenerator> bare = oo::makeRef<OOTextureGenerator>();
-    OO_CHECK(bare->textureOptions() == kOOTextureDefaultOptions &&
+    OO_CHECK(bare->textureOptions() == OOTextureFlags::kDefaultOptions &&
              !bare->cacheKey().has_value());
   }
   ClearCache();

@@ -95,7 +95,7 @@ void SetUp() {
   }
   {
     oo::AutoreleaseScope pool;
-    (void)OOTextureLoader::loaderWithPath(std::string("unknown.type"), 0);
+    (void)OOTextureLoader::loaderWithPath(std::string("unknown.type"), OOTextureFlags::kNone);
   }
 }
 
@@ -193,7 +193,7 @@ OO_TEST(settingsFromTheOptionsSpecifier) {
                         {"min_filter", oo::PList("nearest")},
                         {"anisotropy", oo::PList(0.5)},
                         {"texture_LOD_bias", oo::PList(-0.25)}});
-    uint32_t expected = 0;
+    OOTextureFlags expected = OOTextureFlags::kNone;
     float anisotropy = 0, lodBias = 0;
     OO_CHECK(cxx_OOInterpretTextureSpecifier(options, NULL, &expected,
                                              &anisotropy, &lodBias, true));

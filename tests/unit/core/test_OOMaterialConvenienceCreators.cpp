@@ -142,7 +142,7 @@ void OOTexture::applyNone() {}
 
 oo::Ref<OOTexture> OOTexture::textureWithConfiguration(
     const oo::PList& configuration) {
-  return textureWithConfiguration(configuration, 0);
+  return textureWithConfiguration(configuration, OOTextureFlags::kNone);
 }
 
 oo::Ref<OOTexture> OOTexture::textureWithConfiguration(
@@ -222,7 +222,7 @@ void OOTextureLoader::loadTexture() {}
 // The loader is the work manager's task (its vtable): never reached.
 void OOTextureLoader::performAsyncTask() { std::abort(); }
 void OOTextureLoader::completeAsyncTask() { std::abort(); }
-uint32_t OOTextureGenerator::textureOptions() { return 0; }
+OOTextureFlags OOTextureGenerator::textureOptions() { return OOTextureFlags::kNone; }
 GLfloat OOTextureGenerator::anisotropy() { return 0; }
 GLfloat OOTextureGenerator::lodBias() { return 0; }
 std::optional<std::string> OOTextureGenerator::cacheKey() {
@@ -249,7 +249,7 @@ OOCombinedEmissionMapGenerator::descriptionComponents() const {
   return std::nullopt;
 }
 #endif
-uint32_t OOCombinedEmissionMapGenerator::textureOptions() { return 0; }
+OOTextureFlags OOCombinedEmissionMapGenerator::textureOptions() { return OOTextureFlags::kNone; }
 GLfloat OOCombinedEmissionMapGenerator::anisotropy() { return 0; }
 GLfloat OOCombinedEmissionMapGenerator::lodBias() { return 0; }
 std::optional<std::string> OOCombinedEmissionMapGenerator::cacheKey() {

@@ -80,7 +80,7 @@ static std::string Str(const oo::PList& plist) {
 /*	OOTexture: a stand-in recording what the material asks. A texture's
    configuration is the specifier it was made from, or "generated".
 */
-// kOOTextureExtraShrink, spelled out as before.
+// OOTextureFlags::kExtraShrink, spelled out as before.
 static const uint32_t kExtraShrink = 0x000020UL;
 
 static int gTextureApplyNones = 0;
@@ -111,12 +111,12 @@ void OOTexture::applyNone() { gTextureApplyNones++; }
 
 oo::Ref<OOTexture> OOTexture::textureWithConfiguration(
     const oo::PList& configuration) {
-  return textureWithConfiguration(configuration, 0);
+  return textureWithConfiguration(configuration, OOTextureFlags::kNone);
 }
 
 oo::Ref<OOTexture> OOTexture::textureWithConfiguration(
     const oo::PList& configuration, OOTextureFlags extraOptions) {
-  gTextureConfigurations.emplace_back(configuration, extraOptions);
+  gTextureConfigurations.emplace_back(configuration, oo::ToUnderlying(extraOptions));
   if (configuration.isNull()) return nullptr;
   oo::Ref<TestTexture> texture = oo::makeRef<TestTexture>();
   texture->_configuration = configuration;
@@ -191,7 +191,7 @@ void OOTextureLoader::loadTexture() {}
 // The loader is the work manager's task (its vtable): never reached.
 void OOTextureLoader::performAsyncTask() { std::abort(); }
 void OOTextureLoader::completeAsyncTask() { std::abort(); }
-uint32_t OOTextureGenerator::textureOptions() { return 0; }
+OOTextureFlags OOTextureGenerator::textureOptions() { return OOTextureFlags::kNone; }
 GLfloat OOTextureGenerator::anisotropy() { return 0; }
 GLfloat OOTextureGenerator::lodBias() { return 0; }
 std::optional<std::string> OOTextureGenerator::cacheKey() {
@@ -234,7 +234,7 @@ OOCombinedEmissionMapGenerator::descriptionComponents() const {
   return std::nullopt;
 }
 #endif
-uint32_t OOCombinedEmissionMapGenerator::textureOptions() { return 0; }
+OOTextureFlags OOCombinedEmissionMapGenerator::textureOptions() { return OOTextureFlags::kNone; }
 GLfloat OOCombinedEmissionMapGenerator::anisotropy() { return 0; }
 GLfloat OOCombinedEmissionMapGenerator::lodBias() { return 0; }
 std::optional<std::string> OOCombinedEmissionMapGenerator::cacheKey() {
