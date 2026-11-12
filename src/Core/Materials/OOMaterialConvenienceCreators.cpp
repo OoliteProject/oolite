@@ -57,6 +57,7 @@ SOFTWARE.
 #include "OOTexture.h"
 #include "Universe.h"
 #include "oofnd/objc/OOAssert.h"
+#include "oofnd/objc/OOException.h"
 
 #if !USE_NEW_SHADER_SYNTHESIZER
 namespace {
@@ -369,6 +370,17 @@ std::shared_ptr<OOMaterial> OOMaterial::materialWithName(
   return result;
 }
 
+// The materials and shaders come from Ship.setMaterials() and setShaders() as
+// whatever the script passed. Reading a key from one that is neither a
+// dictionary nor null (an array, a string) raises NSInvalidArgumentException,
+// as -oo_dictionaryForKey: sent to it did; the script gets a native exception.
+static void RaiseUnlessDictionary(const oo::PList& value, const char* what) {
+  if (!value.isNull() && !value.isDict()) {
+    OORaiseException(OOInvalidArgumentException, "%s is not a dictionary",
+                     what);
+  }
+}
+
 std::shared_ptr<OOMaterial> OOMaterial::materialWithName(
     const std::optional<std::string>& name,
     const std::optional<std::string>& cacheKey, const oo::PList& materialDict,
@@ -378,17 +390,22 @@ std::shared_ptr<OOMaterial> OOMaterial::materialWithName(
 
 #if OO_SHADERS
 
-  if ((UNIVERSE != nullptr ? UNIVERSE->useShaders() : false) &&
-      name.has_value()) {
-    if (const oo::PList* found = shadersDict.get<oo::PList::Dict>(*name)) {
-      configuration = *found;
+  if (UNIVERSE != nullptr ? UNIVERSE->useShaders() : false) {
+    RaiseUnlessDictionary(shadersDict, "shaders");
+    if (name.has_value()) {
+      if (const oo::PList* found = shadersDict.get<oo::PList::Dict>(*name)) {
+        configuration = *found;
+      }
     }
   }
 #endif
 
-  if (configuration.isNull() && name.has_value()) {
-    if (const oo::PList* found = materialDict.get<oo::PList::Dict>(*name)) {
-      configuration = *found;
+  if (configuration.isNull()) {
+    RaiseUnlessDictionary(materialDict, "materials");
+    if (name.has_value()) {
+      if (const oo::PList* found = materialDict.get<oo::PList::Dict>(*name)) {
+        configuration = *found;
+      }
     }
   }
 

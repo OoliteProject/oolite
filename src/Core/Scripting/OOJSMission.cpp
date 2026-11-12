@@ -111,6 +111,20 @@ static const JSCFunctionListEntry sMissionMethods[] = {
     JS_CFUNC_DEF("runShipLibrary", 0, MissionRunShipLibrary),
 };
 
+// A marker object as markSystem() and unmarkSystem() read it. One that converts
+// to neither a dictionary nor null (an array, a string) raises
+// NSInvalidArgumentException, as -oo_intForKey:defaultValue: sent to it did;
+// the script gets a native exception.
+static oo::PList MarkerFromJSObject(JSContext* context, JSValueConst value,
+                                    const char* method) {
+  oo::PList marker = cxx_OOJSPListFromJSObject(context, value);
+  if (!marker.isNull() && !marker.isDict()) {
+    OORaiseException(OOInvalidArgumentException,
+                     "Mission.%s: the marker is not a dictionary", method);
+  }
+  return marker;
+}
+
 // Replace an owned static value, freeing the old one.
 static void SetOwnedValue(JSContext* context, JSValue* slot,
                           JSValueConst value) {
@@ -353,7 +367,8 @@ static JSValue MissionMarkSystem(OOJS_NATIVE_ARGS) {
       }
     } else  // must be object, from above
     {
-      oo::PList marker = OOJSPListFromJSObject(context, OOJS_ARGV[i]);
+      oo::PList marker =
+          MarkerFromJSObject(context, OOJS_ARGV[i], "markSystem");
       OOSystemID system = marker.get<int>("system", -1);
       if (system >= 0) {
         if (player != nullptr) player->addMissionDestinationMarker(marker);
@@ -400,7 +415,8 @@ static JSValue MissionUnmarkSystem(OOJS_NATIVE_ARGS) {
       }
     } else  // must be object, from above
     {
-      oo::PList marker = OOJSPListFromJSObject(context, OOJS_ARGV[i]);
+      oo::PList marker =
+          MarkerFromJSObject(context, OOJS_ARGV[i], "unmarkSystem");
       OOSystemID system = marker.get<int>("system", -1);
       if (system >= 0) {
         if (!(player != nullptr ? player->removeMissionDestinationMarker(marker)
