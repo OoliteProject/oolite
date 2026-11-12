@@ -267,10 +267,10 @@ static void LoadExplicitSettings(void)
     // Load display settings.
     oo::Defaults& prefs = oo::Defaults::standard();
     oo::log::Options options;
-    options.showFunction = oo::PListView(prefs).get<bool>(@"logging-show-function", NO);
-    options.showFileAndLine = oo::PListView(prefs).get<bool>(@"logging-show-file-and-line", NO);
-    options.showTime = oo::PListView(prefs).get<bool>(@"logging-show-time", YES);
-    options.showClass = oo::PListView(prefs).get<bool>(@"logging-show-class", YES);
+    options.showFunction = prefs.object("logging-show-function").isNull() ? NO : prefs.boolForKey("logging-show-function");
+    options.showFileAndLine = prefs.object("logging-show-file-and-line").isNull() ? NO : prefs.boolForKey("logging-show-file-and-line");
+    options.showTime = prefs.object("logging-show-time").isNull() ? YES : prefs.boolForKey("logging-show-time");
+    options.showClass = prefs.object("logging-show-class").isNull() ? YES : prefs.boolForKey("logging-show-class");
     oo::log::logger().setOptions(options);
 
     /*

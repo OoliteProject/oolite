@@ -103,6 +103,7 @@ MA 02110-1301, USA.
 #include "oofnd/objc/OOException.h"
 
 #import "OOFoundationBridge.h" // oo::PListFrom, used by every build, not only OO_LOCALIZATION_TOOLS ones
+#import "OOPListGameTypes.h" // used by every build, not only OO_LOCALIZATION_TOOLS ones
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/PListParsing.hpp"
 #include "oofnd/Scanner.hpp"
@@ -9938,7 +9939,7 @@ int compareName(const oo::PList& offer1, const oo::PList& offer2)
     [self setUpSpace];
 
     [self setDockingClearanceProtocolActive:
-            oo::PListView([self currentSystemData]).get<bool>(@"stations_require_docking_clearance", YES)];
+            [self cxx_currentSystemData].get<bool>("stations_require_docking_clearance", YES)];
 
     [self enterGUIViewModeWithMouseInteraction:NO];
     [player setPosition:[[self station] position]];

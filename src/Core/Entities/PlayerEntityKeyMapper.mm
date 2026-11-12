@@ -276,7 +276,7 @@ oo::PList KeyConfigEntry(const oo::PList::Dict& settings, const std::optional<st
     [[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
 
     [gui clear];
-    [gui setTitle:DESC(@"oolite-keyconfig-header")];
+    [gui cxx_setTitle:OO_DESC("oolite-keyconfig-header")];
 
     // show keyboard layout
     [gui cxx_setArray:Columns({ OO_DESC("oolite-keyconfig-keyboard"), [self keyboardDescription:kbd] }) forRow:GUI_ROW_KC_SELECTKBD];
@@ -709,7 +709,7 @@ oo::PList KeyConfigEntry(const oo::PList::Dict& settings, const std::optional<st
 
     [gui cxx_addLongText:OO_DESC("oolite-keyconfig-update-entry-info") startingAtRow:GUI_ROW_KC_ENTRY_INFO align:GUI_ALIGN_LEFT];
 
-    [gui cxx_setText:oo::str::format("%s: %s", oo::StdString(DESC(@"oolite-keyconfig-update-key")).c_str(), DescriptionOfString([gameView cxx_typedString]).c_str()) forRow:end_row align:GUI_ALIGN_LEFT];
+    [gui cxx_setText:oo::str::format("%s: %s", OO_DESC("oolite-keyconfig-update-key").c_str(), DescriptionOfString([gameView cxx_typedString]).c_str()) forRow:end_row align:GUI_ALIGN_LEFT];
     [gui setColor:[OOColor cyanColor] forRow:end_row];
     [gui setSelectableRange:NSMakeRange(0, 0)];
 
@@ -738,7 +738,7 @@ oo::PList KeyConfigEntry(const oo::PList::Dict& settings, const std::optional<st
         last_shift = YES;
 
     [gui cxx_setText:
-            oo::str::format("%s: %s", oo::StdString(DESC(@"oolite-keyconfig-update-key")).c_str(), DescriptionOfString([gameView cxx_typedString]).c_str())
+            oo::str::format("%s: %s", OO_DESC("oolite-keyconfig-update-key").c_str(), DescriptionOfString([gameView cxx_typedString]).c_str())
               forRow:end_row];
     [gui setColor:[OOColor cyanColor] forRow:end_row];
 
@@ -880,7 +880,7 @@ oo::PList KeyConfigEntry(const oo::PList::Dict& settings, const std::optional<st
 - (void)displayKeyFunctionList:(GuiDisplayGen*)gui skip:(NSUInteger)skip
 {
     [gui setColor:[OOColor greenColor] forRow:GUI_ROW_KC_HEADING];
-    [gui cxx_setArray:{ oo::StdString(DESC(@"oolite-keyconfig-column-function")), oo::StdString(DESC(@"oolite-keyconfig-column-assigned-to")), oo::StdString(DESC(@"oolite-keyconfig-column-overrides")) }
+    [gui cxx_setArray:{ OO_DESC("oolite-keyconfig-column-function"), OO_DESC("oolite-keyconfig-column-assigned-to"), OO_DESC("oolite-keyconfig-column-overrides") }
                forRow:GUI_ROW_KC_HEADING];
 
     const oo::PList overrides = [self loadKeySettings];
@@ -1154,11 +1154,11 @@ oo::PList KeyConfigEntry(const oo::PList::Dict& settings, const std::optional<st
         int i;
         for (i = 0; i < customEquipActivation.size(); i++) {
             const oo::PList equip = customEquipActivation[i];
-            const std::string equipName = DescriptionOfString(OptionalStringForKey(equip, oo::StdString(CUSTOMEQUIP_EQUIPNAME))); // %@: "(null)" for nil
-            const std::string equipKey = DescriptionOfString(OptionalStringForKey(equip, oo::StdString(CUSTOMEQUIP_EQUIPKEY)));
-            funcList.push_back([self makeKeyGuiDict:oo::str::format("%s '%s'", oo::StdString(DESC(@"oolite-keyconfig-cust-activate")).c_str(), equipName.c_str())
+            const std::string equipName = DescriptionOfString(OptionalStringForKey(equip, std::string(CUSTOMEQUIP_EQUIPNAME))); // %@: "(null)" for nil
+            const std::string equipKey = DescriptionOfString(OptionalStringForKey(equip, std::string(CUSTOMEQUIP_EQUIPKEY)));
+            funcList.push_back([self makeKeyGuiDict:oo::str::format("%s '%s'", OO_DESC("oolite-keyconfig-cust-activate").c_str(), equipName.c_str())
                                              keyDef:oo::str::format("activate_%s", equipKey.c_str())]);
-            funcList.push_back([self makeKeyGuiDict:oo::str::format("%s '%s'", oo::StdString(DESC(@"oolite-keyconfig-cust-mode")).c_str(), equipName.c_str())
+            funcList.push_back([self makeKeyGuiDict:oo::str::format("%s '%s'", OO_DESC("oolite-keyconfig-cust-mode").c_str(), equipName.c_str())
                                              keyDef:oo::str::format("mode_%s", equipKey.c_str())]);
         }
     }
@@ -1206,7 +1206,7 @@ oo::PList KeyConfigEntry(const oo::PList::Dict& settings, const std::optional<st
     [[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
 
     [gui clear];
-    [gui setTitle:DESC(@"oolite-keyconfig-select-kbd")];
+    [gui cxx_setTitle:OO_DESC("oolite-keyconfig-select-kbd")];
 
     [self displayKeyboardLayoutList:gui skip:skip];
 
@@ -1316,7 +1316,7 @@ oo::PList KeyConfigEntry(const oo::PList::Dict& settings, const std::optional<st
 - (void)displayKeyboardLayoutList:(GuiDisplayGen*)gui skip:(NSUInteger)skip
 {
     [gui setColor:[OOColor greenColor] forRow:GUI_ROW_KC_HEADING];
-    [gui cxx_setArray:{ oo::StdString(DESC(@"oolite-keyconfig-kbd-layout")) } forRow:GUI_ROW_KC_HEADING];
+    [gui cxx_setArray:{ OO_DESC("oolite-keyconfig-kbd-layout") } forRow:GUI_ROW_KC_HEADING];
 
     if (kbdLayouts.empty())
         kbdLayouts = [self keyboardLayoutList]; // never empty once built ("default" first)
@@ -1359,7 +1359,7 @@ oo::PList KeyConfigEntry(const oo::PList::Dict& settings, const std::optional<st
             const std::optional<std::string> desc = OptionalStringForKey(entry, "description");
             std::string selected;
             if (OptionalStringForKey(entry, "key") == kbd)
-                selected = oo::StdString(DESC(@"oolite-keyconfig-kbd-current"));
+                selected = OO_DESC("oolite-keyconfig-kbd-current");
             [gui cxx_setArray:Columns({ desc, selected }) forRow:i + start_row];
             [gui cxx_setKey:oo::str::format("Index:%zu", i + skip) forRow:i + start_row];
         }

@@ -50,6 +50,16 @@ if is_debug
     )
 endif
 
+# A MESSAGE TO AN UNDECLARED METHOD IS AN ERROR (proposed ADR-0050, bead oo-tk0w).
+#
+# While Foundation bridge categories are being deleted, clang's -Wobjc-method-access ("instance
+# method '-x' not found") is not a style warning: it is the only compile-time sign that a caller
+# still sends a selector nothing implements any more, and the run-time result is an
+# "unrecognized selector" exception. Bead oo-2o5x: oo-5pae deleted OOCacheManager+FoundationBridge
+# while six sends of -objectForKey:inCache: remained; the build warned, the game died at startup
+# and golden scenario 001 went red. This makes the check stricter; it silences nothing.
+add_project_arguments('-Werror=objc-method-access', language: ['objc', 'objcpp'])
+
 if get_option('no_shaders')
     add_project_arguments('-DNO_SHADERS=1', language: c_family)
 endif
@@ -121,8 +131,4 @@ endif
 if (not get_option('deployment_release') or get_option('deployment_unit_tests')) and host_machine.system() == 'windows'
     # Unit tests that need no game build (meson test --suite oofnd).
     subdir('tests/unit/oofnd')
-endif
-if not get_option('deployment_release') and host_machine.system() == 'windows'
-    # Game-side unit tests of gnustep-base shims (meson test --suite game-unit).
-    subdir('tests/unit/game')
 endif

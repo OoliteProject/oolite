@@ -1277,7 +1277,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     std::optional<std::string> scenarioRestrict = StringForKey(dict, "scenario_restriction");
     if (!scenarioRestrict.has_value()) {
         // older save game - use the 'strict' key instead
-        BOOL strict = oo::PListView(dict).get<bool>(@"strict", NO);
+        BOOL strict = dict.get<bool>("strict", NO);
         if (strict) {
             scenarioRestrict = std::string(SCENARIO_OXP_DEFINITION_NONE);
         } else {
@@ -1416,24 +1416,24 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     const oo::PList one = oo::PList::signedInteger(1); // oo_setInteger:1 (+numberWithLong:)
 
     // Equipment flags	(deprecated in favour of equipment dictionary, keep for compatibility)
-    if (oo::PListView(dict).get<bool>(@"has_docking_computer"))
-        [equipment oo_setInteger:1 forKey:@"EQ_DOCK_COMP"];
-    if (oo::PListView(dict).get<bool>(@"has_galactic_hyperdrive"))
-        [equipment oo_setInteger:1 forKey:@"EQ_GAL_DRIVE"];
-    if (oo::PListView(dict).get<bool>(@"has_escape_pod"))
-        [equipment oo_setInteger:1 forKey:@"EQ_ESCAPE_POD"];
-    if (oo::PListView(dict).get<bool>(@"has_ecm"))
-        [equipment oo_setInteger:1 forKey:@"EQ_ECM"];
-    if (oo::PListView(dict).get<bool>(@"has_scoop"))
-        [equipment oo_setInteger:1 forKey:@"EQ_FUEL_SCOOPS"];
-    if (oo::PListView(dict).get<bool>(@"has_energy_bomb"))
-        [equipment oo_setInteger:1 forKey:@"EQ_ENERGY_BOMB"];
-    if (oo::PListView(dict).get<bool>(@"has_fuel_injection"))
-        [equipment oo_setInteger:1 forKey:@"EQ_FUEL_INJECTION"];
+    if (dict.get<bool>("has_docking_computer"))
+        equipment["EQ_DOCK_COMP"] = one;
+    if (dict.get<bool>("has_galactic_hyperdrive"))
+        equipment["EQ_GAL_DRIVE"] = one;
+    if (dict.get<bool>("has_escape_pod"))
+        equipment["EQ_ESCAPE_POD"] = one;
+    if (dict.get<bool>("has_ecm"))
+        equipment["EQ_ECM"] = one;
+    if (dict.get<bool>("has_scoop"))
+        equipment["EQ_FUEL_SCOOPS"] = one;
+    if (dict.get<bool>("has_energy_bomb"))
+        equipment["EQ_ENERGY_BOMB"] = one;
+    if (dict.get<bool>("has_fuel_injection"))
+        equipment["EQ_FUEL_INJECTION"] = one;
 
     // Legacy energy unit type -> energy unit equipment item
-    if (oo::PListView(dict).get<bool>(@"has_energy_unit") && [self installedEnergyUnitType] == ENERGY_UNIT_NONE) {
-        OOEnergyUnitType eType = (OOEnergyUnitType)oo::PListView(dict).get<int>(@"energy_unit", ENERGY_UNIT_NORMAL);
+    if (dict.get<bool>("has_energy_unit") && [self installedEnergyUnitType] == ENERGY_UNIT_NONE) {
+        OOEnergyUnitType eType = (OOEnergyUnitType)dict.get<int>("energy_unit", ENERGY_UNIT_NORMAL);
         switch (eType) {
         // look for NEU first!
         case OLD_ENERGY_UNIT_NAVAL:
@@ -1457,7 +1457,8 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
             award until we've handled missiles later on, though.
     */
     BOOL energyBombCompensation = NO;
-    if (oo::PListView(equipment).get<bool>(@"EQ_ENERGY_BOMB") && [OOEquipmentType equipmentTypeWithIdentifier:@"EQ_ENERGY_BOMB"] == nil) {
+    const auto energyBomb = equipment.find("EQ_ENERGY_BOMB");
+    if (energyBomb != equipment.end() && oo::PListGet<bool>::from(&energyBomb->second, false) && [OOEquipmentType cxx_equipmentTypeWithIdentifier:"EQ_ENERGY_BOMB"] == nil) {
         energyBombCompensation = YES;
         equipment.erase(energyBomb);
     }
@@ -1478,8 +1479,9 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     // speech
     isSpeechOn = (OOSpeechSettings)dict.get<int>("speech_on");
 #if OOLITE_ESPEAK
-    voice_gender_m = oo::PListView(dict).get<bool>(@"speech_gender", YES);
-    voice_no = [UNIVERSE setVoice:[UNIVERSE voiceNumber:oo::PListView(dict).get<NSString*>(@"speech_voice", nil)] withGenderM:voice_gender_m];
+    voice_gender_m = dict.get<bool>("speech_gender", YES);
+    const std::optional<std::string> speechVoice = StringForKey(dict, "speech_voice");
+    voice_no = [UNIVERSE setVoice:(speechVoice.has_value() ? [UNIVERSE cxx_voiceNumber:*speechVoice] : UINT_MAX) withGenderM:voice_gender_m]; // (a nil voice was UINT_MAX)
 #endif
 
     // reputation
@@ -1808,7 +1810,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
         _customViewIndex = dict.get<unsigned int>("custom_view_index") % _customViews.size();
 
     // docking clearance protocol
-    [UNIVERSE setDockingClearanceProtocolActive:oo::PListView(dict).get<bool>(@"docking_clearance_protocol", NO)];
+    [UNIVERSE setDockingClearanceProtocolActive:dict.get<bool>("docking_clearance_protocol", NO)];
 
     // trumble information
     [self setUpTrumbles];

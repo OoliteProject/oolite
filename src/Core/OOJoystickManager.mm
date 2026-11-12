@@ -336,9 +336,9 @@ static id sSharedStickHandler = nil;
         for (j = 0; j < MAX_STICKS; j++) {
             if (guibuttonmap[j][i] >= 0) {
                 oo::PList::Dict fnDict;
-                fnDict[oo::StdString(STICK_ISAXIS)] = oo::PList(static_cast<bool>(NO));
-                fnDict[oo::StdString(STICK_NUMBER)] = oo::PList(j);
-                fnDict[oo::StdString(STICK_AXBUT)] = oo::PList(i);
+                fnDict[std::string(STICK_ISAXIS)] = oo::PList(static_cast<bool>(NO));
+                fnDict[std::string(STICK_NUMBER)] = oo::PList(j);
+                fnDict[std::string(STICK_AXBUT)] = oo::PList(i);
                 fnList[ENUMKEY(guibuttonmap[j][i])] = oo::PList(std::move(fnDict));
             }
         }
@@ -526,9 +526,9 @@ static id sSharedStickHandler = nil;
 {
     oo::Defaults& defaults = oo::Defaults::standard();
 
-    defaults.setObject(oo::StdString(AXIS_SETTINGS), [self axisFunctions]);
-    defaults.setObject(oo::StdString(BUTTON_SETTINGS), [self buttonFunctions]);
-    defaults.setObject(oo::StdString(GUI_BUTTON_SETTINGS), [self guiButtonFunctions]);
+    defaults.setObject(std::string(AXIS_SETTINGS), [self axisFunctions]);
+    defaults.setObject(std::string(BUTTON_SETTINGS), [self buttonFunctions]);
+    defaults.setObject(std::string(GUI_BUTTON_SETTINGS), [self guiButtonFunctions]);
     [self saveProfileForAxis:AXIS_ROLL];
     [self saveProfileForAxis:AXIS_PITCH];
     [self saveProfileForAxis:AXIS_YAW];
@@ -539,9 +539,9 @@ static id sSharedStickHandler = nil;
 {
     [self clearMappings];
     oo::Defaults& defaults = oo::Defaults::standard();
-    const oo::PList axisSettings = defaults.object(oo::StdString(AXIS_SETTINGS));
-    const oo::PList buttonSettings = defaults.object(oo::StdString(BUTTON_SETTINGS));
-    const oo::PList guiButtonSettings = defaults.object(oo::StdString(GUI_BUTTON_SETTINGS));
+    const oo::PList axisSettings = defaults.object(std::string(AXIS_SETTINGS));
+    const oo::PList buttonSettings = defaults.object(std::string(BUTTON_SETTINGS));
+    const oo::PList guiButtonSettings = defaults.object(std::string(GUI_BUTTON_SETTINGS));
     // Keys are visited in byte order (they came in hash order): where two settings claim the
     // same stick axis or button, the last one still wins (proposed ADR-0043).
     if (axisSettings) {

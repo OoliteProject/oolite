@@ -436,7 +436,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat* color, GLfloat alpha)
     nonlinear_scanner = info.get<bool>("scanner_non_linear", NO);
     scanner_ultra_zoom = info.get<bool>("scanner_ultra_zoom", NO);
 
-    distance_unit = oo::StdString(DESC(@"oolite-hud-distance-unit"));
+    distance_unit = OO_DESC("oolite-hud-distance-unit");
 
     return self;
 }

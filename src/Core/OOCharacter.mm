@@ -164,7 +164,7 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
     if (!speciesString.has_value())
         return std::nullopt;
 
-    if (!oo::PListView([UNIVERSE descriptions]).get<bool>(@"lowercase_ignore")) {
+    if (![UNIVERSE cxx_descriptions]->get<bool>("lowercase_ignore")) {
         speciesString = oo::str::lowercase(*speciesString);
     }
 
