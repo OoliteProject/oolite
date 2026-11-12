@@ -290,7 +290,7 @@ oo::PList OOJoystickManager::buttonFunctions()
     return oo::PList(std::move(fnList));
 }
 
-- (oo::PList)guiButtonFunctions
+oo::PList OOJoystickManager::guiButtonFunctions()
 {
     int i, j;
     oo::PList::Dict fnList;
@@ -300,7 +300,7 @@ oo::PList OOJoystickManager::buttonFunctions()
         for (j = 0; j < MAX_STICKS; j++) {
             if (guibuttonmap[j][i] >= 0) {
                 oo::PList::Dict fnDict;
-                fnDict[std::string(STICK_ISAXIS)] = oo::PList(static_cast<bool>(NO));
+                fnDict[std::string(STICK_ISAXIS)] = oo::PList(static_cast<bool>(false));
                 fnDict[std::string(STICK_NUMBER)] = oo::PList(j);
                 fnDict[std::string(STICK_AXBUT)] = oo::PList(i);
                 fnList[ENUMKEY(guibuttonmap[j][i])] = oo::PList(std::move(fnDict));
@@ -310,7 +310,7 @@ oo::PList OOJoystickManager::buttonFunctions()
     return oo::PList(std::move(fnList));
 }
 
-- (void)setFunction:(int)function withDict:(const oo::PList&)stickFn
+void OOJoystickManager::setFunction(int function, const oo::PList& stickFn)
 {
     bool isAxis = stickFn.get<bool>(std::string(STICK_ISAXIS)) ? true : false;
     int stickNum = stickFn.get<int>(std::string(STICK_NUMBER));
@@ -321,16 +321,14 @@ oo::PList OOJoystickManager::buttonFunctions()
             function,
             stickNum);
     } else {
-        if (function >= BUTTON_GUILEFT && function <= BUTTON_GUISELECT) 
-        {
-            [self setGuiFunctionForButton:stickAxBt
-                          function:function
-                             stick:stickNum];
-        } 
-        else {
-            [self setFunctionForButton:stickAxBt
-                          function:function
-                             stick:stickNum];
+        if (function >= BUTTON_GUILEFT && function <= BUTTON_GUISELECT) {
+            setGuiFunctionForButton(stickAxBt,
+                function,
+                stickNum);
+        } else {
+            setFunctionForButton(stickAxBt,
+                function,
+                stickNum);
         }
     }
 }
@@ -373,11 +371,11 @@ void OOJoystickManager::setFunctionForButton(int button,
     buttonmap[stickNum][button] = function;
 }
 
-- (void)setGuiFunctionForButton:(int)button
-                    function:(int)function
-                       stick:(int)stickNum
+void OOJoystickManager::setGuiFunctionForButton(int button,
+    int function,
+    int stickNum)
 {
-    OOParameterAssert(button < MAX_BUTTONS && stickNum < MAX_STICKS);
+    OOCParameterAssert(button < MAX_BUTTONS && stickNum < MAX_STICKS);
 
     int i, j;
     for (i = 0; i < MAX_BUTTONS; i++) {
@@ -391,7 +389,7 @@ void OOJoystickManager::setFunctionForButton(int button,
     guibuttonmap[stickNum][button] = function;
 }
 
-- (void)unsetAxisFunction:(int)function
+void OOJoystickManager::unsetAxisFunction(int function)
 {
     int i, j;
     for (i = 0; i < MAX_AXES; i++) {
@@ -418,7 +416,7 @@ void OOJoystickManager::unsetButtonFunction(int function)
     }
 }
 
-- (void)unsetGuiButtonFunction:(int)function
+void OOJoystickManager::unsetGuiButtonFunction(int function)
 {
     int i, j;
     for (i = 0; i < MAX_BUTTONS; i++) {
@@ -431,7 +429,7 @@ void OOJoystickManager::unsetButtonFunction(int function)
     }
 }
 
-- (void)setDefaultMapping
+void OOJoystickManager::setDefaultMapping()
 {
     // assign the simplest mapping: stick 0 having
     // axis 0/1 being roll/pitch and button 0 being fire, 1 being missile
@@ -495,12 +493,12 @@ void OOJoystickManager::saveStickSettings()
 {
     oo::Defaults& defaults = oo::Defaults::standard();
 
-    defaults.setObject(std::string(AXIS_SETTINGS), [self axisFunctions]);
-    defaults.setObject(std::string(BUTTON_SETTINGS), [self buttonFunctions]);
-    defaults.setObject(std::string(GUI_BUTTON_SETTINGS), [self guiButtonFunctions]);
-    [self saveProfileForAxis:AXIS_ROLL];
-    [self saveProfileForAxis:AXIS_PITCH];
-    [self saveProfileForAxis:AXIS_YAW];
+    defaults.setObject(std::string(AXIS_SETTINGS), axisFunctions());
+    defaults.setObject(std::string(BUTTON_SETTINGS), buttonFunctions());
+    defaults.setObject(std::string(GUI_BUTTON_SETTINGS), guiButtonFunctions());
+    saveProfileForAxis(AXIS_ROLL);
+    saveProfileForAxis(AXIS_PITCH);
+    saveProfileForAxis(AXIS_YAW);
     defaults.synchronize();
 }
 
@@ -535,14 +533,14 @@ void OOJoystickManager::loadStickSettings()
     if (guiButtonSettings) {
         if (const oo::PList::Dict* settings = guiButtonSettings.getIf<oo::PList::Dict>()) {
             for (const auto& [key, stickFn] : *settings) {
-                [self setFunction:oo::str::intValue(key)
-                         withDict:stickFn];
+                setFunction(oo::str::intValue(key),
+                    stickFn);
             }
         }
     }
-    [self loadProfileForAxis:AXIS_ROLL];
-    [self loadProfileForAxis:AXIS_PITCH];
-    [self loadProfileForAxis:AXIS_YAW];
+    loadProfileForAxis(AXIS_ROLL);
+    loadProfileForAxis(AXIS_PITCH);
+    loadProfileForAxis(AXIS_YAW);
 }
 
 // These get overidden by subclasses

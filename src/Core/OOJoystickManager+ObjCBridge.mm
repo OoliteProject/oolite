@@ -188,6 +188,10 @@ cxx::OOJoystickManager* oo::ToCxx(OOJoystickManager* manager)
 {
     _cxxJoystickManager->unsetButtonFunction(function);
 }
+- (void)unsetGuiButtonFunction:(int)function
+{
+    _cxxJoystickManager->unsetGuiButtonFunction(function);
+}
 - (BOOL)isButtonDown:(int)button stick:(int)stickNum
 {
     return _cxxJoystickManager->isButtonDown(button, stickNum);
@@ -237,6 +241,10 @@ cxx::OOJoystickManager* oo::ToCxx(OOJoystickManager* manager)
 - (oo::PList)buttonFunctions
 {
     return _cxxJoystickManager->buttonFunctions();
+}
+- (oo::PList)guiButtonFunctions
+{
+    return _cxxJoystickManager->guiButtonFunctions();
 }
 
 - (void)setCallback:(SEL)selector object:(id)obj hardware:(char)hwflags

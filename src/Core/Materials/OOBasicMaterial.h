@@ -83,7 +83,7 @@ public:
     bool doApply() override;
     void unapplyWithNext(OOMaterial* next) override;
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    std::vector<oo::ObjCRef<OOTexture*>> allTextures() override;
+    std::vector<oo::ObjCRef<::OOTexture*>> allTextures() override;
 #endif
 
     oo::Ref<OOColor> diffuseColor();

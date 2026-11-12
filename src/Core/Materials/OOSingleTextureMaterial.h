@@ -76,7 +76,7 @@ public:
     bool isFinishedLoading() override;
     bool wantsNormalsAsTextureCoordinates() override;
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    std::vector<oo::ObjCRef<OOTexture*>> allTextures() override;
+    std::vector<oo::ObjCRef<::OOTexture*>> allTextures() override;
 #endif
 
 private:

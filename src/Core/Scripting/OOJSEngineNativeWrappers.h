@@ -43,12 +43,75 @@ MA 02110-1301, USA.
 
 */
 
-/*	With QuickJS, the exception safety and profiling macros
-        (OOJS_NATIVE_ENTER()/OOJS_NATIVE_EXIT, OOJS_PROFILE_ENTER/OOJS_PROFILE_EXIT,
-        OOJS_BEGIN_FULL_NATIVE()/OOJS_END_FULL_NATIVE and friends) are defined in
-        OOJavaScriptEngine.h, as is OOJS_PROFILE; the profiler itself is in
-        OOJSEngineTimeManagement.m. This header remains so existing imports keep
-        working.
+#ifndef INCLUDED_OOJSENGINENATIVEWRAPPERS_h
+#define INCLUDED_OOJSENGINENATIVEWRAPPERS_h
+
+/*	Plain includes (bead oo-9ht.72): this header is reached from C++ binding translation units
+        through OOJSEngineCore.h. OOFoundation.h gave it OOLITE_DEBUG and the function attributes.
+        With QuickJS-ng the macros below were defined in OOJavaScriptEngine.h; they are here, with
+        the rest of the engine API's plain C++ part, since that header was split.
+*/
+#include <quickjs.h>
+
+#include "OOFunctionAttributes.h"
+
+#ifndef OOLITE_DEBUG
+// As OOFoundation.h defines it (an identical redefinition there is harmless).
+#ifdef NDEBUG
+#define OOLITE_DEBUG 0
+#else
+#define OOLITE_DEBUG 1
+#endif
+#endif
+
+/*	Profiling of native functions (the debug console's profile(), getProfile()
+        and trace()), as in SpiderMonkey builds without MOZ_TRACE_JSCALLS: time
+        is attributed to natives bracketed by OOJS_NATIVE_ENTER/EXIT or
+        OOJS_PROFILE_ENTER/EXIT, and everything else counts as JavaScript time.
+*/
+#define OOJS_PROFILE (OOLITE_DEBUG && !OOJS_POC_HARNESS)
+
+/*	OOJS_NATIVE_ENTER()/OOJS_NATIVE_EXIT bracket natives that call into
+        Objective-C code which may throw; the exception is converted into a JS
+        error. OOJS_PROFILE_ENTER/EXIT bracket natives that cannot throw. When
+        OOJS_PROFILE is set, both also record the time spent in the native for
+        the profiler.
+*/
+#if OOJS_PROFILE
+
+#include "OOProfilingStopwatch.h"
+
+/*
+        Profiler implementation details. This should be internal to
+        OOJSEngineTimeManagement.m, but needs to be declared on the stack by the
+        macros below when profiling is enabled.
+*/
+typedef struct OOJSProfileStackFrame OOJSProfileStackFrame;
+struct OOJSProfileStackFrame {
+    OOJSProfileStackFrame* back; // Stack link
+    const void* key; // Key to look up profile entries: the function name.
+    const char* function; // Name of function.
+    OOHighResTimeValue startTime; // Time frame was entered.
+    OOTimeDelta subTime; // Time spent in subroutine calls.
+    OOTimeDelta* total; // Pointer to accumulator for this type of frame.
+};
+
+void OOJSProfileEnter(OOJSProfileStackFrame* frame, const char* function);
+void OOJSProfileExit(OOJSProfileStackFrame* frame);
+
+/*
+        C++ since bead oo-ppc (the Phase 3 scripting-bindings pattern; proposed ADR-0056 amendment
+        oo-ppc). The pairs below were Objective-C try, catch (id) and finally blocks. They are now a
+        C++ try, a catch (...) and scope guards, so a binding file that uses them contains no
+        Objective-C exception syntax. What each one does is unchanged:
+          * OOJS_NATIVE_EXIT catches whatever the body throws and hands it to
+            OOJSReportCurrentException() (OOJSEngineNativeWrappers.mm), which reports an Objective-C
+            exception exactly as OOJSReportWrappedException() did. It also reports a C++ exception
+            ("Native exception: <what()>"), which the Objective-C catch (id) could not catch: that
+            path ended in std::terminate (ADR-0029 measurement 10). The native then returns
+            JS_EXCEPTION.
+          * The profiler frame is exited, and the time limiter is resumed, when the scope ends, by
+            return or by exception, as the finally blocks did.
 */
 
 // The scope OOJS_PROFILE_ENTER opens: enters the frame, and exits it however the scope ends.

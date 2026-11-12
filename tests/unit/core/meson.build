@@ -117,6 +117,7 @@ core_tests = {
     'test_OOJSExhaustPlume': ['Core/Scripting/OOJSExhaustPlume.mm', 'Core/Scripting/OOJSExhaustPlume+ObjCBridge.mm', 'Core/Scripting/OOJSEngineNativeWrappers.mm', 'Core/Scripting/OOJSClasses.mm'],
     'test_OOJSQuaternion': ['Core/Scripting/OOJSQuaternion.mm', 'Core/Scripting/OOJSVector.mm', 'Core/Scripting/OOJSEngineNativeWrappers.mm', 'Core/Scripting/OOJSClasses.mm', 'Core/OOHPVector.mm', 'Core/OOVector.mm', 'Core/OOQuaternion.cpp', 'Core/legacy_random.c'],
     'test_OOJSClock': ['Core/Scripting/OOJSClock.mm', 'Core/Scripting/OOJSEngineNativeWrappers.mm', 'Core/Scripting/OOJSClasses.mm'],
+    'test_OOJSWormhole': ['Core/Scripting/OOJSWormhole.mm', 'Core/Scripting/OOJSWormhole+ObjCBridge.mm', 'Core/Scripting/OOJSEngineNativeWrappers.mm', 'Core/Scripting/OOJSClasses.mm'],
     'test_OoliteEquipmentControlScript': [],	# Resources/Scripts/oolite-equipment-control.js (upstream #369)
     'test_OOMeshToOctreeConverter': ['*'],
     'test_OOPolygonSprite': ['*'],
