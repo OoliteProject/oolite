@@ -1150,8 +1150,8 @@ OO_TEST(slice22WeaponMountAndBerths)
 		oo::AutoreleaseScope scope;
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
-		OO_CHECK(player->setWeaponMount(WEAPON_FACING_AFT, "EQ_WEAPON_PULSE_LASER"));
-		OO_CHECK(sSent.count == 1 && sSent.number == (int)WEAPON_FACING_AFT && sSent.text == "EQ_WEAPON_PULSE_LASER");
+		OO_CHECK(player->setWeaponMount(OOWeaponFacing::kAft, "EQ_WEAPON_PULSE_LASER"));
+		OO_CHECK(sSent.count == 1 && sSent.number == (int)OOWeaponFacing::kAft && sSent.text == "EQ_WEAPON_PULSE_LASER");
 		OO_CHECK(sSent.optionalText == std::optional<std::string>("purchase"));
 		OO_CHECK(!player->changePassengerBerths(0));
 		PlayerEntityTestAccess::max_passengers(player) = 0;
@@ -1235,7 +1235,7 @@ OO_TEST(slice25CountsTradeInAndViewOffsets)
 		OO_CHECK(NearV(PlayerEntityTestAccess::portViewOffset(part), make_vector(0.0f, 0.0f, 0.0f)));
 		OO_CHECK(NearV(PlayerEntityTestAccess::customViewOffset(part), kZeroVector));
 		PlayerEntityTestAccess::aftViewOffset(part) = make_vector(1.0f, 2.0f, 3.0f);
-		player->currentWeaponFacing = WEAPON_FACING_AFT;
+		player->currentWeaponFacing = OOWeaponFacing::kAft;
 		OO_CHECK(NearV(player->weaponViewOffset(), make_vector(1.0f, 2.0f, 3.0f)));
 	}
 }

@@ -183,7 +183,7 @@ class FakePlayer : public PlayerEntity {
   Vector viewpointOffsetPort() override { return make_vector(-1, 0, 0); }
   Vector viewpointOffsetStarboard() override { return make_vector(1, 0, 0); }
   OOWeaponFacing getCurrentWeaponFacing() override {
-    return WEAPON_FACING_FORWARD;
+    return OOWeaponFacing::kForward;
   }
   ::OOEquipmentType* weaponTypeForFacing(OOWeaponFacing facing,
                                          bool strict) override {
@@ -634,7 +634,7 @@ OO_TEST(getterPlayerState) {
   OO_CHECK_EVAL("player.ship.currentWeapon", "null");
   OO_CHECK_LOG(sPlayer->_log,
                oo::str::format("weaponTypeForFacing %d 0",
-                               static_cast<int>(WEAPON_FACING_FORWARD)));
+                               static_cast<int>(OOWeaponFacing::kForward)));
   OO_CHECK_EVAL("player.ship.price", "123456");
   OO_CHECK_EQ(sUniverse->_lastCommander, "commander");
   OO_CHECK_EVAL("player.ship.serviceLevel", "95");
@@ -822,7 +822,7 @@ OO_TEST(setterPlayerState) {
       "undefined");
   OO_CHECK_LOG(sPlayer->_log,
                oo::str::format("setWeaponMount %d EQ_WEAPON_NONE scripted",
-                               static_cast<int>(WEAPON_FACING_FORWARD)));
+                               static_cast<int>(OOWeaponFacing::kForward)));
 }
 
 OO_TEST(setterChartAndCompass) {

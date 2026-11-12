@@ -209,20 +209,37 @@ enum {
 typedef double OOTimeAbsolute;
 typedef double OOTimeDelta;
 
-typedef enum {
-  WEAPON_FACING_FORWARD = 1,
-  WEAPON_FACING_AFT = 2,
-  WEAPON_FACING_PORT = 4,
-  WEAPON_FACING_STARBOARD = 8,
+// One weapon mount. Encoded "i" (OOTypeEncodings.h): a by-name call answers it
+// as a number.
+enum class OOWeaponFacing : std::uint8_t {
+  kNone = 0,
+  kForward = 1,
+  kAft = 2,
+  kPort = 4,
+  kStarboard = 8
+};
+constexpr std::true_type OOEnableFlagOperators(OOWeaponFacing);
 
-  WEAPON_FACING_NONE = 0
-} OOWeaponFacing;
+// The numbers of shipdata's weapon_facings bits and of JS's weaponFacings.
+static_assert(oo::ToUnderlying(OOWeaponFacing::kNone) == 0);
+static_assert(oo::ToUnderlying(OOWeaponFacing::kForward) == 1);
+static_assert(oo::ToUnderlying(OOWeaponFacing::kAft) == 2);
+static_assert(oo::ToUnderlying(OOWeaponFacing::kPort) == 4);
+static_assert(oo::ToUnderlying(OOWeaponFacing::kStarboard) == 8);
 
-typedef uint8_t OOWeaponFacingSet;  // May have multiple bits set.
+// A set of mounts, as shipdata, shipyard.plist and JS give it: a number with an
+// OOWeaponFacing bit per mount.
+typedef std::uint8_t OOWeaponFacingSet;
 
-#define VALID_WEAPON_FACINGS                                        \
-  (WEAPON_FACING_NONE | WEAPON_FACING_FORWARD | WEAPON_FACING_AFT | \
-   WEAPON_FACING_PORT | WEAPON_FACING_STARBOARD)
+inline constexpr OOWeaponFacingSet kOOValidWeaponFacings = oo::ToUnderlying(
+    OOWeaponFacing::kNone | OOWeaponFacing::kForward | OOWeaponFacing::kAft |
+    OOWeaponFacing::kPort | OOWeaponFacing::kStarboard);
+
+// Takes any unsigned number of facings: the sets read from plists are unsigned.
+inline bool OOWeaponFacingIsIn(unsigned facings,
+                               OOWeaponFacing facing) noexcept {
+  return (facings & oo::ToUnderlying(facing)) != 0;
+}
 
 typedef enum {
   DETAIL_LEVEL_MINIMUM = 0,

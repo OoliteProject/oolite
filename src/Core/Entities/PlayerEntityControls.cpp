@@ -5791,29 +5791,29 @@ void PlayerEntity::switchToThisView(OOViewID viewDirection,
     if (UNIVERSE != nullptr) UNIVERSE->setViewDirection(viewDirection);
   }
   if (processWeaponFacing) {
-    OOWeaponFacing facing = WEAPON_FACING_NONE;
+    OOWeaponFacing facing = OOWeaponFacing::kNone;
     switch (viewDirection) {
       case VIEW_FORWARD:
-        facing = WEAPON_FACING_FORWARD;
+        facing = OOWeaponFacing::kForward;
         break;
 
       case VIEW_AFT:
-        facing = WEAPON_FACING_AFT;
+        facing = OOWeaponFacing::kAft;
         break;
 
       case VIEW_PORT:
-        facing = WEAPON_FACING_PORT;
+        facing = OOWeaponFacing::kPort;
         break;
 
       case VIEW_STARBOARD:
-        facing = WEAPON_FACING_STARBOARD;
+        facing = OOWeaponFacing::kStarboard;
         break;
 
       default:
         break;
     }
 
-    if (facing != WEAPON_FACING_NONE) {
+    if (facing != OOWeaponFacing::kNone) {
       currentWeaponFacing = facing;
       currentWeaponStats();
     } else {
