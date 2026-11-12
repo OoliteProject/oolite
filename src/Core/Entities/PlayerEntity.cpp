@@ -3339,7 +3339,7 @@ void PlayerEntity::doBookkeeping(double delta_t) {
     ::ShipEntity* doppelganger = oo::ToShip(foundTarget());
     // reset legal status again! Could have changed if a previously launched
     // missile hit a clean NPC while in the escape pod.
-    setBounty(0, kOOLegalStatusReasonEscapePod);
+    setBounty(0, OOLegalStatusReason::kEscapePod);
     bounty = 0;
     thrust = max_thrust;  // re-enable inertialess drives
     // no access to all player.ship properties while inside the escape pod,
@@ -4035,7 +4035,7 @@ bool PlayerEntity::engageAutopilotToStation(
 void PlayerEntity::disengageAutopilot() {
   if (autopilot_engaged) {
     abortDocking();  // let the station know that you are no longer on approach
-    behaviour = BEHAVIOUR_IDLE;
+    behaviour = OOBehaviour::kIdle;
     frustration = 0.0;
     autopilot_engaged = false;
     _primaryTarget = nullptr;
@@ -6059,7 +6059,7 @@ bool PlayerEntity::mountMissileWithRole(const std::string& role) {
   if (!weaponsOnline()) return nullptr;
 
   if (mine != nullptr) mine->setOwner(this);
-  if (mine != nullptr) mine->setBehaviour(BEHAVIOUR_IDLE);
+  if (mine != nullptr) mine->setBehaviour(OOBehaviour::kIdle);
   dumpItem(mine);  // includes UNIVERSE addEntity: OOScanClass::kCargo,
                    // OOEntityStatus::kInFlight, AI state GLOBAL ( the last one
                    // starts the timer !)
@@ -6585,7 +6585,7 @@ void PlayerEntity::takeHeatDamage(double amount) {
     if (result != nullptr) result->setSpeed(getFlightSpeed());
     if (result != nullptr) result->setDesiredSpeed(getFlightSpeed());
     if (result != nullptr) result->setRoll(flightRoll);
-    if (result != nullptr) result->setBehaviour(BEHAVIOUR_IDLE);
+    if (result != nullptr) result->setBehaviour(OOBehaviour::kIdle);
     if (result != nullptr)
       result->switchAITo("nullAI.plist");  // fly straight on
     if (result != nullptr) result->setTemperature(temperature());
@@ -6700,7 +6700,7 @@ void PlayerEntity::takeHeatDamage(double amount) {
       escapePod);  // no player.ship properties should be available to script
 
   // reset legal status
-  setBounty(0, kOOLegalStatusReasonEscapePod);
+  setBounty(0, OOLegalStatusReason::kEscapePod);
   bounty = 0;
 
   // new ship, so lose some memory of player actions
@@ -6820,7 +6820,7 @@ void PlayerEntity::rotateCargo() {
 }
 
 void PlayerEntity::setBounty(OOCreditsQuantity amount) {
-  setBounty(amount, kOOLegalStatusReasonUnknown);
+  setBounty(amount, OOLegalStatusReason::kUnknown);
 }
 
 void PlayerEntity::setBounty(OOCreditsQuantity amount,
@@ -6854,7 +6854,7 @@ OOCreditsQuantity PlayerEntity::getBounty() { return legalStatusValue; }
 int PlayerEntity::getLegalStatus() { return legalStatusValue; }
 
 void PlayerEntity::markAsOffender(int offence_value) {
-  markAsOffender(offence_value, kOOLegalStatusReasonUnknown);
+  markAsOffender(offence_value, OOLegalStatusReason::kUnknown);
 }
 
 void PlayerEntity::markAsOffender(int offence_value,
@@ -6904,7 +6904,7 @@ void PlayerEntity::collectBountyFor(::ShipEntity* other) {
   if ((other != nullptr ? other->isPolice()
                         : false))  // oops, we shot a copper!
   {
-    markAsOffender(64, kOOLegalStatusReasonAttackedPolice);
+    markAsOffender(64, OOLegalStatusReason::kAttackedPolice);
   }
 
   bool killIsCargo = ((killClass == OOScanClass::kCargo) &&
@@ -7219,7 +7219,7 @@ void PlayerEntity::docked() {
         (dockedStation != nullptr ? dockedStation->legalStatusOfManifest(
                                         shipCommodityData.get(), false)
                                   : 0),
-        kOOLegalStatusReasonIllegalImports);
+        OOLegalStatusReason::kIllegalImports);
     if (getBounty() > oldbounty) {
       addRoleToPlayer("trader-smuggler");
     }
@@ -7309,7 +7309,7 @@ void PlayerEntity::leaveDock(::StationEntity* station) {
     markAsOffender((station != nullptr ? station->legalStatusOfManifest(
                                              shipCommodityData.get(), true)
                                        : 0),
-                   kOOLegalStatusReasonIllegalExports);
+                   OOLegalStatusReason::kIllegalExports);
     if (getBounty() > oldbounty) {
       addRoleToPlayer("trader-smuggler");
     }
@@ -7664,19 +7664,19 @@ void PlayerEntity::enterGalacticWitchspace() {
   // planetinfo.plist is used in the fixed coordinates case and specifies the
   // exact coordinates for the intergalactic jump.
   switch (galacticHyperspaceBehaviour) {
-    case GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES:
+    case OOGalacticHyperspaceBehaviour::kFixedCoordinates:
       system_id = (UNIVERSE != nullptr
                        ? UNIVERSE->findSystemNumberAtCoords(
                              galacticHyperspaceFixedCoords, galaxy_number, true)
                        : 0);
       break;
-    case GALACTIC_HYPERSPACE_BEHAVIOUR_ALL_SYSTEMS_REACHABLE:
+    case OOGalacticHyperspaceBehaviour::kAllSystemsReachable:
       system_id =
           (UNIVERSE != nullptr ? UNIVERSE->findSystemNumberAtCoords(
                                      galaxy_coordinates, galaxy_number, true)
                                : 0);
       break;
-    case GALACTIC_HYPERSPACE_BEHAVIOUR_STANDARD:
+    case OOGalacticHyperspaceBehaviour::kStandard:
     default:
       // instead find a system connected to system 0 near the current
       // coordinates...
@@ -7688,7 +7688,7 @@ void PlayerEntity::enterGalacticWitchspace() {
   target_system_id = system_id;
   info_system_id = system_id;
 
-  setBounty(0, kOOLegalStatusReasonNewGalaxy);  // let's make a fresh start!
+  setBounty(0, OOLegalStatusReason::kNewGalaxy);  // let's make a fresh start!
   cursor_coordinates = PointFromCoordinates(
       ((UNIVERSE != nullptr ? UNIVERSE->getSystemManager() : nullptr) != nullptr
            ? UNIVERSE->getSystemManager()->getProperty("coordinates", system_id,
@@ -7881,8 +7881,9 @@ void PlayerEntity::witchJumpTo(OOSystemID sTo, bool misjump) {
   if (!misjump) {
     ship_clock_adjust += distance * distance * 3600.0;
     setSystemID(sTo);
-    setBounty((legalStatusValue / 2),
-              kOOLegalStatusReasonNewSystem);  // 'another day, another system'
+    setBounty(
+        (legalStatusValue / 2),
+        OOLegalStatusReason::kNewSystem);  // 'another day, another system'
     witchEnd();
     if (market_rnd < 8)
       erodeReputation();  // every 32 systems or so, drop back towards 'unknown'
@@ -12499,10 +12500,10 @@ void PlayerEntity::getFined() {
   fine *= legalStatusValue;
   if (fine > credits) {
     int payback = (int)(legalStatusValue * credits / fine);
-    setBounty((legalStatusValue - payback), kOOLegalStatusReasonPaidFine);
+    setBounty((legalStatusValue - payback), OOLegalStatusReason::kPaidFine);
     credits = 0;
   } else {
-    setBounty(0, kOOLegalStatusReasonPaidFine);
+    setBounty(0, OOLegalStatusReason::kPaidFine);
     credits -= fine;
   }
 
@@ -13442,8 +13443,8 @@ void PlayerEntity::doWorldScriptEvent(OOJSPropID message, JSContext* context,
 
 void PlayerEntity::setGalacticHyperspaceBehaviour(
     OOGalacticHyperspaceBehaviour inBehaviour) {
-  if (GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN < inBehaviour &&
-      inBehaviour <= GALACTIC_HYPERSPACE_MAX) {
+  if (OOGalacticHyperspaceBehaviour::kUnknown < inBehaviour &&
+      inBehaviour <= kOOGalacticHyperspaceBehaviourMax) {
     galacticHyperspaceBehaviour = inBehaviour;
   }
 }

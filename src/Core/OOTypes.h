@@ -228,13 +228,7 @@ inline constexpr OOCompassMode kOOCompassModeDefault = COMPASS_MODE_BASIC;
 
 #undef ENTRY
 
-typedef enum {
-#define DIFF_STRING_ENTRY(label, string) label,
-#include "OOLegalStatusReason.tbl"
-#undef DIFF_STRING_ENTRY
-
-  kOOLegalStatusReasonDefault = kOOLegalStatusReasonUnknown
-} OOLegalStatusReason;
+#include "OOLegalStatusReason.h"
 
 enum class OODockingClearanceStatus : std::int32_t {
   kNone,

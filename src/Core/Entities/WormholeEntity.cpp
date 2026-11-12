@@ -484,7 +484,7 @@ void WormholeEntity::disgorgeShips() {
       if (!_misjump) {
         if (ship != nullptr)
           ship->setBounty((ship != nullptr ? ship->getBounty() : 0) / 2,
-                          kOOLegalStatusReasonNewSystem);
+                          OOLegalStatusReason::kNewSystem);
       }  // adjust legal status for new system
 
       // now the cargo is defined in advance, this is unnecessary

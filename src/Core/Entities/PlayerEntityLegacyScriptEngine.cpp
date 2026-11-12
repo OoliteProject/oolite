@@ -2889,7 +2889,7 @@ bool PlayerEntity::processSceneString(const std::string& item, Vector off) {
     if (ship != nullptr) ship->setRoll(0.0);
     if (ship != nullptr) ship->setPitch(0.0);
     if (ship != nullptr) ship->setVelocity(kZeroVector);
-    if (ship != nullptr) ship->setBehaviour(BEHAVIOUR_STOP_STILL);
+    if (ship != nullptr) ship->setBehaviour(OOBehaviour::kStopStill);
 
     if (ship != nullptr) oo::ReleaseEntity(ship);
     return true;
@@ -2934,7 +2934,7 @@ bool PlayerEntity::processSceneString(const std::string& item, Vector off) {
     if (doppelganger != nullptr) doppelganger->setPitch(0.0);
     if (doppelganger != nullptr) doppelganger->setVelocity(kZeroVector);
     if (doppelganger != nullptr)
-      doppelganger->setBehaviour(BEHAVIOUR_STOP_STILL);
+      doppelganger->setBehaviour(OOBehaviour::kStopStill);
 
     if (doppelganger != nullptr) oo::ReleaseEntity(doppelganger);
     return true;
@@ -3121,7 +3121,7 @@ void PlayerEntity::setGalacticHyperspaceBehaviourTo(
   OOGalacticHyperspaceBehaviour ghBehaviour =
       cxx_OOGalacticHyperspaceBehaviourFromString(
           galacticHyperspaceBehaviourString);
-  if (ghBehaviour == GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN) {
+  if (ghBehaviour == OOGalacticHyperspaceBehaviour::kUnknown) {
     OO_LOG(
         "player.setGalacticHyperspaceBehaviour.invalidInput",
         "setGalacticHyperspaceBehaviourTo: called with unknown behaviour {}.",

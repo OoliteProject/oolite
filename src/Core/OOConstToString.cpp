@@ -51,11 +51,9 @@ std::string cxx_OOStringFromEntityStatus(OOEntityStatus value) {
 }
 
 std::string cxx_OOStringFromBehaviour(OOBehaviour value) {
-  switch (value) {
-#include "OOBehaviour.tbl"
-  }
-
-  return "** BEHAVIOUR UNKNOWN **";
+  const std::string_view name = OOEnumName(value);
+  return name.empty() ? std::string("** BEHAVIOUR UNKNOWN **")
+                      : std::string(name);
 }
 
 std::string cxx_OOStringFromCompassMode(OOCompassMode value) {
@@ -76,11 +74,8 @@ std::string cxx_OOStringFromLongRangeChartMode(OOLongRangeChartMode value) {
 
 std::string cxx_OOStringFromGalacticHyperspaceBehaviour(
     OOGalacticHyperspaceBehaviour value) {
-  switch (value) {
-#include "OOGalacticHyperspaceBehaviour.tbl"
-  }
-
-  return "UNDEFINED";
+  const std::string_view name = OOEnumName(value);
+  return name.empty() ? std::string("UNDEFINED") : std::string(name);
 }
 
 std::string cxx_OOStringFromGUIScreenID(OOGUIScreenID value) {
@@ -102,11 +97,8 @@ std::string cxx_OOStringFromShipDamageType(OOShipDamageType value) {
 }
 
 std::string cxx_OOStringFromLegalStatusReason(OOLegalStatusReason value) {
-  switch (value) {
-#include "OOLegalStatusReason.tbl"
-  }
-
-  return "UNDEFINED";
+  const std::string_view name = OOEnumName(value);
+  return name.empty() ? std::string("UNDEFINED") : std::string(name);
 }
 
 #undef ENTRY
@@ -129,7 +121,9 @@ OOCompassMode cxx_OOCompassModeFromString(const std::string& string) {
 
 OOGalacticHyperspaceBehaviour cxx_OOGalacticHyperspaceBehaviourFromString(
     const std::string& string) {
-#include "OOGalacticHyperspaceBehaviour.tbl"
+  if (const std::optional<OOGalacticHyperspaceBehaviour> value =
+          kOOGalacticHyperspaceBehaviourTable.value(string))
+    return *value;
 
   // Transparently (but inefficiently) support american spelling. FIXME: remove
   // in EMMSTRAN.
@@ -138,7 +132,7 @@ OOGalacticHyperspaceBehaviour cxx_OOGalacticHyperspaceBehaviourFromString(
                                                        string.substr(9));
   }
 
-  return (OOGalacticHyperspaceBehaviour)kOOGalacticHyperspaceBehaviourDefault;
+  return kOOGalacticHyperspaceBehaviourDefault;
 }
 
 OOGUIScreenID cxx_OOGUIScreenIDFromString(const std::string& string) {

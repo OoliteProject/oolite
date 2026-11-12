@@ -991,8 +991,8 @@ OO_TEST(slice14BountyAndRotateCargo)
 		RecordingPlayer *player = MakeRecordingPlayer();
 		player->setBounty(25);
 		OO_CHECK(sSent.count == 1 && sSent.amount == 25);
-		OO_CHECK(sSent.text == cxx_OOStringFromLegalStatusReason(kOOLegalStatusReasonUnknown));
-		player->setBounty(30, kOOLegalStatusReasonUnknown);
+		OO_CHECK(sSent.text == cxx_OOStringFromLegalStatusReason(OOLegalStatusReason::kUnknown));
+		player->setBounty(30, OOLegalStatusReason::kUnknown);
 		OO_CHECK(sSent.count == 2 && sSent.amount == 30);
 		player->rotateCargo();
 		OO_CHECK(player->cargo.empty());
@@ -1015,7 +1015,7 @@ OO_TEST(slice15LegalStatusOffenceAndScenario)
 		OO_CHECK(player->getBounty() == 64 && player->getLegalStatus() == 64);
 		player->markAsOffender(8);
 		OO_CHECK(sSent.count == 1 && sSent.number == 8);
-		OO_CHECK(sSent.text == cxx_OOStringFromLegalStatusReason(kOOLegalStatusReasonUnknown));
+		OO_CHECK(sSent.text == cxx_OOStringFromLegalStatusReason(OOLegalStatusReason::kUnknown));
 		OO_CHECK(!player->endScenario("some-scenario"));
 		PlayerEntityTestAccess::scenarioKey(player) = std::string("other-scenario");
 		OO_CHECK(!player->endScenario("some-scenario"));
@@ -1292,10 +1292,10 @@ OO_TEST(slice27CustomViewHyperspaceAndNames)
 		OO_CHECK(NearV(player->getCustomViewUpVector(), vector_up_from_quaternion(kIdentityQuaternion)));
 		OO_CHECK(NearV(player->getCustomViewRightVector(), vector_right_from_quaternion(kIdentityQuaternion)));
 		OO_CHECK(!player->scriptsLoaded() && player->worldScriptNames().empty());
-		player->setGalacticHyperspaceBehaviour(GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES);
-		OO_CHECK(player->getGalacticHyperspaceBehaviour() == GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES);
-		player->setGalacticHyperspaceBehaviour(GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN);
-		OO_CHECK(player->getGalacticHyperspaceBehaviour() == GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES);
+		player->setGalacticHyperspaceBehaviour(OOGalacticHyperspaceBehaviour::kFixedCoordinates);
+		OO_CHECK(player->getGalacticHyperspaceBehaviour() == OOGalacticHyperspaceBehaviour::kFixedCoordinates);
+		player->setGalacticHyperspaceBehaviour(OOGalacticHyperspaceBehaviour::kUnknown);
+		OO_CHECK(player->getGalacticHyperspaceBehaviour() == OOGalacticHyperspaceBehaviour::kFixedCoordinates);
 		player->setGalacticHyperspaceFixedCoords(NSMakePoint(300.0, 12.4));
 		OO_CHECK(Near(player->getGalacticHyperspaceFixedCoords(), NSMakePoint(255, 12)));
 		player->setMissionExitScreen(GUI_SCREEN_STATUS);

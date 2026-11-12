@@ -152,7 +152,7 @@ oo::PList StationEntity::launchIndependentShip(
     }  // keep defined scanclasses for non-traders.
 
     if (trader) {
-      if (ship != nullptr) ship->setBounty(0, kOOLegalStatusReasonSetup);
+      if (ship != nullptr) ship->setBounty(0, OOLegalStatusReason::kSetup);
       if (ship != nullptr) ship->setCargoFlag(OOCargoFlag::kFullPlentiful);
       if (sunskimmer) {
         if (ship != nullptr) ship->setFuel((Ranrot() & 31));
@@ -259,7 +259,7 @@ oo::PList StationEntity::launchPolice()  // called by name
         if (police_ship != nullptr)
           police_ship->setScanClass(OOScanClass::kPolice);
       if (police_ship != nullptr)
-        police_ship->setBounty(0, kOOLegalStatusReasonSetup);
+        police_ship->setBounty(0, OOLegalStatusReason::kSetup);
       if ((police_ship != nullptr ? police_ship->heatInsulation() : 0.0f) <
           heatInsulation())
         if (police_ship != nullptr)
@@ -594,7 +594,7 @@ oo::PList StationEntity::launchPolice()  // called by name
     if (pirate_ship != nullptr)
       pirate_ship->setBounty(
           10 + floor(randf() * 20),
-          kOOLegalStatusReasonSetup);  // modified for variety
+          OOLegalStatusReason::kSetup);  // modified for variety
 
     addShipToLaunchQueue(pirate_ship, false);
     if (pirate_ship != nullptr) oo::ToShip(oo::AutoreleaseEntity(pirate_ship));
@@ -732,7 +732,7 @@ oo::PList StationEntity::launchPolice()  // called by name
       if (patrol_ship != nullptr)
         patrol_ship->setPrimaryRole("police-station-patrol");
       if (patrol_ship != nullptr)
-        patrol_ship->setBounty(0, kOOLegalStatusReasonSetup);
+        patrol_ship->setBounty(0, OOLegalStatusReason::kSetup);
       if (patrol_ship != nullptr)
         patrol_ship->setGroup(stationGroup());  // who's your Daddy
       if (patrol_ship != nullptr) patrol_ship->switchAITo("oolite-policeAI.js");
@@ -2170,7 +2170,7 @@ void StationEntity::takeEnergyDamage(double amount, Entity* entPart,
       }
       if (oo::ToShip(other) != nullptr)
         oo::ToShip(other)->markAsOffender(
-            b, kOOLegalStatusReasonAttackedMainStation);
+            b, OOLegalStatusReason::kAttackedMainStation);
       setPrimaryAggressor(other);
       setFoundTarget(other);
       launchPolice();

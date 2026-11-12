@@ -161,16 +161,16 @@ inline constexpr std::string_view AIMS_AGGRESSOR_SWITCHED_TARGET =
 // higher factor makes confident at longer ranges
 #define COMBAT_AI_CONFIDENCE_FACTOR 1250000.0f
 #define COMBAT_AI_ISNT_AWFUL 0.0f
-// removes BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX/TWELVE (unless thargoid)
+// removes OOBehaviour::kAttackFlyToTargetSix/TWELVE (unless thargoid)
 #define COMBAT_AI_IS_SMART 5.0f
 // adds BEHAVIOUR_(FLEE_)EVASIVE_ACTION
 #define COMBAT_AI_FLEES_BETTER 6.0f
-// adds BEHAVIOUR_ATTACK_BREAK_OFF_TARGET
+// adds OOBehaviour::kAttackBreakOffTarget
 #define COMBAT_AI_DOGFIGHTER 6.5f
-// adds BEHAVIOUR_ATTACK_SLOW_DOGFIGHT
+// adds OOBehaviour::kAttackSlowDogfight
 #define COMBAT_AI_TRACKS_CLOSER 7.5f
 #define COMBAT_AI_USES_SNIPING 8.5f
-// adds BEHAVIOUR_ATTACK_SNIPER
+// adds OOBehaviour::kAttackSniper
 #define COMBAT_AI_FLEES_BETTER_2 9.0f
 // AI reacts to changes in target path in about 1.5 seconds.
 #define COMBAT_AI_STANDARD_REACTION_TIME 1.5f
@@ -182,13 +182,7 @@ inline constexpr std::string_view AIMS_AGGRESSOR_SWITCHED_TARGET =
   0.995  // cos(5 degrees) is close enough in most cases for navigation
 #define MAX_COS2 (MAX_COS * MAX_COS)
 
-#define ENTRY(label, value) label = value,
-
-typedef enum OOBehaviour {
-#include "OOBehaviour.tbl"
-} OOBehaviour;
-
-#undef ENTRY
+#include "OOBehaviour.h"
 
 /*typedef enum
 {

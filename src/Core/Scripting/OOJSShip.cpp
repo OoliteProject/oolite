@@ -1186,8 +1186,8 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS) {
                  : OOPlayerFleeingStatus{}) >= OOPlayerFleeingStatus::kCargo);
       } else {
         return OOJSValueFromBOOL(
-            ship->getBehaviour() == BEHAVIOUR_FLEE_TARGET ||
-            ship->getBehaviour() == BEHAVIOUR_FLEE_EVASIVE_ACTION);
+            ship->getBehaviour() == OOBehaviour::kFleeTarget ||
+            ship->getBehaviour() == OOBehaviour::kFleeEvasiveAction);
       }
 
     case kShip_isCargo:
@@ -1546,7 +1546,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
     case kShip_bounty:
       if (OOJSValueToInt32(context, value, &iValue)) {
         if (iValue < 0) iValue = 0;
-        ship->setBounty(iValue, kOOLegalStatusReasonByScript);
+        ship->setBounty(iValue, OOLegalStatusReason::kByScript);
         return JS_UNDEFINED;
       }
       break;
@@ -4387,8 +4387,8 @@ static JSValue ShipThreatAssessment(OOJS_NATIVE_ARGS) {
   }
 
   // mostly ignore fleeing ships as threats
-  if (ship->getBehaviour() == BEHAVIOUR_FLEE_TARGET ||
-      ship->getBehaviour() == BEHAVIOUR_FLEE_EVASIVE_ACTION) {
+  if (ship->getBehaviour() == OOBehaviour::kFleeTarget ||
+      ship->getBehaviour() == OOBehaviour::kFleeEvasiveAction) {
     assessment *= 0.2;
   } else if (ship->getIsPlayer() &&
              (static_cast<PlayerEntity*>(thisEnt) != nullptr

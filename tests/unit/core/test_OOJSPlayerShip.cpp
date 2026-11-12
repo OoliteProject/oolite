@@ -143,7 +143,7 @@ class FakePlayer : public PlayerEntity {
   }
   ::HeadUpDisplay* getHud() override { return _hud.get(); }
   OOGalacticHyperspaceBehaviour getGalacticHyperspaceBehaviour() override {
-    return GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES;
+    return OOGalacticHyperspaceBehaviour::kFixedCoordinates;
   }
   NSPoint getGalacticHyperspaceFixedCoords() override {
     return NSMakePoint(64, 128);
@@ -806,7 +806,7 @@ OO_TEST(setterPlayerState) {
           "setGalacticHyperspaceBehaviour %d; setGalacticHyperspaceFixedCoords "
           "10 20; setGalacticHyperspaceFixedCoords 10 20",
           static_cast<int>(
-              GALACTIC_HYPERSPACE_BEHAVIOUR_ALL_SYSTEMS_REACHABLE)));
+              OOGalacticHyperspaceBehaviour::kAllSystemsReachable)));
   OO_CHECK_EVAL("(function () { player.ship.serviceLevel = 90; })()",
                 "undefined");
   OO_CHECK_LOG(sPlayer->_log, "adjustTradeInFactorBy -5");

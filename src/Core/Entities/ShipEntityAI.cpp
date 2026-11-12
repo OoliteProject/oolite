@@ -230,63 +230,63 @@ void ShipEntity::groupAttackTarget() {
 }
 
 void ShipEntity::performAttack() {
-  if (behaviour != BEHAVIOUR_EVASIVE_ACTION) {
-    behaviour = BEHAVIOUR_ATTACK_TARGET;
+  if (behaviour != OOBehaviour::kEvasiveAction) {
+    behaviour = OOBehaviour::kAttackTarget;
     desired_range = 1250 * randf() + 750;  // 750 til 2000
     frustration = 0.0;
   }
 }
 
 void ShipEntity::performCollect() {
-  behaviour = BEHAVIOUR_COLLECT_TARGET;
+  behaviour = OOBehaviour::kCollectTarget;
   frustration = 0.0;
 }
 
 void ShipEntity::performEscort() {
-  if (behaviour != BEHAVIOUR_FORMATION_FORM_UP) {
-    behaviour = BEHAVIOUR_FORMATION_FORM_UP;
+  if (behaviour != OOBehaviour::kFormationFormUp) {
+    behaviour = OOBehaviour::kFormationFormUp;
     frustration = 0.0;  // behavior changed, reset frustration.
   }
 }
 
 void ShipEntity::performFaceDestination() {
-  behaviour = BEHAVIOUR_FACE_DESTINATION;
+  behaviour = OOBehaviour::kFaceDestination;
   frustration = 0.0;
 }
 
 void ShipEntity::performFlee() {
-  if (behaviour != BEHAVIOUR_FLEE_EVASIVE_ACTION) {
-    behaviour = BEHAVIOUR_FLEE_TARGET;
+  if (behaviour != OOBehaviour::kFleeEvasiveAction) {
+    behaviour = OOBehaviour::kFleeTarget;
     setEvasiveJink(400.0);
     frustration = 0.0;
     if (accuracy > COMBAT_AI_ISNT_AWFUL) {
       // alert! they've got us in their sights! react!!
       if (approachAspectToPrimaryTarget() > 0.9995) {
-        behaviour = randf() < 0.15 ? BEHAVIOUR_EVASIVE_ACTION
-                                   : BEHAVIOUR_FLEE_EVASIVE_ACTION;
+        behaviour = randf() < 0.15 ? OOBehaviour::kEvasiveAction
+                                   : OOBehaviour::kFleeEvasiveAction;
       }
     }
   }
 }
 
 void ShipEntity::performFlyToRangeFromDestination() {
-  behaviour = BEHAVIOUR_FLY_RANGE_FROM_DESTINATION;
+  behaviour = OOBehaviour::kFlyRangeFromDestination;
   frustration = 0.0;
 }
 
 void ShipEntity::performHold() {
   desired_speed = 0.0;
-  behaviour = BEHAVIOUR_TRACK_TARGET;
+  behaviour = OOBehaviour::kTrackTarget;
   frustration = 0.0;
 }
 
 void ShipEntity::performIdle() {
-  behaviour = BEHAVIOUR_IDLE;
+  behaviour = OOBehaviour::kIdle;
   frustration = 0.0;
 }
 
 void ShipEntity::performIntercept() {
-  behaviour = BEHAVIOUR_INTERCEPT_TARGET;
+  behaviour = OOBehaviour::kInterceptTarget;
   frustration = 0.0;
 }
 
@@ -294,11 +294,11 @@ void ShipEntity::performLandOnPlanet() {
   ::OOPlanetEntity* nearest = findNearestPlanet();
   if (isNearPlanetSurface) {
     _destination = (nearest != nullptr ? nearest->getPosition() : HPVector{});
-    behaviour = BEHAVIOUR_LAND_ON_PLANET;
+    behaviour = OOBehaviour::kLandOnPlanet;
     planetForLanding =
         (nearest != nullptr ? nearest->getUniversalID() : OOUniversalID{});
   } else {
-    behaviour = BEHAVIOUR_IDLE;
+    behaviour = OOBehaviour::kIdle;
     if (shipAI != nullptr) shipAI->message("NO_PLANET_NEARBY");
   }
 
@@ -311,7 +311,7 @@ void ShipEntity::performMining() {
   // rocks.
   if (target && (target != nullptr ? target->getScanClass() : OOScanClass{}) ==
                     OOScanClass::kRock) {
-    behaviour = BEHAVIOUR_ATTACK_MINING_TARGET;
+    behaviour = OOBehaviour::kAttackMiningTarget;
     frustration = 0.0;
   } else {
     noteLostTargetAndGoIdle();
@@ -319,24 +319,24 @@ void ShipEntity::performMining() {
 }
 
 void ShipEntity::performScriptedAI() {
-  behaviour = BEHAVIOUR_SCRIPTED_AI;
+  behaviour = OOBehaviour::kScriptedAi;
   frustration = 0.0;
 }
 
 void ShipEntity::performScriptedAttackAI() {
-  behaviour = BEHAVIOUR_SCRIPTED_ATTACK_AI;
+  behaviour = OOBehaviour::kScriptedAttackAi;
   frustration = 0.0;
 }
 
 void ShipEntity::performBuoyTumble() {
   stick_roll = 0.10;
   stick_pitch = 0.15;
-  behaviour = BEHAVIOUR_TUMBLE;
+  behaviour = OOBehaviour::kTumble;
   frustration = 0.0;
 }
 
 void ShipEntity::performStop() {
-  behaviour = BEHAVIOUR_STOP_STILL;
+  behaviour = OOBehaviour::kStopStill;
   desired_speed = 0.0;
   frustration = 0.0;
 }
@@ -344,7 +344,7 @@ void ShipEntity::performStop() {
 void ShipEntity::performTumble() {
   stick_roll = max_flight_roll * 2.0 * (randf() - 0.5);
   stick_pitch = max_flight_pitch * 2.0 * (randf() - 0.5);
-  behaviour = BEHAVIOUR_TUMBLE;
+  behaviour = OOBehaviour::kTumble;
   frustration = 0.0;
 }
 
@@ -538,7 +538,7 @@ bool ShipEntity::suggestEscortTo(::ShipEntity* mother) {
         int extra = 1 | (ranrot_rand() & 15);
         //				[mother setBounty: [mother legalStatus]
         //+ extra withReason:kOOLegalStatusReasonAssistingOffender];
-        markAsOffender(extra, kOOLegalStatusReasonAssistingOffender);
+        markAsOffender(extra, OOLegalStatusReason::kAssistingOffender);
         //				bounty += extra;	// obviously
         // we're dodgier than we thought!
       }
@@ -785,7 +785,7 @@ void ShipEntity::acceptDistressMessageFrom(::ShipEntity* other) {
     if (oo::ToShip(foundTarget()) != nullptr)
       oo::ToShip(foundTarget())
           ->markAsOffender(
-              8, kOOLegalStatusReasonDistressCall);  // you have been warned!!
+              8, OOLegalStatusReason::kDistressCall);  // you have been warned!!
   }
 
   if (shipAI != nullptr)
@@ -856,8 +856,9 @@ void StationEntity::acceptDistressMessageFrom(::ShipEntity* other) {
   if (oo::ToShip((other != nullptr ? other->primaryTarget()
                                    : (Entity*)nullptr)) != nullptr)
     oo::ToShip((other != nullptr ? other->primaryTarget() : (Entity*)nullptr))
-        ->markAsOffender(8,
-                         kOOLegalStatusReasonDistressCall);  // mark their card
+        ->markAsOffender(
+            8,
+            OOLegalStatusReason::kDistressCall);  // mark their card
   launchDefenseShip();
   _primaryTarget = old_target;
 }
@@ -1301,7 +1302,7 @@ void ShipEntity::fightOrFleeMissile() {
   // if I'm a copper and you're not, then mark the other as an offender!
   if (isPolice() && !(hunter != nullptr ? hunter->isPolice() : false)) {
     if (hunter != nullptr)
-      hunter->markAsOffender(64, kOOLegalStatusReasonAttackedPolice);
+      hunter->markAsOffender(64, OOLegalStatusReason::kAttackedPolice);
   }
 
   if (hasECM()) {
@@ -2121,7 +2122,7 @@ void ShipEntity::markTargetForOffence(
         cxx_OOExpand(valueString).value_or(std::string());  // expand values
     if (ship != nullptr)
       ship->markAsOffender(oo::str::intValue(finalValue),
-                           kOOLegalStatusReasonSeenByPolice);
+                           OOLegalStatusReason::kSeenByPolice);
   }
 }
 
@@ -2762,5 +2763,5 @@ void ShipEntity::setRacepointsFromTarget() {
 void ShipEntity::performFlyRacepoints() {
   next_navpoint_index = 0;
   desired_range = collision_radius;
-  behaviour = BEHAVIOUR_FLY_THRU_NAVPOINTS;
+  behaviour = OOBehaviour::kFlyThruNavpoints;
 }

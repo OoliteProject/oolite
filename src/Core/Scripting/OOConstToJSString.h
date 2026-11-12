@@ -143,7 +143,8 @@ OOINLINE JSValue OOJSValueFromGalacticHyperspaceBehaviour(
     JSContext* context, OOGalacticHyperspaceBehaviour value) {
   extern struct ConstTable gOOGalacticHyperspaceBehaviourConstTable;
   return OOJSValueFromConstantPRIVATE(
-      context, value, &gOOGalacticHyperspaceBehaviourConstTable);
+      context, oo::ToUnderlying(value),
+      &gOOGalacticHyperspaceBehaviourConstTable);
 }
 
 OOINLINE OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromJSValue(
@@ -151,7 +152,7 @@ OOINLINE OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromJSValue(
   extern struct ConstTable gOOGalacticHyperspaceBehaviourConstTable;
   return (OOGalacticHyperspaceBehaviour)OOConstantFromJSValuePRIVATE(
       context, value, &gOOGalacticHyperspaceBehaviourConstTable,
-      kOOGalacticHyperspaceBehaviourDefault);
+      oo::ToUnderlying(kOOGalacticHyperspaceBehaviourDefault));
 }
 
 /*	JSValue OOJSValueFromViewID(JSContext *, OOViewID)
