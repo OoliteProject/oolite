@@ -27,6 +27,8 @@ SOFTWARE.
 
 #include "OOProbabilisticTextureManager.h"
 
+#include <format>
+
 #include "OOTexture.h"
 #include "PlayerEntityScriptMethods.h"
 #include "ResourceManager.h"
@@ -173,8 +175,8 @@ OOProbabilisticTextureManager::~OOProbabilisticTextureManager() {
 // 0x...>{...}", the text this class's own -description printed.
 std::optional<std::string>
 OOProbabilisticTextureManager::descriptionComponents() const {
-  return oo::str::format("%u textures, cumulative probability=%g", _count,
-                         _probMax);
+  return std::format("{} textures, cumulative probability={:g}", _count,
+                     _probMax);
 }
 
 OOTexture* OOProbabilisticTextureManager::selectTexture() {

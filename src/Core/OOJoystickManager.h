@@ -197,7 +197,9 @@ inline constexpr std::string_view STICK_YAW_AXIS_PROFILE_SETTING =
     "YawAxisProfile";  // Joystick Profiles
 // shortcut to make code more readable when using enum as key for
 // a dictionary: a std::string (oofnd/String.hpp)
-#define ENUMKEY(x) oo::str::format("%d", x)
+#define ENUMKEY(x) std::format("{}", static_cast<int>(x))
+
+#include <format>
 
 #include "OOJoystickProfile.h"
 #include "oofnd/String.hpp"

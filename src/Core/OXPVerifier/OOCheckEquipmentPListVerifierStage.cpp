@@ -25,6 +25,8 @@ MA 02110-1301, USA.
 
 #include "OOCheckEquipmentPListVerifierStage.h"
 
+#include <format>
+
 #if OO_OXP_VERIFIER_ENABLED
 
 #include "OOFileScannerVerifierStage.h"
@@ -112,9 +114,9 @@ void OOCheckEquipmentPListVerifierStage::runCheckWithEquipment(
       name = std::nullopt;
 
     if (name.has_value())
-      entryDesc = oo::str::format("%u (\"%s\")", entryIndex, name->c_str());
+      entryDesc = std::format("{} (\"{}\")", entryIndex, *name);
     else
-      entryDesc = oo::str::format("%u", entryIndex);
+      entryDesc = std::format("{}", entryIndex);
 
     // Check that the entry has an acceptable number of elements.
     if (elemCount < 5) {

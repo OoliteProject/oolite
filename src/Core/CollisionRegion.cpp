@@ -24,6 +24,8 @@ MA 02110-1301, USA.
 
 #include "CollisionRegion.h"
 
+#include <format>
+
 #include "Entity.h"
 #include "OODebugFlags.h"
 #include "OOMaths.h"
@@ -102,8 +104,8 @@ CollisionRegion::~CollisionRegion() {
 // OOObject's -description wraps this as "<CollisionRegion 0x...>{ID: ...}",
 // which is what this class's own -description printed.
 std::optional<std::string> CollisionRegion::descriptionComponents() const {
-  return oo::str::format("ID: %d, %zu subregions, %u ents", crid,
-                         subregions.size(), n_entities);
+  return std::format("ID: {}, {} subregions, {} ents", crid, subregions.size(),
+                     n_entities);
 }
 
 void CollisionRegion::clearSubregions() {
@@ -263,9 +265,9 @@ void CollisionRegion::findCollisions() {
   if (gDebugFlags & DEBUG_COLLISIONS) {
     OO_LOG("collisionRegion.debug",
            "DEBUG in collision region {} testing {} out of {} entities",
-           oo::str::format("<CollisionRegion %s>{%s}",
-                           oo::str::pointerDescription(this).c_str(),
-                           descriptionComponents().value_or("").c_str()),
+           std::format("<CollisionRegion {}>{{{}}}",
+                       oo::str::pointerDescription(this),
+                       descriptionComponents().value_or("")),
            n_entities_to_test, n_entities);
   }
 #endif
@@ -675,11 +677,11 @@ void CollisionRegion::findShadowedEntities() {
 }
 
 std::string CollisionRegion::collisionDescription() {
-  return oo::str::format("p%u - c%u", checks_this_tick, checks_within_range);
+  return std::format("p{} - c{}", checks_this_tick, checks_within_range);
 }
 
 std::optional<std::string> CollisionRegion::debugOut() {
-  std::string result = oo::str::format("%d:", n_entities);
+  std::string result = std::format("{}:", static_cast<int>(n_entities));
   for (const auto& sub : subregions) {
     if (const auto subOut = sub->debugOut()) result += *subOut;
   }

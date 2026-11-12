@@ -31,6 +31,7 @@ SOFTWARE.
 #include <vorbis/vorbisfile.h>
 
 #include <cstring>
+#include <format>
 
 #include "OOLogging.h"
 #include "oofnd/String.hpp"
@@ -405,9 +406,8 @@ std::optional<std::string> OOALSoundVorbisCodec::descriptionComponents() const {
       dict.emplace(key, oo::PList(value));
     commentList = oo::PList(std::move(dict));
   }
-  return oo::str::format("\"%s\", comments=%s",
-                         _name.value_or("(null)").c_str(),
-                         oo::DescriptionOf(commentList).c_str());
+  return std::format("\"{}\", comments={}", _name.value_or("(null)"),
+                     oo::DescriptionOf(commentList));
 }
 
 long OOALSoundVorbisCodec::sampleRate() { return ov_info(&_vf, -1)->rate; }

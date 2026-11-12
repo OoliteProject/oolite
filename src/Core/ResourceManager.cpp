@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 
 #include <algorithm>
 #include <cstddef>
+#include <format>
 #include <functional>
 #include <map>
 #include <optional>
@@ -683,7 +684,7 @@ std::vector<std::string> ResourceManager::maskUserNameInPathArray(
       SDL_getenv("HOME");
 #endif
   const std::string userName =
-      oo::str::lastPathComponent(oo::str::format("%s", userNamePathEnvVar));
+      oo::str::lastPathComponent(std::format("{}", userNamePathEnvVar));
   for (const std::string& path : inputPathArray) {
     maskedArray.push_back(*maskUserName(userName, path));
   }
@@ -833,8 +834,7 @@ void ResourceManager::checkPotentialPath(
       return;
     } else {
       if (extension == "oxp") {
-        cxx_OOStandardsError(
-            oo::str::format("OXP %s has no manifest.plist", path.c_str()));
+        cxx_OOStandardsError(std::format("OXP {} has no manifest.plist", path));
         if (OOEnforceStandards()) {
           addErrorWithKey("oxp-lacks-manifest",
                           oo::str::lastPathComponent(path), "");
@@ -1503,10 +1503,10 @@ oo::PList ResourceManager::dictionaryFromFilesNamed(
 
   if (cache) {
     if (folderName.has_value()) {
-      cacheKey = oo::str::format("%s/%s merge:%s", folderName->c_str(),
-                                 fileName.c_str(), mergeType);
+      cacheKey =
+          std::format("{}/{} merge:{}", *folderName, fileName, mergeType);
     } else {
-      cacheKey = oo::str::format("%s merge:%s", fileName.c_str(), mergeType);
+      cacheKey = std::format("{} merge:{}", fileName, mergeType);
     }
     oo::PList cached = cacheMgr->pListForKey(cacheKey, "dictionaries");
     if (!cached.isNull()) return cached;
@@ -1584,10 +1584,10 @@ oo::PList ResourceManager::arrayFromFilesNamed(
                            lowercaseName == "startextures.plist";
 
   if (useCache) {
-    cacheKey = oo::str::format(
-        "%s%s merge:%s",
-        folderName.has_value() ? (*folderName + "/").c_str() : "",
-        fileName.c_str(), mergeFiles ? "yes" : "no");
+    cacheKey =
+        std::format("{}{} merge:{}",
+                    folderName.has_value() ? (*folderName + "/").c_str() : "",
+                    fileName, mergeFiles ? "yes" : "no");
     oo::PList cached = cache->pListForKey(cacheKey, "arrays");
     if (!cached.isNull()) return cached;
   }
@@ -2141,9 +2141,9 @@ std::optional<std::string> ResourceManager::pathForFileNamed(
 
   if (ioCache) {
     if (!key.has_value())
-      key = oo::str::format(
-          "%s:%s", folderName.has_value() ? folderName->c_str() : "(null)",
-          fileName.c_str());
+      key = std::format("{}:{}",
+                        folderName.has_value() ? folderName->c_str() : "(null)",
+                        fileName);
     // return the cached object, if any
     auto cached = ioCache->find(*key);
     if (cached != ioCache->end()) return cached->second.get();
@@ -2180,9 +2180,9 @@ oo::Ref<OOMusic> ResourceManager::ooMusicNamed(
     const std::string& fileName, const std::optional<std::string>& folderName) {
   return retrieveFileNamed(
       fileName, folderName, &sSoundCache,
-      oo::str::format("OOSound:%s:%s",
-                      folderName.has_value() ? folderName->c_str() : "(null)",
-                      fileName.c_str()),
+      std::format("OOSound:{}:{}",
+                  folderName.has_value() ? folderName->c_str() : "(null)",
+                  fileName),
       true);
 }
 
@@ -2198,9 +2198,9 @@ std::optional<std::string> ResourceManager::stringFromFilesNamed(
   std::string key;
 
   if (useCache) {
-    key = oo::str::format(
-        "%s:%s", folderName.has_value() ? folderName->c_str() : "(null)",
-        fileName.c_str());
+    key = std::format("{}:{}",
+                      folderName.has_value() ? folderName->c_str() : "(null)",
+                      fileName);
     // return the cached object, if any
     auto cached = sStringCache.find(key);
     if (cached != sStringCache.end()) return cached->second;

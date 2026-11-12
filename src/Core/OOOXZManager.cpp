@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #include "OOOXZManager.h"
 
 #include <algorithm>
+#include <format>
 #include <optional>
 #include <string>
 #include <vector>
@@ -453,9 +454,9 @@ std::optional<std::string> OOOXZManager::humanSize(std::size_t bytes) {
   } else if (bytes < static_cast<std::size_t>(1024) *
                          1024)  // the product in std::size_t
   {
-    return oo::str::format("%zu kB", (size_t)(bytes >> 10));
+    return std::format("{} kB", (size_t)(bytes >> 10));
   } else {
-    return oo::str::format("%.2f MB", ((float)(bytes >> 10)) / 1024);
+    return std::format("{:.2f} MB", ((float)(bytes >> 10)) / 1024);
   }
 }
 
@@ -659,7 +660,7 @@ bool OOOXZManager::beginDownload(const std::string& url) {
   const std::optional<std::string> bundleVersion =
       OoliteInfoString("CFBundleVersion");
   const std::string userAgent =
-      oo::str::format("Oolite/%s", bundleVersion.value_or("").c_str());
+      std::format("Oolite/{}", bundleVersion.value_or(""));
   // A download always starts: a URL it cannot fetch arrives as a failure
   // callback.
   oo::http::Download* download = new oo::http::Download(url, userAgent);

@@ -49,6 +49,8 @@ SOFTWARE.
 
 #include "OOFileScannerVerifierStage.h"
 
+#include <format>
+
 #if OO_OXP_VERIFIER_ENABLED
 
 #include "ResourceManager.h"
@@ -586,7 +588,7 @@ void OOFileScannerVerifierStage::checkPListFormat(
           break;
 
         default:
-          formatDesc = oo::str::format("unknown format (%i)", (int)format);
+          formatDesc = std::format("unknown format ({})", (int)format);
       }
 
       OO_LOG("verifyOXP.plist.weirdFormat",

@@ -30,6 +30,8 @@ SOFTWARE.
 
 #if OO_LOCALIZATION_TOOLS
 
+#include <format>
+
 #include "OOConvertSystemDescriptions.h"
 #include "ResourceManager.h"
 #include "Universe.h"
@@ -66,10 +68,10 @@ void InitKeyToIndexDict(const oo::PList& dict, KeysToIndices& outKeysToIndices,
 std::optional<std::string> IndexToKey(std::size_t index,
                                       const oo::PList& indicesToKeys,
                                       bool useFallback) {
-  const oo::PList* value = indicesToKeys.find(oo::str::format("%zu", index));
+  const oo::PList* value = indicesToKeys.find(std::format("{}", index));
   if (value != nullptr && value->getIf<std::string>() != nullptr)
     return *value->getIf<std::string>();
-  if (useFallback) return oo::str::format("block_%zu", index);
+  if (useFallback) return std::format("block_{}", index);
 
   return std::nullopt;
 }
@@ -130,7 +132,7 @@ oo::PList ConvertKeysToIndices(const oo::PList& entry,
             KeyToIndex(oo::utf16ToUtf8(middle.substr(1)), ioKeysToIndices,
                        ioUsedIndicies, ioSlotCache);
         std::u16string replaced = before;
-        replaced += oo::utf8ToUtf16(oo::str::format("[%lld]", index));
+        replaced += oo::utf8ToUtf16(std::format("[{}]", index));
         replaced += after;
         line = std::move(replaced);
       }

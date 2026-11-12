@@ -27,6 +27,8 @@ SOFTWARE.
 
 #include "OOShipRegistry.h"
 
+#include <format>
+
 #include "GameController.h"
 #include "OOCacheManager.h"
 #include "OOColor.h"
@@ -971,13 +973,12 @@ bool OOShipRegistry::sanitizeConditions(oo::PList& ioData) {
       continue;
 
     if (!conditions.isNull()) {
-      cxx_OOStandardsDeprecated(oo::str::format(
-          "The 'conditions' key is deprecated in shipdata entry %s", key));
+      cxx_OOStandardsDeprecated(std::format(
+          "The 'conditions' key is deprecated in shipdata entry {}", key));
       if (!OOEnforceStandards()) {
         if (conditions.isArray()) {
-          conditions =
-              sanitize(conditions,
-                       oo::str::format("<shipdata.plist entry \"%s\">", key));
+          conditions = sanitize(
+              conditions, std::format("<shipdata.plist entry \"{}\">", key));
         } else {
           OO_LOG_WARN("shipdata.load.warning",
                       "conditions for shipdata.plist entry \"{}\" are not an "
@@ -997,12 +998,12 @@ bool OOShipRegistry::sanitizeConditions(oo::PList& ioData) {
     if (!hasShipyard.isNull()) {
       hasShipyard = sanitize(
           hasShipyard,
-          oo::str::format(
-              "<shipdata.plist entry \"%s\" hasShipyard conditions>", key));
-      cxx_OOStandardsDeprecated(oo::str::format(
-          "Use of legacy script conditions in the 'has_shipyard' key is "
-          "deprecated in shipyard entry %s",
-          key));
+          std::format("<shipdata.plist entry \"{}\" hasShipyard conditions>",
+                      key));
+      cxx_OOStandardsDeprecated(
+          std::format("Use of legacy script conditions in the 'has_shipyard' "
+                      "key is deprecated in shipyard entry {}",
+                      key));
       if (!OOEnforceStandards()) {
         if (!hasShipyard.isNull()) {
           entry["has_shipyard"] = std::move(hasShipyard);
@@ -1014,8 +1015,8 @@ bool OOShipRegistry::sanitizeConditions(oo::PList& ioData) {
     }
 
     if (!shipyardConditions.isNull()) {
-      cxx_OOStandardsDeprecated(oo::str::format(
-          "The 'conditions' key is deprecated in shipyard entry %s", key));
+      cxx_OOStandardsDeprecated(std::format(
+          "The 'conditions' key is deprecated in shipyard entry {}", key));
       if (!OOEnforceStandards()) {
         oo::PList mutableShipyard =
             valueOrNull(shipEntry.get<oo::PList::Dict>("_oo_shipyard"));
@@ -1023,7 +1024,7 @@ bool OOShipRegistry::sanitizeConditions(oo::PList& ioData) {
         if (shipyardConditions.isArray()) {
           shipyardConditions =
               sanitize(shipyardConditions,
-                       oo::str::format("<shipyard.plist entry \"%s\">", key));
+                       std::format("<shipyard.plist entry \"{}\">", key));
         } else {
           OO_LOG_WARN("shipdata.load.warning",
                       "conditions for shipyard.plist entry \"{}\" are not an "
@@ -1161,7 +1162,7 @@ void OOShipRegistry::mergeShipRoles(
   for (const auto& [parsedRole, weight] : OOParseRolesFromString(roles)) {
     rolesAndWeights[parsedRole] = weight;
   }
-  rolesAndWeights[oo::str::format("[%s]", shipKey.c_str())] = 1.0f;
+  rolesAndWeights[std::format("[{}]", shipKey)] = 1.0f;
 
   auto thargonValue = rolesAndWeights.find("thargon");
   if (thargonValue != rolesAndWeights.end() &&
@@ -1190,9 +1191,8 @@ oo::PList OOShipRegistry::canonicalizeSubentityDeclaration(
 
   if (declaration.isString()) {
     // Update old-style string-based declaration.
-    cxx_OOStandardsDeprecated(oo::str::format(
-        "Old style sub-entity declarations are deprecated in %s",
-        shipKey.c_str()));
+    cxx_OOStandardsDeprecated(std::format(
+        "Old style sub-entity declarations are deprecated in {}", shipKey));
     if (!OOEnforceStandards()) {
       result = translateOldStyleSubentityDeclaration(
           *declaration.getIf<std::string>(), shipKey, shipData, outFatalError);
@@ -1621,9 +1621,9 @@ void DumpStringAddrs(const oo::PList& dict, const std::string& context) {
   GatherStringAddrs(dict, strings, context);
 
   for (const StringAddr& entry : strings) {
-    const std::string string = oo::str::format(
-        "%s\t%s:  \"%s\"", oo::str::pointerDescription(entry.address).c_str(),
-        entry.context.c_str(), entry.string.c_str());
+    const std::string string = std::format(
+        "{}\t{}:  \"{}\"", oo::str::pointerDescription(entry.address),
+        entry.context, entry.string);
 
     fprintf(dump, "%s\n", string.c_str());
   }
@@ -1644,8 +1644,7 @@ void GatherStringAddrsDict(const oo::PList::Dict& dict,
   const std::string keyContext = context + " key";
   for (const auto& [key, value] : dict) {
     GatherStringAddr(key, strings, keyContext);
-    GatherStringAddrs(value, strings,
-                      oo::str::format("%s.%s", context.c_str(), key.c_str()));
+    GatherStringAddrs(value, strings, std::format("{}.{}", context, key));
   }
 }
 
@@ -1654,8 +1653,7 @@ void GatherStringAddrsArray(const oo::PList::Array& array,
                             const std::string& context) {
   unsigned i = 0;
   for (const oo::PList& v : array) {
-    GatherStringAddrs(v, strings,
-                      oo::str::format("%s[%u]", context.c_str(), i++));
+    GatherStringAddrs(v, strings, std::format("{}[{}]", context, i++));
   }
 }
 

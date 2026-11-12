@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 
 #include <cinttypes>  // PRIu64
 #include <cstddef>
+#include <format>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -58,10 +59,10 @@ std::optional<std::string> OOCharacter::descriptionComponents() const {
   // ("(null)" is what "%@" printed for a missing name or description; the two
   // getters read _legalStatus and _insuranceCredits, which a const member reads
   // directly)
-  return oo::str::format("%s, %s. bounty: %i insurance: %" PRIu64,
-                         _name.value_or("(null)").c_str(),
-                         _shortDescription.value_or("(null)").c_str(),
-                         _legalStatus, _insuranceCredits);
+  return std::format("{}, {}. bounty: {} insurance: {}",
+                     _name.value_or("(null)"),
+                     _shortDescription.value_or("(null)"),
+                     static_cast<int>(_legalStatus), _insuranceCredits);
 }
 
 std::optional<std::string> OOCharacter::oo_jsClassName() {
@@ -71,8 +72,8 @@ std::optional<std::string> OOCharacter::oo_jsClassName() {
 std::string OOCharacter::className() const { return "OOCharacter"; }
 
 std::string OOCharacter::description() const {
-  std::string result = oo::str::format(
-      "<OOCharacter %s>", oo::str::pointerDescription(this).c_str());
+  std::string result =
+      std::format("<OOCharacter {}>", oo::str::pointerDescription(this));
   const std::optional<std::string> components = descriptionComponents();
   if (components.has_value()) result += "{" + *components + "}";
   return result;

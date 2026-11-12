@@ -106,6 +106,8 @@ MA 02110-1301, USA.
 
 #include "OOCache.h"
 
+#include <format>
+
 #include "OOStringParsing.h"
 #include "oofnd/String.hpp"
 #if DEBUG_GRAPHVIZ
@@ -182,9 +184,9 @@ OOCache::~OOCache() {
 // oo::DescriptionOf (OODescription.h) wraps this as "<OOCache 0x...>{...}",
 // which is what this class's own -description printed.
 std::optional<std::string> OOCache::descriptionComponents() const {
-  return oo::str::format(
-      "\"%s\", %u elements, prune threshold=%u, auto-prune=%s dirty=%s",
-      CacheGetName(cache).value_or("(null)").c_str(), CacheGetCount(cache),
+  return std::format(
+      "\"{}\", {} elements, prune threshold={}, auto-prune={} dirty={}",
+      CacheGetName(cache).value_or("(null)"), CacheGetCount(cache),
       _pruneThreshold, _autoPrune ? "yes" : "no", _dirty ? "yes" : "no");
 }
 
@@ -288,8 +290,8 @@ void OOCache::prune() {
 
   pruneCount = count - desiredCount;
 
-  const std::string logKey = oo::str::format(
-      "dataCache.prune.%s", CacheGetName(cache).value_or("(null)").c_str());
+  const std::string logKey =
+      std::format("dataCache.prune.{}", CacheGetName(cache).value_or("(null)"));
   OO_LOG(logKey, "Pruning cache \"{}\" - removing {} entries",
          CacheGetName(cache).value_or("(null)"), pruneCount);
   oo::log::indentIf(logKey);
@@ -560,9 +562,8 @@ static void CacheNodeSetValue(OOCacheNode* node, const oo::PList& value) {
 static std::string CacheNodeGetDescription(OOCacheNode* node) {
   if (node == NULL) return "0[null]";
 
-  return oo::str::format("%s[\"%s\"]",
-                         oo::str::pointerDescription(node).c_str(),
-                         node->key.c_str());
+  return std::format("{}[\"{}\"]", oo::str::pointerDescription(node),
+                     node->key);
 }
 #endif  // OOCACHE_PERFORM_INTEGRITY_CHECKS
 
@@ -887,21 +888,21 @@ static void AgeListCheckIntegrity(OOCacheImpl* cache,
 
 void OOCache::appendNodesFromSubTree(OOCacheNode* subTree,
                                      std::string& ioString) {
-  ioString += oo::str::format("\tn%s [label=\"<f0> | <f1> %s | <f2>\"];\n",
-                              oo::str::pointerDescription(subTree).c_str(),
-                              cxx_EscapedGraphVizString(subTree->key).c_str());
+  ioString += std::format("\tn{} [label=\"<f0> | <f1> {} | <f2>\"];\n",
+                          oo::str::pointerDescription(subTree),
+                          cxx_EscapedGraphVizString(subTree->key));
 
   if (subTree->leftChild != nullptr) {
     appendNodesFromSubTree(subTree->leftChild, ioString);
-    ioString += oo::str::format(
-        "\tn%s:f0 -> n%s:f1;\n", oo::str::pointerDescription(subTree).c_str(),
-        oo::str::pointerDescription(subTree->leftChild).c_str());
+    ioString += std::format("\tn{}:f0 -> n{}:f1;\n",
+                            oo::str::pointerDescription(subTree),
+                            oo::str::pointerDescription(subTree->leftChild));
   }
   if (subTree->rightChild != nullptr) {
     appendNodesFromSubTree(subTree->rightChild, ioString);
-    ioString += oo::str::format(
-        "\tn%s:f2 -> n%s:f1;\n", oo::str::pointerDescription(subTree).c_str(),
-        oo::str::pointerDescription(subTree->rightChild).c_str());
+    ioString += std::format("\tn{}:f2 -> n{}:f1;\n",
+                            oo::str::pointerDescription(subTree),
+                            oo::str::pointerDescription(subTree->rightChild));
   }
 }
 
@@ -910,13 +911,12 @@ std::optional<std::string> OOCache::generateGraphVizBodyWithRootNamed(
   std::string result;
 
   // Root node representing cache
-  result += oo::str::format(
-      "\t%s [label=\"Cache \\\"%s\\\"\" shape=box];\n"
-      "\tnode [shape=record];\n\t\n",
-      rootName.c_str(),
-      (name().has_value() ? cxx_EscapedGraphVizString(*name())
-                          : std::string("(null)"))
-          .c_str());
+  result += std::format(
+      "\t{} [label=\"Cache \\\"{}\\\"\" shape=box];\n\tnode "
+      "[shape=record];\n\t\n",
+      rootName,
+      name().has_value() ? cxx_EscapedGraphVizString(*name())
+                         : std::string("(null)"));
 
   if (cache == nullptr) return result;
 
@@ -925,8 +925,8 @@ std::optional<std::string> OOCache::generateGraphVizBodyWithRootNamed(
 
   // Arc from cache object to root node
   result += "\tedge [color=black constraint=true];\n";
-  result += oo::str::format("\t%s -> n%s:f1;\n", rootName.c_str(),
-                            oo::str::pointerDescription(cache->root).c_str());
+  result += std::format("\t{} -> n{}:f1;\n", rootName,
+                        oo::str::pointerDescription(cache->root));
 
 #if AGE_LIST
   OOCacheNode* node = NULL;
@@ -936,9 +936,9 @@ std::optional<std::string> OOCache::generateGraphVizBodyWithRootNamed(
       "constraint=false];\n";
   node = cache->oldest;
   while (node->younger != NULL) {
-    result += oo::str::format(
-        "\tn%s:f2 -> n%s:f0;\n", oo::str::pointerDescription(node).c_str(),
-        oo::str::pointerDescription(node->younger).c_str());
+    result +=
+        std::format("\tn{}:f2 -> n{}:f0;\n", oo::str::pointerDescription(node),
+                    oo::str::pointerDescription(node->younger));
     node = node->younger;
   }
 #endif
@@ -950,13 +950,10 @@ std::string OOCache::generateGraphViz() {
   std::string result;
 
   // Header
-  result += oo::str::format(
-      "// OOCache dump\n\n"
-      "digraph cache\n"
-      "{\n"
-      "\tgraph [charset=\"UTF-8\", label=\"OOCache \"%s\" debug dump\", "
-      "labelloc=t, labeljust=l];\n\t\n",
-      name().value_or("(null)").c_str());
+  result += std::format(
+      "// OOCache dump\n\ndigraph cache\n{{\n\tgraph [charset=\"UTF-8\", "
+      "label=\"OOCache \"{}\" debug dump\", labelloc=t, labeljust=l];\n\t\n",
+      name().value_or("(null)"));
 
   result += generateGraphVizBodyWithRootNamed("cache").value_or("");
 

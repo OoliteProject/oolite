@@ -34,6 +34,8 @@ SOFTWARE.
 
 #include "OOOXPVerifier.h"
 
+#include <format>
+
 #if OO_OXP_VERIFIER_ENABLED
 
 #if OOLITE_WINDOWS
@@ -784,7 +786,7 @@ void SwitchLogFile(const std::string& name) {
 void NoteVerificationStage(const std::string& displayName,
                            const std::string& stage) {
   ::GameController::sharedController()->logProgress(
-      oo::str::format("Verifying %s\n%s", displayName.c_str(), stage.c_str()));
+      std::format("Verifying {}\n{}", displayName, stage));
 }
 
 void OpenLogFile() {
@@ -808,9 +810,8 @@ void OpenLogFile() {
       // value to void seems to keep it quiet for now
       // Nothing to do here, since we dump to stdout instead of to a file.
       // OOLogOutputHandlerStopLoggingToStdout();
-      (void)system(oo::str::format(
-                       "cat \"%s\"",
-                       cxx_OOLogHandlerGetLogPath().value_or("(null)").c_str())
+      (void)system(std::format("cat \"{}\"",
+                               cxx_OOLogHandlerGetLogPath().value_or("(null)"))
                        .c_str());
 #else
       do {

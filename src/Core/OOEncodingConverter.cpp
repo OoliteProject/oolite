@@ -26,6 +26,8 @@ SOFTWARE.
 
 #include "OOEncodingConverter.h"
 
+#include <format>
+
 #include "OOCache.h"
 #include "OOLogging.h"
 #include "oofnd/Encoding.hpp"
@@ -116,10 +118,10 @@ OOEncodingConverter::~OOEncodingConverter() {
 // 0x...>{...}".
 std::optional<std::string> OOEncodingConverter::descriptionComponents() const {
   // (an unknown encoding printed as oo::kNotFound's low 32 bits, 4294967295)
-  return oo::str::format("encoding: %u",
-                         _encoding.has_value()
-                             ? static_cast<unsigned>(*_encoding)
-                             : static_cast<unsigned>(oo::kNotFound));
+  return std::format("encoding: {}",
+                     _encoding.has_value()
+                         ? static_cast<unsigned>(*_encoding)
+                         : static_cast<unsigned>(oo::kNotFound));
 }
 
 oo::Data OOEncodingConverter::convertString(const std::string& string) {

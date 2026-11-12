@@ -25,6 +25,8 @@ SOFTWARE.
 
 */
 
+#include <format>
+
 #include "OOLogging.h"
 #include "OOMaths.h"
 #include "OOSoundInternal.h"
@@ -81,17 +83,17 @@ std::optional<std::string> OOSoundSource::descriptionComponents() const {
   if (_channel != nullptr) {
     // The channel as %@ printed it:
     // <OOSoundChannel 0x...>.
-    const std::string channel = oo::str::format(
-        "<OOSoundChannel %s>", oo::str::pointerDescription(_channel).c_str());
-    return oo::str::format(
-        "sound=%s, loop=%s, repeatCount=%u, playing on channel %s",
-        SoundDescription(_sound.get()).c_str(), _loop ? "YES" : "NO",
-        _repeatCount ? _repeatCount : 1, channel.c_str());
+    const std::string channel = std::format(
+        "<OOSoundChannel {}>", oo::str::pointerDescription(_channel));
+    return std::format(
+        "sound={}, loop={}, repeatCount={}, playing on channel {}",
+        SoundDescription(_sound.get()), _loop ? "YES" : "NO",
+        static_cast<unsigned int>(_repeatCount ? _repeatCount : 1), channel);
   } else {
-    return oo::str::format("sound=%s, loop=%s, repeatCount=%u, not playing",
-                           SoundDescription(_sound.get()).c_str(),
-                           _loop ? "YES" : "NO",
-                           _repeatCount ? _repeatCount : 1);
+    return std::format(
+        "sound={}, loop={}, repeatCount={}, not playing",
+        SoundDescription(_sound.get()), _loop ? "YES" : "NO",
+        static_cast<unsigned int>(_repeatCount ? _repeatCount : 1));
   }
 }
 

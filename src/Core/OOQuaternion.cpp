@@ -24,6 +24,8 @@ MA 02110-1301, USA.
 
 #define OO_PLAIN_CPP_UNIT \
   1  // a plain C++ unit: the shared headers' game-unit parts stay out of it
+#include <format>
+
 #include "OOMaths.h"
 #include "oofnd/String.hpp"
 
@@ -367,8 +369,8 @@ std::string QuaternionDescription(Quaternion quaternion) {
   ys = (quaternion.y >= 0.0f) ? '+' : '-';
   zs = (quaternion.z >= 0.0f) ? '+' : '-';
 
-  return oo::str::format("(%g %c %gi %c %gj %c %gk)", quaternion.w, xs, x, ys,
-                         y, zs, z);
+  return std::format("({:g} {} {:g}i {} {:g}j {} {:g}k)", quaternion.w, xs, x,
+                     ys, y, zs, z);
 }
 
 Vector quaternion_rotate_vector(Quaternion q, Vector v) {

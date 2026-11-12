@@ -49,6 +49,7 @@ sets that will then be immutablized.
 #include "OOProbabilitySet.h"
 
 #include <cstddef>
+#include <format>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -276,8 +277,7 @@ OOProbabilitySet::probabilitySetWithPropertyListRepresentation(
 std::optional<std::string> OOProbabilitySet::descriptionComponents() const {
   // (count() is not const; the fixed const signature reaches it
   // through a cast)
-  return oo::str::format("count=%zu",
-                         const_cast<OOProbabilitySet*>(this)->count());
+  return std::format("count={}", const_cast<OOProbabilitySet*>(this)->count());
 }
 
 oo::Ref<OOProbabilitySet> OOProbabilitySet::copy() {

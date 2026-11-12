@@ -27,6 +27,8 @@ SOFTWARE.
 
 #include "OORoleSet.h"
 
+#include <format>
+
 #include "OOLogging.h"
 #include "OOMaths.h"  // randf()
 #include "oofnd/String.hpp"
@@ -102,7 +104,7 @@ std::optional<std::string> OORoleSet::roleString() {
 
       const float probability = probabilityForRole(role);
       if (probability != 1.0f) {
-        result += oo::str::format("(%g)", probability);
+        result += std::format("({:g})", probability);
       }
     }
 
@@ -160,14 +162,14 @@ std::optional<std::string> OORoleSet::anyRole() {
   }
   if (!role.has_value()) {
     role = _rolesAndProbabilities.begin()->first;
-    OO_LOG("roleSet.anyRole.failed",
-           "Could not get a weighted-random role from role set {}, returning "
-           "unweighted selection {}. TotalProb: {:g}, selected: {:g}, prob at "
-           "end: {:f}",
-           oo::str::format("<OORoleSet %s>{%s}",
-                           oo::str::pointerDescription(this).c_str(),
-                           descriptionComponents().value_or("").c_str()),
-           role.value_or("(null)"), _totalProb, selected, prob);
+    OO_LOG(
+        "roleSet.anyRole.failed",
+        "Could not get a weighted-random role from role set {}, returning "
+        "unweighted selection {}. TotalProb: {:g}, selected: {:g}, prob at "
+        "end: {:f}",
+        std::format("<OORoleSet {}>{{{}}}", oo::str::pointerDescription(this),
+                    descriptionComponents().value_or("")),
+        role.value_or("(null)"), _totalProb, selected, prob);
   }
   return role;
 }

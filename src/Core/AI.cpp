@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #include "AI.h"
 
 #include <cstring>
+#include <format>
 #include <functional>
 
 #include "GameController.h"
@@ -156,7 +157,7 @@ oo::Ref<AI> AI::newWithStateMachine(
 
 std::string AI::description() const {
   std::string result =
-      oo::str::format("<AI %s>", oo::str::pointerDescription(this).c_str());
+      std::format("<AI {}>", oo::str::pointerDescription(this));
   const std::optional<std::string> components = descriptionComponents();
   if (components.has_value()) result += "{" + *components + "}";
   return result;
@@ -164,7 +165,7 @@ std::string AI::description() const {
 
 std::string AI::shortDescription() const {
   std::string result =
-      oo::str::format("<AI %s>", oo::str::pointerDescription(this).c_str());
+      std::format("<AI {}>", oo::str::pointerDescription(this));
   const std::optional<std::string> components = shortDescriptionComponents();
   if (components.has_value()) result += "{" + *components + "}";
   return result;
@@ -174,10 +175,9 @@ AI* AI::currentlyRunningAI() { return sCurrentlyRunningAI; }
 
 std::optional<std::string> AI::currentlyRunningAIDescription() {
   if (sCurrentlyRunningAI != nullptr) {
-    return oo::str::format(
-        "%s in state %s",
-        sCurrentlyRunningAI->name().value_or("(null)").c_str(),
-        sCurrentlyRunningAI->state().value_or("(null)").c_str());
+    return std::format("{} in state {}",
+                       sCurrentlyRunningAI->name().value_or("(null)"),
+                       sCurrentlyRunningAI->state().value_or("(null)"));
   } else {
     return "<no AI running>";
   }
@@ -209,16 +209,15 @@ AI::~AI() {
 }
 
 std::optional<std::string> AI::descriptionComponents() const {
-  return oo::str::format("\"%s\" in state: \"%s\" for %s",
-                         stateMachineName.c_str(),
-                         currentState.value_or("(null)").c_str(),
-                         ownerDesc.value_or("(null)").c_str());
+  return std::format("\"{}\" in state: \"{}\" for {}", stateMachineName,
+                     currentState.value_or("(null)"),
+                     ownerDesc.value_or("(null)"));
 }
 
 std::optional<std::string> AI::shortDescriptionComponents() const {
-  return oo::str::format("%s:%s / %s", stateMachineName.c_str(),
-                         currentState.value_or("(null)").c_str(),
-                         oo::DescriptionOf(JSScriptOf(stateMachine)).c_str());
+  return std::format("{}:{} / {}", stateMachineName,
+                     currentState.value_or("(null)"),
+                     oo::DescriptionOf(JSScriptOf(stateMachine)));
 }
 
 ::ShipEntity* AI::owner() {
@@ -709,12 +708,12 @@ void AI::refreshOwnerDesc() {
   if ((owner != nullptr ? owner->getIsPlayer() : false)) {
     ownerDesc = "player autopilot";
   } else if (owner != nullptr) {
-    ownerDesc = oo::str::format(
-        "%s %d",
+    ownerDesc = std::format(
+        "{} {}",
         (owner != nullptr ? owner->getName() : std::optional<std::string>())
-            .value_or("(null)")
-            .c_str(),
-        (owner != nullptr ? owner->getUniversalID() : OOUniversalID{}));
+            .value_or("(null)"),
+        static_cast<int>(owner != nullptr ? owner->getUniversalID()
+                                          : OOUniversalID{}));
   } else {
     ownerDesc = "no owner";
   }
@@ -762,8 +761,8 @@ oo::PList AI::loadStateMachine(const std::string& smName,
         std::string fromString;
         const std::optional<std::string> state = this->state();
         if (state.has_value()) {
-          fromString = oo::str::format(
-              " from %s:%s", name().value_or("(null)").c_str(), state->c_str());
+          fromString =
+              std::format(" from {}:{}", name().value_or("(null)"), *state);
         }
         OO_LOG("ai.load.failed.unknownAI",
                "Can't switch AI for {}{} to \"{}\" - could not load file.",

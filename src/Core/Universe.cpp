@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <format>
 #include <functional>
 #include <map>
 #include <optional>
@@ -1209,7 +1210,7 @@ std::string cxx_OOLookUpPluralDescriptionPRIV(const std::string& key,
     if (!tmp.has_value())  // this should mean that descriptions.plist is
                            // from 1.73 or above.
       return cxx_OOLookUpDescriptionPRIV(
-          oo::str::format("%s%%%d", key.c_str(), (int)(count != 1)));
+          std::format("{}%{}", key, (int)(count != 1)));
     // still using an older descriptions.plist
     return *tmp;
   }
@@ -1273,8 +1274,7 @@ std::string cxx_OOLookUpPluralDescriptionPRIV(const std::string& key,
   }
 
 passed:
-  return cxx_OOLookUpDescriptionPRIV(
-      oo::str::format("%s%%%ld", key.c_str(), index));
+  return cxx_OOLookUpDescriptionPRIV(std::format("{}%{}", key, index));
 }
 
 // Pause and quit, carrying the player on, set-up from station / witchspace /
@@ -1546,10 +1546,9 @@ void Universe::setUpUniverseFromWitchspace() {
   std::vector<std::string> printedLines;
   if (comm_log_gui != nullptr)
     comm_log_gui->printLongText(
-        oo::str::format(
-            "%s %s", TextOrNull(getSystemName(systemID)).c_str(),
-            (player != nullptr ? player->dial_clock_adjusted() : std::string())
-                .c_str()),
+        std::format(
+            "{} {}", TextOrNull(getSystemName(systemID)),
+            player != nullptr ? player->dial_clock_adjusted() : std::string()),
         GUI_ALIGN_CENTER, OOColor::whiteColor().get(), 0, std::nullopt,
         &printedLines);
   std::vector<std::string>* commLog =
@@ -1668,9 +1667,9 @@ void Universe::setUpWitchspaceBetweenSystem(OOSystemID s1, OOSystemID s2) {
   const oo::PList* script_actions =
       systeminfo.get<oo::PList::Array>("script_actions");
   if (script_actions != nullptr) {
-    cxx_OOStandardsDeprecated(oo::str::format(
-        "The script_actions system info key is deprecated for %s.",
-        override_key.c_str()));
+    cxx_OOStandardsDeprecated(
+        std::format("The script_actions system info key is deprecated for {}.",
+                    override_key));
     if (!OOEnforceStandards()) {
       if (player != nullptr)
         player->runUnsanitizedScriptActions(
@@ -2179,9 +2178,9 @@ void Universe::populateNormalSpace() {
   const oo::PList* script_actions =
       systeminfo.get<oo::PList::Array>("script_actions");
   if (script_actions != nullptr) {
-    cxx_OOStandardsDeprecated(oo::str::format(
-        "The script_actions system info key is deprecated for %s.",
-        TextOrNull(getSystemName(systemID)).c_str()));
+    cxx_OOStandardsDeprecated(
+        std::format("The script_actions system info key is deprecated for {}.",
+                    TextOrNull(getSystemName(systemID))));
     if (!OOEnforceStandards()) {
       OO_DEBUG_PUSH_PROGRESS("setUpSpace - legacy script_actions");
       if (PLAYER != nullptr)
@@ -2799,8 +2798,8 @@ HPVector Universe::coordinatesForPosition(HPVector pos,
 std::optional<std::string> Universe::expressPosition(
     HPVector pos, const std::string& system) {
   HPVector result = legacyPositionFrom(pos, system);
-  return oo::str::format("%s %.2f %.2f %.2f", system.c_str(), result.x,
-                         result.y, result.z);
+  return std::format("{} {:.2f} {:.2f} {:.2f}", system, result.x, result.y,
+                     result.z);
 }
 
 // Legacy positions, adding ships at / near positions and in boxes, spawning,
@@ -3106,9 +3105,9 @@ bool Universe::addShips(int howMany, const std::string& desc,
 bool Universe::spawnShip(const std::string& shipdesc) {
   // no need to do any more than log - enforcing modes wouldn't even have
   // loaded the legacy script
-  cxx_OOStandardsDeprecated(oo::str::format(
-      "'spawn' via legacy script is deprecated as a way of adding ships for %s",
-      shipdesc.c_str()));
+  cxx_OOStandardsDeprecated(std::format(
+      "'spawn' via legacy script is deprecated as a way of adding ships for {}",
+      shipdesc));
 
   ::ShipEntity* ship;
   oo::PList shipdict;
@@ -3419,8 +3418,7 @@ std::vector<oo::EntityHold> Universe::addShipsAt(HPVector pos,
   oo::Ref<::OOShipGroup> group;  // kept for the pass
 
   if (isGroup) {
-    group =
-        OOShipGroup::groupWithName(oo::str::format("%s group", role.c_str()));
+    group = OOShipGroup::groupWithName(std::format("{} group", role));
   }
 
   while (count--) {
@@ -4012,19 +4010,15 @@ void Universe::setLibraryTextForDemoShip() {
   }
 
   // line 19: ship categories
-  field1 = oo::str::format(
-      "<-- %s",
-      OOShipLibraryCategoryPlural(
-          DemoClassAt(demo_ships, (demo_ship_index + demo_ships.count() - 1) %
-                                      demo_ships.count()))
-          .c_str());
+  field1 = std::format(
+      "<-- {}", OOShipLibraryCategoryPlural(DemoClassAt(
+                    demo_ships, (demo_ship_index + demo_ships.count() - 1) %
+                                    demo_ships.count())));
   field2 =
       OOShipLibraryCategoryPlural(DemoClassAt(demo_ships, demo_ship_index));
-  field3 = oo::str::format(
-      "%s -->",
-      OOShipLibraryCategoryPlural(
-          DemoClassAt(demo_ships, (demo_ship_index + 1) % demo_ships.count()))
-          .c_str());
+  field3 = std::format(
+      "{} -->", OOShipLibraryCategoryPlural(DemoClassAt(
+                    demo_ships, (demo_ship_index + 1) % demo_ships.count())));
 
   gui->setArray(FieldsUpToNil({field1, field2, field3}), 19);
   gui->setColor(OOColor::greenColor().get(), 19);
@@ -4906,8 +4900,8 @@ std::optional<std::string> Universe::describeCommodity(
   typeDesc = (commodityMarket != nullptr ? commodityMarket->nameForGood(co_type)
                                          : std::optional<std::string>());
 
-  return oo::str::format("%d %s %s", co_amount, unitDesc.c_str(),
-                         TextOrNull(typeDesc).c_str());
+  return std::format("{} {} {}", static_cast<int>(co_amount), unitDesc,
+                     TextOrNull(typeDesc));
 }
 
 ////////////////////////////////////////////////////
@@ -8331,12 +8325,13 @@ bool Universe::descriptionBooleanForKey(const std::string& key) {
 
 std::optional<std::string> Universe::keyForPlanetOverridesForSystem(
     OOSystemID s, OOGalaxyID g) {
-  return oo::str::format("%d %d", g, s);
+  return std::format("{} {}", static_cast<int>(g), static_cast<int>(s));
 }
 
 std::optional<std::string> Universe::keyForInterstellarOverridesForSystems(
     OOSystemID s1, OOSystemID s2, OOGalaxyID g) {
-  return oo::str::format("interstellar: %d %d %d", g, s1, s2);
+  return std::format("interstellar: {} {} {}", static_cast<int>(g),
+                     static_cast<int>(s1), static_cast<int>(s2));
 }
 
 oo::PList Universe::generateSystemData(OOSystemID s) {
@@ -8350,8 +8345,11 @@ oo::PList Universe::generateSystemData(OOSystemID s, bool /*useCache*/) {
   // TODO: At the moment this method is only called for systems in the
   // same galaxy. At some point probably needs generalising to have a
   // galaxynumber parameter.
-  const std::string systemKey = oo::str::format(
-      "%u %u", (PLAYER != nullptr ? PLAYER->galaxyNumber() : OOGalaxyID{}), s);
+  const std::string systemKey = std::format(
+      "{} {}",
+      static_cast<unsigned>(PLAYER != nullptr ? PLAYER->galaxyNumber()
+                                              : OOGalaxyID{}),
+      static_cast<unsigned>(s));
 
   return (systemManager != nullptr
               ? systemManager->getPropertiesForSystemKey(systemKey)
@@ -8435,7 +8433,8 @@ void Universe::setSystemDataForGalaxy(
     return;
   }
 
-  const std::string overrideKey = oo::str::format("%u %u", gnum, pnum);
+  const std::string overrideKey = std::format(
+      "{} {}", static_cast<unsigned>(gnum), static_cast<unsigned>(pnum));
   oo::PList sysInfo;
 
   // short range map fix
@@ -8461,7 +8460,7 @@ void Universe::setSystemDataForGalaxy(
       }
     } else if (oo::str::hasPrefix(key, "corona_")) {
       object = oo::PList(
-          oo::str::format("%f", OOClamp_0_1_f(ScriptValueFloat(object))));
+          std::format("{:f}", OOClamp_0_1_f(ScriptValueFloat(object))));
     }
   }
 
@@ -9151,25 +9150,21 @@ std::optional<std::string> Universe::timeDescription(double interval) {
   if (r_time > 86400) {
     int days = floor(r_time / 86400);
     r_time -= 86400 * days;
-    result = oo::str::format("%s %d day%s", result.c_str(), days,
-                             (days > 1) ? "s" : "");
+    result = std::format("{} {} day{}", result, days, (days > 1) ? "s" : "");
   }
   if (r_time > 3600) {
     int hours = floor(r_time / 3600);
     r_time -= 3600 * hours;
-    result = oo::str::format("%s %d hour%s", result.c_str(), hours,
-                             (hours > 1) ? "s" : "");
+    result = std::format("{} {} hour{}", result, hours, (hours > 1) ? "s" : "");
   }
   if (r_time > 60) {
     int mins = floor(r_time / 60);
     r_time -= 60 * mins;
-    result = oo::str::format("%s %d minute%s", result.c_str(), mins,
-                             (mins > 1) ? "s" : "");
+    result = std::format("{} {} minute{}", result, mins, (mins > 1) ? "s" : "");
   }
   if (r_time > 0) {
     int secs = floor(r_time);
-    result = oo::str::format("%s %d second%s", result.c_str(), secs,
-                             (secs > 1) ? "s" : "");
+    result = std::format("{} {} second{}", result, secs, (secs > 1) ? "s" : "");
   }
   return oo::str::trim(result, oo::str::CharacterSet::whitespace());
 }
@@ -9186,35 +9181,32 @@ std::optional<std::string> Universe::shortTimeDescription(double interval) {
   if (r_time > 86400) {
     int days = floor(r_time / 86400);
     r_time -= 86400 * days;
-    result = oo::str::format(
-        "%s %d %s", result.c_str(), days,
-        cxx_OOLookUpPluralDescriptionPRIV("contracts-day-word", days).c_str());
+    result = std::format(
+        "{} {} {}", result, days,
+        cxx_OOLookUpPluralDescriptionPRIV("contracts-day-word", days));
     parts++;
   }
   if (r_time > 3600) {
     int hours = floor(r_time / 3600);
     r_time -= 3600 * hours;
-    result = oo::str::format(
-        "%s %d %s", result.c_str(), hours,
-        cxx_OOLookUpPluralDescriptionPRIV("contracts-hour-word", hours)
-            .c_str());
+    result = std::format(
+        "{} {} {}", result, hours,
+        cxx_OOLookUpPluralDescriptionPRIV("contracts-hour-word", hours));
     parts++;
   }
   if (parts < 2 && r_time > 60) {
     int mins = floor(r_time / 60);
     r_time -= 60 * mins;
-    result = oo::str::format(
-        "%s %d %s", result.c_str(), mins,
-        cxx_OOLookUpPluralDescriptionPRIV("contracts-minute-word", mins)
-            .c_str());
+    result = std::format(
+        "{} {} {}", result, mins,
+        cxx_OOLookUpPluralDescriptionPRIV("contracts-minute-word", mins));
     parts++;
   }
   if (parts < 2 && r_time > 0) {
     int secs = floor(r_time);
-    result = oo::str::format(
-        "%s %d %s", result.c_str(), secs,
-        cxx_OOLookUpPluralDescriptionPRIV("contracts-second-word", secs)
-            .c_str());
+    result = std::format(
+        "{} {} {}", result, secs,
+        cxx_OOLookUpPluralDescriptionPRIV("contracts-second-word", secs));
   }
   return oo::str::trim(result, oo::str::CharacterSet::whitespace());
 }
@@ -9715,7 +9707,7 @@ oo::PList Universe::shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL,
 
       if (passengerBerthCount) {
         std::string npb = (passengerBerthCount > 1)
-                              ? oo::str::format("%d ", passengerBerthCount)
+                              ? std::format("{} ", passengerBerthCount)
                               : std::string();
         std::string ppb = cxx_OOLookUpPluralDescriptionPRIV(
             "passenger-berth", passengerBerthCount);
@@ -9746,7 +9738,7 @@ oo::PList Universe::shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL,
       shortShipDescription +=
           ExpandKeyWith("shipyard-price", "price", oo::PList(price));
 
-      std::string shipID = oo::str::format("%06x-%06x", superRand1, superRand2);
+      std::string shipID = std::format("{:06x}-{:06x}", superRand1, superRand2);
 
       uint16_t personality =
           RanrotWithSeed(&personalitySeed) & ENTITY_PERSONALITY_MAX;
@@ -10046,17 +10038,17 @@ std::optional<std::string> Universe::brochureDescriptionWithDictionary(
   OOCargoQuantity max_cargo = dict.get<unsigned int>("max_cargo");
   if (max_cargo) {
     OOCargoQuantity extra_cargo = dict.get<unsigned int>("extra_cargo", 15);
-    desc += oo::str::format(" Cargo capacity %dt", max_cargo);
+    desc += std::format(" Cargo capacity {}t", static_cast<int>(max_cargo));
     bool canExpand = (allOptions.find("EQ_CARGO_BAY") != std::string::npos);
     if (canExpand)
-      desc += oo::str::format(" (expandable to %dt at most starports)",
-                              max_cargo + extra_cargo);
+      desc += std::format(" (expandable to {}t at most starports)",
+                          static_cast<int>(max_cargo + extra_cargo));
     desc += ".";
   }
 
   // speed
   float top_speed = dict.get<int>("max_flight_speed");
-  desc += oo::str::format(" Top speed %.3fLS.", 0.001 * top_speed);
+  desc += std::format(" Top speed {:.3f}LS.", 0.001 * top_speed);
 
   // passenger berths
   if (mut_extras.size()) {
@@ -10072,8 +10064,8 @@ std::optional<std::string> Universe::brochureDescriptionWithDictionary(
       if (n_berths == 1)
         desc += " Includes luxury accomodation for a single passenger.";
       else
-        desc += oo::str::format(
-            " Includes luxury accomodation for %d passengers.", n_berths);
+        desc += std::format(" Includes luxury accomodation for {} passengers.",
+                            static_cast<int>(n_berths));
     }
   }
 
@@ -10399,8 +10391,8 @@ void Universe::handleOoliteException(const oo::Exception* exception) {
 
       OO_LOG(cxx_kOOLogException, "***** Handling Fatal : {} : {} *****",
              caught.name(), caught.reason());
-      std::string exception_msg = oo::str::format(
-          "Exception : %s : %s Please take a screenshot and/or press esc or Q "
+      std::string exception_msg = std::format(
+          "Exception : {} : {} Please take a screenshot and/or press esc or Q "
           "to quit.",
           caught.name(), caught.reason());
       addMessage(exception_msg, 30.0);
@@ -11055,9 +11047,9 @@ void Universe::dumpSystemDescriptionGraphViz() {
   // Add system-description-string as special node (it's the one thing that ties
   // [14] to everything else).
   descLine = cxx_OOLookUpDescriptionPRIV("system-description-string");
-  graphViz += oo::str::format(
-      "\tsystem_description_string [label=\"%s\" shape=ellipse]\n",
-      StringifiedLabel(descLine, keyMap).c_str());
+  graphViz +=
+      std::format("\tsystem_description_string [label=\"{}\" shape=ellipse]\n",
+                  StringifiedLabel(descLine, keyMap));
   addNumericRefsInString(descLine, graphViz, "system_description_string",
                          count);
   graphViz += "\t\n";
@@ -11078,14 +11070,14 @@ void Universe::dumpSystemDescriptionGraphViz() {
   curses = descriptions()->get<oo::PList::Array>("thargoid_curses");
   subCount = (curses != nullptr) ? curses->count() : 0;
   for (j = 0; j < subCount; ++j) {
-    graphViz += oo::str::format(
-        "\t\tthargoid_curse_%zu [label=\"%s\"]\n", j,
-        StringifiedLabel(OptionalStringAt(*curses, j), keyMap).c_str());
+    graphViz +=
+        std::format("\t\tthargoid_curse_{} [label=\"{}\"]\n", j,
+                    StringifiedLabel(OptionalStringAt(*curses, j), keyMap));
   }
   graphViz += "\t}\n";
   for (j = 0; j < subCount; ++j) {
     addNumericRefsInString(OptionalStringAt(*curses, j).value_or(std::string()),
-                           graphViz, oo::str::format("thargoid_curse_%zu", j),
+                           graphViz, std::format("thargoid_curse_{}", j),
                            count);
   }
   graphViz += "\t\n";
@@ -11094,23 +11086,21 @@ void Universe::dumpSystemDescriptionGraphViz() {
   // Define the nodes
   for (i = 0; i < count; ++i) {
     // Build label, using sysdesc_key_table.plist if available
-    const oo::PList* keyLabel = keyMap.find(oo::str::format("%zu", i));
+    const oo::PList* keyLabel = keyMap.find(std::format("{}", i));
     if (keyLabel == nullptr)
-      label = oo::str::format("[%zu]", i);
+      label = std::format("[{}]", i);
     else
-      label = oo::str::format("[%zu] (%s)", i,
-                              oo::DescriptionOf(*keyLabel).c_str());
+      label = std::format("[{}] ({})", i, oo::DescriptionOf(*keyLabel));
 
-    graphViz +=
-        oo::str::format("\tsubgraph cluster_%zu\n\t{\n\t\tlabel=\"%s\"\n", i,
-                        cxx_EscapedGraphVizString(label).c_str());
+    graphViz += std::format("\tsubgraph cluster_{}\n\t{{\n\t\tlabel=\"{}\"\n",
+                            i, cxx_EscapedGraphVizString(label));
 
     thisDesc = systemDescriptions->at<oo::PList::Array>(i);
     subCount = (thisDesc != nullptr) ? thisDesc->count() : 0;
     for (j = 0; j < subCount; ++j) {
-      graphViz += oo::str::format(
-          "\t\tn%zu_%zu [label=\"\\\"%s\\\"\"]\n", i, j,
-          StringifiedLabel(OptionalStringAt(*thisDesc, j), keyMap).c_str());
+      graphViz +=
+          std::format("\t\tn{}_{} [label=\"\\\"{}\\\"\"]\n", i, j,
+                      StringifiedLabel(OptionalStringAt(*thisDesc, j), keyMap));
     }
 
     graphViz += "\t}\n";
@@ -11123,8 +11113,8 @@ void Universe::dumpSystemDescriptionGraphViz() {
     subCount = (thisDesc != nullptr) ? thisDesc->count() : 0;
     for (j = 0; j != subCount; ++j) {
       descLine = OptionalStringAt(*thisDesc, j).value_or(std::string());
-      addNumericRefsInString(descLine, graphViz,
-                             oo::str::format("n%zu_%zu", i, j), count);
+      addNumericRefsInString(descLine, graphViz, std::format("n{}_{}", i, j),
+                             count);
     }
   }
 
@@ -11165,35 +11155,34 @@ void Universe::addNumericRefsInString(const std::string& string,
 
     // Each node gets a colour for its incoming edges. The multiplication and
     // mod shuffle them to avoid adjacent nodes having similar colours.
-    graphViz += oo::str::format(
-        "\t%s -> n%u_0 [color=\"%f,0.75,0.8\" lhead=cluster_%u]\n",
-        fromNode.c_str(), i,
-        ((float)(i * 511 % nodeCount)) / ((float)nodeCount), i);
+    graphViz += std::format(
+        "\t{} -> n{}_0 [color=\"{:f},0.75,0.8\" lhead=cluster_{}]\n", fromNode,
+        i, ((float)(i * 511 % nodeCount)) / ((float)nodeCount), i);
   }
 
   if (string.find("%I") != std::string::npos) {
-    graphViz += oo::str::format("\t%s -> percent_I [color=\"0,0,0.25\"]\n",
-                                fromNode.c_str());
+    graphViz +=
+        std::format("\t{} -> percent_I [color=\"0,0,0.25\"]\n", fromNode);
   }
   if (string.find("%H") != std::string::npos) {
-    graphViz += oo::str::format("\t%s -> percent_H [color=\"0,0,0.45\"]\n",
-                                fromNode.c_str());
+    graphViz +=
+        std::format("\t{} -> percent_H [color=\"0,0,0.45\"]\n", fromNode);
   }
   if (string.find("%R") != std::string::npos ||
       string.find("%N") != std::string::npos) {
-    graphViz += oo::str::format("\t%s -> percent_RN [color=\"0,0,0.65\"]\n",
-                                fromNode.c_str());
+    graphViz +=
+        std::format("\t{} -> percent_RN [color=\"0,0,0.65\"]\n", fromNode);
   }
 
   // TODO: test graphViz output for "%Jxxx" and "%Gxxxxxx"
   if (string.find("%J") != std::string::npos) {
-    graphViz += oo::str::format("\t%s -> percent_J [color=\"0,0,0.75\"]\n",
-                                fromNode.c_str());
+    graphViz +=
+        std::format("\t{} -> percent_J [color=\"0,0,0.75\"]\n", fromNode);
   }
 
   if (string.find("%G") != std::string::npos) {
-    graphViz += oo::str::format("\t%s -> percent_G [color=\"0,0,0.85\"]\n",
-                                fromNode.c_str());
+    graphViz +=
+        std::format("\t{} -> percent_G [color=\"0,0,0.85\"]\n", fromNode);
   }
 }
 

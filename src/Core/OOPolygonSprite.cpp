@@ -42,6 +42,8 @@ SOFTWARE.
 
 #include "OOPolygonSprite.h"
 
+#include <format>
+
 #include "OOGraphicsResetManager.h"
 #include "OOMacroOpenGL.h"
 #include "OOMaths.h"
@@ -195,8 +197,8 @@ std::optional<std::string> OOPolygonSprite::descriptionComponents() const {
 #endif
 
 std::string OOPolygonSprite::description() const {
-  std::string result = oo::str::format(
-      "<OOPolygonSprite %s>", oo::str::pointerDescription(this).c_str());
+  std::string result =
+      std::format("<OOPolygonSprite {}>", oo::str::pointerDescription(this));
 #ifndef NDEBUG
   const std::optional<std::string> components = descriptionComponents();
   if (components.has_value()) result += "{" + *components + "}";
@@ -771,7 +773,7 @@ static void APIENTRY ErrorCallback(GLenum error, void* polygonData) {
 
   std::string name;
 #ifndef NDEBUG
-  name = oo::str::format(" \"%s\"", data->name.c_str());
+  name = std::format(" \"{}\"", data->name);
 #endif
 
   char* errStr = (char*)gluErrorString(error);
@@ -802,8 +804,7 @@ static void SVGDumpEnd(TessPolygonData* data) {
 
   *data->debugSVG += "</svg>\n";
   ResourceManager::writeDiagnosticString(
-      *data->debugSVG,
-      oo::str::format("Polygon Sprites/%s.svg", data->name.c_str()));
+      *data->debugSVG, std::format("Polygon Sprites/{}.svg", data->name));
   data->debugSVG.reset();
 }
 
@@ -811,8 +812,7 @@ namespace {
 void SVGDumpBeginGroup(TessPolygonData* data, const char* name) {
   if (!data->debugSVG.has_value()) return;
 
-  *data->debugSVG +=
-      oo::str::format("\t<g id=\"%s %u\">\n", name, data->svgID++);
+  *data->debugSVG += std::format("\t<g id=\"{} {}\">\n", name, data->svgID++);
 }
 }  // namespace
 
@@ -826,17 +826,17 @@ void SVGDumpAppendBaseContour(TessPolygonData* data,
                               const OOPolygonContour& points) {
   if (!data->debugSVG.has_value()) return;
 
-  const std::string groupName = oo::str::format("contour %u", data->svgID++);
-  *data->debugSVG += oo::str::format(
-      "\t\t<g id=\"%s\" stroke=\"#BBB\" fill=\"none\">\n\t\t<path "
+  const std::string groupName = std::format("contour {}", data->svgID++);
+  *data->debugSVG += std::format(
+      "\t\t<g id=\"{}\" stroke=\"#BBB\" fill=\"none\">\n\t\t<path "
       "stroke-width=\"0.05\" d=\"",
-      groupName.c_str());
+      groupName);
 
   std::size_t i, count = points.size();
   for (i = 0; i < count; i++) {
     NSPoint p = points[i];
     *data->debugSVG +=
-        oo::str::format("%c %f %f ", (i == 0) ? 'M' : 'L', p.x, -p.y);
+        std::format("{} {:f} {:f} ", (i == 0) ? 'M' : 'L', p.x, -p.y);
   }
 
   // Close and add a circle at the first vertex. (SVG has support for end
@@ -847,8 +847,8 @@ void SVGDumpAppendBaseContour(TessPolygonData* data,
         "SVGDumpAppendBaseContour: empty contour");  // -objectAtIndex:0
                                                      // raised here
   NSPoint p = points[0];
-  *data->debugSVG += oo::str::format(
-      "z\"/>\n\t\t\t<circle cx=\"%f\" cy=\"%f\" r=\"0.1\" fill=\"#BBB\" "
+  *data->debugSVG += std::format(
+      "z\"/>\n\t\t\t<circle cx=\"{:f}\" cy=\"{:f}\" r=\"0.1\" fill=\"#BBB\" "
       "stroke=\"none\"/>\n\t\t</g>\n",
       p.x, -p.y);
 }
@@ -871,7 +871,7 @@ static void SVGDumpBeginPrimitive(TessPolygonData* data) {
       groupName = "Triangle strip";
       break;
   }
-  groupName += oo::str::format(" %u", data->svgID++);
+  groupName += std::format(" {}", data->svgID++);
 
   // Pick random colour for the primitive.
   uint8_t red = (Ranrot() & 0x3F) + 0x20;
@@ -883,11 +883,10 @@ static void SVGDumpBeginPrimitive(TessPolygonData* data) {
     blue += 0x80;
   }
 
-  *data->debugSVG += oo::str::format(
-      "\t\t<g id=\"%s\" fill=\"#%2X%2X%2X\" fill-opacity=\"0.3\" stroke=\"%s\" "
-      "stroke-width=\"0.01\">\n",
-      groupName.c_str(), red, green, blue,
-      data->generatingOutline ? "#060" : "#008");
+  *data->debugSVG += std::format(
+      "\t\t<g id=\"{}\" fill=\"#{:2X}{:2X}{:2X}\" fill-opacity=\"0.3\" "
+      "stroke=\"{}\" stroke-width=\"0.01\">\n",
+      groupName, red, green, blue, data->generatingOutline ? "#060" : "#008");
 }
 
 static void SVGDumpEndPrimitive(TessPolygonData* data) {
@@ -899,7 +898,7 @@ static void SVGDumpAppendTriangle(TessPolygonData* data, NSPoint v0, NSPoint v1,
                                   NSPoint v2) {
   if (!data->debugSVG.has_value()) return;
   *data->debugSVG +=
-      oo::str::format("\t\t\t<path d=\"M %f %f L %f %f L %f %f z\"/>\n", v0.x,
-                      -v0.y, v1.x, -v1.y, v2.x, -v2.y);
+      std::format("\t\t\t<path d=\"M {:f} {:f} L {:f} {:f} L {:f} {:f} z\"/>\n",
+                  v0.x, -v0.y, v1.x, -v1.y, v2.x, -v2.y);
 }
 #endif
