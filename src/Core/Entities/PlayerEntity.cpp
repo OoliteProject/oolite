@@ -2068,28 +2068,28 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
   OOWeaponFacingSet available_facings = shipyard_info.get<unsigned int>(
       std::string(KEY_WEAPON_FACINGS), weaponFacings());
 
-  if (available_facings & WEAPON_FACING_FORWARD)
+  if (OOWeaponFacingIsIn(available_facings, OOWeaponFacing::kForward))
     forward_weapon_type = cxx_OOWeaponTypeFromEquipmentIdentifierLegacy(
         StringForKey(dict, "forward_weapon").value_or(""));
   else
     forward_weapon_type =
         cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_WEAPON_NONE");
 
-  if (available_facings & WEAPON_FACING_AFT)
+  if (OOWeaponFacingIsIn(available_facings, OOWeaponFacing::kAft))
     aft_weapon_type = cxx_OOWeaponTypeFromEquipmentIdentifierLegacy(
         StringForKey(dict, "aft_weapon").value_or(""));
   else
     aft_weapon_type =
         cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_WEAPON_NONE");
 
-  if (available_facings & WEAPON_FACING_PORT)
+  if (OOWeaponFacingIsIn(available_facings, OOWeaponFacing::kPort))
     port_weapon_type = cxx_OOWeaponTypeFromEquipmentIdentifierLegacy(
         StringForKey(dict, "port_weapon").value_or(""));
   else
     port_weapon_type =
         cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_WEAPON_NONE");
 
-  if (available_facings & WEAPON_FACING_STARBOARD)
+  if (OOWeaponFacingIsIn(available_facings, OOWeaponFacing::kStarboard))
     starboard_weapon_type = cxx_OOWeaponTypeFromEquipmentIdentifierLegacy(
         StringForKey(dict, "starboard_weapon").value_or(""));
   else
@@ -2666,7 +2666,7 @@ bool PlayerEntity::setUpAndConfirmOK(bool stopOnError, bool saveGame) {
   starboardViewOffset = kZeroVector;
   customViewOffset = kZeroVector;
 
-  currentWeaponFacing = WEAPON_FACING_FORWARD;
+  currentWeaponFacing = OOWeaponFacing::kForward;
   currentWeaponStats();
 
   save_path.reset();
@@ -3124,24 +3124,24 @@ void PlayerEntity::doBookkeeping(double delta_t) {
 
   // copy new temp & shot time to main temp & shot time
   switch (currentWeaponFacing) {
-    case WEAPON_FACING_FORWARD:
+    case OOWeaponFacing::kForward:
       weapon_temp = forward_weapon_temp;
       shot_time = forward_shot_time;
       break;
-    case WEAPON_FACING_AFT:
+    case OOWeaponFacing::kAft:
       weapon_temp = aft_weapon_temp;
       shot_time = aft_shot_time;
       break;
-    case WEAPON_FACING_PORT:
+    case OOWeaponFacing::kPort:
       weapon_temp = port_weapon_temp;
       shot_time = port_shot_time;
       break;
-    case WEAPON_FACING_STARBOARD:
+    case OOWeaponFacing::kStarboard:
       weapon_temp = starboard_weapon_temp;
       shot_time = starboard_shot_time;
       break;
 
-    case WEAPON_FACING_NONE:
+    case OOWeaponFacing::kNone:
       break;
   }
 
@@ -6237,27 +6237,27 @@ bool PlayerEntity::fireMainWeapon() {
   energy -= weapon_energy_use * multiplier;
 
   switch (currentWeaponFacing) {
-    case WEAPON_FACING_FORWARD:
+    case OOWeaponFacing::kForward:
       forward_weapon_temp += weapon_shot_temperature * multiplier;
       forward_shot_time = 0.0;
       break;
 
-    case WEAPON_FACING_AFT:
+    case OOWeaponFacing::kAft:
       aft_weapon_temp += weapon_shot_temperature * multiplier;
       aft_shot_time = 0.0;
       break;
 
-    case WEAPON_FACING_PORT:
+    case OOWeaponFacing::kPort:
       port_weapon_temp += weapon_shot_temperature * multiplier;
       port_shot_time = 0.0;
       break;
 
-    case WEAPON_FACING_STARBOARD:
+    case OOWeaponFacing::kStarboard:
       starboard_weapon_temp += weapon_shot_temperature * multiplier;
       starboard_shot_time = 0.0;
       break;
 
-    case WEAPON_FACING_NONE:
+    case OOWeaponFacing::kNone:
       break;
   }
 
@@ -6285,19 +6285,19 @@ bool PlayerEntity::fireMainWeapon() {
 
 OOWeaponType PlayerEntity::weaponForFacing(OOWeaponFacing facing) {
   switch (facing) {
-    case WEAPON_FACING_FORWARD:
+    case OOWeaponFacing::kForward:
       return forward_weapon_type;
 
-    case WEAPON_FACING_AFT:
+    case OOWeaponFacing::kAft:
       return aft_weapon_type;
 
-    case WEAPON_FACING_PORT:
+    case OOWeaponFacing::kPort:
       return port_weapon_type;
 
-    case WEAPON_FACING_STARBOARD:
+    case OOWeaponFacing::kStarboard:
       return starboard_weapon_type;
 
-    case WEAPON_FACING_NONE:
+    case OOWeaponFacing::kNone:
       break;
   }
   return nullptr;
@@ -7318,7 +7318,7 @@ void PlayerEntity::leaveDock(::StationEntity* station) {
   setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_NONE);
 
   scanner_zoom_rate = 0.0f;
-  currentWeaponFacing = WEAPON_FACING_FORWARD;
+  currentWeaponFacing = OOWeaponFacing::kForward;
   currentWeaponStats();
 
   forward_weapon_temp = 0.0f;
@@ -7392,7 +7392,7 @@ void PlayerEntity::witchStart() {
   noteSwitchToView(VIEW_FORWARD,
                    previousViewDirection);  // notifies scripts of the switch
 
-  currentWeaponFacing = WEAPON_FACING_FORWARD;
+  currentWeaponFacing = OOWeaponFacing::kForward;
   currentWeaponStats();
 
   transitionToAegisNone();
@@ -8513,23 +8513,23 @@ void PlayerEntity::setFastEquipmentB(const std::optional<std::string>& eqKey) {
   OOWeaponType weaponType = nullptr;
 
   switch (facing) {
-    case WEAPON_FACING_FORWARD:
+    case OOWeaponFacing::kForward:
       weaponType = forward_weapon_type;
       break;
 
-    case WEAPON_FACING_AFT:
+    case OOWeaponFacing::kAft:
       weaponType = aft_weapon_type;
       break;
 
-    case WEAPON_FACING_PORT:
+    case OOWeaponFacing::kPort:
       weaponType = port_weapon_type;
       break;
 
-    case WEAPON_FACING_STARBOARD:
+    case OOWeaponFacing::kStarboard:
       weaponType = starboard_weapon_type;
       break;
 
-    case WEAPON_FACING_NONE:
+    case OOWeaponFacing::kNone:
       break;
   }
 
@@ -9628,7 +9628,7 @@ OOWeaponFacingSet PlayerEntity::availableFacings() {
       std::string(KEY_WEAPON_FACINGS),
       weaponFacings());  // use defaults  explicitly
 
-  return available_facings & VALID_WEAPON_FACINGS;
+  return available_facings & kOOValidWeaponFacings;
 }
 
 // The equip-ship screen and upgrade information. (Sends to self are member
@@ -9923,7 +9923,8 @@ void PlayerEntity::setGuiToEquipShipScreen(
                 break;
 
               case 1:
-                displayRow = available_facings & WEAPON_FACING_FORWARD;
+                displayRow = OOWeaponFacingIsIn(available_facings,
+                                                OOWeaponFacing::kForward);
                 desc = FORWARD_FACING_STRING;
                 weaponMounted = !isWeaponNone(forward_weapon_type);
                 if (_multiplyWeapons) {
@@ -9932,7 +9933,8 @@ void PlayerEntity::setGuiToEquipShipScreen(
                 break;
 
               case 2:
-                displayRow = available_facings & WEAPON_FACING_AFT;
+                displayRow =
+                    OOWeaponFacingIsIn(available_facings, OOWeaponFacing::kAft);
                 desc = AFT_FACING_STRING;
                 weaponMounted = !isWeaponNone(aft_weapon_type);
                 if (_multiplyWeapons) {
@@ -9941,7 +9943,8 @@ void PlayerEntity::setGuiToEquipShipScreen(
                 break;
 
               case 3:
-                displayRow = available_facings & WEAPON_FACING_PORT;
+                displayRow = OOWeaponFacingIsIn(available_facings,
+                                                OOWeaponFacing::kPort);
                 desc = PORT_FACING_STRING;
                 weaponMounted = !isWeaponNone(port_weapon_type);
                 if (_multiplyWeapons) {
@@ -9950,7 +9953,8 @@ void PlayerEntity::setGuiToEquipShipScreen(
                 break;
 
               case 4:
-                displayRow = available_facings & WEAPON_FACING_STARBOARD;
+                displayRow = OOWeaponFacingIsIn(available_facings,
+                                                OOWeaponFacing::kStarboard);
                 desc = STARBOARD_FACING_STRING;
                 weaponMounted = !isWeaponNone(starboard_weapon_type);
                 if (_multiplyWeapons) {
@@ -10064,7 +10068,7 @@ void PlayerEntity::setGuiToEquipShipScreen(
   }
   /* ends */
 
-  chosen_weapon_facing = WEAPON_FACING_NONE;
+  chosen_weapon_facing = OOWeaponFacing::kNone;
 
   setShowDemoShips(false);
   if (UNIVERSE != nullptr) UNIVERSE->enterGUIViewModeWithMouseInteraction(true);
@@ -10660,11 +10664,13 @@ void PlayerEntity::buySelectedItem() {
   // FIXME: this is nuts, should be associating lines with keys in some sensible
   // way. --Ahruman 20080311
   if (itemTextIs(FORWARD_FACING_STRING))
-    chosen_weapon_facing = WEAPON_FACING_FORWARD;
-  if (itemTextIs(AFT_FACING_STRING)) chosen_weapon_facing = WEAPON_FACING_AFT;
-  if (itemTextIs(PORT_FACING_STRING)) chosen_weapon_facing = WEAPON_FACING_PORT;
+    chosen_weapon_facing = OOWeaponFacing::kForward;
+  if (itemTextIs(AFT_FACING_STRING))
+    chosen_weapon_facing = OOWeaponFacing::kAft;
+  if (itemTextIs(PORT_FACING_STRING))
+    chosen_weapon_facing = OOWeaponFacing::kPort;
   if (itemTextIs(STARBOARD_FACING_STRING))
-    chosen_weapon_facing = WEAPON_FACING_STARBOARD;
+    chosen_weapon_facing = OOWeaponFacing::kStarboard;
 
   OOCreditsQuantity old_credits = credits;
   ::OOEquipmentType* eqInfo =
@@ -10812,7 +10818,7 @@ bool PlayerEntity::tryBuyingItem(const std::string& eqKey) {
   }
 
   if ((eqType != nullptr ? eqType->isPrimaryWeapon() : false)) {
-    if (chosen_weapon_facing == WEAPON_FACING_NONE) {
+    if (chosen_weapon_facing == OOWeaponFacing::kNone) {
       setGuiToEquipShipScreen(0, eqKey);  // reset
       return true;
     }
@@ -10824,7 +10830,7 @@ bool PlayerEntity::tryBuyingItem(const std::string& eqKey) {
     std::size_t multiplier = 1;
 
     switch (chosen_weapon_facing) {
-      case WEAPON_FACING_FORWARD:
+      case OOWeaponFacing::kForward:
         current_weapon = forward_weapon_type;
         forward_weapon_type = chosen_weapon;
         if (_multiplyWeapons) {
@@ -10832,7 +10838,7 @@ bool PlayerEntity::tryBuyingItem(const std::string& eqKey) {
         }
         break;
 
-      case WEAPON_FACING_AFT:
+      case OOWeaponFacing::kAft:
         current_weapon = aft_weapon_type;
         aft_weapon_type = chosen_weapon;
         if (_multiplyWeapons) {
@@ -10840,7 +10846,7 @@ bool PlayerEntity::tryBuyingItem(const std::string& eqKey) {
         }
         break;
 
-      case WEAPON_FACING_PORT:
+      case OOWeaponFacing::kPort:
         current_weapon = port_weapon_type;
         port_weapon_type = chosen_weapon;
         if (_multiplyWeapons) {
@@ -10848,7 +10854,7 @@ bool PlayerEntity::tryBuyingItem(const std::string& eqKey) {
         }
         break;
 
-      case WEAPON_FACING_STARBOARD:
+      case OOWeaponFacing::kStarboard:
         current_weapon = starboard_weapon_type;
         starboard_weapon_type = chosen_weapon;
         if (_multiplyWeapons) {
@@ -10856,7 +10862,7 @@ bool PlayerEntity::tryBuyingItem(const std::string& eqKey) {
         }
         break;
 
-      case WEAPON_FACING_NONE:
+      case OOWeaponFacing::kNone:
         break;
     }
 
@@ -10867,19 +10873,19 @@ bool PlayerEntity::tryBuyingItem(const std::string& eqKey) {
       // type is reset to what it was before
       // the attempt to buy took place
       switch (chosen_weapon_facing) {
-        case WEAPON_FACING_FORWARD:
+        case OOWeaponFacing::kForward:
           forward_weapon_type = current_weapon;
           break;
-        case WEAPON_FACING_AFT:
+        case OOWeaponFacing::kAft:
           aft_weapon_type = current_weapon;
           break;
-        case WEAPON_FACING_PORT:
+        case OOWeaponFacing::kPort:
           port_weapon_type = current_weapon;
           break;
-        case WEAPON_FACING_STARBOARD:
+        case OOWeaponFacing::kStarboard:
           starboard_weapon_type = current_weapon;
           break;
-        case WEAPON_FACING_NONE:
+        case OOWeaponFacing::kNone:
           break;
       }
       return false;
@@ -11073,7 +11079,7 @@ bool PlayerEntity::setWeaponMount(OOWeaponFacing facing,
       weaponFacings());  // use defaults  explicitly
 
   // facing exists?
-  if (!(available_facings & facing)) {
+  if (!OOWeaponFacingIsIn(available_facings, facing)) {
     return false;
   }
 
@@ -11092,23 +11098,23 @@ bool PlayerEntity::setWeaponMount(OOWeaponFacing facing,
       cxx_OOWeaponTypeFromEquipmentIdentifierStrict(eqKey);
 
   switch (facing) {
-    case WEAPON_FACING_FORWARD:
+    case OOWeaponFacing::kForward:
       forward_weapon_type = chosen_weapon;
       break;
 
-    case WEAPON_FACING_AFT:
+    case OOWeaponFacing::kAft:
       aft_weapon_type = chosen_weapon;
       break;
 
-    case WEAPON_FACING_PORT:
+    case OOWeaponFacing::kPort:
       port_weapon_type = chosen_weapon;
       break;
 
-    case WEAPON_FACING_STARBOARD:
+    case OOWeaponFacing::kStarboard:
       starboard_weapon_type = chosen_weapon;
       break;
 
-    case WEAPON_FACING_NONE:
+    case OOWeaponFacing::kNone:
       break;
   }
 
@@ -12537,16 +12543,16 @@ void PlayerEntity::setDefaultCustomViews() {
 
 Vector PlayerEntity::weaponViewOffset() {
   switch (currentWeaponFacing) {
-    case WEAPON_FACING_FORWARD:
+    case OOWeaponFacing::kForward:
       return forwardViewOffset;
-    case WEAPON_FACING_AFT:
+    case OOWeaponFacing::kAft:
       return aftViewOffset;
-    case WEAPON_FACING_PORT:
+    case OOWeaponFacing::kPort:
       return portViewOffset;
-    case WEAPON_FACING_STARBOARD:
+    case OOWeaponFacing::kStarboard:
       return starboardViewOffset;
 
-    case WEAPON_FACING_NONE:
+    case OOWeaponFacing::kNone:
       // N.b.: this case should never happen.
       return customViewOffset;
   }
@@ -13182,13 +13188,13 @@ void PlayerEntity::setCustomViewDataFromDictionary(const oo::PList& viewDict,
   const std::string lowerFacing =
       facing.has_value() ? oo::str::lowercase(*facing) : std::string();
   if (facing.has_value() && lowerFacing == "aft") {
-    currentWeaponFacing = WEAPON_FACING_AFT;
+    currentWeaponFacing = OOWeaponFacing::kAft;
   } else if (facing.has_value() && lowerFacing == "port") {
-    currentWeaponFacing = WEAPON_FACING_PORT;
+    currentWeaponFacing = OOWeaponFacing::kPort;
   } else if (facing.has_value() && lowerFacing == "starboard") {
-    currentWeaponFacing = WEAPON_FACING_STARBOARD;
+    currentWeaponFacing = OOWeaponFacing::kStarboard;
   } else if (facing.has_value() && lowerFacing == "forward") {
-    currentWeaponFacing = WEAPON_FACING_FORWARD;
+    currentWeaponFacing = OOWeaponFacing::kForward;
   }
   // if the weapon facing is unset / unknown,
   // don't change current weapon facing!

@@ -1247,22 +1247,22 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS) {
 
     case kShip_forwardWeapon:
       result = OOEquipmentTypeObjectNode(
-          ship->weaponTypeForFacing(WEAPON_FACING_FORWARD, true));
+          ship->weaponTypeForFacing(OOWeaponFacing::kForward, true));
       break;
 
     case kShip_aftWeapon:
       result = OOEquipmentTypeObjectNode(
-          ship->weaponTypeForFacing(WEAPON_FACING_AFT, true));
+          ship->weaponTypeForFacing(OOWeaponFacing::kAft, true));
       break;
 
     case kShip_portWeapon:
       result = OOEquipmentTypeObjectNode(
-          ship->weaponTypeForFacing(WEAPON_FACING_PORT, true));
+          ship->weaponTypeForFacing(OOWeaponFacing::kPort, true));
       break;
 
     case kShip_starboardWeapon:
       result = OOEquipmentTypeObjectNode(
-          ship->weaponTypeForFacing(WEAPON_FACING_STARBOARD, true));
+          ship->weaponTypeForFacing(OOWeaponFacing::kStarboard, true));
       break;
 
     case kShip_laserHeatLevel:
@@ -2011,19 +2011,19 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
       const std::string weaponKey =
           JSValueToEquipmentKeyRelaxed(context, value, &exists)
               .value_or("EQ_WEAPON_NONE");
-      OOWeaponFacing facing = WEAPON_FACING_FORWARD;
+      OOWeaponFacing facing = OOWeaponFacing::kForward;
       switch (magic) {
         case kShip_aftWeapon:
-          facing = WEAPON_FACING_AFT;
+          facing = OOWeaponFacing::kAft;
           break;
         case kShip_forwardWeapon:
-          facing = WEAPON_FACING_FORWARD;
+          facing = OOWeaponFacing::kForward;
           break;
         case kShip_portWeapon:
-          facing = WEAPON_FACING_PORT;
+          facing = OOWeaponFacing::kPort;
           break;
         case kShip_starboardWeapon:
-          facing = WEAPON_FACING_STARBOARD;
+          facing = OOWeaponFacing::kStarboard;
           break;
         case kShip_currentWeapon:
           facing = ship->getCurrentWeaponFacing();
@@ -4334,7 +4334,8 @@ static JSValue ShipThreatAssessment(OOJS_NATIVE_ARGS) {
     }
 
     // check lasers
-    OOWeaponType wt = ship->weaponTypeIDForFacing(WEAPON_FACING_FORWARD, false);
+    OOWeaponType wt =
+        ship->weaponTypeIDForFacing(OOWeaponFacing::kForward, false);
     /* Not affected by multiple mounts here: they're either just a
      * split of the power, or only more dangerous until they
      * overheat */
@@ -4343,16 +4344,16 @@ static JSValue ShipThreatAssessment(OOJS_NATIVE_ARGS) {
       assessment -= 1.5;  // further penalty for ships with no forward laser
     }
 
-    wt = ship->weaponTypeIDForFacing(WEAPON_FACING_AFT, false);
+    wt = ship->weaponTypeIDForFacing(OOWeaponFacing::kAft, false);
     if (!isWeaponNone(wt)) {
       assessment += 1 + ShipThreatAssessmentWeapon(wt);
     }
     // port and starboard weapons less important
-    wt = ship->weaponTypeIDForFacing(WEAPON_FACING_PORT, false);
+    wt = ship->weaponTypeIDForFacing(OOWeaponFacing::kPort, false);
     if (!isWeaponNone(wt)) {
       assessment += 0.2 + ShipThreatAssessmentWeapon(wt) / 5.0;
     }
-    wt = ship->weaponTypeIDForFacing(WEAPON_FACING_STARBOARD, false);
+    wt = ship->weaponTypeIDForFacing(OOWeaponFacing::kStarboard, false);
     if (!isWeaponNone(wt)) {
       assessment += 0.2 + ShipThreatAssessmentWeapon(wt) / 5.0;
     }

@@ -401,7 +401,7 @@ void ShipEntity::initWithKey(const std::string& key) {
   shot_time = INITIAL_SHOT_TIME;
   ship_temperature = SHIP_MIN_CABIN_TEMP;
   weapon_temp = 0.0f;
-  currentWeaponFacing = WEAPON_FACING_FORWARD;
+  currentWeaponFacing = OOWeaponFacing::kForward;
   forward_weapon_temp = 0.0f;
   aft_weapon_temp = 0.0f;
   port_weapon_temp = 0.0f;
@@ -675,18 +675,18 @@ bool ShipEntity::setUpFromDictionary(const oo::PList& inShipDict) {
   // specifically told not to - this does not affect the ship's energy levels
   setThrowSparks(shipDict.get<bool>("throw_sparks", false));
 
-  weapon_facings = shipDict.get<int>("weapon_facings", VALID_WEAPON_FACINGS) &
-                   VALID_WEAPON_FACINGS;
-  if (weapon_facings & WEAPON_FACING_FORWARD)
+  weapon_facings = shipDict.get<int>("weapon_facings", kOOValidWeaponFacings) &
+                   kOOValidWeaponFacings;
+  if (OOWeaponFacingIsIn(weapon_facings, OOWeaponFacing::kForward))
     forward_weapon_type = cxx_OOWeaponTypeFromString(
         shipDict.get<std::string>("forward_weapon_type", "EQ_WEAPON_NONE"));
-  if (weapon_facings & WEAPON_FACING_AFT)
+  if (OOWeaponFacingIsIn(weapon_facings, OOWeaponFacing::kAft))
     aft_weapon_type = cxx_OOWeaponTypeFromString(
         shipDict.get<std::string>("aft_weapon_type", "EQ_WEAPON_NONE"));
-  if (weapon_facings & WEAPON_FACING_PORT)
+  if (OOWeaponFacingIsIn(weapon_facings, OOWeaponFacing::kPort))
     port_weapon_type = cxx_OOWeaponTypeFromString(
         shipDict.get<std::string>("port_weapon_type", "EQ_WEAPON_NONE"));
-  if (weapon_facings & WEAPON_FACING_STARBOARD)
+  if (OOWeaponFacingIsIn(weapon_facings, OOWeaponFacing::kStarboard))
     starboard_weapon_type = cxx_OOWeaponTypeFromString(
         shipDict.get<std::string>("starboard_weapon_type", "EQ_WEAPON_NONE"));
 
@@ -3451,9 +3451,9 @@ OOWeaponType ShipEntity::weaponTypeIDForFacing(OOWeaponFacing facing,
                                                bool strict) {
   OOWeaponType weaponType = nullptr;
 
-  if (facing & weapon_facings) {
+  if (OOWeaponFacingIsIn(weapon_facings, facing)) {
     switch (facing) {
-      case WEAPON_FACING_FORWARD:
+      case OOWeaponFacing::kForward:
         weaponType = forward_weapon_type;
         // if no forward weapon, and not carrying out a strict check, see if
         // subentities have forward weapons, return the first one found.
@@ -3466,19 +3466,19 @@ OOWeaponType ShipEntity::weaponTypeIDForFacing(OOWeaponFacing facing,
         }
         break;
 
-      case WEAPON_FACING_AFT:
+      case OOWeaponFacing::kAft:
         weaponType = aft_weapon_type;
         break;
 
-      case WEAPON_FACING_PORT:
+      case OOWeaponFacing::kPort:
         weaponType = port_weapon_type;
         break;
 
-      case WEAPON_FACING_STARBOARD:
+      case OOWeaponFacing::kStarboard:
         weaponType = starboard_weapon_type;
         break;
 
-      case WEAPON_FACING_NONE:
+      case OOWeaponFacing::kNone:
         break;
     }
   }
@@ -3737,27 +3737,27 @@ bool ShipEntity::equipmentValidToAdd(const std::string& fullEquipmentKey,
 bool ShipEntity::setWeaponMount(OOWeaponFacing facing,
                                 const std::string& eqKey) {
   // sets WEAPON_NONE if not recognised
-  if (weapon_facings & facing) {
+  if (OOWeaponFacingIsIn(weapon_facings, facing)) {
     OOWeaponType chosen_weapon =
         cxx_OOWeaponTypeFromEquipmentIdentifierStrict(eqKey);
     switch (facing) {
-      case WEAPON_FACING_FORWARD:
+      case OOWeaponFacing::kForward:
         forward_weapon_type = chosen_weapon;
         break;
 
-      case WEAPON_FACING_AFT:
+      case OOWeaponFacing::kAft:
         aft_weapon_type = chosen_weapon;
         break;
 
-      case WEAPON_FACING_PORT:
+      case OOWeaponFacing::kPort:
         port_weapon_type = chosen_weapon;
         break;
 
-      case WEAPON_FACING_STARBOARD:
+      case OOWeaponFacing::kStarboard:
         starboard_weapon_type = chosen_weapon;
         break;
 
-      case WEAPON_FACING_NONE:
+      case OOWeaponFacing::kNone:
         break;
     }
 
@@ -5418,12 +5418,13 @@ void ShipEntity::behaviour_attack_fly_to_target(double delta_t) {
         (target != nullptr ? target->getBehaviour() : OOBehaviour{}) !=
             BEHAVIOUR_FLEE_EVASIVE_ACTION) {
       if ((aspect > 0.99999 &&
-           !isWeaponNone((target != nullptr ? target->weaponTypeForFacing(
-                                                  WEAPON_FACING_FORWARD, false)
-                                            : (OOEquipmentType*)nullptr))) ||
+           !isWeaponNone((target != nullptr
+                              ? target->weaponTypeForFacing(
+                                    OOWeaponFacing::kForward, false)
+                              : (OOEquipmentType*)nullptr))) ||
           (aspect < -0.999 &&
            !isWeaponNone((target != nullptr ? target->weaponTypeForFacing(
-                                                  WEAPON_FACING_AFT, false)
+                                                  OOWeaponFacing::kAft, false)
                                             : (OOEquipmentType*)nullptr)))) {
         frustration = 0.0;
         behaviour = BEHAVIOUR_EVASIVE_ACTION;
@@ -10510,14 +10511,15 @@ GLfloat ShipEntity::currentAimTolerance() {
     // and start with extremely good aim circle
     basic_aim /= 5.0;
   }
-  if (currentWeaponFacing == WEAPON_FACING_AFT &&
+  if (currentWeaponFacing == OOWeaponFacing::kAft &&
       accuracy < COMBAT_AI_ISNT_AWFUL) {  // bad shots with aft lasers
     basic_aim *= 1.3;
-  } else if (currentWeaponFacing == WEAPON_FACING_PORT ||
+  } else if (currentWeaponFacing == OOWeaponFacing::kPort ||
              currentWeaponFacing ==
-                 WEAPON_FACING_STARBOARD) {  // everyone a bit worse with side
-                                             // lasers
-    if (accuracy < COMBAT_AI_ISNT_AWFUL) {   // especially these
+                 OOWeaponFacing::kStarboard) {  // everyone a bit worse with
+                                                // side
+                                                // lasers
+    if (accuracy < COMBAT_AI_ISNT_AWFUL) {      // especially these
       basic_aim *= 1.3 + randf();
     } else {
       basic_aim *= 1.3;
@@ -10571,16 +10573,16 @@ GLfloat ShipEntity::lookingAtSunWithThresholdAngleCos(
       getPosition(), (sun != nullptr ? sun->getPosition() : HPVector{})));
   unitRelativePosition = vector_normal_or_zbasis(relativePosition);
   switch (currentWeaponFacing) {
-    case WEAPON_FACING_FORWARD:
+    case OOWeaponFacing::kForward:
       measuredCos = -dot_product(unitRelativePosition, v_forward);
       break;
-    case WEAPON_FACING_AFT:
+    case OOWeaponFacing::kAft:
       measuredCos = +dot_product(unitRelativePosition, v_forward);
       break;
-    case WEAPON_FACING_PORT:
+    case OOWeaponFacing::kPort:
       measuredCos = +dot_product(unitRelativePosition, v_right);
       break;
-    case WEAPON_FACING_STARBOARD:
+    case OOWeaponFacing::kStarboard:
       measuredCos = -dot_product(unitRelativePosition, v_right);
       break;
     default:
@@ -10625,27 +10627,27 @@ bool ShipEntity::onTarget(OOWeaponFacing direction, OOWeaponType weapon_type) {
   urp = vector_normal_or_zbasis(rel_pos);
 
   switch (direction) {
-    case WEAPON_FACING_FORWARD:
+    case OOWeaponFacing::kForward:
       dq = +dot_product(urp, v_forward);  // cosine of angle between v_forward
                                           // and unit relative position
       break;
 
-    case WEAPON_FACING_AFT:
+    case OOWeaponFacing::kAft:
       dq = -dot_product(urp, v_forward);  // cosine of angle between v_forward
                                           // and unit relative position
       break;
 
-    case WEAPON_FACING_PORT:
+    case OOWeaponFacing::kPort:
       dq = -dot_product(urp, v_right);  // cosine of angle between v_right and
                                         // unit relative position
       break;
 
-    case WEAPON_FACING_STARBOARD:
+    case OOWeaponFacing::kStarboard:
       dq = +dot_product(urp, v_right);  // cosine of angle between v_right and
                                         // unit relative position
       break;
 
-    case WEAPON_FACING_NONE:
+    case OOWeaponFacing::kNone:
       break;
   }
 
@@ -10666,23 +10668,23 @@ bool ShipEntity::fireWeapon(OOWeaponType weapon_type, OOWeaponFacing direction,
                             double range) {
   weapon_temp = 0.0;
   switch (direction) {
-    case WEAPON_FACING_FORWARD:
+    case OOWeaponFacing::kForward:
       weapon_temp = forward_weapon_temp;
       break;
 
-    case WEAPON_FACING_AFT:
+    case OOWeaponFacing::kAft:
       weapon_temp = aft_weapon_temp;
       break;
 
-    case WEAPON_FACING_PORT:
+    case OOWeaponFacing::kPort:
       weapon_temp = port_weapon_temp;
       break;
 
-    case WEAPON_FACING_STARBOARD:
+    case OOWeaponFacing::kStarboard:
       weapon_temp = starboard_weapon_temp;
       break;
 
-    case WEAPON_FACING_NONE:
+    case OOWeaponFacing::kNone:
       break;
   }
   if (weapon_temp / NPC_MAX_WEAPON_TEMP >= WEAPON_COOLING_CUTOUT) return false;
@@ -10720,28 +10722,28 @@ bool ShipEntity::fireWeapon(OOWeaponType weapon_type, OOWeaponFacing direction,
   if (fired) {
     energy -= weapon_energy_use * multiplier;
     switch (direction) {
-      case WEAPON_FACING_FORWARD:
+      case OOWeaponFacing::kForward:
         forward_weapon_temp += weapon_shot_temperature * multiplier;
         break;
 
-      case WEAPON_FACING_AFT:
+      case OOWeaponFacing::kAft:
         aft_weapon_temp += weapon_shot_temperature * multiplier;
         break;
 
-      case WEAPON_FACING_PORT:
+      case OOWeaponFacing::kPort:
         port_weapon_temp += weapon_shot_temperature * multiplier;
         break;
 
-      case WEAPON_FACING_STARBOARD:
+      case OOWeaponFacing::kStarboard:
         starboard_weapon_temp += weapon_shot_temperature * multiplier;
         break;
 
-      case WEAPON_FACING_NONE:
+      case OOWeaponFacing::kNone:
         break;
     }
   }
 
-  if (direction == WEAPON_FACING_FORWARD) {
+  if (direction == OOWeaponFacing::kForward) {
     // can we fire lasers from our subentities?
     for (const auto& se : shipSubEntities()) {
       if ((oo::ToShip(se.get()) != nullptr
@@ -10762,13 +10764,14 @@ bool ShipEntity::fireWeapon(OOWeaponType weapon_type, OOWeaponFacing direction,
 bool ShipEntity::fireMainWeapon(double range) {
   // set the values from forward_weapon_type.
   // OXPs can override the default front laser energy damage.
-  currentWeaponFacing = WEAPON_FACING_FORWARD;
+  currentWeaponFacing = OOWeaponFacing::kForward;
   setWeaponDataFromType(forward_weapon_type);
 
   //  weapon damage override no longer effective
   //	weapon_damage = weapon_damage_override;
 
-  bool result = fireWeapon(forward_weapon_type, WEAPON_FACING_FORWARD, range);
+  bool result =
+      fireWeapon(forward_weapon_type, OOWeaponFacing::kForward, range);
   if (isWeaponNone(forward_weapon_type)) {
     // need to check subentities to avoid AI oddities
     // will already have fired them by now, though
@@ -10802,26 +10805,26 @@ bool ShipEntity::fireMainWeapon(double range) {
 
 bool ShipEntity::fireAftWeapon(double range) {
   // set the values from aft_weapon_type.
-  currentWeaponFacing = WEAPON_FACING_AFT;
+  currentWeaponFacing = OOWeaponFacing::kAft;
   setWeaponDataFromType(aft_weapon_type);
 
-  return fireWeapon(aft_weapon_type, WEAPON_FACING_AFT, range);
+  return fireWeapon(aft_weapon_type, OOWeaponFacing::kAft, range);
 }
 
 bool ShipEntity::firePortWeapon(double range) {
   // set the values from port_weapon_type.
-  currentWeaponFacing = WEAPON_FACING_PORT;
+  currentWeaponFacing = OOWeaponFacing::kPort;
   setWeaponDataFromType(port_weapon_type);
 
-  return fireWeapon(port_weapon_type, WEAPON_FACING_PORT, range);
+  return fireWeapon(port_weapon_type, OOWeaponFacing::kPort, range);
 }
 
 bool ShipEntity::fireStarboardWeapon(double range) {
   // set the values from starboard_weapon_type.
-  currentWeaponFacing = WEAPON_FACING_STARBOARD;
+  currentWeaponFacing = OOWeaponFacing::kStarboard;
   setWeaponDataFromType(starboard_weapon_type);
 
-  return fireWeapon(starboard_weapon_type, WEAPON_FACING_STARBOARD, range);
+  return fireWeapon(starboard_weapon_type, OOWeaponFacing::kStarboard, range);
 }
 
 OOTimeDelta ShipEntity::shotTime() { return shot_time; }
@@ -10931,7 +10934,7 @@ bool ShipEntity::fireSubentityLaserShot(double range) {
         ((parent != nullptr ? parent->getEnergy() : 0.0f) - weapon_energy_use));
 
   GLfloat hitAtRange = weaponRange;
-  OOWeaponFacing direction = WEAPON_FACING_FORWARD;
+  OOWeaponFacing direction = OOWeaponFacing::kForward;
   ::ShipEntity* victim =
       (UNIVERSE != nullptr ? UNIVERSE->firstShipHitByLaserFromShip(
                                  this, direction, kZeroVector, &hitAtRange)
@@ -10959,8 +10962,8 @@ bool ShipEntity::fireSubentityLaserShot(double range) {
       if (victim != nullptr)
         victim->takeEnergyDamage(
             0.01 * weapon_damage, this, parent,
-            (weaponTypeForFacing(WEAPON_FACING_FORWARD, true) != nullptr
-                 ? weaponTypeForFacing(WEAPON_FACING_FORWARD, true)
+            (weaponTypeForFacing(OOWeaponFacing::kForward, true) != nullptr
+                 ? weaponTypeForFacing(OOWeaponFacing::kForward, true)
                        ->identifier()
                  : std::optional<std::string>())
                 .value_or(std::string()));
@@ -10971,8 +10974,8 @@ bool ShipEntity::fireSubentityLaserShot(double range) {
       if (victim != nullptr)
         victim->takeEnergyDamage(
             weapon_damage, this, parent,
-            (weaponTypeForFacing(WEAPON_FACING_FORWARD, true) != nullptr
-                 ? weaponTypeForFacing(WEAPON_FACING_FORWARD, true)
+            (weaponTypeForFacing(OOWeaponFacing::kForward, true) != nullptr
+                 ? weaponTypeForFacing(OOWeaponFacing::kForward, true)
                        ->identifier()
                  : std::optional<std::string>())
                 .value_or(std::string()));  // a very palpable hit
@@ -11076,8 +11079,8 @@ bool ShipEntity::fireDirectLaserShotAt(Entity* my_target) {
   // weapon offset for thargoid lasers is always zero
   ::ShipEntity* victim =
       (UNIVERSE != nullptr
-           ? UNIVERSE->firstShipHitByLaserFromShip(this, WEAPON_FACING_FORWARD,
-                                                   kZeroVector, &hit_at_range)
+           ? UNIVERSE->firstShipHitByLaserFromShip(
+                 this, OOWeaponFacing::kForward, kZeroVector, &hit_at_range)
            : (::ShipEntity*)nullptr);
   setShipHitByLaser(victim);
   orientation = q_save;  // restore rotation
@@ -11086,7 +11089,7 @@ bool ShipEntity::fireDirectLaserShotAt(Entity* my_target) {
 
   // do special effects laser line
   const oo::Ref<OOLaserShotEntity> shot = OOLaserShotEntity::laserFromShip(
-      this, WEAPON_FACING_FORWARD, kZeroVector);
+      this, OOWeaponFacing::kForward, kZeroVector);
   Entity* shotObjC = oo::MadeEntity(shot);  // the shot, given its object
   shot->setColor(laser_color.get());
   shot->setScanClass(CLASS_NO_DRAW);
@@ -11103,8 +11106,8 @@ bool ShipEntity::fireDirectLaserShotAt(Entity* my_target) {
       if (victim != nullptr)
         victim->takeEnergyDamage(
             0.01 * weapon_damage, this, this,
-            (weaponTypeForFacing(WEAPON_FACING_FORWARD, true) != nullptr
-                 ? weaponTypeForFacing(WEAPON_FACING_FORWARD, true)
+            (weaponTypeForFacing(OOWeaponFacing::kForward, true) != nullptr
+                 ? weaponTypeForFacing(OOWeaponFacing::kForward, true)
                        ->identifier()
                  : std::optional<std::string>())
                 .value_or(std::string()));
@@ -11115,8 +11118,8 @@ bool ShipEntity::fireDirectLaserShotAt(Entity* my_target) {
       if (victim != nullptr)
         victim->takeEnergyDamage(
             weapon_damage, this, this,
-            (weaponTypeForFacing(WEAPON_FACING_FORWARD, true) != nullptr
-                 ? weaponTypeForFacing(WEAPON_FACING_FORWARD, true)
+            (weaponTypeForFacing(OOWeaponFacing::kForward, true) != nullptr
+                 ? weaponTypeForFacing(OOWeaponFacing::kForward, true)
                        ->identifier()
                  : std::optional<std::string>())
                 .value_or(std::string()));  // a very palpable hit
@@ -11142,20 +11145,20 @@ bool ShipEntity::fireDirectLaserShotAt(Entity* my_target) {
 std::vector<Vector> ShipEntity::laserPortOffset(OOWeaponFacing direction) {
   std::vector<Vector> laserPortOffset;
   switch (direction) {
-    case WEAPON_FACING_FORWARD:
-    case WEAPON_FACING_NONE:
+    case OOWeaponFacing::kForward:
+    case OOWeaponFacing::kNone:
       laserPortOffset = forwardWeaponOffset;
       break;
 
-    case WEAPON_FACING_AFT:
+    case OOWeaponFacing::kAft:
       laserPortOffset = aftWeaponOffset;
       break;
 
-    case WEAPON_FACING_PORT:
+    case OOWeaponFacing::kPort:
       laserPortOffset = portWeaponOffset;
       break;
 
-    case WEAPON_FACING_STARBOARD:
+    case OOWeaponFacing::kStarboard:
       laserPortOffset = starboardWeaponOffset;
       break;
   }

@@ -2139,28 +2139,28 @@ void PlayerEntity::newShipCommonSetup(const std::string& shipKey,
 
   // not retained - weapon types are references to the objects in
   // OOEquipmentType's cache
-  if (available_facings & WEAPON_FACING_AFT)
+  if (OOWeaponFacingIsIn(available_facings, OOWeaponFacing::kAft))
     aft_weapon_type = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(
         OptionalStringForKey(shipDict, "aft_weapon_type").value_or(""));
   else
     aft_weapon_type =
         cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_WEAPON_NONE");
 
-  if (available_facings & WEAPON_FACING_PORT)
+  if (OOWeaponFacingIsIn(available_facings, OOWeaponFacing::kPort))
     port_weapon_type = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(
         OptionalStringForKey(shipDict, "port_weapon_type").value_or(""));
   else
     port_weapon_type =
         cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_WEAPON_NONE");
 
-  if (available_facings & WEAPON_FACING_STARBOARD)
+  if (OOWeaponFacingIsIn(available_facings, OOWeaponFacing::kStarboard))
     starboard_weapon_type = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(
         OptionalStringForKey(shipDict, "starboard_weapon_type").value_or(""));
   else
     starboard_weapon_type =
         cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_WEAPON_NONE");
 
-  if (available_facings & WEAPON_FACING_FORWARD)
+  if (OOWeaponFacingIsIn(available_facings, OOWeaponFacing::kForward))
     forward_weapon_type = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(
         OptionalStringForKey(shipDict, "forward_weapon_type").value_or(""));
   else

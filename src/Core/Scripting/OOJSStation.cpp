@@ -1307,8 +1307,8 @@ static JSValue StationAddShipToShipyard(OOJS_NATIVE_ARGS) {
             : std::nullopt;
     OOWeaponFacingSet availableFacings =
         shipyardInfo.get<unsigned int>(std::string(KEY_WEAPON_FACINGS),
-                                       VALID_WEAPON_FACINGS) &
-        VALID_WEAPON_FACINGS;
+                                       kOOValidWeaponFacings) &
+        kOOValidWeaponFacings;
 
     OOWeaponType fwdWeapon = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(
         fwdWeaponString.value_or(""));
@@ -1324,7 +1324,7 @@ static JSValue StationAddShipToShipyard(OOJS_NATIVE_ARGS) {
         OOWeaponType new_weapon = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(
             equipmentKey.value_or(""));
         // fit best weapon forward
-        if (availableFacings & WEAPON_FACING_FORWARD &&
+        if (OOWeaponFacingIsIn(availableFacings, OOWeaponFacing::kForward) &&
             WeaponThreatAssessment(new_weapon) >
                 WeaponThreatAssessment(fwdWeapon)) {
           // again remember to divide price by 10 to get credits from tenths of
@@ -1335,7 +1335,7 @@ static JSValue StationAddShipToShipyard(OOJS_NATIVE_ARGS) {
               KEY_EQUIPMENT_FORWARD_WEAPON)] = *fwdWeaponString;
         } else {
           // if less good than current forward, try fitting is to rear
-          if (availableFacings & WEAPON_FACING_AFT &&
+          if (OOWeaponFacingIsIn(availableFacings, OOWeaponFacing::kAft) &&
               (isWeaponNone(aftWeapon) ||
                WeaponThreatAssessment(new_weapon) >
                    WeaponThreatAssessment(aftWeapon))) {

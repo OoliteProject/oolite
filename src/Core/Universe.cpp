@@ -6491,19 +6491,19 @@ void Universe::addLaserHitEffectsAt(HPVector pos, ::ShipEntity* target,
                             offset, OOMatrixFromBasisVectors(r1, u1, f1))));
 
   switch (direction) {
-    case WEAPON_FACING_FORWARD:
-    case WEAPON_FACING_NONE:
+    case OOWeaponFacing::kForward:
+    case OOWeaponFacing::kNone:
       break;
 
-    case WEAPON_FACING_AFT:
+    case OOWeaponFacing::kAft:
       quaternion_rotate_about_axis(&q1, u1, M_PI);
       break;
 
-    case WEAPON_FACING_PORT:
+    case OOWeaponFacing::kPort:
       quaternion_rotate_about_axis(&q1, u1, M_PI / 2.0);
       break;
 
-    case WEAPON_FACING_STARBOARD:
+    case OOWeaponFacing::kStarboard:
       quaternion_rotate_about_axis(&q1, u1, -M_PI / 2.0);
       break;
   }
@@ -6662,28 +6662,28 @@ Entity* Universe::firstEntityTargetedByPlayerPrecisely() {
 
   switch (viewDirection) {
     case VIEW_FORWARD:
-      targetFacing = WEAPON_FACING_FORWARD;
+      targetFacing = OOWeaponFacing::kForward;
       laserPortOffset = firstWeaponOffset(
           (player != nullptr ? player->getForwardWeaponOffset()
                              : std::vector<Vector>()));
       break;
 
     case VIEW_AFT:
-      targetFacing = WEAPON_FACING_AFT;
+      targetFacing = OOWeaponFacing::kAft;
       laserPortOffset =
           firstWeaponOffset((player != nullptr ? player->getAftWeaponOffset()
                                                : std::vector<Vector>()));
       break;
 
     case VIEW_PORT:
-      targetFacing = WEAPON_FACING_PORT;
+      targetFacing = OOWeaponFacing::kPort;
       laserPortOffset =
           firstWeaponOffset((player != nullptr ? player->getPortWeaponOffset()
                                                : std::vector<Vector>()));
       break;
 
     case VIEW_STARBOARD:
-      targetFacing = WEAPON_FACING_STARBOARD;
+      targetFacing = OOWeaponFacing::kStarboard;
       laserPortOffset = firstWeaponOffset(
           (player != nullptr ? player->getStarboardWeaponOffset()
                              : std::vector<Vector>()));
@@ -6691,7 +6691,7 @@ Entity* Universe::firstEntityTargetedByPlayerPrecisely() {
 
     default:
       // Match behaviour of -firstEntityTargetedByPlayer.
-      targetFacing = WEAPON_FACING_FORWARD;
+      targetFacing = OOWeaponFacing::kForward;
       laserPortOffset = firstWeaponOffset(
           (player != nullptr ? player->getForwardWeaponOffset()
                              : std::vector<Vector>()));
@@ -9459,8 +9459,8 @@ oo::PList Universe::shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL,
 
       OOWeaponFacingSet availableFacings =
           ship_info.get<unsigned int>(std::string(KEY_WEAPON_FACINGS),
-                                      VALID_WEAPON_FACINGS) &
-          VALID_WEAPON_FACINGS;
+                                      kOOValidWeaponFacings) &
+          kOOValidWeaponFacings;
 
       OOWeaponType fwdWeapon = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(
           fwdWeaponString.value_or(""));
@@ -9630,7 +9630,8 @@ oo::PList Universe::shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL,
             OOWeaponType new_weapon =
                 cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(*equipmentKey);
             // fit best weapon forward
-            if (availableFacings & WEAPON_FACING_FORWARD &&
+            if (OOWeaponFacingIsIn(availableFacings,
+                                   OOWeaponFacing::kForward) &&
                 (new_weapon != nullptr ? new_weapon->weaponThreatAssessment()
                                        : 0.0f) >
                     (fwdWeapon != nullptr ? fwdWeapon->weaponThreatAssessment()
@@ -9650,7 +9651,7 @@ oo::PList Universe::shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL,
               fwdWeaponDesc = eqShortDesc;
             } else {
               // if less good than current forward, try fitting is to rear
-              if (availableFacings & WEAPON_FACING_AFT &&
+              if (OOWeaponFacingIsIn(availableFacings, OOWeaponFacing::kAft) &&
                   (isWeaponNone(aftWeapon) ||
                    (new_weapon != nullptr
                         ? new_weapon->weaponThreatAssessment()

@@ -557,7 +557,7 @@ OO_TEST(getterColours) {
 // The player's ship reads two answers of PlayerEntity's own.
 OO_TEST(getterPlayerBranches) {
   SetUp();
-  sAvailableFacings = WEAPON_FACING_FORWARD | WEAPON_FACING_AFT;
+  sAvailableFacings = oo::ToUnderlying(OOWeaponFacing::kForward | OOWeaponFacing::kAft);
   OO_CHECK_EVAL("player.ship.weaponFacings", "3");
   sFleeingStatus = PLAYER_FLEEING_CARGO;
   OO_CHECK_EVAL("player.ship.isFleeing", "true");
@@ -730,11 +730,11 @@ OO_TEST(setterWeapons) {
                 "set");
   OO_CHECK_LOG(
       oo::str::format("player setWeaponMount %d EQ_WEAPON_PULSE_LASER scripted",
-                      static_cast<int>(WEAPON_FACING_PORT)));
+                      static_cast<int>(OOWeaponFacing::kPort)));
   OO_CHECK_EVAL("(player.ship.starboardWeapon = null, 'set')", "set");
   OO_CHECK_LOG(
       oo::str::format("player setWeaponMount %d EQ_WEAPON_NONE scripted",
-                      static_cast<int>(WEAPON_FACING_STARBOARD)));
+                      static_cast<int>(OOWeaponFacing::kStarboard)));
 }
 
 // The player's ship refuses what is the player's to fly.

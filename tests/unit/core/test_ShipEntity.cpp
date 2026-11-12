@@ -222,7 +222,7 @@ OO_TEST(initWithKeyAndDefinition)
 		OO_CHECK((ship != nullptr ? ship->weaponRechargeRate() : 0.0f) == 6.0f);
 		OO_CHECK(ShotTime(ship) == INITIAL_SHOT_TIME);
 		OO_CHECK((ship != nullptr ? ship->temperature() : 0.0f) == SHIP_MIN_CABIN_TEMP);
-		OO_CHECK((ship != nullptr ? ship->getCurrentWeaponFacing() : OOWeaponFacing{}) == WEAPON_FACING_FORWARD);
+		OO_CHECK((ship != nullptr ? ship->getCurrentWeaponFacing() : OOWeaponFacing{}) == OOWeaponFacing::kForward);
 		OO_CHECK((ship != nullptr ? ship->laserHeatLevelForward() : 0.0f) == 0 && (ship != nullptr ? ship->laserHeatLevelAft() : 0.0f) == 0 && (ship != nullptr ? ship->laserHeatLevelPort() : 0.0f) == 0 && (ship != nullptr ? ship->laserHeatLevelStarboard() : 0.0f) == 0);
 		OO_CHECK((ship != nullptr ? ship->entityPersonalityInt() : GLint{}) >= 0 && (ship != nullptr ? ship->entityPersonalityInt() : GLint{}) <= (GLint)ENTITY_PERSONALITY_MAX);
 		OO_CHECK((ship != nullptr ? ship->getMaxFlightSpeed() : 0.0f) == 0);	// the set-up did not set it
@@ -340,7 +340,7 @@ OO_TEST(setUpFromDictionaryDefaults)
 		OO_CHECK((ship != nullptr ? ship->maxThrust() : 0.0f) == 15.0f && (ship != nullptr ? ship->getThrust() : 0.0f) == 15.0f);
 		OO_CHECK((ship != nullptr ? ship->afterburnerFactor() : 0.0f) == 7.0f && (ship != nullptr ? ship->afterburnerRate() : 0.0f) == AFTERBURNER_BURNRATE);
 		OO_CHECK((ship != nullptr ? ship->getMaxEnergy() : 0.0f) == 200.0f && part->energy_recharge_rate == 1.0f);
-		OO_CHECK((ship != nullptr ? ship->weaponFacings() : OOWeaponFacingSet{}) == VALID_WEAPON_FACINGS);
+		OO_CHECK((ship != nullptr ? ship->weaponFacings() : OOWeaponFacingSet{}) == kOOValidWeaponFacings);
 		OO_CHECK((ship != nullptr ? ship->missileCount() : 0) == 0 && (ship != nullptr ? ship->missileCapacity() : 0) == 0);
 		OO_CHECK(part->cloakPassive && part->cloakAutomatic && !part->cloaking_device_active && !part->military_jammer_active);
 		OO_CHECK(part->isFrangible && !part->isWreckage && part->canFragment);
@@ -407,7 +407,7 @@ OO_TEST(setUpFromDictionaryValues)
 		OO_CHECK((ship != nullptr ? ship->maxThrust() : 0.0f) == 20.0f && (ship != nullptr ? ship->getThrust() : 0.0f) == 20.0f);
 		OO_CHECK((ship != nullptr ? ship->afterburnerFactor() : 0.0f) == 1.0f && (ship != nullptr ? ship->afterburnerRate() : 0.0f) == 0.5f);
 		OO_CHECK((ship != nullptr ? ship->getMaxEnergy() : 0.0f) == 500.0f && part->energy_recharge_rate == 4.0f);
-		OO_CHECK((ship != nullptr ? ship->weaponFacings() : OOWeaponFacingSet{}) == VALID_WEAPON_FACINGS);
+		OO_CHECK((ship != nullptr ? ship->weaponFacings() : OOWeaponFacingSet{}) == kOOValidWeaponFacings);
 		OO_CHECK((ship != nullptr ? ship->missileCapacity() : 0) == SHIPENTITY_MAX_MISSILES && part->missiles == SHIPENTITY_MAX_MISSILES);
 		OO_CHECK(!part->cloakPassive && !part->isFrangible);
 		OO_CHECK(part->max_cargo == 20 && (ship != nullptr ? ship->extraCargo() : 0) == 5);
@@ -926,12 +926,12 @@ OO_TEST(weaponMountsAndLists)
 	{
 		SetUp();
 		TestShip *ship = MakeShip<TestShip>("mounts", Definition());
-		OO_CHECK((ship != nullptr ? ship->setUpFromDictionary(oo::PList(oo::PList::Dict{ { "weapon_facings", oo::PList(WEAPON_FACING_FORWARD | WEAPON_FACING_AFT) } })) : false));
-		OO_CHECK((ship != nullptr ? ship->weaponFacings() : OOWeaponFacingSet{}) == (WEAPON_FACING_FORWARD | WEAPON_FACING_AFT));
+		OO_CHECK((ship != nullptr ? ship->setUpFromDictionary(oo::PList(oo::PList::Dict{ { "weapon_facings", oo::PList(oo::ToUnderlying(OOWeaponFacing::kForward | OOWeaponFacing::kAft)) } })) : false));
+		OO_CHECK((ship != nullptr ? ship->weaponFacings() : OOWeaponFacingSet{}) == oo::ToUnderlying(OOWeaponFacing::kForward | OOWeaponFacing::kAft));
 		// No weapon data is loaded: every mount is empty, and a facing the ship lacks has nothing.
-		OO_CHECK(isWeaponNone((ship != nullptr ? ship->weaponTypeIDForFacing(WEAPON_FACING_FORWARD, true) : OOWeaponType{})));
-		OO_CHECK((ship != nullptr ? ship->weaponTypeIDForFacing(WEAPON_FACING_PORT, false) : OOWeaponType{}) == nullptr);
-		OO_CHECK((ship != nullptr ? ship->weaponTypeForFacing(WEAPON_FACING_STARBOARD, false) : (OOEquipmentType *)nullptr) == nullptr);
+		OO_CHECK(isWeaponNone((ship != nullptr ? ship->weaponTypeIDForFacing(OOWeaponFacing::kForward, true) : OOWeaponType{})));
+		OO_CHECK((ship != nullptr ? ship->weaponTypeIDForFacing(OOWeaponFacing::kPort, false) : OOWeaponType{}) == nullptr);
+		OO_CHECK((ship != nullptr ? ship->weaponTypeForFacing(OOWeaponFacing::kStarboard, false) : (OOEquipmentType *)nullptr) == nullptr);
 		OO_CHECK((ship != nullptr ? ship->missilesList() : std::vector<oo::Ref<OOEquipmentType>>()).empty());
 		const oo::PList passengers = (ship != nullptr ? ship->passengerListForScripting() : oo::PList());
 		OO_CHECK(passengers.isArray() && passengers.count() == 0);
@@ -1675,7 +1675,7 @@ OO_TEST(weaponAndScannerValues)
 		OO_CHECK(WeaponDamage(ship) == 12);
 		if (ship != nullptr)  ship->setWeaponDataFromType(nullptr);		// no weapon: nothing
 		OO_CHECK((ship != nullptr ? ship->getWeaponRange() : 0.0f) == 0 && (ship != nullptr ? ship->weaponRechargeRate() : 0.0f) == 0 && WeaponDamage(ship) == 0);
-		OO_CHECK((ship != nullptr ? ship->getCurrentWeaponFacing() : OOWeaponFacing{}) == WEAPON_FACING_FORWARD);
+		OO_CHECK((ship != nullptr ? ship->getCurrentWeaponFacing() : OOWeaponFacing{}) == OOWeaponFacing::kForward);
 		if (ship != nullptr)  ship->setScannerRange(30000);
 		OO_CHECK((ship != nullptr ? ship->getScannerRange() : 0.0f) == 30000);
 		if (ship != nullptr)  ship->setReference(make_vector(1, 2, 3));
@@ -2526,22 +2526,22 @@ OO_TEST(slice27CurrentAimTolerance)
 		TestShip *ship = MakeLateSliceShip("gunner");
 
 		// An awful shot, forward: the tolerance as it is.
-		SetAim27(ship, 1000, COMBAT_AI_ISNT_AWFUL - 1, WEAPON_FACING_FORWARD);
+		SetAim27(ship, 1000, COMBAT_AI_ISNT_AWFUL - 1, OOWeaponFacing::kForward);
 		OO_CHECK(fabs((ship != nullptr ? ship->currentAimTolerance() : 0.0f) - ExpectedAim27(1000, 0.99999)) < 1e-7);
 		// Aft: a third worse.
-		SetAim27(ship, 1000, COMBAT_AI_ISNT_AWFUL - 1, WEAPON_FACING_AFT);
+		SetAim27(ship, 1000, COMBAT_AI_ISNT_AWFUL - 1, OOWeaponFacing::kAft);
 		OO_CHECK(fabs((ship != nullptr ? ship->currentAimTolerance() : 0.0f) - ExpectedAim27(1000 * 1.3, 0.99999)) < 1e-7);
 		// Better pilots: tighter, and tighter still after missing.
-		SetAim27(ship, 1000, COMBAT_AI_ISNT_AWFUL, WEAPON_FACING_FORWARD);
+		SetAim27(ship, 1000, COMBAT_AI_ISNT_AWFUL, OOWeaponFacing::kForward);
 		OO_CHECK(fabs((ship != nullptr ? ship->currentAimTolerance() : 0.0f) - ExpectedAim27(1000, 0.999999)) < 1e-7);
 		if (ship != nullptr)  ship->adjustMissedShots(4);
 		OO_CHECK((ship != nullptr ? ship->missedShots() : int{}) == 4);
 		OO_CHECK(fabs((ship != nullptr ? ship->currentAimTolerance() : 0.0f) - ExpectedAim27(1000 / 2.0, 0.999999)) < 1e-7);
 		// A side laser makes even a good pilot worse.
-		SetAim27(ship, 1000, COMBAT_AI_ISNT_AWFUL, WEAPON_FACING_PORT);
+		SetAim27(ship, 1000, COMBAT_AI_ISNT_AWFUL, OOWeaponFacing::kPort);
 		OO_CHECK(fabs((ship != nullptr ? ship->currentAimTolerance() : 0.0f) - ExpectedAim27(1000 * 1.3, 0.999999)) < 1e-7);
 		// Deadly shots.
-		SetAim27(ship, 1000, COMBAT_AI_TRACKS_CLOSER, WEAPON_FACING_FORWARD);
+		SetAim27(ship, 1000, COMBAT_AI_TRACKS_CLOSER, OOWeaponFacing::kForward);
 		OO_CHECK(fabs((ship != nullptr ? ship->currentAimTolerance() : 0.0f) - ExpectedAim27(1000 / 5.0, 0.9999999)) < 1e-7);
 	}
 }

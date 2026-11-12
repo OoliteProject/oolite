@@ -132,7 +132,7 @@ OO_TEST(laserFromShip) {
     SetUp();
     Entity* ship = MakeShip();
     oo::Ref<OOLaserShotEntity> shot =
-        Shot(ship, WEAPON_FACING_FORWARD, make_vector(0, 0, 10));
+        Shot(ship, OOWeaponFacing::kForward, make_vector(0, 0, 10));
     OO_CHECK(shot != nullptr);
     OO_CHECK(HPvector_equal(shot->getPosition(), make_HPvector(100, 0, 10)));
     OO_CHECK(vector_equal(shot->getVelocity(), make_vector(0, 0, 50)));
@@ -149,13 +149,13 @@ OO_TEST(laserFromShip) {
              std::string::npos);
 
     // The other facings turn the shot about the ship's up axis.
-    oo::Ref<OOLaserShotEntity> aft = Shot(ship, WEAPON_FACING_AFT, kZeroVector);
+    oo::Ref<OOLaserShotEntity> aft = Shot(ship, OOWeaponFacing::kAft, kZeroVector);
     Vector forward = vector_forward_from_quaternion(aft->getOrientation());
     OO_CHECK(Near(forward.x, 0) && Near(forward.z, -1));
     oo::Ref<OOLaserShotEntity> port =
-        Shot(ship, WEAPON_FACING_PORT, kZeroVector);
+        Shot(ship, OOWeaponFacing::kPort, kZeroVector);
     oo::Ref<OOLaserShotEntity> starboard =
-        Shot(ship, WEAPON_FACING_STARBOARD, kZeroVector);
+        Shot(ship, OOWeaponFacing::kStarboard, kZeroVector);
     Vector portForward = vector_forward_from_quaternion(port->getOrientation());
     Vector starboardForward =
         vector_forward_from_quaternion(starboard->getOrientation());
@@ -169,7 +169,7 @@ OO_TEST(color) {
   {
     SetUp();
     oo::Ref<OOLaserShotEntity> shot =
-        Shot(MakeShip(), WEAPON_FACING_FORWARD, kZeroVector);
+        Shot(MakeShip(), OOWeaponFacing::kForward, kZeroVector);
     // Brightened five times, then a third; the alpha stays.
     shot->setColor(OOColor::colorWithRed(0.3f, 0.6f, 0.9f, 0.1f).get());
     OO_CHECK(ColorIs(shot.get(), 0.5f, 1.0f, 1.5f, 0.09f));
@@ -189,7 +189,7 @@ OO_TEST(update) {
     SetUp();
     Entity* ship = MakeShip();
     oo::Ref<OOLaserShotEntity> shot =
-        Shot(ship, WEAPON_FACING_FORWARD, make_vector(0, 0, 10));
+        Shot(ship, OOWeaponFacing::kForward, make_vector(0, 0, 10));
 
     // An NPC's shot moves by its velocity.
     shot->update(0.05);
@@ -202,7 +202,7 @@ OO_TEST(update) {
     sRemoved = nullptr;
     ship->isPlayer = true;
     oo::Ref<OOLaserShotEntity> playerShot =
-        Shot(ship, WEAPON_FACING_FORWARD, make_vector(0, 0, 10));
+        Shot(ship, OOWeaponFacing::kForward, make_vector(0, 0, 10));
     ship->setPosition(make_HPvector(200, 0, 0));
     playerShot->update(0.05);
     OO_CHECK(

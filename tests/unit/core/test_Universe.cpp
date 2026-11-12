@@ -603,7 +603,7 @@ OO_TEST(slice14NoEntity) {
     OO_CHECK(u->hazardOnRouteFromEntity(nullptr, 0, p2) == nullptr);
     OO_CHECK(HPvector_equal(u->getSafeVectorFromEntity(nullptr, 0, p2),
                             kZeroHPVector));
-    OO_CHECK(u->firstShipHitByLaserFromShip(nullptr, WEAPON_FACING_FORWARD,
+    OO_CHECK(u->firstShipHitByLaserFromShip(nullptr, OOWeaponFacing::kForward,
                                             kZeroVector, NULL) == nullptr);
     // The demo ship needs a docked player; with none there is no ship.
     SetUpTestPlayer();

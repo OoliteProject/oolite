@@ -107,19 +107,19 @@ void OOLaserShotEntity::initLaserFromShip(::ShipEntity* srcEntity,
                              (ship != nullptr ? ship->getFlightSpeed() : 0.0f));
 
   switch (direction) {
-    case WEAPON_FACING_NONE:
-    case WEAPON_FACING_FORWARD:
+    case OOWeaponFacing::kNone:
+    case OOWeaponFacing::kForward:
       break;
 
-    case WEAPON_FACING_AFT:
+    case OOWeaponFacing::kAft:
       quaternion_rotate_about_axis(&q, q_up, M_PI);
       break;
 
-    case WEAPON_FACING_PORT:
+    case OOWeaponFacing::kPort:
       quaternion_rotate_about_axis(&q, q_up, M_PI / 2.0);
       break;
 
-    case WEAPON_FACING_STARBOARD:
+    case OOWeaponFacing::kStarboard:
       quaternion_rotate_about_axis(&q, q_up, -M_PI / 2.0);
       break;
   }
