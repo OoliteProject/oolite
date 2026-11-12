@@ -81,7 +81,7 @@ void OOFreePixMap(OOPixMap* ioPixMap) { *ioPixMap = OOPixMap{}; }
 
 // The loader factory, as the stand-in answers it (nil).
 oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithPath(
-    const std::optional<std::string>& /*path*/, uint32_t /*options*/) {
+    const std::optional<std::string>& /*path*/, OOTextureFlags /*options*/) {
   return nullptr;
 }
 
