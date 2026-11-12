@@ -2,7 +2,6 @@
 
 OOMusicController.m
 
-
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -37,13 +36,12 @@ OOMusicController* sSingleton = nullptr;
 }  // namespace
 
 // Values for _special
-enum {
-  kSpecialNone,
-  kSpecialTheme,
-  kSpecialDocking,
-  kSpecialDocked,
-  kSpecialMission
-};
+
+constexpr int kSpecialNone = 0;
+constexpr int kSpecialTheme = kSpecialNone + 1;
+constexpr int kSpecialDocking = kSpecialTheme + 1;
+constexpr int kSpecialDocked = kSpecialDocking + 1;
+constexpr int kSpecialMission = kSpecialDocked + 1;
 
 OOMusicController* OOMusicController::sharedController() {
   if (sSingleton == nullptr) {

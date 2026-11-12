@@ -13,7 +13,6 @@ Since _retainedObjects is a map its members can be replaced,
 potentially allowing mutable meshes, although we have no use for this at
 present.
 
-
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -68,13 +67,12 @@ MA 02110-1301, USA.
 // If set, cachable memory is scribbled with FEEDFACE to identify junk in cache.
 #define SCRIBBLE 0
 
-enum {
-  kBaseOctreeDepth = 5,  // 32x32x32
-  //	kMaxOctreeDepth declared in Octree.h.
-  kSmallOctreeDepth = 4,       // 16x16x16
-  kOctreeSizeThreshold = 900,  // Size at which we start increasing octree depth
-  kOctreeSmallSizeThreshold = 20
-};
+constexpr int kBaseOctreeDepth = 5;  // 32x32x32
+                                     //	kMaxOctreeDepth declared in Octree.h.
+constexpr int kSmallOctreeDepth = 4;  // 16x16x16
+constexpr int kOctreeSizeThreshold =
+    900;  // Size at which we start increasing octree depth
+constexpr int kOctreeSmallSizeThreshold = 20;
 
 using OOMeshNormalMode = enum {
   kNormalModePerFace,
@@ -112,13 +110,12 @@ static OOTimeDelta Profile(const char* tag, OOProfilingStopwatch* stopwatch,
         The overflow list is a std::vector owned by the VertexFaceRef, which
    lives in a std::vector for the duration of -loadData:scaleFactor:.
 */
-enum {
+
 #if OOLITE_64_BIT
-  kVertexFaceDefInternalCount = 11  // sizeof (VertexFaceRef) = 32
+constexpr int kVertexFaceDefInternalCount = 11;  // sizeof (VertexFaceRef) = 32
 #else
-  kVertexFaceDefInternalCount = 5  // sizeof (VertexFaceRef) = 16
+constexpr int kVertexFaceDefInternalCount = 5;  // sizeof (VertexFaceRef) = 16
 #endif
-};
 
 using VertexFaceRef = struct VertexFaceRef {
   uint16_t internCount;

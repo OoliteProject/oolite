@@ -58,7 +58,8 @@ constexpr const char* kCacheKeyFormatVersion = "format version";
 constexpr const char* kCacheKeyCaches = "caches";
 }  // namespace
 
-enum { kEndianTagValue = 0x0123456789ABCDEFULL, kFormatVersionValue = 219 };
+constexpr unsigned long long kEndianTagValue = 0x0123456789ABCDEFULL;
+constexpr unsigned long long kFormatVersionValue = 219;
 
 static OOCacheManager* sSingleton =
     nullptr;  // +1, never released (the retained singleton)

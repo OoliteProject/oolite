@@ -2,7 +2,6 @@
 
 OOSkyDrawable.m
 
-
 Copyright (C) 2007-2013 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -67,11 +66,9 @@ struct OOSkyQuadDesc {
   OOTexture* texture;
 };
 
-enum : uint8_t {
-  kSkyQuadSetPositionEntriesPerVertex = 3,
-  kSkyQuadSetTexCoordEntriesPerVertex = 2,
-  kSkyQuadSetColorEntriesPerVertex = 4
-};
+constexpr std::uint8_t kSkyQuadSetPositionEntriesPerVertex = 3;
+constexpr std::uint8_t kSkyQuadSetTexCoordEntriesPerVertex = 2;
+constexpr std::uint8_t kSkyQuadSetColorEntriesPerVertex = 4;
 
 /*	Class containing a set of quads with the same texture. This form is
         optimized for rendering.

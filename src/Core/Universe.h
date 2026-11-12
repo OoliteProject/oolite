@@ -98,40 +98,37 @@ typedef bool (*EntityFilterPredicate)(Entity* entity,
 
 #define CROSSHAIR_SIZE 32.0
 
-enum {
-  MARKET_NAME = 0,
-  MARKET_QUANTITY = 1,
-  MARKET_PRICE = 2,
-  MARKET_BASE_PRICE = 3,
-  MARKET_ECO_ADJUST_PRICE = 4,
-  MARKET_ECO_ADJUST_QUANTITY = 5,
-  MARKET_BASE_QUANTITY = 6,
-  MARKET_MASK_PRICE = 7,
-  MARKET_MASK_QUANTITY = 8,
-  MARKET_UNITS = 9
-};
+inline constexpr int MARKET_NAME = 0;
+inline constexpr int MARKET_QUANTITY = 1;
+inline constexpr int MARKET_PRICE = 2;
+inline constexpr int MARKET_BASE_PRICE = 3;
+inline constexpr int MARKET_ECO_ADJUST_PRICE = 4;
+inline constexpr int MARKET_ECO_ADJUST_QUANTITY = 5;
+inline constexpr int MARKET_BASE_QUANTITY = 6;
+inline constexpr int MARKET_MASK_PRICE = 7;
+inline constexpr int MARKET_MASK_QUANTITY = 8;
+inline constexpr int MARKET_UNITS = 9;
 
-enum {
-  EQUIPMENT_TECH_LEVEL_INDEX = 0,
-  EQUIPMENT_PRICE_INDEX = 1,
-  EQUIPMENT_SHORT_DESC_INDEX = 2,
-  EQUIPMENT_KEY_INDEX = 3,
-  EQUIPMENT_LONG_DESC_INDEX = 4,
-  EQUIPMENT_EXTRA_INFO_INDEX = 5
-};
+inline constexpr int EQUIPMENT_TECH_LEVEL_INDEX = 0;
+inline constexpr int EQUIPMENT_PRICE_INDEX = 1;
+inline constexpr int EQUIPMENT_SHORT_DESC_INDEX = 2;
+inline constexpr int EQUIPMENT_KEY_INDEX = 3;
+inline constexpr int EQUIPMENT_LONG_DESC_INDEX = 4;
+inline constexpr int EQUIPMENT_EXTRA_INFO_INDEX = 5;
 
-enum {
-  OO_POSTFX_NONE = 0,
-  OO_POSTFX_COLORBLINDNESS_PROTAN,
-  OO_POSTFX_COLORBLINDNESS_DEUTER,
-  OO_POSTFX_COLORBLINDNESS_TRITAN,
-  OO_POSTFX_CLOAK,
-  OO_POSTFX_GRAYSCALE,
-  OO_POSTFX_OLDMOVIE,
-  OO_POSTFX_CRT,
-  OO_POSTFX_CRTBADSIGNAL,
-  OO_POSTFX_ENDOFLIST  // keep this for last
-};
+inline constexpr int OO_POSTFX_NONE = 0;
+inline constexpr int OO_POSTFX_COLORBLINDNESS_PROTAN = OO_POSTFX_NONE + 1;
+inline constexpr int OO_POSTFX_COLORBLINDNESS_DEUTER =
+    OO_POSTFX_COLORBLINDNESS_PROTAN + 1;
+inline constexpr int OO_POSTFX_COLORBLINDNESS_TRITAN =
+    OO_POSTFX_COLORBLINDNESS_DEUTER + 1;
+inline constexpr int OO_POSTFX_CLOAK = OO_POSTFX_COLORBLINDNESS_TRITAN + 1;
+inline constexpr int OO_POSTFX_GRAYSCALE = OO_POSTFX_CLOAK + 1;
+inline constexpr int OO_POSTFX_OLDMOVIE = OO_POSTFX_GRAYSCALE + 1;
+inline constexpr int OO_POSTFX_CRT = OO_POSTFX_OLDMOVIE + 1;
+inline constexpr int OO_POSTFX_CRTBADSIGNAL = OO_POSTFX_CRT + 1;
+inline constexpr int OO_POSTFX_ENDOFLIST =
+    OO_POSTFX_CRTBADSIGNAL + 1;  // keep this for last
 
 #define SHADERS_MIN OOShaderSetting::kOff
 

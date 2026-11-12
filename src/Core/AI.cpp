@@ -43,10 +43,8 @@ MA 02110-1301, USA.
 #include "oofnd/objc/OOException.h"
 #include "oofnd/objc/OOObject.h"
 
-enum {
-  kRecursionLimiter = 32,  // reactToMethod: recursion
-  kStackLimiter = 32       // setAITo: stack overflow
-};
+constexpr int kRecursionLimiter = 32;  // reactToMethod: recursion
+constexpr int kStackLimiter = 32;      // setAITo: stack overflow
 
 namespace {
 

@@ -252,12 +252,11 @@ typedef uint16_t OOKeyCode;
 
 typedef uint16_t OOUniversalID;  // Valid IDs range from 100 to 1000.
 
-enum {
-  UNIVERSE_MAX_ENTITIES = 2048,
-  NO_TARGET = 0,
-  MIN_ENTITY_UID = 100,
-  MAX_ENTITY_UID = MIN_ENTITY_UID + UNIVERSE_MAX_ENTITIES + 1
-};
+inline constexpr int UNIVERSE_MAX_ENTITIES = 2048;
+inline constexpr int NO_TARGET = 0;
+inline constexpr int MIN_ENTITY_UID = 100;
+inline constexpr int MAX_ENTITY_UID =
+    MIN_ENTITY_UID + UNIVERSE_MAX_ENTITIES + 1;
 
 inline constexpr int kOOVariableTechLevel = 99;
 typedef std::size_t OOTechLevelID;  // 0..14, 99 is special. oo::kNotFound is
@@ -269,12 +268,10 @@ typedef uint8_t OOEconomyID;     // 0..7
 typedef uint8_t OOGalaxyID;  // 0..7
 typedef int16_t OOSystemID;  // 0..255, -1 for interstellar space (?)
 
-enum {
-  kOOMaximumGalaxyID = 7,
-  kOOMaximumSystemID = 255,
-  kOOMinimumSystemID = -1,
-  kOOSystemIDInterstellarSpace = kOOMinimumSystemID
-};
+inline constexpr int kOOMaximumGalaxyID = 7;
+inline constexpr int kOOMaximumSystemID = 255;
+inline constexpr int kOOMinimumSystemID = -1;
+inline constexpr int kOOSystemIDInterstellarSpace = kOOMinimumSystemID;
 
 typedef double OOTimeAbsolute;
 typedef double OOTimeDelta;

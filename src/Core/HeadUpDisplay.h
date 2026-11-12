@@ -255,11 +255,11 @@ class OOCrosshairs;
 #define MIN_PROBABILITY_ACCURACY \
   0.35f  // floor value for probability of high accuracy is 35%
 
-enum {
-  OO_RETICLE_COLOR_TARGET = 0,
-  OO_RETICLE_COLOR_TARGET_SENSITIVE,
-  OO_RETICLE_COLOR_WORMHOLE
-};
+inline constexpr int OO_RETICLE_COLOR_TARGET = 0;
+inline constexpr int OO_RETICLE_COLOR_TARGET_SENSITIVE =
+    OO_RETICLE_COLOR_TARGET + 1;
+inline constexpr int OO_RETICLE_COLOR_WORMHOLE =
+    OO_RETICLE_COLOR_TARGET_SENSITIVE + 1;
 
 class Entity;
 class PlayerEntity;
