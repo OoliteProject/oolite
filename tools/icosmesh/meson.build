@@ -6,5 +6,5 @@
 # everywhere. -ffp-contract=off stops the compiler fusing a*b+c into one FMA instruction, as clang
 # does by default on arm64 (macOS); fused, the rounding differs and 20 vertices fail to merge.
 icosmesh = executable('icosmesh', 'icosmesh.cpp',
-    native: true, install: false, override_options: ['cpp_std=c++20', 'warning_level=2'],
+    native: true, install: false, override_options: ['cpp_std=c++23', 'warning_level=2'],
     cpp_args: ['-ffp-contract=off'])
