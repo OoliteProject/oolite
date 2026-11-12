@@ -1306,7 +1306,7 @@ bool DockEntity::dockingCorridorIsEmpty() {
     // Ignore cargopods or other small debris.
     if (oo::EntityIsShip(uni_entities[i]) &&
         ((station == nullptr ||
-          station->getAlertLevel() < STATION_ALERT_LEVEL_RED) ||
+          station->getAlertLevel() < OOStationAlertLevel::kRed) ||
          !oo::EntityIsPlayer(uni_entities[i])) &&
         uni_entities[i]->getMass() > 1000) {
       my_entities[ship_count++] =

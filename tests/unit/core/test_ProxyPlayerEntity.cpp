@@ -72,11 +72,11 @@ public:
 	bool atHyperspeed() override	{ return true; }
 	GLfloat dialForwardShield() override	{ return 0.25f; }
 	GLfloat dialAftShield() override	{ return 0.75f; }
-	OOMissileStatus dialMissileStatus() override	{ return MISSILE_STATUS_TARGET_LOCKED; }
-	OOFuelScoopStatus dialFuelScoopStatus() override	{ return SCOOP_STATUS_ACTIVE; }
+	OOMissileStatus dialMissileStatus() override	{ return OOMissileStatus::kTargetLocked; }
+	OOFuelScoopStatus dialFuelScoopStatus() override	{ return OOFuelScoopStatus::kActive; }
 	OOCompassMode getCompassMode() override	{ return COMPASS_MODE_STATION; }
 	bool dialIdentEngaged() override	{ return true; }
-	OOAlertCondition getAlertCondition() override	{ return ALERT_CONDITION_RED; }
+	OOAlertCondition getAlertCondition() override	{ return OOAlertCondition::kRed; }
 	std::size_t getTrumbleCount() override	{ return 7; }
 	int tradeInFactor() override	{ return 80; }
 };
@@ -138,12 +138,12 @@ OO_TEST(initDefaults)
 		ProxyPlayerEntity *proxy = MakeProxy();
 		OO_CHECK(proxy != nullptr && proxy->getIsShip());
 		OO_CHECK(proxy->dialForwardShield() == 1.0f && proxy->dialAftShield() == 1.0f);
-		OO_CHECK(proxy->dialFuelScoopStatus() == SCOOP_STATUS_NOT_INSTALLED);
+		OO_CHECK(proxy->dialFuelScoopStatus() == OOFuelScoopStatus::kNotInstalled);
 		OO_CHECK(proxy->compassMode() == COMPASS_MODE_BASIC);
 		OO_CHECK(proxy->tradeInFactor() == 95);
 		OO_CHECK(proxy->fuelLeakRate() == 0 && !proxy->massLocked() && !proxy->atHyperspeed());
-		OO_CHECK(proxy->dialMissileStatus() == MISSILE_STATUS_SAFE && !proxy->dialIdentEngaged());
-		OO_CHECK(proxy->alertCondition() == ALERT_CONDITION_DOCKED && proxy->trumbleCount() == 0);
+		OO_CHECK(proxy->dialMissileStatus() == OOMissileStatus::kSafe && !proxy->dialIdentEngaged());
+		OO_CHECK(proxy->alertCondition() == OOAlertCondition::kDocked && proxy->trumbleCount() == 0);
 	}
 }
 
@@ -167,16 +167,16 @@ OO_TEST(accessors)
 		proxy->setDialForwardShield(0.5f);
 		proxy->setDialAftShield(0.125f);
 		OO_CHECK(proxy->dialForwardShield() == 0.5f && proxy->dialAftShield() == 0.125f);
-		proxy->setDialMissileStatus(MISSILE_STATUS_ARMED);
-		OO_CHECK(proxy->dialMissileStatus() == MISSILE_STATUS_ARMED);
-		proxy->setDialFuelScoopStatus(SCOOP_STATUS_FULL_HOLD);
-		OO_CHECK(proxy->dialFuelScoopStatus() == SCOOP_STATUS_FULL_HOLD);
+		proxy->setDialMissileStatus(OOMissileStatus::kArmed);
+		OO_CHECK(proxy->dialMissileStatus() == OOMissileStatus::kArmed);
+		proxy->setDialFuelScoopStatus(OOFuelScoopStatus::kFullHold);
+		OO_CHECK(proxy->dialFuelScoopStatus() == OOFuelScoopStatus::kFullHold);
 		proxy->setCompassMode(COMPASS_MODE_TARGET);
 		OO_CHECK(proxy->compassMode() == COMPASS_MODE_TARGET);
 		proxy->setDialIdentEngaged((bool)9);
 		OO_CHECK(proxy->dialIdentEngaged() == true);
-		proxy->setAlertCondition(ALERT_CONDITION_YELLOW);
-		OO_CHECK(proxy->alertCondition() == ALERT_CONDITION_YELLOW);
+		proxy->setAlertCondition(OOAlertCondition::kYellow);
+		OO_CHECK(proxy->alertCondition() == OOAlertCondition::kYellow);
 		proxy->setTrumbleCount(12);
 		OO_CHECK(proxy->trumbleCount() == 12);
 		proxy->setTradeInFactor(42);
@@ -198,11 +198,11 @@ OO_TEST(copyValuesFromPlayer)
 		OO_CHECK(proxy->fuelLeakRate() == 2.5f);
 		OO_CHECK(proxy->massLocked() && proxy->atHyperspeed());
 		OO_CHECK(proxy->dialForwardShield() == 0.25f && proxy->dialAftShield() == 0.75f);
-		OO_CHECK(proxy->dialMissileStatus() == MISSILE_STATUS_TARGET_LOCKED);
-		OO_CHECK(proxy->dialFuelScoopStatus() == SCOOP_STATUS_ACTIVE);
+		OO_CHECK(proxy->dialMissileStatus() == OOMissileStatus::kTargetLocked);
+		OO_CHECK(proxy->dialFuelScoopStatus() == OOFuelScoopStatus::kActive);
 		OO_CHECK(proxy->compassMode() == COMPASS_MODE_STATION);
 		OO_CHECK(proxy->dialIdentEngaged());
-		OO_CHECK(proxy->alertCondition() == ALERT_CONDITION_RED);
+		OO_CHECK(proxy->alertCondition() == OOAlertCondition::kRed);
 		OO_CHECK(proxy->trumbleCount() == 7);
 		OO_CHECK(proxy->tradeInFactor() == 80);
 	}
@@ -236,9 +236,9 @@ OO_TEST(objCProxyPartIsAProxy)
 		OO_CHECK(dynamic_cast<ProxyPlayerEntity *>(asEntity) == part);
 		OO_CHECK(part == object);
 
-		part->setAlertCondition(ALERT_CONDITION_GREEN);
+		part->setAlertCondition(OOAlertCondition::kGreen);
 		ShipEntity *asShip = part;
-		OO_CHECK(asShip->alertCondition() == ALERT_CONDITION_GREEN);
+		OO_CHECK(asShip->alertCondition() == OOAlertCondition::kGreen);
 		OO_CHECK(part->tradeInFactor() == 95 && part->isPlayerLikeShip());
 	}
 }
@@ -259,7 +259,7 @@ OO_TEST(dialsAnsweredByNameForAProxy)
 		OOEntityByNameValue dial, factor, condition;
 		OO_CHECK(oo::CallEntityByNameTyped(proxy, "dialForwardShield", dial) && static_cast<GLfloat>(dial.real) == 0.5f);
 		OO_CHECK(oo::CallEntityByNameTyped(proxy, "tradeInFactor", factor) && factor.integer == 42);
-		OO_CHECK(oo::CallEntityByNameTyped(proxy, "alertCondition", condition) && static_cast<OOAlertCondition>(condition.integer) == ALERT_CONDITION_DOCKED);
+		OO_CHECK(oo::CallEntityByNameTyped(proxy, "alertCondition", condition) && static_cast<OOAlertCondition>(condition.integer) == OOAlertCondition::kDocked);
 
 		ShipEntity *ship = oo::ToShip(oo::AutoreleaseEntity(oo::NewShipObject(oo::makeRef<::ShipEntity>(), "ship", oo::PList(oo::PList::Dict{ { "unpiloted", oo::PList(true) } }))));
 		OO_CHECK(ship != nullptr && !(ship != nullptr ? oo::EntityRespondsToName(ship, "dialForwardShield") : false));

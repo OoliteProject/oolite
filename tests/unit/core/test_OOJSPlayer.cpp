@@ -32,20 +32,18 @@
 class TestEntityObject;
 
 // As ShipEntity.h and PlayerEntity.h declare them (the test imports neither).
-typedef enum
-{
-	ALERT_CONDITION_DOCKED	= 0,
-	ALERT_CONDITION_GREEN	= 1,
-	ALERT_CONDITION_YELLOW	= 2,
-	ALERT_CONDITION_RED		= 3
-} OOAlertCondition;
+enum class OOAlertCondition : std::int32_t {
+	kDocked	= 0,
+	kGreen	= 1,
+	kYellow	= 2,
+	kRed		= 3
+};
 
-typedef enum
-{
-	OOSPEECHSETTINGS_OFF = 0,
-	OOSPEECHSETTINGS_COMMS = 1,
-	OOSPEECHSETTINGS_ALL = 2
-} OOSpeechSettings;
+enum class OOSpeechSettings : std::int32_t {
+	kOff = 0,
+	kComms = 1,
+	kAll = 2
+};
 
 enum
 {
@@ -614,7 +612,7 @@ void SetUpContext()
 	sPlayer->_score = 5;
 	sPlayer->_credits = 100.5;
 	sPlayer->_legalStatus = 30;
-	sPlayer->_alertCondition = ALERT_CONDITION_YELLOW;
+	sPlayer->_alertCondition = OOAlertCondition::kYellow;
 	sPlayer->_alertFlags = ALERT_FLAG_MASS_LOCK | ALERT_FLAG_ENERGY;
 	sPlayer->_escapePodRescueTime = 3600;
 	sPlayer->_trumbleCount = 12;
@@ -791,11 +789,11 @@ OO_TEST(messages)
 	OO_CHECK_EVAL("player.addMessageToArrivalReport()", "threw: bad arguments: Player.addMessageToArrivalReport(0) - / string (arrival message)");
 
 	// Speech: spoken only when speech is on for comms; stopped only while speaking.
-	sPlayer->_speech = OOSPEECHSETTINGS_OFF;
+	sPlayer->_speech = OOSpeechSettings::kOff;
 	OO_CHECK_EVAL("player.audioMessage('quiet')", "undefined");
-	sPlayer->_speech = OOSPEECHSETTINGS_COMMS;
+	sPlayer->_speech = OOSpeechSettings::kComms;
 	OO_CHECK_EVAL("player.audioMessage('loud')", "undefined");
-	sPlayer->_speech = OOSPEECHSETTINGS_ALL;
+	sPlayer->_speech = OOSpeechSettings::kAll;
 	OO_CHECK_EVAL("player.audioMessage('louder')", "undefined");
 	OO_CHECK(sUniverse->_spoken == (std::vector<std::string>{ "loud", "louder" }));
 	OO_CHECK_EVAL("player.audioMessage()", "threw: bad arguments: Player.audioMessage(0) - / audiomessage (string)");

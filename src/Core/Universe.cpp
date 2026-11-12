@@ -4925,8 +4925,8 @@ void Universe::setGameView(::MyOpenGLView* view) {
 oo::PList Universe::gameSettings() {
   oo::PList::Dict result;
 
-  result["speechOn"] = oo::PList::signedInteger(
-      (PLAYER != nullptr ? PLAYER->getIsSpeechOn() : OOSpeechSettings{}));
+  result["speechOn"] = oo::PList::signedInteger(oo::ToUnderlying(
+      PLAYER != nullptr ? PLAYER->getIsSpeechOn() : OOSpeechSettings{}));
   result["autosave"] = oo::PList(static_cast<bool>(autoSave));
   result["wireframeGraphics"] = oo::PList(static_cast<bool>(wireframeGraphics));
   result["procedurallyTexturedPlanets"] =
@@ -7214,7 +7214,7 @@ void Universe::speakWithSubstitutions(const std::optional<std::string>& text) {
 
   ::PlayerEntity* player = PLAYER;
   if ((player != nullptr ? player->getIsSpeechOn() : OOSpeechSettings{}) >
-      OOSPEECHSETTINGS_OFF) {
+      OOSpeechSettings::kOff) {
     std::optional<std::string> systemSaid;
     std::optional<std::string> h_systemSaid;
 
@@ -7271,7 +7271,7 @@ void Universe::addMessage(const std::optional<std::string>& text,
   if (!SameMessage(currentMessage, text) || forceDisplay ||
       universal_time >= messageRepeatTime) {
     if ((PLAYER != nullptr ? PLAYER->getIsSpeechOn() : OOSpeechSettings{}) ==
-        OOSPEECHSETTINGS_ALL) {
+        OOSpeechSettings::kAll) {
       speakWithSubstitutions(text);
     }
 
@@ -7308,7 +7308,7 @@ void Universe::addCommsMessage(const std::optional<std::string>& text,
 
     if (!logOnly) {
       if ((player != nullptr ? player->getIsSpeechOn() : OOSpeechSettings{}) >=
-          OOSPEECHSETTINGS_COMMS) {
+          OOSpeechSettings::kComms) {
         // EMMSTRAN: should say "Incoming message from ..." when prefixed with
         // sender name.
         const std::string format =

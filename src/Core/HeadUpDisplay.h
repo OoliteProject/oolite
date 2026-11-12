@@ -55,6 +55,10 @@ MA 02110-1301, USA.
 #include "oofnd/Ref.hpp"
 #include "oofnd/objc/OOObject.h"
 
+// PlayerEntity.h defines it; this header does not include PlayerEntity.h (it
+// would close an include cycle).
+enum class OOMissileStatus : std::int32_t;
+
 struct OOHUDWidget;  // HeadUpDisplay.cpp
 
 class OOColor;
@@ -467,11 +471,9 @@ class HeadUpDisplay : public oo::RefCounted {
 
   void drawSecondaryTargetReticle(const oo::PList& info);
 
-  // status: an OOMissileStatus (PlayerEntity.h, which this header does not
-  // import: it would close an import cycle).
-  void drawIconForMissile(::ShipEntity* missile, bool selected, int status,
-                          int x, int y, GLfloat width, GLfloat height,
-                          GLfloat alpha);
+  void drawIconForMissile(::ShipEntity* missile, bool selected,
+                          OOMissileStatus status, int x, int y, GLfloat width,
+                          GLfloat height, GLfloat alpha);
   void drawIconForEmptyPylonAtX(int x, int y, GLfloat width, GLfloat height,
                                 GLfloat alpha);
   void drawDirectionCue(const oo::PList& info);
@@ -543,6 +545,7 @@ NSRect cxx_OORectFromString(const std::string& text, GLfloat x, GLfloat y,
 void OOHUDResetTextEngine(void);
 
 #include "WormholeEntity.h"  // WORMHOLE_SCANINFO (a send below)
+
 class OOVisualEffectEntity;
 
 /*	Free functions that forward one call each to other classes' members

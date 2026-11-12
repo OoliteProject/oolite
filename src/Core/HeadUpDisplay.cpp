@@ -1117,7 +1117,7 @@ void HeadUpDisplay::drawLegend(const oo::PList& info) {
   if (alertMask < 15) {
     OOAlertCondition alertCondition =
         (PLAYER != nullptr ? PLAYER->getAlertCondition() : OOAlertCondition{});
-    if (~alertMask & (1 << alertCondition)) {
+    if (~alertMask & (1 << oo::ToUnderlying(alertCondition))) {
       return;
     }
   }
@@ -1193,7 +1193,7 @@ void HeadUpDisplay::drawHUDItem(const oo::PList& info) {
   if (alertMask < 15) {
     OOAlertCondition alertCondition =
         (PLAYER != nullptr ? PLAYER->getAlertCondition() : OOAlertCondition{});
-    if (~alertMask & (1 << alertCondition)) {
+    if (~alertMask & (1 << oo::ToUnderlying(alertCondition))) {
       return;
     }
   }
@@ -2861,8 +2861,9 @@ OOPolygonSprite* IconForMissileRole(const std::string& role) {
 }  // namespace
 
 void HeadUpDisplay::drawIconForMissile(::ShipEntity* missile, bool selected,
-                                       int status, int x, int y, GLfloat width,
-                                       GLfloat height, GLfloat alpha) {
+                                       OOMissileStatus status, int x, int y,
+                                       GLfloat width, GLfloat height,
+                                       GLfloat alpha) {
   OOPolygonSprite* sprite =
       IconForMissileRole((missile != nullptr ? missile->getPrimaryRole()
                                              : std::optional<std::string>())
@@ -2890,13 +2891,13 @@ void HeadUpDisplay::drawIconForMissile(::ShipEntity* missile, bool selected,
     OOGLPopModelView();
 
     switch (status) {
-      case MISSILE_STATUS_SAFE:
+      case OOMissileStatus::kSafe:
         GLColorWithOverallAlpha(green_color, alpha);
         break;
-      case MISSILE_STATUS_ARMED:
+      case OOMissileStatus::kArmed:
         GLColorWithOverallAlpha(yellow_color, alpha);
         break;
-      case MISSILE_STATUS_TARGET_LOCKED:
+      case OOMissileStatus::kTargetLocked:
         GLColorWithOverallAlpha(red_color, alpha);
         break;
     }
@@ -2981,13 +2982,13 @@ void HeadUpDisplay::drawMissileDisplay(const oo::PList& info) {
     sp *= 0.75;
     switch (
         (PLAYER != nullptr ? PLAYER->dialMissileStatus() : OOMissileStatus{})) {
-      case MISSILE_STATUS_SAFE:
+      case OOMissileStatus::kSafe:
         GLColorWithOverallAlpha(green_color, alpha);
         break;
-      case MISSILE_STATUS_ARMED:
+      case OOMissileStatus::kArmed:
         GLColorWithOverallAlpha(yellow_color, alpha);
         break;
-      case MISSILE_STATUS_TARGET_LOCKED:
+      case OOMissileStatus::kTargetLocked:
         GLColorWithOverallAlpha(red_color, alpha);
         break;
     }
@@ -3030,34 +3031,34 @@ void HeadUpDisplay::drawStatusLight(const oo::PList& /*info*/) {
   alpha *= cached.alpha;
 
   GLfloat status_color[4] = {0.25, 0.25, 0.25, 1.0};
-  int alertCondition =
+  OOAlertCondition alertCondition =
       (PLAYER != nullptr ? PLAYER->getAlertCondition() : OOAlertCondition{});
   GLfloat flash_alpha =
       0.333 *
       (2.0f + sin((GLfloat)(UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0) *
-                  2.5f * alertCondition));
+                  2.5f * oo::ToUnderlying(alertCondition)));
 
   switch (alertCondition) {
-    case ALERT_CONDITION_RED:
+    case OOAlertCondition::kRed:
       status_color[0] = red_color[0];
       status_color[1] = red_color[1];
       status_color[2] = blueAlert ? blue_color[2] : red_color[2];
       break;
 
-    case ALERT_CONDITION_GREEN:
+    case OOAlertCondition::kGreen:
       status_color[0] = green_color[0];
       status_color[1] = green_color[1];
       status_color[2] = blueAlert ? blue_color[2] : green_color[2];
       break;
 
-    case ALERT_CONDITION_YELLOW:
+    case OOAlertCondition::kYellow:
       status_color[0] = yellow_color[0];
       status_color[1] = yellow_color[1];
       status_color[2] = blueAlert ? blue_color[2] : yellow_color[2];
       break;
 
     default:
-    case ALERT_CONDITION_DOCKED:
+    case OOAlertCondition::kDocked:
       break;
   }
   status_color[3] = flash_alpha;
@@ -3426,7 +3427,7 @@ void HeadUpDisplay::drawScoopStatus(const oo::PList& info) {
   GLfloat s1c[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   GLfloat s2c[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   GLfloat s3c[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-  int scoop_status =
+  OOFuelScoopStatus scoop_status =
       (PLAYER != nullptr ? PLAYER->dialFuelScoopStatus() : OOFuelScoopStatus{});
   GLfloat t = (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0);
   GLfloat a1 = alpha * 0.5f * (1.0f + sin(t * 8.0f));
@@ -3434,16 +3435,16 @@ void HeadUpDisplay::drawScoopStatus(const oo::PList& info) {
   GLfloat a3 = alpha * 0.5f * (1.0f + sin(t * 8.0f - 2.0f));
 
   switch (scoop_status) {
-    case SCOOP_STATUS_NOT_INSTALLED:
+    case OOFuelScoopStatus::kNotInstalled:
       return;  // don't draw
 
-    case SCOOP_STATUS_FULL_HOLD:
+    case OOFuelScoopStatus::kFullHold:
       s0_color = darkgreen_color;
       alpha *= 0.75;
       break;
 
-    case SCOOP_STATUS_ACTIVE:
-    case SCOOP_STATUS_OKAY:
+    case OOFuelScoopStatus::kActive:
+    case OOFuelScoopStatus::kOkay:
       s0_color = green_color;
       break;
   }
@@ -3453,12 +3454,12 @@ void HeadUpDisplay::drawScoopStatus(const oo::PList& info) {
     s2c[i] = s0_color[i];
     s3c[i] = s0_color[i];
   }
-  if (scoop_status == SCOOP_STATUS_FULL_HOLD) {
+  if (scoop_status == OOFuelScoopStatus::kFullHold) {
     s3c[0] = red_color[0];
     s3c[1] = red_color[1];
     s3c[2] = red_color[2];
   }
-  if (scoop_status == SCOOP_STATUS_ACTIVE) {
+  if (scoop_status == OOFuelScoopStatus::kActive) {
     s1c[3] = alpha * a1;
     s2c[3] = alpha * a2;
     s3c[3] = alpha * a3;

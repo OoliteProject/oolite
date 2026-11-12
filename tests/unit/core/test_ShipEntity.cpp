@@ -3054,11 +3054,11 @@ OO_TEST(slice34AlertConditionAndEvents)
 		SetUp();
 		TestShip *ship = MakeLateSliceShip("alert");
 		SetEnergy31(ship, 100, 100);
-		OO_CHECK((ship != nullptr ? ship->alertCondition() : OOAlertCondition{}) == ALERT_CONDITION_YELLOW);		// NPCs are never green
+		OO_CHECK((ship != nullptr ? ship->alertCondition() : OOAlertCondition{}) == OOAlertCondition::kYellow);		// NPCs are never green
 		SetEnergy31(ship, 20, 100);
-		OO_CHECK((ship != nullptr ? ship->alertCondition() : OOAlertCondition{}) == ALERT_CONDITION_RED);		// low on energy
+		OO_CHECK((ship != nullptr ? ship->alertCondition() : OOAlertCondition{}) == OOAlertCondition::kRed);		// low on energy
 		if (ship != nullptr)  ship->setStatus(STATUS_DOCKED);
-		OO_CHECK((ship != nullptr ? ship->alertCondition() : OOAlertCondition{}) == ALERT_CONDITION_DOCKED);
+		OO_CHECK((ship != nullptr ? ship->alertCondition() : OOAlertCondition{}) == OOAlertCondition::kDocked);
 		if (ship != nullptr)  ship->setStatus(STATUS_IN_FLIGHT);
 
 		// The ship is its own shader entity when it is not a subentity.

@@ -4359,13 +4359,13 @@ void ShipEntity::behaviour_tractored(double delta_t) {
                           250.0f);  // 250m range for tractor beam
       if ((hauler != nullptr ? hauler->getIsPlayer() : false)) {
         switch (static_cast<PlayerEntity*>(hauler)->dialFuelScoopStatus()) {
-          case SCOOP_STATUS_NOT_INSTALLED:
-          case SCOOP_STATUS_FULL_HOLD:
+          case OOFuelScoopStatus::kNotInstalled:
+          case OOFuelScoopStatus::kFullHold:
             lost_contact = true;  // don't draw
             break;
 
-          case SCOOP_STATUS_OKAY:
-          case SCOOP_STATUS_ACTIVE:
+          case OOFuelScoopStatus::kOkay:
+          case OOFuelScoopStatus::kActive:
             break;
         }
       }
@@ -13878,20 +13878,20 @@ void ShipEntity::doScriptEvent(OOJSPropID scriptEvent, Entity* argument,
 // since NPCs don't have torus drive, they're never at condition green
 OOAlertCondition ShipEntity::alertCondition() {
   if (status() == STATUS_DOCKED) {
-    return ALERT_CONDITION_DOCKED;
+    return OOAlertCondition::kDocked;
   }
   if (hasHostileTarget() || energy < maxEnergy / 4) {
-    return ALERT_CONDITION_RED;
+    return OOAlertCondition::kRed;
   }
-  return ALERT_CONDITION_YELLOW;
+  return OOAlertCondition::kYellow;
 }
 
 OOAlertCondition ShipEntity::realAlertCondition() {
   if (status() == STATUS_DOCKED) {
-    return ALERT_CONDITION_DOCKED;
+    return OOAlertCondition::kDocked;
   }
   if (hasHostileTarget()) {
-    return ALERT_CONDITION_RED;
+    return OOAlertCondition::kRed;
   } else {
     ::ShipEntity* ship = nullptr;
     double scanrange2 = scannerRange * scannerRange;
@@ -13902,7 +13902,7 @@ OOAlertCondition ShipEntity::realAlertCondition() {
            (PLAYER != nullptr ? PLAYER->weaponsOnline() : false))) {
         if (HPdistance2((ship != nullptr ? ship->getPosition() : HPVector{}),
                         position) < scanrange2) {
-          return ALERT_CONDITION_RED;
+          return OOAlertCondition::kRed;
         }
       }
     }
@@ -13916,7 +13916,7 @@ OOAlertCondition ShipEntity::realAlertCondition() {
              (PLAYER != nullptr ? PLAYER->weaponsOnline() : false))) {
           if (HPdistance2((ship != nullptr ? ship->getPosition() : HPVector{}),
                           position) < scanrange2 * 1.5625) {
-            return ALERT_CONDITION_RED;
+            return OOAlertCondition::kRed;
           }
         }
       }
@@ -13934,7 +13934,7 @@ OOAlertCondition ShipEntity::realAlertCondition() {
             if (HPdistance2(
                     (ship != nullptr ? ship->getPosition() : HPVector{}),
                     position) < scanrange2) {
-              return ALERT_CONDITION_RED;
+              return OOAlertCondition::kRed;
             }
           }
         }
@@ -13953,14 +13953,14 @@ OOAlertCondition ShipEntity::realAlertCondition() {
             if (HPdistance2(
                     (ship != nullptr ? ship->getPosition() : HPVector{}),
                     position) < scanrange2) {
-              return ALERT_CONDITION_RED;
+              return OOAlertCondition::kRed;
             }
           }
         }
       }
     }
   }
-  return ALERT_CONDITION_YELLOW;
+  return OOAlertCondition::kYellow;
 }
 
 // Exposed to AI and scripts.

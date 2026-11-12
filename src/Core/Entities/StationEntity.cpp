@@ -994,7 +994,7 @@ bool StationEntity::setUpShipFromDictionary(const oo::PList& dict) {
 
   isShip = true;
   isStation = true;
-  alertLevel = STATION_ALERT_LEVEL_GREEN;
+  alertLevel = OOStationAlertLevel::kGreen;
 
   port_radius = dict.get<oo::NonNegative<double>>("port_radius", 500.0);
 
@@ -1308,15 +1308,15 @@ void StationEntity::dumpSelfState() {
   ShipEntity::dumpSelfState();
 
   switch (alertLevel) {
-    case STATION_ALERT_LEVEL_GREEN:
+    case OOStationAlertLevel::kGreen:
       alertString = "green";
       break;
 
-    case STATION_ALERT_LEVEL_YELLOW:
+    case OOStationAlertLevel::kYellow:
       alertString = "yellow";
       break;
 
-    case STATION_ALERT_LEVEL_RED:
+    case OOStationAlertLevel::kRed:
       alertString = "red";
       break;
   }
@@ -2121,8 +2121,8 @@ bool StationEntity::collideWithShip(::ShipEntity* other) {
 bool StationEntity::hasHostileTarget() {
   return ShipEntity::hasHostileTarget() ||
          (primaryTarget() != nullptr &&
-          ((alertLevel == STATION_ALERT_LEVEL_YELLOW) ||
-           (alertLevel == STATION_ALERT_LEVEL_RED)));
+          ((alertLevel == OOStationAlertLevel::kYellow) ||
+           (alertLevel == OOStationAlertLevel::kRed)));
 }
 
 void StationEntity::takeEnergyDamage(double amount, Entity* entPart,
@@ -2212,8 +2212,8 @@ OOStationAlertLevel StationEntity::getAlertLevel() { return alertLevel; }
 void StationEntity::setAlertLevel(OOStationAlertLevel level,
                                   bool signallingScript) {
   ShipEntity* self = this;
-  if (level < STATION_ALERT_LEVEL_GREEN) level = STATION_ALERT_LEVEL_GREEN;
-  if (level > STATION_ALERT_LEVEL_RED) level = STATION_ALERT_LEVEL_RED;
+  if (level < OOStationAlertLevel::kGreen) level = OOStationAlertLevel::kGreen;
+  if (level > OOStationAlertLevel::kRed) level = OOStationAlertLevel::kRed;
 
   if (alertLevel != level) {
     OOStationAlertLevel oldLevel = alertLevel;
@@ -2224,17 +2224,17 @@ void StationEntity::setAlertLevel(OOStationAlertLevel level,
                                                  oo::PList((int)oldLevel)});
     }
     switch (level) {
-      case STATION_ALERT_LEVEL_GREEN:
+      case OOStationAlertLevel::kGreen:
         if (shipAI != nullptr)
           shipAI->reactToMessage("GREEN_ALERT", std::nullopt);
         break;
 
-      case STATION_ALERT_LEVEL_YELLOW:
+      case OOStationAlertLevel::kYellow:
         if (shipAI != nullptr)
           shipAI->reactToMessage("YELLOW_ALERT", std::nullopt);
         break;
 
-      case STATION_ALERT_LEVEL_RED:
+      case OOStationAlertLevel::kRed:
         if (shipAI != nullptr)
           shipAI->reactToMessage("RED_ALERT", std::nullopt);
         break;
@@ -2246,12 +2246,16 @@ void StationEntity::setAlertLevel(OOStationAlertLevel level,
 
 // Exposed to AI
 void StationEntity::increaseAlertLevel() {
-  setAlertLevel((OOStationAlertLevel)(getAlertLevel() + 1), true);
+  setAlertLevel(
+      static_cast<OOStationAlertLevel>(oo::ToUnderlying(getAlertLevel()) + 1),
+      true);
 }
 
 // Exposed to AI
 void StationEntity::decreaseAlertLevel() {
-  setAlertLevel((OOStationAlertLevel)(getAlertLevel() - 1), true);
+  setAlertLevel(
+      static_cast<OOStationAlertLevel>(oo::ToUnderlying(getAlertLevel()) - 1),
+      true);
 }
 
 // Exposed to AI

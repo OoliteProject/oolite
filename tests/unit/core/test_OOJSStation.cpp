@@ -41,20 +41,18 @@ class StationEntity;
 class GameController;
 
 // As ShipEntity.h and StationEntity.h declare them (the test imports neither).
-typedef enum
-{
-	ALERT_CONDITION_DOCKED	= 0,
-	ALERT_CONDITION_GREEN	= 1,
-	ALERT_CONDITION_YELLOW	= 2,
-	ALERT_CONDITION_RED		= 3
-} OOAlertCondition;
+enum class OOAlertCondition : std::int32_t {
+	kDocked	= 0,
+	kGreen	= 1,
+	kYellow	= 2,
+	kRed		= 3
+};
 
-typedef enum
-{
-	STATION_ALERT_LEVEL_GREEN	= ALERT_CONDITION_GREEN,
-	STATION_ALERT_LEVEL_YELLOW	= ALERT_CONDITION_YELLOW,
-	STATION_ALERT_LEVEL_RED		= ALERT_CONDITION_RED
-} OOStationAlertLevel;
+enum class OOStationAlertLevel : std::int32_t {
+	kGreen	= static_cast<std::int32_t>(OOAlertCondition::kGreen),
+	kYellow	= static_cast<std::int32_t>(OOAlertCondition::kYellow),
+	kRed		= static_cast<std::int32_t>(OOAlertCondition::kRed)
+};
 
 typedef OOEquipmentType* OOWeaponType;
 
@@ -379,8 +377,8 @@ bool StationEntity::getHasNPCTraffic()  { return _npcTraffic; }
 void StationEntity::setHasNPCTraffic(bool flag)  { _npcTraffic = flag; }
 bool StationEntity::hasShipyard()  { return _hasShipyard; }
 OOStationAlertLevel StationEntity::getAlertLevel()  { return _alertLevel; }
-void StationEntity::increaseAlertLevel()  { _alertLevel = static_cast<OOStationAlertLevel>(_alertLevel + 1); }
-void StationEntity::decreaseAlertLevel()  { _alertLevel = static_cast<OOStationAlertLevel>(_alertLevel - 1); }
+void StationEntity::increaseAlertLevel()  { _alertLevel = static_cast<OOStationAlertLevel>(static_cast<std::int32_t>(_alertLevel) + 1); }
+void StationEntity::decreaseAlertLevel()  { _alertLevel = static_cast<OOStationAlertLevel>(static_cast<std::int32_t>(_alertLevel) - 1); }
 std::optional<std::string> StationEntity::getAllegiance()  { return _allegiance; }
 void StationEntity::setAllegiance(const std::optional<std::string> &newAllegiance)  { _allegiance = newAllegiance; }
 bool StationEntity::getRequiresDockingClearance()  { return _requiresClearance; }
@@ -409,8 +407,8 @@ bool StationEntity::fitsInDock(::ShipEntity *ship, bool logNoFit)  { (void)ship;
 void StationEntity::setAlertLevel(OOStationAlertLevel level, bool signallingScript)
 {
 	(void)signallingScript;
-	if (level < STATION_ALERT_LEVEL_GREEN)  level = STATION_ALERT_LEVEL_GREEN;
-	if (level > STATION_ALERT_LEVEL_RED)  level = STATION_ALERT_LEVEL_RED;
+	if (level < OOStationAlertLevel::kGreen)  level = OOStationAlertLevel::kGreen;
+	if (level > OOStationAlertLevel::kRed)  level = OOStationAlertLevel::kRed;
 	_alertLevel = level;
 }
 
@@ -885,7 +883,7 @@ void SetUpContext()
 	sStation = static_cast<StationEntity *>(sStationObject->_cxxEntity.get());
 	sStation->_name = "Coriolis";
 	sStation->_npcTraffic = true;
-	sStation->_alertLevel = STATION_ALERT_LEVEL_GREEN;
+	sStation->_alertLevel = OOStationAlertLevel::kGreen;
 	sStation->_allegiance = "galcop";
 	sStation->_roll = 0.25f;
 	sStation->_autoDocking = true;
@@ -1044,7 +1042,7 @@ OO_TEST(docking)
 OO_TEST(alertLevel)
 {
 	SetUpContext();
-	sStation->_alertLevel = STATION_ALERT_LEVEL_GREEN;
+	sStation->_alertLevel = OOStationAlertLevel::kGreen;
 	OO_CHECK_EVAL("(function () { station.increaseAlertLevel(); station.increaseAlertLevel(); station.increaseAlertLevel(); return station.alertCondition; })()", "3");
 	OO_CHECK_EVAL("(function () { station.decreaseAlertLevel(); station.decreaseAlertLevel(); station.decreaseAlertLevel(); return station.alertCondition; })()", "1");
 }

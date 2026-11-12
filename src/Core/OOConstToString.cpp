@@ -403,7 +403,7 @@ std::optional<std::string> cxx_OODisplayStringFromAlertCondition(
       UNIVERSE->descriptions()->find("condition");
   const oo::PList conditionNames =
       (conditionNamesEntry != nullptr) ? *conditionNamesEntry : oo::PList();
-  return DescriptionStringAt(conditionNames, alertCondition);
+  return DescriptionStringAt(conditionNames, oo::ToUnderlying(alertCondition));
 }
 
 std::optional<std::string> cxx_OODisplayStringFromShaderSetting(

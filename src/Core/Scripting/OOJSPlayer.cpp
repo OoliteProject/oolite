@@ -268,10 +268,11 @@ static JSValue PlayerGetProperty(OOJS_GETTER_ARGS) {
     case kPlayer_alertCondition:
       return JS_NewInt32(
           context,
-          (player != nullptr
-               ? player->PlayerEntity::getAlertCondition()
-               : OOAlertCondition{}));  // qualified: the final overrider, so
-                                        // the binding test stands in for it
+          oo::ToUnderlying(
+              player != nullptr
+                  ? player->PlayerEntity::getAlertCondition()
+                  : OOAlertCondition{}));  // qualified: the final overrider, so
+                                           // the binding test stands in for it
 
     case kPlayer_alertTemperature:
       return OOJSValueFromBOOL(
@@ -620,7 +621,7 @@ static JSValue PlayerAudioMessage(OOJS_NATIVE_ARGS) {
   }
 
   if ((player != nullptr ? player->getIsSpeechOn() : OOSpeechSettings{}) >=
-      OOSPEECHSETTINGS_COMMS) {
+      OOSpeechSettings::kComms) {
     if (UNIVERSE != nullptr) UNIVERSE->startSpeakingString(*audioMessage);
   }
   OOJS_RETURN_VOID;

@@ -867,7 +867,8 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS) {
       break;
 
     case kShip_alertCondition:
-      return JS_NewNumber(context, ship->realAlertCondition());
+      return JS_NewNumber(context,
+                          oo::ToUnderlying(ship->realAlertCondition()));
 
     case kShip_autoAI:
       return OOJSValueFromBOOL(ship->hasAutoAI());
@@ -1182,7 +1183,7 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS) {
         return OOJSValueFromBOOL(
             (static_cast<PlayerEntity*>(entity) != nullptr
                  ? static_cast<PlayerEntity*>(entity)->fleeingStatus()
-                 : OOPlayerFleeingStatus{}) >= PLAYER_FLEEING_CARGO);
+                 : OOPlayerFleeingStatus{}) >= OOPlayerFleeingStatus::kCargo);
       } else {
         return OOJSValueFromBOOL(
             ship->getBehaviour() == BEHAVIOUR_FLEE_TARGET ||
@@ -4391,7 +4392,7 @@ static JSValue ShipThreatAssessment(OOJS_NATIVE_ARGS) {
   } else if (ship->getIsPlayer() &&
              (static_cast<PlayerEntity*>(thisEnt) != nullptr
                   ? static_cast<PlayerEntity*>(thisEnt)->fleeingStatus()
-                  : OOPlayerFleeingStatus{}) >= PLAYER_FLEEING_CARGO) {
+                  : OOPlayerFleeingStatus{}) >= OOPlayerFleeingStatus::kCargo) {
     assessment *= 0.2;
   }
 

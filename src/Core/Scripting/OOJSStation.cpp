@@ -615,10 +615,11 @@ static JSValue StationIncreaseAlertLevel(OOJS_NATIVE_ARGS) {
   GET_THIS_STATION(station);
 
   OOJS_BEGIN_FULL_NATIVE(context)
-  if ((station != nullptr
-           ? station->ShipEntity::alertCondition()
-           : OOAlertCondition{}) < 3)  // qualified: the final overrider, so the
-                                       // binding test stands in for it
+  if (oo::ToUnderlying(station != nullptr
+                           ? station->ShipEntity::alertCondition()
+                           : OOAlertCondition{}) <
+      3)  // qualified: the final overrider, so the
+          // binding test stands in for it
   {
     if (station != nullptr) station->increaseAlertLevel();
   }
@@ -634,10 +635,11 @@ static JSValue StationDecreaseAlertLevel(OOJS_NATIVE_ARGS) {
   GET_THIS_STATION(station);
 
   OOJS_BEGIN_FULL_NATIVE(context)
-  if ((station != nullptr
-           ? station->ShipEntity::alertCondition()
-           : OOAlertCondition{}) > 1)  // qualified: the final overrider, so the
-                                       // binding test stands in for it
+  if (oo::ToUnderlying(station != nullptr
+                           ? station->ShipEntity::alertCondition()
+                           : OOAlertCondition{}) >
+      1)  // qualified: the final overrider, so the
+          // binding test stands in for it
   {
     if (station != nullptr) station->decreaseAlertLevel();
   }

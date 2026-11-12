@@ -53,11 +53,15 @@ MA 02110-1301, USA.
 #include "Universe.h"
 #include "oofnd/PList.hpp"
 
-typedef enum {
-  STATION_ALERT_LEVEL_GREEN = ALERT_CONDITION_GREEN,
-  STATION_ALERT_LEVEL_YELLOW = ALERT_CONDITION_YELLOW,
-  STATION_ALERT_LEVEL_RED = ALERT_CONDITION_RED
-} OOStationAlertLevel;
+enum class OOStationAlertLevel : std::int32_t {
+  kGreen = oo::ToUnderlying(OOAlertCondition::kGreen),
+  kYellow = oo::ToUnderlying(OOAlertCondition::kYellow),
+  kRed = oo::ToUnderlying(OOAlertCondition::kRed)
+};
+// The numbers JS's alertLevel sees.
+static_assert(oo::ToUnderlying(OOStationAlertLevel::kGreen) == 1);
+static_assert(oo::ToUnderlying(OOStationAlertLevel::kYellow) == 2);
+static_assert(oo::ToUnderlying(OOStationAlertLevel::kRed) == 3);
 
 #define STATION_MAX_POLICE 8
 

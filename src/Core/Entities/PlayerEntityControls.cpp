@@ -2975,16 +2975,20 @@ void PlayerEntity::pollGuiArrowKeyControls(double delta_t) {
         if (!queryPressed) {
           queryPressed = true;
           if (checkKeyPress(n_key_market_filter_cycle)) {
-            if (marketFilterMode >= MARKET_FILTER_MODE_MAX) {
-              marketFilterMode = MARKET_FILTER_MODE_OFF;
+            if (oo::ToUnderlying(marketFilterMode) + 1u >=
+                kOOMarketFilterModeCount) {
+              marketFilterMode = OOMarketFilterMode::kOff;
             } else {
-              marketFilterMode = (OOMarketFilterMode)(marketFilterMode + 1);
+              marketFilterMode = static_cast<OOMarketFilterMode>(
+                  oo::ToUnderlying(marketFilterMode) + 1);
             }
           } else {
-            if (marketSorterMode >= MARKET_SORTER_MODE_MAX) {
-              marketSorterMode = MARKET_SORTER_MODE_OFF;
+            if (oo::ToUnderlying(marketSorterMode) + 1u >=
+                kOOMarketSorterModeCount) {
+              marketSorterMode = OOMarketSorterMode::kOff;
             } else {
-              marketSorterMode = (OOMarketSorterMode)(marketSorterMode + 1);
+              marketSorterMode = static_cast<OOMarketSorterMode>(
+                  oo::ToUnderlying(marketSorterMode) + 1);
             }
           }
           playChangedOption();
@@ -3763,33 +3767,35 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
     if (!speech_settings_pressed) {
       if ((checkKeyPress(n_key_gui_arrow_right) ||
            joyButtonState[BUTTON_GUIRIGHT]) &&
-          isSpeechOn < OOSPEECHSETTINGS_ALL) {
-        isSpeechOn = (OOSpeechSettings)(isSpeechOn + 1);
+          isSpeechOn < OOSpeechSettings::kAll) {
+        isSpeechOn =
+            static_cast<OOSpeechSettings>(oo::ToUnderlying(isSpeechOn) + 1);
         playChangedOption();
         speech_settings_pressed = true;
       } else if ((checkKeyPress(n_key_gui_arrow_left) ||
                   joyButtonState[BUTTON_GUILEFT]) &&
-                 isSpeechOn > OOSPEECHSETTINGS_OFF) {
+                 isSpeechOn > OOSpeechSettings::kOff) {
         speech_settings_pressed = true;
-        isSpeechOn = (OOSpeechSettings)(isSpeechOn - 1);
+        isSpeechOn =
+            static_cast<OOSpeechSettings>(oo::ToUnderlying(isSpeechOn) - 1);
         playChangedOption();
       }
       if (speech_settings_pressed) {
         std::optional<std::string> message;  // nullopt = no change (was nil)
         switch (isSpeechOn) {
-          case OOSPEECHSETTINGS_OFF:
+          case OOSpeechSettings::kOff:
             message = OO_DESC("gameoptions-spoken-messages-no");
             break;
-          case OOSPEECHSETTINGS_COMMS:
+          case OOSpeechSettings::kComms:
             message = OO_DESC("gameoptions-spoken-messages-comms");
             break;
-          case OOSPEECHSETTINGS_ALL:
+          case OOSpeechSettings::kAll:
             message = OO_DESC("gameoptions-spoken-messages-yes");
             break;
         }
         gui->setText(message, GUI_ROW(GAME, SPEECH), GUI_ALIGN_CENTER);
 
-        if (isSpeechOn == OOSPEECHSETTINGS_ALL) {
+        if (isSpeechOn == OOSpeechSettings::kAll) {
           if (UNIVERSE != nullptr) UNIVERSE->stopSpeaking();
           if (message.has_value()) {
             if (UNIVERSE != nullptr) UNIVERSE->startSpeakingString(*message);
@@ -3821,7 +3827,7 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
         const std::string message = ExpandKeyWithArguments(
             "gameoptions-voice-name", {{"voiceName", oo::PList(voiceName)}});
         gui->setText(message, GUI_ROW(GAME, SPEECH_LANGUAGE), GUI_ALIGN_CENTER);
-        if (isSpeechOn == OOSPEECHSETTINGS_ALL) {
+        if (isSpeechOn == OOSpeechSettings::kAll) {
           if (UNIVERSE != nullptr) UNIVERSE->stopSpeaking();
           if (const std::optional<std::string> spokenVoiceName =
                   (UNIVERSE != nullptr ? UNIVERSE->voiceName(voice_no)
@@ -3851,7 +3857,7 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
           const std::string message = OO_DESC(
               voice_gender_m ? "gameoptions-voice-M" : "gameoptions-voice-F");
           gui->setText(message, GUI_ROW(GAME, SPEECH_GENDER), GUI_ALIGN_CENTER);
-          if (isSpeechOn == OOSPEECHSETTINGS_ALL) {
+          if (isSpeechOn == OOSpeechSettings::kAll) {
             if (UNIVERSE != nullptr) UNIVERSE->stopSpeaking();
             if (const std::optional<std::string> spokenVoiceName =
                     (UNIVERSE != nullptr ? UNIVERSE->voiceName(voice_no)
@@ -5844,7 +5850,7 @@ void PlayerEntity::handleAutopilotOn(bool fastDocking) {
 
   // Check alert condition - on red alert, abort
   // -- but only for fast docking
-  if (fastDocking && (getAlertCondition() == ALERT_CONDITION_RED)) {
+  if (fastDocking && (getAlertCondition() == OOAlertCondition::kRed)) {
     playAutopilotCannotDockWithTarget();
     message = cxx_OOExpandKey("autopilot-red-alert");
     goto abort;
@@ -5996,17 +6002,17 @@ void PlayerEntity::handleButtonTargetMissile() {
   }
 
   // Clear current target if we're already in Missile Targeting mode
-  if (missile_status != MISSILE_STATUS_SAFE) {
+  if (missile_status != OOMissileStatus::kSafe) {
     noteLostTarget();
   }
 
   // Arm missile and check for missile lock
-  missile_status = MISSILE_STATUS_ARMED;
+  missile_status = OOMissileStatus::kArmed;
   if ((oo::ToShip(missile_entity[activeMissile].get()) != nullptr
            ? oo::ToShip(missile_entity[activeMissile].get())->getIsMissile()
            : false)) {
     if (oo::EntityIsShip(primaryTarget())) {
-      missile_status = MISSILE_STATUS_TARGET_LOCKED;
+      missile_status = OOMissileStatus::kTargetLocked;
       if (oo::ToShip(missile_entity[activeMissile].get()) != nullptr)
         oo::ToShip(missile_entity[activeMissile].get())
             ->addTarget(primaryTarget());
