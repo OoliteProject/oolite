@@ -2550,7 +2550,7 @@ bool PlayerEntity::setUpAndConfirmOK(bool stopOnError, bool saveGame) {
   ship_clock_adjust = 0.0;
   escape_pod_rescue_time = 0.0;
 
-  isSpeechOn = OOSPEECHSETTINGS_OFF;
+  isSpeechOn = OOSpeechSettings::kOff;
 #if OOLITE_ESPEAK
   voice_gender_m = true;
   voice_no =
@@ -2595,7 +2595,7 @@ bool PlayerEntity::setUpAndConfirmOK(bool stopOnError, bool saveGame) {
   ident_engaged = false;
 
   max_cargo = 20;  // will be reset later
-  marketFilterMode = MARKET_FILTER_MODE_OFF;
+  marketFilterMode = OOMarketFilterMode::kOff;
 
   shipCommodityData =
       ((UNIVERSE != nullptr ? UNIVERSE->getCommodities() : nullptr) != nullptr
@@ -3779,33 +3779,33 @@ void PlayerEntity::updateAlertCondition() {
     lastScriptAlertCondition = cond;
   }
   /* Update heuristic assessment of whether player is fleeing */
-  if (cond == ALERT_CONDITION_DOCKED || cond == ALERT_CONDITION_GREEN ||
-      (cond == ALERT_CONDITION_YELLOW && energy == maxEnergy)) {
-    fleeing_status = PLAYER_FLEEING_NONE;
-  } else if (fleeing_status == PLAYER_FLEEING_UNLIKELY &&
-             (energy > maxEnergy * 0.6 || cond != ALERT_CONDITION_RED)) {
-    fleeing_status = PLAYER_FLEEING_NONE;
-  } else if ((fleeing_status == PLAYER_FLEEING_MAYBE ||
-              fleeing_status == PLAYER_FLEEING_UNLIKELY) &&
+  if (cond == OOAlertCondition::kDocked || cond == OOAlertCondition::kGreen ||
+      (cond == OOAlertCondition::kYellow && energy == maxEnergy)) {
+    fleeing_status = OOPlayerFleeingStatus::kNone;
+  } else if (fleeing_status == OOPlayerFleeingStatus::kUnlikely &&
+             (energy > maxEnergy * 0.6 || cond != OOAlertCondition::kRed)) {
+    fleeing_status = OOPlayerFleeingStatus::kNone;
+  } else if ((fleeing_status == OOPlayerFleeingStatus::kMaybe ||
+              fleeing_status == OOPlayerFleeingStatus::kUnlikely) &&
              cargo_dump_time > last_shot_time) {
-    fleeing_status = PLAYER_FLEEING_CARGO;
-  } else if (fleeing_status == PLAYER_FLEEING_MAYBE &&
+    fleeing_status = OOPlayerFleeingStatus::kCargo;
+  } else if (fleeing_status == OOPlayerFleeingStatus::kMaybe &&
              last_shot_time + 10 > t) {
-    fleeing_status = PLAYER_FLEEING_NONE;
-  } else if (fleeing_status == PLAYER_FLEEING_LIKELY &&
+    fleeing_status = OOPlayerFleeingStatus::kNone;
+  } else if (fleeing_status == OOPlayerFleeingStatus::kLikely &&
              last_shot_time + 10 > t) {
-    fleeing_status = PLAYER_FLEEING_UNLIKELY;
-  } else if (fleeing_status == PLAYER_FLEEING_NONE &&
-             cond == ALERT_CONDITION_RED && last_shot_time + 10 < t &&
+    fleeing_status = OOPlayerFleeingStatus::kUnlikely;
+  } else if (fleeing_status == OOPlayerFleeingStatus::kNone &&
+             cond == OOAlertCondition::kRed && last_shot_time + 10 < t &&
              flightSpeed > 0.75 * maxFlightSpeed) {
-    fleeing_status = PLAYER_FLEEING_MAYBE;
-  } else if ((fleeing_status == PLAYER_FLEEING_MAYBE ||
-              fleeing_status == PLAYER_FLEEING_CARGO) &&
-             cond == ALERT_CONDITION_RED && last_shot_time + 10 < t &&
+    fleeing_status = OOPlayerFleeingStatus::kMaybe;
+  } else if ((fleeing_status == OOPlayerFleeingStatus::kMaybe ||
+              fleeing_status == OOPlayerFleeingStatus::kCargo) &&
+             cond == OOAlertCondition::kRed && last_shot_time + 10 < t &&
              flightSpeed > 0.75 * maxFlightSpeed && energy < maxEnergy * 0.5 &&
              (forward_shield < maxForwardShieldLevel() * 0.25 ||
               aft_shield < maxAftShieldLevel() * 0.25)) {
-    fleeing_status = PLAYER_FLEEING_LIKELY;
+    fleeing_status = OOPlayerFleeingStatus::kLikely;
   }
 }
 
@@ -4496,7 +4496,7 @@ void PlayerEntity::updateTargeting() {
 
   // check each unlaunched missile's target still exists and is in-range
   UPDATE_STAGE("checking missile targets");
-  if (missile_status != MISSILE_STATUS_SAFE) {
+  if (missile_status != OOMissileStatus::kSafe) {
     unsigned i;
     for (i = 0; i < max_missiles; i++) {
       if ((oo::ToShip(missile_entity[i].get()) != nullptr
@@ -4514,13 +4514,13 @@ void PlayerEntity::updateTargeting() {
         if (i == activeMissile) {
           noteLostTarget();
           _primaryTarget = nullptr;
-          missile_status = MISSILE_STATUS_ARMED;
+          missile_status = OOMissileStatus::kArmed;
         }
       } else if (i == activeMissile &&
                  (oo::ToShip(missile_entity[i].get()) != nullptr
                       ? oo::ToShip(missile_entity[i].get())->primaryTarget()
                       : (Entity*)nullptr) == nullptr) {
-        missile_status = MISSILE_STATUS_ARMED;
+        missile_status = OOMissileStatus::kArmed;
       }
     }
   }
@@ -4529,7 +4529,7 @@ void PlayerEntity::updateTargeting() {
   // target to lock on to
   UPDATE_STAGE("looking for new target");
   if (primaryTarget() == nullptr &&
-      (ident_engaged || missile_status != MISSILE_STATUS_SAFE) &&
+      (ident_engaged || missile_status != OOMissileStatus::kSafe) &&
       (status() == STATUS_IN_FLIGHT ||
        status() == STATUS_WITCHSPACE_COUNTDOWN)) {
     Entity* target =
@@ -5128,13 +5128,13 @@ OOMissileStatus PlayerEntity::dialMissileStatus() {
   } else {
     // Invariant/safety interlock: weapons offline implies missiles safe. --
     // Ahruman 2012-07-21
-    if (missile_status != MISSILE_STATUS_SAFE) {
+    if (missile_status != OOMissileStatus::kSafe) {
       OO_LOG_ERR("player.missilesUnsafe", "{}",
                  "Missile state is not SAFE when weapons are offline. This is "
                  "a bug, please report it.");
       safeAllMissiles();
     }
-    return MISSILE_STATUS_SAFE;
+    return OOMissileStatus::kSafe;
   }
 }
 
@@ -5149,12 +5149,12 @@ OOFuelScoopStatus PlayerEntity::dialFuelScoopStatus() {
   OOCargoQuantity cargoOnBoard =
       status() == STATUS_DOCKED ? current_cargo : (OOCargoQuantity)cargo.size();
   if (hasScoop()) {
-    if (scoopsActive) return SCOOP_STATUS_ACTIVE;
+    if (scoopsActive) return OOFuelScoopStatus::kActive;
     if (cargoOnBoard >= maxAvailableCargoSpace() || specialCargo)
-      return SCOOP_STATUS_FULL_HOLD;
-    return SCOOP_STATUS_OKAY;
+      return OOFuelScoopStatus::kFullHold;
+    return OOFuelScoopStatus::kOkay;
   } else {
-    return SCOOP_STATUS_NOT_INSTALLED;
+    return OOFuelScoopStatus::kNotInstalled;
   }
 }
 
@@ -5750,7 +5750,7 @@ void PlayerEntity::safeAllMissiles() {
       if (oo::ToShip(missile_entity[i].get()) != nullptr)
         oo::ToShip(missile_entity[i].get())->removeTarget(nullptr);
   }
-  missile_status = MISSILE_STATUS_SAFE;
+  missile_status = OOMissileStatus::kSafe;
 }
 
 void PlayerEntity::tidyMissilePylons() {
@@ -5807,8 +5807,8 @@ void PlayerEntity::selectNextMissile() {
       // Set next missile to active
       setActiveMissile(next_missile);
 
-      if (missile_status != MISSILE_STATUS_SAFE) {
-        missile_status = MISSILE_STATUS_ARMED;
+      if (missile_status != OOMissileStatus::kSafe) {
+        missile_status = OOMissileStatus::kArmed;
 
         // If the newly active pylon contains a missile then work out its
         // target, if any
@@ -5826,7 +5826,7 @@ void PlayerEntity::selectNextMissile() {
                            ? oo::ToShip(missile_entity[next_missile].get())
                                  ->primaryTarget()
                            : (Entity*)nullptr));
-            missile_status = MISSILE_STATUS_TARGET_LOCKED;
+            missile_status = OOMissileStatus::kTargetLocked;
           } else if (primaryTarget() != nullptr) {
             // never inherit target if we have EQ_MULTI_TARGET installed! [ Bug
             // #16221 : Targeting enhancement regression ]
@@ -5841,7 +5841,7 @@ void PlayerEntity::selectNextMissile() {
               if (oo::ToShip(missile_entity[activeMissile].get()) != nullptr)
                 oo::ToShip(missile_entity[activeMissile].get())
                     ->addTarget(primaryTarget());
-              missile_status = MISSILE_STATUS_TARGET_LOCKED;
+              missile_status = OOMissileStatus::kTargetLocked;
             }
           }
         }
@@ -5873,22 +5873,22 @@ OOAlertCondition PlayerEntity::realAlertCondition() {
 
 OOAlertCondition PlayerEntity::getAlertCondition() {
   OOAlertCondition old_alert_condition = alertConditionLevel;
-  alertConditionLevel = ALERT_CONDITION_GREEN;
+  alertConditionLevel = OOAlertCondition::kGreen;
 
   setAlertFlag(OOAlertFlags::kDocked, status() == STATUS_DOCKED);
 
   if (OOAlertFlagIsOn(alertFlags, OOAlertFlags::kDocked)) {
-    alertConditionLevel = ALERT_CONDITION_DOCKED;
+    alertConditionLevel = OOAlertCondition::kDocked;
   } else {
     if (alertFlags != 0) {
-      alertConditionLevel = ALERT_CONDITION_YELLOW;
+      alertConditionLevel = OOAlertCondition::kYellow;
     }
     if (alertFlags > oo::ToUnderlying(OOAlertFlags::kYellowLimit)) {
-      alertConditionLevel = ALERT_CONDITION_RED;
+      alertConditionLevel = OOAlertCondition::kRed;
     }
   }
-  if ((alertConditionLevel == ALERT_CONDITION_RED) &&
-      (old_alert_condition < ALERT_CONDITION_RED)) {
+  if ((alertConditionLevel == OOAlertCondition::kRed) &&
+      (old_alert_condition < OOAlertCondition::kRed)) {
     playAlertConditionRed();
   }
 
@@ -6005,14 +6005,14 @@ bool PlayerEntity::mountMissileWithRole(const std::string& role) {
   replacingMissile = false;
 
   if ((missile != nullptr ? missile->isMine() : false) &&
-      (missile_status != MISSILE_STATUS_SAFE)) {
+      (missile_status != OOMissileStatus::kSafe)) {
     firedMissile = launchMine(missile);
     if (!replacingMissile) removeFromPylon(activeMissile);
     if (firedMissile != nullptr)
       playMineLaunched(missileLaunchPosition(),
                        identifier.value_or(std::string()));
   } else {
-    if (missile_status != MISSILE_STATUS_TARGET_LOCKED) return nullptr;
+    if (missile_status != OOMissileStatus::kTargetLocked) return nullptr;
     //  release this before creating it anew in fireMissileWithIdentifier
     firedMissile = fireMissileWithIdentifier(
         identifier,
@@ -8169,7 +8169,7 @@ void PlayerEntity::setGuiToStatusScreen() {
       fgDescriptor = (UNIVERSE != nullptr
                           ? UNIVERSE->screenTextureDescriptorForKey("overlay")
                           : oo::PList());
-      if (alertConditionLevel == ALERT_CONDITION_RED)
+      if (alertConditionLevel == OOAlertCondition::kRed)
         bgDescriptor =
             (UNIVERSE != nullptr
                  ? UNIVERSE->screenTextureDescriptorForKey("status_red_alert")
@@ -9307,15 +9307,15 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
 #if OOLITE_SPEECH_SYNTH
     // Speech control
     switch (isSpeechOn) {
-      case OOSPEECHSETTINGS_OFF:
+      case OOSpeechSettings::kOff:
         gui->setText(OO_DESC("gameoptions-spoken-messages-no"),
                      GUI_ROW(GAME, SPEECH), GUI_ALIGN_CENTER);
         break;
-      case OOSPEECHSETTINGS_COMMS:
+      case OOSpeechSettings::kComms:
         gui->setText(OO_DESC("gameoptions-spoken-messages-comms"),
                      GUI_ROW(GAME, SPEECH), GUI_ALIGN_CENTER);
         break;
-      case OOSPEECHSETTINGS_ALL:
+      case OOSpeechSettings::kAll:
         gui->setText(OO_DESC("gameoptions-spoken-messages-yes"),
                      GUI_ROW(GAME, SPEECH), GUI_ALIGN_CENTER);
         break;
@@ -11326,40 +11326,40 @@ OOCargoQuantity PlayerEntity::cargoQuantityOnBoard() {
 
 std::vector<std::string> PlayerEntity::applyMarketFilter(
     const std::vector<std::string>& goods, ::OOCommodityMarket* market) {
-  if (marketFilterMode == MARKET_FILTER_MODE_OFF) {
+  if (marketFilterMode == OOMarketFilterMode::kOff) {
     return goods;
   }
   std::vector<std::string> filteredGoods;
   filteredGoods.reserve(goods.size());
   for (const std::string& good : goods) {
     switch (marketFilterMode) {
-      case MARKET_FILTER_MODE_OFF:
+      case OOMarketFilterMode::kOff:
         // never reached, but keeps compiler happy
         filteredGoods.push_back(good);
         break;
-      case MARKET_FILTER_MODE_TRADE:
+      case OOMarketFilterMode::kTrade:
         if (market->quantityForGood(good) > 0 ||
             cargoQuantityForType(good) > 0) {
           filteredGoods.push_back(good);
         }
         break;
-      case MARKET_FILTER_MODE_HOLD:
+      case OOMarketFilterMode::kHold:
         if (cargoQuantityForType(good) > 0) {
           filteredGoods.push_back(good);
         }
         break;
-      case MARKET_FILTER_MODE_STOCK:
+      case OOMarketFilterMode::kStock:
         if (market->quantityForGood(good) > 0) {
           filteredGoods.push_back(good);
         }
         break;
-      case MARKET_FILTER_MODE_LEGAL:
+      case OOMarketFilterMode::kLegal:
         if (market->exportLegalityForGood(good) == 0 &&
             market->importLegalityForGood(good) == 0) {
           filteredGoods.push_back(good);
         }
         break;
-      case MARKET_FILTER_MODE_RESTRICTED:
+      case OOMarketFilterMode::kRestricted:
         if (market->exportLegalityForGood(good) > 0 ||
             market->importLegalityForGood(good) > 0) {
           filteredGoods.push_back(good);
@@ -11387,17 +11387,17 @@ std::vector<std::string> PlayerEntity::applyMarketSorter(
     return sorted;
   };
   switch (marketSorterMode) {
-    case MARKET_SORTER_MODE_ALPHA:
+    case OOMarketSorterMode::kAlpha:
       return sortedBy(marketSorterByName, market);
-    case MARKET_SORTER_MODE_PRICE:
+    case OOMarketSorterMode::kPrice:
       return sortedBy(marketSorterByPrice, market);
-    case MARKET_SORTER_MODE_STOCK:
+    case OOMarketSorterMode::kStock:
       return sortedBy(marketSorterByQuantity, market);
-    case MARKET_SORTER_MODE_HOLD:
+    case OOMarketSorterMode::kHold:
       return sortedBy(marketSorterByQuantity, shipCommodityData.get());
-    case MARKET_SORTER_MODE_UNIT:
+    case OOMarketSorterMode::kUnit:
       return sortedBy(marketSorterByMassUnit, market);
-    case MARKET_SORTER_MODE_OFF:
+    case OOMarketSorterMode::kOff:
       // keep default sort order
       break;
   }
@@ -11735,7 +11735,7 @@ void PlayerEntity::setGuiToMarketScreen() {
       const std::string filterMode =
           cxx_OOExpandKey(
               cxx_OOExpand("oolite-market-filter-[marketFilterMode]",
-                           marketFilterMode)
+                           oo::ToUnderlying(marketFilterMode))
                   .value_or(std::string()))
               .value_or(std::string());
       const std::string filterText = ExpandKeyWithSeed(
@@ -11744,7 +11744,7 @@ void PlayerEntity::setGuiToMarketScreen() {
       const std::string sortMode =
           cxx_OOExpandKey(
               cxx_OOExpand("oolite-market-sorter-[marketSorterMode]",
-                           marketSorterMode)
+                           oo::ToUnderlying(marketSorterMode))
                   .value_or(std::string()))
               .value_or(std::string());
       const std::string sorterText = ExpandKeyWithSeed(
@@ -12854,7 +12854,7 @@ void PlayerEntity::addTarget(Entity* targetEntity)  // the C++ entity
     if ((oo::ToShip(missile_entity[activeMissile].get()) != nullptr
              ? oo::ToShip(missile_entity[activeMissile].get())->getIsMissile()
              : false)) {
-      missile_status = MISSILE_STATUS_TARGET_LOCKED;
+      missile_status = OOMissileStatus::kTargetLocked;
       if (oo::ToShip(missile_entity[activeMissile].get()) != nullptr)
         oo::ToShip(missile_entity[activeMissile].get())
             ->addTarget(targetEntity);
@@ -12862,7 +12862,7 @@ void PlayerEntity::addTarget(Entity* targetEntity)  // the C++ entity
       printIdentLockedOnForMissile(true);
     } else  // It's a mine or something
     {
-      missile_status = MISSILE_STATUS_ARMED;
+      missile_status = OOMissileStatus::kArmed;
       playIdentLockedOn();
       printIdentLockedOnForMissile(false);
     }
@@ -12907,7 +12907,7 @@ bool PlayerEntity::moveTargetMemoryBy(std::ptrdiff_t delta) {
             (!(potential_target != nullptr ? potential_target->isCloaked()
                                            : false))) {
           ShipEntity::addTarget(potential_target);
-          if (missile_status != MISSILE_STATUS_SAFE) {
+          if (missile_status != OOMissileStatus::kSafe) {
             if ((oo::ToShip(missile_entity[activeMissile].get()) != nullptr
                      ? oo::ToShip(missile_entity[activeMissile].get())
                            ->getIsMissile()
@@ -12915,10 +12915,10 @@ bool PlayerEntity::moveTargetMemoryBy(std::ptrdiff_t delta) {
               if (oo::ToShip(missile_entity[activeMissile].get()) != nullptr)
                 oo::ToShip(missile_entity[activeMissile].get())
                     ->addTarget(potential_target);
-              missile_status = MISSILE_STATUS_TARGET_LOCKED;
+              missile_status = OOMissileStatus::kTargetLocked;
               printIdentLockedOnForMissile(true);
             } else {
-              missile_status = MISSILE_STATUS_ARMED;
+              missile_status = OOMissileStatus::kArmed;
               playIdentLockedOn();
               printIdentLockedOnForMissile(false);
             }

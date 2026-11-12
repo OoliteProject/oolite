@@ -138,7 +138,7 @@ class PlainShip : public ShipEntity {};
 namespace {
 
 OOWeaponFacingSet sAvailableFacings = 0;
-OOPlayerFleeingStatus sFleeingStatus = PLAYER_FLEEING_NONE;
+OOPlayerFleeingStatus sFleeingStatus = OOPlayerFleeingStatus::kNone;
 
 }  // namespace
 
@@ -559,11 +559,11 @@ OO_TEST(getterPlayerBranches) {
   SetUp();
   sAvailableFacings = oo::ToUnderlying(OOWeaponFacing::kForward | OOWeaponFacing::kAft);
   OO_CHECK_EVAL("player.ship.weaponFacings", "3");
-  sFleeingStatus = PLAYER_FLEEING_CARGO;
+  sFleeingStatus = OOPlayerFleeingStatus::kCargo;
   OO_CHECK_EVAL("player.ship.isFleeing", "true");
-  sFleeingStatus = PLAYER_FLEEING_MAYBE;
+  sFleeingStatus = OOPlayerFleeingStatus::kMaybe;
   OO_CHECK_EVAL("player.ship.isFleeing", "false");
-  sFleeingStatus = PLAYER_FLEEING_NONE;
+  sFleeingStatus = OOPlayerFleeingStatus::kNone;
   OO_CHECK_EVAL("player.ship.isPiloted", "true");
 }
 
@@ -1048,9 +1048,9 @@ OO_TEST(methodsAssessments) {
   OO_CHECK_EVAL("ship.threatAssessment()", "3.850000012665987");
   OO_CHECK_EVAL("ship.threatAssessment(true)", "1.650000024586916");
   OO_CHECK_EVAL("player.ship.threatAssessment(true)", "0.1");
-  sFleeingStatus = PLAYER_FLEEING_CARGO;
+  sFleeingStatus = OOPlayerFleeingStatus::kCargo;
   OO_CHECK_EVAL("player.ship.threatAssessment()", "0.4199999958276749");
-  sFleeingStatus = PLAYER_FLEEING_NONE;
+  sFleeingStatus = OOPlayerFleeingStatus::kNone;
 }
 
 OO_TEST(staticMethods) {

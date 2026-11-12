@@ -1970,7 +1970,7 @@ Entity * ByName_937(Entity *entity)
 unsigned ByName_938(Entity *entity, const std::string &role)
 { if (DockEntity *dock = DockPart(entity))  return static_cast<unsigned>(dock->countOfShipsInLaunchQueueWithPrimaryRole(role)); StationEntity *station = StationPart(entity); return station != nullptr ? station->countOfShipsInLaunchQueueWithPrimaryRole(role) : unsigned{}; }
 OOStationAlertLevel ByName_939(Entity *entity)
-{ StationEntity *station = StationPart(entity); return station != nullptr ? station->getAlertLevel() : STATION_ALERT_LEVEL_GREEN; }
+{ StationEntity *station = StationPart(entity); return station != nullptr ? station->getAlertLevel() : OOStationAlertLevel::kGreen; }
 unsigned ByName_940(Entity *entity)
 { StationEntity *station = StationPart(entity); return station != nullptr ? station->currentlyInDockingQueues() : unsigned{}; }
 unsigned ByName_941(Entity *entity)

@@ -98,11 +98,11 @@ class StickProfileScreen;  // PlayerEntityStickProfile.h
 
 enum class OOPrimedEquipmentMode : int { kActivated, kMode };
 
-typedef enum {
-  OOSPEECHSETTINGS_OFF = 0,
-  OOSPEECHSETTINGS_COMMS = 1,
-  OOSPEECHSETTINGS_ALL = 2
-} OOSpeechSettings;
+enum class OOSpeechSettings : std::int32_t { kOff = 0, kComms = 1, kAll = 2 };
+// The numbers the saved game's speech_on sees.
+static_assert(oo::ToUnderlying(OOSpeechSettings::kOff) == 0);
+static_assert(oo::ToUnderlying(OOSpeechSettings::kComms) == 1);
+static_assert(oo::ToUnderlying(OOSpeechSettings::kAll) == 2);
 
 // When fully zoomed in, chart shows area of galaxy that's 64x64 galaxy units.
 #define CHART_WIDTH_AT_MAX_ZOOM 64.0
@@ -220,13 +220,18 @@ enum {
   GUI_ROW_GAMEOPTIONS_HDRMAXBRIGHTNESS = GUI_ROW_GAMEOPTIONS_DETAIL
 };
 
-typedef enum {
+enum class OOFuelScoopStatus : std::int32_t {
   // Exposed to shaders.
-  SCOOP_STATUS_NOT_INSTALLED = 0,
-  SCOOP_STATUS_FULL_HOLD,
-  SCOOP_STATUS_OKAY,
-  SCOOP_STATUS_ACTIVE
-} OOFuelScoopStatus;
+  kNotInstalled = 0,
+  kFullHold,
+  kOkay,
+  kActive
+};
+// The numbers the shader binding sees.
+static_assert(oo::ToUnderlying(OOFuelScoopStatus::kNotInstalled) == 0);
+static_assert(oo::ToUnderlying(OOFuelScoopStatus::kFullHold) == 1);
+static_assert(oo::ToUnderlying(OOFuelScoopStatus::kOkay) == 2);
+static_assert(oo::ToUnderlying(OOFuelScoopStatus::kActive) == 3);
 
 // The bits of PlayerEntity's alert flags, which the player keeps as a number
 // (getAlertFlags(), the by-name "alertFlags"). kYellowLimit is not a bit: flags
@@ -256,42 +261,64 @@ inline bool OOAlertFlagIsOn(int flags, OOAlertFlags flag) noexcept {
   return (flags & oo::ToUnderlying(flag)) != 0;
 }
 
-typedef enum {
+enum class OOMissileStatus : std::int32_t {
   // Exposed to shaders.
-  MISSILE_STATUS_SAFE,
-  MISSILE_STATUS_ARMED,
-  MISSILE_STATUS_TARGET_LOCKED
-} OOMissileStatus;
+  kSafe,
+  kArmed,
+  kTargetLocked
+};
+// The numbers the shader binding sees.
+static_assert(oo::ToUnderlying(OOMissileStatus::kSafe) == 0);
+static_assert(oo::ToUnderlying(OOMissileStatus::kArmed) == 1);
+static_assert(oo::ToUnderlying(OOMissileStatus::kTargetLocked) == 2);
 
-typedef enum {
-  PLAYER_FLEEING_UNLIKELY = -1,
-  PLAYER_FLEEING_NONE = 0,
-  PLAYER_FLEEING_MAYBE = 1,
-  PLAYER_FLEEING_CARGO = 2,
-  PLAYER_FLEEING_LIKELY = 3
-} OOPlayerFleeingStatus;
+enum class OOPlayerFleeingStatus : std::int32_t {
+  kUnlikely = -1,
+  kNone = 0,
+  kMaybe = 1,
+  kCargo = 2,
+  kLikely = 3
+};
+// The numbers JS sees.
+static_assert(oo::ToUnderlying(OOPlayerFleeingStatus::kUnlikely) == -1);
+static_assert(oo::ToUnderlying(OOPlayerFleeingStatus::kNone) == 0);
+static_assert(oo::ToUnderlying(OOPlayerFleeingStatus::kMaybe) == 1);
+static_assert(oo::ToUnderlying(OOPlayerFleeingStatus::kCargo) == 2);
+static_assert(oo::ToUnderlying(OOPlayerFleeingStatus::kLikely) == 3);
 
-typedef enum {
-  MARKET_FILTER_MODE_OFF = 0,
-  MARKET_FILTER_MODE_TRADE = 1,
-  MARKET_FILTER_MODE_HOLD = 2,
-  MARKET_FILTER_MODE_STOCK = 3,
-  MARKET_FILTER_MODE_LEGAL = 4,
-  MARKET_FILTER_MODE_RESTRICTED = 5,  // import or export
+enum class OOMarketFilterMode : std::int32_t {
+  kOff = 0,
+  kTrade = 1,
+  kHold = 2,
+  kStock = 3,
+  kLegal = 4,
+  kRestricted = 5  // import or export
+};
+// The number of modes (the description keys oolite-market-filter-0 to -5).
+inline constexpr std::size_t kOOMarketFilterModeCount = 6;
+static_assert(oo::ToUnderlying(OOMarketFilterMode::kOff) == 0);
+static_assert(oo::ToUnderlying(OOMarketFilterMode::kTrade) == 1);
+static_assert(oo::ToUnderlying(OOMarketFilterMode::kHold) == 2);
+static_assert(oo::ToUnderlying(OOMarketFilterMode::kStock) == 3);
+static_assert(oo::ToUnderlying(OOMarketFilterMode::kLegal) == 4);
+static_assert(oo::ToUnderlying(OOMarketFilterMode::kRestricted) == 5);
 
-  MARKET_FILTER_MODE_MAX = 5  // always equal to highest real mode
-} OOMarketFilterMode;
-
-typedef enum {
-  MARKET_SORTER_MODE_OFF = 0,
-  MARKET_SORTER_MODE_ALPHA = 1,
-  MARKET_SORTER_MODE_PRICE = 2,
-  MARKET_SORTER_MODE_STOCK = 3,
-  MARKET_SORTER_MODE_HOLD = 4,
-  MARKET_SORTER_MODE_UNIT = 5,
-
-  MARKET_SORTER_MODE_MAX = 5  // always equal to highest real mode
-} OOMarketSorterMode;
+enum class OOMarketSorterMode : std::int32_t {
+  kOff = 0,
+  kAlpha = 1,
+  kPrice = 2,
+  kStock = 3,
+  kHold = 4,
+  kUnit = 5
+};
+// The number of modes (the description keys oolite-market-sorter-0 to -5).
+inline constexpr std::size_t kOOMarketSorterModeCount = 6;
+static_assert(oo::ToUnderlying(OOMarketSorterMode::kOff) == 0);
+static_assert(oo::ToUnderlying(OOMarketSorterMode::kAlpha) == 1);
+static_assert(oo::ToUnderlying(OOMarketSorterMode::kPrice) == 2);
+static_assert(oo::ToUnderlying(OOMarketSorterMode::kStock) == 3);
+static_assert(oo::ToUnderlying(OOMarketSorterMode::kHold) == 4);
+static_assert(oo::ToUnderlying(OOMarketSorterMode::kUnit) == 5);
 
 #define ECM_ENERGY_DRAIN_FACTOR 20.0f
 #define ECM_DURATION 2.5f

@@ -76,12 +76,12 @@ class ProxyPlayerEntity : public ShipEntity {
   GLfloat dialAftShield();
   void setDialAftShield(GLfloat value);
 
-  // Default: MISSILE_STATUS_SAFE
+  // Default: OOMissileStatus::kSafe
   OOMissileStatus dialMissileStatus();
   void setDialMissileStatus(OOMissileStatus value);
 
-  // Default: SCOOP_STATUS_NOT_INSTALLED or SCOOP_STATUS_OKAY depending on
-  // equipment.
+  // Default: OOFuelScoopStatus::kNotInstalled or OOFuelScoopStatus::kOkay
+  // depending on equipment.
   OOFuelScoopStatus dialFuelScoopStatus();
   void setDialFuelScoopStatus(OOFuelScoopStatus value);
 
@@ -93,7 +93,7 @@ class ProxyPlayerEntity : public ShipEntity {
   bool dialIdentEngaged();
   void setDialIdentEngaged(bool value);
 
-  // Default: ALERT_CONDITION_DOCKED
+  // Default: OOAlertCondition::kDocked
   OOAlertCondition alertCondition() override;
   void setAlertCondition(OOAlertCondition value);
 

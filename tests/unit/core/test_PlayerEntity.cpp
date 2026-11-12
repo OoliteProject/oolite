@@ -844,8 +844,8 @@ OO_TEST(slice13FleeingAndWeaponsOnline)
 		SetUp();
 		TestPlayer *player = MakePlayer();
 		PlayerEntity *part = player;
-		PlayerEntityTestAccess::fleeing_status(part) = PLAYER_FLEEING_CARGO;
-		OO_CHECK(player->fleeingStatus() == PLAYER_FLEEING_CARGO);
+		PlayerEntityTestAccess::fleeing_status(part) = OOPlayerFleeingStatus::kCargo;
+		OO_CHECK(player->fleeingStatus() == OOPlayerFleeingStatus::kCargo);
 		player->setWeaponsOnline(true);
 		OO_CHECK(player->weaponsOnline());
 		player->setWeaponsOnline(false);
@@ -1196,8 +1196,8 @@ OO_TEST(slice24FlagsAndAddEquipment)
 		OO_CHECK(player->isMining());
 		PlayerEntityTestAccess::using_mining_laser(part) = false;
 		OO_CHECK(!player->isMining());
-		PlayerEntityTestAccess::isSpeechOn(part) = OOSPEECHSETTINGS_ALL;
-		OO_CHECK(player->getIsSpeechOn() == OOSPEECHSETTINGS_ALL);
+		PlayerEntityTestAccess::isSpeechOn(part) = OOSpeechSettings::kAll;
+		OO_CHECK(player->getIsSpeechOn() == OOSpeechSettings::kAll);
 		OO_CHECK(player->addEquipmentItem("EQ_ECM", "purchase"));
 		OO_CHECK(sSent.count == 1 && sSent.text == "EQ_ECM/purchase" && sSent.flag);
 	}

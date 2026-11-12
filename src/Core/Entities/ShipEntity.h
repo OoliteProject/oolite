@@ -203,14 +203,18 @@ typedef enum OOBehaviour {
         } OOWeaponType; */
 typedef OOEquipmentType* OOWeaponType;
 
-typedef enum {
+enum class OOAlertCondition : std::int32_t {
   // Alert conditions are used by player and station entities.
   // NOTE: numerical values are available to scripts and shaders.
-  ALERT_CONDITION_DOCKED = 0,
-  ALERT_CONDITION_GREEN = 1,
-  ALERT_CONDITION_YELLOW = 2,
-  ALERT_CONDITION_RED = 3
-} OOAlertCondition;
+  kDocked = 0,
+  kGreen = 1,
+  kYellow = 2,
+  kRed = 3
+};
+static_assert(oo::ToUnderlying(OOAlertCondition::kDocked) == 0);
+static_assert(oo::ToUnderlying(OOAlertCondition::kGreen) == 1);
+static_assert(oo::ToUnderlying(OOAlertCondition::kYellow) == 2);
+static_assert(oo::ToUnderlying(OOAlertCondition::kRed) == 3);
 
 // OOShipDamageType (plain header).
 #include "OOEntityEnums.h"

@@ -177,7 +177,7 @@ OO_TEST(initAndSetUpFromDictionary)
 		OO_CHECK((station != nullptr ? station->getIsShip() : false) && (station != nullptr ? station->getIsStation() : false) && !(station != nullptr ? station->getIsPlayer() : false));
 		OO_CHECK((station != nullptr ? station->shipDataKey() : std::optional<std::string>()) == std::optional<std::string>("coriolis"));
 		OO_CHECK((station != nullptr ? station->getHasBreakPattern() : false));
-		OO_CHECK((station != nullptr ? station->getAlertLevel() : OOStationAlertLevel{}) == STATION_ALERT_LEVEL_GREEN);
+		OO_CHECK((station != nullptr ? station->getAlertLevel() : OOStationAlertLevel{}) == OOStationAlertLevel::kGreen);
 		OO_CHECK((station != nullptr ? station->getEquivalentTechLevel() : 0) == 9);
 		OO_CHECK((station != nullptr ? station->countOfDockedContractors() : unsigned{}) == 2);
 		OO_CHECK((station != nullptr ? station->countOfDockedPolice() : unsigned{}) == 5);
@@ -557,27 +557,27 @@ OO_TEST(slice3AllegianceAndAlertLevel)
 		if (station != nullptr)  station->setAllegiance(std::nullopt);
 		OO_CHECK(!(station != nullptr ? station->getAllegiance() : std::optional<std::string>()).has_value());
 
-		OO_CHECK((station != nullptr ? station->getAlertLevel() : OOStationAlertLevel{}) == STATION_ALERT_LEVEL_GREEN);
-		if (station != nullptr)  station->setAlertLevel(STATION_ALERT_LEVEL_RED, false);
-		OO_CHECK((station != nullptr ? station->getAlertLevel() : OOStationAlertLevel{}) == STATION_ALERT_LEVEL_RED);
+		OO_CHECK((station != nullptr ? station->getAlertLevel() : OOStationAlertLevel{}) == OOStationAlertLevel::kGreen);
+		if (station != nullptr)  station->setAlertLevel(OOStationAlertLevel::kRed, false);
+		OO_CHECK((station != nullptr ? station->getAlertLevel() : OOStationAlertLevel{}) == OOStationAlertLevel::kRed);
 		if (station != nullptr)  station->setAlertLevel((OOStationAlertLevel)99, false);		// clamped
-		OO_CHECK((station != nullptr ? station->getAlertLevel() : OOStationAlertLevel{}) == STATION_ALERT_LEVEL_RED);
+		OO_CHECK((station != nullptr ? station->getAlertLevel() : OOStationAlertLevel{}) == OOStationAlertLevel::kRed);
 		if (station != nullptr)  station->setAlertLevel((OOStationAlertLevel)0, false);
-		OO_CHECK((station != nullptr ? station->getAlertLevel() : OOStationAlertLevel{}) == STATION_ALERT_LEVEL_GREEN);
+		OO_CHECK((station != nullptr ? station->getAlertLevel() : OOStationAlertLevel{}) == OOStationAlertLevel::kGreen);
 		if (station != nullptr)  station->increaseAlertLevel();
-		OO_CHECK((station != nullptr ? station->getAlertLevel() : OOStationAlertLevel{}) == STATION_ALERT_LEVEL_YELLOW);
+		OO_CHECK((station != nullptr ? station->getAlertLevel() : OOStationAlertLevel{}) == OOStationAlertLevel::kYellow);
 		if (station != nullptr)  station->increaseAlertLevel();
 		if (station != nullptr)  station->increaseAlertLevel();
-		OO_CHECK((station != nullptr ? station->getAlertLevel() : OOStationAlertLevel{}) == STATION_ALERT_LEVEL_RED);
+		OO_CHECK((station != nullptr ? station->getAlertLevel() : OOStationAlertLevel{}) == OOStationAlertLevel::kRed);
 		if (station != nullptr)  station->decreaseAlertLevel();
-		OO_CHECK((station != nullptr ? station->getAlertLevel() : OOStationAlertLevel{}) == STATION_ALERT_LEVEL_YELLOW);
+		OO_CHECK((station != nullptr ? station->getAlertLevel() : OOStationAlertLevel{}) == OOStationAlertLevel::kYellow);
 
 		// A target at yellow or red alert is a hostile one; none, or green, is not.
 		OO_CHECK(!(station != nullptr ? station->hasHostileTarget() : false));
 		TestVisitor *intruder = MakeVisitor("intruder");
 		SetPrimaryTarget3(station, intruder);
 		OO_CHECK((station != nullptr ? station->hasHostileTarget() : false));
-		if (station != nullptr)  station->setAlertLevel(STATION_ALERT_LEVEL_GREEN, false);
+		if (station != nullptr)  station->setAlertLevel(OOStationAlertLevel::kGreen, false);
 		OO_CHECK(!(station != nullptr ? station->hasHostileTarget() : false));
 	}
 }
@@ -624,8 +624,8 @@ OO_TEST(slice3MembersFromCxx)
 		SetUp();
 		TestStation *station = MakeStation("member3");
 		StationEntity *part = station;
-		part->setAlertLevel(STATION_ALERT_LEVEL_RED, false);
-		OO_CHECK(part->getAlertLevel() == STATION_ALERT_LEVEL_RED && (station != nullptr ? station->getAlertLevel() : OOStationAlertLevel{}) == STATION_ALERT_LEVEL_RED);
+		part->setAlertLevel(OOStationAlertLevel::kRed, false);
+		OO_CHECK(part->getAlertLevel() == OOStationAlertLevel::kRed && (station != nullptr ? station->getAlertLevel() : OOStationAlertLevel{}) == OOStationAlertLevel::kRed);
 		part->setAllegiance(std::string("neutral"));
 		OO_CHECK(part->getAllegiance() == std::optional<std::string>("neutral"));
 		ShipEntity *asShip = part;

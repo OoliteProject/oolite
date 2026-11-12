@@ -336,21 +336,21 @@ OO_TEST(stationAlertChangeSendsAlertConditionChanged) {
   {
     SetUp();
     EventStation* station = NewTestEntity<EventStation>();
-    station->setAlertLevel(STATION_ALERT_LEVEL_GREEN, false);  // no event
+    station->setAlertLevel(OOStationAlertLevel::kGreen, false);  // no event
     OO_CHECK(sEvents.empty());
-    station->setAlertLevel(STATION_ALERT_LEVEL_RED, true);
+    station->setAlertLevel(OOStationAlertLevel::kRed, true);
     std::vector<Event> events = EventsNamed(OOJSID("alertConditionChanged"));
     OO_CHECK_EQ(events.size(), (size_t)1);
     if (events.size() == 1 && events[0].arguments.size() == 2) {
       OO_CHECK(events[0].arguments[0] ==
-               oo::PList((int)STATION_ALERT_LEVEL_RED));
+               oo::PList((int)OOStationAlertLevel::kRed));
       OO_CHECK(events[0].arguments[1] ==
-               oo::PList((int)STATION_ALERT_LEVEL_GREEN));
+               oo::PList((int)OOStationAlertLevel::kGreen));
     } else {
       OO_CHECK(false);  // two arguments, the new and the old level
     }
     // No change, no event.
-    station->setAlertLevel(STATION_ALERT_LEVEL_RED, true);
+    station->setAlertLevel(OOStationAlertLevel::kRed, true);
     OO_CHECK_EQ(EventsNamed(OOJSID("alertConditionChanged")).size(), (size_t)1);
     oo::ReleaseEntity(station);
   }

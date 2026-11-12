@@ -3096,7 +3096,7 @@ void PlayerEntity::targetNearestHostile() {
   Entity* ent = foundTarget();
   if (ent != nullptr) {
     ident_engaged = true;
-    missile_status = MISSILE_STATUS_TARGET_LOCKED;
+    missile_status = OOMissileStatus::kTargetLocked;
     addTarget(ent);
   }
 }
@@ -3106,7 +3106,7 @@ void PlayerEntity::targetNearestIncomingMissile() {
   Entity* ent = foundTarget();
   if (ent != nullptr) {
     ident_engaged = true;
-    missile_status = MISSILE_STATUS_TARGET_LOCKED;
+    missile_status = OOMissileStatus::kTargetLocked;
     addTarget(ent);
   }
 }

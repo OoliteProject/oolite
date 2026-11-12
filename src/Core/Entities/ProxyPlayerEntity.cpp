@@ -40,8 +40,8 @@ MA 02110-1301, USA.
 void ProxyPlayerEntity::initProxyDefaults() {
   setDialForwardShield(1.0f);
   setDialAftShield(1.0f);
-  setDialFuelScoopStatus(hasScoop() ? SCOOP_STATUS_OKAY
-                                    : SCOOP_STATUS_NOT_INSTALLED);
+  setDialFuelScoopStatus(hasScoop() ? OOFuelScoopStatus::kOkay
+                                    : OOFuelScoopStatus::kNotInstalled);
   setCompassMode(hasEquipmentItemProviding("EQ_ADVANCED_COMPASS")
                      ? COMPASS_MODE_PLANET
                      : COMPASS_MODE_BASIC);
