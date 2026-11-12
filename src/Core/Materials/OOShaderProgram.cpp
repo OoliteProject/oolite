@@ -595,10 +595,11 @@ namespace {
 constexpr std::regex::flag_type kGLSLRegexFlags =
     std::regex::ECMAScript | std::regex::multiline;
 
-std::string ReplaceRegex(const std::string& source, const char* pattern,
-                         const char* replacement) {
-  return std::regex_replace(source, std::regex(pattern, kGLSLRegexFlags),
-                            replacement);
+std::string ReplaceRegex(const std::string& source, std::string_view pattern,
+                         std::string_view replacement) {
+  return std::regex_replace(source,
+                            std::regex(std::string(pattern), kGLSLRegexFlags),
+                            std::string(replacement));
 }
 
 }  // namespace

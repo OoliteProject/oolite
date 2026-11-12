@@ -76,7 +76,7 @@ struct OOMaterialSynthContext {
 };
 
 void SetUniform(oo::PList::Dict& uniforms, const std::string& key,
-                const char* type, const oo::PList& value);
+                std::string_view type, const oo::PList& value);
 void SetUniformFloat(OOMaterialSynthContext* context, const std::string& key,
                      float value);
 
@@ -87,14 +87,16 @@ void SetUniformFloat(OOMaterialSynthContext* context, const std::string& key,
  * set to specifier. If macroName is not nil, macroName is set to 1 in the
  * macros dictionary.
  */
-void AddTexture(OOMaterialSynthContext* context, const char* uniformName,
-                const char* nonShaderKey, const char* macroName,
+void AddTexture(OOMaterialSynthContext* context, std::string_view uniformName,
+                std::optional<std::string_view> nonShaderKey,
+                std::optional<std::string_view> macroName,
                 const oo::PList& specifier);
 
 void AddColorIfAppropriate(OOMaterialSynthContext* context, OOColor* color,
-                           const char* key, const char* macroName);
+                           std::string_view key,
+                           std::optional<std::string_view> macroName);
 void AddMacroColorIfAppropriate(OOMaterialSynthContext* context, OOColor* color,
-                                const char* macroName);
+                                std::string_view macroName);
 
 void SynthDiffuse(OOMaterialSynthContext* context,
                   const std::optional<std::string>& name);
@@ -272,8 +274,9 @@ oo::Ref<OOMaterial> OOMaterial::defaultShaderMaterialWithName(
 
 #ifndef NDEBUG
   if (DumpShaderSource()) {
-    const char* cacheKeyText = cacheKey ? cacheKey->c_str() : "(null)";
-    const char* nameText = name ? name->c_str() : "(null)";
+    const std::string_view cacheKeyText =
+        cacheKey ? std::string_view(*cacheKey) : "(null)";
+    const std::string_view nameText = name ? std::string_view(*name) : "(null)";
     std::string dumpPath =
         std::format("Synthesized Materials/{}/{}", cacheKeyText, nameText);
 
@@ -410,7 +413,7 @@ oo::Ref<OOMaterial> OOMaterial::materialWithName(
 namespace {
 
 void SetUniform(oo::PList::Dict& uniforms, const std::string& key,
-                const char* type, const oo::PList& value) {
+                std::string_view type, const oo::PList& value) {
   uniforms[key] =
       oo::PList(oo::PList::Dict{{"type", oo::PList(type)}, {"value", value}});
 }
@@ -420,45 +423,48 @@ void SetUniformFloat(OOMaterialSynthContext* context, const std::string& key,
   SetUniform(context->uniforms, key, "float", oo::PList::singleReal(value));
 }
 
-void AddTexture(OOMaterialSynthContext* context, const char* uniformName,
-                const char* nonShaderKey, const char* macroName,
+void AddTexture(OOMaterialSynthContext* context, std::string_view uniformName,
+                std::optional<std::string_view> nonShaderKey,
+                std::optional<std::string_view> macroName,
                 const oo::PList& specifier) {
   OOCParameterAssert(context->texturesUsed < context->maxTextures);
 
   context->texturesUsed++;
-  SetUniform(context->uniforms, uniformName, "texture",
+  SetUniform(context->uniforms, std::string(uniformName), "texture",
              oo::PList::unsignedInteger(context->textures.size()));
   context->textures.push_back(specifier);
-  if (nonShaderKey != nullptr) {
+  if (nonShaderKey.has_value()) {
     // Upstream always wrote kOOMaterialDiffuseMapName when nonShaderKey was
     // non-nil.
     context->outConfig[cxx_kOOMaterialDiffuseMapName] = specifier;
   }
-  if (macroName != nullptr) {
-    context->macros[macroName] = oo::PList("1");
+  if (macroName.has_value()) {
+    context->macros[std::string(*macroName)] = oo::PList("1");
   }
 }
 
 void AddColorIfAppropriate(OOMaterialSynthContext* context, OOColor* color,
-                           const char* key, const char* macroName) {
+                           std::string_view key,
+                           std::optional<std::string_view> macroName) {
   if (color != nullptr) {
     oo::PList::Array components;
     for (float component : color->normalizedArray()) {
       components.push_back(oo::PList::singleReal(component));
     }
-    context->outConfig[key] = oo::PList(std::move(components));
-    if (macroName != nullptr) context->macros[macroName] = oo::PList("1");
+    context->outConfig[std::string(key)] = oo::PList(std::move(components));
+    if (macroName.has_value())
+      context->macros[std::string(*macroName)] = oo::PList("1");
   }
 }
 
 void AddMacroColorIfAppropriate(OOMaterialSynthContext* context, OOColor* color,
-                                const char* macroName) {
+                                std::string_view macroName) {
   if (color != nullptr) {
     std::string macroText =
         std::format("vec4({:g}, {:g}, {:g}, {:g})", color->redComponent(),
                     color->greenComponent(), color->blueComponent(),
                     color->alphaComponent());
-    context->macros[macroName] = oo::PList(std::move(macroText));
+    context->macros[std::string(macroName)] = oo::PList(std::move(macroText));
   }
 }
 
@@ -483,7 +489,7 @@ void SynthDiffuse(OOMaterialSynthContext* context,
   // Set up diffuse colour if any.
   AddColorIfAppropriate(context,
                         cxx_OOMaterialDiffuseColor(context->inConfig).get(),
-                        cxx_kOOMaterialDiffuseColorName, nullptr);
+                        cxx_kOOMaterialDiffuseColorName, std::nullopt);
 }
 
 void SynthEmissionAndIllumination(OOMaterialSynthContext* context) {
@@ -515,7 +521,7 @@ void SynthEmissionAndIllumination(OOMaterialSynthContext* context) {
             require adding a new type of texture specifier - not a big deal.
             -- Ahruman 2010-05-21
     */
-    AddTexture(context, "uEmissionMap", nullptr,
+    AddTexture(context, "uEmissionMap", std::nullopt,
                isCombinedSpec ? "OOSTD_EMISSION_AND_ILLUMINATION_MAP"
                               : "OOSTD_EMISSION_MAP",
                emissionMapSpec);
@@ -537,8 +543,8 @@ void SynthEmissionAndIllumination(OOMaterialSynthContext* context) {
 
   if (!illuminationMapSpec.isNull() &&
       context->texturesUsed < context->maxTextures) {
-    AddTexture(context, "uIlluminationMap", nullptr, "OOSTD_ILLUMINATION_MAP",
-               illuminationMapSpec);
+    AddTexture(context, "uIlluminationMap", std::nullopt,
+               "OOSTD_ILLUMINATION_MAP", illuminationMapSpec);
     haveIlluminationMap = true;
   }
 
@@ -561,7 +567,7 @@ void SynthNormalMap(OOMaterialSynthContext* context) {
     }
 
     if (!normalMapSpec.isNull()) {
-      AddTexture(context, "uNormalMap", nullptr, "OOSTD_NORMAL_MAP",
+      AddTexture(context, "uNormalMap", std::nullopt, "OOSTD_NORMAL_MAP",
                  normalMapSpec);
 
       if (hasParallax) {

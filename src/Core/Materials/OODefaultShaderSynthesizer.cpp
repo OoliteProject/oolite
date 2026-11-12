@@ -186,10 +186,10 @@ std::optional<std::string> OODefaultShaderSynthesizer::entityName() {
 namespace {
 
 void AppendIfNotEmpty(std::string& buffer, const std::string& segment,
-                      const char* name) {
+                      std::string_view name) {
   if (!segment.empty()) {
     if (!buffer.empty()) buffer += "\n\n";
-    if (name != nullptr && name[0] != '\0') {
+    if (!name.empty()) {
       buffer += "// ";
       buffer += name;
       buffer += "\n";
@@ -227,7 +227,7 @@ std::optional<std::string> GetExtractMode(const oo::PList& textureSpecifier) {
 // The string-typed read of the value for key that oo::PListView did: a string,
 // or a number as a string; anything else nil.
 std::optional<std::string> OptionalStringFor(const oo::PList& spec,
-                                             const char* key) {
+                                             std::string_view key) {
   const oo::PList* value = spec.find(key);
   if (value == nullptr || !(value->isString() || value->isNumber()))
     return std::nullopt;
@@ -314,7 +314,7 @@ void OODefaultShaderSynthesizer::composeVertexShader() {
   AppendIfNotEmpty(vertexShader, _vertexUniforms, "Uniforms");
   AppendIfNotEmpty(vertexShader, _varyings, "Varyings");
   AppendIfNotEmpty(vertexShader, _vertexHelpers, "Helper functions");
-  AppendIfNotEmpty(vertexShader, _vertexBody, nullptr);
+  AppendIfNotEmpty(vertexShader, _vertexBody, "");
 
   _vertexShader = vertexShader;
 }
@@ -328,7 +328,7 @@ void OODefaultShaderSynthesizer::composeFragmentShader() {
   AppendIfNotEmpty(fragmentShader, _fragmentUniforms, "Uniforms");
   AppendIfNotEmpty(fragmentShader, _varyings, "Varyings");
   AppendIfNotEmpty(fragmentShader, _fragmentHelpers, "Helper functions");
-  AppendIfNotEmpty(fragmentShader, _fragmentPreTextures, nullptr);
+  AppendIfNotEmpty(fragmentShader, _fragmentPreTextures, "");
   if (!_fragmentTextureLookups.empty()) {
     fragmentShader += "\t\n\t// Texture lookups\n";
     fragmentShader += _fragmentTextureLookups;
@@ -526,7 +526,8 @@ OODefaultShaderSynthesizer::readOneChannelForTextureSpec(
 }
 
 #ifndef NDEBUG
-void OODefaultShaderSynthesizer::performStage(const char* name, Stage stage) {
+void OODefaultShaderSynthesizer::performStage(std::string_view name,
+                                              Stage stage) {
   // Ensure that we aren’t recursing.
   if (_stagesInProgress.count(name) != 0) {
     OO_LOG_ERR("material.synthesis.error.recursion",
@@ -713,7 +714,7 @@ void OODefaultShaderSynthesizer::writeDiffuseLighting() {
   REQUIRE_STAGE(writeLightVector);
 
   // FIXME: currently uncoloured diffuse and ambient lighting.
-  const char* normalDotLight =
+  const std::string_view normalDotLight =
       _constZNormal ? "lightVector.z" : "dot(normal, lightVector)";
 
   _fragmentBody += std::format(
@@ -853,9 +854,9 @@ void OODefaultShaderSynthesizer::writeSpecularLighting() {
     float rgba[4];
     specularColor->getRed(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
-    const char* comment = (scaleFactor == 1.0f)
-                              ? "Constant colour"
-                              : "Constant colour and scale factor";
+    const std::string_view comment = (scaleFactor == 1.0f)
+                                         ? "Constant colour"
+                                         : "Constant colour and scale factor";
 
     // Handle scale factor, colour, and colour alpha scaling as one multiply.
     scaleFactor *= rgba[3];
@@ -1015,11 +1016,10 @@ void OODefaultShaderSynthesizer::writeLightMaps() {
       const oo::PList* typeDict = bindingTypes.get<oo::PList::Dict>(
           "player");  // FIXME: select appropriate binding subset.
       std::optional<std::string> bindingType =
-          (typeDict != nullptr)
-              ? OptionalStringFor(*typeDict, bindingName.c_str())
-              : std::nullopt;
-      const char* glslType = nullptr;
-      const char* swizzle = "";
+          (typeDict != nullptr) ? OptionalStringFor(*typeDict, bindingName)
+                                : std::nullopt;
+      std::optional<std::string_view> glslType;
+      std::string_view swizzle;
 
       if (bindingType == "float") {
         glslType = "float";
@@ -1030,7 +1030,7 @@ void OODefaultShaderSynthesizer::writeLightMaps() {
         swizzle = ".rgb";
       }
 
-      if (glslType != nullptr) {
+      if (glslType.has_value()) {
         std::optional<std::string> uniformName =
             defineBindingUniform(*binding, bindingType.value_or(std::string()));
         _fragmentBody +=
@@ -1103,14 +1103,15 @@ oo::PList StringOrDictionarySpecifier(const oo::PList* texSpec) {
 }
 
 // PList dict with one added entry on a dictionary specifier.
-oo::PList AddingValue(oo::PList specifier, const char* key, oo::PList value) {
+oo::PList AddingValue(oo::PList specifier, std::string_view key,
+                      oo::PList value) {
   if (oo::PList::Dict* dict = specifier.getIf<oo::PList::Dict>())
-    (*dict)[key] = std::move(value);
+    (*dict)[std::string(key)] = std::move(value);
   return specifier;
 }
 
 // OOColor::colorWithDescription() of the value for key (null if there is none).
-oo::Ref<OOColor> ColorIn(const oo::PList& spec, const char* key) {
+oo::Ref<OOColor> ColorIn(const oo::PList& spec, std::string_view key) {
   const oo::PList* value = spec.find(key);
   return OOColor::colorWithDescription((value != nullptr) ? *value
                                                           : oo::PList());

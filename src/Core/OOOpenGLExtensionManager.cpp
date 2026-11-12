@@ -28,6 +28,9 @@ SOFTWARE.
 
 #include <stdlib.h>
 
+#include <array>
+#include <string_view>
+
 #include "OOConstToString.h"
 #include "OOFunctionAttributes.h"
 #include "OOLogging.h"
@@ -589,21 +592,17 @@ void OOOpenGLExtensionManager::checkShadersSupported() {
     }
   }
 
-  const char* const requiredExtension[] = {
-      "GL_ARB_shading_language_100",
-      "GL_ARB_fragment_shader",
-      "GL_ARB_vertex_shader",
-      "GL_ARB_multitexture",
+  static constexpr std::array<std::string_view, 5> requiredExtension = {
+      "GL_ARB_shading_language_100", "GL_ARB_fragment_shader",
+      "GL_ARB_vertex_shader",        "GL_ARB_multitexture",
       "GL_ARB_shader_objects",
-      nullptr  // sentinel - don't remove!
   };
-  const char* const* required = nullptr;
 
-  for (required = requiredExtension; *required != nullptr; ++required) {
-    if (!haveExtension(*required)) {
+  for (std::string_view required : requiredExtension) {
+    if (!haveExtension(std::string(required))) {
       OO_LOG(kOOLogOpenGLShaderSupport,
              "Shaders will not be used (OpenGL extension {} is not available).",
-             *required);
+             required);
       return;
     }
   }

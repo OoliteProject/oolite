@@ -27,6 +27,8 @@
 #include "OOConcreteTexture.h"
 
 #include <format>
+#include <optional>
+#include <string_view>
 
 #include "OOCPUInfo.h"
 #include "OOLogging.h"
@@ -191,7 +193,7 @@ std::optional<std::string> OOConcreteTexture::name() {
   std::string name = oo::str::lastPathComponent(head);
 #endif
 
-  const char* channelSuffix = nullptr;
+  std::optional<std::string_view> channelSuffix;
   switch (_options & OOTextureFlags::kExtractChannelMask) {
     case OOTextureFlags::kExtractChannelR:
       channelSuffix = ":r";
@@ -213,7 +215,7 @@ std::optional<std::string> OOConcreteTexture::name() {
       break;
   }
 
-  if (channelSuffix != nullptr) name += channelSuffix;
+  if (channelSuffix.has_value()) name += *channelSuffix;
 
   return name;
 }

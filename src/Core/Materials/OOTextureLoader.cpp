@@ -32,6 +32,7 @@ SOFTWARE.
 
 #include <cstring>
 #include <format>
+#include <string_view>
 #include <typeinfo>
 
 #include "OOConvertCubeMapToLatLong.h"
@@ -201,7 +202,7 @@ OOTextureLoader::~OOTextureLoader() {
 }
 
 std::optional<std::string> OOTextureLoader::descriptionComponents() const {
-  const char* state = nullptr;
+  std::string_view state;
 
   if (_ready) {
     if (_data != nullptr)
@@ -244,7 +245,7 @@ std::string OOTextureLoader::description() const {
 }
 
 std::string OOTextureLoader::shortDescription() const {
-  const char* facadeClass =
+  const std::string_view facadeClass =
       (dynamic_cast<const OOTextureGenerator*>(this) != nullptr)
           ? "OOTextureGenerator"
           : "OOTextureLoader";

@@ -43,6 +43,7 @@ SOFTWARE.
 #if OO_SHADERS || defined(OO_DEBUG_MONITOR_ENABLED)
 
 #include <cstring>
+#include <string_view>
 
 #include "OOColor.h"
 #include "OOMaths.h"
@@ -62,7 +63,8 @@ OOShaderUniformType OOShaderUniformTypeFromEncoding(const char* typeCode) {
 
   for (i = kOOShaderUniformTypeInvalid + 1; i != kOOShaderUniformTypeCount;
        ++i) {
-    if (sTemplates[i] != nullptr && strcmp(sTemplates[i], typeCode) == 0)
+    if (sTemplates[i] != nullptr &&
+        std::string_view(sTemplates[i]) == std::string_view(typeCode))
       return static_cast<OOShaderUniformType>(i);
   }
   return kOOShaderUniformTypeInvalid;

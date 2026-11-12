@@ -115,7 +115,7 @@ class OODefaultShaderSynthesizer : public oo::RefCounted {
 
 #ifndef NDEBUG
   using Stage = void (OODefaultShaderSynthesizer::*)();
-  void performStage(const char* name,
+  void performStage(std::string_view name,
                     Stage stage);  // runs a stage, checking for recursion
 #endif
 

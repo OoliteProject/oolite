@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 */
 
 #include <cstring>
+#include <string_view>
 
 #include "OOFunctionAttributes.h"
 #include "OOLogging.h"
@@ -67,7 +68,7 @@ std::string StateFlagToString(StateFlag flag) {
 #endif
 
 using OOOpenGLState = struct {
-  const char* name;
+  std::string_view name;
 
 #define ITEM_STATEFLAG(NAME) StateFlag NAME
 #define ITEM_CLIENTSTATEFLAG(NAME) bool NAME
