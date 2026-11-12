@@ -29,7 +29,14 @@ SOFTWARE.
 
 #if OO_SHADERS
 
+#include <cstddef>
+#include <map>
+#include <optional>
 #include <regex>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "MyOpenGLView.h"
@@ -42,7 +49,6 @@ SOFTWARE.
 #include "ResourceManager.h"
 #include "Universe.h"
 #include "oofnd/PListGet.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 
 namespace {

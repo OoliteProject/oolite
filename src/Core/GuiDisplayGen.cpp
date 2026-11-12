@@ -24,8 +24,15 @@ MA 02110-1301, USA.
 
 #include "GuiDisplayGen.h"
 
+#include <cstddef>
+#include <cstdint>
 #include <cstring>
 #include <map>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 #include "GameController.h"
 #include "HeadUpDisplay.h"
@@ -44,7 +51,6 @@ MA 02110-1301, USA.
 #include "Universe.h"
 #include "oofnd/Log.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"

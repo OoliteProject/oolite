@@ -78,8 +78,12 @@ MA 02110-1301, USA.
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 
+#include <cstddef>
+#include <optional>
+#include <string>
+#include <utility>
+
 #include "OOJavaScriptEngine.h"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 
 // Exported for use from a debugger; not declared in a header.

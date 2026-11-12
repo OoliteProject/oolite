@@ -24,6 +24,16 @@ MA 02110-1301, USA.
 
 #include "PlayerEntityLegacyScriptEngine.h"
 
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <map>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
 #include "AI.h"
 #include "GuiDisplayGen.h"
 #include "HeadUpDisplay.h"
@@ -58,7 +68,6 @@ MA 02110-1301, USA.
 #include "oofnd/Log.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/PListWriting.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOException.h"
 

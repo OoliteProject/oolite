@@ -9,11 +9,19 @@
 
 #include "OOTCPStreamDecoderAbstractionLayer.h"
 
+#include <cstddef>
+#include <functional>
+#include <map>
+#include <memory>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
 #include "OOFoundation.h"
 #include "OOTCPStreamDecoderFormat.hpp"
 #include "oofnd/PListParsing.hpp"
 #include "oofnd/Ref.hpp"  // oo::AutoreleaseScope (was objc-arc.h's pool functions)
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 
 struct OOALObject {

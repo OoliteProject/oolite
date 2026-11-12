@@ -34,7 +34,12 @@
   0.7f  // Overall darkening of everything, allowing better contrast for snow
         // and specular highlights.
 
+#include <cstddef>
+#include <cstdint>
 #include <cstring>
+#include <optional>
+#include <string>
+#include <string_view>
 
 #include "OOColor.h"
 #include "OODescription.h"
@@ -42,7 +47,6 @@
 #include "oofnd/Defaults.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/PListGet.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 

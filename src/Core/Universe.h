@@ -26,6 +26,24 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
 #include "OOCharacter.h"  // the character pool is oo::Ref
 #include "OOColor.h"
 #include "OOCommodities.h"
@@ -44,14 +62,12 @@ MA 02110-1301, USA.
 #include "legacy_random.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
-#include "oofnd/StdLib.hpp"
 
 class OOMaterial;
 
 #if OOLITE_ESPEAK
 #include <espeak-ng/speak_lib.h>
 
-#include <string_view>
 #endif
 
 class Entity;
@@ -1011,8 +1027,6 @@ std::string cxx_OOLookUpPluralDescriptionPRIV(const std::string& key,
 ::OOSound* OOSoundWithCustomSoundKey(const std::string& key);
 void OOSoundSourcePlayCustomSoundWithKey(::OOSoundSource* source,
                                          const std::string& key);
-
-#include "oofnd/StdLib.hpp"
 
 // C++ forms, defined in OOConstToString.cpp: nullopt where the
 // old Foundation forms gave nil.

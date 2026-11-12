@@ -24,7 +24,15 @@ MA 02110-1301, USA.
 
 #include "PlayerEntityControls.h"
 
+#include <algorithm>
+#include <cstddef>
 #include <initializer_list>
+#include <map>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 #include "AI.h"
 #include "DockEntity.h"
@@ -67,7 +75,6 @@ MA 02110-1301, USA.
 #include "oofnd/Defaults.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/PListGet.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"

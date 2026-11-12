@@ -26,10 +26,17 @@ A leaf of Entity. The class is global.
 
 #include "OOPlanetEntity.h"
 
+#include <cstddef>
+#include <map>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
 #include "OODescription.h"
 #include "OOJSPlanet.h"
 #include "oofnd/PList.hpp"
-#include "oofnd/StdLib.hpp"
 
 #define NEW_ATMOSPHERE 1
 

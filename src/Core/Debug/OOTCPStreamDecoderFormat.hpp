@@ -13,8 +13,7 @@
 
 #pragma once
 
-// (In game code this is included after oofnd/StdLib.hpp, which has already
-// parsed these.)
+// (Game code may already have included some of these; repeats are harmless.)
 #include <cstdarg>
 #include <cstddef>
 #include <string>

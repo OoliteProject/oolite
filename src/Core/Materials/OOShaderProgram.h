@@ -40,9 +40,26 @@ SOFTWARE.
 
 #if OO_SHADERS
 
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
-#include "oofnd/StdLib.hpp"
 
 /*	Shader sources,
    names, prefix and cache key are nil-able strings (std::optional: a missing

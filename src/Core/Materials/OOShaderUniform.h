@@ -35,11 +35,28 @@ SOFTWARE.
 
 #if OO_SHADERS
 
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
 #include "OOColor.h"
 #include "OOFoundation.h"
 #include "OOMaths.h"
 #include "oofnd/Ref.hpp"
-#include "oofnd/StdLib.hpp"
 
 struct OOShaderBindingValue;  // OOShaderUniformMethodType.h
 class Entity;                 // Entity.h: the materials' binding target

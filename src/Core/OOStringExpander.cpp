@@ -25,11 +25,15 @@ MA 02110-1301, USA.
 
 #include "OOStringExpander.h"
 
+#include <cstddef>
+#include <cstdint>
+#include <functional>
 #include <map>
 #include <optional>
 #include <set>
 #include <string>
 #include <string_view>
+#include <utility>
 
 #include "OOCallByName.h"
 #include "OOFoundation.h"
@@ -40,7 +44,6 @@ MA 02110-1301, USA.
 #include "ResourceManager.h"
 #include "Universe.h"
 #include "oofnd/PrintfFormat.h"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"

@@ -24,6 +24,15 @@ MA 02110-1301, USA.
 
 #include "OOJSPlayerShip.h"
 
+#include <cstddef>
+#include <cstdint>
+#include <map>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
 #include "EntityOOJavaScriptExtensions.h"
 #include "GuiDisplayGen.h"
 #include "HeadUpDisplay.h"
@@ -50,7 +59,6 @@ MA 02110-1301, USA.
 #include "Universe.h"
 #include "oofnd/Notification.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"

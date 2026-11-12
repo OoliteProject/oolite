@@ -27,13 +27,21 @@ SOFTWARE.
 
 #include "OODefaultShaderSynthesizer.h"
 
+#include <cstddef>
+#include <map>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
 #include "OOColor.h"
 #include "OOMaterialSpecifier.h"
 #include "OOMesh.h"
 #include "OOTexture.h"
 #include "ResourceManager.h"
 #include "oofnd/Log.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"

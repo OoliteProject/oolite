@@ -32,6 +32,24 @@ MA 02110-1301, USA.
 
 #include <quickjs.h>
 
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
 #include "CollisionRegion.h"
 #include "EntityVirtualMembers.h"  // the virtual members
 #include "OOCacheManager.h"
@@ -42,7 +60,6 @@ MA 02110-1301, USA.
 #include "OOMaths.h"
 #include "OOTypes.h"
 #include "oofnd/Ref.hpp"
-#include "oofnd/StdLib.hpp"
 
 class Entity;
 class Universe;
@@ -417,8 +434,6 @@ class OOSubEntityInterface {
 };
 
 }  // namespace cxx
-
-#include "oofnd/StdLib.hpp"
 
 // C++ forms, defined in OOConstToString.cpp: std::string results (never nil),
 // const std::string & parameters (nil arrived as "" and matched nothing: the

@@ -34,10 +34,13 @@ SOFTWARE.
 
 #include <atomic>
 #include <chrono>
+#include <cstddef>
+#include <cstdint>
 #include <cstring>
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <thread>
 
 #include "OOFoundation.h"
@@ -49,7 +52,6 @@ SOFTWARE.
 #include "oofnd/LogFile.hpp"
 #include "oofnd/PListParsing.hpp"
 #include "oofnd/ResourcePaths.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/Thread.hpp"
 
 /*	The Latest.log writer is oo::log::FileWriter (oofnd/LogFile.hpp): the

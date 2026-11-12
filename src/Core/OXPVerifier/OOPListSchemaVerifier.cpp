@@ -27,9 +27,20 @@ SOFTWARE.
 
 #include "OOPListSchemaVerifier.h"
 
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
 #include "OODescription.h"
 #include "oofnd/PList.hpp"
-#include "oofnd/StdLib.hpp"
 
 #if OO_OXP_VERIFIER_ENABLED
 

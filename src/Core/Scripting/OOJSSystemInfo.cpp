@@ -24,8 +24,15 @@ MA 02110-1301, USA.
 
 #include "OOJSSystemInfo.h"
 
+#include <cstddef>
+#include <cstdint>
 #include <cstring>
+#include <optional>
 #include <set>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 #include "OOCommodities.h"
 #include "OOConstToString.h"
@@ -40,7 +47,6 @@ MA 02110-1301, USA.
 #include "Universe.h"
 #include "oofnd/Notification.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 

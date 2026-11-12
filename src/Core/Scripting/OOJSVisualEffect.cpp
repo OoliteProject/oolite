@@ -23,6 +23,14 @@ MA 02110-1301, USA.
 
 #include "OOJSVisualEffect.h"
 
+#include <cstddef>
+#include <cstdint>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
 #include "EntityOOJavaScriptExtensions.h"
 #include "OOColor.h"
 #include "OODescription.h"
@@ -34,7 +42,6 @@ MA 02110-1301, USA.
 #include "OOVisualEffectEntity.h"
 #include "ResourceManager.h"
 #include "oofnd/PList.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/objc/OOAssert.h"
 
 /*

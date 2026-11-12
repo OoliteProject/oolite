@@ -25,7 +25,17 @@ MA 02110-1301, USA.
 
 #include "ShipEntity.h"
 
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <optional>
+#include <set>
+#include <string>
 #include <string_view>
+#include <utility>
+#include <vector>
 
 #include "AI.h"
 #include "DockEntity.h"
@@ -87,7 +97,6 @@ MA 02110-1301, USA.
 #include "WormholeEntity.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/Scanner.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"  // oo::Finally, oo::CurrentOOException

@@ -35,9 +35,26 @@ SOFTWARE.
 
 #if OO_OXP_VERIFIER_ENABLED
 
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
 #include "oofnd/Data.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/StdLib.hpp"
 
 /*	File and
    folder names are UTF-8 std::strings; a name that could be nil is

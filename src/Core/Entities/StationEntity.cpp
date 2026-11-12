@@ -24,6 +24,16 @@
 
 #include "StationEntity.h"
 
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
 #include "AI.h"
 #include "DockEntity.h"
 #include "EntityOOJavaScriptExtensions.h"
@@ -48,7 +58,6 @@
 #include "Universe.h"
 #include "oofnd/Log.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 
 // -oo_stringForKey:'s value without the Foundation type: a

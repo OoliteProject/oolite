@@ -33,6 +33,12 @@ SOFTWARE.
 #include <stdint.h>
 
 #include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
 
 #include "Entity.h"                        // an entity's -inspect
 #include "EntityOOJavaScriptExtensions.h"  // callObjC()'s class name of an entity
@@ -50,7 +56,6 @@ SOFTWARE.
 #include "OOOpenGLExtensionManager.h"
 #include "ResourceManager.h"
 #include "oofnd/PList.hpp"
-#include "oofnd/StdLib.hpp"
 #if OO_DEBUG
 #include "OOShaderUniformMethodType.h"  // callObjC()'s scalar results on the console
 #include "OOTypeEncodings.h"            // the monitor rows' measured encodings

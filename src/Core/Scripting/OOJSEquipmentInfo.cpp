@@ -25,13 +25,20 @@ MA 02110-1301, USA.
 
 #include "OOJSEquipmentInfo.h"
 
+#include <cstddef>
+#include <cstdint>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
 #include "OODebugStandards.h"
 #include "OODescription.h"
 #include "OOEquipmentType.h"
 #include "OOJSPlayer.h"
 #include "OOJavaScriptEngine.h"
 #include "oofnd/PList.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 
 static JSClassID sEquipmentInfoClassID;

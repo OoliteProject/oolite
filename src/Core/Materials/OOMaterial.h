@@ -43,12 +43,27 @@ SOFTWARE.
 #include "oofnd/objc/OOObject.h"
 class Entity;  // Entity.h: the shader binding target
 
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "OOTexture.h"  // allTextures() answers oo::Ref<OOTexture>, which needs the class
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
-#include "oofnd/StdLib.hpp"
 
 class OOMaterial : public oo::RefCounted {
  public:

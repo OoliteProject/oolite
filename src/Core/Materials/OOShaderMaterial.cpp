@@ -27,10 +27,18 @@ SOFTWARE.
 
 #include "OOShaderMaterial.h"
 
+#include <cstddef>
+#include <cstdint>
+#include <map>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
 #include "OODescription.h"
 #include "OOShaderUniformMethodType.h"  // the binding target's hooks
 #include "oofnd/PList.hpp"
-#include "oofnd/StdLib.hpp"
 
 #if OO_SHADERS
 

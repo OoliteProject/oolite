@@ -24,6 +24,15 @@ MA 02110-1301, USA.
 
 #include "WormholeEntity.h"
 
+#include <cstddef>
+#include <functional>
+#include <map>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
 #include "AI.h"
 #include "OODescription.h"
 #include "OOJSWormhole.h"
@@ -43,7 +52,6 @@ MA 02110-1301, USA.
 #include "Universe.h"
 #include "oofnd/Log.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 
 #define OO_WORMHOLE_COLOR_BOOST 25.0

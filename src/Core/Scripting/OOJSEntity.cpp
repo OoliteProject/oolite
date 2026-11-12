@@ -24,6 +24,10 @@ MA 02110-1301, USA.
 
 #include "OOJSEntity.h"
 
+#include <cstddef>
+#include <optional>
+#include <string>
+
 #include "EntityOOJavaScriptExtensions.h"
 #include "OOConstToJSString.h"
 #include "OODescription.h"
@@ -35,7 +39,6 @@ MA 02110-1301, USA.
 #include "PlayerEntity.h"
 #include "ShipEntity.h"
 #include "oofnd/PList.hpp"
-#include "oofnd/StdLib.hpp"
 
 /*
         The Entity class is the shared base for every other entity binding

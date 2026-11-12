@@ -24,6 +24,15 @@ MA 02110-1301, USA.
 
 #include "PlayerEntityKeyMapper.h"
 
+#include <algorithm>
+#include <cstddef>
+#include <map>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
 #include "GameController.h"
 #include "HeadUpDisplay.h"
 #include "OOEquipmentType.h"
@@ -35,7 +44,6 @@ MA 02110-1301, USA.
 #include "oofnd/Defaults.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/PListGet.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 
 static NSUInteger key_index;

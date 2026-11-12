@@ -24,6 +24,13 @@ MA 02110-1301, USA.
 
 #include "OOJSPlayer.h"
 
+#include <cstddef>
+#include <cstdint>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <vector>
+
 #include "EntityOOJavaScriptExtensions.h"
 #include "OOConstToString.h"
 #include "OODescription.h"
@@ -38,7 +45,6 @@ MA 02110-1301, USA.
 #include "PlayerEntityLegacyScriptEngine.h"
 #include "PlayerEntityScriptMethods.h"
 #include "oofnd/PList.hpp"
-#include "oofnd/StdLib.hpp"
 
 /*
         The Player class is a static JSClassDef registered with

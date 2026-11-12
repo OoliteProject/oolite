@@ -25,6 +25,11 @@ MA 02110-1301, USA.
 
 #include "OOJSShipGroup.h"
 
+#include <cstddef>
+#include <optional>
+#include <string>
+#include <vector>
+
 #include "EntityOOJavaScriptExtensions.h"
 #include "OODescription.h"
 #include "OOJSEntity.h"
@@ -32,7 +37,6 @@ MA 02110-1301, USA.
 #include "OOShipGroup.h"
 #include "ShipEntity.h"
 #include "oofnd/PList.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 

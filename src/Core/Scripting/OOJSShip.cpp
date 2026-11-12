@@ -24,6 +24,15 @@ MA 02110-1301, USA.
 
 #include "OOJSShip.h"
 
+#include <cstddef>
+#include <cstdint>
+#include <map>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
 #include "AI.h"
 #include "EntityOOJavaScriptExtensions.h"
 #include "GameController.h"
@@ -59,7 +68,6 @@ MA 02110-1301, USA.
 #include "Universe.h"
 #include "WormholeEntity.h"
 #include "oofnd/PList.hpp"
-#include "oofnd/StdLib.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 
