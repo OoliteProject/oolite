@@ -52,8 +52,8 @@ oo::PList NormalizedColorComponents(OOColor* color)
     return oo::PList(std::move(components));
 }
 
-// What the type answers, or what a message to nil answered (0, false, nullopt, null, an empty
-// list) when there is no type: the prototype's case (amendment oo-6ia4 item 2).
+// What the type answers, or what a message to nil answered (0, false, nullopt,
+// null, an empty list) when there is no type: the prototype's case.
 template <typename Result>
 Result Ask(OOEquipmentType* type, Result (OOEquipmentType::*member)())
 {

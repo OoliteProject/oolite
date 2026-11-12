@@ -38,21 +38,6 @@ MA 02110-1301, USA.
 #include "oofnd/Notification.hpp"
 #include "oofnd/objc/OOException.h"
 
-/*
-        C++20 since bead oo-nge8, converted the way bead oo-ppc converted OOJSVector.mm (proposed
-        ADR-0056 amendment oo-ppc). The natives were already C++ on QuickJS-ng;
-        OOJS_NATIVE_ENTER/EXIT and OOJS_PROFILE_ENTER/EXIT are C++ try/catch and scope guards
-        (OOJSEngineNativeWrappers.h); BOOL/YES/NO are bool/true/false. OOMusicController, which is C++
-        since bead oo-lfkq, is reached as OOMusicController (amendment oo-ppc, item 4).
-        MissionRunCallback()'s @try/@catch (OOException *) around the callback stayed verbatim (amendment
-        oo-puw9 item 4) until bead oo-rskgl made it a C++ try/catch with the other exception sites.
-        mission.markedSystems kept the destinations it reads in a local: it read them through a pointer
-        into a temporary that had died (bead oo-nge8; the same defect in OOJSSystemInfo.mm is bead
-        oo-f4241). Messages to classes that are still Objective-C (PlayerEntity, Universe,
-        GuiDisplayGen, OOJSScript, OOJavaScriptEngine) stay as they are, which is why the file is still
-        .mm until Phase 4.
-*/
-
 static JSValue MissionGetProperty(OOJS_GETTER_ARGS);
 static JSValue MissionSetProperty(OOJS_SETTER_ARGS);
 

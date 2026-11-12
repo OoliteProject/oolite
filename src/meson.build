@@ -18,7 +18,7 @@ endif
 
 subdir('meson')
 subdir('oofnd')
-# Game sources include oofnd headers, which are C++20 (ADR-0011): the game builds as c++20.
+# Game sources include oofnd headers, which are C++20: the game builds as c++20.
 oolite_dependencies += [oofnd_dep]
 # oofnd/objc's support (OORaiseException, OOCAssert's failure path). No unit is Objective-C.
 oolite_dependencies += [oofnd_objc_dep]

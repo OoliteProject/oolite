@@ -42,7 +42,7 @@ class ShipEntity;
 class Entity;
 class OOPreservedAIStateMachine; // private to AI.mm; global
 
-/*	A ship's AI: C++ only since its Objective-C facade was deleted. Held as oo::Ref<AI>; a ship's shipAI owns it.
+/*	A ship's AI. Held as oo::Ref<AI>; a ship's shipAI owns it.
  */
 class AI : public oo::RefCounted {
 public:
