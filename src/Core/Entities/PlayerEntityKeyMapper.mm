@@ -321,7 +321,7 @@ oo::PList KeyConfigEntry(const oo::PList::Dict& settings, const std::optional<st
 {
     const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
     [self handleGUIUpDownArrowKeys];
-    BOOL selectKeyPress = ([self checkKeyPress:n_key_gui_select] || joyButtonState[BUTTON_GUISELECT] || [gameView isDown:gvMouseDoubleClick]);
+    BOOL selectKeyPress = ([self checkKeyPress:_cxxPlayer->n_key_gui_select] || joyButtonState[BUTTON_GUISELECT] || [gameView isDown:gvMouseDoubleClick]);
     if ([gameView isDown:gvMouseDoubleClick])
         [gameView clearMouse];
 
@@ -643,7 +643,7 @@ oo::PList KeyConfigEntry(const oo::PList::Dict& settings, const std::optional<st
 {
     const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
     [self handleGUIUpDownArrowKeys];
-    BOOL selectKeyPress = ([self checkKeyPress:n_key_gui_select] || joyButtonState[BUTTON_GUISELECT] || [gameView isDown:gvMouseDoubleClick]);
+    BOOL selectKeyPress = ([self checkKeyPress:_cxxPlayer->n_key_gui_select] || joyButtonState[BUTTON_GUISELECT] || [gameView isDown:gvMouseDoubleClick]);
     if ([gameView isDown:gvMouseDoubleClick])
         [gameView clearMouse];
 
@@ -848,7 +848,7 @@ oo::PList KeyConfigEntry(const oo::PList::Dict& settings, const std::optional<st
     const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
     [self handleGUIUpDownArrowKeys];
 
-    BOOL selectKeyPress = ([self checkKeyPress:n_key_gui_select] || joyButtonState[BUTTON_GUISELECT] || [gameView isDown:gvMouseDoubleClick]);
+    BOOL selectKeyPress = ([self checkKeyPress:_cxxPlayer->n_key_gui_select] || joyButtonState[BUTTON_GUISELECT] || [gameView isDown:gvMouseDoubleClick]);
     if ([gameView isDown:gvMouseDoubleClick])
         [gameView clearMouse];
 
@@ -1227,7 +1227,7 @@ oo::PList KeyConfigEntry(const oo::PList::Dict& settings, const std::optional<st
 {
     const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
     [self handleGUIUpDownArrowKeys];
-    BOOL selectKeyPress = ([self checkKeyPress:n_key_gui_select] || joyButtonState[BUTTON_GUISELECT] || [gameView isDown:gvMouseDoubleClick]);
+    BOOL selectKeyPress = ([self checkKeyPress:_cxxPlayer->n_key_gui_select] || joyButtonState[BUTTON_GUISELECT] || [gameView isDown:gvMouseDoubleClick]);
     if ([gameView isDown:gvMouseDoubleClick])
         [gameView clearMouse];
 
