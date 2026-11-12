@@ -29,7 +29,7 @@ oofnd_dep = declare_dependency(include_directories: oofnd_inc, dependencies: oof
 oofnd_objc_args = ['-fno-constant-cfstrings', '-fconstant-string-class=OOConstantString']
 oofnd_objc_dep = declare_dependency(
     include_directories: oofnd_inc,
-    sources: files('objc/OOObject.mm', 'objc/OOConstantString.mm', 'objc/OOException.mm'),
+    sources: files('objc/OOObject.mm', 'objc/OOConstantString.mm', 'objc/OOException.mm', 'objc/OOAssert.mm'),
     # The libobjc the platform block found (on Linux, next to gnustep-base: /usr/local/lib64 on
     # Fedora, which is not on the linker's default path); elsewhere the default search.
     dependencies: is_variable('objc_lib') ? objc_lib : cc.find_library('objc', required: true),

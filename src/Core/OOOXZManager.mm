@@ -504,9 +504,12 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
 
 - (void)setOXZList:(const oo::PList&)list
 {
-    DESTROY(_oxzList);
-    if (list != nil) {
-        _oxzList = [[list sortedArrayUsingFunction:OOSortFunction(oxzSort) context:NULL] retain];
+    _oxzList = oo::PList();
+    if (list) {
+        // category, then title, then version descending (OXZOrderedBefore); ties keep list order
+        oo::PList::Array sorted = Elements(list);
+        std::stable_sort(sorted.begin(), sorted.end(), OXZOrderedBefore);
+        _oxzList = oo::PList(std::move(sorted));
         // needed for update to available versions
         _managedList = oo::PList();
     }
@@ -817,7 +820,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
                 manifests.push_back(std::move(adjManifest));
             }
         }
-        [manifests sortUsingFunction:OOSortFunction(oxzSort) context:NULL];
+        std::stable_sort(manifests.begin(), manifests.end(), OXZOrderedBefore);
 
         _managedList = oo::PList(std::move(manifests));
     }

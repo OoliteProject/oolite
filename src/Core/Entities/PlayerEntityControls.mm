@@ -2939,8 +2939,18 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
         if ((guiSelectedRow == GUI_ROW(GAME, HDRMAXBRIGHTNESS)) && (([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) || ([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]))) {
             if (!hdrMaxBrightnessControlPressed) {
                 int direction = ([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) ? 1 : -1;
-                NSArray* brightnesses = oo::PListView([UNIVERSE descriptions]).get<NSArray*>(@"hdr_maxBrightness_array");
-                int brightnessIdx = [brightnesses indexOfObject:[NSString stringWithFormat:@"%d", (int)[gameView hdrMaxBrightness]]];
+                const oo::PList brightnessesValue = oo::PListFrom([[UNIVERSE descriptions] objectForKey:@"hdr_maxBrightness_array"]);
+                const oo::PList brightnesses = brightnessesValue.isArray() ? brightnessesValue : oo::PList();
+                // -indexOfObject: with the %d string: only string elements ever matched; not found was NSNotFound narrowed to int
+                const std::string currentBrightness = std::to_string((int)[gameView hdrMaxBrightness]);
+                int brightnessIdx = static_cast<int>(NSNotFound);
+                for (std::size_t i = 0; i < brightnesses.count(); i++) {
+                    const oo::PList* element = brightnesses.at(i);
+                    if (element->isString() && *element->getIf<std::string>() == currentBrightness) {
+                        brightnessIdx = static_cast<int>(i);
+                        break;
+                    }
+                }
 
                 if (static_cast<NSInteger>(brightnessIdx) == NSNotFound) {
                     OO_LOG_WARN("hdr.maxBrightness.notFound", "{}", "couldn't find current max brightness setting, switching to lowest.");
@@ -3357,12 +3367,12 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
     leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || [self checkKeyPress:n_key_gui_page_down] ||
         joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP] || joyButtonState[BUTTON_GUIPAGEDOWN];
     if (leftRightKeyPressed) {
-        NSString* key = [gui keyForRow:[gui selectedRow]];
+        std::optional<std::string> key = [gui cxx_keyForRow:[gui selectedRow]];
         if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEDOWN]) {
-            key = [gui keyForRow:GUI_ROW_KC_FUNCEND];
+            key = [gui cxx_keyForRow:GUI_ROW_KC_FUNCEND];
         }
         if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP]) {
-            key = [gui keyForRow:GUI_ROW_KC_FUNCSTART];
+            key = [gui cxx_keyForRow:GUI_ROW_KC_FUNCSTART];
         }
         int from_function = 0;
         const std::vector<std::string> keyComponents = key ? oo::str::split(*key, ":") : std::vector<std::string>(); // a nil key has no components
@@ -3429,12 +3439,12 @@ std::string ExpandKeyWithArguments(const char* key, const oo::PList::Dict& args)
     leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || [self checkKeyPress:n_key_gui_page_down] ||
         joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP] || joyButtonState[BUTTON_GUIPAGEDOWN];
     if (leftRightKeyPressed) {
-        NSString* key = [gui keyForRow:[gui selectedRow]];
+        std::optional<std::string> key = [gui cxx_keyForRow:[gui selectedRow]];
         if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down] || joyButtonState[BUTTON_GUIRIGHT] || joyButtonState[BUTTON_GUIPAGEDOWN]) {
-            key = [gui keyForRow:GUI_ROW_FUNCEND];
+            key = [gui cxx_keyForRow:GUI_ROW_FUNCEND];
         }
         if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || joyButtonState[BUTTON_GUILEFT] || joyButtonState[BUTTON_GUIPAGEUP]) {
-            key = [gui keyForRow:GUI_ROW_FUNCSTART];
+            key = [gui cxx_keyForRow:GUI_ROW_FUNCSTART];
         }
         int from_function = 0;
         const std::vector<std::string> keyComponents = key ? oo::str::split(*key, ":") : std::vector<std::string>(); // a nil key has no components
@@ -4485,7 +4495,7 @@ static BOOL autopilot_pause;
                         extra_key_pressed = NO;
                 }
             }
-            if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick] || joyButtonState[BUTTON_GUISELECT] || [extraKey length] > 0) //  '<enter/return>' or double click
+            if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick] || joyButtonState[BUTTON_GUISELECT] || !extraKey.empty()) //  '<enter/return>' or double click
             {
                 if ([gameView isDown:gvMouseDoubleClick]) {
                     selectPressed = NO;

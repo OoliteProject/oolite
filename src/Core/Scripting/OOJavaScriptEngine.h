@@ -61,6 +61,7 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 #import "OOTypes.h"
+#include "oofnd/PList.hpp"
 #include "oofnd/StdLib.hpp"
 #import "oofnd/objc/OOObject.h"
 #include <quickjs.h>

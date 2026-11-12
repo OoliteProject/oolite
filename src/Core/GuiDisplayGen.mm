@@ -1146,7 +1146,7 @@ OOTextureSprite* NewTextureSpriteWithDescriptor(const oo::PList& descriptor, uin
     if (JS_IsObject(value)) {
         // String objects are converted to NSStrings; anything else is treated as a dictionary.
         if (JS_GetClassID(value) != gOOJSStringClassID) {
-            result = oo::PListFrom(OOJSDictionaryFromJSObject(context, value));
+            result = cxx_OOJSDictionaryFromJSObject(context, value);
         }
     }
 
@@ -1285,7 +1285,7 @@ OOTextureSprite* NewTextureSpriteWithDescriptor(const oo::PList& descriptor, uin
             name = oo::utf16ToUtf8(oo::utf8ToUtf16(name).substr(0, 40)) + "...";
         }
 
-        damaged = !oo::PListView(info).at<bool>(1);
+        damaged = !info.at<bool>(1);
         if (damaged) {
             // Damaged items show up orange.
             [self cxx_setGLColorFromSetting:"status_equipment_damaged_color" defaultValue:[OOColor orangeColor] alpha:1.0];
@@ -1763,8 +1763,8 @@ OOTextureSprite* NewTextureSpriteWithDescriptor(const oo::PList& descriptor, uin
         num_nearby_systems = 0;
         for (i = 0; i < 256; i++) {
 
-            NSDictionary* sys_info = [UNIVERSE generateSystemData:i];
-            if (EXPECT_NOT(oo::PListView(sys_info).get<bool>(@"sun_gone_nova"))) {
+            const oo::PList sys_info = [UNIVERSE cxx_generateSystemData:i];
+            if (EXPECT_NOT(sys_info.get<bool>("sun_gone_nova"))) {
                 nearby_systems[num_nearby_systems].gov = -1; // Flag up nova systems!
             } else {
                 nearby_systems[num_nearby_systems].tec = sys_info.get<int>(oo::StdString(KEY_TECHLEVEL));
@@ -1772,8 +1772,8 @@ OOTextureSprite* NewTextureSpriteWithDescriptor(const oo::PList& descriptor, uin
                 nearby_systems[num_nearby_systems].gov = sys_info.get<int>(oo::StdString(KEY_GOVERNMENT));
             }
             nearby_systems[num_nearby_systems].sysid = i;
-            nearby_systems[num_nearby_systems].p_name = [oo::PListView(sys_info).get<NSString*>(KEY_NAME) retain];
-            nearby_systems[num_nearby_systems].nova = oo::PListView([UNIVERSE generateSystemData:i]).get<bool>(@"sun_gone_nova");
+            nearby_systems[num_nearby_systems].p_name = sys_info.get<std::string>(oo::StdString(KEY_NAME));
+            nearby_systems[num_nearby_systems].nova = [UNIVERSE cxx_generateSystemData:i].get<bool>("sun_gone_nova");
             num_nearby_systems++;
         }
         saved_galaxy_id = [player galaxyNumber];

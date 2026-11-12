@@ -7225,7 +7225,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     std::optional<std::string> desc;
     std::optional<std::string> alldesc;
 
-    BOOL prioritiseDamaged = oo::PListView([gui userSettings]).get<bool>(kGuiStatusPrioritiseDamaged, YES);
+    BOOL prioritiseDamaged = [gui cxx_userSettings].get<bool>(cxx_kGuiStatusPrioritiseDamaged, true);
 
     for (OOEquipmentType* eqType in [OOEquipmentType reverseEquipmentEnumerator]) {
         if ([eqType isVisible]) {
@@ -7600,11 +7600,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key)
     NSInteger concealment = infoSystemData.get<int>("concealment", OO_SYSTEMCONCEALMENT_NONE);
     const std::string infoSystemName = StringForKey(infoSystemData, oo::StdString(KEY_NAME)).value_or(std::string()); // (a nil name raised in the expansions below)
 
-    infoSystemData = [[UNIVERSE generateSystemData:info_system_id] retain]; // retained
-    NSInteger concealment = oo::PListView(infoSystemData).get<int>(@"concealment", OO_SYSTEMCONCEALMENT_NONE);
-    infoSystemName = oo::PListView(infoSystemData).get<NSString*>(KEY_NAME);
-
-    BOOL sunGoneNova = (oo::PListView(infoSystemData).get<bool>(@"sun_gone_nova"));
+    BOOL sunGoneNova = (infoSystemData.get<bool>("sun_gone_nova"));
     OOGUIScreenID oldScreen = gui_screen;
 
     GuiDisplayGen* gui = [UNIVERSE gui];
@@ -9747,15 +9743,15 @@ std::optional<std::string> last_outfitting_key; // nullopt = none (was nil)
     };
     switch (marketSorterMode) {
     case MARKET_SORTER_MODE_ALPHA:
-        return [goods sortedArrayUsingFunction:OOSortFunction(marketSorterByName) context:market];
+        return sortedBy(marketSorterByName, market);
     case MARKET_SORTER_MODE_PRICE:
-        return [goods sortedArrayUsingFunction:OOSortFunction(marketSorterByPrice) context:market];
+        return sortedBy(marketSorterByPrice, market);
     case MARKET_SORTER_MODE_STOCK:
-        return [goods sortedArrayUsingFunction:OOSortFunction(marketSorterByQuantity) context:market];
+        return sortedBy(marketSorterByQuantity, market);
     case MARKET_SORTER_MODE_HOLD:
-        return [goods sortedArrayUsingFunction:OOSortFunction(marketSorterByQuantity) context:shipCommodityData];
+        return sortedBy(marketSorterByQuantity, shipCommodityData);
     case MARKET_SORTER_MODE_UNIT:
-        return [goods sortedArrayUsingFunction:OOSortFunction(marketSorterByMassUnit) context:market];
+        return sortedBy(marketSorterByMassUnit, market);
     case MARKET_SORTER_MODE_OFF:
         // keep default sort order
         break;
@@ -10438,7 +10434,7 @@ std::optional<std::string> last_outfitting_key; // nullopt = none (was nil)
             continue;
 
         // Traditional form is a dictionary of booleans; we only accept those where the value is true.
-        if (dict != nil && !oo::PListView(dict).get<bool>(eqDesc))
+        if (!dict.isNull() && !dict.get<bool>(eqDesc))
             continue;
 
         // We need to add the entire collection without validation first and then remove the items that are

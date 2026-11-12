@@ -200,7 +200,7 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
 			if (shaderProgram == nil)
 			{
 
-				BOOL canFallBack = !oo::PListView(modifiedMacros).get<bool>(@"OO_REDUCED_COMPLEXITY");
+				BOOL canFallBack = !modifiedMacros.get<bool>("OO_REDUCED_COMPLEXITY");
 #ifdef OO_DEBUG_MONITOR_ENABLED
 				if (gDebugFlags & DEBUG_NO_SHADER_FALLBACK)  canFallBack = NO;
 #endif
@@ -269,7 +269,7 @@ std::optional<std::string> MacrosToString(const oo::PList& macros);
         }
 
         if (uniforms.find("uGammaCorrect") == uniforms.end()) {
-            BOOL gammaCorrect = oo::PListView(configuration).get<bool>(@"gamma_correct", ![[NSUserDefaults standardUserDefaults] boolForKey:@"no-gamma-correct"]);
+            BOOL gammaCorrect = configuration.get<bool>("gamma_correct", !oo::Defaults::standard().boolForKey("no-gamma-correct"));
             [self setUniform:"uGammaCorrect" floatValue:(float)gammaCorrect];
         }
     }

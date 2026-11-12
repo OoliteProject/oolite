@@ -449,8 +449,8 @@ void SynthDiffuse(OOMaterialSynthContext* context, const std::optional<std::stri
     if (!diffuseMapSpec.isNull() && context->texturesUsed < context->maxTextures) {
         AddTexture(context, "uDiffuseMap", cxx_kOOMaterialDiffuseMapName, "OOSTD_DIFFUSE_MAP", diffuseMapSpec);
 
-        if (oo::PListView(diffuseMapSpec).get<bool>(@"cube_map")) {
-            [context->macros setObject:@"1" forKey:@"OOSTD_DIFFUSE_MAP_IS_CUBE_MAP"];
+        if (diffuseMapSpec.get<bool>("cube_map")) {
+            context->macros["OOSTD_DIFFUSE_MAP_IS_CUBE_MAP"] = oo::PList("1");
         }
     } else {
         // No diffuse map must be specified explicitly.

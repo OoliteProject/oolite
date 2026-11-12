@@ -165,7 +165,7 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict, std::stri
         return std::nullopt;
 
     if (!oo::PListView([UNIVERSE descriptions]).get<bool>(@"lowercase_ignore")) {
-        speciesString = [speciesString lowercaseString];
+        speciesString = oo::str::lowercase(*speciesString);
     }
 
     return oo::str::trim(*speciesString, oo::str::CharacterSet::whitespace());

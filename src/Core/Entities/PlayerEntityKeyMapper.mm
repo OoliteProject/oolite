@@ -277,7 +277,7 @@ oo::PList KeyConfigEntry(const oo::PList::Dict& settings, const std::optional<st
     [[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
 
     [gui clear];
-    [gui setTitle:[NSString stringWithFormat:@"%@", DESC(@"oolite-keyconfig-header")]];
+    [gui setTitle:DESC(@"oolite-keyconfig-header")];
 
     // show keyboard layout
     [gui cxx_setArray:Columns({ oo::OptionalString(DESC(@"oolite-keyconfig-keyboard")), [self keyboardDescription:kbd] }) forRow:GUI_ROW_KC_SELECTKBD];
@@ -710,7 +710,7 @@ oo::PList KeyConfigEntry(const oo::PList::Dict& settings, const std::optional<st
 
     [gui cxx_addLongText:oo::OptionalString(DESC(@"oolite-keyconfig-update-entry-info")) startingAtRow:GUI_ROW_KC_ENTRY_INFO align:GUI_ALIGN_LEFT];
 
-    [gui setText:[NSString stringWithFormat:@"%@: %@", DESC(@"oolite-keyconfig-update-key"), [gameView typedString]] forRow:end_row align:GUI_ALIGN_LEFT];
+    [gui cxx_setText:oo::str::format("%s: %s", oo::StdString(DESC(@"oolite-keyconfig-update-key")).c_str(), DescriptionOfString([gameView cxx_typedString]).c_str()) forRow:end_row align:GUI_ALIGN_LEFT];
     [gui setColor:[OOColor cyanColor] forRow:end_row];
     [gui setSelectableRange:NSMakeRange(0, 0)];
 
@@ -738,9 +738,9 @@ oo::PList KeyConfigEntry(const oo::PList::Dict& settings, const std::optional<st
     if ([gameView lastKeyWasShifted])
         last_shift = YES;
 
-    [gui setText:
-            [NSString stringWithFormat:@"%@: %@", DESC(@"oolite-keyconfig-update-key"), [gameView typedString]]
-          forRow:end_row];
+    [gui cxx_setText:
+            oo::str::format("%s: %s", oo::StdString(DESC(@"oolite-keyconfig-update-key")).c_str(), DescriptionOfString([gameView cxx_typedString]).c_str())
+              forRow:end_row];
     [gui setColor:[OOColor cyanColor] forRow:end_row];
 
     if ([self checkKeyPress:n_key_gui_select]) {
@@ -883,9 +883,8 @@ oo::PList KeyConfigEntry(const oo::PList::Dict& settings, const std::optional<st
 - (void)displayKeyFunctionList:(GuiDisplayGen*)gui skip:(NSUInteger)skip
 {
     [gui setColor:[OOColor greenColor] forRow:GUI_ROW_KC_HEADING];
-    [gui setArray:[NSArray arrayWithObjects:
-                          DESC(@"oolite-keyconfig-column-function"), DESC(@"oolite-keyconfig-column-assigned-to"), DESC(@"oolite-keyconfig-column-overrides"), nil]
-           forRow:GUI_ROW_KC_HEADING];
+    [gui cxx_setArray:{ oo::StdString(DESC(@"oolite-keyconfig-column-function")), oo::StdString(DESC(@"oolite-keyconfig-column-assigned-to")), oo::StdString(DESC(@"oolite-keyconfig-column-overrides")) }
+               forRow:GUI_ROW_KC_HEADING];
 
     const oo::PList overrides = [self loadKeySettings];
 
@@ -1155,11 +1154,14 @@ oo::PList KeyConfigEntry(const oo::PList::Dict& settings, const std::optional<st
     if (customEquipActivation.size() > 0) {
         funcList.push_back([self makeKeyGuiDictHeader:oo::StdString(DESC(@"oolite-keydesc-header-oxp-equip"))]);
         int i;
-        for (i = 0; i < [customEquipActivation count]; i++) {
-            [funcList addObject:[self makeKeyGuiDict:[NSString stringWithFormat:@"%@ '%@'", DESC(@"oolite-keyconfig-cust-activate"), oo::PListView([customEquipActivation objectAtIndex:i]).get<NSString*>(CUSTOMEQUIP_EQUIPNAME)]
-                                              keyDef:[NSString stringWithFormat:@"activate_%@", oo::PListView([customEquipActivation objectAtIndex:i]).get<NSString*>(CUSTOMEQUIP_EQUIPKEY)]]];
-            [funcList addObject:[self makeKeyGuiDict:[NSString stringWithFormat:@"%@ '%@'", DESC(@"oolite-keyconfig-cust-mode"), oo::PListView([customEquipActivation objectAtIndex:i]).get<NSString*>(CUSTOMEQUIP_EQUIPNAME)]
-                                              keyDef:[NSString stringWithFormat:@"mode_%@", oo::PListView([customEquipActivation objectAtIndex:i]).get<NSString*>(CUSTOMEQUIP_EQUIPKEY)]]];
+        for (i = 0; i < customEquipActivation.size(); i++) {
+            const oo::PList equip = customEquipActivation[i];
+            const std::string equipName = DescriptionOfString(OptionalStringForKey(equip, oo::StdString(CUSTOMEQUIP_EQUIPNAME))); // %@: "(null)" for nil
+            const std::string equipKey = DescriptionOfString(OptionalStringForKey(equip, oo::StdString(CUSTOMEQUIP_EQUIPKEY)));
+            funcList.push_back([self makeKeyGuiDict:oo::str::format("%s '%s'", oo::StdString(DESC(@"oolite-keyconfig-cust-activate")).c_str(), equipName.c_str())
+                                             keyDef:oo::str::format("activate_%s", equipKey.c_str())]);
+            funcList.push_back([self makeKeyGuiDict:oo::str::format("%s '%s'", oo::StdString(DESC(@"oolite-keyconfig-cust-mode")).c_str(), equipName.c_str())
+                                             keyDef:oo::str::format("mode_%s", equipKey.c_str())]);
         }
     }
     return funcList;
@@ -1206,7 +1208,7 @@ oo::PList KeyConfigEntry(const oo::PList::Dict& settings, const std::optional<st
     [[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
 
     [gui clear];
-    [gui setTitle:[NSString stringWithFormat:@"%@", DESC(@"oolite-keyconfig-select-kbd")]];
+    [gui setTitle:DESC(@"oolite-keyconfig-select-kbd")];
 
     [self displayKeyboardLayoutList:gui skip:skip];
 
@@ -1316,7 +1318,7 @@ oo::PList KeyConfigEntry(const oo::PList::Dict& settings, const std::optional<st
 - (void)displayKeyboardLayoutList:(GuiDisplayGen*)gui skip:(NSUInteger)skip
 {
     [gui setColor:[OOColor greenColor] forRow:GUI_ROW_KC_HEADING];
-    [gui setArray:[NSArray arrayWithObjects:DESC(@"oolite-keyconfig-kbd-layout"), nil] forRow:GUI_ROW_KC_HEADING];
+    [gui cxx_setArray:{ oo::StdString(DESC(@"oolite-keyconfig-kbd-layout")) } forRow:GUI_ROW_KC_HEADING];
 
     if (kbdLayouts.empty())
         kbdLayouts = [self keyboardLayoutList]; // never empty once built ("default" first)
@@ -1355,13 +1357,13 @@ oo::PList KeyConfigEntry(const oo::PList::Dict& settings, const std::optional<st
         const std::string kbd = KeyboardCode();
 
         for (i = 0; i < (n_functions - skip) && (int)i < n_rows; i++) {
-            NSDictionary* entry = [kbdLayouts objectAtIndex:i + skip];
-            NSString* desc = [entry objectForKey:@"description"];
-            NSString* selected = @"";
-            if ([[entry objectForKey:@"key"] isEqualToString:kbd])
-                selected = DESC(@"oolite-keyconfig-kbd-current");
-            [gui setArray:[NSArray arrayWithObjects:desc, selected, nil] forRow:i + start_row];
-            [gui setKey:[NSString stringWithFormat:@"Index:%zu", i + skip] forRow:i + start_row];
+            const oo::PList& entry = kbdLayouts[i + skip];
+            const std::optional<std::string> desc = OptionalStringForKey(entry, "description");
+            std::string selected;
+            if (OptionalStringForKey(entry, "key") == kbd)
+                selected = oo::StdString(DESC(@"oolite-keyconfig-kbd-current"));
+            [gui cxx_setArray:Columns({ desc, selected }) forRow:i + start_row];
+            [gui cxx_setKey:oo::str::format("Index:%zu", i + skip) forRow:i + start_row];
         }
         if (i < n_functions - skip) {
             [gui setColor:[OOColor greenColor] forRow:start_row + i];

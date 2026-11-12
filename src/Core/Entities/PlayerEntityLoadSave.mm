@@ -354,7 +354,7 @@ unsigned char FirstUnitLowByte(const std::string& string)
 {
     MyOpenGLView* gameView = [UNIVERSE gameView];
     GuiDisplayGen* gui = [UNIVERSE gui];
-    NSString* dir = [[UNIVERSE gameController] playerFileDirectory];
+    std::string dir = oo::StdString([[UNIVERSE gameController] playerFileDirectory]);
     const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 
     int idx;
@@ -391,7 +391,6 @@ unsigned char FirstUnitLowByte(const std::string& string)
     // Enter pressed - find the commander name underneath.
     // ignore Ctrl for the moment - we check for it explicitly later
     if ([self checkKeyPress:n_key_gui_select ignore_ctrl:YES] || [gameView isDown:gvMouseDoubleClick] || joyButtonState[BUTTON_GUISELECT]) {
-        NSDictionary* cdr;
         switch ([gui selectedRow]) {
         case EXITROW:
             if ([self status] == STATUS_START_GAME) {
@@ -409,10 +408,12 @@ unsigned char FirstUnitLowByte(const std::string& string)
             [self lsCommanders:gui directory:dir pageNumber:currentPage highlightName:std::nullopt];
             [gameView suppressKeysUntilKeyUp];
             break;
-        default:
-            cdr = [cdrDetailArray objectAtIndex:idx];
-            if (oo::PListView(cdr).get<bool>(@"isSavedGame"))
-                return oo::PListView(cdr).get<NSString*>(@"saved_game_path");
+        default: {
+            if (idx < 0 || (std::size_t)idx >= cdrDetailArray.size())
+                break; // (-objectAtIndex: raised)
+            const oo::PList cdr = cdrDetailArray[idx];
+            if (cdr.get<bool>("isSavedGame"))
+                return OptionalStringValue(cdr.find("saved_game_path"));
             else {
                 if ([gameView isCommandModifierKeyDown] || [gameView isDown:gvMouseDoubleClick]) {
                     // change directory to the selected path
@@ -439,7 +440,7 @@ unsigned char FirstUnitLowByte(const std::string& string)
 {
     MyOpenGLView* gameView = [UNIVERSE gameView];
     GuiDisplayGen* gui = [UNIVERSE gui];
-    NSString* dir = [[UNIVERSE gameController] playerFileDirectory];
+    std::string dir = oo::StdString([[UNIVERSE gameController] playerFileDirectory]);
     const BOOL* joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 
     if ([self handleGUIUpDownArrowKeys]) {
@@ -447,8 +448,8 @@ unsigned char FirstUnitLowByte(const std::string& string)
         int idx = (guiSelectedRow - STARTROW) + (currentPage * NUMROWS);
         if (guiSelectedRow != MOREROW && guiSelectedRow != BACKROW) {
             [self showCommanderShip:idx];
-            if (oo::PListView((NSDictionary*)[cdrDetailArray objectAtIndex:idx]).get<bool>(@"isSavedGame")) // don't show things that aren't saved games
-                commanderNameString = oo::StdString(oo::PListView(oo::PListView(cdrDetailArray).at<NSDictionary*>(idx)).get<NSString*>(@"player_save_name", oo::PListView(oo::PListView(cdrDetailArray).at<NSDictionary*>(idx)).get<NSString*>(@"player_name")));
+            if (idx >= 0 && (std::size_t)idx < cdrDetailArray.size() && cdrDetailArray[idx].get<bool>("isSavedGame")) // don't show things that aren't saved games
+                commanderNameString = CommanderSaveName(cdrDetailArray[idx]).value_or("");
             else
                 commanderNameString = [gameView cxx_typedString].value_or("");
         } else {
@@ -490,7 +491,7 @@ unsigned char FirstUnitLowByte(const std::string& string)
             int idx = (guiSelectedRow - STARTROW) + (currentPage * NUMROWS);
             const oo::PList cdr = (idx >= 0 && (std::size_t)idx < cdrDetailArray.size()) ? cdrDetailArray[idx] : oo::PList(); // (-objectAtIndex: raised)
 
-            if (!oo::PListView(cdr).get<bool>(@"isSavedGame")) // don't open saved games
+            if (!cdr.isNull() && !cdr.get<bool>("isSavedGame")) // don't open saved games
             {
                 // change directory to the selected path
                 const std::string newDir = cdr.get<std::string>("saved_game_path");
@@ -592,7 +593,7 @@ unsigned char FirstUnitLowByte(const std::string& string)
             scenarioRestrict = *savedRestrict;
         } else {
             // older save game - use the 'strict' key instead
-            BOOL strict = oo::PListView(fileDic).get<bool>(@"strict", NO);
+            BOOL strict = fileDic.get<bool>("strict", NO);
             if (strict) {
                 scenarioRestrict = oo::StdString(SCENARIO_OXP_DEFINITION_NONE);
             } else {
@@ -955,7 +956,10 @@ unsigned char FirstUnitLowByte(const std::string& string)
         return;
     }
 
-    [cdrDetailArray sortUsingFunction:OOSortFunction(sortCommanders) context:NULL];
+    // sortCommanders: saved_game_path in the locale collation (oo::str::localizedCompare, ICU, as GNUstep sorted it).
+    std::stable_sort(cdrDetailArray.begin(), cdrDetailArray.end(), [](const oo::PList& cdr1, const oo::PList& cdr2) {
+        return oo::str::localizedCompare(cdr1.get<std::string>("saved_game_path"), cdr2.get<std::string>("saved_game_path")) < 0;
+    });
 
     // Do we need to highlight a name?
     int highlightRowOnPage = STARTROW;
@@ -1023,37 +1027,35 @@ unsigned char FirstUnitLowByte(const std::string& string)
 
     const std::optional<std::string> lastsaveName = oo::OptionalString([self lastsaveName]);
     for (i = firstIndex; i < lastIndex; i++) {
-        NSDictionary* cdr = [cdrDetailArray objectAtIndex:i];
-        if (oo::PListView(cdr).get<bool>(@"isSavedGame")) {
-            NSString* ratingDesc = OODisplayRatingStringFromKillCount(oo::PListView(cdr).get<unsigned int>(@"ship_kills"));
-            [gui setArray:[NSArray arrayWithObjects:
-                                  [NSString stringWithFormat:@" %@ ", oo::PListView(cdr).get<NSString*>(@"player_save_name", oo::PListView(cdr).get<NSString*>(@"player_name"))],
-                              [NSString stringWithFormat:@" %@ ", ratingDesc],
-                              nil]
-                   forRow:row];
-            if ([[self lastsaveName] isEqualToString:oo::PListView(cdr).get<NSString*>(@"player_save_name", oo::PListView(cdr).get<NSString*>(@"player_name"))]) {
+        const oo::PList& cdr = cdrDetailArray[i];
+        if (cdr.get<bool>("isSavedGame")) {
+            const std::string ratingDesc = oo::DescriptionOf(OODisplayRatingStringFromKillCount(cdr.get<unsigned int>("ship_kills")));
+            const std::optional<std::string> saveName = CommanderSaveName(cdr);
+            [gui cxx_setArray:{
+                                  " " + saveName.value_or("(null)") + " ", // @" %@ "
+                                  " " + ratingDesc + " " }
+                       forRow:row];
+            if (lastsaveName && saveName && *lastsaveName == *saveName) {
                 highlightRowOnPage = row;
             }
 
             [gui setKey:GUI_KEY_OK forRow:row];
             row++;
         }
-        if (oo::PListView(cdr).get<bool>(@"isParentFolder")) {
-            [gui setArray:[NSArray arrayWithObjects:
-                                  [NSString stringWithFormat:@" (..) %@ ", [oo::PListView(cdr).get<NSString*>(@"saved_game_path") lastPathComponent]],
-                              @"",
-                              nil]
-                   forRow:row];
+        if (cdr.get<bool>("isParentFolder")) {
+            [gui cxx_setArray:{
+                                  " (..) " + oo::str::lastPathComponent(cdr.get<std::string>("saved_game_path")) + " ",
+                                  "" }
+                       forRow:row];
             [gui setColor:[OOColor orangeColor] forRow:row];
             [gui setKey:GUI_KEY_OK forRow:row];
             row++;
         }
-        if (oo::PListView(cdr).get<bool>(@"isFolder")) {
-            [gui setArray:[NSArray arrayWithObjects:
-                                  [NSString stringWithFormat:@" >> %@ ", [oo::PListView(cdr).get<NSString*>(@"saved_game_path") lastPathComponent]],
-                              @"",
-                              nil]
-                   forRow:row];
+        if (cdr.get<bool>("isFolder")) {
+            [gui cxx_setArray:{
+                                  " >> " + oo::str::lastPathComponent(cdr.get<std::string>("saved_game_path")) + " ",
+                                  "" }
+                       forRow:row];
             [gui setColor:[OOColor orangeColor] forRow:row];
             [gui setKey:GUI_KEY_OK forRow:row];
             row++;
@@ -1087,22 +1089,22 @@ unsigned char FirstUnitLowByte(const std::string& string)
     [gui setText:@"" forRow:CDRDESCROW + 1 align:GUI_ALIGN_LEFT];
     [gui setText:@"" forRow:CDRDESCROW + 2 align:GUI_ALIGN_LEFT];
 
-    if (oo::PListView(cdr).get<bool>(@"isFolder")) {
-        NSString* folderDesc = [NSString stringWithFormat:DESC(@"loadsavescreen-hold-@-and-press-return-to-open-folder-@"), @COMMAND_MODIFIER_KEY, [oo::PListView(cdr).get<NSString*>(@"saved_game_path") lastPathComponent]];
+    if (cdr.get<bool>("isFolder")) {
+        const std::string folderDesc = oo::str::formatRuntime(oo::StdString(DESC(@"loadsavescreen-hold-@-and-press-return-to-open-folder-@")), { COMMAND_MODIFIER_KEY, oo::str::lastPathComponent(cdr.get<std::string>("saved_game_path")) });
         [gui setColor:[OOColor orangeColor] forRow:CDRDESCROW];
         [gui cxx_addLongText:folderDesc startingAtRow:CDRDESCROW align:GUI_ALIGN_LEFT];
         return;
     }
 
-    if (oo::PListView(cdr).get<bool>(@"isParentFolder")) {
-        NSString* folderDesc = [NSString stringWithFormat:DESC(@"loadsavescreen-hold-@-and-press-return-to-open-parent-folder-@"), @COMMAND_MODIFIER_KEY, [oo::PListView(cdr).get<NSString*>(@"saved_game_path") lastPathComponent]];
+    if (cdr.get<bool>("isParentFolder")) {
+        const std::string folderDesc = oo::str::formatRuntime(oo::StdString(DESC(@"loadsavescreen-hold-@-and-press-return-to-open-parent-folder-@")), { COMMAND_MODIFIER_KEY, oo::str::lastPathComponent(cdr.get<std::string>("saved_game_path")) });
         [gui setColor:[OOColor orangeColor] forRow:CDRDESCROW];
         [gui cxx_addLongText:folderDesc startingAtRow:CDRDESCROW align:GUI_ALIGN_LEFT];
         return;
     }
     [gui setColor:[gui cxx_colorFromSetting:std::nullopt defaultValue:nil] forRow:CDRDESCROW];
 
-    if (!oo::PListView(cdr).get<bool>(@"isSavedGame"))
+    if (!cdr.get<bool>("isSavedGame"))
         return; // don't show things that aren't saved games
 
     if ([self dockedStation] == nil)

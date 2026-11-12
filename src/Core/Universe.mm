@@ -103,6 +103,10 @@ MA 02110-1301, USA.
 #import "WormholeEntity.h"
 
 #import "OOFoundationBridge.h" // oo::PListFrom, used by every build, not only OO_LOCALIZATION_TOOLS ones
+#include "oofnd/FileSystem.hpp"
+#include "oofnd/PListParsing.hpp"
+#include "oofnd/Scanner.hpp"
+#include "oofnd/String.hpp"
 
 #if OO_LOCALIZATION_TOOLS
 #import "OOConvertSystemDescriptions.h"
@@ -1774,9 +1778,14 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 - (void)populateSystemFromDictionariesWithSun:(OOSunEntity*)sun andPlanet:(OOPlanetEntity*)planet
 {
     Random_Seed systemSeed = [systemManager getRandomSeedForCurrentSystem];
-    NSArray* blocks = [populatorSettings allValues];
-    NSArray* sortedBlocks = [blocks sortedArrayUsingFunction:OOSortFunction(populatorPrioritySort) context:nil];
-    NSDictionary* populator = nil;
+    // A copy of the blocks (the callbacks may change the settings), in key byte order (was the
+    // dictionary's hash order), then stably sorted by priority: order-sensitive, the goldens decide.
+    std::vector<oo::PList> sortedBlocks;
+    if (const oo::PList::Dict* blocks = populatorSettings.getIf<oo::PList::Dict>()) {
+        for (const auto& [key, block] : *blocks)
+            sortedBlocks.push_back(block);
+    }
+    std::stable_sort(sortedBlocks.begin(), sortedBlocks.end(), populatorPrioritySort);
     HPVector location = kZeroHPVector;
     uint32_t i, locationSeed, groupCount, rndvalue;
     RANROTSeed rndcache = RANROTGetFullSeed();
@@ -9761,11 +9770,16 @@ int compareName(const oo::PList& offer1, const oo::PList& offer2)
 
     autoAIMap = [ResourceManager cxx_dictionaryFromFilesNamed:"autoAImap.plist" inFolder:std::string("Config") andMerge:YES];
 
-    [equipmentData autorelease];
-    [equipmentDataOutfitting autorelease];
-    NSArray* equipmentTemp = [ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES];
-    equipmentData = [[equipmentTemp sortedArrayUsingFunction:OOSortFunction(equipmentSort) context:NULL] retain];
-    equipmentDataOutfitting = [[equipmentTemp sortedArrayUsingFunction:OOSortFunction(equipmentSortOutfitting) context:NULL] retain];
+    // ORDER-SENSITIVE: std::stable_sort, so entries that compare equal keep their file order.
+    const oo::PList equipmentTemp = [ResourceManager cxx_arrayFromFilesNamed:"equipment.plist" inFolder:std::string("Config") andMerge:YES];
+    oo::PList::Array sortedEquipment;
+    if (const oo::PList::Array* items = equipmentTemp.getIf<oo::PList::Array>())
+        sortedEquipment = *items;
+    oo::PList::Array sortedOutfitting = sortedEquipment;
+    std::stable_sort(sortedEquipment.begin(), sortedEquipment.end(), equipmentSort);
+    std::stable_sort(sortedOutfitting.begin(), sortedOutfitting.end(), equipmentSortOutfitting);
+    equipmentData = oo::PList(std::move(sortedEquipment));
+    equipmentDataOutfitting = oo::PList(std::move(sortedOutfitting));
 
     [OOEquipmentType loadEquipment];
 
@@ -9935,7 +9949,7 @@ int compareName(const oo::PList& offer1, const oo::PList& offer2)
     [self setUpSpace];
 
     [self setDockingClearanceProtocolActive:
-            oo::PListView([self currentSystemData]).get<BOOL>(@"stations_require_docking_clearance", YES)];
+            oo::PListView([self currentSystemData]).get<bool>(@"stations_require_docking_clearance", YES)];
 
     [self enterGUIViewModeWithMouseInteraction:NO];
     [player setPosition:[[self station] position]];

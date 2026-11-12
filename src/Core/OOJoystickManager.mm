@@ -525,12 +525,9 @@ static id sSharedStickHandler = nil;
 {
     oo::Defaults& defaults = oo::Defaults::standard();
 
-    [defaults setObject:oo::ObjectFromPList([self axisFunctions])
-                 forKey:AXIS_SETTINGS];
-    [defaults setObject:oo::ObjectFromPList([self buttonFunctions])
-                 forKey:BUTTON_SETTINGS];
-    [defaults setObject:oo::ObjectFromPList([self guiButtonFunctions])
-                 forKey:GUI_BUTTON_SETTINGS];
+    defaults.setObject(oo::StdString(AXIS_SETTINGS), [self axisFunctions]);
+    defaults.setObject(oo::StdString(BUTTON_SETTINGS), [self buttonFunctions]);
+    defaults.setObject(oo::StdString(GUI_BUTTON_SETTINGS), [self guiButtonFunctions]);
     [self saveProfileForAxis:AXIS_ROLL];
     [self saveProfileForAxis:AXIS_PITCH];
     [self saveProfileForAxis:AXIS_YAW];
@@ -540,10 +537,10 @@ static id sSharedStickHandler = nil;
 - (void)loadStickSettings
 {
     [self clearMappings];
-    NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
-    const oo::PList axisSettings = oo::PListFrom([defaults objectForKey:AXIS_SETTINGS]);
-    const oo::PList buttonSettings = oo::PListFrom([defaults objectForKey:BUTTON_SETTINGS]);
-    const oo::PList guiButtonSettings = oo::PListFrom([defaults objectForKey:GUI_BUTTON_SETTINGS]);
+    oo::Defaults& defaults = oo::Defaults::standard();
+    const oo::PList axisSettings = defaults.object(oo::StdString(AXIS_SETTINGS));
+    const oo::PList buttonSettings = defaults.object(oo::StdString(BUTTON_SETTINGS));
+    const oo::PList guiButtonSettings = defaults.object(oo::StdString(GUI_BUTTON_SETTINGS));
     // Keys are visited in byte order (they came in hash order): where two settings claim the
     // same stick axis or button, the last one still wins (proposed ADR-0043).
     if (axisSettings) {

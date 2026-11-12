@@ -42,7 +42,7 @@ run_script() {
 
     pacman -Syu --noconfirm
     pacman -S --noconfirm dos2unix git jq pactoys unzip
-    pacboy -S --noconfirm binutils curl espeak-ng libffi libpng libvorbis mesa meson ninja nsis ntldd openal pcaudiolib python-pip sdl3 shared-mime-info
+    pacboy -S --noconfirm binutils curl espeak-ng icu libffi libpng libvorbis mesa meson ninja nsis ntldd openal pcaudiolib python-pip sdl3 shared-mime-info
     pacboy -S --noconfirm doxygen graphviz
     mkdir -p ../../build/packages
     cd ../../build

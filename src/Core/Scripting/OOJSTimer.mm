@@ -392,7 +392,7 @@ static void TimerFinalize(JSRuntime* runtime, JSValueConst thisObj)
 
     if (timer != nil) {
         if ([timer isScheduled] && ![timer willNotFireAgain]) {
-            OOLogWARN(@"script.javaScript.unrootedTimer", @"Timer %@ is being garbage-collected while still running. You must keep a reference to all running timers, or they will stop unpredictably!", timer);
+            OO_LOG_WARN("script.javaScript.unrootedTimer", "Timer {} is being garbage-collected while still running. You must keep a reference to all running timers, or they will stop unpredictably!", oo::DescriptionOf(timer));
         }
         [timer clearJSSelf];
         [timer release];

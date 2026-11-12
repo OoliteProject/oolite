@@ -441,7 +441,7 @@ static AIStackElement* sStack = NULL;
             scripts.
     */
     if (recursionLimiter > kRecursionLimiter) {
-        OOLogERR(@"ai.error.recursion", @"AI dispatch: hit stack depth limit in AI %@, state %@ handling message %@ in context \"%@\", aborting.", oo::NSStringFrom(stateMachineName), oo::NSStringOrNil(currentState), oo::NSStringFrom(message), oo::NSStringOrNil(debugContext));
+        OO_LOG_ERR("ai.error.recursion", "AI dispatch: hit stack depth limit in AI {}, state {} handling message {} in context \"{}\", aborting.", stateMachineName, currentState.value_or("(null)"), message, debugContext.value_or("(null)"));
 
 #ifndef NDEBUG
         AIStackElement* stack = sStack;
