@@ -210,7 +210,7 @@ OOINLINE void DestroyGeometryData(GeometryData* data) {
                          kOOMeshToOctreeConverterSmallDataCapacity);
 
 #if OO_DEBUG
-  Triangle* const kScribbleValue = (Triangle*)-1L;
+  Triangle* const kScribbleValue = reinterpret_cast<Triangle*>(-1L);
   OOCAssert(data->triangles != kScribbleValue,
             "Attempt to destroy a GeometryData twice.");
 #endif
