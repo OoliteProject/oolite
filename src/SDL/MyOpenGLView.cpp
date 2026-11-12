@@ -28,6 +28,8 @@ MA 02110-1301, USA.
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_timer.h>
 
+#include <string_view>
+
 #include "GameController.h"
 #include "GuiDisplayGen.h"
 #include "OOConstToString.h"
@@ -68,7 +70,7 @@ namespace {
 
 // oo_stringForKey:defaultValue: over the user defaults: the value if it is a
 // string, a number's -stringValue, else the fallback.
-std::string DefaultsString(const char* key, const std::string& fallback) {
+std::string DefaultsString(std::string_view key, const std::string& fallback) {
   const oo::PList value = oo::Defaults::standard().object(key);
   return oo::PListGet<std::string>::from(value.isNull() ? nullptr : &value,
                                          fallback);
@@ -929,8 +931,7 @@ void MyOpenGLView::grabMouseInsideGameWindow(bool value) {
 
 void MyOpenGLView::stringToClipboard(const std::string& stringToCopy) {
   {
-    const char* clipboardText = stringToCopy.c_str();
-    if (!SDL_SetClipboardText(clipboardText)) {
+    if (!SDL_SetClipboardText(stringToCopy.c_str())) {
       OO_LOG("stringToClipboard.failed",
              "Failed to copy string {} to clipboard: {}", stringToCopy,
              SDL_GetError());

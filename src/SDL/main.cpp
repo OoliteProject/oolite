@@ -42,9 +42,12 @@ MA 02110-1301, USA.
 #include <SDL3/SDL_stdinc.h>
 #include <locale.h>
 
+#include <array>
 #include <cstring>
+#include <format>
 #include <optional>
 #include <string>
+#include <string_view>
 // Make sure that a high performance GPU is
 // selected, if more than one are available
 __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
@@ -152,15 +155,16 @@ int main(int argc, char* argv[]) {
 
 #else  // Linux and Mac
 #if OOLITE_LINUX
-  char result[PATH_MAX];
-  ssize_t count = readlink("/proc/self/exe", result, PATH_MAX - 1);
+  std::array<char, PATH_MAX> result{};
+  ssize_t count = readlink("/proc/self/exe", result.data(), PATH_MAX - 1);
   result[count] = '\0';
-  char* last_slash = strrchr(result, '/');
-  if (last_slash != NULL) {
-    *last_slash =
-        '\0';  // Chop off the executable name, leaving just the directory
+  std::string directory(result.data());
+  const std::size_t lastSlash = directory.rfind('/');
+  if (lastSlash != std::string::npos) {
+    directory.resize(
+        lastSlash);  // Chop off the executable name, leaving just the directory
   }
-  if (chdir(result) != 0) {
+  if (chdir(directory.c_str()) != 0) {
     // As before: if the executable's directory cannot be entered, the game
     // starts where it is.
   }
@@ -168,21 +172,20 @@ int main(int argc, char* argv[]) {
   // Run from the folder holding Resources and AddOns: Contents in an app bundle
   // (executable in Contents/MacOS), otherwise the folder holding the
   // executable.
-  char result[PATH_MAX];
-  uint32_t resultSize = sizeof(result);
-  char resolved[PATH_MAX];
-  if (_NSGetExecutablePath(result, &resultSize) == 0 &&
-      realpath(result, resolved) != nullptr) {
-    char* last_slash = strrchr(resolved, '/');
-    if (last_slash != nullptr) {
-      *last_slash = '\0';
+  std::array<char, PATH_MAX> result{};
+  uint32_t resultSize = result.size();
+  std::array<char, PATH_MAX> resolved{};
+  if (_NSGetExecutablePath(result.data(), &resultSize) == 0 &&
+      realpath(result.data(), resolved.data()) != nullptr) {
+    std::string directory(resolved.data());
+    const std::size_t lastSlash = directory.rfind('/');
+    if (lastSlash != std::string::npos) {
+      directory.resize(lastSlash);
     }
-    if (chdir(resolved) != 0) {
+    if (chdir(directory.c_str()) != 0) {
       // As on Linux: the game starts where it is.
     }
-    size_t length = strlen(resolved);
-    if (length >= 15 &&
-        strcmp(resolved + length - 15, "/Contents/MacOS") == 0) {
+    if (directory.ends_with("/Contents/MacOS")) {
       if (chdir("..") != 0) {
         // The game starts in Contents/MacOS.
       }
@@ -210,7 +213,7 @@ int main(int argc, char* argv[]) {
         oo::makeRef<GameController>().leakRef();  // never released (see above)
 
     for (i = 1; i < argc; i++) {
-      if (strcmp("-load", argv[i]) == 0) {
+      if (std::string_view(argv[i]) == "-load") {
         i++;
       }
       // argv is UTF-8 (SDL_main); an argument past the end reads as nothing, as
@@ -224,68 +227,67 @@ int main(int argc, char* argv[]) {
       if (argument == "-help" || argument == "--help") {
         std::string processNameString = oo::process::processName();
         char const* processName = processNameString.c_str();
-        char s[2048];
-        snprintf(s, sizeof(s),
-                 "Usage: %s [options]\n\n"
-                 "Options can be any of the following: \n\n"
-                 "--compile-sysdesc" TABS2
-                 "Compile system descriptions *\n"
-                 "--export-sysdesc" TABS2
-                 "Export system descriptions *\n"
+        // (Was snprintf into a 2,048-byte buffer; the text is shorter.)
+        const std::string s = std::format(
+            "Usage: {} [options]\n\n"
+            "Options can be any of the following: \n\n"
+            "--compile-sysdesc" TABS2
+            "Compile system descriptions *\n"
+            "--export-sysdesc" TABS2
+            "Export system descriptions *\n"
 #if OOLITE_WINDOWS
-                 "-hdr" TABS3
-                 "Start up in HDR mode\n"
+            "-hdr" TABS3
+            "Start up in HDR mode\n"
 #endif
-                 "-load [filepath]" TABS2
-                 "Load commander from [filepath]\n" TABS3 TABS4
-                 "(\"-load\" is optional)\n"
-                 "-message [messageString]" TABS1
-                 "Display [messageString] at startup\n"
-                 "-nodust    " TABS2 TABS4
-                 "Do not draw space dust\n"
-                 "-noshaders" TABS2 TABS4
-                 "Start up with shaders disabled\n"
-                 "-nosplash    " TABS2 TABS4
-                 "Force disable splash screen on startup\n"
-                 "-nosound    " TABS2 TABS4
-                 "Start up with sound disabled\n"
-                 "-novsync" TABS3
-                 "Force disable V-Sync\n"
-                 "--openstep" TABS2 TABS4
-                 "When compiling or exporting\n" TABS3 TABS4
-                 "system descriptions, use openstep\n" TABS3 TABS4
-                 "format *\n"
-                 "-showversion" TABS2 TABS4
-                 "Display version at startup screen\n"
-                 "-splash" TABS3 TABS4
-                 "Force splash screen on startup\n"
-                 "-verify-oxp [filepath]    " TABS1
-                 "Verify OXP at [filepath] *\n"
-                 "--xml" TABS3 TABS4 "When compiling or exporting\n" TABS3 TABS4
-                 "system descriptions, use xml\n" TABS3 TABS4
-                 "format *\n"
-                 "\n"
-                 "Options marked with \"*\" are available only in Test Release "
-                 "configuration.\n"
-                 "Version " OO_VERSION_FULL
-                 "\n"
-                 "Debug functionality enabled (Test Release): "
+            "-load [filepath]" TABS2
+            "Load commander from [filepath]\n" TABS3 TABS4
+            "(\"-load\" is optional)\n"
+            "-message [messageString]" TABS1
+            "Display [messageString] at startup\n"
+            "-nodust    " TABS2 TABS4
+            "Do not draw space dust\n"
+            "-noshaders" TABS2 TABS4
+            "Start up with shaders disabled\n"
+            "-nosplash    " TABS2 TABS4
+            "Force disable splash screen on startup\n"
+            "-nosound    " TABS2 TABS4
+            "Start up with sound disabled\n"
+            "-novsync" TABS3
+            "Force disable V-Sync\n"
+            "--openstep" TABS2 TABS4 "When compiling or exporting\n" TABS3 TABS4
+            "system descriptions, use openstep\n" TABS3 TABS4
+            "format *\n"
+            "-showversion" TABS2 TABS4
+            "Display version at startup screen\n"
+            "-splash" TABS3 TABS4
+            "Force splash screen on startup\n"
+            "-verify-oxp [filepath]    " TABS1
+            "Verify OXP at [filepath] *\n"
+            "--xml" TABS3 TABS4 "When compiling or exporting\n" TABS3 TABS4
+            "system descriptions, use xml\n" TABS3 TABS4
+            "format *\n"
+            "\n"
+            "Options marked with \"*\" are available only in Test Release "
+            "configuration.\n"
+            "Version " OO_VERSION_FULL
+            "\n"
+            "Debug functionality enabled (Test Release): "
 #ifdef OO_DEBUG_MONITOR_ENABLED
-                 "yes\n"
+            "yes\n"
 #else
-                 "no\n"
+            "no\n"
 #endif
-                 "Built with "
+            "Built with "
 #if OOLITE_HAVE_CLANG
-                 "Clang version " STRINGIFY(__clang_major__) "." STRINGIFY(
-                     __clang_minor__) "." STRINGIFY(__clang_patchlevel__)
+            "Clang version " STRINGIFY(__clang_major__) "." STRINGIFY(
+                __clang_minor__) "." STRINGIFY(__clang_patchlevel__)
 #else
-                 "GCC version " STRINGIFY(__GNUC__) "." STRINGIFY(
-                     __GNUC_MINOR__) "." STRINGIFY(__GNUC_PATCHLEVEL__)
+            "GCC version " STRINGIFY(__GNUC__) "." STRINGIFY(
+                __GNUC_MINOR__) "." STRINGIFY(__GNUC_PATCHLEVEL__)
 #endif
-                     "\n\n",
-                 processName);
-        OO_SHOW_MSG(s, processName, MB_OK);
+                "\n\n",
+            processName);
+        OO_SHOW_MSG(s.c_str(), processName, MB_OK);
         OO_LOG(
             "process.args",
             "{} option detected, exiting after help page has been displayed.",

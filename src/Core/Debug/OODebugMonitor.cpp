@@ -73,7 +73,7 @@ OODebugMonitor* sSingleton = nullptr;
    X it was AppKit's notification, which oo::NotificationCenter does not
    receive (that build is not maintained).
 */
-static const char* const
+constexpr std::string_view
     kOODebugMonitorApplicationWillTerminateNotificationName =
         "ApplicationWillTerminate";
 
@@ -342,7 +342,7 @@ std::string SizeString(size_t size) {
   if (size < kThreshold << 10) {
     return std::format("{} bytes", size);
   }
-  const char* suffix;
+  std::string_view suffix;
   if (size < kThreshold << 20) {
     magnitude = 1;
     suffix = "KiB";
@@ -804,7 +804,7 @@ void OODebugMonitor::jsEngine(::OOJavaScriptEngine* /*engine*/,
   std::optional<std::string> scriptLine;
   std::string formattedMessage;
   NSRange emphasisRange;
-  const char* showKey = nullptr;
+  std::string_view showKey;
   bool isWarning = (severity == "warning");
 
   if (_debugger == nullptr) return;
@@ -854,7 +854,7 @@ void OODebugMonitor::jsEngine(::OOJavaScriptEngine* /*engine*/,
   else
     showKey =
         "show-console-on-error";  // if not a warning, it's a proper error.
-  const oo::PList showValue = configurationValueForKey(showKey);
+  const oo::PList showValue = configurationValueForKey(std::string(showKey));
   if (oo::plist_get::boolFrom(&showValue, false))  // OOBooleanFromObject
   {
     showJSConsole();
