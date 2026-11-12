@@ -993,7 +993,8 @@ inline std::string pointerDescription(const void* pointer) {
   if (pointer == nullptr) return "(null)";
   const auto low = static_cast<unsigned>(
       reinterpret_cast<std::uintptr_t>(pointer) & 0xFFFFFFFFu);
-  return std::format("{:#x}", low);
+  // printf's "%#x" (what GNUstep printed): no 0x prefix when the value is 0.
+  return low == 0 ? std::string("0") : std::format("{:#x}", low);
 }
 
 // --- ordering
