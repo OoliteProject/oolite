@@ -346,7 +346,7 @@ std::string SizeString(size_t size) {
   if (size < kThreshold << 20) {
     magnitude = 1;
     suffix = "KiB";
-  } else if (size < ((size_t)kThreshold << 30)) {
+  } else if (size < (static_cast<size_t>(kThreshold) << 30)) {
     magnitude = 2;
     suffix = "MiB";
   } else {
@@ -355,7 +355,7 @@ std::string SizeString(size_t size) {
   }
 
   float unit = 1 << (magnitude * 10);
-  float sizef = (float)size / unit;
+  float sizef = static_cast<float>(size) / unit;
   sizef = round(sizef * 100.0f) / 100.f;
 
   return std::format("{:.2f} {}", sizef, suffix);
@@ -538,8 +538,9 @@ void OODebugMonitor::dumpMemoryStatistics() {
     }
 
     const auto counted = textureRefCounts.find(tex);
-    unsigned refCount =
-        (counted != textureRefCounts.end()) ? (unsigned)counted->second : 0;
+    unsigned refCount = (counted != textureRefCounts.end())
+                            ? static_cast<unsigned>(counted->second)
+                            : 0;
 
     writeMemStat(std::format("{}: [{} refs{}] {}{}",
                              tex->name().value_or("(null)"), refCount, usage,
@@ -578,14 +579,14 @@ size_t OODebugMonitor::dumpJSMemoryStatistics() {
   */
   JSMemoryUsage usage;
   JS_ComputeMemoryUsage(runtime, &usage);
-  size_t jsSize = (size_t)usage.malloc_size;
+  size_t jsSize = static_cast<size_t>(usage.malloc_size);
   size_t jsGCThreshold = JS_GetGCThreshold(runtime);
 
   OOJSRelinquishContext(context);
 
   writeMemStat(
       std::format("JavaScript heap: {} ({} objects, next collection at {})",
-                  SizeString(jsSize), (long long)usage.obj_count,
+                  SizeString(jsSize), static_cast<long long>(usage.obj_count),
                   SizeString(jsGCThreshold)));
   return jsSize;
 }

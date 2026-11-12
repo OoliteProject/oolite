@@ -219,7 +219,7 @@ void MyOpenGLView::pollControls() {
         break;
 
       case SDL_EVENT_MOUSE_BUTTON_DOWN:
-        mbtn_event = (SDL_MouseButtonEvent*)&event;
+        mbtn_event = reinterpret_cast<SDL_MouseButtonEvent*>(&event);
 
         switch (mbtn_event->button) {
           case SDL_BUTTON_LEFT:
@@ -242,7 +242,7 @@ void MyOpenGLView::pollControls() {
         break;
 
       case SDL_EVENT_MOUSE_BUTTON_UP:
-        mbtn_event = (SDL_MouseButtonEvent*)&event;
+        mbtn_event = reinterpret_cast<SDL_MouseButtonEvent*>(&event);
         // Timed by the release itself, not by this poll. timeNow is sampled
         // once as the poll starts,
         // so the two releases of one double-click - 50 ms apart - that
@@ -251,7 +251,7 @@ void MyOpenGLView::pollControls() {
         // event on the SDL_GetTicksNS() clock when it is queued, which is the
         // clock timeIntervalAtLastClick starts on.
         double timeOfClick;
-        timeOfClick = (double)mbtn_event->timestamp / 1e9;
+        timeOfClick = static_cast<double>(mbtn_event->timestamp) / 1e9;
         double timeBetweenClicks;
         timeBetweenClicks = timeOfClick - timeIntervalAtLastClick;
         timeIntervalAtLastClick += timeBetweenClicks;
@@ -267,7 +267,7 @@ void MyOpenGLView::pollControls() {
         break;
 
       case SDL_EVENT_MOUSE_WHEEL:
-        mw_event = (SDL_MouseWheelEvent*)&event;
+        mw_event = reinterpret_cast<SDL_MouseWheelEvent*>(&event);
 
         inDelta = mw_event->y;
         if (inDelta > 0) {
@@ -305,8 +305,10 @@ void MyOpenGLView::pollControls() {
         if (mouseInDeltaMode) {
           // note: virtual stick sensitivity is configurable
           SDL_GetRelativeMouseState(&mxdelta, &mydelta);
-          double mxd = (double)mxdelta / mouseVirtualStickSensitivityX;
-          double myd = (double)mydelta / mouseVirtualStickSensitivityY;
+          double mxd =
+              static_cast<double>(mxdelta) / mouseVirtualStickSensitivityX;
+          double myd =
+              static_cast<double>(mydelta) / mouseVirtualStickSensitivityY;
 
           if (!mouseWarped)  // Standard event, update coordinates
           {
@@ -329,7 +331,7 @@ void MyOpenGLView::pollControls() {
           // Windowed mode. Use the absolute position so the
           // Oolite mouse pointer appears under the X Window System
           // mouse pointer.
-          mmove_event = (SDL_MouseMotionEvent*)&event;
+          mmove_event = reinterpret_cast<SDL_MouseMotionEvent*>(&event);
 
           int w = viewSize.width;
           int h = viewSize.height;
@@ -359,7 +361,7 @@ void MyOpenGLView::pollControls() {
         break;
       }
       case SDL_EVENT_KEY_DOWN:
-        kbd_event = (SDL_KeyboardEvent*)&event;
+        kbd_event = reinterpret_cast<SDL_KeyboardEvent*>(&event);
         key_id =
             SDL_GetKeyFromScancode(kbd_event->scancode, kbd_event->mod, false);
         scan_code = kbd_event->scancode;
@@ -650,7 +652,7 @@ void MyOpenGLView::pollControls() {
 
       case SDL_EVENT_KEY_UP:
         suppressKeys = false;  // DJS
-        kbd_event = (SDL_KeyboardEvent*)&event;
+        kbd_event = reinterpret_cast<SDL_KeyboardEvent*>(&event);
         scan_code = kbd_event->scancode;
 
         shift = kbd_event->mod & SDL_KMOD_SHIFT;
@@ -946,7 +948,8 @@ void MyOpenGLView::handleStringInput(SDL_KeyboardEvent* kbd_event,
       //  printable range
       if (key_id >= 32 && key_id <= 255)  // 126
       {
-        if ((char)key_id != '/' || allowingStringInput == StringInput::kAll) {
+        if (static_cast<char>(key_id) != '/' ||
+            allowingStringInput == StringInput::kAll) {
           isAlphabetKeyDown = true;
           typedString += FormattedCharacter(key_id);
         }

@@ -71,9 +71,10 @@ int SaveEXRSnapshot(const char* outfilename, int width, int height,
   strncpy(header.channels[2].name, "R", 255);
   header.channels[2].name[strlen("R")] = '\0';
 
-  header.pixel_types = (int*)malloc(sizeof(int) * header.num_channels);
+  header.pixel_types =
+      static_cast<int*>(malloc(sizeof(int) * header.num_channels));
   header.requested_pixel_types =
-      (int*)malloc(sizeof(int) * header.num_channels);
+      static_cast<int*>(malloc(sizeof(int) * header.num_channels));
   for (int i = 0; i < header.num_channels; i++) {
     header.pixel_types[i] =
         TINYEXR_PIXELTYPE_FLOAT;  // pixel type of input image

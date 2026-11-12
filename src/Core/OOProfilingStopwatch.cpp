@@ -94,16 +94,17 @@ OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime,
     kern_return_t err = mach_timebase_info(&info);
 
     if (err == 0) {
-      conversion = 1e-9 * (double)info.numer / (double)info.denom;
+      conversion = 1e-9 * static_cast<double>(info.numer) /
+                   static_cast<double>(info.denom);
     }
   }
 
-  return conversion * (double)diff;
+  return conversion * static_cast<double>(diff);
 #elif OO_PROFILING_STOPWATCH_WINDOWS
   // Signed, so a reversed pair gives a negative delta (and a rollover between
   // the two still gives the right answer); the unsigned DWORD difference
   // wrapped to about 49.7 days.
-  return 1e-3 * (double)(int32_t)(endTime - startTime);
+  return 1e-3 * static_cast<double>(static_cast<int32_t>(endTime - startTime));
 #elif OO_PROFILING_STOPWATCH_GETTIMEOFDAY
   int32_t deltaS = static_cast<int32_t>(endTime.tv_sec) -
                    static_cast<int32_t>(startTime.tv_sec);

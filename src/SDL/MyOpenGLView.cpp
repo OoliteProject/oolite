@@ -132,10 +132,11 @@ oo::PList MyOpenGLView::getNativeSize() {
   }
 
   mode[std::string(kOODisplayWidth)] =
-      oo::PList(std::int64_t(nativeDisplayWidth));
+      oo::PList(static_cast<std::int64_t>(nativeDisplayWidth));
   mode[std::string(kOODisplayHeight)] =
-      oo::PList(std::int64_t(nativeDisplayHeight));
-  mode[std::string(kOODisplayRefreshRate)] = oo::PList(std::int64_t(0));
+      oo::PList(static_cast<std::int64_t>(nativeDisplayHeight));
+  mode[std::string(kOODisplayRefreshRate)] =
+      oo::PList(static_cast<std::int64_t>(0));
 
   return oo::PList(std::move(mode));
 }
@@ -502,7 +503,7 @@ bool MyOpenGLView::init() {
   isAlphabetKeyDown = false;
 
   timeIntervalAtLastClick =
-      (double)SDL_GetTicksNS() /
+      static_cast<double>(SDL_GetTicksNS()) /
       1e9;  // the clock SDL stamps events on (MyOpenGLView+Input.cpp)
   timeSinceLastMouseWheel =
       oo::date::monotonicSeconds();  // intervals only (MyOpenGLView+Input.cpp)
@@ -909,8 +910,8 @@ void MyOpenGLView::getDisplayDimensions(unsigned* width, unsigned* height) {
 
   SDL_Rect displaybounds;
   if (SDL_GetDisplayBounds(displayID, &displaybounds)) {
-    if (width) *width = (unsigned)displaybounds.w;
-    if (height) *height = (unsigned)displaybounds.h;
+    if (width) *width = static_cast<unsigned>(displaybounds.w);
+    if (height) *height = static_cast<unsigned>(displaybounds.h);
   }
 }
 
@@ -1017,9 +1018,7 @@ bool MyOpenGLView::isOutputDisplayHDREnabled() { return false; }
 
 #endif  // OOLITE_WINDOWS
 
-OOSDRToneMapper MyOpenGLView::sdrToneMapper() {
-  return (OOSDRToneMapper)_sdrToneMapper;
-}
+OOSDRToneMapper MyOpenGLView::sdrToneMapper() { return _sdrToneMapper; }
 
 void MyOpenGLView::setSDRToneMapper(OOSDRToneMapper newToneMapper) {
   if (newToneMapper > OOSDRToneMapper::kReinhard)
@@ -1059,11 +1058,12 @@ void MyOpenGLView::populateFullScreenModelist() {
   for (i = 0; i < displayModeCount; i++) {
     oo::PList::Dict modeDict;
     modeDict[std::string(kOODisplayWidth)] =
-        oo::PList(std::int64_t((int)modes[i]->w));
+        oo::PList(static_cast<std::int64_t>(modes[i]->w));
     modeDict[std::string(kOODisplayHeight)] =
-        oo::PList(std::int64_t((int)modes[i]->h));
-    modeDict[std::string(kOODisplayRefreshRate)] = oo::PList::singleReal(
-        (float)(int)modes[i]->refresh_rate);  // +numberWithFloat:
+        oo::PList(static_cast<std::int64_t>(modes[i]->h));
+    modeDict[std::string(kOODisplayRefreshRate)] =
+        oo::PList::singleReal(static_cast<float>(
+            static_cast<int>(modes[i]->refresh_rate)));  // +numberWithFloat:
     const oo::PList mode(std::move(modeDict));
     if (std::find_if(screenSizes.begin(), screenSizes.end(),
                      [&](const oo::PList& m) { return SameMode(m, mode); }) ==
@@ -1079,8 +1079,8 @@ void MyOpenGLView::populateFullScreenModelist() {
 // Save and restore window sizes to/from defaults.
 void MyOpenGLView::saveWindowSize(NSSize windowSize) {
   oo::Defaults& defaults = oo::Defaults::standard();
-  defaults.setInteger("window_width", (int)windowSize.width);
-  defaults.setInteger("window_height", (int)windowSize.height);
+  defaults.setInteger("window_width", static_cast<int>(windowSize.width));
+  defaults.setInteger("window_height", static_cast<int>(windowSize.height));
   currentWindowSize = windowSize;
 }
 
@@ -1108,11 +1108,11 @@ int MyOpenGLView::loadFullscreenSettings() {
 
   oo::Defaults& userDefaults = oo::Defaults::standard();
   if (!userDefaults.object("display_width").isNull())
-    width = (int)userDefaults.integerForKey("display_width");
+    width = static_cast<int>(userDefaults.integerForKey("display_width"));
   if (!userDefaults.object("display_height").isNull())
-    height = (int)userDefaults.integerForKey("display_height");
+    height = static_cast<int>(userDefaults.integerForKey("display_height"));
   if (!userDefaults.object("display_refresh").isNull())
-    refresh = (int)userDefaults.integerForKey("display_refresh");
+    refresh = static_cast<int>(userDefaults.integerForKey("display_refresh"));
   if (!userDefaults.object("fullscreen").isNull())
     fullScreen = userDefaults.boolForKey("fullscreen") ? true : false;
 
@@ -1137,7 +1137,7 @@ int MyOpenGLView::indexOfDisplayModeForWidth(unsigned int d_width,
   int i, modeCount;
   unsigned int modeWidth, modeHeight, modeRefresh;
 
-  modeCount = (int)screenSizes.size();
+  modeCount = static_cast<int>(screenSizes.size());
 
   for (i = 0; i < modeCount; i++) {
     const oo::PList& mode = screenSizes[i];
@@ -1427,7 +1427,8 @@ void MyOpenGLView::dumpGrayToFileNamed(const std::string& name, uint8_t* bytes,
       SDL_CreateSurface(width, height, SDL_PIXELFORMAT_RGBA32);
   for (int y = 0; static_cast<std::size_t>(y) < height; y++) {
     uint8_t* srcRow = bytes + rowBytes * y;
-    uint8_t* dstRow = (uint8_t*)tmpSurface->pixels + y * tmpSurface->pitch;
+    uint8_t* dstRow =
+        static_cast<uint8_t*>(tmpSurface->pixels) + y * tmpSurface->pitch;
     for (int x = 0; static_cast<std::size_t>(x) < width; x++) {
       dstRow[4 * x + 0] = srcRow[x];
       dstRow[4 * x + 1] = srcRow[x];
@@ -1460,7 +1461,8 @@ void MyOpenGLView::dumpGrayAlphaToFileNamed(const std::string& name,
                                 // caller's 2-byte-a-pixel buffer
   for (int y = 0; static_cast<std::size_t>(y) < height; y++) {
     uint8_t* srcRow = bytes + rowBytes * y;
-    uint8_t* dstRow = (uint8_t*)tmpSurface->pixels + y * tmpSurface->pitch;
+    uint8_t* dstRow =
+        static_cast<uint8_t*>(tmpSurface->pixels) + y * tmpSurface->pitch;
     for (int x = 0; static_cast<std::size_t>(x) < width; x++) {
       dstRow[4 * x + 0] = srcRow[2 * x];
       dstRow[4 * x + 1] = srcRow[2 * x];

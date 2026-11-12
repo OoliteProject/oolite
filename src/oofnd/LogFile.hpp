@@ -75,7 +75,7 @@ inline constexpr bool kLogFileCRLF = false;
 #endif
 
 // OOAsyncLogger's saturation point.
-inline constexpr std::uint64_t kLogFileSaturationLimit = std::uint64_t(1) << 30;
+inline constexpr std::uint64_t kLogFileSaturationLimit = std::uint64_t{1} << 30;
 
 // The bytes -asyncLogMessage: enqueued for <line>, or nullopt when it enqueued
 // nothing (a lone surrogate made -dataUsingEncoding: answer nil).

@@ -355,7 +355,7 @@ inline std::uint32_t ooHash(std::string_view s) {
 // by U+FEFF.
 inline Data utf16Data(std::string_view s, bool includeByteOrderMark) {
   std::u16string u = utf8ToUtf16(s);
-  if (includeByteOrderMark) u.insert(u.begin(), char16_t(0xFEFF));
+  if (includeByteOrderMark) u.insert(u.begin(), static_cast<char16_t>(0xFEFF));
   return Data(u.data(), u.size() * sizeof(char16_t));
 }
 
@@ -431,7 +431,7 @@ inline bool decodeStrictUtf8(const std::uint8_t* p, std::size_t n,
 inline std::string decodeUnicodeFile(const std::uint8_t* bytes,
                                      std::size_t length) {
   if (length >= 2 && length % 2 == 0) {
-    const unsigned first = (unsigned(bytes[0]) << 8) | bytes[1];
+    const unsigned first = (static_cast<unsigned>(bytes[0]) << 8) | bytes[1];
     if (first == 0xFFFE || first == 0xFEFF) {
       std::u16string u(length / 2 - 1, u'\0');
       for (std::size_t k = 0; k < u.size(); ++k) {
