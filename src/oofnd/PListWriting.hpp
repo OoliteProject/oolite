@@ -51,12 +51,12 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <expected>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
 
-#include "oofnd/Expected.hpp"
 #include "oofnd/PList.hpp"
 
 namespace oo {
@@ -532,20 +532,20 @@ inline void appendXML(std::string& out, const PList& v, unsigned level) {
 
 // -[NSObject(OldSchoolPropertyListWriting)
 // oldSchoolPListFormatWithErrorDescription:]
-inline Expected<Data, PListError> writeOldStylePList(const PList& plist) {
+inline std::expected<Data, PListError> writeOldStylePList(const PList& plist) {
   plist_detail::OldStyleWriter writer;
   std::string out;
   if (!writer.format(plist, 0, out))
-    return Unexpected(PListError{writer.error});
+    return std::unexpected(PListError{writer.error});
   out += '\n';
   return Data(out.data(), out.size());
 }
 
 // +[NSPropertyListSerialization
 // dataFromPropertyList:format:NSPropertyListXMLFormat_v1_0 ...]
-inline Expected<Data, PListError> writeXMLPList(const PList& plist) {
+inline std::expected<Data, PListError> writeXMLPList(const PList& plist) {
   if (plist.isNull())
-    return Unexpected(PListError{"nil property list"});  // GNUstep raises
+    return std::unexpected(PListError{"nil property list"});  // GNUstep raises
   std::string out =
       "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
       "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" "

@@ -42,7 +42,7 @@ std::string doc(std::string_view body,
 
 // What OOPropertyListFromData does with XML data.
 std::string parsed(std::string_view xml) {
-  oo::Expected<oo::PList, oo::PListError> r =
+  std::expected<oo::PList, oo::PListError> r =
       oo::parseXMLPList(oo::changeDTDIfApplicable(xml));
   return r ? oo_test::dump(*r) : "ERROR " + r.error().message;
 }

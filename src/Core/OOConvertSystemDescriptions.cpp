@@ -172,7 +172,7 @@ NSUInteger HighestIndex(const std::map<long long, oo::PList>& sparseArray) {
 }
 
 // The plist as the file text: XML, or the old-school format.
-oo::Expected<oo::Data, oo::PListError> WriteSystemDescriptions(
+std::expected<oo::Data, oo::PListError> WriteSystemDescriptions(
     const oo::PList& plist, bool asXML) {
   return asXML ? oo::writeXMLPList(plist) : oo::writeOldStylePList(plist);
 }
@@ -198,7 +198,7 @@ void CompileSystemDescriptions(bool asXML) {
 
   oo::PList::Dict wrapper;
   wrapper.emplace("system_description", std::move(sysDescArray));
-  const oo::Expected<oo::Data, oo::PListError> data =
+  const std::expected<oo::Data, oo::PListError> data =
       WriteSystemDescriptions(oo::PList(std::move(wrapper)), asXML);
 
   if (!data.has_value()) {
@@ -236,7 +236,7 @@ void ExportSystemDescriptions(bool asXML) {
     return;
   }
 
-  const oo::Expected<oo::Data, oo::PListError> data =
+  const std::expected<oo::Data, oo::PListError> data =
       WriteSystemDescriptions(sysDescDict, asXML);
 
   if (!data.has_value()) {

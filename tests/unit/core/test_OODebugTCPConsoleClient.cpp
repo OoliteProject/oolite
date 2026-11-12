@@ -158,7 +158,7 @@ oo::PList ReadPacket(SOCKET s) {
   std::string body(length, '\0');
   if (!ReceiveAll(s, reinterpret_cast<uint8_t*>(body.data()), length))
     return oo::PList();
-  oo::Expected<oo::PList, oo::PListError> parsed = oo::parsePropertyList(body);
+  std::expected<oo::PList, oo::PListError> parsed = oo::parsePropertyList(body);
   return parsed ? std::move(*parsed) : oo::PList();
 }
 
@@ -167,7 +167,7 @@ oo::PList ReadPacket(SOCKET s) {
 void SendPacket(SOCKET s, const std::string& type,
                 oo::PList::Dict parameters = {}) {
   parameters["packet type"] = oo::PList(type);
-  const oo::Expected<oo::Data, oo::PListError> data =
+  const std::expected<oo::Data, oo::PListError> data =
       oo::writeXMLPList(oo::PList(std::move(parameters)));
   const uint32_t length = htonl(static_cast<uint32_t>(data->length()));
   send(s, reinterpret_cast<const char*>(&length), sizeof length, 0);
@@ -191,7 +191,7 @@ const oo::PList* Value(const oo::PList& packet, const std::string& key) {
 // unsigned when non-negative, which oo::PList's == tells apart.
 bool Same(const oo::PList* value, const oo::PList& expected) {
   if (value == nullptr) return false;
-  const oo::Expected<oo::Data, oo::PListError> a = oo::writeXMLPList(*value),
+  const std::expected<oo::Data, oo::PListError> a = oo::writeXMLPList(*value),
                                                b = oo::writeXMLPList(expected);
   return a && b && a->stringView() == b->stringView();
 }

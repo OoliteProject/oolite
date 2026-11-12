@@ -55,13 +55,13 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <expected>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
 
-#include "oofnd/Expected.hpp"
 #include "oofnd/PList.hpp"
 
 namespace oo {
@@ -901,13 +901,13 @@ class XMLPListReader {
 // The XML branch of -[NSPropertyListSerialization propertyListWithData:...] (no
 // DTD change: that is OOPListParsing's step, changeDTDIfApplicable() above). A
 // parse GNUstep completes with nil yields a null PList.
-inline Expected<PList, PListError> parseXMLPList(std::string_view bytes) {
+inline std::expected<PList, PListError> parseXMLPList(std::string_view bytes) {
   std::optional<std::string> utf8 = plist_detail::xmlDataAsUtf8(bytes);
   if (utf8) {
     plist_detail::XMLPListReader reader(std::move(*utf8));
     if (reader.parse()) return reader.result();
   }
-  return Unexpected(PListError{"failed to parse as XML property list"});
+  return std::unexpected(PListError{"failed to parse as XML property list"});
 }
 
 }  // namespace oo

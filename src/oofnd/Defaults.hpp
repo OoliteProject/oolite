@@ -404,7 +404,7 @@ inline PList::Dict parseDefaultsArguments(
       continue;
     }
     const std::string& raw = argv[i + 1];
-    Expected<PList, PListError> parsed = parsePropertyListData(raw);
+    std::expected<PList, PListError> parsed = parsePropertyListData(raw);
     result[key] = parsed && !parsed->isNull() ? std::move(*parsed) : PList(raw);
     i += 2;
   }
@@ -605,7 +605,8 @@ class Defaults {
   static PList::Dict load(const fs::Path& path) {
     fs::Result<Data> bytes = fs::readFile(path);
     if (!bytes || bytes->empty()) return {};
-    Expected<PList, PListError> plist = parsePropertyList(bytes->stringView());
+    std::expected<PList, PListError> plist =
+        parsePropertyList(bytes->stringView());
     if (!plist || !plist->isDict()) return {};
     return std::move(*plist->getIf<PList::Dict>());
   }

@@ -63,7 +63,7 @@ std::optional<std::string> OoliteInfoString(std::string_view key) {
   oo::PList info;
   if (const oo::fs::Result<oo::Data> bytes = oo::fs::readFile(plistPath);
       bytes && !bytes->empty()) {
-    if (oo::Expected<oo::PList, oo::PListError> parsed =
+    if (std::expected<oo::PList, oo::PListError> parsed =
             oo::parsePropertyList(bytes->stringView());
         parsed && parsed->isDict())
       info = std::move(*parsed);

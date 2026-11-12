@@ -2,7 +2,7 @@
         oo::fs: file-system operations, the C++ shape of NSFileManager and of
    Oolite's NSFileManager (OOExtensions) category. Built on
    std::filesystem, using only its non-throwing (std::error_code) overloads;
-   every fallible call returns oo::Expected.
+   every fallible call returns std::expected.
 
             Foundation / NSFileManagerOOExtensions        oofnd
             --------------------------------------------
@@ -69,6 +69,7 @@
 #include <chrono>
 #include <cstdint>
 #include <cstdio>
+#include <expected>
 #include <filesystem>
 #include <optional>
 #include <string>
@@ -77,7 +78,6 @@
 #include <vector>
 
 #include "oofnd/Data.hpp"
-#include "oofnd/Expected.hpp"
 
 #if defined(_WIN32)
 #include <io.h>
@@ -91,7 +91,7 @@ using Path = std::filesystem::path;
 using Error = std::error_code;
 
 template <class T>
-using Result = oo::Expected<T, Error>;
+using Result = std::expected<T, Error>;
 
 // --- UTF-8 <-> Path
 // -----------------------------------------------------------------------
@@ -156,7 +156,7 @@ inline bool isDirectory(const Path& path) noexcept {
 inline Result<std::uintmax_t> fileSize(const Path& path) {
   std::error_code ec;
   const std::uintmax_t size = std::filesystem::file_size(path, ec);
-  if (ec) return oo::Unexpected(ec);
+  if (ec) return std::unexpected(ec);
   return size;
 }
 
@@ -165,7 +165,7 @@ inline Result<std::uintmax_t> fileSize(const Path& path) {
 inline Result<std::uintmax_t> freeSpace(const Path& path) {
   std::error_code ec;
   const std::filesystem::space_info info = std::filesystem::space(path, ec);
-  if (ec) return oo::Unexpected(ec);
+  if (ec) return std::unexpected(ec);
   return info.available;
 }
 
@@ -176,7 +176,7 @@ inline Result<double> modificationTimeSince1970(const Path& path) {
   std::error_code ec;
   const std::filesystem::file_time_type ftime =
       std::filesystem::last_write_time(path, ec);
-  if (ec) return oo::Unexpected(ec);
+  if (ec) return std::unexpected(ec);
   using namespace std::chrono;
   const auto systemNow = system_clock::now();
   const auto fileNow = std::filesystem::file_time_type::clock::now();
@@ -259,14 +259,14 @@ class RecursiveDirectoryEnumerator {
 inline Result<std::vector<std::string>> directoryContents(const Path& path) {
   std::error_code ec;
   std::filesystem::directory_iterator it(path, ec);
-  if (ec) return oo::Unexpected(ec);
+  if (ec) return std::unexpected(ec);
   std::vector<std::string> names;
   for (const std::filesystem::directory_iterator end; it != end;
        it.increment(ec)) {
-    if (ec) return oo::Unexpected(ec);
+    if (ec) return std::unexpected(ec);
     names.push_back(utf8String(it->path().filename()));
   }
-  if (ec) return oo::Unexpected(ec);
+  if (ec) return std::unexpected(ec);
   return names;
 }
 
@@ -278,11 +278,11 @@ inline Result<void> createDirectories(const Path& path) {
   std::filesystem::create_directories(path, ec);
   if (ec) {
     if (fileExists(path) && !isDirectory(path))
-      return oo::Unexpected(std::make_error_code(std::errc::not_a_directory));
-    return oo::Unexpected(ec);
+      return std::unexpected(std::make_error_code(std::errc::not_a_directory));
+    return std::unexpected(ec);
   }
   if (!isDirectory(path))
-    return oo::Unexpected(std::make_error_code(std::errc::not_a_directory));
+    return std::unexpected(std::make_error_code(std::errc::not_a_directory));
   return {};
 }
 
@@ -291,38 +291,38 @@ inline Result<void> removeItem(const Path& path) {
   const std::filesystem::file_status st =
       std::filesystem::symlink_status(path, ec);
   if (ec || !std::filesystem::exists(st))
-    return oo::Unexpected(
+    return std::unexpected(
         std::make_error_code(std::errc::no_such_file_or_directory));
   std::filesystem::remove_all(path, ec);
-  if (ec) return oo::Unexpected(ec);
+  if (ec) return std::unexpected(ec);
   return {};
 }
 
 inline Result<void> moveItem(const Path& from, const Path& to) {
   std::error_code ec;
   if (!std::filesystem::exists(std::filesystem::symlink_status(from, ec))) {
-    return oo::Unexpected(
+    return std::unexpected(
         std::make_error_code(std::errc::no_such_file_or_directory));
   }
   if (std::filesystem::exists(std::filesystem::symlink_status(to, ec))) {
-    return oo::Unexpected(std::make_error_code(std::errc::file_exists));
+    return std::unexpected(std::make_error_code(std::errc::file_exists));
   }
   std::filesystem::rename(from, to, ec);
-  if (ec) return oo::Unexpected(ec);
+  if (ec) return std::unexpected(ec);
   return {};
 }
 
 inline Result<Path> currentDirectory() {
   std::error_code ec;
   Path cwd = std::filesystem::current_path(ec);
-  if (ec) return oo::Unexpected(ec);
+  if (ec) return std::unexpected(ec);
   return cwd;
 }
 
 inline Result<void> setCurrentDirectory(const Path& path) {
   std::error_code ec;
   std::filesystem::current_path(path, ec);
-  if (ec) return oo::Unexpected(ec);
+  if (ec) return std::unexpected(ec);
   return {};
 }
 
@@ -349,16 +349,16 @@ inline Error lastError(int fallback) noexcept {
 inline Result<Data> readFile(const Path& path) {
   switch (fileType(path)) {
     case FileType::none:
-      return oo::Unexpected(
+      return std::unexpected(
           std::make_error_code(std::errc::no_such_file_or_directory));
     case FileType::directory:
-      return oo::Unexpected(std::make_error_code(std::errc::is_a_directory));
+      return std::unexpected(std::make_error_code(std::errc::is_a_directory));
     default:
       break;
   }
   errno = 0;
   std::FILE* f = detail::openFile(path, false);
-  if (f == nullptr) return oo::Unexpected(detail::lastError(EACCES));
+  if (f == nullptr) return std::unexpected(detail::lastError(EACCES));
 
   std::vector<std::uint8_t> bytes;
   unsigned char buffer[64 * 1024];
@@ -369,7 +369,7 @@ inline Result<Data> readFile(const Path& path) {
   }
   const bool failed = std::ferror(f) != 0;
   std::fclose(f);
-  if (failed) return oo::Unexpected(std::make_error_code(std::errc::io_error));
+  if (failed) return std::unexpected(std::make_error_code(std::errc::io_error));
   return Data(std::move(bytes));
 }
 
@@ -388,14 +388,14 @@ inline Result<void> writeFile(const Path& path, const Data& data,
 
   errno = 0;
   std::FILE* f = detail::openFile(target, true);
-  if (f == nullptr) return oo::Unexpected(detail::lastError(EACCES));
+  if (f == nullptr) return std::unexpected(detail::lastError(EACCES));
   const bool wrote = data.empty() || std::fwrite(data.bytes(), 1, data.length(),
                                                  f) == data.length();
   const bool closed = std::fclose(f) == 0;
   std::error_code ec;
   if (!wrote || !closed) {
     if (mode == WriteMode::atomic) std::filesystem::remove(target, ec);
-    return oo::Unexpected(std::make_error_code(std::errc::io_error));
+    return std::unexpected(std::make_error_code(std::errc::io_error));
   }
 
   if (mode == WriteMode::atomic) {
@@ -403,7 +403,7 @@ inline Result<void> writeFile(const Path& path, const Data& data,
     if (ec) {
       std::error_code ignored;
       std::filesystem::remove(target, ignored);
-      return oo::Unexpected(ec);
+      return std::unexpected(ec);
     }
   }
   return {};

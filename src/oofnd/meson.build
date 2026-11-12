@@ -1,7 +1,7 @@
 # oofnd — the Foundation replacement (docs/architecture.md §3.4).
 #
 # Header-first C++23: every component so far is header-only, so oofnd is an include path and
-# nothing more. Consumers write #include "oofnd/Expected.hpp" and depend on oofnd_dep. When a
+# nothing more. Consumers write #include "oofnd/PList.hpp" and depend on oofnd_dep. When a
 # component needs a .cpp, add it here as a static library and fold it into oofnd_dep, e.g.
 #
 #     oofnd_lib = static_library('oofnd', files('PList.cpp'),
