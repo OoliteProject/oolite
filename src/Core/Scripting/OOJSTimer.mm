@@ -245,7 +245,7 @@ JSValue OOJSTimer::jsValueInContext(JSContext* context)
 // TimerFinalize's warning, before the engine's finalizer releases the slot's retain.
 void OOJSTimer::clearJSSelf(JSValueConst selfVal)
 {
-    if (isScheduled()) {
+    if (isScheduled() && !willNotFireAgain()) {
         // A scheduled timer's facade is live: the timer queue holds it. Its description reads
         // the cached function name, so it runs no JS code inside the finalizer.
         OO_LOG_WARN("script.javaScript.unrootedTimer", "Timer {} is being garbage-collected while still running. You must keep a reference to all running timers, or they will stop unpredictably!", oo::DescriptionOf(oo::LiveObjC(this)));
@@ -413,26 +413,6 @@ static JSValue TimerSetProperty(OOJS_SETTER_ARGS)
     return JS_EXCEPTION;
 
     OOJS_NATIVE_EXIT
-}
-
-static void TimerFinalize(JSRuntime* runtime, JSValueConst thisObj)
-{
-    OOJS_PROFILE_ENTER
-
-    // Can't use JSTimerGetTimer() here - potential chicken-and-egg problem manifesting as a crash.
-    ::OOJSTimer* timer = (::OOJSTimer*)JS_GetOpaque(thisObj, sTimerClassID);
-
-    if (timer != nil) {
-        cxx::OOJSTimer* cxxTimer = oo::ToCxx(timer);
-        if (cxxTimer->isScheduled() && !cxxTimer->willNotFireAgain()) {
-            OO_LOG_WARN("script.javaScript.unrootedTimer", "Timer {} is being garbage-collected while still running. You must keep a reference to all running timers, or they will stop unpredictably!", oo::DescriptionOf(timer));
-        }
-        cxxTimer->clearJSSelf();
-        objc_release(timer); // the private slot's retain
-        JS_SetOpaque(thisObj, NULL);
-    }
-
-    OOJS_PROFILE_EXIT_VOID
 }
 
 // new Timer(this : Object, function : Function, delay : Number [, interval : Number]) : Timer
