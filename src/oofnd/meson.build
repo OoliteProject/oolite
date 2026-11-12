@@ -1,6 +1,6 @@
 # oofnd — the Foundation replacement (docs/architecture.md §3.4).
 #
-# Header-first C++20: every component so far is header-only, so oofnd is an include path and
+# Header-first C++23: every component so far is header-only, so oofnd is an include path and
 # nothing more. Consumers write #include "oofnd/Expected.hpp" and depend on oofnd_dep. When a
 # component needs a .cpp, add it here as a static library and fold it into oofnd_dep, e.g.
 #
@@ -15,7 +15,7 @@ oofnd_inc = include_directories('..')
 # werror under Clang only: GCC's flow-sensitive diagnostics
 # fire inside libstdc++ inlines on correct test code (test_plist.cpp, test_ref.cpp). Under GCC the
 # warnings still print; nothing is suppressed.
-oofnd_override_options = ['cpp_std=c++20', 'warning_level=2',
+oofnd_override_options = ['cpp_std=c++23', 'warning_level=2',
     'werror=' + (meson.get_compiler('cpp').get_id() == 'gcc' ? 'false' : 'true')]
 # ICU: oo::str::localizedCompare (String.hpp) collates with it, as GNUstep's -localizedCompare:
 # does. GNUstep-base already links the same ICU, so the game gains no new DLL.
