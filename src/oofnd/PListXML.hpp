@@ -50,6 +50,7 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -175,7 +176,7 @@ inline std::string charsetForXml(std::string_view xml) {
   while (ptr + 1 <= end && isCSpace(*ptr)) ptr++;
   if (ptr + 20 >= end || ptr[0] != '<' || ptr[1] != '?') return "utf-8";
   ptr += 5;
-  char buffer[31];
+  std::array<char, 31> buffer{};
   std::size_t buflen = 0;
   unsigned char quote = 0;
   bool found = false;
@@ -188,7 +189,7 @@ inline std::string charsetForXml(std::string_view xml) {
       } else if (isCSpace(c) || c == '=') {
         if (buflen == 8) {
           buffer[8] = '\0';
-          std::string token(buffer, 8);
+          std::string token(buffer.data(), 8);
           for (char& ch : token)
             ch = (ch >= 'A' && ch <= 'Z') ? static_cast<char>(ch - 'A' + 'a')
                                           : ch;
@@ -201,7 +202,7 @@ inline std::string charsetForXml(std::string_view xml) {
       }
     } else if (c == quote) {
       if (found) {
-        std::string cs(buffer, buflen);
+        std::string cs(buffer.data(), buflen);
         for (char& ch : cs)
           ch =
               (ch >= 'A' && ch <= 'Z') ? static_cast<char>(ch - 'A' + 'a') : ch;
@@ -544,14 +545,14 @@ class XMLPListReader {
     const char* e = reinterpret_cast<const char*>(bytes_) + ep;
     if (len > 0 && e[0] == '#') {
       if (len < 8) {
-        char buf[8];
-        std::memcpy(buf, e + 1, len - 1);
+        std::array<char, 8> buf{};
+        std::memcpy(buf.data(), e + 1, len - 1);
         buf[len - 1] = '\0';
         unsigned int val = 0;
-        int n = std::sscanf(buf, "x%x;", &val);
+        int n = std::sscanf(buf.data(), "x%x;", &val);
         if (n == 0) {
           int d = 0;
-          n = std::sscanf(buf, "%d;", &d);
+          n = std::sscanf(buf.data(), "%d;", &d);
           val = static_cast<unsigned int>(d);
         }
         // (sscanf returning kEOF left GNUstep reading an uninitialised value:

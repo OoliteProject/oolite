@@ -52,6 +52,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <expected>
+#include <format>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -134,18 +135,12 @@ class OldStyleWriter {
         return true;
       case PList::Type::Integer: {
         const PList::Integer& i = *v.getIf<PList::Integer>();
-        char buf[32];
-        if (i.isUnsigned)
-          std::snprintf(buf, sizeof buf, "%" PRIu64, i.unsignedValue());
-        else
-          std::snprintf(buf, sizeof buf, "%" PRId64, i.value);
-        out += buf;
+        out += i.isUnsigned ? std::format("{}", i.unsignedValue())
+                            : std::format("{}", i.value);
         return true;
       }
       case PList::Type::Real: {
-        char buf[40];
-        std::snprintf(buf, sizeof buf, "%.8g", *v.getIf<double>());
-        out += buf;
+        out += std::format("{:.8g}", *v.getIf<double>());
         return true;
       }
       case PList::Type::Data:
@@ -396,8 +391,8 @@ inline void appendXMLString(std::string& out, const std::string& s) {
   out += utf16ToUtf8(map);
 }
 
-inline const char* xmlIndent(unsigned index) noexcept {
-  static constexpr const char* kIndents[] = {
+inline std::string_view xmlIndent(unsigned index) noexcept {
+  static constexpr std::string_view kIndents[] = {
       "",
       "  ",
       "    ",
@@ -430,7 +425,6 @@ inline const char* xmlIndent(unsigned index) noexcept {
 
 inline void appendXML(std::string& out, const PList& v, unsigned level) {
   constexpr unsigned step = 2;
-  char buf[48];
   switch (v.type()) {
     case PList::Type::String:
       out += "<string>";
@@ -442,25 +436,19 @@ inline void appendXML(std::string& out, const PList& v, unsigned level) {
       return;
     case PList::Type::Integer: {
       const PList::Integer& i = *v.getIf<PList::Integer>();
-      if (i.isUnsigned)
-        std::snprintf(buf, sizeof buf, "%" PRIu64, i.unsignedValue());
-      else
-        std::snprintf(buf, sizeof buf, "%" PRId64, i.value);
       out += "<integer>";
-      out += buf;
+      out += i.isUnsigned ? std::format("{}", i.unsignedValue())
+                          : std::format("{}", i.value);
       out += "</integer>\n";
       return;
     }
     case PList::Type::Real:
-      if (v.isSinglePrecision())
-        std::snprintf(
-            buf, sizeof buf, "%0.7g",
-            static_cast<double>(static_cast<float>(
-                *v.getIf<double>())));  // +numberWithFloat: (captured)
-      else
-        std::snprintf(buf, sizeof buf, "%0.16g", *v.getIf<double>());
       out += "<real>";
-      out += buf;
+      out += v.isSinglePrecision()
+                 ? std::format("{:.7g}",
+                               static_cast<double>(static_cast<float>(
+                                   *v.getIf<double>())))  // +numberWithFloat:
+                 : std::format("{:.16g}", *v.getIf<double>());
       out += "</real>\n";
       return;
     case PList::Type::Data:
@@ -472,16 +460,15 @@ inline void appendXML(std::string& out, const PList& v, unsigned level) {
       long y;
       int mo, d, h, mi, s;
       breakDate(v.getIf<PList::Date>()->sinceReferenceDate, y, mo, d, h, mi, s);
-      std::snprintf(buf, sizeof buf, "%04ld-%02d-%02dT%02d:%02d:%02dZ", y, mo,
-                    d, h, mi, s);
       out += "<date>";
-      out += buf;
+      out += std::format("{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z", y, mo, d, h,
+                         mi, s);
       out += "</date>\n";
       return;
     }
     case PList::Type::Array: {
-      const char* base = xmlIndent(level * step);
-      const char* size = xmlIndent((level + 1) * step);
+      const std::string_view base = xmlIndent(level * step);
+      const std::string_view size = xmlIndent((level + 1) * step);
       out += "<array>\n";
       for (const PList& e : *v.getIf<PList::Array>()) {
         out += size;
@@ -492,8 +479,8 @@ inline void appendXML(std::string& out, const PList& v, unsigned level) {
       return;
     }
     case PList::Type::Dict: {
-      const char* base = xmlIndent(level * step);
-      const char* size = xmlIndent((level + 1) * step);
+      const std::string_view base = xmlIndent(level * step);
+      const std::string_view size = xmlIndent((level + 1) * step);
       std::vector<std::pair<std::u16string, const PList::Dict::value_type*>>
           keys;
       for (const auto& kv : *v.getIf<PList::Dict>())

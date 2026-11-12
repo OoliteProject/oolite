@@ -63,6 +63,7 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <charconv>
 #include <cmath>
 #include <cstdarg>
@@ -1276,10 +1277,10 @@ inline std::string formatInteger(unsigned long long magnitude, bool negative,
   const int base = conversion == 'o'
                        ? 8
                        : ((conversion == 'x' || conversion == 'X') ? 16 : 10);
-  char buffer[32];
-  const auto result =
-      std::to_chars(buffer, buffer + sizeof buffer, magnitude, base);
-  std::string digits(buffer, result.ptr);
+  std::array<char, 32> buffer{};
+  const auto result = std::to_chars(
+      buffer.data(), buffer.data() + buffer.size(), magnitude, base);
+  std::string digits(buffer.data(), result.ptr);
   if (conversion == 'X')
     std::transform(digits.begin(), digits.end(), digits.begin(), [](char c) {
       return c >= 'a' && c <= 'f' ? static_cast<char>(c - 'a' + 'A') : c;
@@ -1317,11 +1318,11 @@ inline std::string formatReal(double value, char conversion,
         lower == 'f' ? std::chars_format::fixed
                      : (lower == 'e' ? std::chars_format::scientific
                                      : std::chars_format::general);
-    char buffer[400];
+    std::array<char, 400> buffer{};
     const auto result =
-        std::to_chars(buffer, buffer + sizeof buffer, magnitude, format,
-                      lower == 'g' && precision == 0 ? 1 : precision);
-    digits.assign(buffer, result.ptr);
+        std::to_chars(buffer.data(), buffer.data() + buffer.size(), magnitude,
+                      format, lower == 'g' && precision == 0 ? 1 : precision);
+    digits.assign(buffer.data(), result.ptr);
     if (f.alternate && lower != 'g' && digits.find('.') == std::string::npos) {
       const std::size_t e = digits.find('e');
       digits.insert(e == std::string::npos ? digits.size() : e, 1, '.');
