@@ -29,9 +29,9 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#ifndef OO_PLAIN_CPP_UNIT
 #include <string_view>
 
+#ifndef OO_PLAIN_CPP_UNIT
 #include "OOFoundation.h"
 #endif
 #include "OOEnumFlags.h"
