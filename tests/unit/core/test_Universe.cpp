@@ -73,7 +73,7 @@ OO_TEST(defaults) {
     OO_CHECK(sky[0] == 0.0f && sky[1] == 0.0f && sky[2] == 0.0f &&
              sky[3] == 0.0f);
 
-    OO_CHECK(u->getDetailLevel() == DETAIL_LEVEL_MINIMUM);
+    OO_CHECK(u->getDetailLevel() == OOGraphicsDetail::kMinimum);
     OO_CHECK(u->reducedDetail() && !u->useShaders());
     OO_CHECK(!u->bloom());
     OO_CHECK(u->currentPostFX() == OO_POSTFX_NONE &&
@@ -1083,9 +1083,9 @@ OO_TEST(slice20NamesAndRoutes) {
     OO_CHECK(u->systemsFound() == (bool*)u->system_found);
 
     // No route from or to interstellar space, or outside the galaxy.
-    OO_CHECK(u->routeFromSystem(-1, 7, OPTIMIZED_BY_JUMPS).isNull());
-    OO_CHECK(u->routeFromSystem(7, -1, OPTIMIZED_BY_TIME).isNull());
-    OO_CHECK(u->routeFromSystem(300, 7, OPTIMIZED_BY_JUMPS).isNull());
+    OO_CHECK(u->routeFromSystem(-1, 7, OORouteType::kJumps).isNull());
+    OO_CHECK(u->routeFromSystem(7, -1, OORouteType::kTime).isNull());
+    OO_CHECK(u->routeFromSystem(300, 7, OORouteType::kJumps).isNull());
 
     // The current system's neighbours, once cached, are the cache.
     u->systemID = 3;
@@ -1209,10 +1209,10 @@ OO_TEST(slice24DetailAndLogs) {
     oo::AutoreleaseScope scope;
     Universe* u = NewUniverse();
 
-    u->detailLevel = DETAIL_LEVEL_SHADERS;
-    OO_CHECK(u->getDetailLevel() == DETAIL_LEVEL_SHADERS && u->useShaders() &&
+    u->detailLevel = OOGraphicsDetail::kShaders;
+    OO_CHECK(u->getDetailLevel() == OOGraphicsDetail::kShaders && u->useShaders() &&
              !u->reducedDetail());
-    u->detailLevel = DETAIL_LEVEL_MINIMUM;
+    u->detailLevel = OOGraphicsDetail::kMinimum;
     OO_CHECK(u->reducedDetail() && !u->useShaders());
     u->wireframeGraphics = true;
     OO_CHECK(u->getWireframeGraphics());

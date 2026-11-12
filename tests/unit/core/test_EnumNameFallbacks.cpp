@@ -304,142 +304,142 @@ OO_TEST(cxx_OOLongRangeChartModeFromString) {
 }
 
 OO_TEST(cxx_RouteTypeToString) {
-  OO_CHECK(cxx_RouteTypeToString(OPTIMIZED_BY_NONE) == "OPTIMIZED_BY_NONE");
-  OO_CHECK(cxx_RouteTypeToString(OPTIMIZED_BY_JUMPS) == "OPTIMIZED_BY_JUMPS");
-  OO_CHECK(cxx_RouteTypeToString(OPTIMIZED_BY_TIME) == "OPTIMIZED_BY_TIME");
+  OO_CHECK(cxx_RouteTypeToString(OORouteType::kNone) == "OPTIMIZED_BY_NONE");
+  OO_CHECK(cxx_RouteTypeToString(OORouteType::kJumps) == "OPTIMIZED_BY_JUMPS");
+  OO_CHECK(cxx_RouteTypeToString(OORouteType::kTime) == "OPTIMIZED_BY_TIME");
 }
 
 OO_TEST(cxx_CargoTypeToString) {
-  OO_CHECK(cxx_CargoTypeToString(CARGO_NOT_CARGO) == "CARGO_NOT_CARGO");
-  OO_CHECK(cxx_CargoTypeToString(CARGO_SLAVES) == "CARGO_SLAVES");
-  OO_CHECK(cxx_CargoTypeToString(CARGO_ALLOY) == "CARGO_ALLOY");
-  OO_CHECK(cxx_CargoTypeToString(CARGO_MINERALS) == "CARGO_MINERALS");
-  OO_CHECK(cxx_CargoTypeToString(CARGO_THARGOID) == "CARGO_THARGOID");
-  OO_CHECK(cxx_CargoTypeToString(CARGO_RANDOM) == "CARGO_RANDOM");
-  OO_CHECK(cxx_CargoTypeToString(CARGO_SCRIPTED_ITEM) == "CARGO_SCRIPTED_ITEM");
-  OO_CHECK(cxx_CargoTypeToString(CARGO_CHARACTER) == "CARGO_CHARACTER");
+  OO_CHECK(cxx_CargoTypeToString(OOCargoType::kNotCargo) == "CARGO_NOT_CARGO");
+  OO_CHECK(cxx_CargoTypeToString(OOCargoType::kSlaves) == "CARGO_SLAVES");
+  OO_CHECK(cxx_CargoTypeToString(OOCargoType::kAlloy) == "CARGO_ALLOY");
+  OO_CHECK(cxx_CargoTypeToString(OOCargoType::kMinerals) == "CARGO_MINERALS");
+  OO_CHECK(cxx_CargoTypeToString(OOCargoType::kThargoid) == "CARGO_THARGOID");
+  OO_CHECK(cxx_CargoTypeToString(OOCargoType::kRandom) == "CARGO_RANDOM");
+  OO_CHECK(cxx_CargoTypeToString(OOCargoType::kScriptedItem) == "CARGO_SCRIPTED_ITEM");
+  OO_CHECK(cxx_CargoTypeToString(OOCargoType::kCharacter) == "CARGO_CHARACTER");
 }
 
 OO_TEST(cxx_StringToCargoType) {
-  OO_CHECK(cxx_StringToCargoType("CARGO_NOT_CARGO") == CARGO_NOT_CARGO);
-  OO_CHECK(cxx_StringToCargoType("CARGO_SLAVES") == CARGO_SLAVES);
-  OO_CHECK(cxx_StringToCargoType("CARGO_ALLOY") == CARGO_ALLOY);
-  OO_CHECK(cxx_StringToCargoType("CARGO_MINERALS") == CARGO_MINERALS);
-  OO_CHECK(cxx_StringToCargoType("CARGO_THARGOID") == CARGO_THARGOID);
-  OO_CHECK(cxx_StringToCargoType("CARGO_RANDOM") == CARGO_RANDOM);
-  OO_CHECK(cxx_StringToCargoType("CARGO_SCRIPTED_ITEM") == CARGO_SCRIPTED_ITEM);
-  OO_CHECK(cxx_StringToCargoType("CARGO_CHARACTER") == CARGO_CHARACTER);
-  OO_CHECK(cxx_StringToCargoType("CARGO_CARRIED") == CARGO_RANDOM);
-  OO_CHECK(cxx_StringToCargoType("NOT_A_NAME") == CARGO_NOT_CARGO);  // the fallback
-  OO_CHECK(cxx_StringToCargoType("") == CARGO_NOT_CARGO);
+  OO_CHECK(cxx_StringToCargoType("CARGO_NOT_CARGO") == OOCargoType::kNotCargo);
+  OO_CHECK(cxx_StringToCargoType("CARGO_SLAVES") == OOCargoType::kSlaves);
+  OO_CHECK(cxx_StringToCargoType("CARGO_ALLOY") == OOCargoType::kAlloy);
+  OO_CHECK(cxx_StringToCargoType("CARGO_MINERALS") == OOCargoType::kMinerals);
+  OO_CHECK(cxx_StringToCargoType("CARGO_THARGOID") == OOCargoType::kThargoid);
+  OO_CHECK(cxx_StringToCargoType("CARGO_RANDOM") == OOCargoType::kRandom);
+  OO_CHECK(cxx_StringToCargoType("CARGO_SCRIPTED_ITEM") == OOCargoType::kScriptedItem);
+  OO_CHECK(cxx_StringToCargoType("CARGO_CHARACTER") == OOCargoType::kCharacter);
+  OO_CHECK(cxx_StringToCargoType("CARGO_CARRIED") == OOCargoType::kRandom);
+  OO_CHECK(cxx_StringToCargoType("NOT_A_NAME") == OOCargoType::kNotCargo);  // the fallback
+  OO_CHECK(cxx_StringToCargoType("") == OOCargoType::kNotCargo);
 }
 
 OO_TEST(cxx_EnergyUnitTypeToString) {
-  OO_CHECK(cxx_EnergyUnitTypeToString(ENERGY_UNIT_NONE) == "ENERGY_UNIT_NONE");
-  OO_CHECK(cxx_EnergyUnitTypeToString(ENERGY_UNIT_NORMAL) == "ENERGY_UNIT_NORMAL");
-  OO_CHECK(cxx_EnergyUnitTypeToString(ENERGY_UNIT_NAVAL) == "ENERGY_UNIT_NAVAL");
-  OO_CHECK(cxx_EnergyUnitTypeToString(ENERGY_UNIT_NORMAL_DAMAGED) == "ENERGY_UNIT_NORMAL_DAMAGED");
-  OO_CHECK(cxx_EnergyUnitTypeToString(ENERGY_UNIT_NAVAL_DAMAGED) == "ENERGY_UNIT_NAVAL_DAMAGED");
-  OO_CHECK(cxx_EnergyUnitTypeToString(OLD_ENERGY_UNIT_NORMAL) == "Unsupported energy unit");
-  OO_CHECK(cxx_EnergyUnitTypeToString(OLD_ENERGY_UNIT_NAVAL) == "Unsupported energy unit");
+  OO_CHECK(cxx_EnergyUnitTypeToString(OOEnergyUnitType::kNone) == "ENERGY_UNIT_NONE");
+  OO_CHECK(cxx_EnergyUnitTypeToString(OOEnergyUnitType::kNormal) == "ENERGY_UNIT_NORMAL");
+  OO_CHECK(cxx_EnergyUnitTypeToString(OOEnergyUnitType::kNaval) == "ENERGY_UNIT_NAVAL");
+  OO_CHECK(cxx_EnergyUnitTypeToString(OOEnergyUnitType::kNormalDamaged) == "ENERGY_UNIT_NORMAL_DAMAGED");
+  OO_CHECK(cxx_EnergyUnitTypeToString(OOEnergyUnitType::kNavalDamaged) == "ENERGY_UNIT_NAVAL_DAMAGED");
+  OO_CHECK(cxx_EnergyUnitTypeToString(OOEnergyUnitType::kOldNormal) == "Unsupported energy unit");
+  OO_CHECK(cxx_EnergyUnitTypeToString(OOEnergyUnitType::kOldNaval) == "Unsupported energy unit");
 }
 
 OO_TEST(cxx_StringToEnergyUnitType) {
-  OO_CHECK(cxx_StringToEnergyUnitType("ENERGY_UNIT_NONE") == ENERGY_UNIT_NONE);
-  OO_CHECK(cxx_StringToEnergyUnitType("ENERGY_UNIT_NORMAL") == ENERGY_UNIT_NORMAL);
-  OO_CHECK(cxx_StringToEnergyUnitType("ENERGY_UNIT_NAVAL") == ENERGY_UNIT_NAVAL);
-  OO_CHECK(cxx_StringToEnergyUnitType("ENERGY_UNIT_NORMAL_DAMAGED") == ENERGY_UNIT_NORMAL_DAMAGED);
-  OO_CHECK(cxx_StringToEnergyUnitType("ENERGY_UNIT_NAVAL_DAMAGED") == ENERGY_UNIT_NAVAL_DAMAGED);
-  OO_CHECK(cxx_StringToEnergyUnitType("NOT_A_NAME") == ENERGY_UNIT_NONE);  // the fallback
-  OO_CHECK(cxx_StringToEnergyUnitType("") == ENERGY_UNIT_NONE);
+  OO_CHECK(cxx_StringToEnergyUnitType("ENERGY_UNIT_NONE") == OOEnergyUnitType::kNone);
+  OO_CHECK(cxx_StringToEnergyUnitType("ENERGY_UNIT_NORMAL") == OOEnergyUnitType::kNormal);
+  OO_CHECK(cxx_StringToEnergyUnitType("ENERGY_UNIT_NAVAL") == OOEnergyUnitType::kNaval);
+  OO_CHECK(cxx_StringToEnergyUnitType("ENERGY_UNIT_NORMAL_DAMAGED") == OOEnergyUnitType::kNormalDamaged);
+  OO_CHECK(cxx_StringToEnergyUnitType("ENERGY_UNIT_NAVAL_DAMAGED") == OOEnergyUnitType::kNavalDamaged);
+  OO_CHECK(cxx_StringToEnergyUnitType("NOT_A_NAME") == OOEnergyUnitType::kNone);  // the fallback
+  OO_CHECK(cxx_StringToEnergyUnitType("") == OOEnergyUnitType::kNone);
 }
 
 OO_TEST(cxx_OOStringFromShaderSetting) {
-  OO_CHECK(cxx_OOStringFromShaderSetting(SHADERS_OFF) == "SHADERS_OFF");
-  OO_CHECK(cxx_OOStringFromShaderSetting(SHADERS_SIMPLE) == "SHADERS_SIMPLE");
-  OO_CHECK(cxx_OOStringFromShaderSetting(SHADERS_FULL) == "SHADERS_FULL");
-  OO_CHECK(cxx_OOStringFromShaderSetting(SHADERS_NOT_SUPPORTED) == "SHADERS_NOT_SUPPORTED");
+  OO_CHECK(cxx_OOStringFromShaderSetting(OOShaderSetting::kOff) == "SHADERS_OFF");
+  OO_CHECK(cxx_OOStringFromShaderSetting(OOShaderSetting::kSimple) == "SHADERS_SIMPLE");
+  OO_CHECK(cxx_OOStringFromShaderSetting(OOShaderSetting::kFull) == "SHADERS_FULL");
+  OO_CHECK(cxx_OOStringFromShaderSetting(OOShaderSetting::kNotSupported) == "SHADERS_NOT_SUPPORTED");
 }
 
 OO_TEST(cxx_OOShaderSettingFromString) {
-  OO_CHECK(cxx_OOShaderSettingFromString("SHADERS_OFF") == SHADERS_OFF);
-  OO_CHECK(cxx_OOShaderSettingFromString("SHADERS_SIMPLE") == SHADERS_SIMPLE);
-  OO_CHECK(cxx_OOShaderSettingFromString("SHADERS_FULL") == SHADERS_FULL);
-  OO_CHECK(cxx_OOShaderSettingFromString("SHADERS_NOT_SUPPORTED") == SHADERS_NOT_SUPPORTED);
-  OO_CHECK(cxx_OOShaderSettingFromString("NOT_A_NAME") == SHADERS_NOT_SUPPORTED);  // the fallback
-  OO_CHECK(cxx_OOShaderSettingFromString("") == SHADERS_NOT_SUPPORTED);
+  OO_CHECK(cxx_OOShaderSettingFromString("SHADERS_OFF") == OOShaderSetting::kOff);
+  OO_CHECK(cxx_OOShaderSettingFromString("SHADERS_SIMPLE") == OOShaderSetting::kSimple);
+  OO_CHECK(cxx_OOShaderSettingFromString("SHADERS_FULL") == OOShaderSetting::kFull);
+  OO_CHECK(cxx_OOShaderSettingFromString("SHADERS_NOT_SUPPORTED") == OOShaderSetting::kNotSupported);
+  OO_CHECK(cxx_OOShaderSettingFromString("NOT_A_NAME") == OOShaderSetting::kNotSupported);  // the fallback
+  OO_CHECK(cxx_OOShaderSettingFromString("") == OOShaderSetting::kNotSupported);
 }
 
 OO_TEST(cxx_StringToRouteType) {
-  OO_CHECK(cxx_StringToRouteType("OPTIMIZED_BY_NONE") == OPTIMIZED_BY_NONE);
-  OO_CHECK(cxx_StringToRouteType("OPTIMIZED_BY_JUMPS") == OPTIMIZED_BY_JUMPS);
-  OO_CHECK(cxx_StringToRouteType("OPTIMIZED_BY_TIME") == OPTIMIZED_BY_TIME);
-  OO_CHECK(cxx_StringToRouteType("NOT_A_NAME") == OPTIMIZED_BY_JUMPS);  // the fallback
-  OO_CHECK(cxx_StringToRouteType("") == OPTIMIZED_BY_JUMPS);
+  OO_CHECK(cxx_StringToRouteType("OPTIMIZED_BY_NONE") == OORouteType::kNone);
+  OO_CHECK(cxx_StringToRouteType("OPTIMIZED_BY_JUMPS") == OORouteType::kJumps);
+  OO_CHECK(cxx_StringToRouteType("OPTIMIZED_BY_TIME") == OORouteType::kTime);
+  OO_CHECK(cxx_StringToRouteType("NOT_A_NAME") == OORouteType::kJumps);  // the fallback
+  OO_CHECK(cxx_StringToRouteType("") == OORouteType::kJumps);
 }
 
 OO_TEST(cxx_DockingClearanceStatusToString) {
-  OO_CHECK(cxx_DockingClearanceStatusToString(DOCKING_CLEARANCE_STATUS_NONE) == "DOCKING_CLEARANCE_STATUS_NONE");
-  OO_CHECK(cxx_DockingClearanceStatusToString(DOCKING_CLEARANCE_STATUS_REQUESTED) == "DOCKING_CLEARANCE_STATUS_REQUESTED");
-  OO_CHECK(cxx_DockingClearanceStatusToString(DOCKING_CLEARANCE_STATUS_NOT_REQUIRED) == "DOCKING_CLEARANCE_STATUS_NOT_REQUIRED");
-  OO_CHECK(cxx_DockingClearanceStatusToString(DOCKING_CLEARANCE_STATUS_GRANTED) == "DOCKING_CLEARANCE_STATUS_GRANTED");
-  OO_CHECK(cxx_DockingClearanceStatusToString(DOCKING_CLEARANCE_STATUS_TIMING_OUT) == "DOCKING_CLEARANCE_STATUS_TIMING_OUT");
+  OO_CHECK(cxx_DockingClearanceStatusToString(OODockingClearanceStatus::kNone) == "DOCKING_CLEARANCE_STATUS_NONE");
+  OO_CHECK(cxx_DockingClearanceStatusToString(OODockingClearanceStatus::kRequested) == "DOCKING_CLEARANCE_STATUS_REQUESTED");
+  OO_CHECK(cxx_DockingClearanceStatusToString(OODockingClearanceStatus::kNotRequired) == "DOCKING_CLEARANCE_STATUS_NOT_REQUIRED");
+  OO_CHECK(cxx_DockingClearanceStatusToString(OODockingClearanceStatus::kGranted) == "DOCKING_CLEARANCE_STATUS_GRANTED");
+  OO_CHECK(cxx_DockingClearanceStatusToString(OODockingClearanceStatus::kTimingOut) == "DOCKING_CLEARANCE_STATUS_TIMING_OUT");
 }
 
 OO_TEST(cxx_OOStringFromGraphicsDetail) {
-  OO_CHECK(cxx_OOStringFromGraphicsDetail(DETAIL_LEVEL_MINIMUM) == "DETAIL_LEVEL_MINIMUM");
-  OO_CHECK(cxx_OOStringFromGraphicsDetail(DETAIL_LEVEL_NORMAL) == "DETAIL_LEVEL_NORMAL");
-  OO_CHECK(cxx_OOStringFromGraphicsDetail(DETAIL_LEVEL_SHADERS) == "DETAIL_LEVEL_SHADERS");
-  OO_CHECK(cxx_OOStringFromGraphicsDetail(DETAIL_LEVEL_EXTRAS) == "DETAIL_LEVEL_EXTRAS");
+  OO_CHECK(cxx_OOStringFromGraphicsDetail(OOGraphicsDetail::kMinimum) == "DETAIL_LEVEL_MINIMUM");
+  OO_CHECK(cxx_OOStringFromGraphicsDetail(OOGraphicsDetail::kNormal) == "DETAIL_LEVEL_NORMAL");
+  OO_CHECK(cxx_OOStringFromGraphicsDetail(OOGraphicsDetail::kShaders) == "DETAIL_LEVEL_SHADERS");
+  OO_CHECK(cxx_OOStringFromGraphicsDetail(OOGraphicsDetail::kExtras) == "DETAIL_LEVEL_EXTRAS");
 }
 
 OO_TEST(cxx_OOGraphicsDetailFromString) {
-  OO_CHECK(cxx_OOGraphicsDetailFromString("DETAIL_LEVEL_MINIMUM") == DETAIL_LEVEL_MINIMUM);
-  OO_CHECK(cxx_OOGraphicsDetailFromString("DETAIL_LEVEL_NORMAL") == DETAIL_LEVEL_NORMAL);
-  OO_CHECK(cxx_OOGraphicsDetailFromString("DETAIL_LEVEL_SHADERS") == DETAIL_LEVEL_SHADERS);
-  OO_CHECK(cxx_OOGraphicsDetailFromString("DETAIL_LEVEL_EXTRAS") == DETAIL_LEVEL_EXTRAS);
-  OO_CHECK(cxx_OOGraphicsDetailFromString("NOT_A_NAME") == DETAIL_LEVEL_MINIMUM);  // the fallback
-  OO_CHECK(cxx_OOGraphicsDetailFromString("") == DETAIL_LEVEL_MINIMUM);
+  OO_CHECK(cxx_OOGraphicsDetailFromString("DETAIL_LEVEL_MINIMUM") == OOGraphicsDetail::kMinimum);
+  OO_CHECK(cxx_OOGraphicsDetailFromString("DETAIL_LEVEL_NORMAL") == OOGraphicsDetail::kNormal);
+  OO_CHECK(cxx_OOGraphicsDetailFromString("DETAIL_LEVEL_SHADERS") == OOGraphicsDetail::kShaders);
+  OO_CHECK(cxx_OOGraphicsDetailFromString("DETAIL_LEVEL_EXTRAS") == OOGraphicsDetail::kExtras);
+  OO_CHECK(cxx_OOGraphicsDetailFromString("NOT_A_NAME") == OOGraphicsDetail::kMinimum);  // the fallback
+  OO_CHECK(cxx_OOGraphicsDetailFromString("") == OOGraphicsDetail::kMinimum);
 }
 
 OO_TEST(cxx_OOStringFromHDRToneMapper) {
-  OO_CHECK(cxx_OOStringFromHDRToneMapper(OOHDR_TONEMAPPER_NONE) == "OOHDR_TONEMAPPER_NONE");
-  OO_CHECK(cxx_OOStringFromHDRToneMapper(OOHDR_TONEMAPPER_ACES_APPROX) == "OOHDR_TONEMAPPER_ACES_APPROX");
-  OO_CHECK(cxx_OOStringFromHDRToneMapper(OOHDR_TONEMAPPER_DICE) == "OOHDR_TONEMAPPER_DICE");
-  OO_CHECK(cxx_OOStringFromHDRToneMapper(OOHDR_TONEMAPPER_UCHIMURA) == "OOHDR_TONEMAPPER_UCHIMURA");
-  OO_CHECK(cxx_OOStringFromHDRToneMapper(OOHDR_TONEMAPPER_REINHARD) == "OOHDR_TONEMAPPER_REINHARD");
+  OO_CHECK(cxx_OOStringFromHDRToneMapper(OOHDRToneMapper::kNone) == "OOHDR_TONEMAPPER_NONE");
+  OO_CHECK(cxx_OOStringFromHDRToneMapper(OOHDRToneMapper::kAcesApprox) == "OOHDR_TONEMAPPER_ACES_APPROX");
+  OO_CHECK(cxx_OOStringFromHDRToneMapper(OOHDRToneMapper::kDice) == "OOHDR_TONEMAPPER_DICE");
+  OO_CHECK(cxx_OOStringFromHDRToneMapper(OOHDRToneMapper::kUchimura) == "OOHDR_TONEMAPPER_UCHIMURA");
+  OO_CHECK(cxx_OOStringFromHDRToneMapper(OOHDRToneMapper::kReinhard) == "OOHDR_TONEMAPPER_REINHARD");
 }
 
 OO_TEST(cxx_OOHDRToneMapperFromString) {
-  OO_CHECK(cxx_OOHDRToneMapperFromString("OOHDR_TONEMAPPER_NONE") == OOHDR_TONEMAPPER_NONE);
-  OO_CHECK(cxx_OOHDRToneMapperFromString("OOHDR_TONEMAPPER_ACES_APPROX") == OOHDR_TONEMAPPER_ACES_APPROX);
-  OO_CHECK(cxx_OOHDRToneMapperFromString("OOHDR_TONEMAPPER_DICE") == OOHDR_TONEMAPPER_DICE);
-  OO_CHECK(cxx_OOHDRToneMapperFromString("OOHDR_TONEMAPPER_UCHIMURA") == OOHDR_TONEMAPPER_UCHIMURA);
-  OO_CHECK(cxx_OOHDRToneMapperFromString("OOHDR_TONEMAPPER_REINHARD") == OOHDR_TONEMAPPER_REINHARD);
-  OO_CHECK(cxx_OOHDRToneMapperFromString("NOT_A_NAME") == OOHDR_TONEMAPPER_ACES_APPROX);  // the fallback
-  OO_CHECK(cxx_OOHDRToneMapperFromString("") == OOHDR_TONEMAPPER_ACES_APPROX);
+  OO_CHECK(cxx_OOHDRToneMapperFromString("OOHDR_TONEMAPPER_NONE") == OOHDRToneMapper::kNone);
+  OO_CHECK(cxx_OOHDRToneMapperFromString("OOHDR_TONEMAPPER_ACES_APPROX") == OOHDRToneMapper::kAcesApprox);
+  OO_CHECK(cxx_OOHDRToneMapperFromString("OOHDR_TONEMAPPER_DICE") == OOHDRToneMapper::kDice);
+  OO_CHECK(cxx_OOHDRToneMapperFromString("OOHDR_TONEMAPPER_UCHIMURA") == OOHDRToneMapper::kUchimura);
+  OO_CHECK(cxx_OOHDRToneMapperFromString("OOHDR_TONEMAPPER_REINHARD") == OOHDRToneMapper::kReinhard);
+  OO_CHECK(cxx_OOHDRToneMapperFromString("NOT_A_NAME") == OOHDRToneMapper::kAcesApprox);  // the fallback
+  OO_CHECK(cxx_OOHDRToneMapperFromString("") == OOHDRToneMapper::kAcesApprox);
 }
 
 OO_TEST(cxx_OOStringFromSDRToneMapper) {
-  OO_CHECK(cxx_OOStringFromSDRToneMapper(OOSDR_TONEMAPPER_NONE) == "OOSDR_TONEMAPPER_NONE");
-  OO_CHECK(cxx_OOStringFromSDRToneMapper(OOSDR_TONEMAPPER_ACES) == "OOSDR_TONEMAPPER_ACES");
-  OO_CHECK(cxx_OOStringFromSDRToneMapper(OOSDR_TONEMAPPER_AgX) == "OOSDR_TONEMAPPER_AgX");
-  OO_CHECK(cxx_OOStringFromSDRToneMapper(OOSDR_TONEMAPPER_HEJLDAWSON) == "OOSDR_TONEMAPPER_HEJLDAWSON");
-  OO_CHECK(cxx_OOStringFromSDRToneMapper(OOSDR_TONEMAPPER_UC2) == "OOSDR_TONEMAPPER_UC2");
-  OO_CHECK(cxx_OOStringFromSDRToneMapper(OOSDR_TONEMAPPER_UCHIMURA) == "OOSDR_TONEMAPPER_UCHIMURA");
-  OO_CHECK(cxx_OOStringFromSDRToneMapper(OOSDR_TONEMAPPER_REINHARD) == "OOSDR_TONEMAPPER_REINHARD");
+  OO_CHECK(cxx_OOStringFromSDRToneMapper(OOSDRToneMapper::kNone) == "OOSDR_TONEMAPPER_NONE");
+  OO_CHECK(cxx_OOStringFromSDRToneMapper(OOSDRToneMapper::kAces) == "OOSDR_TONEMAPPER_ACES");
+  OO_CHECK(cxx_OOStringFromSDRToneMapper(OOSDRToneMapper::kAgX) == "OOSDR_TONEMAPPER_AgX");
+  OO_CHECK(cxx_OOStringFromSDRToneMapper(OOSDRToneMapper::kHejlDawson) == "OOSDR_TONEMAPPER_HEJLDAWSON");
+  OO_CHECK(cxx_OOStringFromSDRToneMapper(OOSDRToneMapper::kUC2) == "OOSDR_TONEMAPPER_UC2");
+  OO_CHECK(cxx_OOStringFromSDRToneMapper(OOSDRToneMapper::kUchimura) == "OOSDR_TONEMAPPER_UCHIMURA");
+  OO_CHECK(cxx_OOStringFromSDRToneMapper(OOSDRToneMapper::kReinhard) == "OOSDR_TONEMAPPER_REINHARD");
 }
 
 OO_TEST(cxx_OOSDRToneMapperFromString) {
-  OO_CHECK(cxx_OOSDRToneMapperFromString("OOSDR_TONEMAPPER_NONE") == OOSDR_TONEMAPPER_NONE);
-  OO_CHECK(cxx_OOSDRToneMapperFromString("OOSDR_TONEMAPPER_ACES") == OOSDR_TONEMAPPER_ACES);
-  OO_CHECK(cxx_OOSDRToneMapperFromString("OOSDR_TONEMAPPER_AgX") == OOSDR_TONEMAPPER_AgX);
-  OO_CHECK(cxx_OOSDRToneMapperFromString("OOSDR_TONEMAPPER_HEJLDAWSON") == OOSDR_TONEMAPPER_HEJLDAWSON);
-  OO_CHECK(cxx_OOSDRToneMapperFromString("OOSDR_TONEMAPPER_UC2") == OOSDR_TONEMAPPER_UC2);
-  OO_CHECK(cxx_OOSDRToneMapperFromString("OOSDR_TONEMAPPER_UCHIMURA") == OOSDR_TONEMAPPER_UCHIMURA);
-  OO_CHECK(cxx_OOSDRToneMapperFromString("OOSDR_TONEMAPPER_REINHARD") == OOSDR_TONEMAPPER_REINHARD);
-  OO_CHECK(cxx_OOSDRToneMapperFromString("NOT_A_NAME") == OOSDR_TONEMAPPER_ACES);  // the fallback
-  OO_CHECK(cxx_OOSDRToneMapperFromString("") == OOSDR_TONEMAPPER_ACES);
+  OO_CHECK(cxx_OOSDRToneMapperFromString("OOSDR_TONEMAPPER_NONE") == OOSDRToneMapper::kNone);
+  OO_CHECK(cxx_OOSDRToneMapperFromString("OOSDR_TONEMAPPER_ACES") == OOSDRToneMapper::kAces);
+  OO_CHECK(cxx_OOSDRToneMapperFromString("OOSDR_TONEMAPPER_AgX") == OOSDRToneMapper::kAgX);
+  OO_CHECK(cxx_OOSDRToneMapperFromString("OOSDR_TONEMAPPER_HEJLDAWSON") == OOSDRToneMapper::kHejlDawson);
+  OO_CHECK(cxx_OOSDRToneMapperFromString("OOSDR_TONEMAPPER_UC2") == OOSDRToneMapper::kUC2);
+  OO_CHECK(cxx_OOSDRToneMapperFromString("OOSDR_TONEMAPPER_UCHIMURA") == OOSDRToneMapper::kUchimura);
+  OO_CHECK(cxx_OOSDRToneMapperFromString("OOSDR_TONEMAPPER_REINHARD") == OOSDRToneMapper::kReinhard);
+  OO_CHECK(cxx_OOSDRToneMapperFromString("NOT_A_NAME") == OOSDRToneMapper::kAces);  // the fallback
+  OO_CHECK(cxx_OOSDRToneMapperFromString("") == OOSDRToneMapper::kAces);
 }
 
 namespace {

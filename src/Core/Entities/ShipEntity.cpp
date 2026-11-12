@@ -1039,8 +1039,9 @@ bool ShipEntity::setUpShipFromDictionary(const oo::PList& shipDict) {
     setUpCargoType(*cargoString);
   } else if (scanClass != CLASS_CARGO) {
     cargo.clear();
-    // if not CLASS_CARGO, and no cargo type set, default to CARGO_NOT_CARGO
-    cargo_type = CARGO_NOT_CARGO;
+    // if not CLASS_CARGO, and no cargo type set, default to
+    // OOCargoType::kNotCargo
+    cargo_type = OOCargoType::kNotCargo;
   }
 
   hasScoopMessage = shipDict.get<bool>("has_scoop_message", true);
@@ -1403,38 +1404,38 @@ void ShipEntity::setUpCargoType(const std::string& cargoString) {
   cargo_type = cxx_StringToCargoType(cargoString);
 
   switch (cargo_type) {
-    case CARGO_SLAVES:
+    case OOCargoType::kSlaves:
       commodity_amount = 1;
       commodity_type = "slaves";
-      cargo_type = CARGO_RANDOM;  // not realy random, but it tells that cargo
-                                  // is selected.
+      cargo_type = OOCargoType::kRandom;  // not realy random, but it tells that
+                                          // cargo is selected.
       break;
 
-    case CARGO_ALLOY:
+    case OOCargoType::kAlloy:
       commodity_amount = 1;
       commodity_type = "alloys";
-      cargo_type = CARGO_RANDOM;
+      cargo_type = OOCargoType::kRandom;
       break;
 
-    case CARGO_MINERALS:
+    case OOCargoType::kMinerals:
       commodity_amount = 1;
       commodity_type = "minerals";
-      cargo_type = CARGO_RANDOM;
+      cargo_type = OOCargoType::kRandom;
       break;
 
-    case CARGO_THARGOID:
+    case OOCargoType::kThargoid:
       commodity_amount = 1;
       commodity_type = "alien_items";
-      cargo_type = CARGO_RANDOM;
+      cargo_type = OOCargoType::kRandom;
       break;
 
-    case CARGO_SCRIPTED_ITEM:
+    case OOCargoType::kScriptedItem:
       commodity_amount =
           1;  // value > 0 is needed to be recognised as cargo by scripts;
       commodity_type = std::nullopt;  // will be defined elsewhere when needed.
       break;
 
-    case CARGO_RANDOM:
+    case OOCargoType::kRandom:
       // Could already be set by the cargo_carried key. If not, ensure at least
       // one.
       if (commodity_amount == 0) commodity_amount = 1;
@@ -4427,7 +4428,7 @@ void ShipEntity::behaviour_intercept_target(double delta_t) {
     if (!target ||
         (target != nullptr ? target->getScanClass() : OOScanClass{}) !=
             CLASS_CARGO ||
-        (target != nullptr && target->cargoType() == CARGO_NOT_CARGO)) {
+        (target != nullptr && target->cargoType() == OOCargoType::kNotCargo)) {
       noteLostTargetAndGoIdle();
       return;
     }
@@ -8571,7 +8572,7 @@ void ShipEntity::becomeExplosion() {
   bool canReleaseSubWreckage =
       isWreckage &&
       ((UNIVERSE != nullptr ? UNIVERSE->getDetailLevel()
-                            : OOGraphicsDetail{}) >= DETAIL_LEVEL_EXTRAS);
+                            : OOGraphicsDetail{}) >= OOGraphicsDetail::kExtras);
 
   if (status() == STATUS_DEAD) {
     if (UNIVERSE != nullptr) UNIVERSE->removeEntity(this);
@@ -12105,7 +12106,8 @@ bool ShipEntity::canScoop(::ShipEntity* other) {
     return false;  // we have no power so we can't scoop
   if ((other != nullptr ? other->getScanClass() : OOScanClass{}) != CLASS_CARGO)
     return false;
-  if (other != nullptr && other->cargoType() == CARGO_NOT_CARGO) return false;
+  if (other != nullptr && other->cargoType() == OOCargoType::kNotCargo)
+    return false;
 
   if ((other != nullptr ? other->getIsStation() : false)) return false;
 
@@ -12169,16 +12171,16 @@ void ShipEntity::scoopUpProcess(::ShipEntity* other, bool procEvents,
     return;
   }
 
-  switch (other != nullptr ? static_cast<int>(other->cargoType())
-                           : 0)  // (a message to nil answered 0)
+  switch (other != nullptr ? other->cargoType()
+                           : OOCargoType{})  // (a message to nil answered 0)
   {
-    case CARGO_RANDOM:
+    case OOCargoType::kRandom:
       co_type = (other != nullptr ? other->commodityType()
                                   : std::optional<std::string>());
       co_amount = (other != nullptr ? other->commodityAmount() : 0);
       break;
 
-    case CARGO_SCRIPTED_ITEM: {
+    case OOCargoType::kScriptedItem: {
       // scripting
       ::PlayerEntity* player = PLAYER;
       if (player != nullptr) player->setScriptTarget(this);

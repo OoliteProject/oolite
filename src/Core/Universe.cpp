@@ -173,15 +173,16 @@ OOINLINE bool EntityInRange(HPVector p1, Entity* e2, float range);
 namespace {
 
 // The saved detailLevel preference as an OOGraphicsDetail. 0-3 are the levels
-// themselves; any other number becomes DETAIL_LEVEL_MAXIMUM, which is what
+// themselves; any other number becomes kOOGraphicsDetailMaximum, which is what
 // -setDetailLevelDirectly: made of it: the bare cast this replaces handed the
 // enum (underlying type unsigned int on this toolchain) an out-of-range value,
 // a negative one as a large unsigned number, and the setter clamped anything
-// >= DETAIL_LEVEL_MAXIMUM to it. Clamping as an integer means the enum only
+// >= kOOGraphicsDetailMaximum to it. Clamping as an integer means the enum only
 // ever holds one of its own values (the same idiom as OOSystemLayerFromNumber).
 OOGraphicsDetail OOGraphicsDetailFromNumber(unsigned int number) {
-  return (number > DETAIL_LEVEL_MAXIMUM)
-             ? DETAIL_LEVEL_MAXIMUM
+  return (number >
+          static_cast<unsigned int>(oo::ToUnderlying(kOOGraphicsDetailMaximum)))
+             ? kOOGraphicsDetailMaximum
              : static_cast<OOGraphicsDetail>(number);
 }
 
@@ -317,7 +318,9 @@ void Universe::initWithGameView(::MyOpenGLView* inGameView) {
   OOOpenGLExtensionManager::sharedManager();
   setDetailLevelDirectly(OOGraphicsDetailFromNumber(
       prefs.object("detailLevel").isNull()
-          ? OOOpenGLExtensionManager::sharedManager()->defaultDetailLevel()
+          ? static_cast<unsigned int>(
+                oo::ToUnderlying(OOOpenGLExtensionManager::sharedManager()
+                                     ->defaultDetailLevel()))
           : static_cast<unsigned int>(prefs.integerForKey("detailLevel"))));
 
   initTargetFramebufferWithViewSize(
@@ -4805,7 +4808,8 @@ std::vector<oo::EntityHold> Universe::getContainersOfCommodity(
 void Universe::fillCargopodWithRandomCargo(::ShipEntity* cargopod) {
   if (cargopod == nullptr ||
       !(cargopod != nullptr ? cargopod->hasRole("cargopod") : false) ||
-      (cargopod != nullptr && cargopod->cargoType() == CARGO_SCRIPTED_ITEM))
+      (cargopod != nullptr &&
+       cargopod->cargoType() == OOCargoType::kScriptedItem))
     return;
 
   if (!(cargopod != nullptr ? cargopod->commodityType()
@@ -5983,7 +5987,7 @@ bool Universe::removeEntity(Entity* entity) {
       if ((PLAYER != nullptr ? PLAYER->getTargetDockStation()
                              : (::StationEntity*)nullptr) == entity) {
         if (PLAYER != nullptr)
-          PLAYER->setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_NONE);
+          PLAYER->setDockingClearanceStatus(OODockingClearanceStatus::kNone);
       }
     }
     return doRemoveEntity(entity);
@@ -8998,7 +9002,7 @@ oo::PList Universe::routeFromSystem(OOSystemID start, OOSystemID goal,
       cheapest[256];  // keeps each element, as the autorelease pool did
 
   double maxCost =
-      optimizeBy == OPTIMIZED_BY_TIME ? 256 * (7 * 7) : 256 * (7 * 256 + 7);
+      optimizeBy == OORouteType::kTime ? 256 * (7 * 7) : 256 * (7 * 256 + 7);
 
   std::vector<oo::Ref<::RouteElement>> curr;
   curr.reserve(256);
@@ -9034,7 +9038,7 @@ oo::PList Universe::routeFromSystem(OOSystemID start, OOSystemID goal,
 
         double distance = ce->distance() + lastDistance;
         double time = ce->time() + lastTime;
-        double cost = ce->cost() + (optimizeBy == OPTIMIZED_BY_TIME
+        double cost = ce->cost() + (optimizeBy == OORouteType::kTime
                                         ? lastTime
                                         : 7 * 256 + lastDistance);
         int jumps = ce->jumps() + 1;
@@ -10351,17 +10355,19 @@ void Universe::setWireframeGraphics(bool value) {
 
 bool Universe::getWireframeGraphics() { return wireframeGraphics; }
 
-bool Universe::reducedDetail() { return detailLevel == DETAIL_LEVEL_MINIMUM; }
+bool Universe::reducedDetail() {
+  return detailLevel == OOGraphicsDetail::kMinimum;
+}
 
 /* Only to be called directly at initialisation */
 void Universe::setDetailLevelDirectly(OOGraphicsDetail value) {
-  if (value >= DETAIL_LEVEL_MAXIMUM) {
-    value = DETAIL_LEVEL_MAXIMUM;
-  } else if (value <= DETAIL_LEVEL_MINIMUM) {
-    value = DETAIL_LEVEL_MINIMUM;
+  if (value >= kOOGraphicsDetailMaximum) {
+    value = kOOGraphicsDetailMaximum;
+  } else if (value <= OOGraphicsDetail::kMinimum) {
+    value = OOGraphicsDetail::kMinimum;
   }
   if (!OOOpenGLExtensionManager::sharedManager()->shadersSupported()) {
-    value = DETAIL_LEVEL_MINIMUM;
+    value = OOGraphicsDetail::kMinimum;
   }
   detailLevel = value;
 }
@@ -10369,7 +10375,8 @@ void Universe::setDetailLevelDirectly(OOGraphicsDetail value) {
 void Universe::setDetailLevel(OOGraphicsDetail value) {
   OOGraphicsDetail old = detailLevel;
   setDetailLevelDirectly(value);
-  oo::Defaults::standard().setInteger("detailLevel", detailLevel);
+  oo::Defaults::standard().setInteger("detailLevel",
+                                      oo::ToUnderlying(detailLevel));
   // if changed then reset graphics state
   // (some items now require this even if shader on/off mode unchanged)
   if (old != detailLevel) {
@@ -10381,7 +10388,9 @@ void Universe::setDetailLevel(OOGraphicsDetail value) {
 
 OOGraphicsDetail Universe::getDetailLevel() { return detailLevel; }
 
-bool Universe::useShaders() { return detailLevel >= DETAIL_LEVEL_SHADERS; }
+bool Universe::useShaders() {
+  return detailLevel >= OOGraphicsDetail::kShaders;
+}
 
 void Universe::handleOoliteException(const oo::Exception* exception) {
   if (exception != nullptr) {
@@ -11252,7 +11261,7 @@ void Universe::addConditionScripts(const std::vector<std::string>& scripts) {
 // flags, add-ons, the entity list.
 
 bool Universe::bloom() {
-  return _bloom && getDetailLevel() >= DETAIL_LEVEL_EXTRAS;
+  return _bloom && getDetailLevel() >= OOGraphicsDetail::kExtras;
 }
 
 void Universe::setBloom(bool newBloom) { _bloom = !!newBloom; }
@@ -11452,7 +11461,7 @@ void Universe::initTargetFramebufferWithViewSize(NSSize viewSize) {
   }
   OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
 
-  _bloom = getDetailLevel() >= DETAIL_LEVEL_EXTRAS;
+  _bloom = getDetailLevel() >= OOGraphicsDetail::kExtras;
   _currentPostFX = _colorblindMode = OO_POSTFX_NONE;
 
   /* TODO (upstream; OOEnvironmentCubeMap.m was never built and was deleted as
@@ -11679,12 +11688,14 @@ void Universe::drawTargetTextureIntoDefaultFramebuffer() {
         (gameView != nullptr ? gameView->hdrPaperWhiteBrightness() : 0.0f)));
     OOGL(glUniform1i(
         glGetUniformLocation(final, "uHDRToneMapper"),
-        (gameView != nullptr ? gameView->hdrToneMapper() : OOHDRToneMapper{})));
+        oo::ToUnderlying(gameView != nullptr ? gameView->hdrToneMapper()
+                                             : OOHDRToneMapper{})));
   }
 #endif
   OOGL(glUniform1i(
       glGetUniformLocation(final, "uSDRToneMapper"),
-      (gameView != nullptr ? gameView->sdrToneMapper() : OOSDRToneMapper{})));
+      oo::ToUnderlying(gameView != nullptr ? gameView->sdrToneMapper()
+                                           : OOSDRToneMapper{})));
 
   OOGL(glActiveTexture(GL_TEXTURE1));
   OOGL(glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]));
@@ -11696,7 +11707,7 @@ void Universe::drawTargetTextureIntoDefaultFramebuffer() {
   OOGL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
   // restore GL_TEXTURE1 to 0, just in case we are returning from a
-  // DETAIL_LEVEL_NORMAL to DETAIL_LEVEL_SHADERS
+  // OOGraphicsDetail::kNormal to OOGraphicsDetail::kShaders
   OOGL(glBindTexture(GL_TEXTURE_2D, 0));
 
   // restore previous bindings

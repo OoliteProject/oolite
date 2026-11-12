@@ -297,9 +297,9 @@ Random_Seed cxx_RandomSeedFromString(const std::optional<std::string> &)
 // A route type by name: the two the test names.
 OORouteType cxx_StringToRouteType(const std::string &string)
 {
-	if (string == "OPTIMIZED_BY_TIME")  return OPTIMIZED_BY_TIME;
-	if (string == "OPTIMIZED_BY_NONE")  return OPTIMIZED_BY_NONE;
-	return OPTIMIZED_BY_JUMPS;
+	if (string == "OPTIMIZED_BY_TIME")  return OORouteType::kTime;
+	if (string == "OPTIMIZED_BY_NONE")  return OORouteType::kNone;
+	return OORouteType::kJumps;
 }
 
 
@@ -795,9 +795,9 @@ OO_TEST(methods)
 	OO_CHECK_EVAL("lave.distanceToSystem({})", "threw: bad arguments: SystemInfo.distanceToSystem(1) - / system info");
 	OO_CHECK_EVAL("lave.distanceToSystem()", "threw: bad arguments: SystemInfo.distanceToSystem(0) - / system info");
 	OO_CHECK_EVAL("JSON.stringify(lave.routeToSystem(info(0, 10)))", "{\"jumps\":2,\"route\":[7,10]}");
-	OO_CHECK_EQ(static_cast<int>(sUniverse->_routeType), static_cast<int>(OPTIMIZED_BY_JUMPS));
+	OO_CHECK_EQ(static_cast<int>(sUniverse->_routeType), static_cast<int>(OORouteType::kJumps));
 	OO_CHECK_EVAL("lave.routeToSystem(info(0, 10), 'OPTIMIZED_BY_TIME').jumps", "2");
-	OO_CHECK_EQ(static_cast<int>(sUniverse->_routeType), static_cast<int>(OPTIMIZED_BY_TIME));
+	OO_CHECK_EQ(static_cast<int>(sUniverse->_routeType), static_cast<int>(OORouteType::kTime));
 	OO_CHECK_EVAL("lave.routeToSystem(info(0, 13))", "null");
 	OO_CHECK_EVAL("lave.routeToSystem(info(4, 10))", "threw: SystemInfo.routeToSystem: Cannot calculate route for destinations in other galaxies.");
 	OO_CHECK_EVAL("lave.routeToSystem(5)", "threw: bad arguments: SystemInfo.routeToSystem(1) - / system info");

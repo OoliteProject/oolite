@@ -34,27 +34,33 @@ MA 02110-1301, USA.
 
 #include "OOFoundation.h"
 #endif
+#include "OOEnumFlags.h"
 #include "OOOpenGLCheck.h"
 #include "OOOpenGLOnly.h"
 
-typedef enum {
+enum class OOShaderSetting : std::int32_t {
   // NOTE: numerical values are available to scripts.
-  SHADERS_NOT_SUPPORTED = 0,
-  SHADERS_OFF = 1,
-  SHADERS_SIMPLE = 2,
-  SHADERS_FULL = 3
-} OOShaderSetting;
+  kNotSupported = 0,
+  kOff = 1,
+  kSimple = 2,
+  kFull = 3
+};
+// The numbers the GPU configuration and scripts use.
+static_assert(oo::ToUnderlying(OOShaderSetting::kNotSupported) == 0);
+static_assert(oo::ToUnderlying(OOShaderSetting::kOff) == 1);
+static_assert(oo::ToUnderlying(OOShaderSetting::kSimple) == 2);
+static_assert(oo::ToUnderlying(OOShaderSetting::kFull) == 3);
 
 // The names the game writes for OOShaderSetting (saves, logs and plists).
 constexpr std::string_view OOEnumName(OOShaderSetting value) noexcept {
   switch (value) {
-    case SHADERS_OFF:
+    case OOShaderSetting::kOff:
       return "SHADERS_OFF";
-    case SHADERS_SIMPLE:
+    case OOShaderSetting::kSimple:
       return "SHADERS_SIMPLE";
-    case SHADERS_FULL:
+    case OOShaderSetting::kFull:
       return "SHADERS_FULL";
-    case SHADERS_NOT_SUPPORTED:
+    case OOShaderSetting::kNotSupported:
       return "SHADERS_NOT_SUPPORTED";
   }
   return {};
@@ -211,7 +217,7 @@ void GLDrawFilledPoints(OOGLVector* points, int n);
 void GLDrawQuadStrip(OOGLVector* points, int n);
 
 inline constexpr OOShaderSetting kOOShaderSettingDefault =
-    SHADERS_NOT_SUPPORTED;
+    OOShaderSetting::kNotSupported;
 
 // The shader mode strings (OOShaderSettingFromString() and friends) are
 // declared in OOConstToString.h.

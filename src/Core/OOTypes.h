@@ -44,20 +44,20 @@ MA 02110-1301, USA.
 #include "oofnd/objc/OOFoundationTypes.h"
 #endif
 
-typedef enum {
-  OPTIMIZED_BY_NONE,
-  OPTIMIZED_BY_JUMPS,
-  OPTIMIZED_BY_TIME
-} OORouteType;
+enum class OORouteType : std::int32_t { kNone, kJumps, kTime };
+// The numbers JS and the saved game's chart_ana_mode use.
+static_assert(oo::ToUnderlying(OORouteType::kNone) == 0);
+static_assert(oo::ToUnderlying(OORouteType::kJumps) == 1);
+static_assert(oo::ToUnderlying(OORouteType::kTime) == 2);
 
 // The names the game writes for OORouteType (saves, logs and plists).
 constexpr std::string_view OOEnumName(OORouteType value) noexcept {
   switch (value) {
-    case OPTIMIZED_BY_NONE:
+    case OORouteType::kNone:
       return "OPTIMIZED_BY_NONE";
-    case OPTIMIZED_BY_JUMPS:
+    case OORouteType::kJumps:
       return "OPTIMIZED_BY_JUMPS";
-    case OPTIMIZED_BY_TIME:
+    case OORouteType::kTime:
       return "OPTIMIZED_BY_TIME";
   }
   return {};
@@ -87,35 +87,44 @@ enum class OOAegisStatus : std::int32_t {
   kInDockingRange
 };
 
-typedef enum {
-  CARGO_NOT_CARGO = -1,
-  CARGO_SLAVES = 3,
-  CARGO_ALLOY = 9,
-  CARGO_MINERALS = 12,
-  CARGO_THARGOID = 16,
-  CARGO_RANDOM = 100,
-  CARGO_SCRIPTED_ITEM = 200,
-  CARGO_CHARACTER = 300
-} OOCargoType;
+enum class OOCargoType : std::int32_t {
+  kNotCargo = -1,
+  kSlaves = 3,
+  kAlloy = 9,
+  kMinerals = 12,
+  kThargoid = 16,
+  kRandom = 100,
+  kScriptedItem = 200,
+  kCharacter = 300
+};
+// The numbers shipdata's cargo_type uses.
+static_assert(oo::ToUnderlying(OOCargoType::kNotCargo) == -1);
+static_assert(oo::ToUnderlying(OOCargoType::kSlaves) == 3);
+static_assert(oo::ToUnderlying(OOCargoType::kAlloy) == 9);
+static_assert(oo::ToUnderlying(OOCargoType::kMinerals) == 12);
+static_assert(oo::ToUnderlying(OOCargoType::kThargoid) == 16);
+static_assert(oo::ToUnderlying(OOCargoType::kRandom) == 100);
+static_assert(oo::ToUnderlying(OOCargoType::kScriptedItem) == 200);
+static_assert(oo::ToUnderlying(OOCargoType::kCharacter) == 300);
 
 // The names the game writes for OOCargoType (saves, logs and plists).
 constexpr std::string_view OOEnumName(OOCargoType value) noexcept {
   switch (value) {
-    case CARGO_NOT_CARGO:
+    case OOCargoType::kNotCargo:
       return "CARGO_NOT_CARGO";
-    case CARGO_SLAVES:
+    case OOCargoType::kSlaves:
       return "CARGO_SLAVES";
-    case CARGO_ALLOY:
+    case OOCargoType::kAlloy:
       return "CARGO_ALLOY";
-    case CARGO_MINERALS:
+    case OOCargoType::kMinerals:
       return "CARGO_MINERALS";
-    case CARGO_THARGOID:
+    case OOCargoType::kThargoid:
       return "CARGO_THARGOID";
-    case CARGO_RANDOM:
+    case OOCargoType::kRandom:
       return "CARGO_RANDOM";
-    case CARGO_SCRIPTED_ITEM:
+    case OOCargoType::kScriptedItem:
       return "CARGO_SCRIPTED_ITEM";
-    case CARGO_CHARACTER:
+    case OOCargoType::kCharacter:
       return "CARGO_CHARACTER";
   }
   return {};
@@ -171,31 +180,39 @@ static_assert(oo::ToUnderlying(OOMassUnit::kTons) == 0);
 static_assert(oo::ToUnderlying(OOMassUnit::kKilograms) == 1);
 static_assert(oo::ToUnderlying(OOMassUnit::kGrams) == 2);
 
-typedef enum {
-  ENERGY_UNIT_NONE,
-  ENERGY_UNIT_NORMAL_DAMAGED,
-  ENERGY_UNIT_NAVAL_DAMAGED,
-  OLD_ENERGY_UNIT_NORMAL = 15,
-  OLD_ENERGY_UNIT_NAVAL = 20,
-  ENERGY_UNIT_NORMAL = 8,
-  ENERGY_UNIT_NAVAL = 16
-} OOEnergyUnitType;
+enum class OOEnergyUnitType : std::int32_t {
+  kNone,
+  kNormalDamaged,
+  kNavalDamaged,
+  kOldNormal = 15,
+  kOldNaval = 20,
+  kNormal = 8,
+  kNaval = 16
+};
+// The numbers a legacy saved game's energy_unit uses.
+static_assert(oo::ToUnderlying(OOEnergyUnitType::kNone) == 0);
+static_assert(oo::ToUnderlying(OOEnergyUnitType::kNormalDamaged) == 1);
+static_assert(oo::ToUnderlying(OOEnergyUnitType::kNavalDamaged) == 2);
+static_assert(oo::ToUnderlying(OOEnergyUnitType::kOldNormal) == 15);
+static_assert(oo::ToUnderlying(OOEnergyUnitType::kOldNaval) == 20);
+static_assert(oo::ToUnderlying(OOEnergyUnitType::kNormal) == 8);
+static_assert(oo::ToUnderlying(OOEnergyUnitType::kNaval) == 16);
 
 // The names the game writes for OOEnergyUnitType (saves, logs and plists).
 constexpr std::string_view OOEnumName(OOEnergyUnitType value) noexcept {
   switch (value) {
-    case ENERGY_UNIT_NONE:
+    case OOEnergyUnitType::kNone:
       return "ENERGY_UNIT_NONE";
-    case ENERGY_UNIT_NORMAL:
+    case OOEnergyUnitType::kNormal:
       return "ENERGY_UNIT_NORMAL";
-    case ENERGY_UNIT_NAVAL:
+    case OOEnergyUnitType::kNaval:
       return "ENERGY_UNIT_NAVAL";
-    case ENERGY_UNIT_NORMAL_DAMAGED:
+    case OOEnergyUnitType::kNormalDamaged:
       return "ENERGY_UNIT_NORMAL_DAMAGED";
-    case ENERGY_UNIT_NAVAL_DAMAGED:
+    case OOEnergyUnitType::kNavalDamaged:
       return "ENERGY_UNIT_NAVAL_DAMAGED";
-    case OLD_ENERGY_UNIT_NORMAL:  // a legacy save's number only: no name
-    case OLD_ENERGY_UNIT_NAVAL:
+    case OOEnergyUnitType::kOldNormal:  // a legacy save's number only: no name
+    case OOEnergyUnitType::kOldNaval:
       return {};
   }
   return {};
@@ -219,27 +236,33 @@ typedef enum {
   kOOLegalStatusReasonDefault = kOOLegalStatusReasonUnknown
 } OOLegalStatusReason;
 
-typedef enum {
-  DOCKING_CLEARANCE_STATUS_NONE,
-  DOCKING_CLEARANCE_STATUS_NOT_REQUIRED,
-  DOCKING_CLEARANCE_STATUS_REQUESTED,
-  DOCKING_CLEARANCE_STATUS_GRANTED,
-  DOCKING_CLEARANCE_STATUS_TIMING_OUT,
-} OODockingClearanceStatus;
+enum class OODockingClearanceStatus : std::int32_t {
+  kNone,
+  kNotRequired,
+  kRequested,
+  kGranted,
+  kTimingOut,
+};
+// The numbers JS sees.
+static_assert(oo::ToUnderlying(OODockingClearanceStatus::kNone) == 0);
+static_assert(oo::ToUnderlying(OODockingClearanceStatus::kNotRequired) == 1);
+static_assert(oo::ToUnderlying(OODockingClearanceStatus::kRequested) == 2);
+static_assert(oo::ToUnderlying(OODockingClearanceStatus::kGranted) == 3);
+static_assert(oo::ToUnderlying(OODockingClearanceStatus::kTimingOut) == 4);
 
 // The names the game writes for OODockingClearanceStatus (saves, logs and
 // plists).
 constexpr std::string_view OOEnumName(OODockingClearanceStatus value) noexcept {
   switch (value) {
-    case DOCKING_CLEARANCE_STATUS_NONE:
+    case OODockingClearanceStatus::kNone:
       return "DOCKING_CLEARANCE_STATUS_NONE";
-    case DOCKING_CLEARANCE_STATUS_REQUESTED:
+    case OODockingClearanceStatus::kRequested:
       return "DOCKING_CLEARANCE_STATUS_REQUESTED";
-    case DOCKING_CLEARANCE_STATUS_NOT_REQUIRED:
+    case OODockingClearanceStatus::kNotRequired:
       return "DOCKING_CLEARANCE_STATUS_NOT_REQUIRED";
-    case DOCKING_CLEARANCE_STATUS_GRANTED:
+    case OODockingClearanceStatus::kGranted:
       return "DOCKING_CLEARANCE_STATUS_GRANTED";
-    case DOCKING_CLEARANCE_STATUS_TIMING_OUT:
+    case OODockingClearanceStatus::kTimingOut:
       return "DOCKING_CLEARANCE_STATUS_TIMING_OUT";
   }
   return {};
@@ -316,25 +339,31 @@ inline bool OOWeaponFacingIsIn(unsigned facings,
   return (facings & oo::ToUnderlying(facing)) != 0;
 }
 
-typedef enum {
-  DETAIL_LEVEL_MINIMUM = 0,
-  DETAIL_LEVEL_NORMAL = 1,
-  DETAIL_LEVEL_SHADERS = 2,
-  DETAIL_LEVEL_EXTRAS = 3,
-
-  DETAIL_LEVEL_MAXIMUM = 3
-} OOGraphicsDetail;
+enum class OOGraphicsDetail : std::int32_t {
+  kMinimum = 0,
+  kNormal = 1,
+  kShaders = 2,
+  kExtras = 3
+};
+inline constexpr OOGraphicsDetail kOOGraphicsDetailMaximum =
+    OOGraphicsDetail::kExtras;
+// The numbers the preferences' detailLevel, the debug console and the
+// description keys use.
+static_assert(oo::ToUnderlying(OOGraphicsDetail::kMinimum) == 0);
+static_assert(oo::ToUnderlying(OOGraphicsDetail::kNormal) == 1);
+static_assert(oo::ToUnderlying(OOGraphicsDetail::kShaders) == 2);
+static_assert(oo::ToUnderlying(OOGraphicsDetail::kExtras) == 3);
 
 // The names the game writes for OOGraphicsDetail (saves, logs and plists).
 constexpr std::string_view OOEnumName(OOGraphicsDetail value) noexcept {
   switch (value) {
-    case DETAIL_LEVEL_MINIMUM:
+    case OOGraphicsDetail::kMinimum:
       return "DETAIL_LEVEL_MINIMUM";
-    case DETAIL_LEVEL_NORMAL:
+    case OOGraphicsDetail::kNormal:
       return "DETAIL_LEVEL_NORMAL";
-    case DETAIL_LEVEL_SHADERS:
+    case OOGraphicsDetail::kShaders:
       return "DETAIL_LEVEL_SHADERS";
-    case DETAIL_LEVEL_EXTRAS:
+    case OOGraphicsDetail::kExtras:
       return "DETAIL_LEVEL_EXTRAS";
   }
   return {};

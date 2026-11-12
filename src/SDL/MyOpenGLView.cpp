@@ -1002,10 +1002,10 @@ OOHDRToneMapper MyOpenGLView::hdrToneMapper() {
 }
 
 void MyOpenGLView::setHDRToneMapper(OOHDRToneMapper newToneMapper) {
-  if (newToneMapper > OOHDR_TONEMAPPER_REINHARD)
-    newToneMapper = OOHDR_TONEMAPPER_REINHARD;
-  if (newToneMapper < OOHDR_TONEMAPPER_NONE)
-    newToneMapper = OOHDR_TONEMAPPER_NONE;
+  if (newToneMapper > OOHDRToneMapper::kReinhard)
+    newToneMapper = OOHDRToneMapper::kReinhard;
+  if (newToneMapper < OOHDRToneMapper::kNone)
+    newToneMapper = OOHDRToneMapper::kNone;
   _hdrToneMapper = newToneMapper;
 }
 
@@ -1022,10 +1022,10 @@ OOSDRToneMapper MyOpenGLView::sdrToneMapper() {
 }
 
 void MyOpenGLView::setSDRToneMapper(OOSDRToneMapper newToneMapper) {
-  if (newToneMapper > OOSDR_TONEMAPPER_REINHARD)
-    newToneMapper = OOSDR_TONEMAPPER_REINHARD;
-  if (newToneMapper < OOSDR_TONEMAPPER_NONE)
-    newToneMapper = OOSDR_TONEMAPPER_NONE;
+  if (newToneMapper > OOSDRToneMapper::kReinhard)
+    newToneMapper = OOSDRToneMapper::kReinhard;
+  if (newToneMapper < OOSDRToneMapper::kNone)
+    newToneMapper = OOSDRToneMapper::kNone;
   _sdrToneMapper = newToneMapper;
 }
 

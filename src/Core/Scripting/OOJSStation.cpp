@@ -592,7 +592,7 @@ static JSValue StationDockPlayer(OOJS_NATIVE_ARGS) {
     // does not.
     if (JS_HasException(context)) return JS_EXCEPTION;
     if (player != nullptr)
-      player->setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_GRANTED);
+      player->setDockingClearanceStatus(OODockingClearanceStatus::kGranted);
     if (player != nullptr)
       player->PlayerEntity::safeAllMissiles();  // qualified: the final
                                                 // overrider, so the binding

@@ -210,10 +210,10 @@ bool OOPlanetTextureGenerator::initWithPlanetInfo(const oo::PList& planetInfo,
         (UNIVERSE != nullptr ? UNIVERSE->getDetailLevel() : OOGraphicsDetail{});
 
 #ifndef TEXGEN_TEST_RIG
-    if (detailLevel < DETAIL_LEVEL_SHADERS ||
+    if (detailLevel < OOGraphicsDetail::kShaders ||
         planetInfo.get<bool>("isMiniature", false)) {
       _planetScale = kPlanetScaleReducedDetail;
-    } else if (detailLevel == DETAIL_LEVEL_SHADERS) {
+    } else if (detailLevel == OOGraphicsDetail::kShaders) {
       _planetScale = kPlanetScaleFullDetail;
     } else {
       _planetScale = kPlanetScaleExtraDetail;
@@ -221,8 +221,8 @@ bool OOPlanetTextureGenerator::initWithPlanetInfo(const oo::PList& planetInfo,
 #else
     _planetScale = kPlanetScale4096x4096;
 #endif
-    _info.perlin3d =
-        planetInfo.get<bool>("perlin_3d", detailLevel > DETAIL_LEVEL_SHADERS);
+    _info.perlin3d = planetInfo.get<bool>(
+        "perlin_3d", detailLevel > OOGraphicsDetail::kShaders);
     _info.planetAspectRatio = _info.perlin3d ? 2 : 1;
     _info.planetScaleOffset = 8 - _info.planetAspectRatio;
     return true;

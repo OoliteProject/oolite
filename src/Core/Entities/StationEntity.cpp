@@ -1457,12 +1457,12 @@ void StationEntity::abortAllDockings() {
                          : (::StationEntity*)nullptr) == this &&
       (player != nullptr ? player->getDockingClearanceStatus()
                          : OODockingClearanceStatus{}) >=
-          DOCKING_CLEARANCE_STATUS_REQUESTED) {
+          OODockingClearanceStatus::kRequested) {
     // then docking clearance is requested but hasn't been cancelled
     // yet by a DockEntity
     sendExpandedMessage("[station-docking-clearance-abort-cancelled]", player);
     if (player != nullptr)
-      player->setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_NONE);
+      player->setDockingClearanceStatus(OODockingClearanceStatus::kNone);
     if (player != nullptr)
       player->doScriptEvent(OOJSID("stationWithdrewDockingClearance"));
   }
@@ -1540,7 +1540,7 @@ oo::PList StationEntity::dockingInstructionsForShip(::ShipEntity* ship) {
       (!(ship != nullptr ? ship->getIsPlayer() : false) &&
        (player != nullptr ? player->getDockingClearanceStatus()
                           : OODockingClearanceStatus{}) ==
-           DOCKING_CLEARANCE_STATUS_REQUESTED &&
+           OODockingClearanceStatus::kRequested &&
        (this == (player != nullptr ? player->getTargetDockStation()
                                    : (::StationEntity*)nullptr)));
 
@@ -1734,22 +1734,22 @@ void StationEntity::update(OOTimeDelta delta_t) {
           STATUS_IN_FLIGHT) {
     if ((player != nullptr ? player->getDockingClearanceStatus()
                            : OODockingClearanceStatus{}) >=
-        DOCKING_CLEARANCE_STATUS_GRANTED) {
+        OODockingClearanceStatus::kGranted) {
       if (last_launch_time - 30 < unitime &&
           (player != nullptr ? player->getDockingClearanceStatus()
                              : OODockingClearanceStatus{}) !=
-              DOCKING_CLEARANCE_STATUS_TIMING_OUT) {
+              OODockingClearanceStatus::kTimingOut) {
         sendExpandedMessage("[station-docking-clearance-about-to-expire]",
                             player);
         if (player != nullptr)
           player->setDockingClearanceStatus(
-              DOCKING_CLEARANCE_STATUS_TIMING_OUT);
+              OODockingClearanceStatus::kTimingOut);
       } else if (last_launch_time < unitime) {
         sendExpandedMessage("[station-docking-clearance-expired]", player);
         if (player != nullptr)
           player->setDockingClearanceStatus(
-              DOCKING_CLEARANCE_STATUS_NONE);  // Docking clearance for player
-                                               // has expired.
+              OODockingClearanceStatus::kNone);  // Docking clearance for player
+                                                 // has expired.
         if (player != nullptr)
           player->doScriptEvent(OOJSID("playerDockingClearanceExpired"));
         if (currentlyInDockingQueues() == 0) {
@@ -1762,10 +1762,10 @@ void StationEntity::update(OOTimeDelta delta_t) {
 
     else if ((player != nullptr ? player->getDockingClearanceStatus()
                                 : OODockingClearanceStatus{}) ==
-             DOCKING_CLEARANCE_STATUS_NOT_REQUIRED) {
+             OODockingClearanceStatus::kNotRequired) {
       if (last_launch_time < unitime) {
         if (player != nullptr)
-          player->setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_NONE);
+          player->setDockingClearanceStatus(OODockingClearanceStatus::kNone);
         if (currentlyInDockingQueues() == 0) {
           if (getAI() != nullptr) getAI()->message("DOCKING_COMPLETE");
           doScriptEvent(OOJSID("stationDockingQueuesAreEmpty"));
@@ -1775,7 +1775,7 @@ void StationEntity::update(OOTimeDelta delta_t) {
 
     else if ((player != nullptr ? player->getDockingClearanceStatus()
                                 : OODockingClearanceStatus{}) ==
-                 DOCKING_CLEARANCE_STATUS_REQUESTED &&
+                 OODockingClearanceStatus::kRequested &&
              hasClearDock()) {
       ::DockEntity* dock = selectDockForDocking();
       last_launch_time = unitime + DOCKING_CLEARANCE_WINDOW;
@@ -1818,7 +1818,7 @@ void StationEntity::update(OOTimeDelta delta_t) {
       }
       player_reserved_dock = dock;
       if (player != nullptr)
-        player->setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_GRANTED);
+        player->setDockingClearanceStatus(OODockingClearanceStatus::kGranted);
       if (player != nullptr)
         player->doScriptEvent(OOJSID("playerDockingClearanceGranted"));
     }
@@ -2038,9 +2038,9 @@ void StationEntity::noteDockedShip(::ShipEntity* ship) {
 
   ::PlayerEntity* player = PLAYER;
   // set last launch time to avoid clashes with outgoing ships
-  if ((player != nullptr
-           ? player->getDockingClearanceStatus()
-           : OODockingClearanceStatus{}) != DOCKING_CLEARANCE_STATUS_GRANTED) {
+  if ((player != nullptr ? player->getDockingClearanceStatus()
+                         : OODockingClearanceStatus{}) !=
+      OODockingClearanceStatus::kGranted) {
     // avoid interfering with docking clearance on another bay
     last_launch_time = (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0);
   }
@@ -2062,7 +2062,7 @@ void StationEntity::noteDockedShip(::ShipEntity* ship) {
           STATUS_IN_FLIGHT &&
       (player != nullptr ? player->getDockingClearanceStatus()
                          : OODockingClearanceStatus{}) ==
-          DOCKING_CLEARANCE_STATUS_REQUESTED) {
+          OODockingClearanceStatus::kRequested) {
     if (!hasClearDock()) {
       // then say why
       if (currentlyInDockingQueues()) {
@@ -2337,7 +2337,7 @@ std::optional<std::string> StationEntity::acceptDockingClearanceRequestFrom(
     if ((other != nullptr ? other->getIsPlayer() : false)) {
       if (player != nullptr)
         player->setDockingClearanceStatus(
-            DOCKING_CLEARANCE_STATUS_NOT_REQUIRED);
+            OODockingClearanceStatus::kNotRequired);
     }
     if (shipAI != nullptr)
       shipAI->reactToMessage("DOCKING_REQUESTED",
@@ -2355,7 +2355,7 @@ std::optional<std::string> StationEntity::acceptDockingClearanceRequestFrom(
                                  : (::StationEntity*)nullptr)) {
     switch ((player != nullptr ? player->getDockingClearanceStatus()
                                : OODockingClearanceStatus{})) {
-      case DOCKING_CLEARANCE_STATUS_TIMING_OUT:
+      case OODockingClearanceStatus::kTimingOut:
         if (!no_docking_while_launching) {
           last_launch_time = timeNow + DOCKING_CLEARANCE_WINDOW;
           const std::string extendedFormat = OO_DESC(
@@ -2375,17 +2375,18 @@ std::optional<std::string> StationEntity::acceptDockingClearanceRequestFrom(
                       false)}),
               other);
           if (player != nullptr)
-            player->setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_GRANTED);
+            player->setDockingClearanceStatus(
+                OODockingClearanceStatus::kGranted);
           result = "DOCKING_CLEARANCE_EXTENDED";
           break;
         }
         // else, continue with canceling.
-      case DOCKING_CLEARANCE_STATUS_REQUESTED:
-      case DOCKING_CLEARANCE_STATUS_GRANTED:
+      case OODockingClearanceStatus::kRequested:
+      case OODockingClearanceStatus::kGranted:
         last_launch_time = timeNow;
         sendExpandedMessage("[station-docking-clearance-cancelled]", other);
         if (player != nullptr)
-          player->setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_NONE);
+          player->setDockingClearanceStatus(OODockingClearanceStatus::kNone);
         result = "DOCKING_CLEARANCE_CANCELLED";
         player_reserved_dock = nullptr;
         if (currentlyInDockingQueues() == 0) {
@@ -2393,8 +2394,8 @@ std::optional<std::string> StationEntity::acceptDockingClearanceRequestFrom(
           doScriptEvent(OOJSID("stationDockingQueuesAreEmpty"));
         }
         break;
-      case DOCKING_CLEARANCE_STATUS_NONE:
-      case DOCKING_CLEARANCE_STATUS_NOT_REQUIRED:
+      case OODockingClearanceStatus::kNone:
+      case OODockingClearanceStatus::kNotRequired:
         break;
     }
   }
@@ -2406,7 +2407,7 @@ std::optional<std::string> StationEntity::acceptDockingClearanceRequestFrom(
                                  : (::StationEntity*)nullptr)) {
     player_reserved_dock = nullptr;  // and clear any previously reserved dock
     if (player != nullptr)
-      player->setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_REQUESTED);
+      player->setDockingClearanceStatus(OODockingClearanceStatus::kRequested);
   }
 
   // Deny docking for fugitives at the main station
@@ -2421,7 +2422,7 @@ std::optional<std::string> StationEntity::acceptDockingClearanceRequestFrom(
                         other);
     if ((other != nullptr ? other->getIsPlayer() : false))
       if (player != nullptr)
-        player->setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_NONE);
+        player->setDockingClearanceStatus(OODockingClearanceStatus::kNone);
     result = "DOCKING_CLEARANCE_DENIED_SHIP_FUGITIVE";
   }
 
@@ -2433,7 +2434,7 @@ std::optional<std::string> StationEntity::acceptDockingClearanceRequestFrom(
     sendExpandedMessage("[station-docking-clearance-denied]", other);
     if ((other != nullptr ? other->getIsPlayer() : false))
       if (player != nullptr)
-        player->setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_NONE);
+        player->setDockingClearanceStatus(OODockingClearanceStatus::kNone);
     result = "DOCKING_CLEARANCE_DENIED_SHIP_HOSTILE";
   }
 
@@ -2442,7 +2443,7 @@ std::optional<std::string> StationEntity::acceptDockingClearanceRequestFrom(
   {
     if ((other != nullptr ? other->getIsPlayer() : false)) {
       if (player != nullptr)
-        player->setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_NONE);
+        player->setDockingClearanceStatus(OODockingClearanceStatus::kNone);
     }
     sendExpandedMessage("[station-docking-clearance-denied-no-docks]", other);
 
@@ -2457,7 +2458,7 @@ std::optional<std::string> StationEntity::acceptDockingClearanceRequestFrom(
          (!(other != nullptr ? other->getIsPlayer() : false) &&
           (player != nullptr ? player->getDockingClearanceStatus()
                              : OODockingClearanceStatus{}) ==
-              DOCKING_CLEARANCE_STATUS_REQUESTED))) {
+              OODockingClearanceStatus::kRequested))) {
       sendExpandedMessage(
           oo::str::formatRuntime(
               OO_DESC(
@@ -2483,7 +2484,7 @@ std::optional<std::string> StationEntity::acceptDockingClearanceRequestFrom(
       // docking, so deny clearance
       if ((other != nullptr ? other->getIsPlayer() : false)) {
         if (player != nullptr)
-          player->setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_NONE);
+          player->setDockingClearanceStatus(OODockingClearanceStatus::kNone);
       }
       result = "DOCKING_CLEARANCE_DENIED_NO_DOCKS";
       // but can check to see if we'll open some for later.
@@ -2535,7 +2536,7 @@ std::optional<std::string> StationEntity::acceptDockingClearanceRequestFrom(
     last_launch_time = timeNow + DOCKING_CLEARANCE_WINDOW;
     if ((other != nullptr ? other->getIsPlayer() : false)) {
       if (player != nullptr)
-        player->setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_GRANTED);
+        player->setDockingClearanceStatus(OODockingClearanceStatus::kGranted);
       player_reserved_dock = selectDockForDocking();
     }
 

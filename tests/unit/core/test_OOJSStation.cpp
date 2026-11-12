@@ -1030,7 +1030,7 @@ OO_TEST(docking)
 	sUniverse->_controller->_paused = true;
 	OO_CHECK_EVAL("station.dockPlayer()", "undefined");
 	OO_CHECK(!sUniverse->_controller->_paused);
-	OO_CHECK_EQ(sPlayer->_dockLog, "clearance " + std::to_string(static_cast<int>(DOCKING_CLEARANCE_STATUS_GRANTED)) + "; safe; dock Coriolis");
+	OO_CHECK_EQ(sPlayer->_dockLog, "clearance " + std::to_string(static_cast<int>(OODockingClearanceStatus::kGranted)) + "; safe; dock Coriolis");
 	OO_CHECK_EQ(static_cast<int>(sUniverse->_view), static_cast<int>(VIEW_FORWARD));
 	sPlayer->_dockLog.clear();
 	OO_CHECK_EVAL("other.dockPlayer()", "undefined");

@@ -370,7 +370,7 @@ std::optional<std::string> cxx_OODisplayStringFromLegalStatus(int legalStatus)
 
 std::string cxx_DockingClearanceStatusToString(OODockingClearanceStatus dockingClearanceStatus)
 {
-	return dockingClearanceStatus == DOCKING_CLEARANCE_STATUS_GRANTED ? "DOCKING_CLEARANCE_STATUS_GRANTED" : "DOCKING_CLEARANCE_STATUS_NONE";
+	return dockingClearanceStatus == OODockingClearanceStatus::kGranted ? "DOCKING_CLEARANCE_STATUS_GRANTED" : "DOCKING_CLEARANCE_STATUS_NONE";
 }
 
 
@@ -619,7 +619,7 @@ void SetUpContext()
 	sPlayer->_contractReputation = 35;
 	sPlayer->_passengerReputation = -17;
 	sPlayer->_parcelReputation = 70;
-	sPlayer->_dockingClearanceStatus = DOCKING_CLEARANCE_STATUS_GRANTED;
+	sPlayer->_dockingClearanceStatus = OODockingClearanceStatus::kGranted;
 	sPlayer->_roleWeights = { "trader", "pirate", "trader" };
 	sPlayer->_status = STATUS_DOCKED;
 	sPlayer->_targetSystem = -1;

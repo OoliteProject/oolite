@@ -47,6 +47,7 @@ MA 02110-1301, USA.
 #include <vector>
 
 #include "Entity.h"
+#include "OOEnumFlags.h"
 #include "oofnd/PList.hpp"
 
 #define WORMHOLE_EXPIRES_TIMEINTERVAL 900.0
@@ -56,29 +57,36 @@ MA 02110-1301, USA.
 class Universe;
 class ShipEntity;
 
-typedef enum {
-  WH_SCANINFO_NONE = 0,
-  WH_SCANINFO_SCANNED,
-  WH_SCANINFO_COLLAPSE_TIME,
-  WH_SCANINFO_ARRIVAL_TIME,
-  WH_SCANINFO_DESTINATION,
-  WH_SCANINFO_SHIP,
-} WORMHOLE_SCANINFO;
+enum class WORMHOLE_SCANINFO : std::int32_t {
+  kNone = 0,
+  kScanned,
+  kCollapseTime,
+  kArrivalTime,
+  kDestination,
+  kShip,
+};
+// The numbers a saved wormhole's scan_info uses.
+static_assert(oo::ToUnderlying(WORMHOLE_SCANINFO::kNone) == 0);
+static_assert(oo::ToUnderlying(WORMHOLE_SCANINFO::kScanned) == 1);
+static_assert(oo::ToUnderlying(WORMHOLE_SCANINFO::kCollapseTime) == 2);
+static_assert(oo::ToUnderlying(WORMHOLE_SCANINFO::kArrivalTime) == 3);
+static_assert(oo::ToUnderlying(WORMHOLE_SCANINFO::kDestination) == 4);
+static_assert(oo::ToUnderlying(WORMHOLE_SCANINFO::kShip) == 5);
 
 // The names the game writes for WORMHOLE_SCANINFO (saves, logs and plists).
 constexpr std::string_view OOEnumName(WORMHOLE_SCANINFO value) noexcept {
   switch (value) {
-    case WH_SCANINFO_NONE:
+    case WORMHOLE_SCANINFO::kNone:
       return "WH_SCANINFO_NONE";
-    case WH_SCANINFO_SCANNED:
+    case WORMHOLE_SCANINFO::kScanned:
       return "WH_SCANINFO_SCANNED";
-    case WH_SCANINFO_COLLAPSE_TIME:
+    case WORMHOLE_SCANINFO::kCollapseTime:
       return "WH_SCANINFO_COLLAPSE_TIME";
-    case WH_SCANINFO_ARRIVAL_TIME:
+    case WORMHOLE_SCANINFO::kArrivalTime:
       return "WH_SCANINFO_ARRIVAL_TIME";
-    case WH_SCANINFO_DESTINATION:
+    case WORMHOLE_SCANINFO::kDestination:
       return "WH_SCANINFO_DESTINATION";
-    case WH_SCANINFO_SHIP:
+    case WORMHOLE_SCANINFO::kShip:
       return "WH_SCANINFO_SHIP";
   }
   return {};

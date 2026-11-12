@@ -1114,7 +1114,7 @@ void ShipEntity::scanForLoot() {
     ::ShipEntity* other = oo::ToShip(scanned_ships[i]);
     if ((other != nullptr ? other->getScanClass() : OOScanClass{}) ==
             CLASS_CARGO &&
-        (other == nullptr || other->cargoType() != CARGO_NOT_CARGO) &&
+        (other == nullptr || other->cargoType() != OOCargoType::kNotCargo) &&
         (other != nullptr ? other->status() : OOEntityStatus{}) !=
             STATUS_BEING_SCOOPED) {
       if ((!isPolice()) ||
@@ -1153,7 +1153,7 @@ void ShipEntity::scanForRandomLoot() {
     ::ShipEntity* other = scanned_ships[i];
     if ((other != nullptr ? other->getScanClass() : OOScanClass{}) ==
             CLASS_CARGO &&
-        (other == nullptr || other->cargoType() != CARGO_NOT_CARGO) &&
+        (other == nullptr || other->cargoType() != OOCargoType::kNotCargo) &&
         (other != nullptr ? other->status() : OOEntityStatus{}) !=
             STATUS_BEING_SCOOPED) {
       thing_uids_found[things_found++] = other;

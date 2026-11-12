@@ -1023,7 +1023,7 @@ OOSystemID PlayerEntity::nextHopTargetSystemID() {
     return target_system_id;
   }
   // not available if ANA is turned off
-  if (ANA_mode == OPTIMIZED_BY_NONE) {
+  if (ANA_mode == OORouteType::kNone) {
     return target_system_id;
   }
   // easy case
@@ -1086,7 +1086,7 @@ void PlayerEntity::setInfoSystemID(OOSystemID sid, bool moveChart) {
 }
 
 void PlayerEntity::nextInfoSystem() {
-  if (ANA_mode == OPTIMIZED_BY_NONE) {
+  if (ANA_mode == OORouteType::kNone) {
     setInfoSystemID(target_system_id, true);
     return;
   }
@@ -1114,7 +1114,7 @@ void PlayerEntity::nextInfoSystem() {
 }
 
 void PlayerEntity::previousInfoSystem() {
-  if (ANA_mode == OPTIMIZED_BY_NONE) {
+  if (ANA_mode == OORouteType::kNone) {
     setInfoSystemID(system_id, true);
     return;
   }
@@ -1626,7 +1626,8 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
     chart_zoom = dict.get<float>("chart_zoom", 1.0);
     target_chart_zoom = chart_zoom;
     saved_chart_zoom = chart_zoom;
-    ANA_mode = (OORouteType)dict.get<int>("chart_ana_mode", OPTIMIZED_BY_NONE);
+    ANA_mode = (OORouteType)dict.get<int>("chart_ana_mode",
+                                          oo::ToUnderlying(OORouteType::kNone));
     longRangeChartMode = (OOLongRangeChartMode)dict.get<int>(
         "chart_colour_mode", OOLRC_MODE_SUNCOLOR);
     if (longRangeChartMode == OOLRC_MODE_UNKNOWN)
@@ -1665,7 +1666,7 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
     chart_zoom = 1.0;
     target_chart_zoom = 1.0;
     saved_chart_zoom = 1.0;
-    ANA_mode = OPTIMIZED_BY_NONE;
+    ANA_mode = OORouteType::kNone;
 
     const std::optional<std::string> keyStringValue =
         StringForKey(dict, "target_coordinates");
@@ -1768,16 +1769,16 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
 
   // Legacy energy unit type -> energy unit equipment item
   if (dict.get<bool>("has_energy_unit") &&
-      installedEnergyUnitType() == ENERGY_UNIT_NONE) {
-    OOEnergyUnitType eType =
-        (OOEnergyUnitType)dict.get<int>("energy_unit", ENERGY_UNIT_NORMAL);
+      installedEnergyUnitType() == OOEnergyUnitType::kNone) {
+    OOEnergyUnitType eType = (OOEnergyUnitType)dict.get<int>(
+        "energy_unit", oo::ToUnderlying(OOEnergyUnitType::kNormal));
     switch (eType) {
       // look for NEU first!
-      case OLD_ENERGY_UNIT_NAVAL:
+      case OOEnergyUnitType::kOldNaval:
         equipment["EQ_NAVAL_ENERGY_UNIT"] = one;
         break;
 
-      case OLD_ENERGY_UNIT_NORMAL:
+      case OOEnergyUnitType::kOldNormal:
         equipment["EQ_ENERGY_UNIT"] = one;
         break;
 
@@ -2631,7 +2632,7 @@ bool PlayerEntity::setUpAndConfirmOK(bool stopOnError, bool saveGame) {
   chart_zoom = 1.0;
   target_chart_zoom = 1.0;
   saved_chart_zoom = 1.0;
-  ANA_mode = OPTIMIZED_BY_NONE;
+  ANA_mode = OORouteType::kNone;
 
   scripted_misjump = false;
   _scriptedMisjumpRange = 0.5;
@@ -2650,7 +2651,7 @@ bool PlayerEntity::setUpAndConfirmOK(bool stopOnError, bool saveGame) {
 
   if (UNIVERSE != nullptr) UNIVERSE->clearGUIs();
 
-  dockingClearanceStatus = DOCKING_CLEARANCE_STATUS_GRANTED;
+  dockingClearanceStatus = OODockingClearanceStatus::kGranted;
   targetDockStation = nullptr;
 
   setDockedStation((UNIVERSE != nullptr ? UNIVERSE->station() : nullptr));
@@ -3965,8 +3966,8 @@ void PlayerEntity::performDockingRequest(::StationEntity* stationForDocking) {
 }
 
 void PlayerEntity::requestDockingClearance(::StationEntity* stationForDocking) {
-  if (dockingClearanceStatus != DOCKING_CLEARANCE_STATUS_REQUESTED &&
-      dockingClearanceStatus != DOCKING_CLEARANCE_STATUS_GRANTED) {
+  if (dockingClearanceStatus != OODockingClearanceStatus::kRequested &&
+      dockingClearanceStatus != OODockingClearanceStatus::kGranted) {
     performDockingRequest(stationForDocking);
   }
 }
@@ -3981,8 +3982,8 @@ void PlayerEntity::cancelDockingRequest(::StationEntity* stationForDocking) {
   if (autopilot_engaged && targetStation() != stationForDocking) {
     disengageAutopilot();
   }
-  if (dockingClearanceStatus == DOCKING_CLEARANCE_STATUS_GRANTED ||
-      dockingClearanceStatus == DOCKING_CLEARANCE_STATUS_REQUESTED) {
+  if (dockingClearanceStatus == OODockingClearanceStatus::kGranted ||
+      dockingClearanceStatus == OODockingClearanceStatus::kRequested) {
     const std::optional<std::string> stationDockingClearanceStatus =
         (stationForDocking != nullptr
              ? stationForDocking->acceptDockingClearanceRequestFrom(this)
@@ -4016,7 +4017,7 @@ bool PlayerEntity::engageAutopilotToStation(
   playAutopilotOn();
   OOMusicController::sharedController()->playDockingMusic();
   doScriptEvent(OOJSID("playerStartedAutoPilot"), stationForDocking);
-  setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_GRANTED);
+  setDockingClearanceStatus(OODockingClearanceStatus::kGranted);
 
   if (afterburner_engaged) {
     afterburner_engaged = false;
@@ -4035,7 +4036,7 @@ void PlayerEntity::disengageAutopilot() {
     setTargetStation(nullptr);
     setStatus(STATUS_IN_FLIGHT);
     playAutopilotOff();
-    setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_NONE);
+    setDockingClearanceStatus(OODockingClearanceStatus::kNone);
     OOMusicController::sharedController()->stopDockingMusic();
     doScriptEvent(OOJSID("playerCancelledAutoPilot"));
 
@@ -4261,7 +4262,7 @@ void PlayerEntity::performLaunchingUpdates(OOTimeDelta delta_t) {
 
     setStatus(STATUS_IN_FLIGHT);
 
-    setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_NONE);
+    setDockingClearanceStatus(OODockingClearanceStatus::kNone);
     ::StationEntity* stationLaunchedFrom = oo::ToStation(
         (UNIVERSE != nullptr ? UNIVERSE->nearestEntityMatchingPredicate(
                                    IsStationPredicate, nullptr, this)
@@ -4304,7 +4305,7 @@ void PlayerEntity::gameOverFadeToBW() {
   float secondsToBWFadeOut =
       oo::PListGet<float>::from(fadeOut.isNull() ? nullptr : &fadeOut, 5.0f);
   if ((UNIVERSE != nullptr ? UNIVERSE->getDetailLevel() : OOGraphicsDetail{}) >=
-          DETAIL_LEVEL_SHADERS &&
+          OOGraphicsDetail::kShaders &&
       secondsToBWFadeOut > 0.0f) {
     ::MyOpenGLView* gameView =
         (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr);
@@ -4547,7 +4548,7 @@ void PlayerEntity::updateTargeting() {
     WormholeEntity* wh =
         static_cast<WormholeEntity*>(primaryTarget());  // -isWormhole
     switch ((wh != nullptr ? wh->scanInfo() : WORMHOLE_SCANINFO{})) {
-      case WH_SCANINFO_NONE:
+      case WORMHOLE_SCANINFO::kNone:
         OO_LOG(cxx_kOOLogInconsistentState, "{}",
                "Internal Error - WH_SCANINFO_NONE reached in [PlayerEntity "
                "updateTargeting:]");
@@ -4557,12 +4558,12 @@ void PlayerEntity::updateTargeting() {
         // should work out how/why this could happen though and fix
         // the underlying cause.
         // - MKW 2011.03.11
-        // assert([wh scanInfo] != WH_SCANINFO_NONE);
+        // assert([wh scanInfo] != WORMHOLE_SCANINFO::kNone);
         if (wh != nullptr) wh->setScannedAt(clockTimeAdjusted());
         break;
-      case WH_SCANINFO_SCANNED:
+      case WORMHOLE_SCANINFO::kScanned:
         if (clockTimeAdjusted() > (wh != nullptr ? wh->scanTime() : 0.0) + 2) {
-          if (wh != nullptr) wh->setScanInfo(WH_SCANINFO_COLLAPSE_TIME);
+          if (wh != nullptr) wh->setScanInfo(WORMHOLE_SCANINFO::kCollapseTime);
           //[UNIVERSE
           // cxx_addCommsMessage:oo::str::formatRuntime(OO_DESC("wormhole-collapse-time-computed"),
           //						   { [UNIVERSE
@@ -4570,9 +4571,9 @@ void PlayerEntity::updateTargeting() {
           // forCount:5.0];
         }
         break;
-      case WH_SCANINFO_COLLAPSE_TIME:
+      case WORMHOLE_SCANINFO::kCollapseTime:
         if (clockTimeAdjusted() > (wh != nullptr ? wh->scanTime() : 0.0) + 4) {
-          if (wh != nullptr) wh->setScanInfo(WH_SCANINFO_ARRIVAL_TIME);
+          if (wh != nullptr) wh->setScanInfo(WORMHOLE_SCANINFO::kArrivalTime);
           if (UNIVERSE != nullptr) {
             const std::string arrivalFormat = OO_DESC(
                 "wormhole-arrival-time-computed-@");  // the format first, as
@@ -4590,9 +4591,9 @@ void PlayerEntity::updateTargeting() {
           }
         }
         break;
-      case WH_SCANINFO_ARRIVAL_TIME:
+      case WORMHOLE_SCANINFO::kArrivalTime:
         if (clockTimeAdjusted() > (wh != nullptr ? wh->scanTime() : 0.0) + 7) {
-          if (wh != nullptr) wh->setScanInfo(WH_SCANINFO_DESTINATION);
+          if (wh != nullptr) wh->setScanInfo(WORMHOLE_SCANINFO::kDestination);
           if (UNIVERSE != nullptr)
             UNIVERSE->addCommsMessage(
                 oo::str::formatRuntime(
@@ -4605,13 +4606,13 @@ void PlayerEntity::updateTargeting() {
                 5.0);
         }
         break;
-      case WH_SCANINFO_DESTINATION:
+      case WORMHOLE_SCANINFO::kDestination:
         if (clockTimeAdjusted() > (wh != nullptr ? wh->scanTime() : 0.0) + 10) {
-          if (wh != nullptr) wh->setScanInfo(WH_SCANINFO_SHIP);
+          if (wh != nullptr) wh->setScanInfo(WORMHOLE_SCANINFO::kShip);
           // TODO: Extract last ship from wormhole and display its name
         }
         break;
-      case WH_SCANINFO_SHIP:
+      case WORMHOLE_SCANINFO::kShip:
         break;
     }
   }
@@ -6161,20 +6162,22 @@ bool PlayerEntity::fireECM() {
 
 OOEnergyUnitType PlayerEntity::installedEnergyUnitType() {
   if (hasEquipmentItem(oo::PList("EQ_NAVAL_ENERGY_UNIT")))
-    return ENERGY_UNIT_NAVAL;
-  if (hasEquipmentItem(oo::PList("EQ_ENERGY_UNIT"))) return ENERGY_UNIT_NORMAL;
-  return ENERGY_UNIT_NONE;
+    return OOEnergyUnitType::kNaval;
+  if (hasEquipmentItem(oo::PList("EQ_ENERGY_UNIT")))
+    return OOEnergyUnitType::kNormal;
+  return OOEnergyUnitType::kNone;
 }
 
 OOEnergyUnitType PlayerEntity::energyUnitType() {
   if (hasEquipmentItem(oo::PList("EQ_NAVAL_ENERGY_UNIT")))
-    return ENERGY_UNIT_NAVAL;
-  if (hasEquipmentItem(oo::PList("EQ_ENERGY_UNIT"))) return ENERGY_UNIT_NORMAL;
+    return OOEnergyUnitType::kNaval;
+  if (hasEquipmentItem(oo::PList("EQ_ENERGY_UNIT")))
+    return OOEnergyUnitType::kNormal;
   if (hasEquipmentItem(oo::PList("EQ_NAVAL_ENERGY_UNIT_DAMAGED")))
-    return ENERGY_UNIT_NAVAL_DAMAGED;
+    return OOEnergyUnitType::kNavalDamaged;
   if (hasEquipmentItem(oo::PList("EQ_ENERGY_UNIT_DAMAGED")))
-    return ENERGY_UNIT_NORMAL_DAMAGED;
-  return ENERGY_UNIT_NONE;
+    return OOEnergyUnitType::kNormalDamaged;
+  return OOEnergyUnitType::kNone;
 }
 
 void PlayerEntity::currentWeaponStats() {
@@ -6610,7 +6613,7 @@ void PlayerEntity::takeHeatDamage(double amount) {
     ship_clock_adjust +=
         43200 + 5400 * (ranrot_rand() & 127);  // add up to 8 days until rescue!
   }
-  dockingClearanceStatus = DOCKING_CLEARANCE_STATUS_NOT_REQUIRED;
+  dockingClearanceStatus = OODockingClearanceStatus::kNotRequired;
   flightSpeed = fmin(flightSpeed, maxFlightSpeed);
 
   doppelganger = createDoppelganger();
@@ -7315,7 +7318,7 @@ void PlayerEntity::leaveDock(::StationEntity* station) {
 
   //	[self setAlertFlag:OOAlertFlags::kDocked to:NO];
   clearAlertFlags();
-  setDockingClearanceStatus(DOCKING_CLEARANCE_STATUS_NONE);
+  setDockingClearanceStatus(OODockingClearanceStatus::kNone);
 
   scanner_zoom_rate = 0.0f;
   currentWeaponFacing = OOWeaponFacing::kForward;
@@ -8859,7 +8862,7 @@ void PlayerEntity::setGuiToSystemDataScreenRefreshBackground(
         distance = 0.1;
       }
       std::string distanceInfo = std::format("{:.1f} ly", distance);
-      if (ANA_mode != OPTIMIZED_BY_NONE) {
+      if (ANA_mode != OORouteType::kNone) {
         const oo::PList routeInfo =
             (UNIVERSE != nullptr ? UNIVERSE->routeFromSystem(
                                        system_id, info_system_id, ANA_mode)
@@ -9402,7 +9405,8 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
     OOGraphicsDetail detailLevel =
         (UNIVERSE != nullptr ? UNIVERSE->getDetailLevel() : OOGraphicsDetail{});
     const std::string shaderEffectsOptionsString =
-        cxx_OOExpand("gameoptions-detaillevel-[detailLevel]", detailLevel)
+        cxx_OOExpand("gameoptions-detaillevel-[detailLevel]",
+                     oo::ToUnderlying(detailLevel))
             .value_or(std::string());
     gui->setText(ExpandKeyWithSeed(OOStringExpanderDefaultRandomSeed(),
                                    shaderEffectsOptionsString, {}),
@@ -10949,9 +10953,9 @@ bool PlayerEntity::tryBuyingItem(const std::string& eqKey) {
 
   // check energy unit replacement
   if (oo::str::hasSuffix(eqKey, "ENERGY_UNIT") &&
-      energyUnitType() != ENERGY_UNIT_NONE) {
+      energyUnitType() != OOEnergyUnitType::kNone) {
     switch (energyUnitType()) {
-      case ENERGY_UNIT_NAVAL:
+      case OOEnergyUnitType::kNaval:
         removeEquipmentItem("EQ_NAVAL_ENERGY_UNIT");
         tradeIn =
             (UNIVERSE != nullptr
@@ -10959,7 +10963,7 @@ bool PlayerEntity::tryBuyingItem(const std::string& eqKey) {
                  : 0) /
             2;  // 50 % refund
         break;
-      case ENERGY_UNIT_NAVAL_DAMAGED:
+      case OOEnergyUnitType::kNavalDamaged:
         removeEquipmentItem("EQ_NAVAL_ENERGY_UNIT_DAMAGED");
         tradeIn =
             (UNIVERSE != nullptr
@@ -10967,14 +10971,14 @@ bool PlayerEntity::tryBuyingItem(const std::string& eqKey) {
                  : 0) /
             4;  // half of the working one
         break;
-      case ENERGY_UNIT_NORMAL:
+      case OOEnergyUnitType::kNormal:
         removeEquipmentItem("EQ_ENERGY_UNIT");
         tradeIn = (UNIVERSE != nullptr
                        ? UNIVERSE->getEquipmentPriceForKey("EQ_ENERGY_UNIT")
                        : 0) *
                   3 / 4;  // 75 % refund
         break;
-      case ENERGY_UNIT_NORMAL_DAMAGED:
+      case OOEnergyUnitType::kNormalDamaged:
         removeEquipmentItem("EQ_ENERGY_UNIT_DAMAGED");
         tradeIn = (UNIVERSE != nullptr
                        ? UNIVERSE->getEquipmentPriceForKey("EQ_ENERGY_UNIT")
@@ -13589,24 +13593,24 @@ bool PlayerEntity::isDocked() {
 }
 
 bool PlayerEntity::clearedToDock() {
-  return dockingClearanceStatus > DOCKING_CLEARANCE_STATUS_REQUESTED ||
-         dockingClearanceStatus == DOCKING_CLEARANCE_STATUS_NOT_REQUIRED;
+  return dockingClearanceStatus > OODockingClearanceStatus::kRequested ||
+         dockingClearanceStatus == OODockingClearanceStatus::kNotRequired;
 }
 
 void PlayerEntity::setDockingClearanceStatus(
     OODockingClearanceStatus newValue) {
   dockingClearanceStatus = newValue;
-  if (dockingClearanceStatus == DOCKING_CLEARANCE_STATUS_NONE) {
+  if (dockingClearanceStatus == OODockingClearanceStatus::kNone) {
     targetDockStation = nullptr;
-  } else if (dockingClearanceStatus == DOCKING_CLEARANCE_STATUS_REQUESTED ||
-             dockingClearanceStatus == DOCKING_CLEARANCE_STATUS_NOT_REQUIRED) {
+  } else if (dockingClearanceStatus == OODockingClearanceStatus::kRequested ||
+             dockingClearanceStatus == OODockingClearanceStatus::kNotRequired) {
     if ((primaryTarget() != nullptr && primaryTarget()->getIsStation())) {
       targetDockStation = oo::ToStation(primaryTarget());
     } else {
       OO_LOG("player.badDockingTarget", "Attempt to dock at {}.",
              oo::EntityDescription(primaryTarget()));
       targetDockStation = nullptr;
-      dockingClearanceStatus = DOCKING_CLEARANCE_STATUS_NONE;
+      dockingClearanceStatus = OODockingClearanceStatus::kNone;
     }
   }
 }

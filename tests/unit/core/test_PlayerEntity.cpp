@@ -451,8 +451,8 @@ OO_TEST(slice2Accessors)
 		OO_CHECK(player->getCustom_chart_zoom() == 2.5);
 		player->setCustomChartCentre(NSMakePoint(30, 40));
 		OO_CHECK(Near(player->getCustom_chart_centre_coordinates(), NSMakePoint(30, 40)));
-		PlayerEntityTestAccess::ANA_mode(part) = OPTIMIZED_BY_TIME;
-		OO_CHECK(player->ANAMode() == OPTIMIZED_BY_TIME);
+		PlayerEntityTestAccess::ANA_mode(part) = OORouteType::kTime;
+		OO_CHECK(player->ANAMode() == OORouteType::kTime);
 		PlayerEntityTestAccess::system_id(part) = 42;
 		OO_CHECK(player->systemID() == 42);
 		player->setPreviousSystemID(17);
@@ -521,7 +521,7 @@ OO_TEST(slice3TargetAndInfoSystems)
 		PlayerEntityTestAccess::system_id(part) = 7;
 		PlayerEntityTestAccess::target_system_id(part) = 9;
 		PlayerEntityTestAccess::info_system_id(part) = 11;
-		PlayerEntityTestAccess::ANA_mode(part) = OPTIMIZED_BY_JUMPS;
+		PlayerEntityTestAccess::ANA_mode(part) = OORouteType::kJumps;
 		OO_CHECK(player->targetSystemID() == 9);
 		OO_CHECK(player->nextHopTargetSystemID() == 9);
 		OO_CHECK(player->infoSystemID() == 11);
@@ -1324,11 +1324,11 @@ OO_TEST(slice28ClearanceMarkerKeyAndExtraKeys)
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		PlayerEntity *part = player;
-		PlayerEntityTestAccess::dockingClearanceStatus(part) = DOCKING_CLEARANCE_STATUS_REQUESTED;
-		OO_CHECK(!player->clearedToDock() && player->getDockingClearanceStatus() == DOCKING_CLEARANCE_STATUS_REQUESTED);
-		PlayerEntityTestAccess::dockingClearanceStatus(part) = DOCKING_CLEARANCE_STATUS_GRANTED;
+		PlayerEntityTestAccess::dockingClearanceStatus(part) = OODockingClearanceStatus::kRequested;
+		OO_CHECK(!player->clearedToDock() && player->getDockingClearanceStatus() == OODockingClearanceStatus::kRequested);
+		PlayerEntityTestAccess::dockingClearanceStatus(part) = OODockingClearanceStatus::kGranted;
 		OO_CHECK(player->clearedToDock());
-		PlayerEntityTestAccess::dockingClearanceStatus(part) = DOCKING_CLEARANCE_STATUS_NOT_REQUIRED;
+		PlayerEntityTestAccess::dockingClearanceStatus(part) = OODockingClearanceStatus::kNotRequired;
 		OO_CHECK(player->clearedToDock());
 		const oo::PList marker(oo::PList::Dict{ { "system", oo::PList(7) }, { "name", oo::PList(std::string("beacon")) } });
 		OO_CHECK(player->markerKey(marker) == std::optional<std::string>("7-beacon"));

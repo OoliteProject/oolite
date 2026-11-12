@@ -297,14 +297,16 @@ std::string cxx_CargoTypeToString(OOCargoType cargo) {
 
 OOCargoType cxx_StringToCargoType(const std::string& string) {
   static constexpr auto kNames =
-      oo::MakeEnumTable<OOCargoType, CARGO_NOT_CARGO, CARGO_SLAVES, CARGO_ALLOY,
-                        CARGO_MINERALS, CARGO_THARGOID, CARGO_RANDOM,
-                        CARGO_SCRIPTED_ITEM, CARGO_CHARACTER>();
+      oo::MakeEnumTable<OOCargoType, OOCargoType::kNotCargo,
+                        OOCargoType::kSlaves, OOCargoType::kAlloy,
+                        OOCargoType::kMinerals, OOCargoType::kThargoid,
+                        OOCargoType::kRandom, OOCargoType::kScriptedItem,
+                        OOCargoType::kCharacter>();
   if (const std::optional<OOCargoType> value = kNames.value(string))
     return *value;
 
   // Backwards compatibility.
-  if (string == "CARGO_CARRIED") return CARGO_RANDOM;
+  if (string == "CARGO_CARRIED") return OOCargoType::kRandom;
 
   return (OOCargoType)kOOCargoTypeDefault;
 }
@@ -317,9 +319,10 @@ std::string cxx_EnergyUnitTypeToString(OOEnergyUnitType unit) {
 
 OOEnergyUnitType cxx_StringToEnergyUnitType(const std::string& string) {
   static constexpr auto kNames =
-      oo::MakeEnumTable<OOEnergyUnitType, ENERGY_UNIT_NONE, ENERGY_UNIT_NORMAL,
-                        ENERGY_UNIT_NAVAL, ENERGY_UNIT_NORMAL_DAMAGED,
-                        ENERGY_UNIT_NAVAL_DAMAGED>();
+      oo::MakeEnumTable<OOEnergyUnitType, OOEnergyUnitType::kNone,
+                        OOEnergyUnitType::kNormal, OOEnergyUnitType::kNaval,
+                        OOEnergyUnitType::kNormalDamaged,
+                        OOEnergyUnitType::kNavalDamaged>();
   if (const std::optional<OOEnergyUnitType> value = kNames.value(string))
     return *value;
 
@@ -384,13 +387,13 @@ std::optional<std::string> cxx_OODisplayStringFromShaderSetting(
   // DESC() is Universe's description lookup (not migrated yet), converted at
   // the call.
   switch (setting) {
-    case SHADERS_NOT_SUPPORTED:
+    case OOShaderSetting::kNotSupported:
       return OO_DESC("shaderfx-not-available");
-    case SHADERS_OFF:
+    case OOShaderSetting::kOff:
       return OO_DESC("shaderfx-off");
-    case SHADERS_SIMPLE:
+    case OOShaderSetting::kSimple:
       return OO_DESC("shaderfx-simple");
-    case SHADERS_FULL:
+    case OOShaderSetting::kFull:
       return OO_DESC("shaderfx-full");
   }
 
@@ -404,8 +407,9 @@ std::string cxx_OOStringFromShaderSetting(OOShaderSetting setting) {
 
 OOShaderSetting cxx_OOShaderSettingFromString(const std::string& string) {
   static constexpr auto kNames =
-      oo::MakeEnumTable<OOShaderSetting, SHADERS_OFF, SHADERS_SIMPLE,
-                        SHADERS_FULL, SHADERS_NOT_SUPPORTED>();
+      oo::MakeEnumTable<OOShaderSetting, OOShaderSetting::kOff,
+                        OOShaderSetting::kSimple, OOShaderSetting::kFull,
+                        OOShaderSetting::kNotSupported>();
   if (const std::optional<OOShaderSetting> value = kNames.value(string))
     return *value;
 
@@ -459,8 +463,8 @@ std::optional<std::string> cxx_DisplayStringForMassUnitForCommodity(
 
 OORouteType cxx_StringToRouteType(const std::string& string) {
   static constexpr auto kNames =
-      oo::MakeEnumTable<OORouteType, OPTIMIZED_BY_NONE, OPTIMIZED_BY_JUMPS,
-                        OPTIMIZED_BY_TIME>();
+      oo::MakeEnumTable<OORouteType, OORouteType::kNone, OORouteType::kJumps,
+                        OORouteType::kTime>();
   if (const std::optional<OORouteType> value = kNames.value(string))
     return *value;
 
@@ -481,13 +485,13 @@ std::string cxx_OOStringFromGraphicsDetail(OOGraphicsDetail detail) {
 
 OOGraphicsDetail cxx_OOGraphicsDetailFromString(const std::string& string) {
   static constexpr auto kNames =
-      oo::MakeEnumTable<OOGraphicsDetail, DETAIL_LEVEL_MINIMUM,
-                        DETAIL_LEVEL_NORMAL, DETAIL_LEVEL_SHADERS,
-                        DETAIL_LEVEL_EXTRAS>();
+      oo::MakeEnumTable<OOGraphicsDetail, OOGraphicsDetail::kMinimum,
+                        OOGraphicsDetail::kNormal, OOGraphicsDetail::kShaders,
+                        OOGraphicsDetail::kExtras>();
   if (const std::optional<OOGraphicsDetail> value = kNames.value(string))
     return *value;
 
-  return DETAIL_LEVEL_MINIMUM;
+  return OOGraphicsDetail::kMinimum;
 }
 
 std::string cxx_OOStringFromHDRToneMapper(OOHDRToneMapper toneMapper) {
@@ -498,13 +502,14 @@ std::string cxx_OOStringFromHDRToneMapper(OOHDRToneMapper toneMapper) {
 
 OOHDRToneMapper cxx_OOHDRToneMapperFromString(const std::string& string) {
   static constexpr auto kNames =
-      oo::MakeEnumTable<OOHDRToneMapper, OOHDR_TONEMAPPER_NONE,
-                        OOHDR_TONEMAPPER_ACES_APPROX, OOHDR_TONEMAPPER_DICE,
-                        OOHDR_TONEMAPPER_UCHIMURA, OOHDR_TONEMAPPER_REINHARD>();
+      oo::MakeEnumTable<OOHDRToneMapper, OOHDRToneMapper::kNone,
+                        OOHDRToneMapper::kAcesApprox, OOHDRToneMapper::kDice,
+                        OOHDRToneMapper::kUchimura,
+                        OOHDRToneMapper::kReinhard>();
   if (const std::optional<OOHDRToneMapper> value = kNames.value(string))
     return *value;
 
-  return OOHDR_TONEMAPPER_ACES_APPROX;
+  return OOHDRToneMapper::kAcesApprox;
 }
 
 std::string cxx_OOStringFromSDRToneMapper(OOSDRToneMapper toneMapper) {
@@ -515,12 +520,13 @@ std::string cxx_OOStringFromSDRToneMapper(OOSDRToneMapper toneMapper) {
 
 OOSDRToneMapper cxx_OOSDRToneMapperFromString(const std::string& string) {
   static constexpr auto kNames =
-      oo::MakeEnumTable<OOSDRToneMapper, OOSDR_TONEMAPPER_NONE,
-                        OOSDR_TONEMAPPER_ACES, OOSDR_TONEMAPPER_AgX,
-                        OOSDR_TONEMAPPER_HEJLDAWSON, OOSDR_TONEMAPPER_UC2,
-                        OOSDR_TONEMAPPER_UCHIMURA, OOSDR_TONEMAPPER_REINHARD>();
+      oo::MakeEnumTable<OOSDRToneMapper, OOSDRToneMapper::kNone,
+                        OOSDRToneMapper::kAces, OOSDRToneMapper::kAgX,
+                        OOSDRToneMapper::kHejlDawson, OOSDRToneMapper::kUC2,
+                        OOSDRToneMapper::kUchimura,
+                        OOSDRToneMapper::kReinhard>();
   if (const std::optional<OOSDRToneMapper> value = kNames.value(string))
     return *value;
 
-  return OOSDR_TONEMAPPER_ACES;
+  return OOSDRToneMapper::kAces;
 }

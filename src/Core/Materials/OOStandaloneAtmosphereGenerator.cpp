@@ -136,7 +136,7 @@ bool OOStandaloneAtmosphereGenerator::initWithPlanetInfo(
         (UNIVERSE != nullptr ? UNIVERSE->getDetailLevel() : OOGraphicsDetail{});
 
 #ifndef TEXGEN_TEST_RIG
-    if (detailLevel < DETAIL_LEVEL_SHADERS) {
+    if (detailLevel < OOGraphicsDetail::kShaders) {
       _planetScale = kPlanetScaleReducedDetail;
     } else {
       _planetScale = kPlanetScaleFullDetail;
@@ -144,8 +144,8 @@ bool OOStandaloneAtmosphereGenerator::initWithPlanetInfo(
 #else
     _planetScale = kPlanetScale4096x4096;
 #endif
-    _info.perlin3d =
-        planetInfo.get<bool>("perlin_3d", detailLevel > DETAIL_LEVEL_SHADERS);
+    _info.perlin3d = planetInfo.get<bool>(
+        "perlin_3d", detailLevel > OOGraphicsDetail::kShaders);
     _info.planetAspectRatio = _info.perlin3d ? 2 : 1;
     _info.planetScaleOffset = 8 - _info.planetAspectRatio;
     return true;

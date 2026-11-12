@@ -144,7 +144,7 @@ oo::PList OOMaterial::synthesizeMaterialDictionaryWithName(
   SynthSpecular(&context);
 
   if ((UNIVERSE != nullptr ? UNIVERSE->getDetailLevel() : OOGraphicsDetail{}) >=
-      DETAIL_LEVEL_SHADERS) {
+      OOGraphicsDetail::kShaders) {
     //	Add uniforms required for hull heat glow.
     context.uniforms["uHullHeatLevel"] = oo::PList("hullHeatLevel");
     context.uniforms["uTime"] = oo::PList("timeElapsedSinceSpawn");
@@ -328,8 +328,9 @@ oo::Ref<OOMaterial> OOMaterial::materialWithName(
     // DEBUG_NO_SHADER_FALLBACK is set, or material uses an effect map.
     if (result == nullptr &&
         (smooth || OODebugFlagIsOn(OODebugFlags::kNoShaderFallback) ||
-         (UNIVERSE != nullptr ? UNIVERSE->getDetailLevel()
-                              : OOGraphicsDetail{}) >= DETAIL_LEVEL_SHADERS ||
+         (UNIVERSE != nullptr
+              ? UNIVERSE->getDetailLevel()
+              : OOGraphicsDetail{}) >= OOGraphicsDetail::kShaders ||
          !cxx_OOMaterialCombinedSpecularMapSpecifier(configuration).isNull() ||
          !cxx_OOMaterialNormalMapSpecifier(configuration).isNull() ||
          !cxx_OOMaterialParallaxMapSpecifier(configuration).isNull() ||

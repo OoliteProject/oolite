@@ -84,7 +84,7 @@ void WormholeEntity::init() {
     setStatus(STATUS_EFFECT);
     scanClass = CLASS_WORMHOLE;
     isWormhole = true;
-    scan_info = WH_SCANINFO_NONE;
+    scan_info = WORMHOLE_SCANINFO::kNone;
     scan_time = 0;
     hasExitPosition = false;
     containsPlayer = false;
@@ -117,7 +117,7 @@ void WormholeEntity::initWithDict(const oo::PList& dict) {
 
       // We only ever init from dictionary if we're loaded by the player, so
       // by definition we have been scanned
-      scan_info = WH_SCANINFO_SCANNED;
+      scan_info = WORMHOLE_SCANINFO::kScanned;
 
       // Remember, times are stored as Ship Clock - but anything
       // saving/restoring wormholes from dictionaries should know this!
@@ -597,12 +597,14 @@ double WormholeEntity::travelTime() { return travel_time; }
 
 double WormholeEntity::scanTime() { return scan_time; }
 
-bool WormholeEntity::isScanned() { return scan_info > WH_SCANINFO_NONE; }
+bool WormholeEntity::isScanned() {
+  return scan_info > WORMHOLE_SCANINFO::kNone;
+}
 
 void WormholeEntity::setScannedAt(double p_scanTime) {
-  if (scan_info == WH_SCANINFO_NONE) {
+  if (scan_info == WORMHOLE_SCANINFO::kNone) {
     scan_time = p_scanTime;
-    scan_info = WH_SCANINFO_SCANNED;
+    scan_info = WORMHOLE_SCANINFO::kScanned;
   }
   // else we previously scanned this wormhole
 }
@@ -641,7 +643,7 @@ std::optional<std::string> WormholeEntity::identFromShip(::ShipEntity* ship) {
   if ((ship != nullptr
            ? ship->hasEquipmentItem(oo::PList("EQ_WORMHOLE_SCANNER"))
            : false)) {
-    if (scanInfo() >= WH_SCANINFO_DESTINATION) {
+    if (scanInfo() >= WORMHOLE_SCANINFO::kDestination) {
       return oo::str::formatRuntime(
           OO_DESC("wormhole-to-@"),
           {(UNIVERSE != nullptr ? UNIVERSE->getSystemName(destination)
