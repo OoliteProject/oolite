@@ -63,22 +63,26 @@ static JSClassDef sShipGroupClass = {
     .finalizer = OOJSCxxObjectWrapperFinalize,  // the slot retains the group
 };
 
-enum {
+namespace {
+
+enum class ShipGroupProperty : std::int16_t {
   // Property IDs
-  kShipGroup_ships,   // array of ships, double, read-only
-  kShipGroup_leader,  // leader, Ship, read/write
-  kShipGroup_name,    // name, string, read/write
-  kShipGroup_count,   // number of ships, integer, read-only
+  kShips,   // array of ships, double, read-only
+  kLeader,  // leader, Ship, read/write
+  kName,    // name, string, read/write
+  kCount,   // number of ships, integer, read-only
 };
+
+}  // namespace
 
 static const JSCFunctionListEntry sShipGroupProperties[] = {
     // JS name, getter, setter, ID
-    OOJS_PROPERTY_RO("count", ShipGroupGetProperty, kShipGroup_count),
+    OOJS_PROPERTY_RO("count", ShipGroupGetProperty, ShipGroupProperty::kCount),
     OOJS_PROPERTY_RW("leader", ShipGroupGetProperty, ShipGroupSetProperty,
-                     kShipGroup_leader),
+                     ShipGroupProperty::kLeader),
     OOJS_PROPERTY_RW("name", ShipGroupGetProperty, ShipGroupSetProperty,
-                     kShipGroup_name),
-    OOJS_PROPERTY_RO("ships", ShipGroupGetProperty, kShipGroup_ships),
+                     ShipGroupProperty::kName),
+    OOJS_PROPERTY_RO("ships", ShipGroupGetProperty, ShipGroupProperty::kShips),
 };
 
 static const JSCFunctionListEntry sShipGroupMethods[] = {
@@ -125,8 +129,9 @@ static JSValue ShipGroupGetProperty(OOJS_GETTER_ARGS) {
     return OOJSNativeFailure(context);
   // (null for the prototype: each use answers what a message to nil did
 
-  switch (magic) {
-    case kShipGroup_ships:
+  switch (static_cast<ShipGroupProperty>(magic)) {
+    using enum ShipGroupProperty;
+    case kShips:
       result = oo::EntityNodesFrom(
           (cxxGroup != nullptr)
               ? cxxGroup->memberArray()
@@ -134,19 +139,19 @@ static JSValue ShipGroupGetProperty(OOJS_GETTER_ARGS) {
                                                  // to nil; an empty array)
       break;
 
-    case kShipGroup_leader:
+    case kLeader:
       result = oo::EntityObjectNode((cxxGroup != nullptr) ? cxxGroup->leader()
                                                           : nullptr);
       break;
 
-    case kShipGroup_name: {
+    case kName: {
       const std::optional<std::string> name =
           (cxxGroup != nullptr) ? cxxGroup->name() : std::nullopt;
       result = name.has_value() ? oo::PList(*name) : OONullObjectNode();
       break;
     }
 
-    case kShipGroup_count:
+    case kCount:
       return JS_NewNumber(context,
                           (cxxGroup != nullptr) ? cxxGroup->count() : 0);
 
@@ -173,8 +178,9 @@ static JSValue ShipGroupSetProperty(OOJS_SETTER_ARGS) {
     return OOJSNativeFailure(context);
   // (null for the prototype: the setters do nothing, as messages to nil
 
-  switch (magic) {
-    case kShipGroup_leader:
+  switch (static_cast<ShipGroupProperty>(magic)) {
+    using enum ShipGroupProperty;
+    case kLeader:
       shipValue = oo::ToShip(OOJSEntityFromJSValue(context, value));
       if (shipValue != nullptr || JS_IsNull(value)) {
         if (cxxGroup != nullptr) cxxGroup->setLeader(shipValue);
@@ -182,7 +188,7 @@ static JSValue ShipGroupSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kShipGroup_name: {
+    case kName: {
       const std::optional<std::string> name =
           cxx_OOStringFromJSValueEvenIfNull(context, value);
       if (cxxGroup != nullptr) cxxGroup->setName(name);

@@ -71,16 +71,25 @@ static JSClassDef sMissionClass = {
     .class_name = "Mission",
 };
 
-enum { kMission_markedSystems, kMission_screenID, kMission_exitScreen };
+namespace {
+
+enum class MissionProperty : std::int16_t {
+  kMarkedSystems,
+  kScreenID,
+  kExitScreen
+};
+
+}  // namespace
 
 static const JSCFunctionListEntry sMissionProperties[] = {
     // JS name					Getter
     // Setter				ID
     OOJS_PROPERTY_RO("markedSystems", MissionGetProperty,
-                     kMission_markedSystems),
-    OOJS_PROPERTY_RO("screenID", MissionGetProperty, kMission_screenID),
+                     MissionProperty::kMarkedSystems),
+    OOJS_PROPERTY_RO("screenID", MissionGetProperty,
+                     MissionProperty::kScreenID),
     OOJS_PROPERTY_RW("exitScreen", MissionGetProperty, MissionSetProperty,
-                     kMission_exitScreen),
+                     MissionProperty::kExitScreen),
 };
 
 static const JSCFunctionListEntry sMissionMethods[] = {
@@ -224,8 +233,9 @@ static JSValue MissionGetProperty(OOJS_GETTER_ARGS) {
   oo::PList result;  // null maps to null
   PlayerEntity* player = OOPlayerForScripting();
 
-  switch (magic) {
-    case kMission_markedSystems: {
+  switch (static_cast<MissionProperty>(magic)) {
+    using enum MissionProperty;
+    case kMarkedSystems: {
       // The destinations' values, in key order (-allValues gave hash order).
       oo::PList::Array values;
       // Kept in a local: getIf() points into it, and a temporary would die at
@@ -241,14 +251,14 @@ static JSValue MissionGetProperty(OOJS_GETTER_ARGS) {
       result = oo::PList(std::move(values));
     } break;
 
-    case kMission_screenID:
+    case kScreenID:
       if (const std::optional<std::string> screenID =
               (player != nullptr ? player->missionScreenID()
                                  : std::optional<std::string>()))
         result = oo::PList(*screenID);
       break;
 
-    case kMission_exitScreen:
+    case kExitScreen:
       return OOJSValueFromGUIScreenID(
           context,
           (player != nullptr ? player->missionExitScreen() : OOGUIScreenID{}));
@@ -270,8 +280,9 @@ static JSValue MissionSetProperty(OOJS_SETTER_ARGS) {
   OOGUIScreenID exitScreen;
   PlayerEntity* player = OOPlayerForScripting();
 
-  switch (magic) {
-    case kMission_exitScreen:
+  switch (static_cast<MissionProperty>(magic)) {
+    using enum MissionProperty;
+    case kExitScreen:
       exitScreen = OOGUIScreenIDFromJSValue(context, value);
       if (player != nullptr) player->setMissionExitScreen(exitScreen);
       return JS_UNDEFINED;

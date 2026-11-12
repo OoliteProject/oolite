@@ -73,14 +73,18 @@ static JSClassDef sSoundClass = {
     .finalizer = OOJSCxxObjectWrapperFinalize,
 };
 
-enum {
+namespace {
+
+enum class SoundProperty : std::int16_t {
   // Property IDs
-  kSound_name
+  kName
 };
+
+}  // namespace
 
 static const JSCFunctionListEntry sSoundProperties[] = {
     // JS name, getter, ID
-    OOJS_PROPERTY_RO("name", SoundGetProperty, kSound_name),
+    OOJS_PROPERTY_RO("name", SoundGetProperty, SoundProperty::kName),
 };
 
 static const JSCFunctionListEntry sSoundMethods[] = {
@@ -164,8 +168,9 @@ static JSValue SoundGetProperty(OOJS_GETTER_ARGS) {
   if (EXPECT_NOT(!JSSoundGetSound(context, thisObj, &sound)))
     return OOJSNativeFailure(context);
 
-  switch (magic) {
-    case kSound_name: {
+  switch (static_cast<SoundProperty>(magic)) {
+    using enum SoundProperty;
+    case kName: {
       const std::optional<std::string> name =
           (sound != nullptr) ? sound->name()
                              : std::nullopt;  // a message to nil

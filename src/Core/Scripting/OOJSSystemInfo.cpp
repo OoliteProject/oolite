@@ -162,28 +162,35 @@ static JSClassDef sSystemInfoClass = {
     .exotic = &sSystemInfoExoticMethods,
 };
 
-enum {
+namespace {
+
+enum class SystemInfoProperty : std::int16_t {
   // Property IDs
-  kSystemInfo_coordinates,  // system coordinates (in LY), Vector3D (with z =
-                            // 0), read-only
-  kSystemInfo_internalCoordinates,  // system coordinates (unscaled), Vector3D
-                                    // (with z = 0), read-only
-  kSystemInfo_galaxyID,             // galaxy number, integer, read-only
-  kSystemInfo_systemID              // system number, integer, read-only
+  kCoordinates,          // system coordinates (in LY), Vector3D (with z =
+                         // 0), read-only
+  kInternalCoordinates,  // system coordinates (unscaled), Vector3D
+                         // (with z = 0), read-only
+  kGalaxyID,             // galaxy number, integer, read-only
+  kSystemID              // system number, integer, read-only
 };
+
+}  // namespace
 
 static const JSCFunctionListEntry sSystemInfoProperties[] = {
     // JS name, getter, setter, ID, flags (hidden: see comment at top of file)
     JS_CGETSET_MAGIC_DEF2("coordinates", SystemInfoGetProperty, nullptr,
-                          kSystemInfo_coordinates,
+                          OOJSPropertyMagic(SystemInfoProperty::kCoordinates),
                           OOJS_PROP_HIDDEN_READONLY_CB),
-    JS_CGETSET_MAGIC_DEF2("internalCoordinates", SystemInfoGetProperty, nullptr,
-                          kSystemInfo_internalCoordinates,
-                          OOJS_PROP_HIDDEN_READONLY_CB),
+    JS_CGETSET_MAGIC_DEF2(
+        "internalCoordinates", SystemInfoGetProperty, nullptr,
+        OOJSPropertyMagic(SystemInfoProperty::kInternalCoordinates),
+        OOJS_PROP_HIDDEN_READONLY_CB),
     JS_CGETSET_MAGIC_DEF2("galaxyID", SystemInfoGetProperty, nullptr,
-                          kSystemInfo_galaxyID, OOJS_PROP_HIDDEN_READONLY_CB),
+                          OOJSPropertyMagic(SystemInfoProperty::kGalaxyID),
+                          OOJS_PROP_HIDDEN_READONLY_CB),
     JS_CGETSET_MAGIC_DEF2("systemID", SystemInfoGetProperty, nullptr,
-                          kSystemInfo_systemID, OOJS_PROP_HIDDEN_READONLY_CB),
+                          OOJSPropertyMagic(SystemInfoProperty::kSystemID),
+                          OOJS_PROP_HIDDEN_READONLY_CB),
 };
 
 static const JSCFunctionListEntry sSystemInfoMethods[] = {
@@ -897,8 +904,9 @@ static JSValue SystemInfoGetProperty(OOJS_GETTER_ARGS) {
                     GalaxyOf(info);  // qualified: the final overrider, so the
                                      // binding test stands in for it
 
-  switch (magic) {
-    case kSystemInfo_coordinates:
+  switch (static_cast<SystemInfoProperty>(magic)) {
+    using enum SystemInfoProperty;
+    case kCoordinates:
       if (sameGalaxy && !savedInterstellarInfo) {
         OOJS_RETURN_VECTOR(
             OOGalacticCoordinatesFromInternal(CoordinatesOf(info)));
@@ -911,7 +919,7 @@ static JSValue SystemInfoGetProperty(OOJS_GETTER_ARGS) {
       }
       break;
 
-    case kSystemInfo_internalCoordinates:
+    case kInternalCoordinates:
       if (sameGalaxy && !savedInterstellarInfo) {
         OOJS_RETURN_WITH_HELPER(NSPointToVectorJSValue, CoordinatesOf(info));
       } else {
@@ -923,10 +931,10 @@ static JSValue SystemInfoGetProperty(OOJS_GETTER_ARGS) {
       }
       break;
 
-    case kSystemInfo_galaxyID:
+    case kGalaxyID:
       return JS_NewInt32(context, GalaxyOf(info));
 
-    case kSystemInfo_systemID:
+    case kSystemID:
       return JS_NewInt32(context, SystemOf(info));
 
     default:

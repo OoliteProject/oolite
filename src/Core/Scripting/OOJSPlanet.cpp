@@ -58,46 +58,54 @@ static JSClassDef sPlanetClass = {
         OOJSCxxObjectWrapperFinalize,  // the slot holds an OOJSEntityHolder
 };
 
-enum {
+namespace {
+
+enum class PlanetProperty : std::int16_t {
   // Property IDs
-  kPlanet_airColor,          // air color, read/write
-  kPlanet_airColorMixRatio,  // air color mix ratio, float, read/write
-  kPlanet_airDensity,        // air density, float, read/write
-  kPlanet_hasAtmosphere,
-  kPlanet_illuminationColor,   // illumination color, read/write
-  kPlanet_isMainPlanet,        // Is [UNIVERSE planet], boolean, read-only
-  kPlanet_name,                // Name of planet, string, read/write
-  kPlanet_radius,              // Radius of planet in metres, read-only
-  kPlanet_texture,             // Planet texture read / write
-  kPlanet_orientation,         // orientation, quaternion, read/write
-  kPlanet_rotationalVelocity,  // read/write
-  kPlanet_terminatorThresholdVector,
+  kAirColor,          // air color, read/write
+  kAirColorMixRatio,  // air color mix ratio, float, read/write
+  kAirDensity,        // air density, float, read/write
+  kHasAtmosphere,
+  kIlluminationColor,   // illumination color, read/write
+  kIsMainPlanet,        // Is [UNIVERSE planet], boolean, read-only
+  kName,                // Name of planet, string, read/write
+  kRadius,              // Radius of planet in metres, read-only
+  kTexture,             // Planet texture read / write
+  kOrientation,         // orientation, quaternion, read/write
+  kRotationalVelocity,  // read/write
+  kTerminatorThresholdVector,
 };
+
+}  // namespace
 
 static const JSCFunctionListEntry sPlanetProperties[] = {
     // JS name, getter, setter, ID
     OOJS_PROPERTY_RW("airColor", PlanetGetProperty, PlanetSetProperty,
-                     kPlanet_airColor),
+                     PlanetProperty::kAirColor),
     OOJS_PROPERTY_RW("airColorMixRatio", PlanetGetProperty, PlanetSetProperty,
-                     kPlanet_airColorMixRatio),
+                     PlanetProperty::kAirColorMixRatio),
     OOJS_PROPERTY_RW("airDensity", PlanetGetProperty, PlanetSetProperty,
-                     kPlanet_airDensity),
-    OOJS_PROPERTY_RO("hasAtmosphere", PlanetGetProperty, kPlanet_hasAtmosphere),
+                     PlanetProperty::kAirDensity),
+    OOJS_PROPERTY_RO("hasAtmosphere", PlanetGetProperty,
+                     PlanetProperty::kHasAtmosphere),
     OOJS_PROPERTY_RW("illuminationColor", PlanetGetProperty, PlanetSetProperty,
-                     kPlanet_illuminationColor),
-    OOJS_PROPERTY_RO("isMainPlanet", PlanetGetProperty, kPlanet_isMainPlanet),
+                     PlanetProperty::kIlluminationColor),
+    OOJS_PROPERTY_RO("isMainPlanet", PlanetGetProperty,
+                     PlanetProperty::kIsMainPlanet),
     OOJS_PROPERTY_RW("name", PlanetGetProperty, PlanetSetProperty,
-                     kPlanet_name),
-    OOJS_PROPERTY_RO("radius", PlanetGetProperty, kPlanet_radius),
+                     PlanetProperty::kName),
+    OOJS_PROPERTY_RO("radius", PlanetGetProperty, PlanetProperty::kRadius),
     OOJS_PROPERTY_RW("rotationalVelocity", PlanetGetProperty, PlanetSetProperty,
-                     kPlanet_rotationalVelocity),
+                     PlanetProperty::kRotationalVelocity),
     OOJS_PROPERTY_RW("texture", PlanetGetProperty, PlanetSetProperty,
-                     kPlanet_texture),
-    OOJS_PROPERTY_RW("orientation", PlanetGetProperty, PlanetSetProperty,
-                     kPlanet_orientation),  // Not documented since it's
-                                            // inherited from Entity
+                     PlanetProperty::kTexture),
+    OOJS_PROPERTY_RW(
+        "orientation", PlanetGetProperty, PlanetSetProperty,
+        PlanetProperty::kOrientation),  // Not documented since it's
+                                        // inherited from Entity
     OOJS_PROPERTY_RW("terminatorThresholdVector", PlanetGetProperty,
-                     PlanetSetProperty, kPlanet_terminatorThresholdVector),
+                     PlanetSetProperty,
+                     PlanetProperty::kTerminatorThresholdVector),
 };
 
 // The getter checks the JS class and answers the C++ planet (the slot holds the
@@ -156,40 +164,41 @@ static JSValue PlanetGetProperty(OOJS_GETTER_ARGS) {
   if (!JSPlanetGetPlanetEntity(context, thisObj, &planet))
     return OOJSNativeFailure(context);
 
-  switch (magic) {
-    case kPlanet_airColor:
+  switch (static_cast<PlanetProperty>(magic)) {
+    using enum PlanetProperty;
+    case kAirColor:
       return OOJSValueFromPList(
           context,
           NormalizedColorComponents(
               (planet != nullptr ? planet->airColor() : (OOColor*)nullptr)));
 
-    case kPlanet_airColorMixRatio:
+    case kAirColorMixRatio:
       return JS_NewNumber(
           context, (planet != nullptr ? planet->airColorMixRatio() : 0.0f));
 
-    case kPlanet_airDensity:
+    case kAirDensity:
       return JS_NewNumber(context,
                           (planet != nullptr ? planet->airDensity() : 0.0f));
 
-    case kPlanet_illuminationColor:
+    case kIlluminationColor:
       return OOJSValueFromPList(
           context, NormalizedColorComponents((planet != nullptr
                                                   ? planet->illuminationColor()
                                                   : (OOColor*)nullptr)));
 
-    case kPlanet_isMainPlanet:
+    case kIsMainPlanet:
       return OOJSValueFromBOOL(
           planet == (UNIVERSE != nullptr ? UNIVERSE->planet() : nullptr));
 
-    case kPlanet_radius:
+    case kRadius:
       return JS_NewNumber(context,
                           (planet != nullptr ? planet->radius() : 0.0));
 
-    case kPlanet_hasAtmosphere:
+    case kHasAtmosphere:
       return OOJSValueFromBOOL(
           (planet != nullptr ? planet->hasAtmosphere() : false));
 
-    case kPlanet_texture: {
+    case kTexture: {
       const std::optional<std::string> textureName =
           (planet != nullptr ? planet->textureFileName()
                              : std::optional<std::string>());
@@ -198,14 +207,14 @@ static JSValue PlanetGetProperty(OOJS_GETTER_ARGS) {
                                              : oo::PList());
     }
 
-    case kPlanet_name: {
+    case kName: {
       const std::optional<std::string> name =
           (planet != nullptr ? planet->name() : std::optional<std::string>());
       return OOJSValueFromPList(
           context, name.has_value() ? oo::PList(*name) : oo::PList());
     }
 
-    case kPlanet_orientation:
+    case kOrientation:
       // The C++ member, qualified: the final overrider for a planet
       // (OOPlanetEntity has no subclass and does not override it), so the
       // binding test stands in for it; zero for none.
@@ -213,11 +222,11 @@ static JSValue PlanetGetProperty(OOJS_GETTER_ARGS) {
                                  ? planet->Entity::normalOrientation()
                                  : Quaternion{});
 
-    case kPlanet_rotationalVelocity:
+    case kRotationalVelocity:
       return JS_NewNumber(
           context, (planet != nullptr ? planet->rotationalVelocity() : 0.0));
 
-    case kPlanet_terminatorThresholdVector:
+    case kTerminatorThresholdVector:
       OOJS_RETURN_VECTOR(
           (planet != nullptr ? planet->terminatorThresholdVector() : Vector{}));
 
@@ -243,8 +252,9 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS) {
   if (!JSPlanetGetPlanetEntity(context, thisObj, &planet))
     return OOJSNativeFailure(context);
 
-  switch (magic) {
-    case kPlanet_airColor:
+  switch (static_cast<PlanetProperty>(magic)) {
+    using enum PlanetProperty;
+    case kAirColor:
       colorForScript = OOColor::colorWithDescription(
           cxx_OOJSPListFromJSValue(context, value));
       if (colorForScript != nullptr || JS_IsNull(value)) {
@@ -253,21 +263,21 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlanet_airColorMixRatio:
+    case kAirColorMixRatio:
       if (JS_ToFloat64(context, &dValue, value) == 0) {
         if (planet != nullptr) planet->setAirColorMixRatio(dValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kPlanet_airDensity:
+    case kAirDensity:
       if (JS_ToFloat64(context, &dValue, value) == 0) {
         if (planet != nullptr) planet->setAirDensity(dValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kPlanet_illuminationColor:
+    case kIlluminationColor:
       colorForScript = OOColor::colorWithDescription(
           cxx_OOJSPListFromJSValue(context, value));
       if (colorForScript != nullptr || JS_IsNull(value)) {
@@ -277,12 +287,12 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlanet_name:
+    case kName:
       sValue = cxx_OOStringFromJSValue(context, value);
       if (planet != nullptr) planet->setName(sValue);
       return JS_UNDEFINED;
 
-    case kPlanet_texture: {
+    case kTexture: {
       bool OK = false;
       sValue = cxx_OOStringFromJSValue(context, value);
 
@@ -312,7 +322,7 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS) {
       return JS_UNDEFINED;  // Even if !OK, no exception was raised.
     }
 
-    case kPlanet_orientation:
+    case kOrientation:
       if (JSValueToQuaternion(context, value, &qValue)) {
         quaternion_normalize(&qValue);
         // The C++ member, qualified: the final overrider (OOPlanetEntity has no
@@ -322,14 +332,14 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kPlanet_rotationalVelocity:
+    case kRotationalVelocity:
       if (JS_ToFloat64(context, &dValue, value) == 0) {
         if (planet != nullptr) planet->setRotationalVelocity(dValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kPlanet_terminatorThresholdVector:
+    case kTerminatorThresholdVector:
       if (JSValueToVector(context, value, &vValue)) {
         if (planet != nullptr) planet->setTerminatorThresholdVector(vValue);
         return JS_UNDEFINED;

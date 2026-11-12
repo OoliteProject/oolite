@@ -84,6 +84,7 @@ MA 02110-1301, USA.
 #include <set>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -658,8 +659,21 @@ JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst thisObj,
 #define OOJS_PROP_HIDDEN_READONLY 0
 #define OOJS_METHOD_READONLY OOJS_PROP_HIDDEN_READONLY
 
+// A property's magic number, QuickJS's int16_t: a property-ID enum class's
+// value, or a plain number.
+template <class T>
+constexpr std::int16_t OOJSPropertyMagic(T id) noexcept {
+  if constexpr (std::is_enum_v<T>)
+    return static_cast<std::int16_t>(
+        static_cast<std::underlying_type_t<T>>(id));
+  else
+    return static_cast<std::int16_t>(id);
+}
+
 // Property definition shorthands for the common cases.
-#define OOJS_PROPERTY_RW(name, getter, setter, magic) \
-  JS_CGETSET_MAGIC_DEF2(name, getter, setter, magic, OOJS_PROP_READWRITE_CB)
-#define OOJS_PROPERTY_RO(name, getter, magic) \
-  JS_CGETSET_MAGIC_DEF2(name, getter, NULL, magic, OOJS_PROP_READONLY_CB)
+#define OOJS_PROPERTY_RW(name, getter, setter, magic)                   \
+  JS_CGETSET_MAGIC_DEF2(name, getter, setter, OOJSPropertyMagic(magic), \
+                        OOJS_PROP_READWRITE_CB)
+#define OOJS_PROPERTY_RO(name, getter, magic)                         \
+  JS_CGETSET_MAGIC_DEF2(name, getter, NULL, OOJSPropertyMagic(magic), \
+                        OOJS_PROP_READONLY_CB)

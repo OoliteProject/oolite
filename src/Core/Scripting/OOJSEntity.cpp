@@ -60,72 +60,82 @@ static JSClassDef sEntityClass = {
         OOJSCxxObjectWrapperFinalize,  // the slot holds an OOJSEntityHolder
 };
 
-enum {
+namespace {
+
+enum class EntityProperty : std::int16_t {
   // Property IDs
-  kEntity_collisionRadius,    // collision radius, double, read-only.
-  kEntity_distanceTravelled,  // distance travelled, double, read-only.
-  kEntity_energy,             // energy, double, read-write.
-  kEntity_heading,  // heading, vector, read-only (like orientation but ignoring
-                    // twist angle)
-  kEntity_mass,     // mass, double, read-only
-  kEntity_maxEnergy,    // maxEnergy, double, read-only.
-  kEntity_orientation,  // orientation, quaternion, read/write
-  kEntity_owner,  // owner, Entity, read-only. (Parent ship for subentities,
-                  // station for defense ships, launching ship for missiles etc)
-  kEntity_position,        // position in system space, Vector, read/write
-  kEntity_scanClass,       // scan class, string, read-only
-  kEntity_spawnTime,       // spawn time, double, read-only.
-  kEntity_status,          // entity status, string, read-only
-  kEntity_isPlanet,        // is planet, boolean, read-only.
-  kEntity_isPlayer,        // is player, boolean, read-only.
-  kEntity_isShip,          // is ship, boolean, read-only.
-  kEntity_isStation,       // is station, boolean, read-only.
-  kEntity_isDock,          // is dock, boolean, read-only.
-  kEntity_isSubEntity,     // is subentity, boolean, read-only.
-  kEntity_isSun,           // is sun, boolean, read-only.
-  kEntity_isSunlit,        // is sunlit, boolean, read-only.
-  kEntity_isValid,         // is not stale, boolean, read-only.
-  kEntity_isInSpace,       // is in space, boolean, read-only.
-  kEntity_isVisible,       // is within drawing distance, boolean, read-only.
-  kEntity_isVisualEffect,  // is visual effect, boolean, read-only.
-  kEntity_isWormhole,      // is visual effect, boolean, read-only.
+  kCollisionRadius,    // collision radius, double, read-only.
+  kDistanceTravelled,  // distance travelled, double, read-only.
+  kEnergy,             // energy, double, read-write.
+  kHeading,      // heading, vector, read-only (like orientation but ignoring
+                 // twist angle)
+  kMass,         // mass, double, read-only
+  kMaxEnergy,    // maxEnergy, double, read-only.
+  kOrientation,  // orientation, quaternion, read/write
+  kOwner,        // owner, Entity, read-only. (Parent ship for subentities,
+                 // station for defense ships, launching ship for missiles etc)
+  kPosition,     // position in system space, Vector, read/write
+  kScanClass,    // scan class, string, read-only
+  kSpawnTime,    // spawn time, double, read-only.
+  kStatus,       // entity status, string, read-only
+  kIsPlanet,     // is planet, boolean, read-only.
+  kIsPlayer,     // is player, boolean, read-only.
+  kIsShip,       // is ship, boolean, read-only.
+  kIsStation,    // is station, boolean, read-only.
+  kIsDock,       // is dock, boolean, read-only.
+  kIsSubEntity,  // is subentity, boolean, read-only.
+  kIsSun,        // is sun, boolean, read-only.
+  kIsSunlit,     // is sunlit, boolean, read-only.
+  kIsValid,      // is not stale, boolean, read-only.
+  kIsInSpace,    // is in space, boolean, read-only.
+  kIsVisible,    // is within drawing distance, boolean, read-only.
+  kIsVisualEffect,  // is visual effect, boolean, read-only.
+  kIsWormhole,      // is visual effect, boolean, read-only.
 };
+
+}  // namespace
 
 static const JSCFunctionListEntry sEntityProperties[] = {
     // JS name, getter, setter, ID
     OOJS_PROPERTY_RO("collisionRadius", EntityGetProperty,
-                     kEntity_collisionRadius),
+                     EntityProperty::kCollisionRadius),
     OOJS_PROPERTY_RO("distanceTravelled", EntityGetProperty,
-                     kEntity_distanceTravelled),
+                     EntityProperty::kDistanceTravelled),
     OOJS_PROPERTY_RW("energy", EntityGetProperty, EntitySetProperty,
-                     kEntity_energy),
-    OOJS_PROPERTY_RO("heading", EntityGetProperty, kEntity_heading),
-    OOJS_PROPERTY_RO("mass", EntityGetProperty, kEntity_mass),
+                     EntityProperty::kEnergy),
+    OOJS_PROPERTY_RO("heading", EntityGetProperty, EntityProperty::kHeading),
+    OOJS_PROPERTY_RO("mass", EntityGetProperty, EntityProperty::kMass),
     OOJS_PROPERTY_RW("maxEnergy", EntityGetProperty, EntitySetProperty,
-                     kEntity_maxEnergy),
+                     EntityProperty::kMaxEnergy),
     OOJS_PROPERTY_RW("orientation", EntityGetProperty, EntitySetProperty,
-                     kEntity_orientation),
-    OOJS_PROPERTY_RO("owner", EntityGetProperty, kEntity_owner),
+                     EntityProperty::kOrientation),
+    OOJS_PROPERTY_RO("owner", EntityGetProperty, EntityProperty::kOwner),
     OOJS_PROPERTY_RW("position", EntityGetProperty, EntitySetProperty,
-                     kEntity_position),
+                     EntityProperty::kPosition),
     OOJS_PROPERTY_RW("scanClass", EntityGetProperty, EntitySetProperty,
-                     kEntity_scanClass),
-    OOJS_PROPERTY_RO("spawnTime", EntityGetProperty, kEntity_spawnTime),
-    OOJS_PROPERTY_RO("status", EntityGetProperty, kEntity_status),
-    OOJS_PROPERTY_RO("isPlanet", EntityGetProperty, kEntity_isPlanet),
-    OOJS_PROPERTY_RO("isPlayer", EntityGetProperty, kEntity_isPlayer),
-    OOJS_PROPERTY_RO("isShip", EntityGetProperty, kEntity_isShip),
-    OOJS_PROPERTY_RO("isDock", EntityGetProperty, kEntity_isDock),
-    OOJS_PROPERTY_RO("isStation", EntityGetProperty, kEntity_isStation),
-    OOJS_PROPERTY_RO("isSubEntity", EntityGetProperty, kEntity_isSubEntity),
-    OOJS_PROPERTY_RO("isSun", EntityGetProperty, kEntity_isSun),
-    OOJS_PROPERTY_RO("isSunlit", EntityGetProperty, kEntity_isSunlit),
-    OOJS_PROPERTY_RO("isValid", EntityGetProperty, kEntity_isValid),
-    OOJS_PROPERTY_RO("isInSpace", EntityGetProperty, kEntity_isInSpace),
-    OOJS_PROPERTY_RO("isVisible", EntityGetProperty, kEntity_isVisible),
+                     EntityProperty::kScanClass),
+    OOJS_PROPERTY_RO("spawnTime", EntityGetProperty,
+                     EntityProperty::kSpawnTime),
+    OOJS_PROPERTY_RO("status", EntityGetProperty, EntityProperty::kStatus),
+    OOJS_PROPERTY_RO("isPlanet", EntityGetProperty, EntityProperty::kIsPlanet),
+    OOJS_PROPERTY_RO("isPlayer", EntityGetProperty, EntityProperty::kIsPlayer),
+    OOJS_PROPERTY_RO("isShip", EntityGetProperty, EntityProperty::kIsShip),
+    OOJS_PROPERTY_RO("isDock", EntityGetProperty, EntityProperty::kIsDock),
+    OOJS_PROPERTY_RO("isStation", EntityGetProperty,
+                     EntityProperty::kIsStation),
+    OOJS_PROPERTY_RO("isSubEntity", EntityGetProperty,
+                     EntityProperty::kIsSubEntity),
+    OOJS_PROPERTY_RO("isSun", EntityGetProperty, EntityProperty::kIsSun),
+    OOJS_PROPERTY_RO("isSunlit", EntityGetProperty, EntityProperty::kIsSunlit),
+    OOJS_PROPERTY_RO("isValid", EntityGetProperty, EntityProperty::kIsValid),
+    OOJS_PROPERTY_RO("isInSpace", EntityGetProperty,
+                     EntityProperty::kIsInSpace),
+    OOJS_PROPERTY_RO("isVisible", EntityGetProperty,
+                     EntityProperty::kIsVisible),
     OOJS_PROPERTY_RO("isVisualEffect", EntityGetProperty,
-                     kEntity_isVisualEffect),
-    OOJS_PROPERTY_RO("isWormhole", EntityGetProperty, kEntity_isWormhole),
+                     EntityProperty::kIsVisualEffect),
+    OOJS_PROPERTY_RO("isWormhole", EntityGetProperty,
+                     EntityProperty::kIsWormhole),
 };
 
 static const JSCFunctionListEntry sEntityMethods[] = {
@@ -258,7 +268,7 @@ static JSValue EntityGetProperty(OOJS_GETTER_ARGS) {
   if (EXPECT_NOT(!OOJSEntityGetEntity(context, thisObj, &cxxEntity)))
     return JS_EXCEPTION;
   if (OOIsStaleEntity(cxxEntity)) {
-    if (magic == kEntity_isValid)
+    if (static_cast<EntityProperty>(magic) == EntityProperty::kIsValid)
       return JS_FALSE;
     else
       return JS_UNDEFINED;
@@ -266,84 +276,85 @@ static JSValue EntityGetProperty(OOJS_GETTER_ARGS) {
 
   // The C++ members the properties call: a virtual one reaches the
   // entity's override.
-  switch (magic) {
-    case kEntity_collisionRadius:
+  switch (static_cast<EntityProperty>(magic)) {
+    using enum EntityProperty;
+    case kCollisionRadius:
       return JS_NewFloat64(context, cxxEntity->collisionRadius());
 
-    case kEntity_position:
+    case kPosition:
       OOJS_RETURN_HPVECTOR(cxxEntity->getPosition());
 
-    case kEntity_orientation:
+    case kOrientation:
       OOJS_RETURN_QUATERNION(cxxEntity->normalOrientation());
 
-    case kEntity_heading:
+    case kHeading:
       OOJS_RETURN_VECTOR(
           vector_forward_from_quaternion(cxxEntity->normalOrientation()));
 
-    case kEntity_status:
+    case kStatus:
       return OOJSValueFromEntityStatus(context, cxxEntity->status());
 
-    case kEntity_scanClass:
+    case kScanClass:
       return OOJSValueFromScanClass(context, cxxEntity->getScanClass());
 
-    case kEntity_mass:
+    case kMass:
       return JS_NewFloat64(context, cxxEntity->getMass());
 
-    case kEntity_owner:
+    case kOwner:
       result = cxxEntity->ownerEntity();  // the owner's C++ entity (-owner
                                           // answered its object)
       if (result == cxxEntity) result = nullptr;
       break;
 
-    case kEntity_energy:
+    case kEnergy:
       return JS_NewFloat64(context, cxxEntity->getEnergy());
 
-    case kEntity_maxEnergy:
+    case kMaxEnergy:
       return JS_NewFloat64(context, cxxEntity->getMaxEnergy());
 
-    case kEntity_isValid:
+    case kIsValid:
       return cxxEntity->status() == OOEntityStatus::kDead ? JS_FALSE : JS_TRUE;
 
-    case kEntity_isInSpace:
+    case kIsInSpace:
       return OOJSValueFromBOOL(cxxEntity->isInSpace());
 
-    case kEntity_isShip:
+    case kIsShip:
       return OOJSValueFromBOOL(cxxEntity->getIsShip());
 
-    case kEntity_isStation:
+    case kIsStation:
       return OOJSValueFromBOOL(cxxEntity->getIsStation());
 
-    case kEntity_isDock:
+    case kIsDock:
       return OOJSValueFromBOOL(cxxEntity->isDock());
 
-    case kEntity_isSubEntity:
+    case kIsSubEntity:
       return OOJSValueFromBOOL(cxxEntity->getIsSubEntity());
 
-    case kEntity_isPlayer:
+    case kIsPlayer:
       return OOJSValueFromBOOL(cxxEntity->getIsPlayer());
 
-    case kEntity_isPlanet:
+    case kIsPlanet:
       return OOJSValueFromBOOL(cxxEntity->isPlanet());
 
-    case kEntity_isSun:
+    case kIsSun:
       return OOJSValueFromBOOL(cxxEntity->isSun());
 
-    case kEntity_isSunlit:
+    case kIsSunlit:
       return OOJSValueFromBOOL(cxxEntity->getIsSunlit());
 
-    case kEntity_isVisible:
+    case kIsVisible:
       return OOJSValueFromBOOL(cxxEntity->isVisible());
 
-    case kEntity_isVisualEffect:
+    case kIsVisualEffect:
       return OOJSValueFromBOOL(cxxEntity->getIsVisualEffect());
 
-    case kEntity_isWormhole:
+    case kIsWormhole:
       return OOJSValueFromBOOL(cxxEntity->getIsWormhole());
 
-    case kEntity_distanceTravelled:
+    case kDistanceTravelled:
       return JS_NewFloat64(context, cxxEntity->getDistanceTravelled());
 
-    case kEntity_spawnTime:
+    case kSpawnTime:
       return JS_NewFloat64(context, cxxEntity->getSpawnTime());
 
     default:
@@ -372,8 +383,9 @@ static JSValue EntitySetProperty(OOJS_SETTER_ARGS) {
   if (OOIsStaleEntity(cxxEntity)) return JS_UNDEFINED;
   // The C++ members the properties call.
 
-  switch (magic) {
-    case kEntity_position:
+  switch (static_cast<EntityProperty>(magic)) {
+    using enum EntityProperty;
+    case kPosition:
       if (JSValueToHPVector(context, value, &hpvValue)) {
         cxxEntity->setPosition(hpvValue);
         if (cxxEntity->getIsShip()) {
@@ -386,14 +398,14 @@ static JSValue EntitySetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kEntity_orientation:
+    case kOrientation:
       if (JSValueToQuaternion(context, value, &qValue)) {
         cxxEntity->setNormalOrientation(qValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kEntity_energy:
+    case kEnergy:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         fValue = OOClamp_0_max_d(fValue, cxxEntity->getMaxEnergy());
         cxxEntity->setEnergy(fValue);
@@ -402,7 +414,7 @@ static JSValue EntitySetProperty(OOJS_SETTER_ARGS) {
       JS_FreeValue(context, JS_GetException(context));
       break;
 
-    case kEntity_maxEnergy:
+    case kMaxEnergy:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (fValue <= 0.0) {
           cxx_OOJSReportError(context, "entity.maxEnergy must be positive.");
@@ -414,7 +426,7 @@ static JSValue EntitySetProperty(OOJS_SETTER_ARGS) {
       JS_FreeValue(context, JS_GetException(context));
       break;
 
-    case kEntity_scanClass:
+    case kScanClass:
       if (cxxEntity->getIsShip() && !cxxEntity->getIsPlayer()) {
         OOScanClass newClass = OOScanClassFromJSValue(context, value);
         if (newClass == OOScanClass::kNotSet ||

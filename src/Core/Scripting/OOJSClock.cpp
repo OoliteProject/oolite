@@ -45,50 +45,58 @@ static JSClassDef sClockClass = {
     .class_name = "Clock",
 };
 
-enum {
+namespace {
+
+enum class ClockProperty : std::int16_t {
   // Property IDs
-  kClock_absoluteSeconds,  // game real time clock, double, read-only
-  kClock_seconds,          // game clock time, double, read-only
-  kClock_minutes,  // game clock time minutes (rounded down), integer double,
-                   // read-only
-  kClock_hours,    // game clock time hours (rounded down), integer double,
-                   // read-only
-  kClock_days,     // game clock time days (rounded down), int, read-only
-  kClock_secondsComponent,  // second component of game clock time, double,
-                            // read-only
-  kClock_minutesComponent,  // minute component of game clock time (rounded
-                            // down), int, read-only
-  kClock_hoursComponent,    // hour component of game clock time (rounded down),
-                            // int, read-only
-  kClock_daysComponent,     // day component of game clock time (rounded down),
-                            // int, read-only
-  kClock_clockString,  // game clock time as display string, string, read-only
-  kClock_isAdjusting,  // clock is adjusting, boolean, read-only
-  kClock_adjustedSeconds,    // game clock time, including adjustments, double,
-                             // read-only
-  kClock_legacy_scriptTimer  // legacy scriptTimer_number, double, read-only
+  kAbsoluteSeconds,   // game real time clock, double, read-only
+  kSeconds,           // game clock time, double, read-only
+  kMinutes,           // game clock time minutes (rounded down), integer double,
+                      // read-only
+  kHours,             // game clock time hours (rounded down), integer double,
+                      // read-only
+  kDays,              // game clock time days (rounded down), int, read-only
+  kSecondsComponent,  // second component of game clock time, double,
+                      // read-only
+  kMinutesComponent,  // minute component of game clock time (rounded
+                      // down), int, read-only
+  kHoursComponent,    // hour component of game clock time (rounded down),
+                      // int, read-only
+  kDaysComponent,     // day component of game clock time (rounded down),
+                      // int, read-only
+  kClockString,       // game clock time as display string, string, read-only
+  kIsAdjusting,       // clock is adjusting, boolean, read-only
+  kAdjustedSeconds,   // game clock time, including adjustments, double,
+                      // read-only
+  kLegacy_scriptTimer  // legacy scriptTimer_number, double, read-only
 };
+
+}  // namespace
 
 static const JSCFunctionListEntry sClockProperties[] = {
     // JS name					Getter ID
     OOJS_PROPERTY_RO("absoluteSeconds", ClockGetProperty,
-                     kClock_absoluteSeconds),
-    OOJS_PROPERTY_RO("seconds", ClockGetProperty, kClock_seconds),
-    OOJS_PROPERTY_RO("minutes", ClockGetProperty, kClock_minutes),
-    OOJS_PROPERTY_RO("hours", ClockGetProperty, kClock_hours),
-    OOJS_PROPERTY_RO("days", ClockGetProperty, kClock_days),
+                     ClockProperty::kAbsoluteSeconds),
+    OOJS_PROPERTY_RO("seconds", ClockGetProperty, ClockProperty::kSeconds),
+    OOJS_PROPERTY_RO("minutes", ClockGetProperty, ClockProperty::kMinutes),
+    OOJS_PROPERTY_RO("hours", ClockGetProperty, ClockProperty::kHours),
+    OOJS_PROPERTY_RO("days", ClockGetProperty, ClockProperty::kDays),
     OOJS_PROPERTY_RO("secondsComponent", ClockGetProperty,
-                     kClock_secondsComponent),
+                     ClockProperty::kSecondsComponent),
     OOJS_PROPERTY_RO("minutesComponent", ClockGetProperty,
-                     kClock_minutesComponent),
-    OOJS_PROPERTY_RO("hoursComponent", ClockGetProperty, kClock_hoursComponent),
-    OOJS_PROPERTY_RO("daysComponent", ClockGetProperty, kClock_daysComponent),
-    OOJS_PROPERTY_RO("clockString", ClockGetProperty, kClock_clockString),
-    OOJS_PROPERTY_RO("isAdjusting", ClockGetProperty, kClock_isAdjusting),
+                     ClockProperty::kMinutesComponent),
+    OOJS_PROPERTY_RO("hoursComponent", ClockGetProperty,
+                     ClockProperty::kHoursComponent),
+    OOJS_PROPERTY_RO("daysComponent", ClockGetProperty,
+                     ClockProperty::kDaysComponent),
+    OOJS_PROPERTY_RO("clockString", ClockGetProperty,
+                     ClockProperty::kClockString),
+    OOJS_PROPERTY_RO("isAdjusting", ClockGetProperty,
+                     ClockProperty::kIsAdjusting),
     OOJS_PROPERTY_RO("adjustedSeconds", ClockGetProperty,
-                     kClock_adjustedSeconds),
+                     ClockProperty::kAdjustedSeconds),
     OOJS_PROPERTY_RO("legacy_scriptTimer", ClockGetProperty,
-                     kClock_legacy_scriptTimer),
+                     ClockProperty::kLegacy_scriptTimer),
 };
 
 static const JSCFunctionListEntry sClockMethods[] = {
@@ -125,50 +133,51 @@ static JSValue ClockGetProperty(OOJS_GETTER_ARGS) {
   /*	INT_TO_JSVAL() truncated its (double) argument to an integer;
      JS_NewInt32() does the same through the implicit conversion.
   */
-  switch (magic) {
-    case kClock_absoluteSeconds:
+  switch (static_cast<ClockProperty>(magic)) {
+    using enum ClockProperty;
+    case kAbsoluteSeconds:
       return JS_NewNumber(context,
                           (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0));
 
-    case kClock_seconds:
+    case kSeconds:
       return JS_NewNumber(context, clockTime);
 
-    case kClock_minutes:
+    case kMinutes:
       return JS_NewNumber(context, floor(clockTime / 60.0));
 
-    case kClock_hours:
+    case kHours:
       return JS_NewNumber(context, floor(clockTime / 3600.0));
 
-    case kClock_secondsComponent:
+    case kSecondsComponent:
       return JS_NewInt32(context, fmod(clockTime, 60.0));
 
-    case kClock_minutesComponent:
+    case kMinutesComponent:
       return JS_NewInt32(context, fmod(floor(clockTime / 60.0), 60.0));
 
-    case kClock_hoursComponent:
+    case kHoursComponent:
       return JS_NewInt32(context, fmod(floor(clockTime / 3600.0), 24.0));
 
-    case kClock_days:
-    case kClock_daysComponent:
+    case kDays:
+    case kDaysComponent:
       return JS_NewInt32(context, floor(clockTime / 86400.0));
 
-    case kClock_clockString:
+    case kClockString:
       return OOJSValueFromPList(
           context, oo::PList((player != nullptr ? player->dial_clock()
                                                 : std::string())));
 
-    case kClock_isAdjusting:
+    case kIsAdjusting:
       return OOJSValueFromBOOL(
           (player != nullptr ? player->clockAdjusting() : false));
 
-    case kClock_adjustedSeconds:
+    case kAdjustedSeconds:
       return JS_NewNumber(
           context,
           (player != nullptr ? player->PlayerEntity::clockTimeAdjusted()
                              : 0.0));  // qualified: the final overrider, so the
                                        // binding test stands in for it
 
-    case kClock_legacy_scriptTimer:
+    case kLegacy_scriptTimer:
       cxx_OOStandardsDeprecated(
           "The legacy_scriptTimer property is deprecated");
       return JS_NewNumber(

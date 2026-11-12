@@ -56,24 +56,28 @@ static JSClassDef sWaypointClass = {
         OOJSCxxObjectWrapperFinalize,  // the slot holds an OOJSEntityHolder
 };
 
-enum {
+namespace {
+
+enum class WaypointProperty : std::int16_t {
   // Property IDs
-  kWaypoint_beaconCode,
-  kWaypoint_beaconLabel,
-  kWaypoint_orientation,  // overrides entity as waypoints can be unoriented
-  kWaypoint_size
+  kBeaconCode,
+  kBeaconLabel,
+  kOrientation,  // overrides entity as waypoints can be unoriented
+  kSize
 };
+
+}  // namespace
 
 static const JSCFunctionListEntry sWaypointProperties[] = {
     // JS name, getter, setter, ID
     OOJS_PROPERTY_RW("beaconCode", WaypointGetProperty, WaypointSetProperty,
-                     kWaypoint_beaconCode),
+                     WaypointProperty::kBeaconCode),
     OOJS_PROPERTY_RW("beaconLabel", WaypointGetProperty, WaypointSetProperty,
-                     kWaypoint_beaconLabel),
+                     WaypointProperty::kBeaconLabel),
     OOJS_PROPERTY_RW("orientation", WaypointGetProperty, WaypointSetProperty,
-                     kWaypoint_orientation),
+                     WaypointProperty::kOrientation),
     OOJS_PROPERTY_RW("size", WaypointGetProperty, WaypointSetProperty,
-                     kWaypoint_size),
+                     WaypointProperty::kSize),
 };
 
 // No Waypoint methods.
@@ -139,18 +143,19 @@ static JSValue WaypointGetProperty(OOJS_GETTER_ARGS) {
   if (!JSWaypointGetWaypointEntity(context, thisObj, &waypoint))
     return OOJSNativeFailure(context);  // not null after this
 
-  switch (magic) {
-    case kWaypoint_beaconCode:
+  switch (static_cast<WaypointProperty>(magic)) {
+    using enum WaypointProperty;
+    case kBeaconCode:
       text = waypoint->beaconCode();
       if (text.has_value()) result = oo::PList(*text);
       break;
 
-    case kWaypoint_beaconLabel:
+    case kBeaconLabel:
       text = waypoint->beaconLabel();
       if (text.has_value()) result = oo::PList(*text);
       break;
 
-    case kWaypoint_orientation:
+    case kOrientation:
       q = waypoint
               ->getOrientation();  // what the object's -orientation answered
       if (!waypoint->getOriented()) {
@@ -158,7 +163,7 @@ static JSValue WaypointGetProperty(OOJS_GETTER_ARGS) {
       }
       OOJS_RETURN_QUATERNION(q);
 
-    case kWaypoint_size:
+    case kSize:
       return JS_NewNumber(context, waypoint->size());
 
     default:
@@ -184,8 +189,9 @@ static JSValue WaypointSetProperty(OOJS_SETTER_ARGS) {
   if (!JSWaypointGetWaypointEntity(context, thisObj, &waypoint))
     return OOJSNativeFailure(context);  // not null after this
 
-  switch (magic) {
-    case kWaypoint_beaconCode:
+  switch (static_cast<WaypointProperty>(magic)) {
+    using enum WaypointProperty;
+    case kBeaconCode:
       sValue = cxx_OOStringFromJSValue(context, value);
       if (!sValue.has_value() || sValue->empty()) {
         if (waypoint->isBeacon()) {
@@ -212,7 +218,7 @@ static JSValue WaypointSetProperty(OOJS_SETTER_ARGS) {
       return JS_UNDEFINED;
       break;
 
-    case kWaypoint_beaconLabel:
+    case kBeaconLabel:
       sValue = cxx_OOStringFromJSValue(context, value);
       if (sValue.has_value()) {
         waypoint->setBeaconLabel(sValue);
@@ -220,7 +226,7 @@ static JSValue WaypointSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kWaypoint_orientation:
+    case kOrientation:
       if (JSValueToQuaternion(context, value, &qValue)) {
         waypoint->Entity::setNormalOrientation(
             qValue);  // what the object's selector called; qualified: the final
@@ -230,7 +236,7 @@ static JSValue WaypointSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kWaypoint_size:
+    case kSize:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (fValue > 0.0) {
           waypoint->setSize(fValue);

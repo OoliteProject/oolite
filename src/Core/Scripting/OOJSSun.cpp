@@ -42,20 +42,24 @@ static JSClassDef sSunClass = {
         OOJSCxxObjectWrapperFinalize,  // the slot holds an OOJSEntityHolder
 };
 
-enum {
+namespace {
+
+enum class SunProperty : std::int16_t {
   // Property IDs
-  kSun_radius,       // Radius of sun in metres, number, read-only
-  kSun_hasGoneNova,  // Has sun gone nova, boolean, read-only
-  kSun_isGoingNova,  // Will sun go nova, boolean, read-only
-  kSun_name          // Name of sun, string, read-only (writable via systeminfo)
+  kRadius,       // Radius of sun in metres, number, read-only
+  kHasGoneNova,  // Has sun gone nova, boolean, read-only
+  kIsGoingNova,  // Will sun go nova, boolean, read-only
+  kName          // Name of sun, string, read-only (writable via systeminfo)
 };
+
+}  // namespace
 
 static const JSCFunctionListEntry sSunProperties[] = {
     // JS name, getter, setter, ID
-    OOJS_PROPERTY_RO("hasGoneNova", SunGetProperty, kSun_hasGoneNova),
-    OOJS_PROPERTY_RO("isGoingNova", SunGetProperty, kSun_isGoingNova),
-    OOJS_PROPERTY_RO("name", SunGetProperty, kSun_name),
-    OOJS_PROPERTY_RO("radius", SunGetProperty, kSun_radius),
+    OOJS_PROPERTY_RO("hasGoneNova", SunGetProperty, SunProperty::kHasGoneNova),
+    OOJS_PROPERTY_RO("isGoingNova", SunGetProperty, SunProperty::kIsGoingNova),
+    OOJS_PROPERTY_RO("name", SunGetProperty, SunProperty::kName),
+    OOJS_PROPERTY_RO("radius", SunGetProperty, SunProperty::kRadius),
 };
 
 static const JSCFunctionListEntry sSunMethods[] = {
@@ -109,21 +113,22 @@ static JSValue SunGetProperty(OOJS_GETTER_ARGS) {
   if (EXPECT_NOT(!JSSunGetSunEntity(context, thisObj, &sun)))
     return OOJSNativeFailure(context);
 
-  switch (magic) {
-    case kSun_radius:
+  switch (static_cast<SunProperty>(magic)) {
+    using enum SunProperty;
+    case kRadius:
       return JS_NewNumber(context, (sun != nullptr ? sun->radius() : 0.0));
 
-    case kSun_name: {
+    case kName: {
       const std::optional<std::string> name =
           (sun != nullptr ? sun->name() : std::optional<std::string>());
       return OOJSValueFromPList(
           context, name.has_value() ? oo::PList(*name) : oo::PList());
     }
 
-    case kSun_hasGoneNova:
+    case kHasGoneNova:
       return OOJSValueFromBOOL((sun != nullptr ? sun->goneNova() : false));
 
-    case kSun_isGoingNova:
+    case kIsGoingNova:
       return OOJSValueFromBOOL((sun != nullptr ? sun->willGoNova() : false) &&
                                !(sun != nullptr ? sun->goneNova() : false));
 

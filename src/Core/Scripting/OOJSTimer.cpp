@@ -298,21 +298,25 @@ static JSClassDef sTimerClass = {
     .finalizer = OOJSCxxObjectWrapperFinalize,
 };
 
-enum {
+namespace {
+
+enum class TimerProperty : std::int16_t {
   // Property IDs
-  kTimer_nextTime,  // next fire time, double, read/write
-  kTimer_interval,  // interval, double, read/write
-  kTimer_isRunning  // is scheduled, boolean, read-only
+  kNextTime,  // next fire time, double, read/write
+  kInterval,  // interval, double, read/write
+  kIsRunning  // is scheduled, boolean, read-only
 };
+
+}  // namespace
 
 static const JSCFunctionListEntry sTimerProperties[] = {
     // JS name					Getter
     // Setter				ID
     OOJS_PROPERTY_RW("interval", TimerGetProperty, TimerSetProperty,
-                     kTimer_interval),
-    OOJS_PROPERTY_RO("isRunning", TimerGetProperty, kTimer_isRunning),
+                     TimerProperty::kInterval),
+    OOJS_PROPERTY_RO("isRunning", TimerGetProperty, TimerProperty::kIsRunning),
     OOJS_PROPERTY_RW("nextTime", TimerGetProperty, TimerSetProperty,
-                     kTimer_nextTime),
+                     TimerProperty::kNextTime),
 };
 
 static const JSCFunctionListEntry sTimerMethods[] = {
@@ -355,14 +359,15 @@ static JSValue TimerGetProperty(OOJS_GETTER_ARGS) {
   if (EXPECT_NOT(!JSTimerGetTimer(context, thisObj, &timer)))
     return OOJSNativeFailure(context);
 
-  switch (magic) {
-    case kTimer_nextTime:
+  switch (static_cast<TimerProperty>(magic)) {
+    using enum TimerProperty;
+    case kNextTime:
       return JS_NewNumber(context, timer != nullptr ? timer->nextTime() : 0.0);
 
-    case kTimer_interval:
+    case kInterval:
       return JS_NewNumber(context, timer != nullptr ? timer->interval() : 0.0);
 
-    case kTimer_isRunning:
+    case kIsRunning:
       return OOJSValueFromBOOL(timer != nullptr && timer->isScheduled());
 
     default:
@@ -383,8 +388,9 @@ static JSValue TimerSetProperty(OOJS_SETTER_ARGS) {
   if (EXPECT_NOT(!JSTimerGetTimer(context, thisObj, &timer)))
     return OOJSNativeFailure(context);
 
-  switch (magic) {
-    case kTimer_nextTime:
+  switch (static_cast<TimerProperty>(magic)) {
+    using enum TimerProperty;
+    case kNextTime:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (!(timer != nullptr && timer->setNextTime(fValue))) {
           cxx_OOJSReportWarning(
@@ -398,7 +404,7 @@ static JSValue TimerSetProperty(OOJS_SETTER_ARGS) {
       JS_FreeValue(context, JS_GetException(context));
       break;
 
-    case kTimer_interval:
+    case kInterval:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (timer != nullptr) timer->setInterval(fValue);
         return JS_UNDEFINED;

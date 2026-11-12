@@ -49,14 +49,18 @@ static JSClassDef sWormholeClass = {
         OOJSCxxObjectWrapperFinalize,  // the slot holds an OOJSEntityHolder
 };
 
-enum {
+namespace {
+
+enum class WormholeProperty : std::int16_t {
   // Property IDs
-  kWormhole_arrivalTime,
-  kWormhole_destination,
-  kWormhole_expiryTime,
-  kWormhole_origin
+  kArrivalTime,
+  kDestination,
+  kExpiryTime,
+  kOrigin
 
 };
+
+}  // namespace
 
 /*	All Wormhole properties are read-only, so the SpiderMonkey setProperty
    hook (which only reported a bad property selector) was unreachable for them
@@ -64,10 +68,13 @@ enum {
 */
 static const JSCFunctionListEntry sWormholeProperties[] = {
     // JS name, getter, setter, ID
-    OOJS_PROPERTY_RO("arrivalTime", WormholeGetProperty, kWormhole_arrivalTime),
-    OOJS_PROPERTY_RO("destination", WormholeGetProperty, kWormhole_destination),
-    OOJS_PROPERTY_RO("expiryTime", WormholeGetProperty, kWormhole_expiryTime),
-    OOJS_PROPERTY_RO("origin", WormholeGetProperty, kWormhole_origin),
+    OOJS_PROPERTY_RO("arrivalTime", WormholeGetProperty,
+                     WormholeProperty::kArrivalTime),
+    OOJS_PROPERTY_RO("destination", WormholeGetProperty,
+                     WormholeProperty::kDestination),
+    OOJS_PROPERTY_RO("expiryTime", WormholeGetProperty,
+                     WormholeProperty::kExpiryTime),
+    OOJS_PROPERTY_RO("origin", WormholeGetProperty, WormholeProperty::kOrigin),
 };
 
 // No Wormhole methods.
@@ -128,20 +135,21 @@ static JSValue WormholeGetProperty(OOJS_GETTER_ARGS) {
     return JS_UNDEFINED;
   }
 
-  switch (magic) {
-    case kWormhole_arrivalTime:
+  switch (static_cast<WormholeProperty>(magic)) {
+    using enum WormholeProperty;
+    case kArrivalTime:
       return JS_NewNumber(context,
                           (entity != nullptr ? entity->arrivalTime() : 0.0));
 
-    case kWormhole_destination:
+    case kDestination:
       return JS_NewNumber(context,
                           (entity != nullptr ? entity->getDestination() : 0));
 
-    case kWormhole_expiryTime:
+    case kExpiryTime:
       return JS_NewNumber(context,
                           (entity != nullptr ? entity->expiryTime() : 0.0));
 
-    case kWormhole_origin:
+    case kOrigin:
       return JS_NewNumber(context,
                           (entity != nullptr ? entity->getOrigin() : 0));
 

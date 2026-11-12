@@ -92,62 +92,71 @@ static JSClassDef sStationClass = {
     .finalizer = OOJSCxxObjectWrapperFinalize,
 };
 
-enum {
+namespace {
+
+enum class StationProperty : std::int16_t {
   // Property IDs
-  kStation_alertCondition,
-  kStation_allegiance,
-  kStation_allowsAutoDocking,
-  kStation_allowsFastDocking,
-  kStation_breakPattern,
-  kStation_dockedContractors,  // miners and scavengers.
-  kStation_dockedDefenders,
-  kStation_dockedPolice,
-  kStation_equipmentPriceFactor,
-  kStation_equivalentTechLevel,
-  kStation_hasNPCTraffic,
-  kStation_hasShipyard,
-  kStation_isMainStation,  // Is [UNIVERSE station], boolean, read-only
-  kStation_market,
-  kStation_requiresDockingClearance,
-  kStation_roll,
-  kStation_suppressArrivalReports,
-  kStation_shipyard,
+  kAlertCondition,
+  kAllegiance,
+  kAllowsAutoDocking,
+  kAllowsFastDocking,
+  kBreakPattern,
+  kDockedContractors,  // miners and scavengers.
+  kDockedDefenders,
+  kDockedPolice,
+  kEquipmentPriceFactor,
+  kEquivalentTechLevel,
+  kHasNPCTraffic,
+  kHasShipyard,
+  kIsMainStation,  // Is [UNIVERSE station], boolean, read-only
+  kMarket,
+  kRequiresDockingClearance,
+  kRoll,
+  kSuppressArrivalReports,
+  kShipyard,
 };
+
+}  // namespace
 
 static const JSCFunctionListEntry sStationProperties[] = {
     // JS name, getter, setter, ID
     OOJS_PROPERTY_RW("alertCondition", StationGetProperty, StationSetProperty,
-                     kStation_alertCondition),
+                     StationProperty::kAlertCondition),
     OOJS_PROPERTY_RW("allegiance", StationGetProperty, StationSetProperty,
-                     kStation_allegiance),
+                     StationProperty::kAllegiance),
     OOJS_PROPERTY_RW("allowsAutoDocking", StationGetProperty,
-                     StationSetProperty, kStation_allowsAutoDocking),
+                     StationSetProperty, StationProperty::kAllowsAutoDocking),
     OOJS_PROPERTY_RW("allowsFastDocking", StationGetProperty,
-                     StationSetProperty, kStation_allowsFastDocking),
+                     StationSetProperty, StationProperty::kAllowsFastDocking),
     OOJS_PROPERTY_RW("breakPattern", StationGetProperty, StationSetProperty,
-                     kStation_breakPattern),
+                     StationProperty::kBreakPattern),
     OOJS_PROPERTY_RO("dockedContractors", StationGetProperty,
-                     kStation_dockedContractors),
+                     StationProperty::kDockedContractors),
     OOJS_PROPERTY_RO("dockedDefenders", StationGetProperty,
-                     kStation_dockedDefenders),
-    OOJS_PROPERTY_RO("dockedPolice", StationGetProperty, kStation_dockedPolice),
+                     StationProperty::kDockedDefenders),
+    OOJS_PROPERTY_RO("dockedPolice", StationGetProperty,
+                     StationProperty::kDockedPolice),
     OOJS_PROPERTY_RO("equipmentPriceFactor", StationGetProperty,
-                     kStation_equipmentPriceFactor),
+                     StationProperty::kEquipmentPriceFactor),
     OOJS_PROPERTY_RO("equivalentTechLevel", StationGetProperty,
-                     kStation_equivalentTechLevel),
+                     StationProperty::kEquivalentTechLevel),
     OOJS_PROPERTY_RW("hasNPCTraffic", StationGetProperty, StationSetProperty,
-                     kStation_hasNPCTraffic),
-    OOJS_PROPERTY_RO("hasShipyard", StationGetProperty, kStation_hasShipyard),
+                     StationProperty::kHasNPCTraffic),
+    OOJS_PROPERTY_RO("hasShipyard", StationGetProperty,
+                     StationProperty::kHasShipyard),
     OOJS_PROPERTY_RO("isMainStation", StationGetProperty,
-                     kStation_isMainStation),
-    OOJS_PROPERTY_RO("market", StationGetProperty, kStation_market),
+                     StationProperty::kIsMainStation),
+    OOJS_PROPERTY_RO("market", StationGetProperty, StationProperty::kMarket),
     OOJS_PROPERTY_RW("requiresDockingClearance", StationGetProperty,
-                     StationSetProperty, kStation_requiresDockingClearance),
+                     StationSetProperty,
+                     StationProperty::kRequiresDockingClearance),
     OOJS_PROPERTY_RW("roll", StationGetProperty, StationSetProperty,
-                     kStation_roll),
+                     StationProperty::kRoll),
     OOJS_PROPERTY_RW("suppressArrivalReports", StationGetProperty,
-                     StationSetProperty, kStation_suppressArrivalReports),
-    OOJS_PROPERTY_RO("shipyard", StationGetProperty, kStation_shipyard),
+                     StationSetProperty,
+                     StationProperty::kSuppressArrivalReports),
+    OOJS_PROPERTY_RO("shipyard", StationGetProperty,
+                     StationProperty::kShipyard),
 };
 
 static const JSCFunctionListEntry sStationMethods[] = {
@@ -271,26 +280,27 @@ static JSValue StationGetProperty(OOJS_GETTER_ARGS) {
     return JS_UNDEFINED;
   }
 
-  switch (magic) {
-    case kStation_isMainStation:
+  switch (static_cast<StationProperty>(magic)) {
+    using enum StationProperty;
+    case kIsMainStation:
       return OOJSValueFromBOOL(
           entity == (UNIVERSE != nullptr ? UNIVERSE->station() : nullptr));
 
-    case kStation_hasNPCTraffic:
+    case kHasNPCTraffic:
       return OOJSValueFromBOOL(
           (entity != nullptr ? entity->getHasNPCTraffic() : false));
 
-    case kStation_hasShipyard:
+    case kHasShipyard:
       return OOJSValueFromBOOL(
           (entity != nullptr ? entity->hasShipyard() : false));
 
-    case kStation_alertCondition:
+    case kAlertCondition:
       return JS_NewInt32(
           context, entity != nullptr
                        ? static_cast<std::int32_t>(entity->getAlertLevel())
                        : 0);  // 0: a message to nil's answer
 
-    case kStation_allegiance: {
+    case kAllegiance: {
       const std::optional<std::string> allegiance =
           (entity != nullptr ? entity->getAllegiance()
                              : std::optional<std::string>());
@@ -299,11 +309,11 @@ static JSValue StationGetProperty(OOJS_GETTER_ARGS) {
                                              : oo::PList());  // null for none
     }
 
-    case kStation_requiresDockingClearance:
+    case kRequiresDockingClearance:
       return OOJSValueFromBOOL(
           (entity != nullptr ? entity->getRequiresDockingClearance() : false));
 
-    case kStation_roll:
+    case kRoll:
       // same as in ship definition, but this time read/write below
       return JS_NewNumber(
           context,
@@ -311,48 +321,48 @@ static JSValue StationGetProperty(OOJS_GETTER_ARGS) {
                              : 0.0f));  // qualified: the final overrider, so
                                         // the binding test stands in for it
 
-    case kStation_allowsFastDocking:
+    case kAllowsFastDocking:
       return OOJSValueFromBOOL(
           (entity != nullptr ? entity->getAllowsFastDocking() : false));
 
-    case kStation_allowsAutoDocking:
+    case kAllowsAutoDocking:
       return OOJSValueFromBOOL(
           (entity != nullptr ? entity->getAllowsAutoDocking() : false));
 
-    case kStation_dockedContractors:
+    case kDockedContractors:
       return JS_NewInt32(context,
                          (entity != nullptr ? entity->countOfDockedContractors()
                                             : unsigned{}));
 
-    case kStation_dockedPolice:
+    case kDockedPolice:
       return JS_NewInt32(
           context,
           (entity != nullptr ? entity->countOfDockedPolice() : unsigned{}));
 
-    case kStation_dockedDefenders:
+    case kDockedDefenders:
       return JS_NewInt32(
           context,
           (entity != nullptr ? entity->countOfDockedDefenders() : unsigned{}));
 
-    case kStation_equivalentTechLevel:
+    case kEquivalentTechLevel:
       return JS_NewInt32(
           context,
           (int32_t)(entity != nullptr ? entity->getEquivalentTechLevel() : 0));
 
-    case kStation_equipmentPriceFactor:
+    case kEquipmentPriceFactor:
       return JS_NewNumber(
           context,
           (entity != nullptr ? entity->getEquipmentPriceFactor() : 0.0f));
 
-    case kStation_suppressArrivalReports:
+    case kSuppressArrivalReports:
       return OOJSValueFromBOOL(
           (entity != nullptr ? entity->suppressArrivalReports() : false));
 
-    case kStation_breakPattern:
+    case kBreakPattern:
       return OOJSValueFromBOOL(
           (entity != nullptr ? entity->getHasBreakPattern() : false));
 
-    case kStation_shipyard: {
+    case kShipyard: {
       if (!(entity != nullptr ? entity->hasShipyard() : false)) {
         // return null if station has no shipyard
         return JS_NULL;
@@ -369,7 +379,7 @@ static JSValue StationGetProperty(OOJS_GETTER_ARGS) {
       }
     }
 
-    case kStation_market: {
+    case kMarket: {
       return OOJSValueFromPList(
           context, (entity != nullptr ? entity->localMarketForScripting()
                                       : oo::PList()));
@@ -397,15 +407,16 @@ static JSValue StationSetProperty(OOJS_SETTER_ARGS) {
     return OOJSNativeFailure(context);
   if (entity == nullptr) return JS_UNDEFINED;
 
-  switch (magic) {
-    case kStation_hasNPCTraffic:
+  switch (static_cast<StationProperty>(magic)) {
+    using enum StationProperty;
+    case kHasNPCTraffic:
       if ((bValue = JS_ToBool(context, value)) >= 0) {
         if (entity != nullptr) entity->setHasNPCTraffic(bValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kStation_alertCondition:
+    case kAlertCondition:
       if (OOJSValueToInt32(context, value, &iValue)) {
         if (entity != nullptr)
           entity->setAlertLevel((OOStationAlertLevel)iValue,
@@ -414,7 +425,7 @@ static JSValue StationSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kStation_allegiance:
+    case kAllegiance:
       sValue = cxx_OOStringFromJSValue(context, value);
       if (sValue.has_value()) {
         if (entity != nullptr) entity->setAllegiance(sValue);
@@ -422,14 +433,14 @@ static JSValue StationSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kStation_requiresDockingClearance:
+    case kRequiresDockingClearance:
       if ((bValue = JS_ToBool(context, value)) >= 0) {
         if (entity != nullptr) entity->setRequiresDockingClearance(bValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kStation_roll:
+    case kRoll:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         /*				if (fValue < -2.0)  fValue = -2.0;
                                         if (fValue > 2.0)  fValue = 2.0;
@@ -445,28 +456,28 @@ static JSValue StationSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
 
-    case kStation_allowsFastDocking:
+    case kAllowsFastDocking:
       if ((bValue = JS_ToBool(context, value)) >= 0) {
         if (entity != nullptr) entity->setAllowsFastDocking(bValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kStation_allowsAutoDocking:
+    case kAllowsAutoDocking:
       if ((bValue = JS_ToBool(context, value)) >= 0) {
         if (entity != nullptr) entity->setAllowsAutoDocking(bValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kStation_suppressArrivalReports:
+    case kSuppressArrivalReports:
       if ((bValue = JS_ToBool(context, value)) >= 0) {
         if (entity != nullptr) entity->setSuppressArrivalReports(bValue);
         return JS_UNDEFINED;
       }
       break;
 
-    case kStation_breakPattern:
+    case kBreakPattern:
       if ((bValue = JS_ToBool(context, value)) >= 0) {
         if (entity != nullptr) entity->setHasBreakPattern(bValue);
         return JS_UNDEFINED;

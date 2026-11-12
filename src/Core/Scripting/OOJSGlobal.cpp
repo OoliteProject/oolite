@@ -87,24 +87,31 @@ static JSValue GlobalQuitGame(OOJS_NATIVE_ARGS);
         the global object.
 */
 
-enum {
+namespace {
+
+enum class GlobalProperty : std::int16_t {
   // Property IDs
-  kGlobal_galaxyNumber,  // galaxy number, integer, read-only
-  kGlobal_global,        // global.global.global.global, integer, read-only
-  kGlobal_guiScreen,     // current GUI screen, string, read-only
+  kGalaxyNumber,  // galaxy number, integer, read-only
+  kGlobal,        // global.global.global.global, integer, read-only
+  kGuiScreen,     // current GUI screen, string, read-only
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  kGlobal_timeAccelerationFactor  // time acceleration, float, read/write
+  kTimeAccelerationFactor  // time acceleration, float, read/write
 #endif
 };
+
+}  // namespace
 
 static const JSCFunctionListEntry sGlobalProperties[] = {
     // JS name					Getter
     // Setter				ID
-    OOJS_PROPERTY_RO("galaxyNumber", GlobalGetProperty, kGlobal_galaxyNumber),
-    OOJS_PROPERTY_RO("guiScreen", GlobalGetProperty, kGlobal_guiScreen),
+    OOJS_PROPERTY_RO("galaxyNumber", GlobalGetProperty,
+                     GlobalProperty::kGalaxyNumber),
+    OOJS_PROPERTY_RO("guiScreen", GlobalGetProperty,
+                     GlobalProperty::kGuiScreen),
 #ifdef OO_DEBUG_MONITOR_ENABLED
     OOJS_PROPERTY_RW("timeAccelerationFactor", GlobalGetProperty,
-                     GlobalSetProperty, kGlobal_timeAccelerationFactor),
+                     GlobalSetProperty,
+                     GlobalProperty::kTimeAccelerationFactor),
 #endif
 };
 
@@ -150,8 +157,9 @@ static JSValue GlobalGetProperty(OOJS_GETTER_ARGS) {
 
   PlayerEntity* player = OOPlayerForScripting();
 
-  switch (magic) {
-    case kGlobal_galaxyNumber:
+  switch (static_cast<GlobalProperty>(magic)) {
+    using enum GlobalProperty;
+    case kGalaxyNumber:
       return JS_NewInt32(
           context,
           (player != nullptr ? player->PlayerEntity::currentGalaxyID()
@@ -159,12 +167,12 @@ static JSValue GlobalGetProperty(OOJS_GETTER_ARGS) {
                                                 // overrider so the binding test
                                                 // stands in for it
 
-    case kGlobal_guiScreen:
+    case kGuiScreen:
       return OOJSValueFromGUIScreenID(
           context, (player != nullptr ? player->guiScreen() : OOGUIScreenID{}));
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    case kGlobal_timeAccelerationFactor:
+    case kTimeAccelerationFactor:
       return JS_NewNumber(
           context,
           (UNIVERSE != nullptr ? UNIVERSE->getTimeAccelerationFactor() : 0.0));
@@ -185,8 +193,9 @@ static JSValue GlobalSetProperty(OOJS_SETTER_ARGS) {
 
   double fValue;
 
-  switch (magic) {
-    case kGlobal_timeAccelerationFactor:
+  switch (static_cast<GlobalProperty>(magic)) {
+    using enum GlobalProperty;
+    case kTimeAccelerationFactor:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (UNIVERSE != nullptr) UNIVERSE->setTimeAccelerationFactor(fValue);
         return JS_UNDEFINED;

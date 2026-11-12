@@ -78,24 +78,32 @@ static JSClassDef sQuaternionClass = {
     .finalizer = QuaternionFinalize,
 };
 
-enum {
+namespace {
+
+enum class QuaternionProperty : std::int16_t {
   // Property IDs
-  kQuaternion_w,
-  kQuaternion_x,
-  kQuaternion_y,
-  kQuaternion_z
+  kW,
+  kX,
+  kY,
+  kZ
 };
+
+}  // namespace
 
 static const JSCFunctionListEntry sQuaternionProperties[] = {
     // JS name, getter, setter, ID, flags
     JS_CGETSET_MAGIC_DEF2("w", QuaternionGetProperty, QuaternionSetProperty,
-                          kQuaternion_w, OOJS_PROP_READWRITE_CB),
+                          OOJSPropertyMagic(QuaternionProperty::kW),
+                          OOJS_PROP_READWRITE_CB),
     JS_CGETSET_MAGIC_DEF2("x", QuaternionGetProperty, QuaternionSetProperty,
-                          kQuaternion_x, OOJS_PROP_READWRITE_CB),
+                          OOJSPropertyMagic(QuaternionProperty::kX),
+                          OOJS_PROP_READWRITE_CB),
     JS_CGETSET_MAGIC_DEF2("y", QuaternionGetProperty, QuaternionSetProperty,
-                          kQuaternion_y, OOJS_PROP_READWRITE_CB),
+                          OOJSPropertyMagic(QuaternionProperty::kY),
+                          OOJS_PROP_READWRITE_CB),
     JS_CGETSET_MAGIC_DEF2("z", QuaternionGetProperty, QuaternionSetProperty,
-                          kQuaternion_z, OOJS_PROP_READWRITE_CB),
+                          OOJSPropertyMagic(QuaternionProperty::kZ),
+                          OOJS_PROP_READWRITE_CB),
 };
 
 static const JSCFunctionListEntry sQuaternionMethods[] = {
@@ -380,20 +388,21 @@ static JSValue QuaternionGetProperty(JSContext* context, JSValueConst thisObj,
   if (EXPECT_NOT(!JSObjectGetQuaternion(context, thisObj, &quaternion)))
     return JS_UNDEFINED;
 
-  switch (magic) {
-    case kQuaternion_w:
+  switch (static_cast<QuaternionProperty>(magic)) {
+    using enum QuaternionProperty;
+    case kW:
       fValue = quaternion.w;
       break;
 
-    case kQuaternion_x:
+    case kX:
       fValue = quaternion.x;
       break;
 
-    case kQuaternion_y:
+    case kY:
       fValue = quaternion.y;
       break;
 
-    case kQuaternion_z:
+    case kZ:
       fValue = quaternion.z;
       break;
 
@@ -425,20 +434,21 @@ static JSValue QuaternionSetProperty(JSContext* context, JSValueConst thisObj,
     return JS_EXCEPTION;
   }
 
-  switch (magic) {
-    case kQuaternion_w:
+  switch (static_cast<QuaternionProperty>(magic)) {
+    using enum QuaternionProperty;
+    case kW:
       quaternion.w = dval;
       break;
 
-    case kQuaternion_x:
+    case kX:
       quaternion.x = dval;
       break;
 
-    case kQuaternion_y:
+    case kY:
       quaternion.y = dval;
       break;
 
-    case kQuaternion_z:
+    case kZ:
       quaternion.z = dval;
       break;
 

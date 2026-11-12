@@ -46,15 +46,19 @@ static JSClassDef sExhaustPlumeClass = {
         OOJSCxxObjectWrapperFinalize,  // the slot holds an OOJSEntityHolder
 };
 
-enum {
+namespace {
+
+enum class ExhaustPlumeProperty : std::int16_t {
   // Property IDs
-  kExhaustPlume_size
+  kSize
 };
+
+}  // namespace
 
 static const JSCFunctionListEntry sExhaustPlumeProperties[] = {
     // JS name, getter, setter, ID
     OOJS_PROPERTY_RW("size", ExhaustPlumeGetProperty, ExhaustPlumeSetProperty,
-                     kExhaustPlume_size),
+                     ExhaustPlumeProperty::kSize),
 };
 
 static const JSCFunctionListEntry sExhaustPlumeMethods[] = {
@@ -122,8 +126,9 @@ static JSValue ExhaustPlumeGetProperty(OOJS_GETTER_ARGS) {
     return JS_UNDEFINED;
   }
 
-  switch (magic) {
-    case kExhaustPlume_size:
+  switch (static_cast<ExhaustPlumeProperty>(magic)) {
+    using enum ExhaustPlumeProperty;
+    case kSize:
       OOJS_RETURN_VECTOR(entity->scale());
 
     default:
@@ -148,8 +153,9 @@ static JSValue ExhaustPlumeSetProperty(OOJS_SETTER_ARGS) {
     return OOJSNativeFailure(context);
   if (entity == nullptr) return JS_UNDEFINED;
 
-  switch (magic) {
-    case kExhaustPlume_size:
+  switch (static_cast<ExhaustPlumeProperty>(magic)) {
+    using enum ExhaustPlumeProperty;
+    case kSize:
       if (JSValueToVector(context, value, &vValue)) {
         entity->setScale(vValue);
         return JS_UNDEFINED;
