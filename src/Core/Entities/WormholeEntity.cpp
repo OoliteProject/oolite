@@ -858,21 +858,9 @@ oo::PList WormholeEntity::getDict() {
 }
 
 const char* WormholeEntity::scanInfoString() {
-  switch (scan_info) {
-    case WH_SCANINFO_NONE:
-      return "WH_SCANINFO_NONE";
-    case WH_SCANINFO_SCANNED:
-      return "WH_SCANINFO_SCANNED";
-    case WH_SCANINFO_COLLAPSE_TIME:
-      return "WH_SCANINFO_COLLAPSE_TIME";
-    case WH_SCANINFO_ARRIVAL_TIME:
-      return "WH_SCANINFO_ARRIVAL_TIME";
-    case WH_SCANINFO_DESTINATION:
-      return "WH_SCANINFO_DESTINATION";
-    case WH_SCANINFO_SHIP:
-      return "WH_SCANINFO_SHIP";
-  }
-  return "WH_SCANINFO_UNDEFINED";  // should never get here
+  const std::string_view name = OOEnumName(scan_info);
+  return name.empty() ? "WH_SCANINFO_UNDEFINED"
+                      : name.data();  // a literal: NUL-terminated
 }
 
 void WormholeEntity::dumpSelfState() {

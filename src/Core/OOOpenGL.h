@@ -30,6 +30,8 @@ MA 02110-1301, USA.
 #pragma once
 
 #ifndef OO_PLAIN_CPP_UNIT
+#include <string_view>
+
 #include "OOFoundation.h"
 #endif
 #include "OOOpenGLCheck.h"
@@ -42,6 +44,21 @@ typedef enum {
   SHADERS_SIMPLE = 2,
   SHADERS_FULL = 3
 } OOShaderSetting;
+
+// The names the game writes for OOShaderSetting (saves, logs and plists).
+constexpr std::string_view OOEnumName(OOShaderSetting value) noexcept {
+  switch (value) {
+    case SHADERS_OFF:
+      return "SHADERS_OFF";
+    case SHADERS_SIMPLE:
+      return "SHADERS_SIMPLE";
+    case SHADERS_FULL:
+      return "SHADERS_FULL";
+    case SHADERS_NOT_SUPPORTED:
+      return "SHADERS_NOT_SUPPORTED";
+  }
+  return {};
+}
 
 #define NULL_SHADER ((GLhandleARB)0)
 
