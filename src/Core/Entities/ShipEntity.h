@@ -253,9 +253,9 @@ class ShipEntity : public OOEntityWithDrawable,
 
   // setUpShipFromDictionary:, subentity serialisation and set-up.
   virtual bool setUpShipFromDictionary(const oo::PList& shipDict);
-  void setSubIdx(NSUInteger value);
-  NSUInteger subIdx();
-  NSUInteger maxShipSubEntities();
+  void setSubIdx(std::size_t value);
+  std::size_t subIdx();
+  std::size_t maxShipSubEntities();
   std::optional<std::string> serializeShipSubEntities();
   void deserializeShipSubEntitiesFrom(const std::string& string);
   virtual bool setUpSubEntities();
@@ -291,7 +291,7 @@ class ShipEntity : public OOEntityWithDrawable,
   GLfloat scriptedMisjumpRange();
   void setScriptedMisjumpRange(GLfloat newValue);
   std::vector<oo::EntityHold> getSubEntities();
-  NSUInteger subEntityCount();
+  std::size_t subEntityCount();
   bool hasSubEntity(Entity* sub);
   std::vector<oo::EntityHold> subEntityEnumerator();
   std::vector<oo::EntityHold> shipSubEntities();
@@ -380,7 +380,7 @@ class ShipEntity : public OOEntityWithDrawable,
   bool hasOneEquipmentItemIncludingMissiles(const std::string& itemKey,
                                             bool includeMissiles, bool loading);
   virtual bool hasPrimaryWeapon(OOWeaponType weaponType);
-  NSUInteger countEquipmentItem(const std::string& eqkey);
+  std::size_t countEquipmentItem(const std::string& eqkey);
   bool hasEquipmentItem(const oo::PList& equipmentKeys, bool includeWeapons,
                         bool loading);
   bool hasEquipmentItem(const oo::PList& equipmentKeys);
@@ -418,7 +418,7 @@ class ShipEntity : public OOEntityWithDrawable,
                                 bool validateAddition,
                                 const std::string& context);
   std::vector<std::string> equipmentKeys();
-  NSUInteger equipmentCount();
+  std::size_t equipmentCount();
 
   // equipment removal, missile selection, capacities and has-equipment
   // predicates, shields.
@@ -429,12 +429,12 @@ class ShipEntity : public OOEntityWithDrawable,
   ::OOEquipmentType* selectMissile();
   void removeAllEquipment();
   virtual OOCreditsQuantity removeMissiles();
-  virtual NSUInteger parcelCount();
-  virtual NSUInteger passengerCount();
-  virtual NSUInteger passengerCapacity();
-  NSUInteger missileCount();
-  NSUInteger missileCapacity();
-  NSUInteger extraCargo();
+  virtual std::size_t parcelCount();
+  virtual std::size_t passengerCount();
+  virtual std::size_t passengerCapacity();
+  std::size_t missileCount();
+  std::size_t missileCapacity();
+  std::size_t extraCargo();
   bool hasScoop();
   bool hasFuelScoop();
   bool hasCargoScoop();
@@ -573,7 +573,7 @@ class ShipEntity : public OOEntityWithDrawable,
   void setPendingEscortCount(uint8_t count);
   uint8_t maxEscortCount();
   void setMaxEscortCount(uint8_t newCount);
-  NSUInteger turretCount();
+  std::size_t turretCount();
   Entity* proximityAlert();
   void setProximityAlert(::ShipEntity* other);
   std::optional<std::string> getName();
@@ -696,7 +696,7 @@ class ShipEntity : public OOEntityWithDrawable,
   virtual OOCargoQuantity cargoQuantityOnBoard();
   OOCargoType cargoType();
   std::vector<oo::EntityHold>* getCargo();
-  NSUInteger cargoCount();
+  std::size_t cargoCount();
   virtual oo::PList cargoListForScripting();
   void setCargo(const std::vector<oo::EntityHold>& some_cargo);
   bool addCargo(const std::vector<oo::EntityHold>& some_cargo);
@@ -844,7 +844,7 @@ class ShipEntity : public OOEntityWithDrawable,
   void addCollisionException(::ShipEntity* ship);
   void removeCollisionException(::ShipEntity* ship);
   bool collisionExceptedFor(::ShipEntity* ship);
-  NSUInteger defenseTargetCount();
+  std::size_t defenseTargetCount();
   std::vector<oo::EntityHold> allDefenseTargets();
   std::vector<oo::EntityHold> defenseTargets();
   bool addDefenseTarget(Entity* target);
@@ -1031,7 +1031,7 @@ class ShipEntity : public OOEntityWithDrawable,
       const std::optional<std::string>& shipKey);  // Note: ship type, not role.
   ::ShipEntity* ejectShipOfRole(const std::optional<std::string>& role);
   std::vector<oo::EntityHold> spawnShipsWithRole(const std::string& role,
-                                                 NSUInteger count);
+                                                 std::size_t count);
 
   // Category LoadRestore (ShipEntityLoadRestore.cpp): saving and restoring
   // individual non-player ships. The context (nullptr for none) synchronises
@@ -1390,12 +1390,12 @@ class ShipEntity : public OOEntityWithDrawable,
   HPVector coordinates = {};  // for flying to/from a set point
   Vector reference = {};      // a direction vector of magnitude 1 (* turrets *)
 
-  NSUInteger _subIdx =
+  std::size_t _subIdx =
       {};  // serialisation index - used only if this ship is a subentity
-  NSUInteger _maxShipSubIdx = {};  // serialisation index - the number of ship
-                                   // subentities inside the shipdata
-  double launch_time = {};         // time at which launched
-  double launch_delay = {};        // delay for thinking after launch
+  std::size_t _maxShipSubIdx = {};  // serialisation index - the number of ship
+                                    // subentities inside the shipdata
+  double launch_time = {};          // time at which launched
+  double launch_delay = {};         // delay for thinking after launch
   OOUniversalID planetForLanding = {};  // for landing
 
   GLfloat frustration = {},  // degree of dissatisfaction with the current

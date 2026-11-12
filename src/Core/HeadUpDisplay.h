@@ -315,7 +315,7 @@ class HeadUpDisplay : public oo::RefCounted {
   void addDial(const oo::PList& info);
   void addMFD(const oo::PList& info);
 
-  NSUInteger mfdCount();
+  std::size_t mfdCount();
 
   void renderHUD();
 
@@ -334,8 +334,8 @@ class HeadUpDisplay : public oo::RefCounted {
   bool scannerUltraZoom();
   void setScannerUltraZoom(bool newValue);
 
-  oo::Ref<OOColor> reticleColorForIndex(NSUInteger idx);
-  bool setReticleColorForIndex(NSUInteger idx, OOColor* newColor);
+  oo::Ref<OOColor> reticleColorForIndex(std::size_t idx);
+  bool setReticleColorForIndex(std::size_t idx, OOColor* newColor);
 
   bool checkPlayerInFlight();
   bool checkPlayerInSystemFlight();
@@ -451,7 +451,7 @@ class HeadUpDisplay : public oo::RefCounted {
   void drawHUDItem(const oo::PList& info);
 
   void drawMultiFunctionDisplay(const oo::PList& info, const std::string& text,
-                                NSUInteger index);
+                                std::size_t index);
 
   void drawSurroundInternal(const oo::PList& info, const GLfloat color[4]);
 

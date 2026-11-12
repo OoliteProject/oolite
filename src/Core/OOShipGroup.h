@@ -88,7 +88,7 @@ class OOShipGroup : public oo::PListForeign, public ::OOJSPrivateObject {
   bool addShip(::ShipEntity* ship);
   bool removeShip(::ShipEntity* ship);
 
-  NSUInteger count();  // NOTE: this is O(n).
+  std::size_t count();  // NOTE: this is O(n).
   bool isEmpty();
 
   // What "%@" prints between the braces of <OOShipGroup 0x...>{...}
@@ -114,12 +114,12 @@ class OOShipGroup : public oo::PListForeign, public ::OOJSPrivateObject {
   // -cxx_initWithName:, which could fail.
   bool initWithName(const std::optional<std::string>& name);
 
-  bool resizeTo(NSUInteger newCapacity);
+  bool resizeTo(std::size_t newCapacity);
   void cleanUp();
 
-  NSUInteger updateCount();
+  std::size_t updateCount();
 
-  NSUInteger _count = {}, _capacity = {};
+  std::size_t _count = {}, _capacity = {};
   unsigned long _updateCount = {};
   // Weak references to the ships' C++ parts: each reads null exactly when the
   // object's reference did. _capacity slots, the first _count in use.
@@ -141,13 +141,13 @@ class OOShipGroupCursor {
   explicit OOShipGroupCursor(OOShipGroup* group);
 
   ::ShipEntity* next();  // nil at the end
-  NSUInteger index() const { return _index; }
+  std::size_t index() const { return _index; }
   void setPerformCleanup(bool flag) { _considerCleanup = flag; }
 
   // Public so ShipGroupIterate() can peek at both these and OOShipGroup's
   // ivars. Naughty!
   oo::Ref<OOShipGroup> _group;
-  NSUInteger _index = 0, _updateCount = 0;
+  std::size_t _index = 0, _updateCount = 0;
   bool _considerCleanup = true, _cleanupNeeded = false;
 };
 

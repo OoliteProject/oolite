@@ -77,7 +77,7 @@ public:
 	OOCompassMode getCompassMode() override	{ return COMPASS_MODE_STATION; }
 	bool dialIdentEngaged() override	{ return true; }
 	OOAlertCondition getAlertCondition() override	{ return ALERT_CONDITION_RED; }
-	NSUInteger getTrumbleCount() override	{ return 7; }
+	std::size_t getTrumbleCount() override	{ return 7; }
 	int tradeInFactor() override	{ return 80; }
 };
 

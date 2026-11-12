@@ -531,7 +531,7 @@ void OOTrumble::updateTrumble(double delta_t) {
              : (std::vector<oo::EntityHold>*)nullptr);  // the cargo pods (live:
                                                         // eaten ones are
                                                         // removed)
-    NSUInteger i, n_pods = cargopods != nullptr ? cargopods->size() : 0;
+    std::size_t i, n_pods = cargopods != nullptr ? cargopods->size() : 0;
     for (i = 0; i < n_pods; i++) {
       ::ShipEntity* cargopod = oo::ToShip((*cargopods)[i].get());
       const std::string cargo_type =

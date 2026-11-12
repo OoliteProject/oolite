@@ -99,8 +99,8 @@ class AI : public oo::RefCounted {
       const std::string& script);  // -cxx_setStateMachine:withJSScript:
   void setState(const std::string& stateName);
 
-  void setStateMachine(const std::string& smName, NSTimeInterval delay);
-  void setState(const std::string& stateName, NSTimeInterval delay);
+  void setStateMachine(const std::string& smName, double delay);
+  void setState(const std::string& stateName, double delay);
 
   ::ShipEntity* owner();
   void setOwner(::ShipEntity* ship);
@@ -113,7 +113,7 @@ class AI : public oo::RefCounted {
   void exitStateMachineWithMessage(
       const std::optional<std::string>& message);  // nullopt: "RESTARTED"
 
-  NSUInteger stackDepth();
+  std::size_t stackDepth();
 
   // Immediately handle a message. This is the core dispatcher. DebugContext is
   // a textual hint for diagnostics (std::nullopt where the Foundation version
@@ -154,7 +154,7 @@ class AI : public oo::RefCounted {
   // <selectorName> is found in the deferred calls' name table (AI.cpp) and
   // called with <argument>.
   void performDeferredCall(const char* selectorName,
-                           const std::string& argument, NSTimeInterval delay);
+                           const std::string& argument, double delay);
 
   void refreshOwnerDesc();
 

@@ -146,7 +146,7 @@ std::optional<std::string> Entity::descriptionComponents() const {
       cxx_OOStringFromEntityStatus(_status).c_str());
 }
 
-NSUInteger Entity::sessionID() { return _sessionID; }
+std::size_t Entity::sessionID() { return _sessionID; }
 
 bool Entity::getIsShip() { return isShip; }
 
@@ -177,8 +177,8 @@ bool Entity::getIsVisualEffect() { return false; }
 bool Entity::isWaypoint() { return false; }
 
 bool Entity::validForAddToUniverse() {
-  NSUInteger mySessionID = sessionID();
-  NSUInteger currentSessionID =
+  std::size_t mySessionID = sessionID();
+  std::size_t currentSessionID =
       (UNIVERSE != nullptr ? UNIVERSE->sessionID() : 0);
   if (EXPECT_NOT(mySessionID != currentSessionID)) {
     OO_LOG_ERR("entity.invalidSession",
@@ -862,9 +862,9 @@ void Entity::subEntityReallyDied(::ShipEntity* sub) {
          oo::str::pointerDescription(sub));  // the entity's address
 }
 
-NSUInteger Entity::getLastDrawCounter() { return lastDrawCounter; }
+std::size_t Entity::getLastDrawCounter() { return lastDrawCounter; }
 
-void Entity::setLastDrawCounter(NSUInteger drawCounter) {
+void Entity::setLastDrawCounter(std::size_t drawCounter) {
   lastDrawCounter = drawCounter;
   return;
 }

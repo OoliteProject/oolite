@@ -122,12 +122,12 @@ enum {
 using VertexFaceRef = struct VertexFaceRef {
   uint16_t internCount;
   uint16_t internFaces[kVertexFaceDefInternalCount];
-  std::vector<NSUInteger> extra;
+  std::vector<std::size_t> extra;
 };
 
-static void VFRAddFace(VertexFaceRef* vfr, NSUInteger index);
-static NSUInteger VFRGetCount(VertexFaceRef* vfr);
-static NSUInteger VFRGetFaceAtIndex(VertexFaceRef* vfr, NSUInteger index);
+static void VFRAddFace(VertexFaceRef* vfr, std::size_t index);
+static std::size_t VFRGetCount(VertexFaceRef* vfr);
+static std::size_t VFRGetFaceAtIndex(VertexFaceRef* vfr, std::size_t index);
 
 // The OOCacheManager (OOMesh) category, as free functions next to the cache
 // (defined below).
@@ -238,7 +238,7 @@ OOMesh::OOMesh() {
   baseFileOctreeCacheRef = "No Model-0.000";
   _cacheWriteable = true;
 #if OO_MULTITEXTURE
-  _textureUnitCount = NSNotFound;
+  _textureUnitCount = oo::kNotFound;
 #endif
 
   _lastPosition = kZeroVector;
@@ -348,10 +348,10 @@ void OOMesh::renderOpaqueParts() {
           -- Ahruman 2010-04-12
   */
 #if OO_MULTITEXTURE
-  if (_textureUnitCount == NSNotFound) {
+  if (_textureUnitCount == oo::kNotFound) {
     _textureUnitCount = 0;
     for (ti = 0; ti < materialCount; ti++) {
-      NSUInteger count =
+      std::size_t count =
           materials[ti] != nullptr
               ? materials[ti]->countOfTextureUnitsWithBaseCoordinates()
               : 0;
@@ -359,7 +359,7 @@ void OOMesh::renderOpaqueParts() {
     }
   }
 
-  NSUInteger unit;
+  std::size_t unit;
   if (_textureUnitCount <= 1) {
     OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
   } else {
@@ -810,7 +810,7 @@ bool OOMesh::initWithName(const std::string& name,
 #endif
 #if OO_MULTITEXTURE
     if (EXPECT(loaded)) {
-      _textureUnitCount = NSNotFound;
+      _textureUnitCount = oo::kNotFound;
     }
 #endif
   }
@@ -1444,13 +1444,13 @@ void OOMesh::deleteDisplayLists() {
 void OOMesh::resetGraphicsState() {
   deleteDisplayLists();
   rebindMaterials();
-  _textureUnitCount = NSNotFound;
+  _textureUnitCount = oo::kNotFound;
 }
 
 bool OOMesh::setUpVertexArrays() {
   OOJS_PROFILE_ENTER
 
-  NSUInteger fi, vi, mi;
+  std::size_t fi, vi, mi;
 
   if (!allocateVertexArrayBuffersWithCount(faceCount)) return false;
 
@@ -1586,7 +1586,7 @@ void OOMesh::setRetainedObject(oo::Data object, const std::string& key) {
 /* valgrind complains that the memory allocated here isn't initialised
          at the time OOCacheManager::writeDict is pushing it to the
          cache. Not sure if that's a problem or not. - CIM */
-void* OOMesh::allocateBytesWithSize(size_t size, NSUInteger count,
+void* OOMesh::allocateBytesWithSize(size_t size, std::size_t count,
                                     const std::string& key) {
   if (count == 0) {
     count = 1;
@@ -1602,13 +1602,13 @@ void* OOMesh::allocateBytesWithSize(size_t size, NSUInteger count,
   return bytes;
 }
 
-bool OOMesh::allocateVertexBuffersWithCount(NSUInteger /*count*/) {
+bool OOMesh::allocateVertexBuffersWithCount(std::size_t /*count*/) {
   _vertices = (Vector*)allocateBytesWithSize(sizeof *_vertices, vertexCount,
                                              "vertices");
   return _vertices != nullptr;
 }
 
-bool OOMesh::allocateNormalBuffersWithCount(NSUInteger /*count*/) {
+bool OOMesh::allocateNormalBuffersWithCount(std::size_t /*count*/) {
   _normals =
       (Vector*)allocateBytesWithSize(sizeof *_normals, vertexCount, "normals");
   _tangents = (Vector*)allocateBytesWithSize(sizeof *_tangents, vertexCount,
@@ -1616,13 +1616,13 @@ bool OOMesh::allocateNormalBuffersWithCount(NSUInteger /*count*/) {
   return _normals != nullptr && _tangents != nullptr;
 }
 
-bool OOMesh::allocateFaceBuffersWithCount(NSUInteger /*count*/) {
+bool OOMesh::allocateFaceBuffersWithCount(std::size_t /*count*/) {
   _faces =
       (OOMeshFace*)allocateBytesWithSize(sizeof *_faces, faceCount, "faces");
   return _faces != nullptr;
 }
 
-bool OOMesh::allocateVertexArrayBuffersWithCount(NSUInteger count) {
+bool OOMesh::allocateVertexArrayBuffersWithCount(std::size_t count) {
   _displayLists.indexArray = (GLint*)allocateBytesWithSize(
       sizeof *_displayLists.indexArray, count * 3, "indexArray");
   _displayLists.textureUVArray = (GLfloat*)allocateBytesWithSize(
@@ -1776,7 +1776,7 @@ void OOMesh::calculateVertexNormalsAndTangentsWithFaceRefs(
 
   OOCParameterAssert(faceRefs != nullptr);
 
-  NSUInteger i, j;
+  std::size_t i, j;
   std::vector<float> triangle_area(faceCount);
 
   OOCAssert(_normals != nullptr && _tangents != nullptr,
@@ -1790,7 +1790,7 @@ void OOMesh::calculateVertexNormalsAndTangentsWithFaceRefs(
     Vector tangent_sum = kZeroVector;
 
     VertexFaceRef* vfr = &faceRefs[i];
-    NSUInteger fIter, fCount = VFRGetCount(vfr);
+    std::size_t fIter, fCount = VFRGetCount(vfr);
     for (fIter = 0; fIter < fCount; fIter++) {
       j = VFRGetFaceAtIndex(vfr, fIter);
 
@@ -1832,7 +1832,7 @@ void OOMesh::calculateVertexTangentsWithFaceRefs(VertexFaceRef* faceRefs) {
           smooth-grouped normal generation.
           -- Ahruman 2010-05-22
   */
-  NSUInteger i, j;
+  std::size_t i, j;
   std::vector<float> triangle_area(faceCount);
   for (i = 0; i < faceCount; i++) {
     triangle_area[i] = FaceAreaCorrect(_faces[i].vertex, _vertices);
@@ -1841,7 +1841,7 @@ void OOMesh::calculateVertexTangentsWithFaceRefs(VertexFaceRef* faceRefs) {
     Vector tangent_sum = kZeroVector;
 
     VertexFaceRef* vfr = &faceRefs[i];
-    NSUInteger fIter, fCount = VFRGetCount(vfr);
+    std::size_t fIter, fCount = VFRGetCount(vfr);
     for (fIter = 0; fIter < fCount; fIter++) {
       j = VFRGetFaceAtIndex(vfr, fIter);
 
@@ -1870,7 +1870,7 @@ void OOMesh::getNormal(Vector* outNormal, Vector* outTangent,
 
   assert(outNormal != nullptr && outTangent != nullptr);
 
-  NSUInteger j;
+  std::size_t j;
   Vector normal_sum = kZeroVector;
   Vector tangent_sum = kZeroVector;
   for (j = 0; j < faceCount; j++) {
@@ -2004,7 +2004,7 @@ void OOCacheManagerSetOctree(Octree* inOctree, const std::string& inKey) {
   }
 }
 
-static void VFRAddFace(VertexFaceRef* vfr, NSUInteger index) {
+static void VFRAddFace(VertexFaceRef* vfr, std::size_t index) {
   OOCParameterAssert(vfr != nullptr);
 
   if (index < UINT16_MAX && vfr->internCount < kVertexFaceDefInternalCount) {
@@ -2014,13 +2014,13 @@ static void VFRAddFace(VertexFaceRef* vfr, NSUInteger index) {
   }
 }
 
-static NSUInteger VFRGetCount(VertexFaceRef* vfr) {
+static std::size_t VFRGetCount(VertexFaceRef* vfr) {
   OOCParameterAssert(vfr != nullptr);
 
   return vfr->internCount + vfr->extra.size();
 }
 
-static NSUInteger VFRGetFaceAtIndex(VertexFaceRef* vfr, NSUInteger index) {
+static std::size_t VFRGetFaceAtIndex(VertexFaceRef* vfr, std::size_t index) {
   OOCParameterAssert(vfr != nullptr && index < VFRGetCount(vfr));
 
   if (index < vfr->internCount)

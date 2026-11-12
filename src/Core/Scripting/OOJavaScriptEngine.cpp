@@ -323,7 +323,7 @@ static bool IsRunningJavaScript(JSContext* context) {
   return false;
 }
 
-NSUInteger OOJavaScriptEngine::shutDown() {
+std::size_t OOJavaScriptEngine::shutDown() {
   if (_runtime == nullptr) return 0;
 
   /*	The game can quit from inside a script (quitGame()). The frames on the
@@ -356,7 +356,7 @@ NSUInteger OOJavaScriptEngine::shutDown() {
            "one it does.",
            static_cast<long long>(usage.obj_count));
     _runtime = nullptr;
-    return (NSUInteger)usage.obj_count;
+    return (std::size_t)usage.obj_count;
   }
 
   JS_FreeRuntime(_runtime);

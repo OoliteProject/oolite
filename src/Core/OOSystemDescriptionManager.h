@@ -151,8 +151,8 @@ class OOSystemDescriptionManager : public oo::RefCounted {
   void setProperties(const oo::PList& properties,
                      OOSystemDescriptionEntry* desc);
   oo::PList calculatePropertiesForSystemKey(const std::string& key);
-  void updateCacheEntry(NSUInteger i);
-  void updateCacheEntry(NSUInteger i, const std::string& property);
+  void updateCacheEntry(std::size_t i);
+  void updateCacheEntry(std::size_t i, const std::string& property);
   oo::PList getProperty(const std::string& property, const std::string& key,
                         bool universal);
   /* some planetinfo properties have two ways to specify

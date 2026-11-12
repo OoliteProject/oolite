@@ -192,11 +192,11 @@ Vector VectorFromPList(const oo::PList* value) {
 }
 
 // Was the private -repeatString:times:.
-std::string RepeatString(std::string_view str, NSUInteger times) {
+std::string RepeatString(std::string_view str, std::size_t times) {
   std::string result;
   result.reserve(str.size() * times);
 
-  for (NSUInteger i = 0; i < times; i++) {
+  for (std::size_t i = 0; i < times; i++) {
     result += str;
   }
 
@@ -289,8 +289,9 @@ namespace {
    members were compacted, and the group cleaned up, a batch ahead of the body,
    also when the body returned early. 0 at the end.
 */
-NSUInteger ShipGroupCursorBatch(OOShipGroupCursor& cursor, ShipEntity** batch) {
-  NSUInteger count = 0;
+std::size_t ShipGroupCursorBatch(OOShipGroupCursor& cursor,
+                                 ShipEntity** batch) {
+  std::size_t count = 0;
   while (count < 16) {
     ShipEntity* member = cursor.next();
     if (member == nullptr) break;
@@ -1165,15 +1166,15 @@ bool ShipEntity::setUpShipFromDictionary(const oo::PList& shipDict) {
   OOJS_PROFILE_EXIT
 }
 
-void ShipEntity::setSubIdx(NSUInteger value) { _subIdx = value; }
+void ShipEntity::setSubIdx(std::size_t value) { _subIdx = value; }
 
-NSUInteger ShipEntity::subIdx() { return _subIdx; }
+std::size_t ShipEntity::subIdx() { return _subIdx; }
 
-NSUInteger ShipEntity::maxShipSubEntities() { return _maxShipSubIdx; }
+std::size_t ShipEntity::maxShipSubEntities() { return _maxShipSubIdx; }
 
 std::optional<std::string> ShipEntity::serializeShipSubEntities() {
   std::string result;
-  NSUInteger diff, i = 0;
+  std::size_t diff, i = 0;
 
   for (const auto& sub : shipSubEntities()) {
     ::ShipEntity* se = oo::ToShip(sub.get());
@@ -1191,8 +1192,8 @@ void ShipEntity::deserializeShipSubEntitiesFrom(const std::string& string) {
   const std::vector<oo::EntityHold> subEnts = shipSubEntities();
   const std::u16string units = oo::utf8ToUtf16(
       string);  // indexed in UTF-16 units, as -substringWithRange: was
-  NSInteger i, idx, start = (NSInteger)subEnts.size() - 1;
-  NSInteger strMaxIdx = (NSInteger)units.size() - 1;
+  std::ptrdiff_t i, idx, start = (std::ptrdiff_t)subEnts.size() - 1;
+  std::ptrdiff_t strMaxIdx = (std::ptrdiff_t)units.size() - 1;
 
   ::ShipEntity* se = nullptr;
 
@@ -1536,7 +1537,7 @@ void ShipEntity::setScriptedMisjumpRange(GLfloat newValue) {
 
 std::vector<oo::EntityHold> ShipEntity::getSubEntities() { return subEntities; }
 
-NSUInteger ShipEntity::subEntityCount() { return subEntities.size(); }
+std::size_t ShipEntity::subEntityCount() { return subEntities.size(); }
 
 bool ShipEntity::hasSubEntity(Entity* sub) {
   // Identity: a subentity's -isEqual: is NSObject's.
@@ -1809,7 +1810,7 @@ OOHUDBeaconIcon* ShipEntity::beaconDrawable() {
   if (_beaconDrawable == nullptr) {
     const std::u16string beaconCode =
         oo::utf8ToUtf16(_beaconCode.value_or(std::string()));
-    NSUInteger length = beaconCode.size();  // -length: UTF-16 units
+    std::size_t length = beaconCode.size();  // -length: UTF-16 units
 
     if (length > 1) {
       const oo::PList* iconEntry = UNIVERSE->descriptions()->find(*_beaconCode);
@@ -2095,7 +2096,7 @@ void ShipEntity::setUpMixedEscorts() {
   // check prime subentities against the other's hull
   const std::vector<oo::EntityHold>& prime_subs = prime->subEntities;
   if (!prime_subs.empty()) {
-    NSUInteger i, n_subs = prime_subs.size();
+    std::size_t i, n_subs = prime_subs.size();
     for (i = 0; i < n_subs; i++) {
       Entity* se = prime_subs[i].get();
       if (se->getIsShip() && se->canCollide() &&
@@ -2107,7 +2108,7 @@ void ShipEntity::setUpMixedEscorts() {
   // check prime hull against the other's subentities
   const std::vector<oo::EntityHold>& other_subs = other->subEntities;
   if (!other_subs.empty()) {
-    NSUInteger i, n_subs = other_subs.size();
+    std::size_t i, n_subs = other_subs.size();
     for (i = 0; i < n_subs; i++) {
       Entity* se = other_subs[i].get();
       if (se->getIsShip() && se->canCollide() &&
@@ -2118,11 +2119,11 @@ void ShipEntity::setUpMixedEscorts() {
 
   // check prime subenties against the other's subentities
   if ((!prime_subs.empty()) && (!other_subs.empty())) {
-    NSUInteger i, n_osubs = other_subs.size();
+    std::size_t i, n_osubs = other_subs.size();
     for (i = 0; i < n_osubs; i++) {
       Entity* oe = other_subs[i].get();
       if (oe->getIsShip() && oe->canCollide()) {
-        NSUInteger j, n_psubs = prime_subs.size();
+        std::size_t j, n_psubs = prime_subs.size();
         for (j = 0; j < n_psubs; j++) {
           Entity* pe = prime_subs[j].get();
           if (pe->getIsShip() && pe->canCollide() &&
@@ -2293,7 +2294,7 @@ std::vector<Vector> ShipEntity::weaponOffsetsFrom(const oo::PList& dict,
     }
     std::vector<Vector> output;
     output.reserve(offsets->count());
-    NSUInteger i;
+    std::size_t i;
     for (i = 0; i < offsets->count(); i++) {
       offset =
           vector_multiply_scalar(VectorFromPList(offsets->at(i)), _scaleFactor);
@@ -3305,8 +3306,8 @@ bool ShipEntity::hasPrimaryWeapon(OOWeaponType weaponType) {
   return false;
 }
 
-NSUInteger ShipEntity::countEquipmentItem(const std::string& eqkey) {
-  return (NSUInteger)std::ranges::count(_equipment, eqkey);
+std::size_t ShipEntity::countEquipmentItem(const std::string& eqkey) {
+  return (std::size_t)std::ranges::count(_equipment, eqkey);
 }
 
 bool ShipEntity::hasEquipmentItem(const oo::PList& equipmentKeys,
@@ -3555,7 +3556,7 @@ ShipEntity::equipmentListForScripting() {
     // Equipment list,  consistent with the rest of the API - Kaks
     if ((eqType != nullptr ? eqType->canCarryMultiple() : false)) {
       const std::string damagedIdentifier = identifier + "_DAMAGED";
-      NSUInteger i, count = 0;
+      std::size_t i, count = 0;
       count += countEquipmentItem(identifier);
       count += countEquipmentItem(damagedIdentifier);
       for (i = 0; i < count; i++) {
@@ -3863,7 +3864,7 @@ bool ShipEntity::addEquipmentItem(const std::string& equipmentKeyIn,
 
 std::vector<std::string> ShipEntity::equipmentKeys() { return _equipment; }
 
-NSUInteger ShipEntity::equipmentCount() { return _equipment.size(); }
+std::size_t ShipEntity::equipmentCount() { return _equipment.size(); }
 
 // Equipment removal, missile selection, capacities and has-equipment
 // predicates, shields. Members of the C++ ship.
@@ -4152,17 +4153,17 @@ OOCreditsQuantity ShipEntity::removeMissiles() {
   return 0;
 }
 
-NSUInteger ShipEntity::parcelCount() { return 0; }
+std::size_t ShipEntity::parcelCount() { return 0; }
 
-NSUInteger ShipEntity::passengerCount() { return 0; }
+std::size_t ShipEntity::passengerCount() { return 0; }
 
-NSUInteger ShipEntity::passengerCapacity() { return 0; }
+std::size_t ShipEntity::passengerCapacity() { return 0; }
 
-NSUInteger ShipEntity::missileCount() { return missiles; }
+std::size_t ShipEntity::missileCount() { return missiles; }
 
-NSUInteger ShipEntity::missileCapacity() { return max_missiles; }
+std::size_t ShipEntity::missileCapacity() { return max_missiles; }
 
-NSUInteger ShipEntity::extraCargo() { return extra_cargo; }
+std::size_t ShipEntity::extraCargo() { return extra_cargo; }
 
 /* This is used for e.g. displaying the HUD icon */
 bool ShipEntity::hasScoop() {
@@ -6841,8 +6842,8 @@ void ShipEntity::setMaxEscortCount(uint8_t newCount) {
   _maxEscortCount = newCount;
 }
 
-NSUInteger ShipEntity::turretCount() {
-  NSUInteger count = 0;
+std::size_t ShipEntity::turretCount() {
+  std::size_t count = 0;
   for (const auto& se : shipSubEntities()) {
     if ((oo::ToShip(se.get()) != nullptr ? oo::ToShip(se.get())->isTurret()
                                          : false)) {
@@ -7874,7 +7875,7 @@ OOCargoQuantity ShipEntity::availableCargoSpace() {
 }
 
 OOCargoQuantity ShipEntity::cargoQuantityOnBoard() {
-  NSUInteger result = cargoCount();
+  std::size_t result = cargoCount();
   OOCAssert(result < UINT32_MAX, "Cargo quantity out of bounds.");
   return (OOCargoQuantity)result;
 }
@@ -7887,7 +7888,7 @@ OOCargoType ShipEntity::cargoType() { return cargo_type; }
  * receiver. */
 std::vector<oo::EntityHold>* ShipEntity::getCargo() { return &cargo; }
 
-NSUInteger ShipEntity::cargoCount() { return cargo.size(); }
+std::size_t ShipEntity::cargoCount() { return cargo.size(); }
 
 oo::PList ShipEntity::cargoListForScripting() {
   oo::PList::Array list;
@@ -7897,7 +7898,7 @@ oo::PList ShipEntity::cargoListForScripting() {
                            : nullptr);  // null: no goods, as a message to nil
   const std::vector<std::string> goods =
       (market != nullptr) ? market->goods() : std::vector<std::string>();
-  NSUInteger i, commodityCount = goods.size();
+  std::size_t i, commodityCount = goods.size();
   std::vector<OOCargoQuantity> quantityInHold(commodityCount, 0);
 
   for (i = 0; i < cargo.size(); i++) {
@@ -7962,7 +7963,7 @@ bool ShipEntity::removeCargo(const std::string& commodity,
     return false;
   }
 
-  NSUInteger i = cargo.size() - 1;
+  std::size_t i = cargo.size() - 1;
   // iterate downwards to be safe removing during iteration
   while (amount > 0) {
     if ((oo::ToShip(cargo[i].get()) != nullptr
@@ -8459,7 +8460,7 @@ void ShipEntity::rescaleBy(GLfloat factor, bool writeToCache) {
 
 void ShipEntity::releaseCargoPodsDebris() {
   HPVector xposition = position;
-  NSUInteger i;
+  std::size_t i;
   Vector v;
   Quaternion q;
   int speed_low = 200;
@@ -8471,7 +8472,7 @@ void ShipEntity::releaseCargoPodsDebris() {
   cargo.clear();   // dispense with it!
   unsigned limit = 15;
   //  Throw out cargo
-  NSUInteger n_jetsam = jetsam.size();
+  std::size_t n_jetsam = jetsam.size();
 
   for (i = 0; i < n_jetsam; i++) {
     if (Ranrot() % 100 < cargo_chance)  //  chance of any given piece of cargo
@@ -8562,12 +8563,12 @@ void ShipEntity::becomeExplosion() {
   }
 
   HPVector xposition = position;
-  NSUInteger i;
+  std::size_t i;
   Vector v;
   Quaternion q;
   int speed_low = 200;
   GLfloat n_alloys = sqrtf(sqrtf(mass / 6000.0f));
-  NSUInteger numAlloys = 0;
+  std::size_t numAlloys = 0;
   bool canReleaseSubWreckage =
       isWreckage &&
       ((UNIVERSE != nullptr ? UNIVERSE->getDetailLevel()
@@ -8647,7 +8648,7 @@ void ShipEntity::becomeExplosion() {
               UNIVERSE->addEntity(oo::MadeEntity(
                   ::OOFlashEffectEntity::explosionFlashFromEntity(this)));
           }
-          for (NSUInteger i = 0; i < explosionType.count(); i++) {
+          for (std::size_t i = 0; i < explosionType.count(); i++) {
             // The string reader at index i: a string, or a number's text, else
             // none.
             const oo::PList* entry = explosionType.at(i);
@@ -8701,7 +8702,7 @@ void ShipEntity::becomeExplosion() {
             } else if (oo::EntityIsPlayer(primaryAggressor())) {
               if (PLAYER != nullptr) PLAYER->addRoleForMining();
             }
-            NSUInteger n_rocks = 2 + (Ranrot() % (likely_cargo + 1));
+            std::size_t n_rocks = 2 + (Ranrot() % (likely_cargo + 1));
 
             const std::string debrisRole =
                 shipInfoDictionary().get<std::string>("debris_role",
@@ -8764,13 +8765,13 @@ void ShipEntity::becomeExplosion() {
         // throw out burning chunks of wreckage
         //
         if ((n_alloys && canFragment) || canReleaseSubWreckage) {
-          NSUInteger n_wreckage = 0;
+          std::size_t n_wreckage = 0;
 
           if (UNIVERSE->n_entities <
               0.50 * static_cast<double>(UNIVERSE_MAX_ENTITIES)) {
             // Create wreckage only when UNIVERSE is less than half full.
             // (condition set in r906 - was < 0.75 before) --Kaks 2011.10.17
-            NSUInteger maxWrecks = 3;
+            std::size_t maxWrecks = 3;
             if (n_alloys == 0) {
               // must be sub-wreckage here
               n_wreckage = (mass > 600.0 && randf() < 0.2) ? 2 : 0;
@@ -10401,7 +10402,7 @@ bool ShipEntity::collisionExceptedFor(::ShipEntity* ship) {
   return _collisionExceptions.contains(ship);
 }
 
-NSUInteger ShipEntity::defenseTargetCount() { return _defenseTargets.count(); }
+std::size_t ShipEntity::defenseTargetCount() { return _defenseTargets.count(); }
 
 std::vector<oo::EntityHold> ShipEntity::allDefenseTargets() {
   std::vector<oo::EntityHold> result;
@@ -10689,7 +10690,7 @@ bool ShipEntity::fireWeapon(OOWeaponType weapon_type, OOWeaponFacing direction,
   }
   if (weapon_temp / NPC_MAX_WEAPON_TEMP >= WEAPON_COOLING_CUTOUT) return false;
 
-  NSUInteger multiplier = 1;
+  std::size_t multiplier = 1;
   if (_multiplyWeapons) {
     // multiple fitted
     multiplier = laserPortOffset(direction).size();
@@ -11168,7 +11169,7 @@ bool ShipEntity::fireLaserShotInDirection(OOWeaponFacing direction,
                                           const std::string& weaponIdentifier) {
   double range_limit2 = weaponRange * weaponRange;
   GLfloat hit_at_range;
-  NSUInteger i, barrels;
+  std::size_t i, barrels;
   Vector vel = vector_multiply_scalar(v_forward, flightSpeed);
   const std::vector<Vector> laserPortOffsets = laserPortOffset(direction);
   oo::Ref<OOLaserShotEntity> shot;
@@ -11732,7 +11733,7 @@ void ShipEntity::dumpCargo() { dumpCargoItem(std::nullopt); }
 ::ShipEntity* ShipEntity::dumpCargoItem(
     const std::optional<std::string>& preferred) {
   ::ShipEntity* jetto = nullptr;
-  NSUInteger i = 0;
+  std::size_t i = 0;
 
   if ((cargo.size() > 0) &&
       ((UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0) - cargo_dump_time >
@@ -12219,11 +12220,11 @@ void ShipEntity::scoopUpProcess(::ShipEntity* other, bool procEvents,
   }
 
   /*	Bug: docking failed due to OORangeException while looking for element
-          NSNotFound of cargo mainfest in -[PlayerEntity unloadCargoPods].
+          oo::kNotFound of cargo mainfest in -[PlayerEntity unloadCargoPods].
           Analysis: bad cargo pods being generated due to
           -[Universe commodityForName:] looking in wrong place for names.
           Fix 1: fix -[Universe commodityForName:].
-          Fix 2: catch NSNotFound here and substitute random cargo type.
+          Fix 2: catch oo::kNotFound here and substitute random cargo type.
           -- Ahruman 20070714
   */
   if (!co_type.has_value() && co_amount > 0) {
@@ -12954,11 +12955,11 @@ bool ShipEntity::acceptAsEscort(::ShipEntity* other_ship) {
 
   // increased stack depth at which it can accept escorts to avoid rejections at
   // this stage. doesn't seem to have any adverse effect for now. - Kaks.
-  if ((shipAI != nullptr ? shipAI->stackDepth() : NSUInteger{}) > 3) {
+  if ((shipAI != nullptr ? shipAI->stackDepth() : std::size_t{}) > 3) {
     OO_LOG("ship.escort.reject",
            "{} rejecting escort {} because AI stack depth is {}.",
            oo::EntityDescription(this), oo::EntityDescription(other_ship),
-           (shipAI != nullptr ? shipAI->stackDepth() : NSUInteger{}));
+           (shipAI != nullptr ? shipAI->stackDepth() : std::size_t{}));
     return false;
   }
 
@@ -12978,8 +12979,8 @@ bool ShipEntity::acceptAsEscort(::ShipEntity* other_ship) {
       _maxEscortCount = MAX_ESCORTS;
     }
 
-    NSUInteger maxEscorts = _maxEscortCount;  // never bigger than MAX_ESCORTS.
-    NSUInteger escortCount =
+    std::size_t maxEscorts = _maxEscortCount;  // never bigger than MAX_ESCORTS.
+    std::size_t escortCount =
         (escortGroup != nullptr ? escortGroup->count() : 0) -
         1;  // always 0 or higher.
 
@@ -13093,8 +13094,9 @@ void ShipEntity::deployEscorts() {
   if (primaryTarget() == nullptr || _escortGroup == nullptr) return;
 
   ::OOShipGroup* escortGroup = this->escortGroup();
-  NSUInteger escortCount = (escortGroup != nullptr ? escortGroup->count() : 0) -
-                           1;  // escorts minus leader.
+  std::size_t escortCount =
+      (escortGroup != nullptr ? escortGroup->count() : 0) -
+      1;  // escorts minus leader.
   if (escortCount == 0) return;
 
   if (group() == nullptr) setGroup(escortGroup);
@@ -13549,7 +13551,7 @@ BoundingBox ShipEntity::findBoundingBoxRelativeTo(Entity* other, Vector _i,
 // Exposed to AI and legacy scripts.
 void ShipEntity::spawn(const std::string& roles_number) {
   const std::vector<std::string> tokens = oo::str::tokens(roles_number);
-  NSUInteger number;
+  std::size_t number;
 
   if (tokens.size() != 2) {
     OO_LOG(
@@ -13922,9 +13924,9 @@ OOAlertCondition ShipEntity::realAlertCondition() {
     if (_group) {
       OOShipGroupCursor cursor(_group.get());
       ::ShipEntity* batch[16];
-      for (NSUInteger count = ShipGroupCursorBatch(cursor, batch); count != 0;
+      for (std::size_t count = ShipGroupCursorBatch(cursor, batch); count != 0;
            count = ShipGroupCursorBatch(cursor, batch)) {
-        for (NSUInteger i = 0; i < count; i++) {
+        for (std::size_t i = 0; i < count; i++) {
           ship = batch[i];
           if ((ship != nullptr ? ship->hasHostileTarget() : false) ||
               ((ship != nullptr ? ship->getIsPlayer() : false) &&
@@ -13941,9 +13943,9 @@ OOAlertCondition ShipEntity::realAlertCondition() {
     if (_escortGroup && _group != _escortGroup) {
       OOShipGroupCursor cursor(_escortGroup.get());
       ::ShipEntity* batch[16];
-      for (NSUInteger count = ShipGroupCursorBatch(cursor, batch); count != 0;
+      for (std::size_t count = ShipGroupCursorBatch(cursor, batch); count != 0;
            count = ShipGroupCursorBatch(cursor, batch)) {
-        for (NSUInteger i = 0; i < count; i++) {
+        for (std::size_t i = 0; i < count; i++) {
           ship = batch[i];
           if ((ship != nullptr ? ship->hasHostileTarget() : false) ||
               ((ship != nullptr ? ship->getIsPlayer() : false) &&

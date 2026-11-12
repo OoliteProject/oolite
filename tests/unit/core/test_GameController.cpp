@@ -130,7 +130,7 @@ class TestArgument final : public oo::RefCounted {};
 // call holds target and argument (oo::Ref, as the performer retained them)
 // until it has run.
 void Call(TestTarget* target, void (TestTarget::*method)(oo::RefCounted*),
-          oo::RefCounted* argument, NSTimeInterval delay) {
+          oo::RefCounted* argument, double delay) {
   OOScheduleDeferredCall(
       [target = oo::Ref<TestTarget>(target), method,
        argument = oo::Ref<oo::RefCounted>(argument)]() {
@@ -429,11 +429,11 @@ OO_TEST(fullScreenMembers) {
     OO_CHECK_EQ(GameControllerTestAccess::width(controller), 640u);
 
     // No current mode: the screen's size, refresh unchanged; no match is
-    // NSNotFound.
+    // oo::kNotFound.
     view->_currentMode = oo::PList();
     controller->setUpDisplayModes();
     OO_CHECK_EQ(GameControllerTestAccess::width(controller), 0u);
-    OO_CHECK(controller->indexOfCurrentDisplayMode() == NSNotFound);
+    OO_CHECK(controller->indexOfCurrentDisplayMode() == oo::kNotFound);
 
     view->_inFullScreen = true;
     OO_CHECK(controller->inFullScreenMode());

@@ -66,14 +66,14 @@ struct OOMeshToOctreeConverterInternalData {
 
 class OOMeshToOctreeConverter : public oo::RefCounted {
  public:
-  explicit OOMeshToOctreeConverter(NSUInteger capacity);  // -initWithCapacity:
+  explicit OOMeshToOctreeConverter(std::size_t capacity);  // -initWithCapacity:
   static oo::Ref<OOMeshToOctreeConverter> converterWithCapacity(
-      NSUInteger capacity);
+      std::size_t capacity);
   ~OOMeshToOctreeConverter() override;
 
   void addTriangle(Triangle tri);
 
-  oo::Ref<Octree> findOctreeToDepth(NSUInteger depth);
+  oo::Ref<Octree> findOctreeToDepth(std::size_t depth);
 
   // What "%@" prints between the braces of <OOMeshToOctreeConverter 0x...>{...}
   // (OODescription.h).

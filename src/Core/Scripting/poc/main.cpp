@@ -187,7 +187,7 @@ int main(int argc, const char* argv[]) {
   RunTimeLimiterTests(testDir);
   RunPrimitivePropertyTests(testDir);
 
-  NSUInteger leaked = engine->shutDown();
+  std::size_t leaked = engine->shutDown();
   Check(leaked == 0,
         oo::str::format("runtime destroyed with no leaked objects (%lu alive)",
                         static_cast<unsigned long>(leaked)));

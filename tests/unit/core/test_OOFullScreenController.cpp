@@ -8,7 +8,7 @@
    keeps (retained until the controller goes), every "subclass responsibility"
    method's log call and default answer, and -currentDisplayMode, the one method
         with a body, which picks the current index out of the subclass's mode
-   list (null for no list, an index past the end, or NSNotFound). The test
+   list (null for no list, an index past the end, or oo::kNotFound). The test
    subclass is a C++ one. Run: tests/run.sh unit
 */
 
@@ -74,16 +74,16 @@ class TestFullScreenController final : public OOFullScreenController {
 
   oo::PList displayModes() override { return modes; }
 
-  NSUInteger indexOfCurrentDisplayMode() override { return index; }
+  std::size_t indexOfCurrentDisplayMode() override { return index; }
 
   oo::PList modes;
-  NSUInteger index = 0;
+  std::size_t index = 0;
 };
 
 OO_TEST(baseDefaults) {
   {
     MyOpenGLView* view = new MyOpenGLView();
-    const NSUInteger viewRetains = view->retainCount();
+    const std::size_t viewRetains = view->retainCount();
     oo::Ref<OOFullScreenController> controller =
         oo::makeRef<OOFullScreenController>(view);
     OO_CHECK(controller != nullptr);
@@ -97,7 +97,7 @@ OO_TEST(baseDefaults) {
     OO_CHECK(gSubclassResponsibilities == 2);
     OO_CHECK(controller->displayModes().isNull());
     OO_CHECK(gSubclassResponsibilities == 3);
-    OO_CHECK(controller->indexOfCurrentDisplayMode() == NSNotFound);
+    OO_CHECK(controller->indexOfCurrentDisplayMode() == oo::kNotFound);
     OO_CHECK(gSubclassResponsibilities == 4);
     OO_CHECK(!controller->setDisplayWidth(800, 600, 60));
     OO_CHECK(gSubclassResponsibilities == 5);
@@ -142,13 +142,13 @@ OO_TEST(currentDisplayMode) {
     OO_CHECK(controller->currentDisplayMode() == Mode(640, 480, 60));
     controller->index = 2;
     OO_CHECK(controller->currentDisplayMode() == Mode(1920, 1080, 60));
-    OO_CHECK(controller->currentDisplayMode().get<NSUInteger>(
+    OO_CHECK(controller->currentDisplayMode().get<std::size_t>(
                  std::string(kOODisplayWidth)) == 1920);
 
-    // An index past the end, and NSNotFound: null.
+    // An index past the end, and oo::kNotFound: null.
     controller->index = 3;
     OO_CHECK(controller->currentDisplayMode().isNull());
-    controller->index = NSNotFound;
+    controller->index = oo::kNotFound;
     OO_CHECK(controller->currentDisplayMode().isNull());
 
     // A mode list that is not an array, and an empty one: null.

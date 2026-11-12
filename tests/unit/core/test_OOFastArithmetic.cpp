@@ -47,7 +47,7 @@ OO_TEST(edgeInputsKeepTheOptimisedAnswer) {
   OO_CHECK(Round64(0x8000000000000001ULL) == 1);
   OO_CHECK(Round64(0xFFFFFFFFFFFFFFFFULL) == 1);
 
-  volatile NSUInteger one = 1;
+  volatile std::size_t one = 1;
   OO_CHECK(OORoundUpToPowerOf2_NS(one) == 2);
 }
 

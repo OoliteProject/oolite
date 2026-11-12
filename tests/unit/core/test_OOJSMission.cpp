@@ -31,7 +31,7 @@
 
 // MARK: The classes, as far as the binding sees them ----------------------------------------------
 
-typedef NSInteger OOGUIRow;	// as GuiDisplayGen.h declares it
+typedef std::ptrdiff_t OOGUIRow;	// as GuiDisplayGen.h declares it
 
 // The demo ship's object (the root's), which TestObjectOf answers for the demo
 // ship. Its selector is a member of the same name.

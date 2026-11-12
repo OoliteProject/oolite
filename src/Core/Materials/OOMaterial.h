@@ -111,7 +111,7 @@ class OOMaterial : public oo::RefCounted {
 #if OO_MULTITEXTURE
   // Nasty hack: number of texture units for which the drawable should set its
   // basic texture coordinates.
-  virtual NSUInteger countOfTextureUnitsWithBaseCoordinates();
+  virtual std::size_t countOfTextureUnitsWithBaseCoordinates();
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED

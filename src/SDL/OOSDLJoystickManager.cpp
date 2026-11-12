@@ -61,7 +61,7 @@ OOSDLJoystickManager::OOSDLJoystickManager() {
   joystickIdMap = std::move(idMap);
 }
 
-NSInteger OOSDLJoystickManager::getJoystickIndexFromId(
+std::ptrdiff_t OOSDLJoystickManager::getJoystickIndexFromId(
     SDL_JoystickID joystickId) {
   const auto index = joystickIdMap.find(oo::str::format("%d", joystickId));
   if (index != joystickIdMap.end()) {
@@ -70,11 +70,11 @@ NSInteger OOSDLJoystickManager::getJoystickIndexFromId(
   return -1;
 }
 
-NSUInteger OOSDLJoystickManager::joystickCount() { return stickCount; }
+std::size_t OOSDLJoystickManager::joystickCount() { return stickCount; }
 
 std::optional<std::string> OOSDLJoystickManager::nameOfJoystick(
-    NSUInteger stickNumber) {
-  if (stickNumber >= static_cast<NSUInteger>(stickCount))
+    std::size_t stickNumber) {
+  if (stickNumber >= static_cast<std::size_t>(stickCount))
     return std::string("(unknown joystick)");
   const char* name = SDL_GetJoystickName(stick[stickNumber]);
   if (name == nullptr)
@@ -82,8 +82,8 @@ std::optional<std::string> OOSDLJoystickManager::nameOfJoystick(
   return std::string(name);
 }
 
-int16_t OOSDLJoystickManager::getAxisWithStick(NSUInteger stickNum,
-                                               NSUInteger axisNum) {
+int16_t OOSDLJoystickManager::getAxisWithStick(std::size_t stickNum,
+                                               std::size_t axisNum) {
   return SDL_GetJoystickAxis(stick[stickNum], axisNum);
 }
 

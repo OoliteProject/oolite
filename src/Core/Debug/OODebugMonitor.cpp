@@ -430,7 +430,7 @@ void OODebugMonitor::dumpEntity(Entity* entity, EntityDumpState* state,
 
     if (oo::EntityIsPlayer(entity) && PLAYER != nullptr) {
       PlayerEntity* player = PLAYER;  // the entity that answers -isPlayer
-      NSUInteger i, count = player->dialMaxMissiles();
+      std::size_t i, count = player->dialMaxMissiles();
       for (i = 0; i < count; i++) {
         Entity* subentity = player->missileForPylon(i);
         if (subentity != nullptr) dumpEntity(subentity, state, false);
@@ -464,7 +464,7 @@ void OODebugMonitor::dumpMemoryStatistics() {
   //	Get texture retain counts before the entity dumper starts messing with
   // them.
   const std::vector<oo::Ref<OOTexture>> allTextures = OOTexture::allTextures();
-  std::map<OOTexture*, NSUInteger> textureRefCounts;
+  std::map<OOTexture*, std::size_t> textureRefCounts;
 
   for (const oo::Ref<OOTexture>& tex : allTextures) {
     // We subtract one because allTextures retains the textures.

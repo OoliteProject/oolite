@@ -66,8 +66,8 @@ MA 02110-1301, USA.
 namespace {
 
 void StripIgnoredKeys(oo::PList::Dict& dict);
-NSUInteger GroupIDForGroup(OOShipGroup* group, OOShipSaveContext& context);
-OOShipGroup* GroupForGroupID(NSUInteger groupID, OOShipSaveContext& context);
+std::size_t GroupIDForGroup(OOShipGroup* group, OOShipSaveContext& context);
+OOShipGroup* GroupForGroupID(std::size_t groupID, OOShipSaveContext& context);
 oo::PList::Dict DictFrom(const oo::PList& plist);
 oo::PList ArrayFromStrings(const std::vector<std::string>& strings);
 std::optional<std::string> OptionalStringForKey(const oo::PList& dict,
@@ -291,8 +291,8 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(
   }
 
   // Groups.
-  NSUInteger groupID = dict.get<NSInteger>(KEY_GROUP_ID, NSNotFound);
-  if (groupID != NSNotFound) {
+  std::size_t groupID = dict.get<std::ptrdiff_t>(KEY_GROUP_ID, oo::kNotFound);
+  if (groupID != oo::kNotFound) {
     ::OOShipGroup* group = GroupForGroupID(groupID, *context);
     if (ship != nullptr) ship->setGroup(group);  // Handles adding to group
     if (dict.get<bool>(KEY_IS_GROUP_LEADER)) {
@@ -311,8 +311,8 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(
     }
   }
 
-  groupID = dict.get<NSInteger>(KEY_ESCORT_GROUP_ID, NSNotFound);
-  if (groupID != NSNotFound) {
+  groupID = dict.get<std::ptrdiff_t>(KEY_ESCORT_GROUP_ID, oo::kNotFound);
+  if (groupID != oo::kNotFound) {
     ::OOShipGroup* group = GroupForGroupID(groupID, *context);
     if (group != nullptr) group->setLeader(ship);
     if (group != nullptr) group->setName(std::string("escort group"));
@@ -372,7 +372,7 @@ void StripIgnoredKeys(oo::PList::Dict& dict) {
   }
 }
 
-NSUInteger GroupIDForGroup(OOShipGroup* group, OOShipSaveContext& context) {
+std::size_t GroupIDForGroup(OOShipGroup* group, OOShipSaveContext& context) {
   const auto found = context.groupIDs.find(group);
   unsigned groupID;
   if (found == context.groupIDs.end()) {
@@ -394,7 +394,7 @@ NSUInteger GroupIDForGroup(OOShipGroup* group, OOShipSaveContext& context) {
   return groupID;
 }
 
-OOShipGroup* GroupForGroupID(NSUInteger groupID, OOShipSaveContext& context) {
+OOShipGroup* GroupForGroupID(std::size_t groupID, OOShipSaveContext& context) {
   oo::Ref<OOShipGroup>& group = context.groupsByID[groupID];
   if (group == nullptr) {
     group = OOShipGroup::groupWithName(std::nullopt);  // -init

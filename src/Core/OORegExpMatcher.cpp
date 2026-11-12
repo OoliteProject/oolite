@@ -86,7 +86,7 @@ bool OORegExpMatcher::string(const std::string& string,
 }
 
 bool OORegExpMatcher::string(const std::string& string,
-                             const std::string& regExp, NSUInteger flags) {
+                             const std::string& regExp, std::size_t flags) {
   OOCAssert(oo::thread::isMainThread(),
             "OORegExpMatcher may only be used on the main thread.");
 

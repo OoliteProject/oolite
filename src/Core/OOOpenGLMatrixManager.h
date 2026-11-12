@@ -73,7 +73,7 @@ class OOOpenGLMatrixStack : public oo::RefCounted {
  public:
   void push(OOMatrix matrix);
   OOMatrix pop();
-  NSUInteger stackCount();
+  std::size_t stackCount();
 
  private:
   std::vector<OOMatrix> stack = {};
@@ -92,7 +92,7 @@ class OOOpenGLMatrixManager : public oo::RefCounted {
   void pushModelView();
   OOMatrix popModelView();
   OOMatrix getModelView();
-  NSUInteger countModelView();
+  std::size_t countModelView();
   void syncModelView();
   void loadProjection(OOMatrix matrix);
   void multProjection(OOMatrix matrix);

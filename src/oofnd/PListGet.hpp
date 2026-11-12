@@ -11,8 +11,8 @@
    oo_floatForKey:@"k"]                               d.get<float>("k")
    (fallback 0) [a oo_intAtIndex:3 defaultValue:-1] a.at<int>(3, -1) char short
    int long long long, unsigned ...           the same C++ type (clamped exactly
-   as the OO<Type>FromObject functions clamp) NSInteger / NSUInteger long long /
-   unsigned long long (Windows) oo_boolForKey (bool) get<bool>
+   as the OO<Type>FromObject functions clamp) std::ptrdiff_t / std::size_t long
+   long / unsigned long long (Windows) oo_boolForKey (bool) get<bool>
             oo_nonNegativeFloatForKey / ...DoubleForKey
    get<oo::NonNegative<float>> / <double> oo_stringForKey (NSString *)
    get<std::string>   (fallback "", not nil) oo_objectForKey (id) get<oo::PList>

@@ -485,7 +485,8 @@ bool OODebugTCPConsoleClient::openSocketToHost(const std::string& address,
   return true;
 }
 
-NSInteger OODebugTCPConsoleClient::receive(uint8_t* buffer, size_t length) {
+std::ptrdiff_t OODebugTCPConsoleClient::receive(uint8_t* buffer,
+                                                size_t length) {
   if (_socket == kNoSocket) return 0;
   if (_inStatus == kStreamStatusAtEnd) return 0;
   if (_inStatus != kStreamStatusOpen && _inStatus != kStreamStatusReading)
@@ -617,7 +618,7 @@ bool OODebugTCPConsoleClient::sendBytes(const void* bytes, size_t count) {
   if (!StatusIsSendable(_status) || _socket == kNoSocket) return false;
 
   do {
-    NSInteger written;
+    std::ptrdiff_t written;
     if (_outStatus == kStreamStatusAtEnd)
       written = 0;
     else if (_outStatus != kStreamStatusOpen)
@@ -743,7 +744,7 @@ void OODebugTCPConsoleClient::readData() {
   enum { kBufferSize = 16 << 10 };
 
   uint8_t buffer[kBufferSize];
-  NSInteger length;
+  std::ptrdiff_t length;
 
   length = receive(buffer, kBufferSize);
   while (length > 0) {

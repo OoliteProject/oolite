@@ -1,35 +1,34 @@
 /*	oofnd/objc/OOFoundationTypes.h
-        Foundation's plain C types, without Foundation.
+        What is left of Foundation's plain C types: the geometry structs and
+   NSRange, which have no standard equivalent, and oo::kNotFound.
 
-        NSInteger/NSUInteger (1,245 refs), NSRange/NSNotFound (232) and
-   NSPoint/NSSize/NSRect (516) are C typedefs, structs and inline functions.
-   Renaming ~2,000 sites is churn with no behaviour so the names stay and this
-   header gives them GNUstep's exact definitions. The layouts, values and
-   results are pinned against numbers recorded from GNUstep on this toolchain by
-   tests/unit/oofnd/test_foundation_types.cpp.
+        Since spec 009 (T033) game code uses the standard types for the rest:
+   NSInteger/NSUInteger were intptr_t/uintptr_t and are std::ptrdiff_t/
+   std::size_t (the same types on Windows x64, macOS and Linux 64-bit);
+   NSIntegerMax/Min and NSUIntegerMax are PTRDIFF_MAX/MIN and SIZE_MAX;
+   NSTimeInterval and CGFloat were double on every 64-bit target and are
+   double; NSNotFound is oo::kNotFound, with the same value.
 
-            NSInteger, NSUInteger          intptr_t, uintptr_t (NSObjCRuntime.h)
-            NSIntegerMax/Min, NSUIntegerMax INTPTR_MAX/MIN, UINTPTR_MAX
-            NSNotFound                     static const NSInteger = NSIntegerMax
-            NSTimeInterval                 double (Foundation's date header)
-            CGFloat                        double on _WIN64 and LP64, else float
-   (CoreFoundation/CFCGTypes.h) NSPoint, NSSize, NSRect        struct CGPoint
-   {x, y}, CGSize {width, height}, CGRect {origin, size} (NSGeometry.h)
+            NSPoint, NSSize, NSRect        struct CGPoint {x, y}, CGSize {width,
+   height}, CGRect {origin, size} (NSGeometry.h), of double
             NSZeroPoint/Size/Rect          static const, all zero
-            NSRange                        struct _NSRange {location, length}
-   (NSRange.h) NSMakeRange, NSMaxRange, NSLocationInRange, NSEqualRanges
+            NSRange                        struct _NSRange {location, length},
+   of std::size_t (NSRange.h); NSMakeRange, NSMaxRange, NSLocationInRange,
+   NSEqualRanges
             NSMakePoint, NSMakeSize, NSMakeRect, NSEqualPoints, NSEqualSizes,
    NSEqualRects
 
+        The layouts, values and results are pinned against numbers recorded
+   from GNUstep on this toolchain by tests/unit/oofnd/test_foundation_types.cpp.
+
         One deliberate difference: NSMakeRange with location + length
-   overflowing NSUInteger raised Foundation's range exception; here it logs and
+   overflowing std::size_t raised Foundation's range exception; here it logs and
    aborts (as OOObject's -doesNotRecognizeSelector: does). Nothing in Oolite
    catches it.
 
-        Foundation defines every one of these names, so this header refuses to
-   compile beside it: it is included by OOFoundation.h only when the Foundation
-   import is removed. Plain C: usable from C, C++, Objective-C and
-   Objective-C++.
+        Foundation defines these names, so this header refuses to compile beside
+   it: it is included by OOFoundation.h only when the Foundation import is
+   removed.
 */
 
 #pragma once
@@ -49,36 +48,30 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef intptr_t NSInteger;
-typedef uintptr_t NSUInteger;
-#define NSIntegerMax INTPTR_MAX
-#define NSIntegerMin INTPTR_MIN
-#define NSUIntegerMax UINTPTR_MAX
-#define NSINTEGER_DEFINED 1
+#include <cstddef>
 
-static const NSInteger NSNotFound = NSIntegerMax;
+#ifdef __cplusplus
+namespace oo {
 
-typedef double NSTimeInterval;
+// Foundation's NSNotFound: the largest pointer-sized signed integer
+// (INTPTR_MAX). Game code compares indices with it, hands it to JavaScript as a
+// number, casts it to int (-1) and stores it as a save default, so the value is
+// load-bearing; it is not std::string::npos.
+inline constexpr std::ptrdiff_t kNotFound = INTPTR_MAX;
 
-#if (defined(__LP64__) && __LP64__) || defined(_WIN64)
-typedef double CGFloat;
-#define CGFLOAT_IS_DOUBLE 1
-#else
-typedef float CGFloat;
-#define CGFLOAT_IS_DOUBLE 0
+}  // namespace oo
 #endif
-#define CGFLOAT_DEFINED 1
 
 struct CGPoint {
-  CGFloat x;
-  CGFloat y;
+  double x;
+  double y;
 };
 typedef struct CGPoint CGPoint;
 typedef struct CGPoint NSPoint;
 
 struct CGSize {
-  CGFloat width;
-  CGFloat height;
+  double width;
+  double height;
 };
 typedef struct CGSize CGSize;
 typedef struct CGSize NSSize;
@@ -96,21 +89,21 @@ static const NSRect NSZeroRect = {{0.0, 0.0}, {0.0, 0.0}};
 
 typedef struct _NSRange NSRange;
 struct _NSRange {
-  NSUInteger location;
-  NSUInteger length;
+  std::size_t location;
+  std::size_t length;
 };
 
-static inline NSUInteger NSMaxRange(NSRange range) {
+static inline std::size_t NSMaxRange(NSRange range) {
   return range.location + range.length;
 }
 
-static inline bool NSLocationInRange(NSUInteger location, NSRange range) {
+static inline bool NSLocationInRange(std::size_t location, NSRange range) {
   return (location >= range.location) && (location < NSMaxRange(range));
 }
 
-static inline NSRange NSMakeRange(NSUInteger location, NSUInteger length) {
+static inline NSRange NSMakeRange(std::size_t location, std::size_t length) {
   NSRange range;
-  NSUInteger end = location + length;
+  std::size_t end = location + length;
   if (end < location || end < length) {
     fprintf(
         stderr,
@@ -128,21 +121,21 @@ static inline bool NSEqualRanges(NSRange range1, NSRange range2) {
           (range1.length == range2.length));
 }
 
-static inline NSPoint NSMakePoint(CGFloat x, CGFloat y) {
+static inline NSPoint NSMakePoint(double x, double y) {
   NSPoint point;
   point.x = x;
   point.y = y;
   return point;
 }
 
-static inline NSSize NSMakeSize(CGFloat w, CGFloat h) {
+static inline NSSize NSMakeSize(double w, double h) {
   NSSize size;
   size.width = w;
   size.height = h;
   return size;
 }
 
-static inline NSRect NSMakeRect(CGFloat x, CGFloat y, CGFloat w, CGFloat h) {
+static inline NSRect NSMakeRect(double x, double y, double w, double h) {
   NSRect rect;
   rect.origin.x = x;
   rect.origin.y = y;

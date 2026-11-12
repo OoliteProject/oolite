@@ -99,11 +99,11 @@ class OOJoystickSplineAxisProfile : public OOJoystickAxisProfile {
   ~OOJoystickSplineAxisProfile() override;  // -dealloc
   oo::Ref<OOJoystickAxisProfile> copy() override;
   int addControl(NSPoint point);
-  NSPoint pointAtIndex(NSInteger index);
+  NSPoint pointAtIndex(std::ptrdiff_t index);
   int countPoints();
-  void removeControl(NSInteger index);
+  void removeControl(std::ptrdiff_t index);
   void clearControlPoints();
-  void moveControl(NSInteger index, NSPoint point);
+  void moveControl(std::ptrdiff_t index, NSPoint point);
   double rawValue(double x) override;
   double gradient(double x);
   std::vector<NSPoint> controlPoints();

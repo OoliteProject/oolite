@@ -2043,9 +2043,10 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
 
       if (OOJSValueToInt32(context, value, &iValue)) {
         OOShipGroup* escortGroup = ship->escortGroup();
-        if ((NSInteger)iValue <
-            (NSInteger)(escortGroup != nullptr ? escortGroup->count() : 0) -
-                1) {
+        if ((std::ptrdiff_t)iValue < (std::ptrdiff_t)(escortGroup != nullptr
+                                                          ? escortGroup->count()
+                                                          : 0) -
+                                         1) {
           cxx_OOJSReportError(
               context, "ship.%s must be >= current escort numbers.",
               cxx_OOStringFromJSPropertyMagic(magic, sShipProperties,
@@ -2941,12 +2942,12 @@ static JSValue ShipRestoreSubEntities(OOJS_NATIVE_ARGS) {
   OOJS_NATIVE_ENTER(context)
 
   ShipEntity* thisEnt = nullptr;
-  NSUInteger numSubEntitiesRestored = 0U;
+  std::size_t numSubEntitiesRestored = 0U;
 
   GET_THIS_SHIP(thisEnt);
   ShipEntity* ship = thisEnt;  // not null: thisEnt is not
 
-  NSUInteger subCount = ShipEntityJSSubEntitiesForScript(thisEnt).size();
+  std::size_t subCount = ShipEntityJSSubEntitiesForScript(thisEnt).size();
 
   ship->clearSubEntities();
   ship->setUpSubEntities();

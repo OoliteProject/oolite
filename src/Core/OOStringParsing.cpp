@@ -212,13 +212,13 @@ std::string cxx_OOPadStringToEms(const std::string& string, float padEms) {
   float numEms = padEms - cxx_OOStringWidthInEm(result);
   if (numEms > 0) {
     numEms /= cxx_OOStringWidthInEm(" ");  // start with wide space
-    result = std::string((NSUInteger)numEms, ' ') + result;
+    result = std::string((std::size_t)numEms, ' ') + result;
   }
   // most of the way there, so switch to narrow space
   numEms = padEms - cxx_OOStringWidthInEm(result);
   if (numEms > 0) {
     numEms /= cxx_OOStringWidthInEm("\037");  // 037 is narrow space
-    result = std::string((NSUInteger)numEms, '\037') + result;
+    result = std::string((std::size_t)numEms, '\037') + result;
   }
   return result;
 }

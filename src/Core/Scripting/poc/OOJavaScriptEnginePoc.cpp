@@ -114,7 +114,7 @@ void OOJavaScriptEngine::init() {
   InitOOJSQuaternion(_context, _globalObject);
 }
 
-NSUInteger OOJavaScriptEngine::shutDown() {
+std::size_t OOJavaScriptEngine::shutDown() {
   if (_context == NULL) return 0;
 
   JS_FreeValue(_context, _globalObject);
@@ -137,7 +137,7 @@ NSUInteger OOJavaScriptEngine::shutDown() {
            static_cast<long long>(usage.obj_count));
     JS_DumpMemoryUsage(stdout, &usage, _runtime);
     _runtime = NULL;
-    return static_cast<NSUInteger>(usage.obj_count);
+    return static_cast<std::size_t>(usage.obj_count);
   }
 
   JS_FreeRuntime(_runtime);

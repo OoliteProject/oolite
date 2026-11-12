@@ -71,7 +71,7 @@ class OORegExpMatcher : public oo::RefCounted {
   // Strings are UTF-8.
   bool string(const std::string& string, const std::string& regExp);
   bool string(const std::string& string, const std::string& regExp,
-              NSUInteger flags);
+              std::size_t flags);
 
   ~OORegExpMatcher() override;
 
@@ -85,5 +85,5 @@ class OORegExpMatcher : public oo::RefCounted {
   std::optional<std::string> _cachedRegExpString =
       {};  // UTF-8; nullopt: nothing cached
   oo::Ref<OOJSValue> _cachedRegExpObject = {};
-  NSUInteger _cachedFlags = {};
+  std::size_t _cachedFlags = {};
 };

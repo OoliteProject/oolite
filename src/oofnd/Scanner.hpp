@@ -20,7 +20,7 @@
    UTF-16 unit) [set longCharacterIsMember:c]  (c a UTF-16 unit) set.contains(c)
    (the same over the BMP) [s stringByTrimmingCharactersInSet:set]
    oo::str::trim(s, set) [s rangeOfCharacterFromSet:set].location
-   oo::str::findFirstOf(s, set)   (npos: NSNotFound)
+   oo::str::findFirstOf(s, set)   (npos: oo::kNotFound)
             ... options:NSLiteralSearch range:{from, ...}
    oo::str::findFirstOf(s, set, from)   (to the end)
             ... options:NSBackwardsSearch                 oo::str::findLastOf(s,

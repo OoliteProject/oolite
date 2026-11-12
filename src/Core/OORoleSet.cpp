@@ -81,7 +81,7 @@ bool OORoleSet::isEqual(OORoleSet* other) {
     return false;
 }
 
-NSUInteger OORoleSet::hash() {
+std::size_t OORoleSet::hash() {
   return _rolesAndProbabilities
       .size();  // as before: a Foundation dictionary hashes to its count
 }

@@ -450,7 +450,7 @@ class PlayerEntity : public ShipEntity {
   void completeSetUpAndSetTarget(bool /*setTarget*/);
   void startUpComplete();
   bool setUpShipFromDictionary(const oo::PList& shipDict) override;
-  NSUInteger sessionID() override;
+  std::size_t sessionID() override;
   void warnAboutHostiles() override;
   bool canCollide() override;
 
@@ -604,10 +604,10 @@ class PlayerEntity : public ShipEntity {
   void addRoleForAggression(::ShipEntity* victim);
   void addRoleForMining();
   virtual void addRoleToPlayer(const std::string& role);
-  void addRoleToPlayer(const std::string& role, NSUInteger slot);
+  void addRoleToPlayer(const std::string& role, std::size_t slot);
   void clearRoleFromPlayer(bool includingLongRange);
   void clearRolesFromPlayer(float chance);
-  NSUInteger maxPlayerRoles();
+  std::size_t maxPlayerRoles();
   void updateSystemMemory();
   virtual Entity*
   getCompassTargetEntity();  // the compass target's C++ entity, null for none
@@ -622,25 +622,25 @@ class PlayerEntity : public ShipEntity {
   virtual void setCompassMode(OOCompassMode value);
   void setPrevCompassMode();
   virtual void setNextCompassMode();
-  virtual NSUInteger getActiveMissile();
-  void setActiveMissile(NSUInteger value);
-  NSUInteger dialMaxMissiles();
+  virtual std::size_t getActiveMissile();
+  void setActiveMissile(std::size_t value);
+  std::size_t dialMaxMissiles();
   virtual bool dialIdentEngaged();
   void setDialIdentEngaged(bool newValue);
   virtual std::optional<std::string> getSpecialCargo();
   std::optional<std::string> dialTargetName();
   virtual std::vector<std::optional<std::string>> multiFunctionDisplayList();
-  std::optional<std::string> multiFunctionText(NSUInteger i);
+  std::optional<std::string> multiFunctionText(std::size_t i);
   virtual void setMultiFunctionText(const std::optional<std::string>& text,
                                     const std::optional<std::string>& key);
-  virtual bool setMultiFunctionDisplay(NSUInteger index,
+  virtual bool setMultiFunctionDisplay(std::size_t index,
                                        const std::optional<std::string>& key);
-  void cycleNextMultiFunctionDisplay(NSUInteger index);
-  void cyclePreviousMultiFunctionDisplay(NSUInteger index);
+  void cycleNextMultiFunctionDisplay(std::size_t index);
+  void cyclePreviousMultiFunctionDisplay(std::size_t index);
   void selectNextMultiFunctionDisplay();
   void selectPreviousMultiFunctionDisplay();
-  NSUInteger getActiveMFD();
-  ::ShipEntity* missileForPylon(NSUInteger value);
+  std::size_t getActiveMFD();
+  ::ShipEntity* missileForPylon(std::size_t value);
   virtual void safeAllMissiles();
   void tidyMissilePylons();
   void selectNextMissile();
@@ -731,11 +731,11 @@ class PlayerEntity : public ShipEntity {
   void leaveWitchspace() override;
   void setGuiToStatusScreen();
   std::vector<oo::PList> equipmentList();
-  NSUInteger primedEquipmentCount();
-  std::optional<std::string> primedEquipmentName(NSInteger offset);
+  std::size_t primedEquipmentCount();
+  std::optional<std::string> primedEquipmentName(std::ptrdiff_t offset);
   virtual std::string currentPrimedEquipment();
   virtual bool setPrimedEquipment(const std::string& eqKey, bool showMsg);
-  void activatePrimableEquipment(NSUInteger index, OOPrimedEquipmentMode mode);
+  void activatePrimableEquipment(std::size_t index, OOPrimedEquipmentMode mode);
   virtual std::optional<std::string> fastEquipmentA();
   virtual std::optional<std::string> fastEquipmentB();
   virtual void setFastEquipmentA(const std::optional<std::string>& eqKey);
@@ -853,10 +853,10 @@ class PlayerEntity : public ShipEntity {
   bool hasOneEquipmentItem(const std::string& itemKey, bool includeMissiles);
   bool hasPrimaryWeapon(OOWeaponType weaponType) override;
   bool removeExternalStore(::OOEquipmentType* eqType) override;
-  bool removeFromPylon(NSUInteger pylon);
-  NSUInteger parcelCount() override;
-  NSUInteger passengerCount() override;
-  NSUInteger passengerCapacity() override;
+  bool removeFromPylon(std::size_t pylon);
+  std::size_t parcelCount() override;
+  std::size_t passengerCount() override;
+  std::size_t passengerCapacity() override;
   bool hasHostileTarget() override;
   void receiveCommsMessage(const std::string& message_text,
                            ::ShipEntity* other) override;
@@ -872,7 +872,7 @@ class PlayerEntity : public ShipEntity {
   void addTrumble(OOTrumble* papaTrumble);
   void removeTrumble(OOTrumble* deadTrumble);
   oo::Ref<OOTrumble>* trumbleArray();
-  virtual NSUInteger getTrumbleCount();
+  virtual std::size_t getTrumbleCount();
 
   // trumble values, checksums, screen modes, target memory, missile ident,
   // rotating and panning the custom view.
@@ -890,7 +890,7 @@ class PlayerEntity : public ShipEntity {
   void addTarget(Entity* targetEntity) override;
   void clearTargetMemory();
   std::vector<oo::WeakRef<Entity>> targetMemory();
-  bool moveTargetMemoryBy(NSInteger delta);
+  bool moveTargetMemoryBy(std::ptrdiff_t delta);
   virtual void printIdentLockedOnForMissile(bool missile);
   Quaternion getCustomViewQuaternion();
   void setCustomViewQuaternion(Quaternion q);
@@ -1139,7 +1139,7 @@ class PlayerEntity : public ShipEntity {
   void updateFunction(const oo::PList& hwDict);
   void checkCustomEquipButtons(const oo::PList& stickFn, int idx);
   void removeFunction(int idx);
-  void displayFunctionList(::GuiDisplayGen* gui, NSUInteger skip);
+  void displayFunctionList(::GuiDisplayGen* gui, std::size_t skip);
   std::optional<std::string> describeStickDict(const oo::PList* stickDict);
   std::string hwToString(int hwFlags);
   std::vector<oo::PList> stickFunctionList();
@@ -1211,27 +1211,27 @@ class PlayerEntity : public ShipEntity {
   void setGuiToKeyMapperScreen(unsigned skip);
   void setGuiToKeyMapperScreen(unsigned skip, bool resetCurrentRow);
   void keyMapperInputHandler(::GuiDisplayGen* gui, ::MyOpenGLView* gameView);
-  bool entryIsIndexCustomEquip(NSUInteger idx);
+  bool entryIsIndexCustomEquip(std::size_t idx);
   bool entryIsDictCustomEquip(const oo::PList& dict);
   bool entryIsCustomEquip(const std::string& entry);
   oo::PList getCustomEquipArray(const std::string& key_def);
-  NSUInteger getCustomEquipIndex(const std::string& key_def);
+  std::size_t getCustomEquipIndex(const std::string& key_def);
   std::optional<std::string> getCustomEquipKeyDefType(
       const std::string& key_def);
   void setGuiToKeyConfigScreen();
   void setGuiToKeyConfigScreen(bool resetSelectedRow);
   void outputKeyDefinition(const std::string& key, const std::string& shift,
                            const std::string& mod1, const std::string& mod2,
-                           NSUInteger skiprows);
+                           std::size_t skiprows);
   void handleKeyConfigKeys(::GuiDisplayGen* gui, ::MyOpenGLView* gameView);
   void setGuiToKeyConfigEntryScreen();
   void handleKeyConfigEntryKeys(::GuiDisplayGen* gui, ::MyOpenGLView* gameView);
-  void updateKeyDefinition(const std::string& keystring, NSUInteger index);
-  void updateShiftKeyDefinition(const std::string& key, NSUInteger index);
+  void updateKeyDefinition(const std::string& keystring, std::size_t index);
+  void updateShiftKeyDefinition(const std::string& key, std::size_t index);
   void setGuiToConfirmClearScreen();
   void handleKeyMapperConfirmClearKeys(::GuiDisplayGen* gui,
                                        ::MyOpenGLView* gameView);
-  void displayKeyFunctionList(::GuiDisplayGen* gui, NSUInteger skip);
+  void displayKeyFunctionList(::GuiDisplayGen* gui, std::size_t skip);
   std::vector<oo::PList> keyFunctionList();
   oo::PList makeKeyGuiDict(const std::string& what, const std::string& key_def);
   oo::PList makeKeyGuiDictHeader(const std::string& header);
@@ -1241,7 +1241,7 @@ class PlayerEntity : public ShipEntity {
                                      ::MyOpenGLView* gameView);
   std::optional<std::string> keyboardDescription(const std::string& kbd);
   std::vector<oo::PList> keyboardLayoutList();
-  void displayKeyboardLayoutList(::GuiDisplayGen* gui, NSUInteger skip);
+  void displayKeyboardLayoutList(::GuiDisplayGen* gui, std::size_t skip);
   std::vector<std::string> validateAllKeys();
   std::optional<std::string> validateKey(const std::string& key,
                                          const oo::PList& check_keys);
@@ -1420,7 +1420,7 @@ class PlayerEntity : public ShipEntity {
   bool processSceneString(const std::string& item, Vector off);
   bool addEqScriptForKey(const std::string& eq_key);
   void removeEqScriptForKey(const std::string& eq_key);
-  NSUInteger eqScriptIndexForKey(const std::string& eq_key);
+  std::size_t eqScriptIndexForKey(const std::string& eq_key);
   void targetNearestHostile();
   void targetNearestIncomingMissile();
   void setGalacticHyperspaceBehaviourTo(
@@ -1468,12 +1468,12 @@ class PlayerEntity : public ShipEntity {
                             bool multi);
   void setGuiToDockingReportScreen();
   OOCreditsQuantity priceForShipKey(const std::string& key);
-  void setGuiToShipyardScreen(NSUInteger skip);
+  void setGuiToShipyardScreen(std::size_t skip);
   void showShipyardInfoForSelection();
   void showTradeInInformationFooter();
   void showShipyardModel(const std::string& shipKey, const oo::PList& shipData,
                          uint16_t personality);
-  NSInteger missingSubEntitiesAdjustment();
+  std::ptrdiff_t missingSubEntitiesAdjustment();
   OOCreditsQuantity tradeInValue();
   bool buySelectedShip();
   bool replaceShipWithNamedShip(const std::string& shipKey);
@@ -1539,7 +1539,7 @@ class PlayerEntity : public ShipEntity {
       localVariables;  // mission key -> that mission's variables (a Dict)
   std::optional<std::string>
       _missionTitle;  // nullopt: the mission screen falls back on its default
-  NSInteger /*OOGUIRow*/ missionTextRow = {};
+  std::ptrdiff_t /*OOGUIRow*/ missionTextRow = {};
   std::optional<std::string> missionChoice;
   std::optional<std::string> missionKeyPress;
   bool _missionWithCallback = {};
@@ -1617,7 +1617,7 @@ class PlayerEntity : public ShipEntity {
   bool pollControls = {};
   // ...end save screen
 
-  NSInteger marketOffset = {};
+  std::ptrdiff_t marketOffset = {};
   std::optional<std::string> marketSelectedCommodity;
   OOMarketFilterMode marketFilterMode = {};
   OOMarketSorterMode marketSorterMode = {};
@@ -1636,7 +1636,7 @@ class PlayerEntity : public ShipEntity {
   std::vector<std::optional<std::string>>
       multiFunctionDisplaySettings;  // one key per MFD; nullopt = inactive (was
                                      // [OONull null])
-  NSUInteger activeMFD = {};
+  std::size_t activeMFD = {};
   oo::PList::Dict
       customDialSettings;  // a mixed configuration: whatever scripts set
 
@@ -1660,8 +1660,8 @@ class PlayerEntity : public ShipEntity {
   OOAlertCondition lastScriptAlertCondition = {};
   OOPlayerFleeingStatus fleeing_status = {};
   OOMissileStatus missile_status = {};
-  NSUInteger activeMissile = {};
-  NSUInteger primedEquipment = {};
+  std::size_t activeMissile = {};
+  std::size_t primedEquipment = {};
   std::optional<std::string> _fastEquipmentA;  // nullopt = never set (was nil)
   std::optional<std::string> _fastEquipmentB;
 
@@ -1896,7 +1896,7 @@ class PlayerEntity : public ShipEntity {
   Vector _sysInfoLight = {};
 
   // trumbles
-  NSUInteger trumbleCount = {};
+  std::size_t trumbleCount = {};
   oo::Ref<OOTrumble> trumble[PLAYER_MAX_TRUMBLES];
   float _trumbleAppetiteAccumulator = {};
 
@@ -1907,7 +1907,7 @@ class PlayerEntity : public ShipEntity {
   // TODO: this should use weakrefs
   std::vector<oo::WeakRef<Entity>>
       target_memory;  // an empty ref = an empty slot (was [OONull null])
-  NSUInteger target_memory_index = {};
+  std::size_t target_memory_index = {};
 
   // custom view points
   Quaternion customViewQuaternion = {};
@@ -1982,7 +1982,7 @@ class PlayerEntity : public ShipEntity {
   OOLongRangeChartMode longRangeChartMode = {};
 
   std::vector<oo::PList> _customViews;  // the ship's custom view Dicts
-  NSUInteger _customViewIndex = {};
+  std::size_t _customViewIndex = {};
 
   OODockingClearanceStatus dockingClearanceStatus = {};
 

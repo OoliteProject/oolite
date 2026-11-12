@@ -59,9 +59,9 @@ using OOMaybeUnits = std::optional<std::u16string>;
 
 namespace {
 
-OOUnits UnitsWithCharacters(const char16_t* characters, NSUInteger length);
-NSUInteger FindUnits(const OOUnits& string, std::u16string_view target,
-                     NSUInteger from);
+OOUnits UnitsWithCharacters(const char16_t* characters, std::size_t length);
+std::size_t FindUnits(const OOUnits& string, std::u16string_view target,
+                      std::size_t from);
 bool HasPrefix(const OOUnits& string, std::u16string_view prefix);
 bool HasSuffix(const OOUnits& string, std::u16string_view suffix);
 
@@ -124,8 +124,8 @@ struct OOStringExpansionContext {
   OOMaybeUnits randomNameR{};        // Cache for %R
   oo::PList systemDescriptions{};    // Cache for system_description (an array),
                                    // used for numbered keys; null: not loaded.
-  NSUInteger sysDescCount = 0;  // Count of systemDescriptions, valid after
-                                // GetSystemDescriptions() called.
+  std::size_t sysDescCount = 0;  // Count of systemDescriptions, valid after
+                                 // GetSystemDescriptions() called.
 };
 
 }  // namespace
@@ -141,7 +141,7 @@ OOMaybeUnits GetRandomNameR(OOStringExpansionContext* context);    // %R
 const oo::PList& GetSystemDescriptions(OOStringExpansionContext* context);
 
 void AppendCharacters(OOMaybeUnits* result, const char16_t* characters,
-                      NSUInteger start, NSUInteger end);
+                      std::size_t start, std::size_t end);
 
 OOUnits NewRandomDigrams(OOStringExpansionContext* context);
 OOUnits OldRandomDigrams();
@@ -149,19 +149,19 @@ OOUnits OldRandomDigrams();
 // Various bits of expansion logic, each with a comment of its very own at the
 // implementation.
 OOUnits Expand(OOStringExpansionContext* context, const OOUnits& string,
-               NSUInteger sizeLimit, NSUInteger recursionLimit);
+               std::size_t sizeLimit, std::size_t recursionLimit);
 
 OOMaybeUnits ExpandKey(OOStringExpansionContext* context,
-                       const char16_t* characters, NSUInteger size,
-                       NSUInteger idx, NSUInteger* replaceLength,
-                       NSUInteger sizeLimit, NSUInteger recursionLimit);
+                       const char16_t* characters, std::size_t size,
+                       std::size_t idx, std::size_t* replaceLength,
+                       std::size_t sizeLimit, std::size_t recursionLimit);
 OOMaybeUnits ExpandDigitKey(OOStringExpansionContext* context,
-                            const char16_t* characters, NSUInteger keyStart,
-                            NSUInteger keyLength, NSUInteger sizeLimit,
-                            NSUInteger recursionLimit);
+                            const char16_t* characters, std::size_t keyStart,
+                            std::size_t keyLength, std::size_t sizeLimit,
+                            std::size_t recursionLimit);
 OOMaybeUnits ExpandStringKey(OOStringExpansionContext* context,
-                             const OOUnits& key, NSUInteger sizeLimit,
-                             NSUInteger recursionLimit);
+                             const OOUnits& key, std::size_t sizeLimit,
+                             std::size_t recursionLimit);
 OOMaybeUnits ExpandStringKeyOverride(OOStringExpansionContext* context,
                                      const std::string& key);
 OOMaybeUnits ExpandStringKeySpecial(OOStringExpansionContext* context,
@@ -187,8 +187,8 @@ OOMaybeUnits UnitsFromOptional(const std::optional<std::string>& string);
 const OOSelectorTable* SpecialSubstitutionSelectors();
 OOMaybeUnits ExpandStringKeyFromDescriptions(OOStringExpansionContext* context,
                                              const std::string& key,
-                                             NSUInteger sizeLimit,
-                                             NSUInteger recursionLimit);
+                                             std::size_t sizeLimit,
+                                             std::size_t recursionLimit);
 OOMaybeUnits ExpandStringKeyMissionVariable(OOStringExpansionContext* context,
                                             const OOUnits& key,
                                             const std::string& keyString);
@@ -200,15 +200,16 @@ OOMaybeUnits ExpandLegacyScriptSelectorKey(OOStringExpansionContext* context,
 const std::string* LookUpLegacySelector(const std::string& key);
 
 OOMaybeUnits ExpandPercentEscape(OOStringExpansionContext* context,
-                                 const char16_t* characters, NSUInteger size,
-                                 NSUInteger idx, NSUInteger* replaceLength);
+                                 const char16_t* characters, std::size_t size,
+                                 std::size_t idx, std::size_t* replaceLength);
 OOMaybeUnits ExpandSystemNameForGalaxyEscape(OOStringExpansionContext* context,
                                              const char16_t* characters,
-                                             NSUInteger size, NSUInteger idx,
-                                             NSUInteger* replaceLength);
+                                             std::size_t size, std::size_t idx,
+                                             std::size_t* replaceLength);
 OOMaybeUnits ExpandSystemNameEscape(OOStringExpansionContext* context,
-                                    const char16_t* characters, NSUInteger size,
-                                    NSUInteger idx, NSUInteger* replaceLength);
+                                    const char16_t* characters,
+                                    std::size_t size, std::size_t idx,
+                                    std::size_t* replaceLength);
 OOMaybeUnits ExpandPercentR(OOStringExpansionContext* context,
                             const OOMaybeUnits& input);
 #if WARNINGS
@@ -240,7 +241,7 @@ OOMaybeUnits ApplyOneOperator(const OOMaybeUnits& string, const OOUnits& op,
    OO_LOG_ERR().
 */
 void SyntaxIssue(OOStringExpansionContext* context, const char* function,
-                 const char* fileName, NSUInteger line,
+                 const char* fileName, std::size_t line,
                  const char* logMessageClass, const char* prefix,
                  const char* format, ...) OO_PRINTF_FORMAT(7, 8);
 void ReportJavaScriptWarning(JSContext* jsc, const char* format, ...)
@@ -357,10 +358,10 @@ namespace {
    string unmodified.
 */
 OOUnits Expand(OOStringExpansionContext* context, const OOUnits& string,
-               NSUInteger sizeLimit, NSUInteger recursionLimit) {
+               std::size_t sizeLimit, std::size_t recursionLimit) {
   OOCParameterAssert(context != nullptr && sizeLimit <= kStackAllocationLimit);
 
-  const NSUInteger size = string.size();
+  const std::size_t size = string.size();
 
   // Avoid stack overflow.
   if (EXPECT_NOT(size > sizeLimit || recursionLimit == 0)) return string;
@@ -376,7 +377,7 @@ OOUnits Expand(OOStringExpansionContext* context, const OOUnits& string,
   /*	Beginning of current range of non-special characters. If we encounter
           a substitution, we'll be copying from here forward.
   */
-  NSUInteger copyRangeStart = 0;
+  std::size_t copyRangeStart = 0;
 
   // Result, if we perform any substitutions.
   OOMaybeUnits result;
@@ -385,14 +386,14 @@ OOUnits Expand(OOStringExpansionContext* context, const OOUnits& string,
           least 2 characters long. This way, characters[idx + 1] is always
      valid.
   */
-  for (NSUInteger idx = 0; idx < size - 1; idx++) {
+  for (std::size_t idx = 0; idx < size - 1; idx++) {
     /*	Main parsing loop. If, at the end of the loop, replacement != nil,
             we copy the characters from copyRangeStart to idx into the result,
             the insert replacement, and skip replaceLength characters forward
             (minus one, because idx is incremented by the loop.)
     */
     OOMaybeUnits replacement;
-    NSUInteger replaceLength = 0;
+    std::size_t replaceLength = 0;
     uint16_t thisChar = characters[idx];
 
     if (thisChar == '[') {
@@ -469,15 +470,15 @@ OOUnits Expand(OOStringExpansionContext* context, const OOUnits& string,
         text, and may be terminated with another bar and operator.
 */
 OOMaybeUnits ExpandKey(OOStringExpansionContext* context,
-                       const char16_t* characters, NSUInteger size,
-                       NSUInteger idx, NSUInteger* replaceLength,
-                       NSUInteger sizeLimit, NSUInteger recursionLimit) {
+                       const char16_t* characters, std::size_t size,
+                       std::size_t idx, std::size_t* replaceLength,
+                       std::size_t sizeLimit, std::size_t recursionLimit) {
   OOCParameterAssert(context != nullptr && characters != nullptr &&
                      replaceLength != nullptr);
   OOCParameterAssert(characters[idx] == '[');
 
   // Find the balancing close bracket.
-  NSUInteger end, balanceCount = 1, firstBar = 0;
+  std::size_t end, balanceCount = 1, firstBar = 0;
   bool allDigits = true;
 
   for (end = idx + 1; end < size && balanceCount > 0; end++) {
@@ -499,9 +500,9 @@ OOMaybeUnits ExpandKey(OOStringExpansionContext* context,
     return std::nullopt;
   }
 
-  NSUInteger totalLength = end - idx;
+  std::size_t totalLength = end - idx;
   *replaceLength = totalLength;
-  NSUInteger keyStart = idx + 1, keyLength = totalLength - 2;
+  std::size_t keyStart = idx + 1, keyLength = totalLength - 2;
   if (firstBar != 0) keyLength = firstBar - idx - 1;
 
   if (EXPECT_NOT(keyLength == 0)) {
@@ -539,22 +540,22 @@ OOMaybeUnits ApplyOperators(OOMaybeUnits string,
                             const OOUnits& operatorsString) {
   // Each part of operatorsString between '|' separators
   // (-componentsSeparatedByString:), in order.
-  NSUInteger partStart = 0;
+  std::size_t partStart = 0;
   for (;;) {
-    const NSUInteger bar = FindUnits(operatorsString, u"|", partStart);
-    const NSUInteger partEnd =
-        (bar == NSNotFound) ? operatorsString.size() : bar;
+    const std::size_t bar = FindUnits(operatorsString, u"|", partStart);
+    const std::size_t partEnd =
+        (bar == oo::kNotFound) ? operatorsString.size() : bar;
     OOUnits op = operatorsString.substr(partStart, partEnd - partStart);
 
     OOMaybeUnits param;
-    const NSUInteger colon = FindUnits(op, u":", 0);
-    if (colon != NSNotFound) {
+    const std::size_t colon = FindUnits(op, u":", 0);
+    if (colon != oo::kNotFound) {
       param = op.substr(colon + 1);
       op.resize(colon);
     }
     string = ApplyOneOperator(string, op, param);
 
-    if (bar == NSNotFound) break;
+    if (bar == oo::kNotFound) break;
     partStart = bar + 1;
   }
 
@@ -661,12 +662,12 @@ OOMaybeUnits ApplyOneOperator(const OOMaybeUnits& string, const OOUnits& op,
         at random and the result is expanded recursively by calling Expand().
 */
 OOMaybeUnits ExpandDigitKey(OOStringExpansionContext* context,
-                            const char16_t* characters, NSUInteger keyStart,
-                            NSUInteger keyLength, NSUInteger sizeLimit,
-                            NSUInteger recursionLimit) {
+                            const char16_t* characters, std::size_t keyStart,
+                            std::size_t keyLength, std::size_t sizeLimit,
+                            std::size_t recursionLimit) {
   OOCParameterAssert(context != nullptr && characters != nullptr);
 
-  NSUInteger keyValue = 0, idx;
+  std::size_t keyValue = 0, idx;
   for (idx = keyStart; idx < (keyStart + keyLength); idx++) {
     OOCAssert(
         isdigit(characters[idx]), "%s called with non-numeric key [%s].",
@@ -701,8 +702,8 @@ OOMaybeUnits ExpandDigitKey(OOStringExpansionContext* context,
   }
 
   // Select a random sub-entry.
-  NSUInteger selection, count = entry->count();
-  NSUInteger rnd = OO_EXPANDER_RANDOM;
+  std::size_t selection, count = entry->count();
+  std::size_t rnd = OO_EXPANDER_RANDOM;
   if (count == 5 && !context->useGoodRNG) {
     // Time-honoured Elite-compatible way for five items.
     if (rnd >= 0xCC)
@@ -739,8 +740,8 @@ OOMaybeUnits ExpandDigitKey(OOStringExpansionContext* context,
    order.
 */
 OOMaybeUnits ExpandStringKey(OOStringExpansionContext* context,
-                             const OOUnits& key, NSUInteger sizeLimit,
-                             NSUInteger recursionLimit) {
+                             const OOUnits& key, std::size_t sizeLimit,
+                             std::size_t recursionLimit) {
   OOCParameterAssert(context != nullptr);
 
   // The lookups are keyed by the key's UTF-8 (WTF-8: lossless, as the string
@@ -907,15 +908,15 @@ const OOSelectorTable* SpecialSubstitutionSelectors() {
 */
 OOMaybeUnits ExpandStringKeyFromDescriptions(OOStringExpansionContext* context,
                                              const std::string& key,
-                                             NSUInteger sizeLimit,
-                                             NSUInteger recursionLimit) {
+                                             std::size_t sizeLimit,
+                                             std::size_t recursionLimit) {
   // The error log names the value's class as the Foundation object built from
   // it did.
   const oo::PList* found = UNIVERSE->descriptions()->find(key);
   oo::PList value = (found != nullptr) ? *found : oo::PList();
   if (!value.isNull()) {
     if (value.isArray() && value.count() > 0) {
-      NSUInteger rnd = OO_EXPANDER_RANDOM % value.count();
+      std::size_t rnd = OO_EXPANDER_RANDOM % value.count();
       const oo::PList chosen = *value.at(rnd);
       value = chosen;
     }
@@ -1123,8 +1124,8 @@ void ReportWarningForUnknownKey(OOStringExpansionContext* context,
         Any other code results in a warning.
 */
 OOMaybeUnits ExpandPercentEscape(OOStringExpansionContext* context,
-                                 const char16_t* characters, NSUInteger size,
-                                 NSUInteger idx, NSUInteger* replaceLength) {
+                                 const char16_t* characters, std::size_t size,
+                                 std::size_t idx, std::size_t* replaceLength) {
   OOCParameterAssert(context != nullptr && characters != nullptr &&
                      replaceLength != nullptr);
   OOCParameterAssert(characters[idx] == '%');
@@ -1218,7 +1219,7 @@ OOMaybeUnits ExpandPercentEscape(OOStringExpansionContext* context,
 OOMaybeUnits ExpandPercentR(OOStringExpansionContext* context,
                             const OOMaybeUnits& input) {
   // [input rangeOfString:@"%R"] (a nil input answered location 0, i.e. found).
-  if (input.has_value() && FindUnits(*input, u"%R", 0) == NSNotFound) {
+  if (input.has_value() && FindUnits(*input, u"%R", 0) == oo::kNotFound) {
     return input;  // no %Rs to replace
   }
   const OOMaybeUnits percentR = GetRandomNameR(context);
@@ -1242,7 +1243,7 @@ OOMaybeUnits ExpandPercentR(OOStringExpansionContext* context,
     // Every "%R" replaced, unit for unit (a literal search).
     OOUnits replaced;
     replaced.reserve(output.size());
-    for (NSUInteger i = 0; i < output.size();) {
+    for (std::size_t i = 0; i < output.size();) {
       if (i + 1 < output.size() && output[i] == u'%' && output[i + 1] == u'R') {
         replaced += *percentR;
         i += 2;
@@ -1251,7 +1252,7 @@ OOMaybeUnits ExpandPercentR(OOStringExpansionContext* context,
       }
     }
     output = replaced;
-  } while (FindUnits(output, u"%R", 0) != NSNotFound);
+  } while (FindUnits(output, u"%R", 0) != oo::kNotFound);
 
   return output;
 }
@@ -1264,8 +1265,8 @@ OOMaybeUnits ExpandPercentR(OOStringExpansionContext* context,
 */
 OOMaybeUnits ExpandSystemNameForGalaxyEscape(OOStringExpansionContext* context,
                                              const char16_t* characters,
-                                             NSUInteger size, NSUInteger idx,
-                                             NSUInteger* replaceLength) {
+                                             std::size_t size, std::size_t idx,
+                                             std::size_t* replaceLength) {
   OOCParameterAssert(context != nullptr && characters != nullptr &&
                      replaceLength != nullptr);
   OOCParameterAssert(characters[idx + 1] == 'G');
@@ -1327,8 +1328,9 @@ OOMaybeUnits ExpandSystemNameForGalaxyEscape(OOStringExpansionContext* context,
         current galaxy.
 */
 OOMaybeUnits ExpandSystemNameEscape(OOStringExpansionContext* context,
-                                    const char16_t* characters, NSUInteger size,
-                                    NSUInteger idx, NSUInteger* replaceLength) {
+                                    const char16_t* characters,
+                                    std::size_t size, std::size_t idx,
+                                    std::size_t* replaceLength) {
   OOCParameterAssert(context != nullptr && characters != nullptr &&
                      replaceLength != nullptr);
   OOCParameterAssert(characters[idx + 1] == 'J');
@@ -1371,7 +1373,7 @@ OOMaybeUnits ExpandSystemNameEscape(OOStringExpansionContext* context,
 }
 
 void AppendCharacters(OOMaybeUnits* result, const char16_t* characters,
-                      NSUInteger start, NSUInteger end) {
+                      std::size_t start, std::size_t end) {
   OOCParameterAssert(result != nullptr && characters != nullptr &&
                      start <= end);
 
@@ -1451,7 +1453,7 @@ const oo::PList& GetSystemDescriptions(OOStringExpansionContext* context) {
    units from <location>; it raises past the end).
 */
 OOUnits Digram(const std::optional<std::string>& digrams, const OOUnits& units,
-               NSUInteger location) {
+               std::size_t location) {
   if (location + 2 > units.size()) {
     // Raises OORangeException with GNUstep's -substringWithRange: text, as
     // messaging the string did; answers nothing (nothing appended) for no
@@ -1511,7 +1513,7 @@ OOUnits NewRandomDigrams(OOStringExpansionContext* context) {
       (digramsText != nullptr) ? std::optional<std::string>(*digramsText)
                                : std::nullopt;
   const OOUnits digramUnits = UnitsFromOptional(digrams).value_or(OOUnits());
-  NSUInteger count = digramUnits.size() / 2;
+  std::size_t count = digramUnits.size() / 2;
   OOUnits name;
 
   for (unsigned i = 0; i != length; ++i) {
@@ -1529,7 +1531,7 @@ OOUnits NewRandomDigrams(OOStringExpansionContext* context) {
    string: GNUstep drops a leading U+FEFF, or drops a leading U+FFFE and
    byte-swaps the rest, and does so twice (probed on gnustep-base 1.31.1).
 */
-OOUnits UnitsWithCharacters(const char16_t* characters, NSUInteger length) {
+OOUnits UnitsWithCharacters(const char16_t* characters, std::size_t length) {
   OOUnits units(characters, length);
   for (int pass = 0; pass < 2 && !units.empty(); pass++) {
     if (units[0] == 0xFEFF) {
@@ -1542,16 +1544,16 @@ OOUnits UnitsWithCharacters(const char16_t* characters, NSUInteger length) {
   return units;
 }
 
-/*	The location of <target> in the range <from to end>, NSNotFound if
+/*	The location of <target> in the range <from to end>, oo::kNotFound if
    absent: literal units, except that an occurrence a sequence-extending unit
    follows is inside a longer composed sequence and does not count, and that a
    search starting inside a composed sequence (not at the start of the string)
    cannot match at the first unit after it (oo::str::Scanner has the same rule,
    probed on gnustep-base 1.31.1). <target> is ASCII.
 */
-NSUInteger FindUnits(const OOUnits& string, std::u16string_view target,
-                     NSUInteger from) {
-  NSUInteger blind = NSNotFound;
+std::size_t FindUnits(const OOUnits& string, std::u16string_view target,
+                      std::size_t from) {
+  std::size_t blind = oo::kNotFound;
   if (from > 0 && from < string.size() &&
       oo::str::detail::extendsSequence(string[from])) {
     blind = from;
@@ -1559,16 +1561,16 @@ NSUInteger FindUnits(const OOUnits& string, std::u16string_view target,
            oo::str::detail::extendsSequence(string[blind]))
       blind++;
   }
-  for (NSUInteger at = from; at + target.size() <= string.size(); at++) {
+  for (std::size_t at = from; at + target.size() <= string.size(); at++) {
     if (at == blind ||
         std::u16string_view(string).substr(at, target.size()) != target)
       continue;
-    const NSUInteger end = at + target.size();
+    const std::size_t end = at + target.size();
     if (end < string.size() && oo::str::detail::extendsSequence(string[end]))
       continue;
     return at;
   }
-  return NSNotFound;
+  return oo::kNotFound;
 }
 
 // -hasPrefix: / -hasSuffix: (literal) with a non-empty ASCII argument.
@@ -1584,7 +1586,7 @@ bool HasSuffix(const OOUnits& string, std::u16string_view suffix) {
 }
 
 void SyntaxIssue(OOStringExpansionContext* context, const char* function,
-                 const char* fileName, NSUInteger line,
+                 const char* fileName, std::size_t line,
                  const char* logMessageClass, const char* prefix,
                  const char* format, ...) {
   OOCParameterAssert(context != nullptr);

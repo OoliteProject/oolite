@@ -278,7 +278,7 @@ OO_TEST(goods)
 		for (int i = 0; i < 8; i++)  random += c->getRandomCommodity() + " ";
 		OO_CHECK(expect(random));
 		std::string legacy;
-		for (NSUInteger i = 0; i <= 18; i++)  legacy += OOCommodities::legacyCommodityType(i).value_or("-") + " ";
+		for (std::size_t i = 0; i <= 18; i++)  legacy += OOCommodities::legacyCommodityType(i).value_or("-") + " ";
 		OO_CHECK(expect(legacy));
 	}
 }

@@ -14,13 +14,13 @@ OOINLINE NSPoint PtSub(NSPoint a, NSPoint b) {
   return NSMakePoint(a.x - b.x, a.y - b.y);
 }
 
-OOINLINE NSPoint PtScale(NSPoint p, CGFloat scale) {
+OOINLINE NSPoint PtScale(NSPoint p, double scale) {
   return NSMakePoint(p.x * scale, p.y * scale);
 }
 
-OOINLINE CGFloat PtDot(NSPoint a, NSPoint b) { return a.x * b.x + a.y * b.y; }
+OOINLINE double PtDot(NSPoint a, NSPoint b) { return a.x * b.x + a.y * b.y; }
 
-OOINLINE CGFloat PtCross(NSPoint a, NSPoint b) { return a.x * b.y - b.x * a.y; }
+OOINLINE double PtCross(NSPoint a, NSPoint b) { return a.x * b.y - b.x * a.y; }
 
 OOINLINE NSPoint PtRotCW(NSPoint p) {
   // Rotate 90 degrees clockwise.

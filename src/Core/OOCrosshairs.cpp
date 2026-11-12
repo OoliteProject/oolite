@@ -79,7 +79,7 @@ void OOCrosshairs::render() {
 
 void OOCrosshairs::setUpDataWithPoints(const oo::PList& points, GLfloat scale,
                                        OOColor* color, GLfloat alpha) {
-  NSUInteger i;
+  std::size_t i;
   float colorComps[4] = {0.0f, 1.0f, 0.0f, 1.0f};
   GLfloat* data = nullptr;
 

@@ -59,7 +59,7 @@ bool BoolValueOf(const oo::PList* value) {
   return value->isNumber() && value->boolValue();
 }
 
-NSInteger IntegerValueOf(const oo::PList* value) {
+std::ptrdiff_t IntegerValueOf(const oo::PList* value) {
   if (value == nullptr) return 0;
   if (const std::string* string = value->getIf<std::string>())
     return oo::defaults_detail::stringIntegerValue(*string);
@@ -363,11 +363,11 @@ std::optional<std::string> PlayerEntity::keyBindingDescription2(
 
 std::optional<std::string> PlayerEntity::getKeyBindingDescription(
     const oo::PList& keyList) {
-  NSUInteger i = 0;
+  std::size_t i = 0;
   std::string final;
-  const NSUInteger count = keyList.isArray()
-                               ? keyList.count()
-                               : 0;  // -objectAtIndex: raised on anything else
+  const std::size_t count = keyList.isArray()
+                                ? keyList.count()
+                                : 0;  // -objectAtIndex: raised on anything else
   for (i = 0; i < count; i++) {
     if (i != 0) final += " or ";
     const oo::PList* def = keyList.at(i);

@@ -795,12 +795,12 @@ static JSValue VisualEffectRestoreSubEntities(OOJS_NATIVE_ARGS) {
   OOJS_NATIVE_ENTER(context)
 
   OOVisualEffectEntity* thisEnt = nullptr;
-  NSUInteger numSubEntitiesRestored = 0U;
+  std::size_t numSubEntitiesRestored = 0U;
 
   GET_THIS_EFFECT(thisEnt);
 
   // -subEntitiesForScript, called as the function that holds its body.
-  NSUInteger subCount = OOJSVisualEffectSubEntitiesForScript(thisEnt).size();
+  std::size_t subCount = OOJSVisualEffectSubEntitiesForScript(thisEnt).size();
 
   if (thisEnt != nullptr) thisEnt->clearSubEntities();
   if (thisEnt != nullptr) thisEnt->setUpSubEntities();

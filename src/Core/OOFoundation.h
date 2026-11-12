@@ -155,10 +155,10 @@ MA 02110-1301, USA.
  */
 #include "OODescription.h"
 
-/*	The ordering type and values: an NSInteger enum with Foundation's
+/*	The ordering type and values: an std::ptrdiff_t enum with Foundation's
    NSComparisonResult values.
 */
-enum OOComparisonResult : NSInteger {
+enum OOComparisonResult : std::ptrdiff_t {
   OOOrderedAscending = -1,
   OOOrderedSame = 0,
   OOOrderedDescending = 1

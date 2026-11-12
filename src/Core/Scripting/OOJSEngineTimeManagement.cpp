@@ -246,7 +246,7 @@ std::optional<std::string> OOTimeProfile::description() {
 
   const std::vector<oo::Ref<OOTimeProfileEntry>>& profileEntries =
       _profileEntries;
-  NSUInteger i, count = profileEntries.size();
+  std::size_t i, count = profileEntries.size();
   if (count != 0) {
     result +=
         "\n                                                        NAME  T  "
@@ -378,7 +378,7 @@ std::optional<std::string> OOTimeProfileEntry::description() {
 
 std::optional<std::string> OOTimeProfileEntry::function() { return _function; }
 
-NSUInteger OOTimeProfileEntry::hitCount() { return _hitCount; }
+std::size_t OOTimeProfileEntry::hitCount() { return _hitCount; }
 
 double OOTimeProfileEntry::totalTimeSum() { return _totalTimeSum; }
 

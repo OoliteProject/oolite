@@ -53,7 +53,7 @@ using SanStackElement = struct SanStackElement;
 struct SanStackElement {
   SanStackElement* back;
   std::optional<std::string> key;  // Dictionary key; nullopt for arrays.
-  NSUInteger index;                // Array index if key is nullopt.
+  std::size_t index;               // Array index if key is nullopt.
 };
 
 namespace {
@@ -101,7 +101,7 @@ static oo::PList OOSanitizeLegacyScriptInternal(const oo::PList& script,
                                                 SanStackElement* stack,
                                                 bool allowAIMethods) {
   oo::PList::Array result;
-  NSUInteger index = 0;
+  std::size_t index = 0;
 
   {
     result.reserve(script.count());
@@ -150,7 +150,7 @@ static oo::PList OOSanitizeLegacyScriptConditionsInternal(
     const oo::PList& conditions, SanStackElement* stack) {
   oo::PList::Array result;
   bool OK = true;
-  NSUInteger index = 0;
+  std::size_t index = 0;
 
   if (OOLegacyConditionsAreSanitized(conditions) || conditions.isNull())
     return conditions;
@@ -199,7 +199,7 @@ namespace {
 static oo::PList SanitizeCondition(const std::string& condition,
                                    SanStackElement* stack) {
   std::vector<std::string> tokens;
-  NSUInteger i, tokenCount;
+  std::size_t i, tokenCount;
   OOOperationType opType;
   std::string selectorString;
   std::optional<std::string> sanitizedSelectorString;
@@ -409,7 +409,7 @@ static oo::PList SanitizeActionStatement(const std::string& statement,
                                          SanStackElement* stack,
                                          bool allowAIMethods) {
   std::vector<std::string> tokens;
-  NSUInteger tokenCount;
+  std::size_t tokenCount;
   std::string rawSelectorString;
   std::optional<std::string> selectorString;
   std::optional<std::string> argument;
@@ -438,7 +438,7 @@ static oo::PList SanitizeActionStatement(const std::string& statement,
     } else {
       // The remaining tokens joined by " " ("" when there are none).
       std::string joined;
-      for (NSUInteger i = 1; i < tokenCount; i++) {
+      for (std::size_t i = 1; i < tokenCount; i++) {
         if (i != 1) joined += " ";
         joined += tokens[i];
       }

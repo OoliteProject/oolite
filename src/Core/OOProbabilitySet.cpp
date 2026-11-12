@@ -70,9 +70,9 @@ constexpr const char* kWeightsKey = "weights";
 // The property list representation: the objects (the elements themselves) and
 // their weights (single reals).
 oo::PList PropertyListRepresentation(const oo::PList* objects,
-                                     const float* weights, NSUInteger count) {
+                                     const float* weights, std::size_t count) {
   oo::PList::Array objectList, weightList;
-  for (NSUInteger i = 0; i < count; ++i) {
+  for (std::size_t i = 0; i < count; ++i) {
     objectList.push_back(objects[i]);
     weightList.push_back(oo::PList::singleReal(weights[i]));
   }
@@ -90,12 +90,12 @@ bool SameElement(const oo::PList& element, const oo::PList& object) {
 
 // -indexOfObject: of the old object array: the first object that is the same,
 // or -isEqual:.
-NSUInteger IndexOfObject(const std::vector<oo::PList>& objects,
-                         const oo::PList& object) {
+std::size_t IndexOfObject(const std::vector<oo::PList>& objects,
+                          const oo::PList& object) {
   for (std::size_t i = 0; i < objects.size(); ++i) {
     if (SameElement(objects[i], object)) return i;
   }
-  return NSNotFound;
+  return oo::kNotFound;
 }
 
 }  // namespace
@@ -110,7 +110,7 @@ class OOEmptyProbabilitySet final : public OOProbabilitySet {
   oo::PList randomObject() override;
   float weightForObject(const oo::PList& object) override;
   float sumOfWeights() override;
-  NSUInteger count() override;
+  std::size_t count() override;
   std::vector<oo::PList> allElements() override;
   oo::Ref<OOMutableProbabilitySet> mutableCopy() override;
 };
@@ -123,7 +123,7 @@ class OOSingleObjectProbabilitySet final : public OOProbabilitySet {
   oo::PList randomObject() override;
   float weightForObject(const oo::PList& object) override;
   float sumOfWeights() override;
-  NSUInteger count() override;
+  std::size_t count() override;
   std::vector<oo::PList> allElements() override;
   oo::Ref<OOMutableProbabilitySet> mutableCopy() override;
 
@@ -137,10 +137,10 @@ class OOConcreteProbabilitySet final : public OOProbabilitySet {
   ~OOConcreteProbabilitySet() override;
 
   bool initWithObjects(const oo::PList* objects, const float* weights,
-                       NSUInteger count);
+                       std::size_t count);
 
   oo::PList propertyListRepresentation() override;
-  NSUInteger count() override;
+  std::size_t count() override;
   oo::PList randomObject() override;
   float weightForObject(const oo::PList& object) override;
   float sumOfWeights() override;
@@ -150,7 +150,7 @@ class OOConcreteProbabilitySet final : public OOProbabilitySet {
  private:
   oo::PList privObjectForWeight(float target);
 
-  NSUInteger _count = {};
+  std::size_t _count = {};
   oo::PList* _objects = {};
   float* _cumulativeWeights =
       {};  // Each cumulative weight is weight of object at this index + weight
@@ -166,11 +166,11 @@ class OOConcreteMutableProbabilitySet final : public OOMutableProbabilitySet {
       const std::vector<oo::PList>& objects, const std::vector<float>& weights,
       float sumOfWeights);  // For internal use by mutableCopy
   void initWithObjects(const oo::PList* objects, const float* weights,
-                       NSUInteger count);
+                       std::size_t count);
   bool initWithPropertyListRepresentation(const oo::PList& plist);
 
   oo::PList propertyListRepresentation() override;
-  NSUInteger count() override;
+  std::size_t count() override;
   oo::PList randomObject() override;
   float weightForObject(const oo::PList& object) override;
   float sumOfWeights() override;
@@ -188,7 +188,7 @@ class OOConcreteMutableProbabilitySet final : public OOMutableProbabilitySet {
 
 oo::Ref<OOMutableProbabilitySet> MakeConcreteMutable(const oo::PList* objects,
                                                      const float* weights,
-                                                     NSUInteger count) {
+                                                     std::size_t count) {
   oo::Ref<OOConcreteMutableProbabilitySet> result =
       oo::makeRef<OOConcreteMutableProbabilitySet>();
   result->initWithObjects(objects, weights, count);
@@ -204,7 +204,7 @@ oo::Ref<OOProbabilitySet> OOProbabilitySet::probabilitySet() {
 }
 
 oo::Ref<OOProbabilitySet> OOProbabilitySet::probabilitySetWithObjects(
-    const oo::PList* objects, const float* weights, NSUInteger count) {
+    const oo::PList* objects, const float* weights, std::size_t count) {
   // Zero objects: return empty-set singleton.
   if (count == 0) return probabilitySet();
 
@@ -240,7 +240,7 @@ OOProbabilitySet::probabilitySetWithPropertyListRepresentation(
   const oo::PList& representation = plist;
   const oo::PList* objects = representation.find(kObjectsKey);
   const oo::PList* weights = representation.find(kWeightsKey);
-  NSUInteger i = 0, count = 0;
+  std::size_t i = 0, count = 0;
   std::vector<oo::PList> rawObjects;
   std::vector<float> rawWeights;
 
@@ -329,7 +329,7 @@ float OOEmptyProbabilitySet::weightForObject(const oo::PList& /*object*/) {
 
 float OOEmptyProbabilitySet::sumOfWeights() { return 0.0f; }
 
-NSUInteger OOEmptyProbabilitySet::count() { return 0; }
+std::size_t OOEmptyProbabilitySet::count() { return 0; }
 
 std::vector<oo::PList> OOEmptyProbabilitySet::allElements() {
   return std::vector<oo::PList>();
@@ -368,7 +368,7 @@ float OOSingleObjectProbabilitySet::weightForObject(const oo::PList& object) {
 
 float OOSingleObjectProbabilitySet::sumOfWeights() { return _weight; }
 
-NSUInteger OOSingleObjectProbabilitySet::count() { return 1; }
+std::size_t OOSingleObjectProbabilitySet::count() { return 1; }
 
 std::vector<oo::PList> OOSingleObjectProbabilitySet::allElements() {
   return std::vector<oo::PList>{_object};
@@ -380,8 +380,8 @@ oo::Ref<OOMutableProbabilitySet> OOSingleObjectProbabilitySet::mutableCopy() {
 
 bool OOConcreteProbabilitySet::initWithObjects(const oo::PList* objects,
                                                const float* weights,
-                                               NSUInteger count) {
-  NSUInteger i = 0;
+                                               std::size_t count) {
+  std::size_t i = 0;
   float cuWeight = 0.0f;
 
   assert(count > 1 && objects != nullptr && weights != nullptr);
@@ -424,7 +424,7 @@ OOConcreteProbabilitySet::~OOConcreteProbabilitySet() {
 oo::PList OOConcreteProbabilitySet::propertyListRepresentation() {
   std::vector<float> weights;
   float cuWeight = 0.0f, sum = 0.0f;
-  NSUInteger i = 0;
+  std::size_t i = 0;
 
   weights.reserve(_count);
   for (i = 0; i < _count; ++i) {
@@ -436,7 +436,7 @@ oo::PList OOConcreteProbabilitySet::propertyListRepresentation() {
   return PropertyListRepresentation(_objects, weights.data(), _count);
 }
 
-NSUInteger OOConcreteProbabilitySet::count() { return _count; }
+std::size_t OOConcreteProbabilitySet::count() { return _count; }
 
 oo::PList OOConcreteProbabilitySet::privObjectForWeight(float target) {
   /*	Select an object at random. This is a binary search in the cumulative
@@ -445,7 +445,7 @@ oo::PList OOConcreteProbabilitySet::privObjectForWeight(float target) {
           leftmost, i.e. the one where the delta is non-zero.
   */
 
-  NSUInteger low = 0, high = _count - 1, idx = 0;
+  std::size_t low = 0, high = _count - 1, idx = 0;
   float weight = 0.0f;
 
   while (low < high) {
@@ -476,7 +476,7 @@ oo::PList OOConcreteProbabilitySet::randomObject() {
 }
 
 float OOConcreteProbabilitySet::weightForObject(const oo::PList& object) {
-  NSUInteger i;
+  std::size_t i;
 
   // Can't have a null object in collection.
   if (object.isNull()) return -1.0f;
@@ -503,7 +503,7 @@ std::vector<oo::PList> OOConcreteProbabilitySet::allElements() {
 oo::Ref<OOMutableProbabilitySet> OOConcreteProbabilitySet::mutableCopy() {
   oo::Ref<OOMutableProbabilitySet> result;
   float* weights = nullptr;
-  NSUInteger i = 0;
+  std::size_t i = 0;
   float weight = 0.0f, sum = 0.0f;
 
   // Convert cumulative weights to "plain" weights.
@@ -531,7 +531,7 @@ oo::Ref<OOMutableProbabilitySet> OOMutableProbabilitySet::probabilitySet() {
 oo::Ref<OOMutableProbabilitySet>
 OOMutableProbabilitySet::probabilitySetWithObjects(const oo::PList* objects,
                                                    const float* weights,
-                                                   NSUInteger count) {
+                                                   std::size_t count) {
   return MakeConcreteMutable(objects, weights, count);
 }
 
@@ -564,8 +564,8 @@ void OOConcreteMutableProbabilitySet::initPrivWithObjectArray(
 
 void OOConcreteMutableProbabilitySet::initWithObjects(const oo::PList* objects,
                                                       const float* weights,
-                                                      NSUInteger count) {
-  NSUInteger i = 0;
+                                                      std::size_t count) {
+  std::size_t i = 0;
 
   // Validate parameters.
   if (count != 0 && (objects == nullptr || weights == nullptr)) {
@@ -589,7 +589,7 @@ bool OOConcreteMutableProbabilitySet::initWithPropertyListRepresentation(
   const oo::PList& representation = plist;
   const oo::PList* objects = nullptr;
   const oo::PList* weights = nullptr;
-  NSUInteger i = 0, count = 0;
+  std::size_t i = 0, count = 0;
 
   if (OK) {
     objects = representation.find(kObjectsKey);
@@ -619,11 +619,11 @@ oo::PList OOConcreteMutableProbabilitySet::propertyListRepresentation() {
                                     _objects.size());
 }
 
-NSUInteger OOConcreteMutableProbabilitySet::count() { return _objects.size(); }
+std::size_t OOConcreteMutableProbabilitySet::count() { return _objects.size(); }
 
 oo::PList OOConcreteMutableProbabilitySet::randomObject() {
   float target = 0.0f, sum = 0.0f, sumOfWeights;
-  NSUInteger i = 0, count = 0;
+  std::size_t i = 0, count = 0;
 
   sumOfWeights = this->sumOfWeights();
   target = randf() * sumOfWeights;
@@ -648,8 +648,8 @@ float OOConcreteMutableProbabilitySet::weightForObject(
   float result = -1.0f;
 
   if (!object.isNull()) {
-    NSUInteger index = IndexOfObject(_objects, object);
-    if (index != NSNotFound) {
+    std::size_t index = IndexOfObject(_objects, object);
+    if (index != oo::kNotFound) {
       result = _weights[index];
       if (index != 0) result -= _weights[index - 1];
     }
@@ -659,7 +659,7 @@ float OOConcreteMutableProbabilitySet::weightForObject(
 
 float OOConcreteMutableProbabilitySet::sumOfWeights() {
   if (_sumOfWeights < 0.0f) {
-    NSUInteger i, count;
+    std::size_t i, count;
     count = this->count();
 
     _sumOfWeights = 0.0f;
@@ -679,8 +679,8 @@ void OOConcreteMutableProbabilitySet::setWeight(float weight,
   if (object.isNull()) return;
 
   weight = fmax(weight, 0.0f);
-  NSUInteger index = IndexOfObject(_objects, object);
-  if (index == NSNotFound) {
+  std::size_t index = IndexOfObject(_objects, object);
+  if (index == oo::kNotFound) {
     _objects.emplace_back(object);
     _weights.push_back(weight);
     if (_sumOfWeights >= 0) {
@@ -699,8 +699,8 @@ void OOConcreteMutableProbabilitySet::setWeight(float weight,
 void OOConcreteMutableProbabilitySet::removeObject(const oo::PList& object) {
   if (object.isNull()) return;
 
-  NSUInteger index = IndexOfObject(_objects, object);
-  if (index != NSNotFound) {
+  std::size_t index = IndexOfObject(_objects, object);
+  if (index != oo::kNotFound) {
     _objects.erase(_objects.begin() + static_cast<std::ptrdiff_t>(index));
     _sumOfWeights =
         -1.0f;  // Simply subtracting the relevant weight doesn't work if the
@@ -710,7 +710,7 @@ void OOConcreteMutableProbabilitySet::removeObject(const oo::PList& object) {
 }
 
 oo::Ref<OOProbabilitySet> OOConcreteMutableProbabilitySet::copy() {
-  NSUInteger count = 0;
+  std::size_t count = 0;
 
   count = _objects.size();
   if (EXPECT_NOT(count == 0)) return OOProbabilitySet::probabilitySet();

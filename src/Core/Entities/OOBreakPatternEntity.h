@@ -44,7 +44,7 @@ class OOBreakPatternEntity : public Entity {
   // +breakPatternWithPolygonSides:startAngle:aspectRatio:: a new ring,
   // initialised.
   static oo::Ref<OOBreakPatternEntity> breakPatternWithPolygonSides(
-      NSUInteger sides, float startAngleDegrees, float aspectRatio);
+      std::size_t sides, float startAngleDegrees, float aspectRatio);
 
   void setInnerColor(OOColor* color1, OOColor* color2);
 
@@ -59,13 +59,13 @@ class OOBreakPatternEntity : public Entity {
 
   // -initWithPolygonSides:startAngle:aspectRatio:'s body, run once right after
   // construction.
-  void initWithPolygonSides(NSUInteger sides, float startAngleDegrees,
+  void initWithPolygonSides(std::size_t sides, float startAngleDegrees,
                             float aspectRatio);
 
   void setInnerColorComponents(GLfloat color1[4], GLfloat color2[4]);
 
   Vector _vertexPosition[kOOBreakPatternMaxVertices] = {};
   GLfloat _vertexColor[kOOBreakPatternMaxVertices][4] = {};
-  NSUInteger _vertexCount = {};
+  std::size_t _vertexCount = {};
   double _lifetime = {};
 };

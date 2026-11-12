@@ -485,8 +485,8 @@ oo::Ref<OOSkyQuadSet> OOSkyQuadSet::initWithQuadsWithTexture(
   GLfloat r, g, b, x;
   size_t posSize, tcSize, colSize;
   unsigned count = 0;
-  // -integerForKey: gives 0 wherever get<NSInteger>(key, 0) fell back to the
-  // default.
+  // -integerForKey: gives 0 wherever get<std::ptrdiff_t>(key, 0) fell back to
+  // the default.
   int skyColorCorrection =
       (int)oo::Defaults::standard().integerForKey("sky-color-correction");
 

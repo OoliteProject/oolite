@@ -130,7 +130,7 @@ void OOAIStateMachineVerifierStage::validateAI(const std::string& aiName) {
   oo::PList aiStateMachine;
   std::vector<std::string> badSelectors;  // sorted, no duplicates
   std::string badSelectorDesc;
-  NSUInteger index = 0;
+  std::size_t index = 0;
 
   OO_LOG("verifyOXP.verbose.validateAI", "- Validating AI \"{}\".", aiName);
   oo::log::indentIf("verifyOXP.verbose.validateAI");

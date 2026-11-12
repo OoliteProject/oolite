@@ -358,7 +358,7 @@ bool Facade_isWormhole(Entity* entity) {
   if (entity == nullptr) return {};
   return entity->getIsWormhole();
 }
-NSUInteger Facade_lastDrawCounter(Entity* entity) {
+std::size_t Facade_lastDrawCounter(Entity* entity) {
   if (entity == nullptr) return {};
   return entity->getLastDrawCounter();
 }
@@ -423,7 +423,7 @@ OOScanClass Facade_scanClass(Entity* entity) {
   if (entity == nullptr) return {};
   return entity->getScanClass();
 }
-NSUInteger Facade_sessionID(Entity* entity) {
+std::size_t Facade_sessionID(Entity* entity) {
   if (entity == nullptr) return {};
   return entity->sessionID();
 }

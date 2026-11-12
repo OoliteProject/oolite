@@ -195,7 +195,7 @@ void MyOpenGLView::pollControls() {
       viewSize.width * _mouseVirtualStickSensitivityFactor;
   float mouseVirtualStickSensitivityY =
       viewSize.height * _mouseVirtualStickSensitivityFactor;
-  NSTimeInterval timeNow =
+  double timeNow =
       oo::date::monotonicSeconds();  // same clock as MyOpenGLView.cpp's -init
   Uint16 key_id;
   SDL_Scancode scan_code;
@@ -249,9 +249,9 @@ void MyOpenGLView::pollControls() {
         // apart and the double-click became two single clicks. SDL stamps every
         // event on the SDL_GetTicksNS() clock when it is queued, which is the
         // clock timeIntervalAtLastClick starts on.
-        NSTimeInterval timeOfClick;
-        timeOfClick = (NSTimeInterval)mbtn_event->timestamp / 1e9;
-        NSTimeInterval timeBetweenClicks;
+        double timeOfClick;
+        timeOfClick = (double)mbtn_event->timestamp / 1e9;
+        double timeBetweenClicks;
         timeBetweenClicks = timeOfClick - timeIntervalAtLastClick;
         timeIntervalAtLastClick += timeBetweenClicks;
         if (mbtn_event->button == SDL_BUTTON_LEFT) {
@@ -287,7 +287,7 @@ void MyOpenGLView::pollControls() {
            the same time as its corresponding mousewheel button down one - Nikos
            20140809
         */
-        NSTimeInterval timeBetweenMouseWheels;
+        double timeBetweenMouseWheels;
         timeBetweenMouseWheels = timeNow - timeSinceLastMouseWheel;
         timeSinceLastMouseWheel += timeBetweenMouseWheels;
         break;

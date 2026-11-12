@@ -87,7 +87,7 @@ void OOCheckEquipmentPListVerifierStage::run() {
 void OOCheckEquipmentPListVerifierStage::runCheckWithEquipment(
     const oo::PList& equipmentPList) {
   unsigned entryIndex = 0;
-  NSUInteger elemCount;
+  std::size_t elemCount;
   std::optional<std::string> name;
   std::string entryDesc;
 

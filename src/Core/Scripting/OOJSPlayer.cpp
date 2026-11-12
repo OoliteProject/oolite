@@ -731,7 +731,7 @@ static JSValue PlayerSetEscapePodDestination(OOJS_NATIVE_ARGS) {
         if (const oo::PList::Array* array =
                 destinations.getIf<oo::PList::Array>())
           sDests = *array;
-        NSUInteger i = 0, nDests = sDests.size();
+        std::size_t i = 0, nDests = sDests.size();
 
         if (nDests > 0)
           for (i = --nDests; i > 0; i--) {

@@ -27,7 +27,7 @@ MA 02110-1301, USA.
 */
 
 /*	Plain includes: this header and OOConstToJSString's translation unit are
-   C++. QuickJS-ng, OOINLINE, NSInteger/NSUInteger and the
+   C++. QuickJS-ng, OOINLINE, std::ptrdiff_t/std::size_t and the
    constant enumerations are all the inlines below need.
 */
 #pragma once
@@ -50,11 +50,11 @@ struct ConstTable;
 */
 
 // Private functions, don't use directly.
-JSValue OOJSValueFromConstantPRIVATE(JSContext* context, NSInteger value,
+JSValue OOJSValueFromConstantPRIVATE(JSContext* context, std::ptrdiff_t value,
                                      struct ConstTable* table);
-NSUInteger OOConstantFromJSValuePRIVATE(JSContext* context, JSValueConst value,
-                                        struct ConstTable* table,
-                                        NSInteger defaultValue);
+std::size_t OOConstantFromJSValuePRIVATE(JSContext* context, JSValueConst value,
+                                         struct ConstTable* table,
+                                         std::ptrdiff_t defaultValue);
 
 /*	JSValue OOJSValueFromEntityStatus(JSContext *, OOEntityStatus)
         OOEntityStatus OOEntityStatusFromJSValue(JSContext *, JSValueConst)

@@ -68,13 +68,13 @@ class OOFullScreenController : public oo::RefCounted {
   virtual oo::PList
   displayModes();  // array of mode dictionaries (flipped with its family)
   oo::PList currentDisplayMode();  // a mode dictionary
-  virtual NSUInteger indexOfCurrentDisplayMode();
+  virtual std::size_t indexOfCurrentDisplayMode();
 
-  virtual bool setDisplayWidth(NSUInteger width, NSUInteger height,
-                               NSUInteger refresh);
+  virtual bool setDisplayWidth(std::size_t width, std::size_t height,
+                               std::size_t refresh);
   virtual oo::PList findDisplayModeForWidth(
-      NSUInteger width, NSUInteger height,
-      NSUInteger d_refresh);  // a mode dictionary; null: none
+      std::size_t width, std::size_t height,
+      std::size_t d_refresh);  // a mode dictionary; null: none
 
   virtual void noteMouseInteractionModeChangedFrom(
       OOMouseInteractionMode oldMode, OOMouseInteractionMode newMode);

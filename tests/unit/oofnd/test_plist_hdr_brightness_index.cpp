@@ -10,12 +10,12 @@
    core test has a stand-in for that, and one would be far beyond this test's
    size. So this test pins the behaviour at helper level instead: each site's
    index arithmetic is copied below verbatim (minus the log and the GUI calls)
-   and run on the oofnd pieces it depends on, the int narrowing of NSNotFound
+   and run on the oofnd pieces it depends on, the int narrowing of oo::kNotFound
    and oo::PList::at<int> out of range.
 
         What it pins, for an unmatched brightness:
-          * static_cast<int>(NSNotFound) is -1 and widening it back never equals
-   NSNotFound, so the "not found -> index 0" fallback never runs (as in
+          * static_cast<int>(oo::kNotFound) is -1 and widening it back never equals
+   oo::kNotFound, so the "not found -> index 0" fallback never runs (as in
    upstream's Objective-C);
           * options screen: at<int>(static_cast<std::size_t>(-1)) is out of
    range and answers the fallback 0 (upstream: -oo_intAtIndex: answered 0) - the
@@ -47,7 +47,7 @@ oo::PList shippedBrightnesses() {
 int optionsScreenBrightnessValue(const oo::PList& brightnesses,
                                  int currentMaxBrightness, bool* fallbackRan) {
   const std::string currentBrightness = std::to_string(currentMaxBrightness);
-  int brightnessIdx = static_cast<int>(NSNotFound);
+  int brightnessIdx = static_cast<int>(oo::kNotFound);
   for (std::size_t i = 0; i < brightnesses.count(); i++) {
     const oo::PList* element = brightnesses.at(i);
     if (element->isString() &&
@@ -58,7 +58,7 @@ int optionsScreenBrightnessValue(const oo::PList& brightnesses,
   }
 
   *fallbackRan = false;
-  if (static_cast<NSInteger>(brightnessIdx) == NSNotFound) {
+  if (static_cast<std::ptrdiff_t>(brightnessIdx) == oo::kNotFound) {
     *fallbackRan = true;
     brightnessIdx = 0;
   }
@@ -72,7 +72,7 @@ int controlsBrightnessValue(const oo::PList& brightnesses,
                             int currentMaxBrightness, int direction,
                             bool* fallbackRan) {
   const std::string currentBrightness = std::to_string(currentMaxBrightness);
-  int brightnessIdx = static_cast<int>(NSNotFound);
+  int brightnessIdx = static_cast<int>(oo::kNotFound);
   for (std::size_t i = 0; i < brightnesses.count(); i++) {
     const oo::PList* element = brightnesses.at(i);
     if (element->isString() &&
@@ -83,7 +83,7 @@ int controlsBrightnessValue(const oo::PList& brightnesses,
   }
 
   *fallbackRan = false;
-  if (static_cast<NSInteger>(brightnessIdx) == NSNotFound) {
+  if (static_cast<std::ptrdiff_t>(brightnessIdx) == oo::kNotFound) {
     *fallbackRan = true;
     brightnessIdx = 0;
   }
@@ -97,9 +97,9 @@ int controlsBrightnessValue(const oo::PList& brightnesses,
 }
 
 void notFoundNarrowsToMinusOneAndNeverComparesEqual() {
-  const int narrowed = static_cast<int>(NSNotFound);
+  const int narrowed = static_cast<int>(oo::kNotFound);
   OO_CHECK_EQ(narrowed, -1);
-  OO_CHECK(static_cast<NSInteger>(narrowed) != NSNotFound);
+  OO_CHECK(static_cast<std::ptrdiff_t>(narrowed) != oo::kNotFound);
   OO_CHECK_EQ(static_cast<std::size_t>(narrowed), SIZE_MAX);
 }
 

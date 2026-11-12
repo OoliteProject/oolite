@@ -57,7 +57,7 @@ void OOCPUInfoInit(void);
 /*	Number of processors (whether they be individual or cores), used to
    select number of threads to use for things like texture loading.
 */
-NSUInteger OOCPUCount(void);
+std::size_t OOCPUCount(void);
 
 /*
         Returns the CPU identifier string. Currently Windows and Linux only.

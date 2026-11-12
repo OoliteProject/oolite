@@ -239,8 +239,8 @@ void OODefaultShaderSynthesizer::appendVariable(const std::string& name,
                                                 const std::string& type,
                                                 const std::string& prefix,
                                                 std::string& buffer) {
-  NSUInteger typeDeclLength = prefix.size() + type.size() + 1;
-  NSUInteger padding = (typeDeclLength < 20) ? (23 - typeDeclLength) / 4 : 1;
+  std::size_t typeDeclLength = prefix.size() + type.size() + 1;
+  std::size_t padding = (typeDeclLength < 20) ? (23 - typeDeclLength) / 4 : 1;
   buffer += prefix + " " + type + std::string(padding, '\t') + name + ";\n";
 }
 
@@ -377,7 +377,7 @@ std::string KeyFromTextureSpec(const oo::PList& spec) {
 
 }  // namespace
 
-NSUInteger OODefaultShaderSynthesizer::assignIDForTexture(
+std::size_t OODefaultShaderSynthesizer::assignIDForTexture(
     const oo::PList& textureSpec) {
   OOCParameterAssert(!textureSpec.isNull());
 
@@ -410,7 +410,7 @@ NSUInteger OODefaultShaderSynthesizer::assignIDForTexture(
 
   std::string key =
       KeyFromTextureParameters(texName, texOptions, anisotropy, lodBias);
-  NSUInteger texID;
+  std::size_t texID;
   if (_texturesByName.find(key) == _texturesByName.end()) {
     texID = _texturesByName.size();
     std::string texUniform = oo::str::format("uTexture%zu", texID);
@@ -441,7 +441,7 @@ NSUInteger OODefaultShaderSynthesizer::assignIDForTexture(
   return texID;
 }
 
-NSUInteger OODefaultShaderSynthesizer::textureIDForSpec(
+std::size_t OODefaultShaderSynthesizer::textureIDForSpec(
     const oo::PList& textureSpec) {
   auto found = _textureIDs.find(KeyFromTextureSpec(textureSpec));
   return (found != _textureIDs.end()) ? found->second : 0;
@@ -452,7 +452,7 @@ void OODefaultShaderSynthesizer::setUpOneTexture(const oo::PList& textureSpec) {
 
   REQUIRE_STAGE(writeTextureCoordRead);
 
-  NSUInteger texID = assignIDForTexture(textureSpec);
+  std::size_t texID = assignIDForTexture(textureSpec);
   if (_sampledTextures.insert(texID).second) {
     _fragmentTextureLookups += oo::str::format(
         "\tvec4 tex%zuSample = texture2D(uTexture%zu, texCoords);  // %s\n",
@@ -470,7 +470,7 @@ void OODefaultShaderSynthesizer::getSampleName(std::string* outSampleName,
                      !textureSpec.isNull());
 
   setUpOneTexture(textureSpec);
-  NSUInteger texID = textureIDForSpec(textureSpec);
+  std::size_t texID = textureIDForSpec(textureSpec);
 
   *outSampleName = oo::str::format("tex%zuSample", texID);
   *outSwizzleOp = GetExtractMode(textureSpec).value_or(std::string());
@@ -485,7 +485,7 @@ std::optional<std::string> OODefaultShaderSynthesizer::readRGBForTextureSpec(
     return sample + ".rgb";
   }
 
-  NSUInteger channelCount = swizzle.size();
+  std::size_t channelCount = swizzle.size();
 
   if (channelCount == 1) {
     return sample + "." + swizzle + swizzle + swizzle;
@@ -511,7 +511,7 @@ OODefaultShaderSynthesizer::readOneChannelForTextureSpec(
     return sample + ".r";
   }
 
-  NSUInteger channelCount = swizzle.size();
+  std::size_t channelCount = swizzle.size();
 
   if (channelCount == 1) {
     return sample + "." + swizzle;
@@ -609,7 +609,7 @@ void OODefaultShaderSynthesizer::writeTextureCoordRead() {
               texture coordinates (duh).
       */
       std::string swizzle = GetExtractMode(parallaxMap).value_or("a");
-      NSUInteger channelCount = swizzle.size();
+      std::size_t channelCount = swizzle.size();
       if (channelCount == 1) {
         haveTexCoords = true;
 
@@ -617,7 +617,7 @@ void OODefaultShaderSynthesizer::writeTextureCoordRead() {
 
         _fragmentPreTextures += "\t// Parallax mapping\n";
 
-        NSUInteger texID = assignIDForTexture(parallaxMap);
+        std::size_t texID = assignIDForTexture(parallaxMap);
         _fragmentPreTextures += oo::str::format(
             "\tfloat parallax = texture2D(uTexture%zu, vTexCoords).%s;\n",
             texID, swizzle.c_str());
@@ -937,7 +937,7 @@ void OODefaultShaderSynthesizer::writeSpecularLighting() {
 void OODefaultShaderSynthesizer::writeLightMaps() {
   const oo::PList* lightMaps =
       _configuration.get<oo::PList::Array>(cxx_kOOMaterialLightMapsName);
-  NSUInteger idx, count = (lightMaps != nullptr) ? lightMaps->count() : 0;
+  std::size_t idx, count = (lightMaps != nullptr) ? lightMaps->count() : 0;
   if (count == 0) return;
 
   REQUIRE_STAGE(writeTotalColor);
@@ -976,7 +976,7 @@ void OODefaultShaderSynthesizer::writeLightMaps() {
     }
 
     if (color != nullptr) {
-      NSUInteger idx, count = color->count();
+      std::size_t idx, count = color->count();
       if (count > 4) count = 4;
       for (idx = 0; idx < count; idx++) {
         rgba[idx] = color->at<double>(idx);

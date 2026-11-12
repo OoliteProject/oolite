@@ -532,20 +532,20 @@ constexpr EntityShaderBindingRow kEntityShaderBindings[] = {
        StoreShaderBindingValue(
            out, [part]() -> Vector { return part->getVelocity(); }());
      }},
-    {"missileCapacity", kOOTypeEncoding<NSUInteger>,
+    {"missileCapacity", kOOTypeEncoding<std::size_t>,
      [](Entity* part) -> bool { return ShipPart(part) != nullptr; },
      [](Entity* part, OOShaderBindingValue& out) {
-       StoreShaderBindingValue(out, [part]() -> NSUInteger {
+       StoreShaderBindingValue(out, [part]() -> std::size_t {
          ShipEntity* ship = ShipPart(part);
-         return ship != nullptr ? ship->missileCapacity() : NSUInteger{};
+         return ship != nullptr ? ship->missileCapacity() : std::size_t{};
        }());
      }},
-    {"missileCount", kOOTypeEncoding<NSUInteger>,
+    {"missileCount", kOOTypeEncoding<std::size_t>,
      [](Entity* part) -> bool { return ShipPart(part) != nullptr; },
      [](Entity* part, OOShaderBindingValue& out) {
-       StoreShaderBindingValue(out, [part]() -> NSUInteger {
+       StoreShaderBindingValue(out, [part]() -> std::size_t {
          ShipEntity* ship = ShipPart(part);
-         return ship != nullptr ? ship->missileCount() : NSUInteger{};
+         return ship != nullptr ? ship->missileCount() : std::size_t{};
        }());
      }},
     {"fuelLeakRate", kOOTypeEncoding<float>,
@@ -666,16 +666,16 @@ constexpr EntityShaderBindingRow kEntityShaderBindings[] = {
          return ship != nullptr ? ship->alertCondition() : OOAlertCondition{};
        }());
      }},
-    {"trumbleCount", kOOTypeEncoding<NSUInteger>,
+    {"trumbleCount", kOOTypeEncoding<std::size_t>,
      [](Entity* part) -> bool {
        return ProxyPart(part) != nullptr || PlayerEntityPart(part) != nullptr;
      },
      [](Entity* part, OOShaderBindingValue& out) {
-       StoreShaderBindingValue(out, [part]() -> NSUInteger {
+       StoreShaderBindingValue(out, [part]() -> std::size_t {
          if (ProxyPlayerEntity* proxy = ProxyPart(part))
            return proxy->trumbleCount();
          PlayerEntity* player = PlayerEntityPart(part);
-         return player != nullptr ? player->getTrumbleCount() : NSUInteger{};
+         return player != nullptr ? player->getTrumbleCount() : std::size_t{};
        }());
      }},
     // The other names whitelist.plist permits, each

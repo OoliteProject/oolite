@@ -150,7 +150,7 @@ class OODebugTCPConsoleClient : public OODebuggerInterface {
                       paramKey);  // a null value or empty key: the type alone
 
   bool openSocketToHost(const std::string& address, uint16_t port);
-  NSInteger receive(uint8_t* buffer, size_t length);
+  std::ptrdiff_t receive(uint8_t* buffer, size_t length);
   bool isWaitingForInput();
   bool hasPendingErrorEvent();
   uintptr_t socket();

@@ -60,7 +60,7 @@ OOMatrix OOOpenGLMatrixStack::pop() {
   return matrix;
 }
 
-NSUInteger OOOpenGLMatrixStack::stackCount() { return stack.size(); }
+std::size_t OOOpenGLMatrixStack::stackCount() { return stack.size(); }
 
 void OOOpenGLMatrixManager::updateModelView() {
   valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION] = false;
@@ -165,7 +165,7 @@ OOMatrix OOOpenGLMatrixManager::getModelView() {
   return matrices[OOLITE_GL_MATRIX_MODELVIEW];
 }
 
-NSUInteger OOOpenGLMatrixManager::countModelView() {
+std::size_t OOOpenGLMatrixManager::countModelView() {
   return modelViewStack->stackCount();
 }
 
@@ -328,7 +328,7 @@ OOMatrix OOOpenGLMatrixManager::getMatrix(int which) {
 oo::PList OOOpenGLMatrixManager::standardMatrixUniformLocations(
     GLhandleARB program) {
   GLint location;
-  NSUInteger i;
+  std::size_t i;
   oo::PList::Array locationSet;
 
   OO_ENTER_OPENGL();
@@ -339,11 +339,11 @@ oo::PList OOOpenGLMatrixManager::standardMatrixUniformLocations(
     if (location >= 0) {
       if (i == OOLITE_GL_MATRIX_NORMAL) {
         locationSet.push_back(oo::PList(oo::PList::Array{
-            oo::PList(location), oo::PList(static_cast<NSInteger>(i)),
+            oo::PList(location), oo::PList(static_cast<std::ptrdiff_t>(i)),
             oo::PList("mat3")}));
       } else {
         locationSet.push_back(oo::PList(oo::PList::Array{
-            oo::PList(location), oo::PList(static_cast<NSInteger>(i)),
+            oo::PList(location), oo::PList(static_cast<std::ptrdiff_t>(i)),
             oo::PList("mat4")}));
       }
     }

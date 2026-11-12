@@ -1,5 +1,5 @@
 /*	oofnd/Date.hpp
-        oo::date: the replacement for NSDate, on std::chrono. NSTimeInterval
+        oo::date: the replacement for NSDate, on std::chrono. double
    stays a double count of seconds (the Foundation-types header keeps the
    typedef).
 
@@ -49,7 +49,7 @@ using Clock = std::chrono::system_clock;
 // UTC.
 inline constexpr std::int64_t kReferenceDateSince1970 = 978307200;
 
-// Seconds as a double, NSTimeInterval's representation.
+// Seconds as a double, double's representation.
 inline double secondsSinceEpoch(Clock::time_point t) {
   return std::chrono::duration<double>(t.time_since_epoch()).count();
 }

@@ -169,11 +169,11 @@ Vector DockEntity::portUpVectorForShipsBoundingBox(BoundingBox bb) {
   }
 }
 
-NSUInteger DockEntity::countOfShipsInDockingQueue() {
+std::size_t DockEntity::countOfShipsInDockingQueue() {
   return shipsOnApproach.size();
 }
 
-NSUInteger DockEntity::countOfShipsInLaunchQueue() {
+std::size_t DockEntity::countOfShipsInLaunchQueue() {
   return launchQueue.size();
 }
 
@@ -306,7 +306,7 @@ void DockEntity::drawImmediate(bool immediate, bool translucent) {
 
 // Docking guidance, the approach queue and docking instructions.
 
-NSUInteger DockEntity::pruneAndCountShipsOnApproach() {
+std::size_t DockEntity::pruneAndCountShipsOnApproach() {
   // Remove dead entities.
   // Enumerate over a snapshot of the keys because we mutate the map.
   for (unsigned short idObj : ShipIDsIn(shipsOnApproach)) {
@@ -1227,9 +1227,9 @@ void DockEntity::launchShip(::ShipEntity* ship) {
                            "STATION_LAUNCHED_SHIP");
 }
 
-NSUInteger DockEntity::countOfShipsInLaunchQueueWithPrimaryRole(
+std::size_t DockEntity::countOfShipsInLaunchQueueWithPrimaryRole(
     const std::string& role) {
-  NSUInteger count = 0;
+  std::size_t count = 0;
   for (const oo::EntityHold& ship : launchQueue) {
     if ((oo::ToShip(ship.get()) != nullptr
              ? oo::ToShip(ship.get())->hasPrimaryRole(role)

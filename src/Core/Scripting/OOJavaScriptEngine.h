@@ -118,7 +118,7 @@ class OOJavaScriptEngine : public oo::RefCounted {
           after a final garbage collection; if it is non-zero, they are logged
           and the runtime is abandoned rather than freed.
   */
-  NSUInteger shutDown();
+  std::size_t shutDown();
 
 #if OOJSENGINE_MONITOR_SUPPORT
   // (OOMonitorSupport)

@@ -82,7 +82,7 @@ void OOECMBlastEntity::update(OOTimeDelta delta_t) {
         (UNIVERSE != nullptr ? UNIVERSE->findEntitiesMatchingPredicate(
                                    IsShipPredicate, nullptr, radius, this)
                              : std::vector<oo::EntityHold>());
-    NSUInteger i, count = targets.size();
+    std::size_t i, count = targets.size();
     if (count > 0) {
       JSContext* context = OOJSAcquireContext();
 

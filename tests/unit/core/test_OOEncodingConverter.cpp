@@ -125,7 +125,7 @@ OO_TEST(noEncoding) {
     OO_CHECK(!converter->encoding().has_value());
     OO_CHECK_EQ(Bytes(converter->convertString("abc")), std::string());
     OO_CHECK_EQ(Bytes(converter->convertString("abc")), std::string());
-    // (NSNotFound's low 32 bits)
+    // (oo::kNotFound's low 32 bits)
     OO_CHECK(converter->descriptionComponents() ==
              std::optional<std::string>("encoding: 4294967295"));
 

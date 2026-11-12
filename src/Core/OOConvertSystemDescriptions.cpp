@@ -63,7 +63,7 @@ void InitKeyToIndexDict(const oo::PList& dict, KeysToIndices& outKeysToIndices,
   }
 }
 
-std::optional<std::string> IndexToKey(NSUInteger index,
+std::optional<std::string> IndexToKey(std::size_t index,
                                       const oo::PList& indicesToKeys,
                                       bool useFallback) {
   const oo::PList* value = indicesToKeys.find(oo::str::format("%zu", index));
@@ -75,7 +75,7 @@ std::optional<std::string> IndexToKey(NSUInteger index,
 }
 
 long long KeyToIndex(const std::string& key, KeysToIndices& ioKeysToIndices,
-                     UsedIndices& ioUsedIndicies, NSUInteger* ioSlotCache) {
+                     UsedIndices& ioUsedIndicies, std::size_t* ioSlotCache) {
   assert(ioSlotCache != nullptr);
 
   const auto found = ioKeysToIndices.find(key);
@@ -112,7 +112,7 @@ bool NextBrackets(const std::u16string& line, std::size_t location,
 oo::PList ConvertKeysToIndices(const oo::PList& entry,
                                KeysToIndices& ioKeysToIndices,
                                UsedIndices& ioUsedIndicies,
-                               NSUInteger* ioSlotCache) {
+                               std::size_t* ioSlotCache) {
   oo::PList::Array result;
 
   for (std::size_t i = 0; i < entry.count(); i++) {
@@ -158,13 +158,13 @@ oo::PList ConvertIndicesToKeys(const oo::PList& entry,
 }
 
 // The highest index, as the Foundation code worked it out (each through
-// -intValue into an NSUInteger). Its callers use it as the count, so the
+// -intValue into an std::size_t). Its callers use it as the count, so the
 // highest entry is not copied.
-NSUInteger HighestIndex(const std::map<long long, oo::PList>& sparseArray) {
-  NSUInteger curr, highest = 0;
+std::size_t HighestIndex(const std::map<long long, oo::PList>& sparseArray) {
+  std::size_t curr, highest = 0;
 
   for (const auto& [key, value] : sparseArray) {
-    curr = static_cast<NSUInteger>(static_cast<int>(key));
+    curr = static_cast<std::size_t>(static_cast<int>(key));
     if (highest < curr) highest = curr;
   }
 
@@ -262,8 +262,8 @@ oo::PList OOConvertSystemDescriptionsToArrayFormat(
   std::map<long long, oo::PList> result;  // a sparse array
   KeysToIndices keysToIndices;
   UsedIndices usedIndices;
-  NSUInteger slotCache = 0;
-  NSUInteger i, count;
+  std::size_t slotCache = 0;
+  std::size_t i, count;
   oo::PList::Array realResult;
 
   InitKeyToIndexDict(indicesToKeys, keysToIndices, usedIndices);
@@ -321,7 +321,7 @@ std::string OOStringifySystemDescriptionLine(const std::string& lineText,
         middle.find_first_not_of(u"0123456789") == std::u16string::npos) {
       // Found [] around integers only
       const std::optional<std::string> key = IndexToKey(
-          static_cast<NSUInteger>(oo::str::intValue(oo::utf16ToUtf8(middle))),
+          static_cast<std::size_t>(oo::str::intValue(oo::utf16ToUtf8(middle))),
           indicesToKeys, useFallback);
       if (key.has_value()) {
         std::u16string replaced = before;

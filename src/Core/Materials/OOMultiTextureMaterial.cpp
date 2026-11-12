@@ -142,9 +142,9 @@ std::optional<std::string> OOMultiTextureMaterial::descriptionComponents()
   return result;
 }
 
-NSUInteger OOMultiTextureMaterial::textureUnitCount() { return _unitsUsed; }
+std::size_t OOMultiTextureMaterial::textureUnitCount() { return _unitsUsed; }
 
-NSUInteger OOMultiTextureMaterial::countOfTextureUnitsWithBaseCoordinates() {
+std::size_t OOMultiTextureMaterial::countOfTextureUnitsWithBaseCoordinates() {
   return _unitsUsed;
 }
 
@@ -190,7 +190,7 @@ void OOMultiTextureMaterial::unapplyWithNext(OOMaterial* next) {
   OOBasicMaterial::unapplyWithNext(next);
 
   // -isKindOfClass: (nil is not one)
-  NSUInteger i;
+  std::size_t i;
   OOMultiTextureMaterial* nextMulti =
       dynamic_cast<OOMultiTextureMaterial*>(next);
   i = (nextMulti != nullptr) ? nextMulti->textureUnitCount() : 0;

@@ -73,9 +73,9 @@ OOJSFunction::OOJSFunction(JSValueConst function, JSContext* context) {
 
 oo::Ref<OOJSFunction> OOJSFunction::initWithName(
     const std::optional<std::string>& name, JSValueConst scope,
-    const std::optional<std::string>& code, NSUInteger argCount,
+    const std::optional<std::string>& code, std::size_t argCount,
     const char** argNames, const std::optional<std::string>& fileName,
-    NSUInteger lineNumber, JSContext* context) {
+    std::size_t lineNumber, JSContext* context) {
   bool OK = true;
   bool releaseContext = false;
   JSValue function = JS_UNDEFINED;
@@ -103,7 +103,7 @@ oo::Ref<OOJSFunction> OOJSFunction::initWithName(
             the first line so that line numbers in the body are unchanged.
     */
     std::string source = "(function(";
-    NSUInteger i;
+    std::size_t i;
     for (i = 0; i < argCount; i++) {
       if (i != 0) source += ",";
       source += argNames[i];

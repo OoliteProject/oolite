@@ -543,7 +543,7 @@ OO_TEST(slice3Wormhole)
 		oo::Ref<WormholeEntity> holeRef = oo::makeRef<WormholeEntity>();
 		Entity *object = oo::RetainEntity(oo::MadeEntity(holeRef));
 		WormholeEntity *hole = holeRef.get();
-		NSUInteger count = object->retainCount();
+		std::size_t count = object->retainCount();
 		player->setWormhole(hole);
 		OO_CHECK(player->getWormhole() == hole && object->retainCount() == count + 1);
 		player->setWormhole(nullptr);

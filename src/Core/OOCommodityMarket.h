@@ -60,7 +60,7 @@ MA 02110-1301, USA.
 */
 class OOCommodityMarket : public oo::RefCounted {
  public:
-  NSUInteger count();
+  std::size_t count();
 
   void setGood(const std::string& key, const oo::PList& info);
 
@@ -82,8 +82,8 @@ class OOCommodityMarket : public oo::RefCounted {
   OOCreditsQuantity priceForGood(const std::string& good);
   OOCargoQuantity quantityForGood(const std::string& good);
   OOMassUnit massUnitForGood(const std::string& good);
-  NSUInteger exportLegalityForGood(const std::string& good);
-  NSUInteger importLegalityForGood(const std::string& good);
+  std::size_t exportLegalityForGood(const std::string& good);
+  std::size_t importLegalityForGood(const std::string& good);
   OOCargoQuantity capacityForGood(const std::string& good);
   float trumbleOpinionForGood(const std::string& good);
 

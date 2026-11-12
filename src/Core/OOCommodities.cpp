@@ -125,7 +125,7 @@ bool ContainsString(const oo::PList& array, const std::string& string) {
 
 }  // namespace
 
-std::optional<std::string> OOCommodities::legacyCommodityType(NSUInteger i) {
+std::optional<std::string> OOCommodities::legacyCommodityType(std::size_t i) {
   switch (i) {
     case 0:
       return "food";
@@ -429,7 +429,7 @@ oo::Ref<OOCommodityMarket> OOCommodities::generateMarketForStation(
   return market;
 }
 
-NSUInteger OOCommodities::count() { return _commodityLists.size(); }
+std::size_t OOCommodities::count() { return _commodityLists.size(); }
 
 std::vector<std::string> OOCommodities::goods() {
   // key order (was -allKeys, hash order)
@@ -461,7 +461,7 @@ std::optional<std::string> OOCommodities::goodNamed(const std::string& name) {
 
 std::string OOCommodities::getRandomCommodity() {
   // Ranrot() % count indexes the keys in key order (was -allKeys, hash order).
-  NSUInteger idx = Ranrot() % _commodityLists.size();
+  std::size_t idx = Ranrot() % _commodityLists.size();
   auto entry = _commodityLists.begin();
   std::advance(entry, idx);
   return entry->first;
@@ -565,7 +565,7 @@ float OOCommodities::economicBiasForGood(const oo::PList& good,
 oo::PList OOCommodities::firstModifierForGood(const std::string& good,
                                               const oo::PList& classes,
                                               const oo::PList& definitions) {
-  NSUInteger i;
+  std::size_t i;
   for (i = 0; i < definitions.count(); i++) {
     const oo::PList* definition = definitions.at(i);
     if (definition != nullptr && definition->isDict()) {

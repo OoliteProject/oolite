@@ -1015,7 +1015,7 @@ static JSValue StationSetMarketPrice(OOJS_NATIVE_ARGS) {
   }
 
   if (station != nullptr)
-    station->setPrice((NSUInteger)price, commodity.value_or(""));
+    station->setPrice((std::size_t)price, commodity.value_or(""));
 
   if (station == (PLAYER != nullptr ? PLAYER->PlayerEntity::dockedStation()
                                     : (StationEntity*)nullptr) &&

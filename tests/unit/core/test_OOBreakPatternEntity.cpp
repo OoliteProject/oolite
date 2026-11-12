@@ -64,17 +64,17 @@ class TestUniverse : public Universe {
 // ---------------------------------------------------
 
 struct OOBreakPatternEntityTestAccess {
-  static NSUInteger VertexCount(const oo::Ref<OOBreakPatternEntity>& r) {
+  static std::size_t VertexCount(const oo::Ref<OOBreakPatternEntity>& r) {
     OOBreakPatternEntity* e = r.get();
     return e->_vertexCount;
   }
   static Vector VertexPosition(const oo::Ref<OOBreakPatternEntity>& r,
-                               NSUInteger i) {
+                               std::size_t i) {
     OOBreakPatternEntity* e = r.get();
     return e->_vertexPosition[i];
   }
   static const GLfloat* VertexColor(const oo::Ref<OOBreakPatternEntity>& r,
-                                    NSUInteger i) {
+                                    std::size_t i) {
     OOBreakPatternEntity* e = r.get();
     return e->_vertexColor[i];
   }
@@ -100,7 +100,7 @@ void SetUp() {
 
 bool Near(float a, float b) { return fabs(a - b) < 1e-4; }
 
-bool ColorIs(const oo::Ref<OOBreakPatternEntity>& e, NSUInteger i, GLfloat r,
+bool ColorIs(const oo::Ref<OOBreakPatternEntity>& e, std::size_t i, GLfloat r,
              GLfloat g, GLfloat b, GLfloat a) {
   const GLfloat* c = Access::VertexColor(e, i);
   return c[0] == r && c[1] == g && c[2] == b && c[3] == a;

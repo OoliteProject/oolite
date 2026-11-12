@@ -224,7 +224,7 @@ std::optional<std::string> OptionalStringAt(const oo::PList& array,
    does, with the same text.
 */
 OOColor* ReticleColorAt(const std::vector<oo::Ref<OOColor>>& colors,
-                        NSUInteger index) {
+                        std::size_t index) {
   if (EXPECT_NOT(index >= colors.size())) {
     OORaiseException(OORangeException,
                      "Index %lu is out of range %lu (in 'objectAtIndex:')",
@@ -614,7 +614,7 @@ void HeadUpDisplay::resetGuis(const oo::PList& info) {
                            : (std::vector<std::string>*)nullptr);
     const std::vector<std::string> cLog =
         (liveLog != nullptr) ? *liveLog : std::vector<std::string>();
-    NSUInteger i, commCount = cLog.size();
+    std::size_t i, commCount = cLog.size();
 
     resetGui(gui, *gui_info);
 
@@ -659,14 +659,15 @@ void HeadUpDisplay::setHudName(const std::optional<std::string>& newHudName) {
   }
 }
 
-oo::Ref<OOColor> HeadUpDisplay::reticleColorForIndex(NSUInteger idx) {
+oo::Ref<OOColor> HeadUpDisplay::reticleColorForIndex(std::size_t idx) {
   if (idx < _reticleColors.size()) {
     return _reticleColors[idx];
   }
   return nullptr;
 }
 
-bool HeadUpDisplay::setReticleColorForIndex(NSUInteger idx, OOColor* newColor) {
+bool HeadUpDisplay::setReticleColorForIndex(std::size_t idx,
+                                            OOColor* newColor) {
   if (newColor && idx < _reticleColors.size()) {
     _reticleColors[idx] = oo::Ref<OOColor>(newColor);
     return true;
@@ -840,7 +841,7 @@ void HeadUpDisplay::addMFD(const oo::PList& info) {
   AddHUDWidget(mfdArray, info, &cache, nullptr, "");
 }
 
-NSUInteger HeadUpDisplay::mfdCount() { return mfdArray.size(); }
+std::size_t HeadUpDisplay::mfdCount() { return mfdArray.size(); }
 
 std::optional<std::string> HeadUpDisplay::getCrosshairDefinition() {
   return crosshairDefinition;
@@ -955,7 +956,7 @@ void HeadUpDisplay::drawLegends() {
   z1 = (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr
             ? UNIVERSE->getGameView()->getDisplay_z()
             : 0.0f);
-  NSUInteger i, nLegends = legendArray.size();
+  std::size_t i, nLegends = legendArray.size();
   for (i = 0; i < nLegends; i++) {
     sCurrentDrawItem = &legendArray[i];
     drawLegend(sCurrentDrawItem->info);
@@ -970,7 +971,7 @@ void HeadUpDisplay::drawDials() {
   _compassUpdated = false;
 
   // tight loop, we assume dialArray doesn't change in mid-draw.
-  NSUInteger i, nDials = dialArray.size();
+  std::size_t i, nDials = dialArray.size();
   for (i = 0; i < nDials; i++) {
     sCurrentDrawItem = &dialArray[i];
     drawHUDItem(sCurrentDrawItem->info);
@@ -993,7 +994,7 @@ void HeadUpDisplay::drawDials() {
 }
 
 void HeadUpDisplay::drawMFDs() {
-  NSUInteger i, nMFDs = mfdArray.size();
+  std::size_t i, nMFDs = mfdArray.size();
   std::optional<std::string> text;
   for (i = 0; i < nMFDs; i++) {
     text = (PLAYER != nullptr ? PLAYER->multiFunctionText(i)
@@ -1111,7 +1112,7 @@ void HeadUpDisplay::drawLegend(const oo::PList& info) {
   }
 
   // check alert condition
-  NSUInteger alertMask = info.get<unsigned int>(ALERT_CONDITIONS_KEY, 15);
+  std::size_t alertMask = info.get<unsigned int>(ALERT_CONDITIONS_KEY, 15);
   // 1=docked, 2=green, 4=yellow, 8=red
   if (alertMask < 15) {
     OOAlertCondition alertCondition =
@@ -1187,7 +1188,7 @@ void HeadUpDisplay::drawHUDItem(const oo::PList& info) {
   }
 
   // check alert condition
-  NSUInteger alertMask = info.get<unsigned int>(ALERT_CONDITIONS_KEY, 15);
+  std::size_t alertMask = info.get<unsigned int>(ALERT_CONDITIONS_KEY, 15);
   // 1=docked, 2=green, 4=yellow, 8=red
   if (alertMask < 15) {
     OOAlertCondition alertCondition =
@@ -1224,7 +1225,7 @@ void HeadUpDisplay::drawSurroundInternal(
     const oo::PList& /*info*/,
     const GLfloat color[4])  // the geometry is the current item's cached info
 {
-  NSInteger x, y;
+  std::ptrdiff_t x, y;
   NSSize siz;
   GLfloat alpha = overallAlpha;
   struct CachedInfo cached;
@@ -1278,10 +1279,10 @@ void HeadUpDisplay::drawYellowSurround(const oo::PList& info) {
 
 void HeadUpDisplay::drawMultiFunctionDisplay(const oo::PList& info,
                                              const std::string& text,
-                                             NSUInteger index) {
+                                             std::size_t index) {
   ::PlayerEntity* player1 = PLAYER;
   struct CachedInfo cached;
-  NSInteger i, x, y;
+  std::ptrdiff_t i, x, y;
   NSSize siz, tmpsiz;
   if ((player1 != nullptr ? player1->guiScreen() : OOGUIScreenID{}) !=
       GUI_SCREEN_MAIN)  // don't draw on text screens
@@ -2647,7 +2648,7 @@ void HeadUpDisplay::drawWitchspaceDestination(const oo::PList& info) {
                  (PLAYER != nullptr ? PLAYER->targetSystemID() : 0))
            : std::optional<std::string>())
           .value_or("");  // nil drew nothing, as "" does
-  NSInteger concealment =
+  std::ptrdiff_t concealment =
       ((UNIVERSE != nullptr ? UNIVERSE->getSystemManager() : nullptr) != nullptr
            ? UNIVERSE->getSystemManager()->getPropertiesForSystem(
                  (PLAYER != nullptr ? PLAYER->targetSystemID() : 0),
@@ -2957,7 +2958,7 @@ void HeadUpDisplay::drawMissileDisplay(const oo::PList& info) {
   if (!(PLAYER != nullptr ? PLAYER->dialIdentEngaged() : false)) {
     OOMissileStatus status =
         (PLAYER != nullptr ? PLAYER->dialMissileStatus() : OOMissileStatus{});
-    NSUInteger i, n_mis = (PLAYER != nullptr ? PLAYER->dialMaxMissiles() : 0);
+    std::size_t i, n_mis = (PLAYER != nullptr ? PLAYER->dialMaxMissiles() : 0);
     for (i = 0; i < n_mis; i++) {
       ::ShipEntity* missile = (PLAYER != nullptr ? PLAYER->missileForPylon(i)
                                                  : (::ShipEntity*)nullptr);
@@ -3132,9 +3133,9 @@ void HeadUpDisplay::drawDirectionCue(const oo::PList& /*info*/) {
     alpha *= OOClamp_0_1_f(visibility);
 
     if (alpha > 0.0f) {
-      NSUInteger cueColorIndex = target->getIsWormhole()
-                                     ? OO_RETICLE_COLOR_WORMHOLE
-                                     : OO_RETICLE_COLOR_TARGET;
+      std::size_t cueColorIndex = target->getIsWormhole()
+                                      ? OO_RETICLE_COLOR_WORMHOLE
+                                      : OO_RETICLE_COLOR_TARGET;
       OOColor* directionCueColor = ReticleColorAt(
           _reticleColors, cueColorIndex);  // never null: it raises past the end
       GLfloat clearColorArray[4] = {directionCueColor->redComponent(),
@@ -3199,22 +3200,22 @@ void HeadUpDisplay::drawPrimedEquipment(const oo::PList& info) {
   GLfloat itemColor[4] = {0.0f, 1.0f, 0.0f, 1.0f};
   struct CachedInfo cached;
 
-  NSUInteger lines = info.get<int>("n_bars", 1);
-  NSInteger pec =
-      (NSInteger)(PLAYER != nullptr ? PLAYER->primedEquipmentCount() : 0);
+  std::size_t lines = info.get<int>("n_bars", 1);
+  std::ptrdiff_t pec =
+      (std::ptrdiff_t)(PLAYER != nullptr ? PLAYER->primedEquipmentCount() : 0);
 
   GetCurrentCachedInfo(&cached);
 
-  NSInteger x = useDefined(cached.x, PRIMED_DISPLAY_X) +
-                (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr
-                     ? UNIVERSE->getGameView()->getX_offset()
-                     : 0.0f) *
-                    cached.x0;
-  NSInteger y = useDefined(cached.y, PRIMED_DISPLAY_Y) +
-                (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr
-                     ? UNIVERSE->getGameView()->getY_offset()
-                     : 0.0f) *
-                    cached.y0;
+  std::ptrdiff_t x = useDefined(cached.x, PRIMED_DISPLAY_X) +
+                     (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr
+                          ? UNIVERSE->getGameView()->getX_offset()
+                          : 0.0f) *
+                         cached.x0;
+  std::ptrdiff_t y = useDefined(cached.y, PRIMED_DISPLAY_Y) +
+                     (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr
+                          ? UNIVERSE->getGameView()->getY_offset()
+                          : 0.0f) *
+                         cached.y0;
 
   NSSize size = {.width = useDefined(cached.width, PRIMED_DISPLAY_WIDTH),
                  .height = useDefined(cached.height, PRIMED_DISPLAY_HEIGHT)};
@@ -3236,9 +3237,9 @@ void HeadUpDisplay::drawPrimedEquipment(const oo::PList& info) {
                          .value_or(std::string()),
                      x, y, z1, size);
   } else {
-    NSInteger negative = (lines - 1) / 2;
-    NSInteger positive = lines / 2;
-    for (NSInteger i = -negative; i <= positive; i++) {
+    std::ptrdiff_t negative = (lines - 1) / 2;
+    std::ptrdiff_t positive = lines / 2;
+    for (std::ptrdiff_t i = -negative; i <= positive; i++) {
       if (i >= -(pec) / 2 && i <= (pec + 1) / 2) {
         // don't display loops if we have more equipment than lines
         // instead compact the display towards its centre
@@ -3269,16 +3270,16 @@ void HeadUpDisplay::drawASCTarget(const oo::PList& info) {
 
   GetCurrentCachedInfo(&cached);
 
-  NSInteger x = useDefined(cached.x, ASCTARGET_DISPLAY_X) +
-                (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr
-                     ? UNIVERSE->getGameView()->getX_offset()
-                     : 0.0f) *
-                    cached.x0;
-  NSInteger y = useDefined(cached.y, ASCTARGET_DISPLAY_Y) +
-                (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr
-                     ? UNIVERSE->getGameView()->getY_offset()
-                     : 0.0f) *
-                    cached.y0;
+  std::ptrdiff_t x = useDefined(cached.x, ASCTARGET_DISPLAY_X) +
+                     (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr
+                          ? UNIVERSE->getGameView()->getX_offset()
+                          : 0.0f) *
+                         cached.x0;
+  std::ptrdiff_t y = useDefined(cached.y, ASCTARGET_DISPLAY_Y) +
+                     (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr
+                          ? UNIVERSE->getGameView()->getY_offset()
+                          : 0.0f) *
+                         cached.y0;
 
   NSSize size = {.width = useDefined(cached.width, ASCTARGET_DISPLAY_WIDTH),
                  .height = useDefined(cached.height, ASCTARGET_DISPLAY_HEIGHT)};
@@ -3572,7 +3573,7 @@ void HeadUpDisplay::drawStickSensitivityIndicator(const oo::PList& /*info*/) {
 void HeadUpDisplay::drawTrumbles(const oo::PList& /*info*/) {
   PlayerEntity* player = PLAYER;
   oo::Ref<OOTrumble>* trumbles = player->trumbleArray();
-  NSUInteger i;
+  std::size_t i;
   for (i = player->getTrumbleCount(); i > 0; i--) {
     trumbles[i - 1]->drawTrumble(z1);
   }
@@ -4187,7 +4188,7 @@ static void InitTextEngine() {
   oo::PList fontSpec;
   const oo::PList* widths = nullptr;
   std::string texName;
-  NSUInteger i, count;
+  std::size_t i, count;
 
   fontSpec = ResourceManager::dictionaryFromFilesNamed(
       "oolite-font.plist", std::string("Config"), false);
@@ -4262,7 +4263,7 @@ NSRect cxx_OORectFromString(const std::string& text, GLfloat x, GLfloat y,
   GLfloat w = 0;
   oo::Data data;
   const uint8_t* bytes = nullptr;
-  NSUInteger i, length;
+  std::size_t i, length;
 
   data = ConvertedString(text);
   bytes = (const uint8_t*)data.bytes();
@@ -4275,7 +4276,7 @@ NSRect cxx_OORectFromString(const std::string& text, GLfloat x, GLfloat y,
   return NSMakeRect(x, y, w, siz.height);
 }
 
-CGFloat cxx_OOStringWidthInEm(const std::string& text) {
+double cxx_OOStringWidthInEm(const std::string& text) {
   return cxx_OORectFromString(text, 0, 0,
                               NSMakeSize(1.0 / (GLYPH_SCALE_FACTOR * 8.0), 1.0))
       .size.width;
@@ -4333,7 +4334,7 @@ void OOStartDrawingStrings() {
 void cxx_OODrawStringQuadsAligned(const std::string& text, GLfloat x, GLfloat y,
                                   GLfloat z, NSSize siz, bool rightAlign) {
   GLfloat cx = x;
-  NSInteger i, length;
+  std::ptrdiff_t i, length;
   oo::Data data;
   const uint8_t* bytes = nullptr;
 

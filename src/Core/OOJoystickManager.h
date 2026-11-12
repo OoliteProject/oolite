@@ -281,10 +281,10 @@ class OOJoystickManager : public oo::RefCounted {
   void loadStickSettings();
 
   // Methods that should be overridden by all subclasses
-  virtual NSUInteger joystickCount();
+  virtual std::size_t joystickCount();
   virtual std::optional<std::string> nameOfJoystick(
-      NSUInteger stickNumber);  // nullopt: the device has no name
-  virtual int16_t getAxisWithStick(NSUInteger stickNum, NSUInteger axisNum);
+      std::size_t stickNumber);  // nullopt: the device has no name
+  virtual int16_t getAxisWithStick(std::size_t stickNum, std::size_t axisNum);
 
  private:
   // Setting button and axis functions
