@@ -343,8 +343,9 @@ void OOTimeProfileEntry::addSampleWithTotalTime(OOTimeDelta totalTime,
 }
 
 std::optional<std::string> OOTimeProfileEntry::description() {
-  const char* function = _function.has_value() ? _function->c_str()
-                                               : "(null)";  // as %@ printed nil
+  const std::string_view function = _function.has_value()
+                                        ? std::string_view(*_function)
+                                        : "(null)";  // as %@ printed nil
   if (_hitCount == 0) return std::format("{}: --", function);
 
   // Convert everything to milliseconds.

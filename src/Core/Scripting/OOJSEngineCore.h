@@ -271,7 +271,7 @@ JSValue OOJSValueFromPList(JSContext* context, const oo::PList& plist);
 
 /**** String utilities ****/
 
-/*	OOJSSTR(const char * [literal])
+/*	OOJSSTR(string literal)
 
         An owned string value for a string literal. The string is interned the
         first time the macro is hit.

@@ -571,10 +571,10 @@ static void LoadCompatibilityScript(JSContext* context) {
   static bool checked = false;
   if (!checked) {
     checked = true;
-    const char* test =
+    static constexpr char test[] =
         "(function () { 'use strict'; try { 'x'.oolite = 1; new Math.max(); "
         "return true; } catch (e) { return false; } })()";
-    JSValue patched = JS_Eval(context, test, strlen(test),
+    JSValue patched = JS_Eval(context, test, sizeof test - 1,
                               "<compatibility check>", JS_EVAL_TYPE_GLOBAL);
     if (!JS_IsException(patched) && !OOJSValueToBOOL(context, patched)) {
       OO_LOG_WARN("script.javaScript.init.unpatchedEngine", "{}",
@@ -591,7 +591,7 @@ static void LoadCompatibilityScript(JSContext* context) {
 std::string OOJSWrapScriptSource(const std::string& source) {
   // A newline before the closing part is needed if the last line is a //
   // comment.
-  const char* lineEnd = oo::str::hasSuffix(source, "\n") ? "" : "\n";
+  const std::string lineEnd = oo::str::hasSuffix(source, "\n") ? "" : "\n";
   return "with(this){(function(){" + source + lineEnd + "}).call(this)}";
 }
 
@@ -762,10 +762,12 @@ static bool GetLocationFromStack(const std::optional<std::string>& stack,
     if (lineColon == std::string_view::npos)
       continue;  // Native frame, e.g. "at log (native)".
 
-    const std::string lineText(
-        frame.substr(lineColon + 1, lastColon - lineColon - 1));
+    // atoi's answer for the digits a frame has (oo::str::intValue differs
+    // only on overflow, where atoi had none).
+    const std::string_view lineText =
+        frame.substr(lineColon + 1, lastColon - lineColon - 1);
     *outFile = std::string(frame.substr(0, lineColon));
-    *outLine = static_cast<unsigned>(atoi(lineText.c_str()));
+    *outLine = static_cast<unsigned>(oo::str::intValue(lineText));
     return true;
   }
   return false;
@@ -1984,10 +1986,10 @@ static void RegisterStandardObjectConverters(JSContext* context) {
   if (gOOJSObjectClassID == 0) {
     // The standard class IDs are not part of the QuickJS API, so look them up
     // from instances.
-    const char* source =
+    static constexpr char source[] =
         "[{}, new String(''), [], new Number(0), new Boolean(false)]";
-    JSValue templates =
-        JS_Eval(context, source, strlen(source), "<init>", JS_EVAL_TYPE_GLOBAL);
+    JSValue templates = JS_Eval(context, source, sizeof source - 1, "<init>",
+                                JS_EVAL_TYPE_GLOBAL);
     JSClassID* ids[] = {&gOOJSObjectClassID, &gOOJSStringClassID,
                         &gOOJSArrayClassID, &gOOJSNumberClassID,
                         &gOOJSBooleanClassID};

@@ -241,7 +241,7 @@ JSValue OOJSNativeFailure(JSContext* context) {
 std::string OOJSWrapScriptSource(const std::string& source) {
   // A newline before the closing part is needed if the last line is a //
   // comment.
-  const char* lineEnd = oo::str::hasSuffix(source, "\n") ? "" : "\n";
+  const std::string lineEnd = oo::str::hasSuffix(source, "\n") ? "" : "\n";
   return "with(this){(function(){" + source + lineEnd + "}).call(this)}";
 }
 
@@ -389,10 +389,12 @@ static bool GetLocationFromStack(const std::optional<std::string>& stack,
     if (lineColon == std::string_view::npos)
       continue;  // Native frame, e.g. "at log (native)".
 
-    const std::string lineText(
-        frame.substr(lineColon + 1, lastColon - lineColon - 1));
+    // atoi's answer for the digits a frame has (oo::str::intValue differs
+    // only on overflow, where atoi had none).
+    const std::string_view lineText =
+        frame.substr(lineColon + 1, lastColon - lineColon - 1);
     *outFile = std::string(frame.substr(0, lineColon));
-    *outLine = static_cast<unsigned>(atoi(lineText.c_str()));
+    *outLine = static_cast<unsigned>(oo::str::intValue(lineText));
     return true;
   }
   return false;
