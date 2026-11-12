@@ -179,6 +179,7 @@ core_tests = {
     'test_OOSkyDrawable': ['*'],
     'test_OOWaypointEntity': ['*'],
     'test_EntityDisposalReaders': ['*'],
+    'test_ScriptFinalisationRelease': ['*'],
     'test_OOFlasherEntity': ['*'],
     'test_OOVisualEffectEntity': ['*'],
     'test_OOFlashEffectEntity': ['*'],
