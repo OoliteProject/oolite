@@ -275,28 +275,28 @@ static JSValue PlayerGetProperty(OOJS_GETTER_ARGS) {
 
     case kPlayer_alertTemperature:
       return OOJSValueFromBOOL(
-          (player != nullptr ? player->getAlertFlags() : int{}) &
-          ALERT_FLAG_TEMP);
+          OOAlertFlagIsOn((player != nullptr ? player->getAlertFlags() : int{}),
+                          OOAlertFlags::kTemp));
 
     case kPlayer_alertMassLocked:
       return OOJSValueFromBOOL(
-          (player != nullptr ? player->getAlertFlags() : int{}) &
-          ALERT_FLAG_MASS_LOCK);
+          OOAlertFlagIsOn((player != nullptr ? player->getAlertFlags() : int{}),
+                          OOAlertFlags::kMassLock));
 
     case kPlayer_alertAltitude:
       return OOJSValueFromBOOL(
-          (player != nullptr ? player->getAlertFlags() : int{}) &
-          ALERT_FLAG_ALT);
+          OOAlertFlagIsOn((player != nullptr ? player->getAlertFlags() : int{}),
+                          OOAlertFlags::kAlt));
 
     case kPlayer_alertEnergy:
       return OOJSValueFromBOOL(
-          (player != nullptr ? player->getAlertFlags() : int{}) &
-          ALERT_FLAG_ENERGY);
+          OOAlertFlagIsOn((player != nullptr ? player->getAlertFlags() : int{}),
+                          OOAlertFlags::kEnergy));
 
     case kPlayer_alertHostiles:
       return OOJSValueFromBOOL(
-          (player != nullptr ? player->getAlertFlags() : int{}) &
-          ALERT_FLAG_HOSTILES);
+          OOAlertFlagIsOn((player != nullptr ? player->getAlertFlags() : int{}),
+                          OOAlertFlags::kHostiles));
 
     case kPlayer_escapePodRescueTime:
       return JS_NewNumber(

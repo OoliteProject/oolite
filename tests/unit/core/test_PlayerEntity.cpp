@@ -715,7 +715,7 @@ OO_TEST(slice10OrientationFlagsAndShields)
 		OO_CHECK(player->getShowDemoShips());
 		PlayerEntityTestAccess::travelling_at_hyperspeed(part) = true;
 		OO_CHECK(player->atHyperspeed());
-		PlayerEntityTestAccess::alertFlags(part) = ALERT_FLAG_MASS_LOCK;
+		PlayerEntityTestAccess::alertFlags(part) = oo::ToUnderlying(OOAlertFlags::kMassLock);
 		OO_CHECK(player->massLocked());
 		PlayerEntityTestAccess::alertFlags(part) = 0;
 		OO_CHECK(!player->massLocked());
@@ -821,10 +821,10 @@ OO_TEST(slice12CompassIdentAndAlertFlags)
 		OO_CHECK(player->dialIdentEngaged());
 		player->max_missiles = 5;
 		OO_CHECK(player->dialMaxMissiles() == 5);
-		player->setAlertFlag(ALERT_FLAG_MASS_LOCK, true);
-		OO_CHECK((player->getAlertFlags() & ALERT_FLAG_MASS_LOCK) != 0);
-		player->setAlertFlag(ALERT_FLAG_MASS_LOCK, false);
-		OO_CHECK((player->getAlertFlags() & ALERT_FLAG_MASS_LOCK) == 0);
+		player->setAlertFlag(OOAlertFlags::kMassLock, true);
+		OO_CHECK((player->getAlertFlags() & oo::ToUnderlying(OOAlertFlags::kMassLock)) != 0);
+		player->setAlertFlag(OOAlertFlags::kMassLock, false);
+		OO_CHECK((player->getAlertFlags() & oo::ToUnderlying(OOAlertFlags::kMassLock)) == 0);
 		PlayerEntityTestAccess::alertFlags(player) = 0x7;
 		player->clearAlertFlags();
 		OO_CHECK(player->getAlertFlags() == 0);
