@@ -25,12 +25,10 @@ MA 02110-1301, USA.
 
 */
 
-#include <cxxabi.h>
-
-#include <cstdlib>
 #include <typeinfo>
 
 #include "Entity.h"
+#include "OODemangle.h"
 #include "OOVisualEffectEntity.h"
 #include "OOWaypointEntity.h"
 #include "ShipEntity.h"
@@ -121,13 +119,7 @@ Entity* oo::EntityInitAgain(Entity* entity) {
 // ---------------------------------------------------------------------------------
 
 std::string oo::EntityClassName(Entity* entity) {
-  int status = 0;
-  char* demangled =
-      abi::__cxa_demangle(typeid(*entity).name(), nullptr, nullptr, &status);
-  std::string result = (status == 0 && demangled != nullptr)
-                           ? demangled
-                           : typeid(*entity).name();
-  std::free(demangled);
+  std::string result = OODemangle(typeid(*entity).name());
   if (result.starts_with("cxx::")) result.erase(0, 5);
   return result;
 }

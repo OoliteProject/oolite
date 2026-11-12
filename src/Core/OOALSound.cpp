@@ -26,9 +26,6 @@ SOFTWARE.
 
 #include "OOALSound.h"
 
-#include <cxxabi.h>
-
-#include <cstdlib>
 #include <string_view>
 #include <typeinfo>
 
@@ -36,6 +33,7 @@ SOFTWARE.
 #include "OOALSoundDecoder.h"
 #include "OOALSoundMixer.h"
 #include "OOALStreamedSound.h"
+#include "OODemangle.h"
 #include "OOLogging.h"
 #include "OOMaths.h"
 #include "OOOpenALController.h"
@@ -161,12 +159,7 @@ std::optional<std::string> OOSound::descriptionComponents() const {
 
 // The C++ class's name, without a namespace, its address and its components.
 std::string OOSound::description() const {
-  int status = 0;
-  char* demangled =
-      abi::__cxa_demangle(typeid(*this).name(), nullptr, nullptr, &status);
-  std::string name =
-      (status == 0 && demangled != nullptr) ? demangled : typeid(*this).name();
-  std::free(demangled);
+  std::string name = OODemangle(typeid(*this).name());
   const std::size_t colons = name.rfind("::");
   if (colons != std::string::npos) name.erase(0, colons + 2);
 

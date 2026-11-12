@@ -29,15 +29,14 @@ SOFTWARE.
 // MinGW's or the UCRT's printf/strtod family is used.
 #include "OOTextureLoader.h"
 
-#include <cxxabi.h>
 #include <stdlib.h>
 
-#include <cstdlib>
 #include <cstring>
 #include <typeinfo>
 
 #include "OOConvertCubeMapToLatLong.h"
 #include "OODebugStandards.h"
+#include "OODemangle.h"
 #include "OOFunctionAttributes.h"
 #include "OOMaths.h"
 #include "OOOpenGLExtensionManager.h"
@@ -227,11 +226,7 @@ std::optional<std::string> OOTextureLoader::shortDescriptionComponents() const {
 namespace {
 
 std::string DemangledName(const std::type_info& type) {
-  int status = 0;
-  char* demangled = abi::__cxa_demangle(type.name(), nullptr, nullptr, &status);
-  std::string result =
-      (status == 0 && demangled != nullptr) ? demangled : type.name();
-  std::free(demangled);
+  std::string result = OODemangle(type.name());
   return result;
 }
 

@@ -27,11 +27,9 @@ SOFTWARE.
 
 #include "OODrawable.h"
 
-#include <cxxabi.h>
-
-#include <cstdlib>
 #include <typeinfo>
 
+#include "OODemangle.h"
 #include "oofnd/String.hpp"
 
 void OODrawable::renderOpaqueParts() {}
@@ -59,12 +57,7 @@ std::optional<std::string> OODrawable::descriptionComponents() const {
 // The C++ class's name and the drawable's own address, with the description
 // components if any.
 std::string OODrawable::description() const {
-  int status = 0;
-  char* demangled =
-      abi::__cxa_demangle(typeid(*this).name(), nullptr, nullptr, &status);
-  const std::string name =
-      (status == 0 && demangled != nullptr) ? demangled : typeid(*this).name();
-  std::free(demangled);
+  const std::string name = OODemangle(typeid(*this).name());
   std::string result = oo::str::format(
       "<%s %s>", name.c_str(), oo::str::pointerDescription(this).c_str());
   if (const std::optional<std::string> components = descriptionComponents())
