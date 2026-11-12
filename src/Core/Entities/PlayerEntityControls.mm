@@ -2253,8 +2253,10 @@ static NSTimeInterval time_last_frame;
         break;
     case GUI_SCREEN_OPTIONS:
         [self handleGUIUpDownArrowKeys];
-        OOGUIRow guiSelectedRow = [gui selectedRow];
-        BOOL selectKeyPress = ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick] || joyButtonState[BUTTON_GUISELECT]);
+        OOGUIRow guiSelectedRow;
+        guiSelectedRow = [gui selectedRow];
+        BOOL selectKeyPress;
+        selectKeyPress = ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick] || joyButtonState[BUTTON_GUISELECT]);
 
         if (selectKeyPress) // 'enter'
         {
@@ -3015,7 +3017,7 @@ static NSTimeInterval time_last_frame;
     if ((guiSelectedRow == GUI_ROW(GAME, SPEECH)) && (([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) || ([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]))) {
         if (!speech_settings_pressed) {
             if (([self checkKeyPress:n_key_gui_arrow_right] || joyButtonState[BUTTON_GUIRIGHT]) && isSpeechOn < OOSPEECHSETTINGS_ALL) {
-                ++isSpeechOn;
+                isSpeechOn = (OOSpeechSettings)(isSpeechOn + 1);
                 [self playChangedOption];
                 speech_settings_pressed = YES;
             } else if (([self checkKeyPress:n_key_gui_arrow_left] || joyButtonState[BUTTON_GUILEFT]) && isSpeechOn > OOSPEECHSETTINGS_OFF) {
