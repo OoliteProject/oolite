@@ -27,6 +27,8 @@ SOFTWARE.
 
 #include "OOMaterialSpecifier.h"
 
+#include <string_view>
+
 #include "OOColor.h"
 #include "OOTexture.h"
 #include "Universe.h"
@@ -35,18 +37,20 @@ SOFTWARE.
 namespace {
 
 // The value for key; null if there is none.
-oo::PList ValueFor(const oo::PList& configuration, const char* key) {
+oo::PList ValueFor(const oo::PList& configuration, std::string_view key) {
   const oo::PList* value = configuration.find(key);
   return value != nullptr ? *value : oo::PList();
 }
 
-oo::Ref<OOColor> ColorFor(const oo::PList& configuration, const char* key) {
+oo::Ref<OOColor> ColorFor(const oo::PList& configuration,
+                          std::string_view key) {
   return OOColor::colorWithDescription(ValueFor(configuration, key));
 }
 
 // cxx_OOTextureSpecFromObject() applied to the value for key, as
 // -oo_textureSpecifierForKey:defaultName: did.
-oo::PList TextureSpecifierFor(const oo::PList& configuration, const char* key,
+oo::PList TextureSpecifierFor(const oo::PList& configuration,
+                              std::string_view key,
                               const std::optional<std::string>& defaultName) {
   return cxx_OOTextureSpecFromObject(ValueFor(configuration, key), defaultName);
 }

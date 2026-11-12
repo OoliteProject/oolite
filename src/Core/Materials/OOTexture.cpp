@@ -63,7 +63,7 @@
 namespace {
 
 // Used only by "internal" specifiers from cxx_OOMakeTextureSpecifier.
-const char* const kOOTextureSpecifierFlagValueInternalKey =
+constexpr std::string_view kOOTextureSpecifierFlagValueInternalKey =
     "_oo_internal_flags";
 
 }  // namespace
@@ -733,10 +733,10 @@ oo::PList cxx_OOMakeTextureSpecifier(const std::string& name,
     result[cxx_kOOTextureSpecifierLODBiasKey] = oo::PList::singleReal(lodBias);
 
   if (internal) {
-    result[kOOTextureSpecifierFlagValueInternalKey] =
+    result[std::string(kOOTextureSpecifierFlagValueInternalKey)] =
         oo::PList::unsignedInteger(oo::ToUnderlying(options));
   } else {
-    const char* value = nullptr;
+    std::optional<std::string_view> value;
     switch (options & OOTextureFlags::kMinFilterMask) {
       case OOTextureFlags::kMinFilterDefault:
         break;
@@ -756,10 +756,10 @@ oo::PList cxx_OOMakeTextureSpecifier(const std::string& name,
       default:  // the other enumerators are outside the mask
         break;
     }
-    if (value != nullptr)
-      result[cxx_kOOTextureSpecifierNoShrinkKey] = oo::PList(value);
+    if (value.has_value())
+      result[cxx_kOOTextureSpecifierNoShrinkKey] = oo::PList(*value);
 
-    value = nullptr;
+    value.reset();
     switch (options & OOTextureFlags::kMagFilterMask) {
       case OOTextureFlags::kMagFilterNearest:
         value = "nearest";
@@ -771,10 +771,10 @@ oo::PList cxx_OOMakeTextureSpecifier(const std::string& name,
       default:  // the other enumerators are outside the mask
         break;
     }
-    if (value != nullptr)
-      result[cxx_kOOTextureSpecifierMagFilterKey] = oo::PList(value);
+    if (value.has_value())
+      result[cxx_kOOTextureSpecifierMagFilterKey] = oo::PList(*value);
 
-    value = nullptr;
+    value.reset();
     switch (options & OOTextureFlags::kExtractChannelMask) {
       case OOTextureFlags::kExtractChannelNone:
         break;
@@ -798,8 +798,8 @@ oo::PList cxx_OOMakeTextureSpecifier(const std::string& name,
       default:  // the other enumerators are outside the mask
         break;
     }
-    if (value != nullptr)
-      result[cxx_kOOTextureSpecifierSwizzleKey] = oo::PList(value);
+    if (value.has_value())
+      result[cxx_kOOTextureSpecifierSwizzleKey] = oo::PList(*value);
 
     if (oo::Any(options & OOTextureFlags::kNoShrink))
       result[cxx_kOOTextureSpecifierNoShrinkKey] = oo::PList(true);

@@ -34,6 +34,8 @@ SOFTWARE.
 #include <string.h>
 
 #include <format>
+#include <optional>
+#include <string_view>
 
 #include "OOFunctionAttributes.h"
 #include "OOMaths.h"
@@ -226,7 +228,7 @@ OOShaderUniform::~OOShaderUniform() {}
 
 std::optional<std::string> OOShaderUniform::description() {
   std::optional<std::string> valueDesc;
-  const char* valueType = nullptr;
+  std::optional<std::string_view> valueType;
 
   if (isBinding && entityMember) {
     // An entity's member: the class, the entity's address and the property.
@@ -310,7 +312,7 @@ std::optional<std::string> OOShaderUniform::description() {
       valueType = "object-binding";
       break;
   }
-  if (valueType == nullptr) valueDesc = "INVALID";
+  if (!valueType.has_value()) valueDesc = "INVALID";
   if (!valueDesc.has_value()) valueDesc = "INVALID";
 
   /*	Examples:
@@ -320,8 +322,7 @@ std::optional<std::string> OOShaderUniform::description() {
   */
   return std::format("<{} {}>{{{}: {} {} = {};}}", "OOShaderUniform",
                      oo::str::pointerDescription(this), location,
-                     valueType != nullptr ? valueType : "(null)", name,
-                     *valueDesc);
+                     valueType.value_or("(null)"), name, *valueDesc);
 }
 
 void OOShaderUniform::apply() {
