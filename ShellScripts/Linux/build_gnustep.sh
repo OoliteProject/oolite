@@ -1,6 +1,8 @@
 #!/bin/bash
-# Parameter one: "system", "home", or "build" (defaults to home).
-# Parameter two: escalate command (defaults to sudo for 'system').
+
+# Builds the GNUstep libraries (libobjc2, tools-make, libs-base)
+# Parameter one: "system", "home", or "build" (defaults to home)
+# Parameter two: escalate command (defaults to sudo for 'system')
 
 run_script() {
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)

@@ -21,6 +21,45 @@ jobs:
           clang-format-version: '22'
           check-path: 'src'
 
+  build-github-pages:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    steps:
+      - name: Checkout Oolite
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install packages
+        run: |
+          sudo apt update
+          sudo apt install -y doxygen graphviz jq zip
+      - name: Build site documentation
+        run: |
+          Documentation/build_sitedocs.sh
+      - name: Zip pdfs
+        run: |
+          zip -j ./build/oolite-documentation.zip ./build/documentation/docs/assets/pdfs/*.pdf
+      - name: Archive documentation
+        uses: actions/upload-artifact@v6
+        with:
+          name: oolite-documentation
+          path: |
+            build/oolite-documentation.zip
+          retention-days: 5
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v6
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: './build/documentation/site'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        if: github.ref == 'refs/heads/master'
+        uses: actions/deploy-pages@v5
+
   build-appimage:
     needs: clang-format-check
     runs-on: ubuntu-latest
@@ -39,7 +78,7 @@ jobs:
       - name: Update Arch
         run: |
           pacman -Syu --noconfirm
-          pacman -S --noconfirm --needed git zip
+          pacman -S --noconfirm --needed git
       - name: Pre-setup ownership & curl token
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -81,18 +120,9 @@ jobs:
           path: |
             build/Oolite*.AppImage
           retention-days: 5
-      - name: Zip pdfs
-        run: |
-          zip -j ./build/oolite-documentation.zip ./build/documentation/docs/assets/pdfs/*.pdf
-      - name: Archive documentation
-        uses: actions/upload-artifact@v6
-        with:
-          name: oolite-documentation
-          path: |
-            build/oolite-documentation.zip
-          retention-days: 5
 
   build-ubuntu:
+    needs: clang-format-check
     runs-on: ubuntu-latest
     container:
       image: ubuntu:26.04
@@ -141,6 +171,7 @@ jobs:
           ./mk.sh pkg-appimage dev
 
   build-fedora:
+    needs: clang-format-check
     runs-on: ubuntu-latest
     container:
       image: fedora:latest
@@ -337,7 +368,7 @@ jobs:
           retention-days: 5
 
   release:
-    needs: [build-appimage, build-flatpak, build-windows, build-macos]
+    needs: [build-appimage, build-flatpak, build-windows, build-macos, build-github-pages]
     runs-on: ubuntu-latest
     permissions:
       contents: write  # create the release; also needed in forks, where the token is read-only by default
@@ -358,19 +389,21 @@ jobs:
         id: version
         run: |
           set -x          
-          # 1. Check that there are exactly 6 files recursively in the artifacts directory
+          # 1. Check that there are exactly 7 files recursively in the artifacts directory
+          # (includes artifact.tar produced by GitHub pages and 2 Flatpak files)
           FILE_COUNT=$(find artifacts -type f | wc -l)
           echo "Total files found: $FILE_COUNT"          
-          if [[ "$FILE_COUNT" -ne 6 ]]; then
-            echo "❌ Expected exactly 6 files, but found $FILE_COUNT." >&2
+          if [[ "$FILE_COUNT" -ne 7 ]]; then
+            FILE_LIST=$(find artifacts -type f | tr '\n' ',' | sed 's/,$//')
+            echo "❌ Expected exactly 7 files, but found $FILE_COUNT: ($FILE_LIST)." >&2
             exit 1
-          fi                    
+          fi
           # 2. Get the path of the first available AppImage
           APPIMAGE_PATH=$(find artifacts -type f -name "*.AppImage" | head -n 1)          
           if [[ -z "$APPIMAGE_PATH" ]]; then
             echo "❌ No AppImages found in the downloaded artifacts!" >&2
             exit 1
-          fi          
+          fi
           echo "Found AppImage: $APPIMAGE_PATH"                    
           # 3. Run with packageinfo and extract the string inside quotes
           chmod +x "$APPIMAGE_PATH"
@@ -378,7 +411,7 @@ jobs:
           if [[ -z "$VER_FULL" ]]; then
             echo "❌ Failed to extract version string from packageinfo output!" >&2
             exit 1
-          fi                     
+          fi
           echo "Extracted Version: $VER_FULL"          
           # 4. Output the extracted version for subsequent steps
           echo "VER_FULL=$VER_FULL" >> "$GITHUB_OUTPUT"

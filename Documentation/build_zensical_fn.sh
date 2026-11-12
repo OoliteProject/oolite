@@ -1,6 +1,8 @@
 #!/bin/bash
 
-run_script() {
+build_zensical() {
+    # Builds documentation site eg. on GitHub Pages
+    # Called via build_zensical.sh and build_sitedocs.sh
     local python_cmd
     if python3 --version >/dev/null 2>&1; then
         python_cmd="python3"
@@ -21,7 +23,6 @@ run_script() {
         return 1
     fi
 
-    # mkdocs goes in the .venv made by install_mkdocs, if there is one
     if [[ -f "../.venv/Scripts/activate" ]]; then
         source "../.venv/Scripts/activate"
     elif [[ -f "../.venv/bin/activate" ]]; then
@@ -29,29 +30,15 @@ run_script() {
     fi
 
     cd ../build/documentation
-    # Install the docs requirements, as ReadTheDocs does
-    if ! "$python_cmd" -m pip install -r ../../Documentation/requirements.txt; then
-        echo "❌ Could not install documentation requirements!" >&2
-        return 1
-    fi
 
-    if ! mkdocs build --clean; then
-        echo "❌ MKDocs build failed!" >&2
+    if ! zensical build --clean; then
+        echo "❌ Zensical build failed!" >&2
         return 1
     fi
-    echo "✅ MKDocs build completed successfully"
+    echo "✅ Zensical build completed successfully"
 
     if command -v deactivate >/dev/null 2>&1; then
         deactivate
     fi
     popd
 }
-
-run_script "$@"
-status=$?
-
-
-# Exit only if not sourced
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    exit $status
-fi

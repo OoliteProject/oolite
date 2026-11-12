@@ -1,4 +1,6 @@
 install_gitversion() {
+    # Installs gitversion. Called via install_deps.sh.
+    # Parameter one: where to install gitversion binary (defaults to ./)
     local outputdir="${1:-.}"
 
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)

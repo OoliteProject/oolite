@@ -1,4 +1,6 @@
 install_typst() {
+    # Installs Typst. Called via install_deps.sh and  build_sitedocs.sh.
+    # Parameter one: where to install Typst binary (defaults to ./)
     local outputdir="${1:-.}"
 
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)

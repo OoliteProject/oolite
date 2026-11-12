@@ -1,4 +1,5 @@
 generate_manifest() {
+    # Generates the Oolite manifest using parameters below
     local output_file="$1"
     local debug_monitor="$2"
     local ver_full="$3"

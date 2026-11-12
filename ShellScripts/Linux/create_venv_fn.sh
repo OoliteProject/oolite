@@ -1,6 +1,8 @@
 #!/bin/bash
 
 create_venv() {
+    # Creates a Python virtualenv. Called via install_zensical.
+    # Parameter one: where to create virtualenv. Defaults to <project root>/.venv.
     if ! command -v python3 >/dev/null 2>&1; then
         echo "❌ Python not installed!" >&2
         return 1
@@ -9,7 +11,7 @@ create_venv() {
     local SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     local VENV_DIR="${1:-$SCRIPT_DIR/../../.venv}"
 
-    if [ ! -d "$VENV_DIR" ]; then
+    if [[ ! -d "$VENV_DIR" ]]; then
         echo "Creating virtual environment..."
         python3 -m venv "$VENV_DIR"
     fi

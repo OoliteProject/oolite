@@ -1,5 +1,6 @@
 #!/bin/bash -e
 
+# Installs required dependencies
 # No parameters: build clang only
 # One parameter gcc = build gcc only
 # One parameter clang = build clang only

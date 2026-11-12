@@ -1,9 +1,12 @@
 install_typst() {
+    # Installs Typst. Called via install_packages_root.sh and  build_sitedocs.sh.
+    # Parameter one: where to install Typst binary (defaults to /usr/local/bin)
+    # Parameter two: temporary folder to use for extraction of compressed file
     local installdir="${1:-/usr/local/bin}"
     local tmpdir="${2:-/tmp}"
 
     # If current user ID is NOT 0 (root)
-    if [[ $EUID -ne 0 && "${READTHEDOCS:-}" != "True" ]]; then
+    if [[ $EUID -ne 0 && "${GITHUB_JOB:-}" != "build-github-pages" ]]; then
         echo "This script requires root to install dependencies. Rerun and escalate privileges (eg. sudo ...)"
         return 1
     fi

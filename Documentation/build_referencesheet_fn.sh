@@ -1,6 +1,7 @@
 #!/bin/bash
 
 build_referencesheet() {
+    # Converts typst reference sheet to pdf. Called via build_documentation.
     pkg_ok=$(command -v typst)
     if [[ -z "$pkg_ok" ]]; then
       echo "❌ Typst not found!" >&2

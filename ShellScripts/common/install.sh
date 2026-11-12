@@ -1,5 +1,6 @@
 #!/bin/bash
-# Processes Oolite data files after compilation
+
+# Installs Oolite to given folders
 
 run_script() {
     local stageprogpath="$1"

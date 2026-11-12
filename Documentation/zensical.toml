@@ -1,0 +1,72 @@
+[project]
+site_name = "Oolite Documentation"
+site_url = "https://ooliteproject.github.io/oolite/"
+strict = true
+
+markdown_extensions = [
+    "attr_list",
+    "md_in_html",
+    "meta",
+]
+
+extra_css = [
+    "css/extra.css",
+]
+
+plugins = [
+    "search",
+]
+
+not_in_nav = """
+api/html/**
+"""
+
+exclude_docs = """
+typst/
+"""
+
+# Theme Configuration
+[project.theme]
+name = "material"
+custom_dir = "overrides"
+features = [
+    "navigation.tabs",
+    "navigation.sections",
+]
+
+# Light Mode Palette
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+
+[project.theme.palette.toggle]
+icon = "material/weather-sunny"
+name = "Switch to dark mode"
+
+# Dark Mode Palette
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+
+[project.theme.palette.toggle]
+icon = "material/weather-night"
+name = "Switch to light mode"
+
+# Navigation Structure
+[[project.nav]]
+Home = "index.md"
+
+[[project.nav]]
+"Advice For New Commanders" = "advice.md"
+
+[[project.nav]]
+"Reference Sheet" = "reference.md"
+
+[[project.nav]]
+"Privacy Policy" = "privacy.md"
+
+[[project.nav]]
+License = "license.md"
+
+[[project.nav]]
+"API Reference" = "api/html/index.html"

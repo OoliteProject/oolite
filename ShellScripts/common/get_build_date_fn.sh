@@ -1,7 +1,4 @@
 #!/bin/bash
-#
-# Calculates the Oolite build date
-#
 
 SUITE_PARENT=$(basename "${BASH_SOURCE[1]}")  # Get the name of the script that is sourcing this file
 ALLOWED_SCRIPT="get_version.sh"  # Define the ONLY script allowed to source this
@@ -13,6 +10,8 @@ fi
 unset SUITE_PARENT ALLOWED_SCRIPT
 
 get_build_date() {
+    # Calculate the Oolite build date in various formats. Called via get_version.sh.
+
     local -n _cpp_date="$1"
     local -n _app_date="$2"
     local -n _buildtime="$3"

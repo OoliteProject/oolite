@@ -1,9 +1,10 @@
 #!/bin/bash
-# Parameter one: "system", "home", or "build" (defaults to home).
-# Parameter two: escalate command (defaults to sudo for 'system').
+
+# Installs the Spidermonkey library
+# Parameter one: "system", "home", or "build" (defaults to home)
+# Parameter two: escalate command (defaults to sudo for 'system')
 
 run_script() {
-    # Get the directory where the script is located
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
     source "$script_dir/dep_location_fn.sh"

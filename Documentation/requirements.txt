@@ -1,3 +1,2 @@
-mkdocs
-mkdocs-material
+zensical
 mdx-include

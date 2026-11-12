@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # Processes Oolite data files after compilation
 
 run_script() {

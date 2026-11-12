@@ -103,13 +103,13 @@
 
           table.cell(colspan: 2)[#v(0.8em)*Q: Where is my game data (saved games, expansion packs etc.)?*],
           table.cell(colspan: 2)[#strong[A:] Game data such as your saved games and expansion packs are stored in certain locations depending on your operating system. For information, see this guide: \
-          #url-link("https://oolite.readthedocs.io/en/latest/#game-data")
+          #url-link("https://ooliteproject.github.io/oolite/#game-data")
           .],
 
           table.cell(colspan: 2)[#v(0.8em)*Q: Where is my log file?*],
           table.cell(colspan: 2)[
             #strong[A:] While Oolite runs, various diagnostic information is written to a file called _Latest.log_. That file is typically located in your game data folder. See question above and also this guide: \
-          #url-link("https://oolite.readthedocs.io/en/latest/#helpful-information")
+          #url-link("https://ooliteproject.github.io/oolite/#helpful-information")
           ],
 
           table.cell(colspan: 2)[#v(0.8em)*Q: Why do none of the mods I have installed appear to work in the game?*],

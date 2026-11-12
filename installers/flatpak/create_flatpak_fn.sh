@@ -1,8 +1,11 @@
 #!/bin/bash -x
 
 create_flatpak() {
+    # Creates a flatpak. Called via mk.sh.
+    # Parameter one: build type
+    # Parameter two: # GitHub repository (set by GitHub Actions)
     local build_type="$1"
-    local github_repository="$2" # GitHub repository (set by GitHub Actions)
+    local github_repository="$2"
 
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir"

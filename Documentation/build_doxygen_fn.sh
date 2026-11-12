@@ -1,6 +1,7 @@
 #!/bin/bash
 
 build_doxygen() {
+    # Builds Doxygen html documentation. Called via build_documentation.
     pkg_ok=$(command -v doxygen)
     if [[ -z "$pkg_ok" ]]; then
       echo "❌ Doxygen executable not found!" >&2

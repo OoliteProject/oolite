@@ -1,6 +1,7 @@
 #!/bin/bash
 
 build_mds() {
+    # Converts mds to pdfs. Called via build_documentation.
     if ! command -v typst >/dev/null 2>&1; then
         echo "❌ Typst not found!" >&2
         return 1

@@ -1,6 +1,7 @@
 #!/bin/bash
 
 dep_location() {
+    # Helper to work out where to store files. Called via build_gnustep.sh and install_mozilla_js.sh.
     # Parameter one: Name of variable to store LIB_SUBDIR
     # Parameter two: Name of variable to store TARGET
     # Parameter three: Name of variable to store ESCALATE

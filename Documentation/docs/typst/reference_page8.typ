@@ -182,7 +182,7 @@
         columns: (auto, 1fr),
         column-gutter: 0.4em,
         row-gutter: 0.3em,
-        [*Documentation:*], url-link("https://oolite.readthedocs.io/"),
+        [*Documentation:*], url-link("https://ooliteproject.github.io/oolite/"),
         [*Website:*], url-link("https://www.oolite.space"),
         [*Wiki:*], url-link("https://wiki.alioth.net/index.php/Oolite"),
         [*BBS:*], url-link("https://bb.oolite.space"),
