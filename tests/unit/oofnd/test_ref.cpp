@@ -12,6 +12,7 @@
 
 #include <atomic>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <thread>
@@ -98,8 +99,8 @@ void reset() { gDeathLog.clear(); }
 // --- compile-time contract
 // --------------------------------------------------------------------
 
-static_assert(sizeof(oo::Ref<Thing>) == sizeof(Thing*),
-              "Ref<T> is one pointer: no control block");
+static_assert(sizeof(oo::Ref<Thing>) == sizeof(std::shared_ptr<Thing>),
+              "Ref<T> is a std::shared_ptr<T> and nothing more");
 static_assert(std::is_nothrow_move_constructible_v<oo::Ref<Thing>>);
 static_assert(std::is_nothrow_move_assignable_v<oo::Ref<Thing>>);
 static_assert(!std::is_convertible_v<Thing*, oo::Ref<Thing>>,
@@ -521,7 +522,7 @@ OO_TEST(willDisposeRunsOnceWithTheObjectWhole) {
   OO_CHECK(log.empty());
   d.reset();
   OO_CHECK(
-      (log == std::vector<std::string>{"willDispose, weak live, count 1",
+      (log == std::vector<std::string>{"willDispose, weak dead, count 1",
                                        "after balanced pair", "destructor"}));
   OO_CHECK(outside.get() == nullptr);
 }

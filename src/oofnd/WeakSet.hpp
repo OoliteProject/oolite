@@ -39,8 +39,9 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <memory>
 #include <ranges>
-#include <unordered_set>
+#include <set>
 #include <utility>
 #include <vector>
 
@@ -52,10 +53,7 @@ template <class T>
 class WeakSet {
  public:
   WeakSet() = default;
-  explicit WeakSet(std::size_t capacityHint) {
-    entries_.reserve(capacityHint);
-    index_.reserve(capacityHint);
-  }
+  explicit WeakSet(std::size_t capacityHint) { entries_.reserve(capacityHint); }
 
   WeakSet(const WeakSet& other) { addLiveFrom(other); }
   WeakSet(WeakSet&&) noexcept = default;
@@ -79,27 +77,28 @@ class WeakSet {
   bool contains(const T* object) const {
     if (object == nullptr) return false;
     compact();
-    const detail::WeakControl* ctl =
-        detail::WeakAccess::existingControl(object);
-    return ctl != nullptr && index_.contains(ctl);
+    const std::shared_ptr<const void> token =
+        detail::WeakAccess::existingToken(object);
+    return token != nullptr && index_.contains(Key(token));
   }
 
   void add(T* object) {
     if (object == nullptr) return;
     compact();
     WeakRef<T> weak(object);
-    if (index_.insert(weak.ctl_).second) entries_.push_back(std::move(weak));
+    if (index_.insert(weak.token_).second) entries_.push_back(std::move(weak));
   }
 
   void add(const Ref<T>& object) { add(object.get()); }
 
   void remove(const T* object) {
     if (object == nullptr) return;
-    const detail::WeakControl* ctl =
-        detail::WeakAccess::existingControl(object);
-    if (ctl == nullptr || index_.erase(ctl) == 0) return;
-    std::erase_if(entries_,
-                  [ctl](const WeakRef<T>& w) { return w.ctl_ == ctl; });
+    const std::shared_ptr<const void> token =
+        detail::WeakAccess::existingToken(object);
+    if (token == nullptr || index_.erase(Key(token)) == 0) return;
+    std::erase_if(entries_, [&token](const WeakRef<T>& w) {
+      return detail::sameOwner(w.token_, token);
+    });
   }
 
   template <std::ranges::input_range R>
@@ -132,12 +131,14 @@ class WeakSet {
   friend bool operator==(const WeakSet& a, const WeakSet& b) {
     if (a.count() != b.count()) return false;
     for (const WeakRef<T>& w : a.entries_) {
-      if (!b.index_.contains(w.ctl_)) return false;
+      if (!b.index_.contains(w.token_)) return false;
     }
     return true;
   }
 
  private:
+  using Key = std::weak_ptr<const void>;
+
   // OOWeakSet's -compact: drop entries whose object has gone. Logically const
   // (the set's observable contents already exclude them), hence the mutable
   // members.
@@ -145,7 +146,7 @@ class WeakSet {
     auto dead = [](const WeakRef<T>& w) { return w.expired(); };
     if (std::none_of(entries_.begin(), entries_.end(), dead)) return;
     for (const WeakRef<T>& w : entries_) {
-      if (w.expired()) index_.erase(w.ctl_);
+      if (w.expired()) index_.erase(w.token_);
     }
     std::erase_if(entries_, dead);
   }
@@ -153,14 +154,15 @@ class WeakSet {
   void addLiveFrom(const WeakSet& other) {
     entries_.reserve(other.entries_.size());
     for (const WeakRef<T>& w : other.entries_) {
-      if (!w.expired() && index_.insert(w.ctl_).second) entries_.push_back(w);
+      if (!w.expired() && index_.insert(w.token_).second) entries_.push_back(w);
     }
   }
 
-  // Each entry's WeakRef keeps its control block alive, so a control pointer in
-  // index_ can never be reused by another object while it is listed.
+  // Each member's weak identity (its token), by owner: an entry's WeakRef keeps
+  // the token's control block alive, so no other object can share it while it
+  // is listed.
   mutable std::vector<WeakRef<T>> entries_;
-  mutable std::unordered_set<const detail::WeakControl*> index_;
+  mutable std::set<Key, std::owner_less<Key>> index_;
 };
 
 }  // namespace oo
