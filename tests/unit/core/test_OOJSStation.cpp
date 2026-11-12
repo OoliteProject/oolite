@@ -876,7 +876,7 @@ void SetUpContext()
 	sUniverse->_commodities = oo::makeRef<OOCommodities>();
 	sPlayer = new PlayerEntity;
 	sPlayer->_name = "player";
-	sPlayer->_screen = GUI_SCREEN_STATUS;
+	sPlayer->_screen = OOGUIScreenID::kStatus;
 	gOOPlayer = sPlayer;
 	sStationObject = NewShipObject("Coriolis", oo::makeRef<StationEntity>());	// kept for the life of the
                                                     // test; a station's object
@@ -1130,12 +1130,12 @@ OO_TEST(market)
 	OO_CHECK_EVAL("station.setMarketQuantity('food')", "threw: bad arguments: Station.setMarketQuantity(1) - / commodity, units");
 	// The market screen is refreshed when the player is docked here and looking at it.
 	sPlayer->_dockedStation = sStation;
-	sPlayer->_screen = GUI_SCREEN_MARKET;
+	sPlayer->_screen = OOGUIScreenID::kMarket;
 	sPlayer->_marketRefreshes = 0;
 	OO_CHECK_EVAL("station.setMarketPrice('food', 100) && station.setMarketQuantity('food', 0)", "true");
 	OO_CHECK_EQ(sPlayer->_marketRefreshes, 2);
 	sPlayer->_dockedStation = nullptr;
-	sPlayer->_screen = GUI_SCREEN_STATUS;
+	sPlayer->_screen = OOGUIScreenID::kStatus;
 }
 
 
@@ -1157,11 +1157,11 @@ OO_TEST(shipyard)
 	OO_CHECK_EVAL("station.addShipToShipyard({short_description: 'x'})", "threw: bad arguments: Station.addShipToShipyard(1) - / 'shipdata_key' in dictionary");
 	OO_CHECK_EVAL("station.removeShipFromShipyard(3)", "threw: bad arguments: Station.removeShipFromShipyard(1) - / valid ship index");
 	sPlayer->_dockedStation = sStation;
-	sPlayer->_screen = GUI_SCREEN_SHIPYARD;
+	sPlayer->_screen = OOGUIScreenID::kShipyard;
 	OO_CHECK_EVAL("station.removeShipFromShipyard(0) + ' ' + station.shipyard.length", "true 0");
 	OO_CHECK_EQ(sPlayer->_shipyardRefreshes, 1);
 	sPlayer->_dockedStation = nullptr;
-	sPlayer->_screen = GUI_SCREEN_STATUS;
+	sPlayer->_screen = OOGUIScreenID::kStatus;
 	sStation->_hasShipyard = false;
 }
 

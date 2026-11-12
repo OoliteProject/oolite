@@ -1056,8 +1056,8 @@ void PlayerEntity::setInfoSystemID(OOSystemID sid, bool moveChart) {
     ShipScriptEvent(context, this, "infoSystemWillChange",
                     OOJSValueFromDouble(context, info_system_id),
                     OOJSValueFromDouble(context, old));
-    if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART ||
-        gui_screen == GUI_SCREEN_SHORT_RANGE_CHART) {
+    if (gui_screen == OOGUIScreenID::kLongRangeChart ||
+        gui_screen == OOGUIScreenID::kShortRangeChart) {
       if (moveChart) {
         target_chart_focus =
             ((UNIVERSE != nullptr ? UNIVERSE->getSystemManager() : nullptr) !=
@@ -1067,7 +1067,7 @@ void PlayerEntity::setInfoSystemID(OOSystemID sid, bool moveChart) {
                  : NSMakePoint(0, 0));
       }
     } else {
-      if (gui_screen == GUI_SCREEN_SYSTEM_DATA) {
+      if (gui_screen == OOGUIScreenID::kSystemData) {
         setGuiToSystemDataScreenRefreshBackground(true);
       }
       if (moveChart) {
@@ -1633,9 +1633,9 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
     ANA_mode = (OORouteType)dict.get<int>("chart_ana_mode",
                                           oo::ToUnderlying(OORouteType::kNone));
     longRangeChartMode = (OOLongRangeChartMode)dict.get<int>(
-        "chart_colour_mode", OOLRC_MODE_SUNCOLOR);
-    if (longRangeChartMode == OOLRC_MODE_UNKNOWN)
-      longRangeChartMode = OOLRC_MODE_SUNCOLOR;
+        "chart_colour_mode", oo::ToUnderlying(OOLongRangeChartMode::kSunColor));
+    if (longRangeChartMode == OOLongRangeChartMode::kUnknown)
+      longRangeChartMode = OOLongRangeChartMode::kSunColor;
 
     target_system_id = dict.get<int>("target_id", system_id);
     previous_system_id = dict.get<int>("previous_system_id", system_id);
@@ -2455,7 +2455,7 @@ bool PlayerEntity::setUpAndConfirmOK(bool stopOnError, bool saveGame) {
 
   switchHudTo("hud.plist");
   scanner_zoom_rate = 0.0f;
-  longRangeChartMode = OOLRC_MODE_SUNCOLOR;
+  longRangeChartMode = OOLongRangeChartMode::kSunColor;
 
   mission_variables = oo::PList(oo::PList::Dict{});
 
@@ -3033,19 +3033,19 @@ void PlayerEntity::update(OOTimeDelta delta_t) {
   /* Validate that if the status is STATUS_START_GAME we're on one
    * of the few GUI screens which that makes sense for */
   if (EXPECT_NOT(status == OOEntityStatus::kStartGame &&
-                 gui_screen != GUI_SCREEN_INTRO1 &&
-                 gui_screen != GUI_SCREEN_SHIPLIBRARY &&
-                 gui_screen != GUI_SCREEN_GAMEOPTIONS &&
-                 gui_screen != GUI_SCREEN_STICKMAPPER &&
-                 gui_screen != GUI_SCREEN_STICKPROFILE &&
-                 gui_screen != GUI_SCREEN_NEWGAME &&
-                 gui_screen != GUI_SCREEN_OXZMANAGER &&
-                 gui_screen != GUI_SCREEN_LOAD &&
-                 gui_screen != GUI_SCREEN_KEYBOARD &&
-                 gui_screen != GUI_SCREEN_KEYBOARD_CONFIRMCLEAR &&
-                 gui_screen != GUI_SCREEN_KEYBOARD_CONFIG &&
-                 gui_screen != GUI_SCREEN_KEYBOARD_ENTRY &&
-                 gui_screen != GUI_SCREEN_KEYBOARD_LAYOUT)) {
+                 gui_screen != OOGUIScreenID::kIntro1 &&
+                 gui_screen != OOGUIScreenID::kShipLibrary &&
+                 gui_screen != OOGUIScreenID::kGameOptions &&
+                 gui_screen != OOGUIScreenID::kStickMapper &&
+                 gui_screen != OOGUIScreenID::kStickProfile &&
+                 gui_screen != OOGUIScreenID::kNewGame &&
+                 gui_screen != OOGUIScreenID::kOXZManager &&
+                 gui_screen != OOGUIScreenID::kLoad &&
+                 gui_screen != OOGUIScreenID::kKeyboard &&
+                 gui_screen != OOGUIScreenID::kKeyboardConfirmClear &&
+                 gui_screen != OOGUIScreenID::kKeyboardConfig &&
+                 gui_screen != OOGUIScreenID::kKeyboardEntry &&
+                 gui_screen != OOGUIScreenID::kKeyboardLayout)) {
     // and if not, do a restart of the GUI
     UPDATE_STAGE("setGuiToIntroFirstGo:");
     setGuiToIntroFirstGo(true);  // set up demo mode
@@ -3889,39 +3889,39 @@ void PlayerEntity::checkScriptsIfAppropriate() {
   if (status() != OOEntityStatus::kInFlight) {
     switch (gui_screen) {
       // Screens where no world script tickles are performed
-      case GUI_SCREEN_MAIN:
-      case GUI_SCREEN_INTRO1:
-      case GUI_SCREEN_SHIPLIBRARY:
-      case GUI_SCREEN_KEYBOARD:
-      case GUI_SCREEN_NEWGAME:
-      case GUI_SCREEN_OXZMANAGER:
-      case GUI_SCREEN_MARKET:
-      case GUI_SCREEN_MARKETINFO:
-      case GUI_SCREEN_OPTIONS:
-      case GUI_SCREEN_GAMEOPTIONS:
-      case GUI_SCREEN_LOAD:
-      case GUI_SCREEN_SAVE:
-      case GUI_SCREEN_SAVE_OVERWRITE:
-      case GUI_SCREEN_STICKMAPPER:
-      case GUI_SCREEN_STICKPROFILE:
-      case GUI_SCREEN_MISSION:
-      case GUI_SCREEN_REPORT:
-      case GUI_SCREEN_KEYBOARD_CONFIRMCLEAR:
-      case GUI_SCREEN_KEYBOARD_CONFIG:
-      case GUI_SCREEN_KEYBOARD_ENTRY:
-      case GUI_SCREEN_KEYBOARD_LAYOUT:
+      case OOGUIScreenID::kMain:
+      case OOGUIScreenID::kIntro1:
+      case OOGUIScreenID::kShipLibrary:
+      case OOGUIScreenID::kKeyboard:
+      case OOGUIScreenID::kNewGame:
+      case OOGUIScreenID::kOXZManager:
+      case OOGUIScreenID::kMarket:
+      case OOGUIScreenID::kMarketInfo:
+      case OOGUIScreenID::kOptions:
+      case OOGUIScreenID::kGameOptions:
+      case OOGUIScreenID::kLoad:
+      case OOGUIScreenID::kSave:
+      case OOGUIScreenID::kSaveOverwrite:
+      case OOGUIScreenID::kStickMapper:
+      case OOGUIScreenID::kStickProfile:
+      case OOGUIScreenID::kMission:
+      case OOGUIScreenID::kReport:
+      case OOGUIScreenID::kKeyboardConfirmClear:
+      case OOGUIScreenID::kKeyboardConfig:
+      case OOGUIScreenID::kKeyboardEntry:
+      case OOGUIScreenID::kKeyboardLayout:
         return;
 
         // Screens from which it's safe to jump to the mission screen
         //			case GUI_SCREEN_CONTRACTS:
-      case GUI_SCREEN_EQUIP_SHIP:
-      case GUI_SCREEN_INTERFACES:
-      case GUI_SCREEN_MANIFEST:
-      case GUI_SCREEN_SHIPYARD:
-      case GUI_SCREEN_LONG_RANGE_CHART:
-      case GUI_SCREEN_SHORT_RANGE_CHART:
-      case GUI_SCREEN_STATUS:
-      case GUI_SCREEN_SYSTEM_DATA:
+      case OOGUIScreenID::kEquipShip:
+      case OOGUIScreenID::kInterfaces:
+      case OOGUIScreenID::kManifest:
+      case OOGUIScreenID::kShipyard:
+      case OOGUIScreenID::kLongRangeChart:
+      case OOGUIScreenID::kShortRangeChart:
+      case OOGUIScreenID::kStatus:
+      case OOGUIScreenID::kSystemData:
         // Test passed, we can run scripts. Nothing to do here.
         break;
     }
@@ -7265,7 +7265,7 @@ void PlayerEntity::docked() {
   }
 
   // it's time to check the script - can trigger legacy missions
-  if (gui_screen != GUI_SCREEN_MISSION)
+  if (gui_screen != OOGUIScreenID::kMission)
     checkScript();  // a scripted pilot could have created a mission screen.
 
   OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
@@ -7274,7 +7274,7 @@ void PlayerEntity::docked() {
   if (status() == OOEntityStatus::kLaunching) return;
 
   // if we've not switched to the mission screen yet then proceed normally..
-  if (gui_screen != GUI_SCREEN_MISSION) {
+  if (gui_screen != OOGUIScreenID::kMission) {
     setGuiToStatusScreen();
   }
   OOCacheManager::sharedCache()->flush();
@@ -7294,7 +7294,7 @@ void PlayerEntity::leaveDock(::StationEntity* station) {
   if (UNIVERSE != nullptr && UNIVERSE->getGameView() != nullptr)
     UNIVERSE->getGameView()->allowStringInput(false);
 
-  if (gui_screen == GUI_SCREEN_MISSION) {
+  if (gui_screen == OOGUIScreenID::kMission) {
     UNIVERSE->getGui()->clearBackground();
     if (_missionWithCallback) {
       doMissionCallback();
@@ -7315,7 +7315,7 @@ void PlayerEntity::leaveDock(::StationEntity* station) {
     }
   }
   OOGUIScreenID oldScreen = gui_screen;
-  gui_screen = GUI_SCREEN_MAIN;
+  gui_screen = OOGUIScreenID::kMain;
   noteGUIDidChangeFrom(oldScreen, gui_screen);
 
   if (hud != nullptr &&
@@ -7996,7 +7996,7 @@ void PlayerEntity::leaveWitchspace() {
 
   velocity = kZeroVector;
   setStatus(OOEntityStatus::kExitingWitchspace);
-  gui_screen = GUI_SCREEN_MAIN;
+  gui_screen = OOGUIScreenID::kMain;
   being_fined = false;  // until you're scanned by a copper!
   clearTargetMemory();
   setShowDemoShips(false);
@@ -8032,11 +8032,11 @@ void PlayerEntity::setGuiToStatusScreen() {
 
   ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
   OOGUIScreenID oldScreen = gui_screen;
-  if (oldScreen != GUI_SCREEN_STATUS) {
-    noteGUIWillChangeTo(GUI_SCREEN_STATUS);
+  if (oldScreen != OOGUIScreenID::kStatus) {
+    noteGUIWillChangeTo(OOGUIScreenID::kStatus);
   }
 
-  gui_screen = GUI_SCREEN_STATUS;
+  gui_screen = OOGUIScreenID::kStatus;
   bool guiChanged = (oldScreen != gui_screen);
 
   if (UNIVERSE != nullptr && UNIVERSE->gameController() != nullptr)
@@ -8770,7 +8770,7 @@ void PlayerEntity::setGuiToSystemDataScreenRefreshBackground(
   OOGUIScreenID oldScreen = gui_screen;
 
   ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
-  gui_screen = GUI_SCREEN_SYSTEM_DATA;
+  gui_screen = OOGUIScreenID::kSystemData;
   bool guiChanged = (oldScreen != gui_screen);
 
   Random_Seed infoSystemRandomSeed =
@@ -9039,7 +9039,7 @@ void PlayerEntity::setGuiToLongRangeChartScreen() {
   gui->clearAndKeepBackground(false);
   gui->setBackgroundTextureKey("short_range_chart");
   setMissionBackgroundSpecial("");
-  gui_screen = GUI_SCREEN_LONG_RANGE_CHART;
+  gui_screen = OOGUIScreenID::kLongRangeChart;
   target_chart_zoom = CHART_MAX_ZOOM;
   setGuiToChartScreenFrom(oldScreen);
 }
@@ -9050,7 +9050,7 @@ void PlayerEntity::setGuiToShortRangeChartScreen() {
   gui->clearAndKeepBackground(false);
   gui->setBackgroundTextureKey("short_range_chart");
   setMissionBackgroundSpecial("");
-  gui_screen = GUI_SCREEN_SHORT_RANGE_CHART;
+  gui_screen = OOGUIScreenID::kShortRangeChart;
   setGuiToChartScreenFrom(oldScreen);
 }
 
@@ -9092,7 +9092,7 @@ void PlayerEntity::setGuiToChartScreenFrom(OOGUIScreenID oldScreen) {
     // time);
     //}
     //[gui setText:travelTimeRow forRow:21];
-    if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART) {
+    if (gui_screen == OOGUIScreenID::kLongRangeChart) {
       const std::optional<std::string> searchString = planetSearchString;
       const std::string displaySearchString =
           searchString.has_value() ? oo::str::capitalized(*searchString)
@@ -9148,7 +9148,7 @@ void PlayerEntity::setGuiToGameOptionsScreen() {
     UNIVERSE->gameController()
         ->setMouseInteractionModeForUIWithMouseInteraction(true);
 
-  gui_screen = GUI_SCREEN_GAMEOPTIONS;
+  gui_screen = OOGUIScreenID::kGameOptions;
 
   // GUI stuff
   {
@@ -9480,7 +9480,7 @@ void PlayerEntity::setGuiToLoadSaveScreen() {
     UNIVERSE->gameController()
         ->setMouseInteractionModeForUIWithMouseInteraction(true);
 
-  gui_screen = GUI_SCREEN_OPTIONS;
+  gui_screen = OOGUIScreenID::kOptions;
 
   if (status() == OOEntityStatus::kDocked) {
     if (dockedStation() == nullptr) setDockedAtMainStation();
@@ -9822,9 +9822,9 @@ void PlayerEntity::setGuiToEquipShipScreen(
     unsigned facing_count = 0;
     bool displayRow = true;
     bool weaponMounted = false;
-    bool guiChanged = (gui_screen != GUI_SCREEN_EQUIP_SHIP);
+    bool guiChanged = (gui_screen != OOGUIScreenID::kEquipShip);
 
-    gui_screen = GUI_SCREEN_EQUIP_SHIP;
+    gui_screen = OOGUIScreenID::kEquipShip;
 
     gui->clearAndKeepBackground(!guiChanged);
     gui->setTitle(OO_DESC("equip-title"));
@@ -10163,8 +10163,8 @@ void PlayerEntity::setGuiToInterfacesScreen(int skip) {
   if (UNIVERSE != nullptr && UNIVERSE->gameController() != nullptr)
     UNIVERSE->gameController()
         ->setMouseInteractionModeForUIWithMouseInteraction(true);
-  if (gui_screen != GUI_SCREEN_INTERFACES) {
-    noteGUIWillChangeTo(GUI_SCREEN_INTERFACES);
+  if (gui_screen != OOGUIScreenID::kInterfaces) {
+    noteGUIWillChangeTo(OOGUIScreenID::kInterfaces);
   }
 
   // build an array of available interfaces
@@ -10194,12 +10194,12 @@ void PlayerEntity::setGuiToInterfacesScreen(int skip) {
     ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
     OOGUIRow start_row = GUI_ROW_INTERFACES_START;
     OOGUIRow row = start_row;
-    bool guiChanged = (gui_screen != GUI_SCREEN_INTERFACES);
+    bool guiChanged = (gui_screen != OOGUIScreenID::kInterfaces);
 
     gui->clearAndKeepBackground(!guiChanged);
     gui->setTitle(OO_DESC("interfaces-title"));
 
-    gui_screen = GUI_SCREEN_INTERFACES;
+    gui_screen = OOGUIScreenID::kInterfaces;
 
     OOGUITabSettings tab_stops;
     tab_stops[0] = 0;
@@ -10548,7 +10548,8 @@ void PlayerEntity::setGuiToIntroFirstGo(bool justCobra) {
   if (UNIVERSE != nullptr) UNIVERSE->setupIntroFirstGo(justCobra);
 
   if (gui != nullptr) {
-    gui_screen = justCobra ? GUI_SCREEN_INTRO1 : GUI_SCREEN_SHIPLIBRARY;
+    gui_screen =
+        justCobra ? OOGUIScreenID::kIntro1 : OOGUIScreenID::kShipLibrary;
   }
   if (status() == OOEntityStatus::kStartGame) {
     OOMusicController::sharedController()->playThemeMusic();
@@ -10571,7 +10572,7 @@ void PlayerEntity::setGuiToOXZManager() {
     UNIVERSE->getGameView()->clearMouse();
   if (UNIVERSE != nullptr) UNIVERSE->removeDemoShips();
 
-  gui_screen = GUI_SCREEN_OXZMANAGER;
+  gui_screen = OOGUIScreenID::kOXZManager;
 
   UNIVERSE->getGui()->clearAndKeepBackground(false);
 
@@ -10602,9 +10603,9 @@ void PlayerEntity::noteGUIDidChangeFrom(OOGUIScreenID fromScreen,
   if (fromScreen != toScreen || refresh) {
     // MKW - release GUI Screen ship, if we have one
     switch (fromScreen) {
-      case GUI_SCREEN_SHIPYARD:
-      case GUI_SCREEN_LOAD:
-      case GUI_SCREEN_SAVE:
+      case OOGUIScreenID::kShipyard:
+      case OOGUIScreenID::kLoad:
+      case OOGUIScreenID::kSave:
         demoShip = nullptr;
         break;
       default:
@@ -10612,7 +10613,7 @@ void PlayerEntity::noteGUIDidChangeFrom(OOGUIScreenID fromScreen,
         break;
     }
 
-    if (toScreen == GUI_SCREEN_SYSTEM_DATA) {
+    if (toScreen == OOGUIScreenID::kSystemData) {
       // system data screen: ensure correct sun light color is used on miniature
       // planet
       if ((UNIVERSE != nullptr ? UNIVERSE->sun() : nullptr) != nullptr)
@@ -10743,8 +10744,8 @@ void PlayerEntity::buySelectedItem() {
                                static_cast<long long>(old_credits - credits))};
       doScriptEvent(OOJSID("playerBoughtEquipment"), boughtArguments);
       if (gui_screen ==
-          GUI_SCREEN_EQUIP_SHIP)  // if we haven't changed gui screen inside
-                                  // playerBoughtEquipment
+          OOGUIScreenID::kEquipShip)  // if we haven't changed gui screen inside
+                                      // playerBoughtEquipment
       {
         // show any change due to playerBoughtEquipment
         setGuiToEquipShipScreen(0);
@@ -11589,7 +11590,7 @@ void PlayerEntity::setGuiToMarketScreen() {
   ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
   OOGUIScreenID oldScreen = gui_screen;
 
-  gui_screen = GUI_SCREEN_MARKET;
+  gui_screen = OOGUIScreenID::kMarket;
   bool guiChanged = (oldScreen != gui_screen);
 
   if (UNIVERSE != nullptr && UNIVERSE->gameController() != nullptr)
@@ -11809,7 +11810,7 @@ void PlayerEntity::setGuiToMarketInfoScreen() {
   ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
   OOGUIScreenID oldScreen = gui_screen;
 
-  gui_screen = GUI_SCREEN_MARKETINFO;
+  gui_screen = OOGUIScreenID::kMarketInfo;
   bool guiChanged = (oldScreen != gui_screen);
 
   if (UNIVERSE != nullptr && UNIVERSE->gameController() != nullptr)
@@ -13396,7 +13397,7 @@ bool PlayerEntity::doWorldEventUntilMissionScreen(OOJSPropID message) {
   auto scriptEntry = scripts.begin();
 
   // Check for the presence of report messages first.
-  if (gui_screen != GUI_SCREEN_MISSION && !dockingReport.empty() &&
+  if (gui_screen != OOGUIScreenID::kMission && !dockingReport.empty() &&
       isDocked() &&
       !(dockedStation() != nullptr ? dockedStation()->suppressArrivalReports()
                                    : false)) {
@@ -13406,8 +13407,8 @@ bool PlayerEntity::doWorldEventUntilMissionScreen(OOJSPropID message) {
   }
 
   JSContext* context = OOJSAcquireContext();
-  while (scriptEntry != scripts.end() && gui_screen != GUI_SCREEN_MISSION &&
-         isDocked()) {
+  while (scriptEntry != scripts.end() &&
+         gui_screen != OOGUIScreenID::kMission && isDocked()) {
     if (scriptEntry->second.get() != nullptr)
       scriptEntry->second.get()->callMethod(message, context, nullptr, 0,
                                             nullptr);
@@ -13415,7 +13416,7 @@ bool PlayerEntity::doWorldEventUntilMissionScreen(OOJSPropID message) {
   }
   OOJSRelinquishContext(context);
 
-  if (gui_screen == GUI_SCREEN_MISSION) {
+  if (gui_screen == OOGUIScreenID::kMission) {
     // remove any comms/console messages from the screen!
     UNIVERSE->messageGUI()->clear();
     return true;

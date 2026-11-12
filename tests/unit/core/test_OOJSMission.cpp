@@ -828,7 +828,7 @@ void SetUpContext()
 	// Kept for the life of the test.
 	sPlayer = new PlayerEntity;
 	sPlayer->_status = OOEntityStatus::kDocked;
-	sPlayer->_exitScreen = GUI_SCREEN_STATUS;
+	sPlayer->_exitScreen = OOGUIScreenID::kStatus;
 	gOOPlayer = sPlayer;
 	sUniverse = new StandInUniverse();
 	sUniverse->_gui = oo::makeRef<GuiDisplayGen>().leakRef();	// kept for the life of the test
@@ -910,7 +910,7 @@ OO_TEST(properties)
 	OO_CHECK_EVAL("(function () { mission.exitScreen = 'GUI_SCREEN_MARKET'; return mission.exitScreen; })()", "GUI_SCREEN_MARKET");
 	OO_CHECK_EVAL("(function () { mission.exitScreen = 'nonsense'; return mission.exitScreen; })()", "GUI_SCREEN_MAIN");	// the default
 	sPlayer->_calls.clear();
-	sPlayer->_exitScreen = GUI_SCREEN_STATUS;
+	sPlayer->_exitScreen = OOGUIScreenID::kStatus;
 	OO_CHECK_EVAL("(function () { mission.screenID = 'x'; return mission.screenID; })()", "null");	// read-only
 }
 

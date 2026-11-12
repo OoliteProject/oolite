@@ -2658,7 +2658,7 @@ void PlayerEntity::setGuiToMissionScreen() {
   // is only called by legacy scripts
   setMissionBackgroundSpecial("");
   // likewise exit screen target
-  setMissionExitScreen(GUI_SCREEN_STATUS);
+  setMissionExitScreen(OOGUIScreenID::kStatus);
 
   setGuiToMissionScreenWithCallback(false);
 }
@@ -2720,7 +2720,7 @@ void PlayerEntity::setGuiToMissionScreenWithCallback(bool callback) {
 
   missionTextRow = 1;
 
-  if (gui) gui_screen = GUI_SCREEN_MISSION;
+  if (gui) gui_screen = OOGUIScreenID::kMission;
 
   lastTextKey.reset();
 

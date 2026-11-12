@@ -159,7 +159,7 @@ bool PlayerEntity::setExtraGuiScreenKeys(OOGUIScreenID gui, ::OOJSGuiScreenKeyDe
 {
 	_lastKeys = "set " + std::to_string(static_cast<int>(gui)) + " " + definition->name().value_or("(none)") + " " + oo::DescriptionOf(definition->registerKeys());
 	_definition = oo::Ref<OOJSGuiScreenKeyDefinition>(definition);
-	return gui != GUI_SCREEN_SHIPYARD;	// the player refuses the shipyard here
+	return gui != OOGUIScreenID::kShipyard;	// the player refuses the shipyard here
 }
 
 
@@ -564,7 +564,7 @@ void SetUpContext()
 
 	sPlayer = new PlayerEntity;	// kept for the life of the test
 	sPlayer->_galaxy = 3;
-	sPlayer->_screen = GUI_SCREEN_STATUS;
+	sPlayer->_screen = OOGUIScreenID::kStatus;
 	gOOPlayer = sPlayer;
 	sUniverse = new StandInUniverse();
 	sUniverse->_timeAcceleration = 1;
@@ -648,9 +648,9 @@ OO_TEST(properties)
 	SetUpContext();
 	OO_CHECK_EVAL("galaxyNumber", "3");
 	OO_CHECK_EVAL("guiScreen", "GUI_SCREEN_STATUS");
-	sPlayer->_screen = GUI_SCREEN_MISSION;
+	sPlayer->_screen = OOGUIScreenID::kMission;
 	OO_CHECK_EVAL("guiScreen", "GUI_SCREEN_MISSION");
-	sPlayer->_screen = GUI_SCREEN_STATUS;
+	sPlayer->_screen = OOGUIScreenID::kStatus;
 	OO_CHECK_EVAL("timeAccelerationFactor", "1");
 	OO_CHECK_EVAL("(function () { timeAccelerationFactor = 4; return timeAccelerationFactor; })()", "4");
 	OO_CHECK_EVAL("(function () { timeAccelerationFactor = 'x'; return timeAccelerationFactor; })()", "NaN");
@@ -712,10 +712,10 @@ OO_TEST(screens)
 	OO_CHECK_EVAL("setScreenBackground({name: 'bg.png'})", "true");
 	OO_CHECK_EQ(oo::DescriptionOf(sGuiBackground), oo::DescriptionOf(oo::PList(oo::PList::Dict{ { "name", oo::PList(std::string("bg.png")) } })));
 	OO_CHECK(sPlayer->_equipBackground.isNull());
-	sPlayer->_screen = GUI_SCREEN_EQUIP_SHIP;
+	sPlayer->_screen = OOGUIScreenID::kEquipShip;
 	OO_CHECK_EVAL("setScreenBackground({name: 'eq.png'})", "true");
 	OO_CHECK(!sPlayer->_equipBackground.isNull());
-	sPlayer->_screen = GUI_SCREEN_STATUS;
+	sPlayer->_screen = OOGUIScreenID::kStatus;
 	OO_CHECK_EVAL("setScreenBackground(null)", "false");
 	OO_CHECK_EVAL("setScreenBackground()", "false");
 	OO_CHECK_EQ(sLastWarning, std::string("Usage error: setScreenBackground() called with no arguments. Treating as setScreenBackground(null). This call may fail in a future version of Oolite."));
@@ -764,7 +764,7 @@ OO_TEST(extraGuiScreenKeys)
 {
 	SetUpContext();
 	OO_CHECK_EVAL("setExtraGuiScreenKeys('myKeys', {guiScreen: 'GUI_SCREEN_STATUS', registerKeys: {keys: ['a', 'b']}, callback: function () {}})", "true");
-	OO_CHECK_EQ(sPlayer->_lastKeys, std::string("set ") + std::to_string(static_cast<int>(GUI_SCREEN_STATUS)) + " myKeys " + oo::DescriptionOf(oo::PList(oo::PList::Dict{ { "keys", oo::PList(oo::PList::Array{ oo::PList(std::string("a")), oo::PList(std::string("b")) }) } })));
+	OO_CHECK_EQ(sPlayer->_lastKeys, std::string("set ") + std::to_string(static_cast<int>(OOGUIScreenID::kStatus)) + " myKeys " + oo::DescriptionOf(oo::PList(oo::PList::Dict{ { "keys", oo::PList(oo::PList::Array{ oo::PList(std::string("a")), oo::PList(std::string("b")) }) } })));
 	OO_CHECK(sPlayer->_definition.get() != nullptr && IsObject(sPlayer->_definition->callback()) && !IsObject(sPlayer->_definition->callbackThis()));
 	OO_CHECK_EVAL("setExtraGuiScreenKeys('myKeys', {guiScreen: 'GUI_SCREEN_STATUS', registerKeys: null, callback: function () {}, cbThis: global})", "true");
 	OO_CHECK(IsSameObject(sPlayer->_definition->callbackThis(), sGlobal));
@@ -779,7 +779,7 @@ OO_TEST(extraGuiScreenKeys)
 	OO_CHECK_EVAL("setExtraGuiScreenKeys('k', {guiScreen: 'GUI_SCREEN_STATUS', registerKeys: {}})", "threw: bad arguments: global.setExtraGuiScreenKeys(1) - / key, definition; must have a 'callback' property.");
 	OO_CHECK_EVAL("setExtraGuiScreenKeys('k', {guiScreen: 'GUI_SCREEN_STATUS', registerKeys: {}, callback: 5})", "threw: bad arguments: global.setExtraGuiScreenKeys(1) - / key, definition; 'callback' property must be a function.");
 	OO_CHECK_EVAL("clearExtraGuiScreenKeys('myKeys', 'GUI_SCREEN_STATUS')", "true");
-	OO_CHECK_EQ(sPlayer->_lastKeys, "clear " + std::to_string(static_cast<int>(GUI_SCREEN_STATUS)) + " myKeys");
+	OO_CHECK_EQ(sPlayer->_lastKeys, "clear " + std::to_string(static_cast<int>(OOGUIScreenID::kStatus)) + " myKeys");
 	OO_CHECK_EVAL("clearExtraGuiScreenKeys('myKeys', 'NOT_A_SCREEN')", "threw: bad arguments: -.clearExtraGuiScreenKeys(0) - / guiScreen invalid entry");
 	OO_CHECK_EVAL("clearExtraGuiScreenKeys('', 'GUI_SCREEN_STATUS')", "threw: bad arguments: -.clearExtraGuiScreenKeys(1) - / key");
 	OO_CHECK_EVAL("clearExtraGuiScreenKeys('k')", "threw: bad arguments: -.setExtraGuiScreenKeys(0) - / missing arguments");
@@ -792,10 +792,10 @@ OO_TEST(pauseAndQuit)
 	sUniverse->_paused = 0;
 	OO_CHECK_EVAL("pauseGame()", "true");
 	OO_CHECK_EQ(sUniverse->_paused, 1);
-	sPlayer->_screen = GUI_SCREEN_MISSION;
+	sPlayer->_screen = OOGUIScreenID::kMission;
 	OO_CHECK_EVAL("pauseGame()", "false");
 	OO_CHECK_EQ(sUniverse->_paused, 1);
-	sPlayer->_screen = GUI_SCREEN_STATUS;
+	sPlayer->_screen = OOGUIScreenID::kStatus;
 	OO_CHECK_EVAL("quitGame()", "true");
 	OO_CHECK_EQ(sUniverse->_quit, 0);	// deferred until the script returns
 	RunDeferredCalls();

@@ -1925,7 +1925,7 @@ class PlayerEntity : public ShipEntity {
   std::map<std::string, oo::PList, std::less<>>
       extraMissionKeys;  // key name -> processed key definitions
 
-  std::map<int, std::vector<oo::Ref<::OOJSGuiScreenKeyDefinition>>>
+  std::map<OOGUIScreenID, std::vector<oo::Ref<::OOJSGuiScreenKeyDefinition>>>
       extraGuiScreenKeys;  // by GUI screen ID
 
   // save-file

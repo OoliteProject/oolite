@@ -1023,8 +1023,8 @@ static JSValue StationSetMarketPrice(OOJS_NATIVE_ARGS) {
   if (station == (PLAYER != nullptr ? PLAYER->PlayerEntity::dockedStation()
                                     : (StationEntity*)nullptr) &&
       (PLAYER != nullptr ? PLAYER->guiScreen() : OOGUIScreenID{}) ==
-          GUI_SCREEN_MARKET)  // qualified: the final overrider, so the binding
-                              // test stands in for it
+          OOGUIScreenID::kMarket)  // qualified: the final overrider, so the
+                                   // binding test stands in for it
   {
     if (PLAYER != nullptr) PLAYER->setGuiToMarketScreen();  // refresh screen
   }
@@ -1085,8 +1085,8 @@ static JSValue StationSetMarketQuantity(OOJS_NATIVE_ARGS) {
   if (station == (PLAYER != nullptr ? PLAYER->PlayerEntity::dockedStation()
                                     : (StationEntity*)nullptr) &&
       (PLAYER != nullptr ? PLAYER->guiScreen() : OOGUIScreenID{}) ==
-          GUI_SCREEN_MARKET)  // qualified: the final overrider, so the binding
-                              // test stands in for it
+          OOGUIScreenID::kMarket)  // qualified: the final overrider, so the
+                                   // binding test stands in for it
   {
     if (PLAYER != nullptr) PLAYER->setGuiToMarketScreen();  // refresh screen
   }
@@ -1361,8 +1361,8 @@ static JSValue StationAddShipToShipyard(OOJS_NATIVE_ARGS) {
   if (station == (PLAYER != nullptr ? PLAYER->PlayerEntity::dockedStation()
                                     : (StationEntity*)nullptr) &&
       (PLAYER != nullptr ? PLAYER->guiScreen() : OOGUIScreenID{}) ==
-          GUI_SCREEN_SHIPYARD)  // qualified: the final overrider, so the
-                                // binding test stands in for it
+          OOGUIScreenID::kShipyard)  // qualified: the final overrider, so the
+                                     // binding test stands in for it
   {
     if (PLAYER != nullptr) PLAYER->setGuiToShipyardScreen(0);
   }
@@ -1414,8 +1414,8 @@ static JSValue StationRemoveShipFromShipyard(OOJS_NATIVE_ARGS) {
   if (station == (PLAYER != nullptr ? PLAYER->PlayerEntity::dockedStation()
                                     : (StationEntity*)nullptr) &&
       (PLAYER != nullptr ? PLAYER->guiScreen() : OOGUIScreenID{}) ==
-          GUI_SCREEN_SHIPYARD)  // qualified: the final overrider, so the
-                                // binding test stands in for it
+          OOGUIScreenID::kShipyard)  // qualified: the final overrider, so the
+                                     // binding test stands in for it
   {
     if (PLAYER != nullptr) PLAYER->setGuiToShipyardScreen(0);
   }

@@ -1125,7 +1125,7 @@ void HeadUpDisplay::drawLegend(const oo::PList& info) {
   bool viewOnly = info.get<bool>(VIEWSCREEN_KEY, false);
   // 1=docked, 2=green, 4=yellow, 8=red
   if (viewOnly && (PLAYER != nullptr ? PLAYER->guiScreen() : OOGUIScreenID{}) !=
-                      GUI_SCREEN_MAIN) {
+                      OOGUIScreenID::kMain) {
     return;
   }
 
@@ -1202,7 +1202,7 @@ void HeadUpDisplay::drawHUDItem(const oo::PList& info) {
 
   // 1=docked, 2=green, 4=yellow, 8=red
   if (viewOnly && (PLAYER != nullptr ? PLAYER->guiScreen() : OOGUIScreenID{}) !=
-                      GUI_SCREEN_MAIN) {
+                      OOGUIScreenID::kMain) {
     return;
   }
 
@@ -1285,7 +1285,7 @@ void HeadUpDisplay::drawMultiFunctionDisplay(const oo::PList& info,
   std::ptrdiff_t i, x, y;
   NSSize siz, tmpsiz;
   if ((player1 != nullptr ? player1->guiScreen() : OOGUIScreenID{}) !=
-      GUI_SCREEN_MAIN)  // don't draw on text screens
+      OOGUIScreenID::kMain)  // don't draw on text screens
   {
     return;
   }
@@ -3795,7 +3795,7 @@ void hudDrawReticleOnTarget(
     return;
   }
   if (HeadUpDisplayPlayerGuiScreen(player1) !=
-      GUI_SCREEN_MAIN)  // don't draw on text screens
+      OOGUIScreenID::kMain)  // don't draw on text screens
   {
     return;
   }
@@ -4034,7 +4034,7 @@ void hudDrawReticleOnTarget(
 void hudDrawWaypoint(Entity* waypoint, PlayerEntity* player1, GLfloat /*z1*/,
                      GLfloat alpha, bool selected, GLfloat scale) {
   if (HeadUpDisplayPlayerGuiScreen(player1) !=
-      GUI_SCREEN_MAIN)  // don't draw on text screens
+      OOGUIScreenID::kMain)  // don't draw on text screens
   {
     return;
   }

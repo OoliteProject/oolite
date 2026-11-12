@@ -1223,7 +1223,7 @@ void PlayerEntity::setGuiToManifestScreen() {
   OOGUIScreenID oldScreen = gui_screen;
 
   ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
-  gui_screen = GUI_SCREEN_MANIFEST;
+  gui_screen = OOGUIScreenID::kManifest;
   bool guiChanged = (oldScreen != gui_screen);
   if (guiChanged) {
     gui->setStatusPage(0);  // need to do this earlier than the rest
@@ -1454,7 +1454,7 @@ void PlayerEntity::setGuiToDockingReportScreen() {
   ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
 
   OOGUIScreenID oldScreen = gui_screen;
-  gui_screen = GUI_SCREEN_REPORT;
+  gui_screen = OOGUIScreenID::kReport;
   bool guiChanged = (oldScreen != gui_screen);
 
   OOGUIRow i, text_row = 1;
@@ -1606,7 +1606,7 @@ void PlayerEntity::setGuiToShipyardScreen(std::size_t skip) {
   OOGUIScreenID oldScreen = gui_screen;
 
   ::GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
-  gui_screen = GUI_SCREEN_SHIPYARD;
+  gui_screen = OOGUIScreenID::kShipyard;
   bool guiChanged = (oldScreen != gui_screen);
 
   unsigned i;

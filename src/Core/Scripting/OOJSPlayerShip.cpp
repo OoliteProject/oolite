@@ -886,7 +886,7 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
       if (sValue.has_value()) {
         OOLongRangeChartMode chartMode =
             cxx_OOLongRangeChartModeFromString(sValue.value_or(""));
-        if (chartMode > OOLRC_MODE_UNKNOWN) {
+        if (chartMode > OOLongRangeChartMode::kUnknown) {
           if (player != nullptr) player->setLongRangeChartMode(chartMode);
           if (player != nullptr)
             player->doScriptEvent(

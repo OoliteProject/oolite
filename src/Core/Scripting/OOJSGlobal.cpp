@@ -426,7 +426,7 @@ static JSValue GlobalClearExtraGuiScreenKeys(OOJS_NATIVE_ARGS) {
   }
 
   OOGUIScreenID gui = OOGUIScreenIDFromJSValue(context, OOJS_ARGV[1]);
-  if (!gui) {
+  if (oo::ToUnderlying(gui) == 0) {
     cxx_OOJSReportBadArguments(context, std::nullopt, "clearExtraGuiScreenKeys",
                                0, OOJS_ARGV, std::nullopt,
                                "guiScreen invalid entry");
@@ -507,14 +507,16 @@ static JSValue GlobalSetExtraGuiScreenKeys(OOJS_NATIVE_ARGS) {
 
   gui = OOGUIScreenIDFromJSValue(context, value);
   JS_FreeValue(context, value);
-  // gui will be 0 for invalid screen id's as well as GUI_SCREEN_MAIN
-  if (gui == 0 || gui == GUI_SCREEN_LOAD || gui == GUI_SCREEN_SAVE ||
-      gui == GUI_SCREEN_STICKMAPPER || gui == GUI_SCREEN_OXZMANAGER ||
-      gui == GUI_SCREEN_NEWGAME || gui == GUI_SCREEN_SAVE_OVERWRITE ||
-      gui == GUI_SCREEN_KEYBOARD || gui == GUI_SCREEN_STICKPROFILE ||
-      gui == GUI_SCREEN_KEYBOARD_CONFIRMCLEAR ||
-      gui == GUI_SCREEN_KEYBOARD_CONFIG || gui == GUI_SCREEN_KEYBOARD_ENTRY ||
-      gui == GUI_SCREEN_KEYBOARD_LAYOUT) {
+  // gui will be 0 for invalid screen id's as well as OOGUIScreenID::kMain
+  if (oo::ToUnderlying(gui) == 0 || gui == OOGUIScreenID::kLoad ||
+      gui == OOGUIScreenID::kSave || gui == OOGUIScreenID::kStickMapper ||
+      gui == OOGUIScreenID::kOXZManager || gui == OOGUIScreenID::kNewGame ||
+      gui == OOGUIScreenID::kSaveOverwrite || gui == OOGUIScreenID::kKeyboard ||
+      gui == OOGUIScreenID::kStickProfile ||
+      gui == OOGUIScreenID::kKeyboardConfirmClear ||
+      gui == OOGUIScreenID::kKeyboardConfig ||
+      gui == OOGUIScreenID::kKeyboardEntry ||
+      gui == OOGUIScreenID::kKeyboardLayout) {
     JS_FreeValue(context, params);
     cxx_OOJSReportBadArguments(context, "global", "setExtraGuiScreenKeys",
                                defArgc, &OOJS_ARGV[1], std::nullopt,
@@ -630,7 +632,7 @@ static JSValue GlobalSetScreenBackground(OOJS_NATIVE_ARGS) {
 
     // add some permanence to the override if we're in the equip ship screen
     if (result && (PLAYER != nullptr ? PLAYER->guiScreen() : OOGUIScreenID{}) ==
-                      GUI_SCREEN_EQUIP_SHIP) {
+                      OOGUIScreenID::kEquipShip) {
       if (PLAYER != nullptr)
         PLAYER->setEquipScreenBackgroundDescriptor(descriptor);
     }
@@ -923,10 +925,11 @@ static JSValue GlobalPauseGame(OOJS_NATIVE_ARGS) {
     OOGUIScreenID guiScreen =
         (player != nullptr ? player->guiScreen() : OOGUIScreenID{});
 
-    if (guiScreen != GUI_SCREEN_LONG_RANGE_CHART &&
-        guiScreen != GUI_SCREEN_MISSION && guiScreen != GUI_SCREEN_REPORT &&
-        guiScreen != GUI_SCREEN_KEYBOARD_ENTRY &&
-        guiScreen != GUI_SCREEN_SAVE) {
+    if (guiScreen != OOGUIScreenID::kLongRangeChart &&
+        guiScreen != OOGUIScreenID::kMission &&
+        guiScreen != OOGUIScreenID::kReport &&
+        guiScreen != OOGUIScreenID::kKeyboardEntry &&
+        guiScreen != OOGUIScreenID::kSave) {
       if (UNIVERSE != nullptr) UNIVERSE->pauseGame();
       result = true;
     }

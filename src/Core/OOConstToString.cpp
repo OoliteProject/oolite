@@ -35,16 +35,6 @@ MA );-);, USA.
 #include "Universe.h"
 #include "oofnd/String.hpp"
 
-#define ENTRY(label, value) \
-  case label:               \
-    return #label;
-#define GALACTIC_HYPERSPACE_ENTRY(label, value) \
-  case GALACTIC_HYPERSPACE_##label:             \
-    return #label;
-#define DIFF_STRING_ENTRY(label, string) \
-  case label:                            \
-    return string;
-
 std::string cxx_OOStringFromEntityStatus(OOEntityStatus value) {
   const std::string_view name = OOEnumName(value);
   return name.empty() ? std::string("UNDEFINED") : std::string(name);
@@ -62,11 +52,8 @@ std::string cxx_OOStringFromCompassMode(OOCompassMode value) {
 }
 
 std::string cxx_OOStringFromLongRangeChartMode(OOLongRangeChartMode value) {
-  switch (value) {
-#include "OOLongRangeChartMode.tbl"
-  }
-
-  return "UNDEFINED";
+  const std::string_view name = OOEnumName(value);
+  return name.empty() ? std::string("UNDEFINED") : std::string(name);
 }
 
 std::string cxx_OOStringFromGalacticHyperspaceBehaviour(
@@ -76,11 +63,8 @@ std::string cxx_OOStringFromGalacticHyperspaceBehaviour(
 }
 
 std::string cxx_OOStringFromGUIScreenID(OOGUIScreenID value) {
-  switch (value) {
-#include "OOGUIScreenID.tbl"
-  }
-
-  return "UNDEFINED";
+  const std::string_view name = OOEnumName(value);
+  return name.empty() ? std::string("UNDEFINED") : std::string(name);
 }
 
 std::string cxx_OOStringFromScanClass(OOScanClass value) {
@@ -97,14 +81,6 @@ std::string cxx_OOStringFromLegalStatusReason(OOLegalStatusReason value) {
   const std::string_view name = OOEnumName(value);
   return name.empty() ? std::string("UNDEFINED") : std::string(name);
 }
-
-#undef ENTRY
-#undef GALACTIC_HYPERSPACE_ENTRY
-
-#define ENTRY(label, value) \
-  if (string == #label) return label;
-#define GALACTIC_HYPERSPACE_ENTRY(label, value) \
-  if (string == #label) return GALACTIC_HYPERSPACE_##label;
 
 OOEntityStatus cxx_OOEntityStatusFromString(const std::string& string) {
   return kOOEntityStatusTable.value(string).value_or(kOOEntityStatusDefault);
@@ -131,9 +107,7 @@ OOGalacticHyperspaceBehaviour cxx_OOGalacticHyperspaceBehaviourFromString(
 }
 
 OOGUIScreenID cxx_OOGUIScreenIDFromString(const std::string& string) {
-#include "OOGUIScreenID.tbl"
-
-  return (OOGUIScreenID)kOOGUIScreenIDDefault;
+  return kOOGUIScreenIDTable.value(string).value_or(kOOGUIScreenIDDefault);
 }
 
 OOScanClass cxx_OOScanClassFromString(const std::string& string) {
@@ -142,13 +116,9 @@ OOScanClass cxx_OOScanClassFromString(const std::string& string) {
 
 OOLongRangeChartMode cxx_OOLongRangeChartModeFromString(
     const std::string& string) {
-#include "OOLongRangeChartMode.tbl"
-
-  return kOOLongRangeChartModeDefault;
+  return kOOLongRangeChartModeTable.value(string).value_or(
+      kOOLongRangeChartModeDefault);
 }
-
-#undef ENTRY
-#undef GALACTIC_HYPERSPACE_ENTRY
 
 std::string cxx_RouteTypeToString(OORouteType routeType) {
   const std::string_view name = OOEnumName(routeType);

@@ -1308,7 +1308,7 @@ void Universe::pauseGame() {
     }
   } else {
     if ((player != nullptr ? player->guiScreen() : OOGUIScreenID{}) !=
-            GUI_SCREEN_MAIN &&
+            OOGUIScreenID::kMain &&
         gui != nullptr && gui->setForegroundTextureKey("paused_overlay")) {
       gui->drawGUI(1.0, false);
     } else {
@@ -5664,7 +5664,7 @@ void Universe::drawUniverse() {
           break;
         default:
           switch ((player != nullptr ? player->guiScreen() : OOGUIScreenID{})) {
-            // case GUI_SCREEN_KEYBOARD:
+            // case OOGUIScreenID::kKeyboard:
             //  no HUD rendering on this screen
             // break;
             default:
@@ -7430,7 +7430,7 @@ void Universe::update(OOTimeDelta inDeltaT) {
       if (EXPECT_NOT(
               (player != nullptr ? player->getShowDemoShips() : false) &&
               (player != nullptr ? player->guiScreen() : OOGUIScreenID{}) ==
-                  GUI_SCREEN_SHIPLIBRARY)) {
+                  OOGUIScreenID::kShipLibrary)) {
         update_stage = "demo management";
 
         if (universal_time >= demo_stage_time) {

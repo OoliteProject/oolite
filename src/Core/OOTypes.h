@@ -64,17 +64,8 @@ constexpr std::string_view OOEnumName(OORouteType value) noexcept {
 }
 
 #include "OOCompassMode.h"
+#include "OOLongRangeChartMode.h"
 #include "OOViewID.h"
-
-#define ENTRY(label, value) label,
-
-typedef enum {
-#include "OOLongRangeChartMode.tbl"
-
-  kOOLongRangeChartModeDefault = OOLRC_MODE_UNKNOWN
-} OOLongRangeChartMode;
-
-#undef ENTRY
 
 // Encoded "i" (OOTypeEncodings.h): a by-name call answers it as a number.
 enum class OOAegisStatus : std::int32_t {

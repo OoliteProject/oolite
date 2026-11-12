@@ -153,7 +153,7 @@ void PlayerEntity::setGuiToStickMapperScreen(unsigned skip,
   tabStop[2] = 400;
   gui->setTabStops(tabStop);
 
-  gui_screen = GUI_SCREEN_STICKMAPPER;
+  gui_screen = OOGUIScreenID::kStickMapper;
   gui->clear();
   gui->setTitle(OO_DESC("stickmapper-header"));
 
@@ -294,7 +294,7 @@ void PlayerEntity::updateFunction(
   waitingForStickCallback = false;
 
   // Right time and the right place?
-  if (gui_screen != GUI_SCREEN_STICKMAPPER) {
+  if (gui_screen != OOGUIScreenID::kStickMapper) {
     OO_LOG("joystick.configure.error",
            "{} called when not on stick mapper screen.", __PRETTY_FUNCTION__);
     return;

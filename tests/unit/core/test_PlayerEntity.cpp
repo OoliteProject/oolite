@@ -1131,8 +1131,8 @@ OO_TEST(slice21ChangeNotes)
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		sSent.flag = true;
-		player->noteGUIDidChangeFrom(GUI_SCREEN_STATUS, GUI_SCREEN_MARKET);
-		OO_CHECK(sSent.count == 1 && sSent.number == (int)GUI_SCREEN_STATUS * 100 + (int)GUI_SCREEN_MARKET && !sSent.flag);
+		player->noteGUIDidChangeFrom(OOGUIScreenID::kStatus, OOGUIScreenID::kMarket);
+		OO_CHECK(sSent.count == 1 && sSent.number == (int)OOGUIScreenID::kStatus * 100 + (int)OOGUIScreenID::kMarket && !sSent.flag);
 		player->noteViewDidChangeFrom(OOViewID::kAft, OOViewID::kForward);
 		OO_CHECK(sSent.count == 2 && sSent.number == (int)OOViewID::kAft * 100 + (int)OOViewID::kForward);
 	}
@@ -1190,8 +1190,8 @@ OO_TEST(slice24FlagsAndAddEquipment)
 		SetUp();
 		RecordingPlayer *player = MakeRecordingPlayer();
 		PlayerEntity *part = player;
-		PlayerEntityTestAccess::gui_screen(part) = GUI_SCREEN_MARKET;
-		OO_CHECK(player->guiScreen() == GUI_SCREEN_MARKET);
+		PlayerEntityTestAccess::gui_screen(part) = OOGUIScreenID::kMarket;
+		OO_CHECK(player->guiScreen() == OOGUIScreenID::kMarket);
 		PlayerEntityTestAccess::using_mining_laser(part) = true;
 		OO_CHECK(player->isMining());
 		PlayerEntityTestAccess::using_mining_laser(part) = false;
@@ -1298,8 +1298,8 @@ OO_TEST(slice27CustomViewHyperspaceAndNames)
 		OO_CHECK(player->getGalacticHyperspaceBehaviour() == OOGalacticHyperspaceBehaviour::kFixedCoordinates);
 		player->setGalacticHyperspaceFixedCoords(NSMakePoint(300.0, 12.4));
 		OO_CHECK(Near(player->getGalacticHyperspaceFixedCoords(), NSMakePoint(255, 12)));
-		player->setMissionExitScreen(GUI_SCREEN_STATUS);
-		OO_CHECK(player->missionExitScreen() == GUI_SCREEN_STATUS);
+		player->setMissionExitScreen(OOGUIScreenID::kStatus);
+		OO_CHECK(player->missionExitScreen() == OOGUIScreenID::kStatus);
 		player->setScoopOverride(true);
 		OO_CHECK(player->getScoopOverride() && sSent.count == 1);
 		player->setCommanderName(std::string("Jameson"));
