@@ -31,7 +31,7 @@
    buffer), so memcpy(dst, d.bytes(), d.length()) is always well-defined; NSData
    returned NULL there.
 
-        Header-only, C++20, no exceptions thrown by oofnd itself (std::vector
+        Header-only, C++23, no exceptions thrown by oofnd itself (std::vector
    may still report allocation failure as the standard library does).
 */
 

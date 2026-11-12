@@ -1,14 +1,16 @@
 # oofnd — the Foundation replacement
 
-`oofnd` is the C++20 library that replaced GNUstep Foundation (`libgnustep-base`): one
+`oofnd` is the C++23 library that replaced GNUstep Foundation (`libgnustep-base`): one
 component per seam the game used, each with its own unit tests. Namespace `oo`.
 
 Rules that hold for every component:
 
-- **C++20 only** for now. Where C++23 has the thing (`std::expected`), oofnd provides a
-  same-API polyfill so the upgrade to C++23 is a rename.
-- **No exceptions across oofnd APIs.** Fallible operations return `oo::Expected<T, E>`.
-  Headers must compile with `-fno-exceptions` (the canary checks it).
+- **C++23.** Where the standard library has the thing, game code uses it directly and the
+  `oofnd` copy goes (spec 009); a component stays only where the standard has no equivalent or
+  gives different answers.
+- **No exceptions across oofnd APIs.** Fallible operations return `oo::Expected<T, E>`. The game
+  itself does throw (`OORaiseException`, `oo::Exception`), so nothing is built with
+  `-fno-exceptions`.
 - **Header-first.** A component is a header in this directory until it needs a `.cpp`; then
   `meson.build` here grows an `oofnd` static library (the recipe is in that file).
 - **No Foundation, no `JS_*`** (the deny-list); no third-party code without a recorded decision.
@@ -47,7 +49,7 @@ Rules that hold for every component:
 | `src/oofnd/objc/OOAssert.h` | `OOCAssert` / `OOCParameterAssert`: gnustep-base's assertion semantics, live in every flavour |
 | `src/oofnd/objc/OOFoundationTypes.h` | Foundation's C types (`NSInteger`/`NSUInteger`, `NSRange`, `NSNotFound`, `NSPoint`/`NSSize`/`NSRect`, `NSMake*`, `NSEqual*`, `NSTimeInterval`, `CGFloat`) with GNUstep's exact definitions and names; refuses to compile beside a Foundation header. Pinned by `tests/unit/oofnd/test_foundation_types.cpp` |
 | `src/oofnd/meson.build` | `oofnd_dep` (include path `src/`, so consumers write `#include "oofnd/X.hpp"`) |
-| `tests/unit/oofnd/test_*.cpp` | one executable per component, plain C++20 |
+| `tests/unit/oofnd/test_*.cpp` | one executable per component, plain C++23 |
 | `tests/unit/oofnd/oo_test.hpp` | the whole test harness: `OO_TEST`, `OO_CHECK`, `OO_CHECK_EQ`, `OO_TEST_MAIN` |
 | `tests/unit/oofnd/plist_dump.hpp` | canonical one-line dump of a `PList`, the format the PList tests' GNUstep-captured expectations are written in |
 | `tests/unit/oofnd/meson.build` | registers each test in `meson test --suite oofnd` |

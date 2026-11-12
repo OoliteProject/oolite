@@ -39,7 +39,7 @@
    error ends writing (the exception left the thread's loop); the writer still
    stops cleanly.
 
-        Header-only, C++20, compiles with -fno-exceptions.
+        Header-only, C++23.
 */
 
 #pragma once

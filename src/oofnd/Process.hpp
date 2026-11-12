@@ -31,7 +31,7 @@
    snapshotted it at first use); on Windows through _wgetenv, so non-ASCII
    values arrive as UTF-8.
 
-        Header-only, C++20; compiles with -fno-exceptions.
+        Header-only, C++23.
 */
 
 #pragma once

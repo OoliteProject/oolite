@@ -57,7 +57,7 @@
    lengths and indices), the function works on the UTF-16 units exactly as
    NSString does and converts back.
 
-        Header-only, C++20, compiles with -fno-exceptions.
+        Header-only, C++23.
 */
 
 #pragma once

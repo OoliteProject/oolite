@@ -30,7 +30,7 @@
    (tools/captures/plist-description/capture.sh, with TZ=UTC: the test describes
    dates at offset 0).
 
-        Header-only, C++20, compiles with -fno-exceptions.
+        Header-only, C++23.
 */
 
 #pragma once

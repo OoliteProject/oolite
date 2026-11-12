@@ -49,7 +49,7 @@
    NSNumber's, anything else 0/NO; stringForKey only strings. Numbers written
    come back as strings next run.
 
-        Header-only, C++20, no exceptions. Thread-safe as NSUserDefaults is (one
+        Header-only, C++23, no exceptions. Thread-safe as NSUserDefaults is (one
    mutex).
 */
 

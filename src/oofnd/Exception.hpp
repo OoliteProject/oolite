@@ -43,7 +43,7 @@
         CurrentOOException() tells the game's exception from anything else, as
    @catch (OOException *) did. The functions are defined in oofnd/Exception.cpp.
 
-        C++20.
+        C++23.
 */
 
 #pragma once
