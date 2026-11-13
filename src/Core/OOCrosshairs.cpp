@@ -41,10 +41,10 @@ OOCrosshairs::OOCrosshairs(const oo::PList& points, GLfloat scale,
   }
 }
 
-OOCrosshairs::~OOCrosshairs() { free(_data); }
+OOCrosshairs::~OOCrosshairs() = default;
 
 void OOCrosshairs::render() {
-  if (_data != nullptr) {
+  if (!_data.empty()) {
     OO_ENTER_OPENGL();
     OOSetOpenGLState(OOOpenGLStateID::kOverlay);
 
@@ -58,8 +58,8 @@ void OOCrosshairs::render() {
                          ? UNIVERSE->getGameView()->getDisplay_z()
                          : 0.0f)));
 
-    OOGL(glVertexPointer(2, GL_FLOAT, sizeof(GLfloat) * 6, _data));
-    OOGL(glColorPointer(4, GL_FLOAT, sizeof(GLfloat) * 6, _data + 2));
+    OOGL(glVertexPointer(2, GL_FLOAT, sizeof(GLfloat) * 6, _data.data()));
+    OOGL(glColorPointer(4, GL_FLOAT, sizeof(GLfloat) * 6, _data.data() + 2));
 
     OOGL(glEnableClientState(GL_VERTEX_ARRAY));
     OOGL(glEnableClientState(GL_COLOR_ARRAY));
@@ -86,16 +86,14 @@ void OOCrosshairs::setUpDataWithPoints(const oo::PList& points, GLfloat scale,
   _count = points.count();
   if (_count == 0) return;
 
-  _data = static_cast<GLfloat*>(
-      malloc(sizeof(GLfloat) * 12 *
-             _count));  // 2 coordinates, 4 colour components for
-                        // each endpoint of each line segment
+  // 2 coordinates, 4 colour components for each endpoint of each line segment
+  _data.assign(12 * _count, 0.0f);
   if (color != nullptr)
     color->getRed(&colorComps[0], &colorComps[1], &colorComps[2],
                   &colorComps[3]);
 
   // Turn the point array into GL-friendly element array
-  data = _data;
+  data = _data.data();
   for (i = 0; i < _count; i++) {
     setUpDataForOnePoint(points.at<oo::PList::Array>(i), scale, colorComps,
                          alpha, data);

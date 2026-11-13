@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 
 #include "HeadUpDisplay.h"
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <format>
@@ -1026,7 +1027,7 @@ void HeadUpDisplay::drawCrosshairs() {
   OOWeaponType weapon =
       (PLAYER != nullptr ? PLAYER->currentWeapon() : OOWeaponType{});
   bool weaponsOnline = (PLAYER != nullptr ? PLAYER->weaponsOnline() : false);
-  oo::PList points;
+  oo::PList ring;
 
   if (viewID == OOViewID::kCustom || overallAlpha == 0.0f ||
       !((PLAYER != nullptr ? PLAYER->status() : OOEntityStatus{}) ==
@@ -1047,10 +1048,10 @@ void HeadUpDisplay::drawCrosshairs() {
     GLfloat useAlpha = weaponsOnline ? overallAlpha : overallAlpha * 0.5f;
 
     // Make new crosshairs object
-    points = crosshairDefinitionForWeaponType(weapon);
+    ring = crosshairDefinitionForWeaponType(weapon);
 
     _crosshairs = std::make_unique<OOCrosshairs>(
-        points, _crosshairScale, _crosshairColor.get(), useAlpha);
+        ring, _crosshairScale, _crosshairColor.get(), useAlpha);
     _lastWeaponType = weapon;
     _lastOverallAlpha = useAlpha;
     _lastWeaponsOnline = weaponsOnline;
@@ -4492,8 +4493,7 @@ static void GLDrawNonlinearCascadeWeapon(GLfloat x, GLfloat y, GLfloat z,
   GLfloat theta, phi;
   GLfloat z_factor = siz.height / siz.width;  // approx 1/4
   GLfloat y_factor = 1.0 - sqrt(z_factor);    // approx 1/2
-  OOGLVector* points =
-      static_cast<OOGLVector*>(malloc(sizeof(OOGLVector) * 25));
+  std::array<OOGLVector, 25> ring;
   int i, j;
 
   if (radius * radius > centre.y * centre.y) {
@@ -4506,57 +4506,55 @@ static void GLDrawNonlinearCascadeWeapon(GLfloat x, GLfloat y, GLfloat z,
       spacepos.z = centre.z + r0 * sin(theta);
       scannerpos =
           HeadUpDisplay::nonlinearScannerScale(spacepos, zoom, 0.5 * siz.width);
-      points[i].x = x + scannerpos.x;
-      points[i].y = y + scannerpos.z * z_factor + scannerpos.y * y_factor;
-      points[i].z = z;
+      ring[i].x = x + scannerpos.x;
+      ring[i].y = y + scannerpos.z * z_factor + scannerpos.y * y_factor;
+      ring[i].z = z;
     }
     spacepos.x = centre.x + r0;
     spacepos.y = 0;
     spacepos.z = centre.z;
     scannerpos =
         HeadUpDisplay::nonlinearScannerScale(spacepos, zoom, 0.5 * siz.width);
-    points[24].x = x + scannerpos.x;
-    points[24].y = y + scannerpos.z * z_factor + scannerpos.y * y_factor;
-    points[24].z = z;
-    GLDrawPoints(points, 25);
+    ring[24].x = x + scannerpos.x;
+    ring[24].y = y + scannerpos.z * z_factor + scannerpos.y * y_factor;
+    ring[24].z = z;
+    GLDrawPoints(ring.data(), static_cast<int>(ring.size()));
   }
   OOGL(glColor4f(0.5, 0.0, 1.0, 0.33333 * alpha));
-  free(points);
   // Here, we draw a sphere distorted by the nonlinear function. We draw the
-  // sphere as a set of horizontal strips The even indices of points are the
+  // sphere as a set of horizontal strips The even indices of strip are the
   // points on the upper edge of the strip, while odd indices are points on the
   // bottom edge.
-  points = static_cast<OOGLVector*>(malloc(sizeof(OOGLVector) * 50));
+  std::array<OOGLVector, 50> strip;
   spacepos.x = centre.x;
   spacepos.y = centre.y + radius;
   spacepos.z = centre.z;
   scannerpos =
       HeadUpDisplay::nonlinearScannerScale(spacepos, zoom, 0.5 * siz.width);
   for (i = 0; i <= 24; i++) {
-    points[2 * i + 1].x = x + scannerpos.x;
-    points[2 * i + 1].y = y + scannerpos.y * y_factor + scannerpos.z * z_factor;
-    points[2 * i + 1].z = z;
+    strip[2 * i + 1].x = x + scannerpos.x;
+    strip[2 * i + 1].y = y + scannerpos.y * y_factor + scannerpos.z * z_factor;
+    strip[2 * i + 1].z = z;
   }
   for (i = 1; i <= 24; i++) {
     theta = i * M_PI / 24;
     for (j = 0; j <= 24; j++) {
       phi = j * M_PI / 12;
       // copy point from bottom edge of previous strip into top edge position
-      points[2 * j] = points[2 * j + 1];
+      strip[2 * j] = strip[2 * j + 1];
 
       spacepos.x = centre.x + radius * sin(theta) * cos(phi);
       spacepos.y = centre.y + radius * cos(theta);
       spacepos.z = centre.z + radius * sin(theta) * sin(phi);
       scannerpos =
           HeadUpDisplay::nonlinearScannerScale(spacepos, zoom, 0.5 * siz.width);
-      points[2 * j + 1].x = x + scannerpos.x;
-      points[2 * j + 1].y =
+      strip[2 * j + 1].x = x + scannerpos.x;
+      strip[2 * j + 1].y =
           y + scannerpos.y * y_factor + scannerpos.z * z_factor;
-      points[2 * j + 1].z = z;
+      strip[2 * j + 1].z = z;
     }
-    GLDrawQuadStrip(points, 50);
+    GLDrawQuadStrip(strip.data(), static_cast<int>(strip.size()));
   }
-  free(points);
   return;
 }
 

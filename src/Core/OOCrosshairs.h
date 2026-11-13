@@ -27,6 +27,8 @@ SOFTWARE.
 
 #pragma once
 
+#include <vector>
+
 #include "OOOpenGL.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
@@ -56,5 +58,5 @@ class OOCrosshairs : public oo::Object {
                             GLfloat* ioBuffer);
 
   std::size_t _count = {};
-  GLfloat* _data = {};
+  std::vector<GLfloat> _data;
 };
