@@ -24,6 +24,10 @@ MA 02110-1301, USA.
 
 */
 
+#include <algorithm>
+#include <array>
+#include <vector>
+
 #include "OOJavaScriptEngine.h"
 
 // Indexed by class ID; process lifetime, as are class IDs.
@@ -40,13 +44,13 @@ static JSClassID sSuperclasses[kOOJSMaxClassID];
         Ship properties are own properties, but its Entity properties are not
         (checked against SpiderMonkey with tools/js-parity).
 */
-using SharedPropertyTable = struct {
-  JSAtom* atoms;
-  JSAtom* sortedAtoms;
-  uint32_t count;
+struct SharedPropertyTable {
+  std::vector<JSAtom> atoms;
+  std::vector<JSAtom> sortedAtoms;
+  bool recorded = false;
 };
 
-static SharedPropertyTable sSharedProperties[kOOJSMaxClassID];
+static std::array<SharedPropertyTable, kOOJSMaxClassID> sSharedProperties;
 
 /*	Each class without exotic methods of its own gets its own, initially
         empty, JSClassExoticMethods; the hooks are only filled in when
@@ -55,7 +59,8 @@ static SharedPropertyTable sSharedProperties[kOOJSMaxClassID];
         lookups, which matters for Script objects: they are the with() scope of
         every script, so all bare identifier lookups pass through them.
 */
-static JSClassExoticMethods* sOwnExoticMethods[kOOJSMaxClassID];
+static std::array<JSClassExoticMethods, kOOJSMaxClassID> sExoticMethodStorage{};
+static std::array<JSClassExoticMethods*, kOOJSMaxClassID> sOwnExoticMethods{};
 
 JSClassID OOJSRegisterClass(JSClassID* ioClassID, const JSClassDef* classDef) {
   OOCParameterAssert(ioClassID != nullptr && classDef != nullptr);
@@ -67,8 +72,7 @@ JSClassID OOJSRegisterClass(JSClassID* ioClassID, const JSClassDef* classDef) {
   if (!JS_IsRegisteredClass(runtime, classID)) {
     JSClassDef def = *classDef;
     if (def.exotic == nullptr) {
-      sOwnExoticMethods[classID] = static_cast<JSClassExoticMethods*>(
-          calloc(1, sizeof(JSClassExoticMethods)));
+      sOwnExoticMethods[classID] = &sExoticMethodStorage[classID];
       def.exotic = sOwnExoticMethods[classID];
     }
     JS_NewClass(runtime, classID, &def);
@@ -108,21 +112,14 @@ bool OOJSIsSubclass(JSClassID putativeSubclass, JSClassID superclass) {
   return false;
 }
 
-static int CompareAtoms(const void* a, const void* b) {
-  JSAtom x = *static_cast<const JSAtom*>(a), y = *static_cast<const JSAtom*>(b);
-  return (x > y) - (x < y);
-}
-
 static void RecordSharedProperties(JSContext* context, JSClassID classID,
                                    const JSCFunctionListEntry* properties,
                                    size_t count) {
   SharedPropertyTable* table = &sSharedProperties[classID];
-  if (table->atoms != nullptr || properties == nullptr) return;
+  if (table->recorded || properties == nullptr) return;
+  table->recorded = true;
 
-  table->atoms =
-      static_cast<JSAtom*>(malloc(sizeof(JSAtom) * (count ? count : 1)));
-  table->sortedAtoms =
-      static_cast<JSAtom*>(malloc(sizeof(JSAtom) * (count ? count : 1)));
+  table->atoms.reserve(count);
   for (size_t i = 0; i < count; i++) {
     if (properties[i].def_type == JS_DEF_CGETSET ||
         properties[i].def_type == JS_DEF_CGETSET_MAGIC) {
@@ -130,25 +127,22 @@ static void RecordSharedProperties(JSContext* context, JSClassID classID,
 
       // Some tables define a property twice (e.g. Ship's homeSystem); like
       // SpiderMonkey, keep the first.
-      bool duplicate = false;
-      for (uint32_t j = 0; j < table->count && !duplicate; j++)
-        duplicate = (table->atoms[j] == atom);
-      if (!duplicate) table->atoms[table->count++] = atom;
+      if (std::ranges::find(table->atoms, atom) == table->atoms.end())
+        table->atoms.push_back(atom);
     }
   }
-  memcpy(table->sortedAtoms, table->atoms, sizeof(JSAtom) * table->count);
-  qsort(table->sortedAtoms, table->count, sizeof(JSAtom), CompareAtoms);
+  table->sortedAtoms = table->atoms;
+  std::ranges::sort(table->sortedAtoms);
 
   JSClassExoticMethods* exotic = sOwnExoticMethods[classID];
-  if (exotic != nullptr && table->count != 0) {
+  if (exotic != nullptr && !table->atoms.empty()) {
     exotic->get_own_property = OOJSGetSharedPermanentOwnProperty;
     exotic->get_own_property_names = OOJSGetSharedPermanentOwnPropertyNames;
   }
 }
 
 static bool TableContainsAtom(const SharedPropertyTable* table, JSAtom atom) {
-  return table->count != 0 && bsearch(&atom, table->sortedAtoms, table->count,
-                                      sizeof(JSAtom), CompareAtoms) != nullptr;
+  return std::ranges::binary_search(table->sortedAtoms, atom);
 }
 
 /*	A property is a shared permanent property of an object if its class
@@ -183,7 +177,8 @@ int OOJSGetSharedPermanentOwnPropertyNames(JSContext* context,
   const SharedPropertyTable* table = (classID != 0 && classID < kOOJSMaxClassID)
                                          ? &sSharedProperties[classID]
                                          : nullptr;
-  uint32_t count = (table != nullptr) ? table->count : 0;
+  uint32_t count =
+      (table != nullptr) ? static_cast<uint32_t>(table->atoms.size()) : 0;
 
   // A class's own prototype gets its properties from its shape, not from here.
   JSValue prototype =
