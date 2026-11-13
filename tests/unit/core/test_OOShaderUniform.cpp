@@ -24,6 +24,7 @@
 #include "OOShaderUniformMethodType.h"
 #include "oo_gl_test_context.hpp"
 #include "oo_test.hpp"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/String.hpp"
 
 // --- Stubs

@@ -49,8 +49,8 @@ MA 02110-1301, USA.
 #include "OOGraphicsResetManager.h"
 #include "OOStellarBody.h"
 #include "legacy_random.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 /*	The planet configuration and material parameters are oo::PLists (mixed:
    colours are PList::Object nodes); texture and planet names are std::optional

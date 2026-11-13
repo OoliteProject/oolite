@@ -93,8 +93,8 @@ MA 02110-1301, USA.
 #include "OOFunctionAttributes.h"
 #include "OOJSPropID.h"
 #include "OOTypes.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOFoundationTypes.h"
 

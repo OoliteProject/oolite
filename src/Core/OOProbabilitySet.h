@@ -56,8 +56,8 @@ SOFTWARE.
 #include <vector>
 
 #include "OOFoundation.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 /*	The class cluster is a C++ hierarchy: the two abstract classes here, and
    the four concrete ones private to OOProbabilitySet.cpp.

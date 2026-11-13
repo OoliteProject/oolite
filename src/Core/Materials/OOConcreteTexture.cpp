@@ -101,8 +101,9 @@ std::shared_ptr<OOConcreteTexture> OOConcreteTexture::initWithLoader(
     return nullptr;
   }
 
-  std::shared_ptr<OOConcreteTexture> self = oo::adopt(
-      new OOConcreteTexture(loader, key, options, anisotropy, lodBias));
+  std::shared_ptr<OOConcreteTexture> self(
+      new OOConcreteTexture(loader, key, options, anisotropy, lodBias),
+      oo::Dispose{});
 
   self->addToCaches();
 

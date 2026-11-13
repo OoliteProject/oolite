@@ -1,6 +1,6 @@
 /*	test_exception_std.cpp
-        Unit tests for oo::Exception as a standard exception (oofnd/Exception.hpp,
-   spec 009 FR-014): it is caught by a std::exception handler, what() is its
+        Unit tests for oo::Exception as a standard exception
+   (oofnd/Exception.hpp): it is caught by a std::exception handler, what() is its
    reason, and an oo::Exception handler before it still sees the name and the
    reason unchanged. Run: tests/run.sh unit
 */

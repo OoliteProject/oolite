@@ -20,6 +20,7 @@
 
 #include "OOFoundation.h"
 #include "OOTCPStreamDecoderFormat.hpp"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/PListParsing.hpp"
 
 struct OOALObject {

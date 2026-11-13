@@ -1,8 +1,7 @@
 /*	test_expected.cpp
         Unit tests for std::expected as the game uses it: std::expected<T, E>,
    std::unexpected<E>, std::unexpect and std::bad_expected_access, checked against
-   the behaviour C++23 specifies. Until spec 009 (T030) they tested oofnd's
-   polyfill of the same API, which the swap to std::expected deleted.
+   the behaviour C++23 specifies.
 
         A Tracked value type counts its live instances, so every construction
    path, assignment transition (value <-> error) and swap case is also checked

@@ -56,8 +56,8 @@ SOFTWARE.
 #include "OOEnumFlags.h"
 #include "OOFoundation.h"
 #include "OOFunctionAttributes.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 #include "oofnd/objc/OOObject.h"
 
 /*	A schema verifier error: what the

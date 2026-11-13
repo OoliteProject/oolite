@@ -16,7 +16,7 @@
 */
 
 #include <cmath>
-#include "EntityManualRefs.h"  // the tests' manual references (T096)
+#include "EntityManualRefs.h"  // the tests' manual references
 
 #include "MyOpenGLView.h"  // the game view is C++
 #include "OOBasicMaterial.h"

@@ -4707,8 +4707,7 @@ static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz,
       break;
 
     case OOViewID::kCustom:
-      // Upstream draws no view lines in a custom view (spec 009 research R14):
-      // kept as it is.
+      // Upstream draws no view lines in a custom view.
       break;
   }
   OOGLEND();

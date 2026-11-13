@@ -77,7 +77,7 @@ void OOTexture::rebindAllTextures() {
 
 // A client: counts its resets; may unregister another client, or raise, when
 // told. Reference counted, so the test can see the manager does not retain it.
-struct OOTestResetClient : oo::RefCounted, OOGraphicsResetClient {
+struct OOTestResetClient : oo::Object, OOGraphicsResetClient {
   int tag = 0;
   unsigned resets = 0;
   OOTestResetClient* victim = nullptr;

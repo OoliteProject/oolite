@@ -35,7 +35,7 @@ SOFTWARE.
 #pragma once
 
 #include "OOFoundation.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 #include "oofnd/objc/OOObject.h"
 
 class OOSoundChannel;

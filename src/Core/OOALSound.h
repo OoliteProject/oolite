@@ -49,7 +49,7 @@ SOFTWARE.
 
 #include "OOFoundation.h"
 #include "OOOpenALController.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 #include "oofnd/objc/OOObject.h"
 
 class OOSound : public oo::Object {

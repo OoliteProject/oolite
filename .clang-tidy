@@ -72,24 +72,19 @@ WarningsAsErrors: >
   -performance-unnecessary-copy-initialization,
   -performance-unnecessary-value-param,
   -performance-use-std-move
-# Spec 009's guards (cppcoreguidelines-no-malloc, readability-identifier-naming for scoped enum
-# constants, google-readability-casting) report but do not fail a run until their category reaches
-# zero; each joins WarningsAsErrors then (all three have).
 CheckOptions:
-  # Spec 009 T108: an unused #include is an error; a missing direct include is not reported (the
+  # An unused #include is an error; a missing direct include is not reported (the
   # umbrella headers export what they gather, IWYU pragma: export). An include that only a
   # platform's #if code or a complete-type conversion needs says so with IWYU pragma: keep.
   misc-include-cleaner.MissingIncludes: false
-  # A deliberate (void) discard is accepted; a result dropped silently is still reported. Spec 009
-  # T030: std::expected is a checked return type where oo::Expected was not, and the game's nine
-  # (void) discards of oo::fs results were already explicit.
+  # A deliberate (void) discard is accepted; a result dropped silently is still reported.
   bugprone-unused-return-value.AllowCastToVoid: true
   cppcoreguidelines-use-enum-class.IgnoreUnscopedEnumsInClasses: false
   readability-identifier-naming.ScopedEnumConstantCase: CamelCase
   readability-identifier-naming.ScopedEnumConstantPrefix: k
-  # Spec 009 T083: the C string functions go behind the check (already fatal through bugprone-*),
-  # each with its replacement. vsnprintf is not listed: oofnd's printf engine keeps it for the
-  # printf-syntax data formats (FR-026).
+  # The C string functions go behind the check (already fatal through bugprone-*), each with its
+  # replacement. vsnprintf is not listed: oofnd's printf engine keeps it for the printf-syntax data
+  # formats (descriptions.plist and other data).
   bugprone-unsafe-functions.CustomFunctions: >-
     ^::strcpy$,std::string,;^::strncpy$,std::string,;^::strcat$,std::string::append,;
     ^::strncat$,std::string::append,;^::strcmp$,std::string_view comparison,;

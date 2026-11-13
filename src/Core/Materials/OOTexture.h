@@ -57,8 +57,8 @@ SOFTWARE.
 #include "OOOpenGL.h"
 #include "OOPixMap.h"
 #include "OOTextureFlags.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 class OOTextureGenerator;
 

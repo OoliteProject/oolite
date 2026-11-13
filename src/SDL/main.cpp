@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #include "GameController.h"
 #include "OOLoggingExtended.h"
 #include "OOVersion.h"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/Process.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOException.h"

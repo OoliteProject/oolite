@@ -1,5 +1,5 @@
 /*	test_FormatEquivalence.cpp
-        Spec 009 (US4, US7): the printf formats the game used and the std::format
+        The printf formats the game used and the std::format
    formats that replace them print the same bytes. Each row is a printf format
    with oo::str::format against its std::format replacement, with the argument
    types and the casts the conversion uses (clang-tidy's modernize-use-std-format

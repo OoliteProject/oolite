@@ -60,8 +60,8 @@ MA 02110-1301, USA.
 #include "OOTypes.h"
 #include "UniverseVirtualMembers.h"  // the test seams
 #include "legacy_random.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 class OOMaterial;
 

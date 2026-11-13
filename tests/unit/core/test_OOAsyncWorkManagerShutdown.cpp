@@ -1,6 +1,6 @@
 /*	test_OOAsyncWorkManagerShutdown.cpp
         Unit tests for OOAsyncWorkManager::shutdown() (src/Core/OOAsyncWorkManager.h),
-   the quit path's join of the work threads (spec 009 US3).
+   the quit path's join of the work threads.
 
         Pins: shutdown() waits for a task a work thread has already started and
    returns once it has finished; it returns promptly when the workers are idle;

@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #include "ShipEntityScriptMethods.h"
 
 #include "Universe.h"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/Log.hpp"
 
 /*	The ShipEntity (ScriptMethods) members.

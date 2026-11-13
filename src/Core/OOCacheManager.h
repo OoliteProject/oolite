@@ -51,8 +51,8 @@ MA 02110-1301, USA.
 
 #include "OOAsyncWorkManager.h"
 #include "OOFoundation.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 /*	Cache names and keys are UTF-8
         std::strings. The cache directory is std::nullopt where it was nil.

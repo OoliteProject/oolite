@@ -23,7 +23,7 @@
 #include "OOJSEngineCore.h"
 #include "OODebugFlags.h"
 #include "oofnd/String.hpp"
-#include "EntityManualRefs.h"  // the tests' manual references (T096)
+#include "EntityManualRefs.h"  // the tests' manual references
 
 #include "oo_test.hpp"
 

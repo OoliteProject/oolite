@@ -49,8 +49,8 @@ MA 02110-1301, USA.
 #include "OOMouseInteractionMode.h"
 #include "OOOpenGL.h"
 #include "OOOpenGLMatrixManager.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 #include "oofnd/objc/OOObject.h"
 
 #define WINDOW_SIZE_DEFAULT_WIDTH 1280

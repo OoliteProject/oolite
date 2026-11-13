@@ -45,7 +45,7 @@ MA 02110-1301, USA.
 #include <vector>
 
 #include "OOOpenAL.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 
 // Log message classes, UTF-8: an OOLog
 // call passes oo::NSStringFrom(kOOLogSound...) until it is converted to OO_LOG.

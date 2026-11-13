@@ -24,6 +24,7 @@
 #include "OOSoundSource.h"
 #include "OOSoundSourcePool.h"
 #include "oo_test.hpp"
+#include "oofnd/AutoreleaseScope.hpp"
 
 // The game clock.
 // The universe as the code under test sees it: a stand-in for the C++ class, with the header's names and signatures.

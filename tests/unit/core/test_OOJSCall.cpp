@@ -21,10 +21,11 @@
 #include "OOCallByName.h"
 #include "OOMaths.h"
 #include <quickjs.h>
+#include "EntityPListForeign.h"	// an entity's node
 #include "OOJSEngineCore.h"	// with OOJSEngineNativeWrappers.h, for the profiler frame
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
-#include "EntityPListForeign.h"	// an entity's node
 #include <cstring>
 
 #include "oo_test.hpp"

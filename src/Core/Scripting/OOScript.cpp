@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 #include "OOPListScript.h"
 #include "ResourceManager.h"
 #include "Universe.h"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/String.hpp"
 

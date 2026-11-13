@@ -47,15 +47,13 @@ MA 02110-1301, USA.
 
 #include "OOFoundation.h"
 #include "OOMaths.h"
-#include "oofnd/Ref.hpp"
-#include "oofnd/objc/OOObject.h"
+#include "oofnd/Object.hpp"
 
 #define COLLISION_REGION_BORDER_RADIUS 32000.0f
 #define COLLISION_MAX_ENTITIES 128
 #define MINIMUM_SHADOWING_ENTITY_RADIUS 75.0
 
 class Entity;
-class Entity;  // the regions list the entities' C++ parts
 class OOSunEntity;
 
 class CollisionRegion : public oo::Object {

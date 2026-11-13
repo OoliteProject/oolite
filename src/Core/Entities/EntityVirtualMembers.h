@@ -44,7 +44,7 @@ MA 02110-1301, USA.
 #include "OOMaths.h"
 #include "OOTexture.h"  // allTextures() answers std::shared_ptr<OOTexture>
 #include "OOTypes.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 
 class ShipEntity;  // C++
 class Entity;

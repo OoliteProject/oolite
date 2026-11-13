@@ -27,6 +27,7 @@
 #include "OOJSScript.h"
 #include "OOJavaScriptEngine.h"
 #include "oo_test.hpp"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/Log.hpp"
 

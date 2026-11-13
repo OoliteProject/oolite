@@ -21,6 +21,7 @@
 
 #include "OOColor.h"
 #include "OOConcreteTexture.h"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/PList.hpp"
 #include <cstddef>
 #include <cstdint>

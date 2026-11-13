@@ -21,7 +21,7 @@ extern PlayerEntity* gOOPlayer;
 #include <string>
 
 #include "oo_test.hpp"
-#include "EntityManualRefs.h"  // the tests' manual entity references (T095)
+#include "EntityManualRefs.h"  // the tests' manual entity references
 
 // main.mm defines the debug flags, and the test has its own main.
 #ifndef NDEBUG

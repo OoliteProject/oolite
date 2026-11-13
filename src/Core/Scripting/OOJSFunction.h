@@ -48,7 +48,7 @@ MA 02110-1301, USA.
 #include <vector>
 
 #include "OOFoundation.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 
 class OOJSFunction : public oo::Object {
  public:

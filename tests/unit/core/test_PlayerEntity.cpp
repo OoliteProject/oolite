@@ -30,11 +30,12 @@
 #include "OOCallByName.h"	// oo::EntityRespondsToName / oo::CallEntityByName
 
 #include "oo_test.hpp"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/Defaults.hpp"
 
 #include <cmath>
 #include <string>
-#include "EntityManualRefs.h"  // the tests' manual entity references (T095)
+#include "EntityManualRefs.h"  // the tests' manual entity references
 
 
 // The player's data members are private: the test reaches each one it reads or sets through

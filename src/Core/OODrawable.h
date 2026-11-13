@@ -57,7 +57,7 @@ class Entity;  // Entity.h: the shader binding target
 #include <vector>
 
 #include "OOTexture.h"  // allTextures() answers std::shared_ptr<OOTexture>, which needs the class
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 
 class OODrawable : public oo::Object {
  public:

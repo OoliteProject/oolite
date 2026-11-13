@@ -25,6 +25,7 @@
 #include "OOALSoundMixer.h"
 #include "OOSoundSource.h"
 #include "oo_test.hpp"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/String.hpp"
 
 static int gLiveSounds = 0;

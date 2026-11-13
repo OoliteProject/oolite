@@ -40,7 +40,7 @@ SOFTWARE.
 #include "OOFoundation.h"
 #include "OOMaths.h"
 #include "OOOpenALController.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 #include "oofnd/objc/OOObject.h"
 struct OOSoundChannelTestAccess;
 class OOSoundChannel;

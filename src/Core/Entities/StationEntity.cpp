@@ -52,6 +52,7 @@
 #include "PlayerEntityLegacyScriptEngine.h"
 #include "ShipEntityAI.h"
 #include "Universe.h"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/Log.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"

@@ -57,7 +57,7 @@ SOFTWARE.
 #include "OOColor.h"
 #include "OOFoundation.h"
 #include "OOMaths.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 
 struct OOShaderBindingValue;  // OOShaderUniformMethodType.h
 class Entity;                 // Entity.h: the materials' binding target

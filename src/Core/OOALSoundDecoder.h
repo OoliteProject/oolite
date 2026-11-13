@@ -55,7 +55,7 @@ SOFTWARE.
 
 #include "OOFoundation.h"
 #include "OOFunctionAttributes.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 #include "oofnd/objc/OOObject.h"
 
 #define OOAL_STREAM_CHUNK_SIZE (sizeof(char) * 409600)

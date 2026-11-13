@@ -56,7 +56,7 @@ SOFTWARE.
 #include "OOFoundation.h"
 #include "OOMaths.h"
 #include "OOTypes.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 #include "oofnd/objc/OOObject.h"
 
 struct OOSoundSourcePoolElement;  // OOSoundSourcePool.cpp

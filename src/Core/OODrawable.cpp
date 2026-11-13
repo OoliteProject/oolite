@@ -31,6 +31,7 @@ SOFTWARE.
 #include <typeinfo>
 
 #include "OODemangle.h"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/String.hpp"
 
 void OODrawable::renderOpaqueParts() {}

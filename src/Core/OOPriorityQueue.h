@@ -57,7 +57,7 @@ SOFTWARE.
 #include <vector>
 
 #include "OOFoundation.h"  // OOComparisonResult
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 
 /*	The queue for C++ elements: the elements are held by std::shared_ptr
    and ordered by a comparator function. The heap is the standard one, step

@@ -48,8 +48,8 @@ SOFTWARE.
 #include "OOOpenGL.h"
 #include "OOTypes.h"
 #include "Scripting/OOJSPrivateObject.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 #include "oofnd/objc/OOObject.h"
 
 class OOEquipmentType : public oo::PListForeign, public ::OOJSPrivateObject {

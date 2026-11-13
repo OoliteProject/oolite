@@ -38,7 +38,8 @@ MA 02110-1301, USA.
 #include <utility>
 #include <vector>
 
-#include "oofnd/Ref.hpp"
+#include "oofnd/AutoreleaseScope.hpp"
+#include "oofnd/Object.hpp"
 
 class Entity;
 
@@ -110,12 +111,13 @@ inline void LeakHold(EntityHold& hold) {
    entity, and the pool holds one reference until it drains. Answers the entity
    (null for null). Call it once, where it is made.
 */
-Entity* MadeEntity(const Ref<Entity>& entity);
+Entity* MadeEntity(const std::shared_ptr<Entity>& entity);
 
 /*	The same without the autorelease: the creators that answered +1
    (oo::NewShipObject(), oo::NewVisualEffectObject(): +alloc's object). The
    caller owns the +1.
 */
-std::shared_ptr<Entity> MadeEntityRetained(const Ref<Entity>& entity);
+std::shared_ptr<Entity> MadeEntityRetained(
+    const std::shared_ptr<Entity>& entity);
 
 }  // namespace oo

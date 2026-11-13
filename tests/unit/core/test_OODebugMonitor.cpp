@@ -29,15 +29,16 @@
 #include <utility>
 #include <vector>
 #include "OOEntityHold.h"	// the universe's entity list holds C++ entities
-#include "EntityManualRefs.h"  // the tests' manual references (T096)
+#include "EntityManualRefs.h"  // the tests' manual references
 
+#include "oo_test.hpp"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/Defaults.hpp"
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/Log.hpp"
 #include "oofnd/Notification.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOException.h"
-#include "oo_test.hpp"
 
 #include <cstdlib>
 #include <filesystem>

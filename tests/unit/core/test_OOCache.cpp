@@ -11,6 +11,7 @@
 */
 
 #include "OOCache.h"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/PList.hpp"
 #include <cstddef>
 #include <cstdint>

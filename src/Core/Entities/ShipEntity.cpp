@@ -89,6 +89,7 @@ MA 02110-1301, USA.
 #include "StationEntity.h"
 #include "Universe.h"
 #include "WormholeEntity.h"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/Scanner.hpp"
 #include "oofnd/String.hpp"
@@ -300,9 +301,9 @@ std::size_t ShipGroupCursorBatch(OOShipGroupCursor& cursor,
 /*	A ship made in C++ (oo::NewShipObject): the object holding the ship,
    then the set-up from the definition. A failing set-up releases the object.
 */
-std::shared_ptr<ShipEntity> oo::NewShipObject(const Ref<ShipEntity>& ship,
-                                              const std::string& key,
-                                              const oo::PList& dict) {
+std::shared_ptr<ShipEntity> oo::NewShipObject(
+    const std::shared_ptr<ShipEntity>& ship, const std::string& key,
+    const oo::PList& dict) {
   if (ship == nullptr) return nullptr;
   (void)MadeEntityRetained(ship);  // its object, as +alloc made it
   if (!ship->initShipSetUp(key, dict)) return nullptr;  // released

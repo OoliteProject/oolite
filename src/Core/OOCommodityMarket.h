@@ -49,8 +49,8 @@ MA 02110-1301, USA.
 
 #include "OOCommodities.h"
 #include "OOTypes.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 /*	Goods are keyed by UTF-8 std::strings
         (the commodity keys); each good's definition is an oo::PList dictionary

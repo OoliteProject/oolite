@@ -20,13 +20,14 @@
 #include <string>
 #include <vector>
 
+#include "EntityManualRefs.h"  // the tests' manual entity references
 #include "OOJSPropID.h"
 #include "PlayerEntity.h"
 #include "ShipEntity.h"
 #include "StationEntity.h"
 #include "Universe.h"
 #include "oo_test.hpp"
-#include "EntityManualRefs.h"  // the tests' manual entity references (T095)
+#include "oofnd/AutoreleaseScope.hpp"
 
 // The player's system ids are private: the test sets them through this friend.
 struct PlayerEntityTestAccess {

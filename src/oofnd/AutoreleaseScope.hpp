@@ -1,7 +1,6 @@
 /*	oofnd/AutoreleaseScope.hpp
         oo::AutoreleaseScope, the game's autorelease pool over shared
-   ownership (spec 009, contracts/ownership.md), with the rules of the
-   libobjc2 pool it replaces:
+   ownership, with the rules of the libobjc2 pool it replaces:
 
           * per-thread and nested: the innermost scope on the thread receives
             what is autoreleased;

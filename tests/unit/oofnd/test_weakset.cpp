@@ -6,17 +6,19 @@
    members) plus insertion-order iteration and mutation-safe forEach().
 */
 
+#include <memory>
 #include <string>
 #include <vector>
 
 #include "oo_test.hpp"
+#include "oofnd/Object.hpp"
 #include "oofnd/WeakSet.hpp"
 
 namespace {
 
 int gLive = 0;
 
-class Ship : public oo::RefCounted {
+class Ship : public oo::Object {
  public:
   explicit Ship(std::string name) : name(std::move(name)) { ++gLive; }
   ~Ship() override { --gLive; }
@@ -35,26 +37,26 @@ class Cruiser : public Ship {
 
 std::vector<std::string> names(const oo::WeakSet<Ship>& set) {
   std::vector<std::string> out;
-  for (const oo::Ref<Ship>& s : set.allObjects()) out.push_back(s->name);
+  for (const std::shared_ptr<Ship>& s : set.allObjects()) out.push_back(s->name);
   return out;
 }
 
 OO_TEST(addContainsCount) {
   oo::WeakSet<Ship> set;
   OO_CHECK(set.empty());
-  oo::Ref<Ship> a = oo::makeRef<Ship>("a");
-  oo::Ref<Ship> b = oo::makeRef<Ship>("b");
+  std::shared_ptr<Ship> a = oo::makeShared<Ship>("a");
+  std::shared_ptr<Ship> b = oo::makeShared<Ship>("b");
   set.add(a.get());
   set.add(b);
   OO_CHECK_EQ(set.count(), 2u);
   OO_CHECK(set.contains(a.get()));
   OO_CHECK(set.contains(b.get()));
-  OO_CHECK_EQ(a->retainCount(), 1u);  // membership does not retain
+  OO_CHECK_EQ(a.use_count(), 1);  // membership does not retain
 
   set.add(a.get());  // a set: adding twice is one member
   OO_CHECK_EQ(set.count(), 2u);
 
-  oo::Ref<Ship> twin = oo::makeRef<Ship>("a");
+  std::shared_ptr<Ship> twin = oo::makeShared<Ship>("a");
   OO_CHECK(*twin == *a);
   OO_CHECK(!set.contains(twin.get()));  // equal value, different identity
   set.add(twin.get());
@@ -64,7 +66,7 @@ OO_TEST(addContainsCount) {
 OO_TEST(addingNullIsIgnored) {
   oo::WeakSet<Ship> set;
   set.add(static_cast<Ship*>(nullptr));
-  set.add(oo::Ref<Ship>());
+  set.add(std::shared_ptr<Ship>());
   OO_CHECK_EQ(set.count(), 0u);
   OO_CHECK(!set.contains(nullptr));
   set.remove(nullptr);  // and so is removing it
@@ -72,10 +74,10 @@ OO_TEST(addingNullIsIgnored) {
 
 OO_TEST(membersLeaveSilentlyWhenTheyDie) {
   oo::WeakSet<Ship> set;
-  oo::Ref<Ship> keep = oo::makeRef<Ship>("keep");
+  std::shared_ptr<Ship> keep = oo::makeShared<Ship>("keep");
   set.add(keep.get());
   {
-    oo::Ref<Ship> brief = oo::makeRef<Ship>("brief");
+    std::shared_ptr<Ship> brief = oo::makeShared<Ship>("brief");
     set.add(brief.get());
     OO_CHECK_EQ(set.count(), 2u);
   }
@@ -90,12 +92,12 @@ OO_TEST(membersLeaveSilentlyWhenTheyDie) {
 OO_TEST(aNewObjectAtADeadMembersAddressIsNotAMember) {
   oo::WeakSet<Ship> set;
   {
-    oo::Ref<Ship> dead = oo::makeRef<Ship>("dead");
+    std::shared_ptr<Ship> dead = oo::makeShared<Ship>("dead");
     set.add(dead.get());
   }
   for (int i = 0; i < 16; ++i) {
-    oo::Ref<Ship> fresh =
-        oo::makeRef<Ship>("dead");  // same size: the allocator may reuse it
+    std::shared_ptr<Ship> fresh =
+        oo::makeShared<Ship>("dead");  // same size: the allocator may reuse it
     OO_CHECK(!set.contains(fresh.get()));
   }
   OO_CHECK_EQ(set.count(), 0u);
@@ -103,15 +105,14 @@ OO_TEST(aNewObjectAtADeadMembersAddressIsNotAMember) {
 
 OO_TEST(removeMembersAndNonMembers) {
   oo::WeakSet<Ship> set;
-  oo::Ref<Ship> a = oo::makeRef<Ship>("a");
-  oo::Ref<Ship> b = oo::makeRef<Ship>("b");
-  oo::Ref<Ship> outsider = oo::makeRef<Ship>("outsider");
+  std::shared_ptr<Ship> a = oo::makeShared<Ship>("a");
+  std::shared_ptr<Ship> b = oo::makeShared<Ship>("b");
+  std::shared_ptr<Ship> outsider = oo::makeShared<Ship>("outsider");
   set.add(a.get());
   set.add(b.get());
   set.remove(outsider.get());  // not a member: no complaint, no change
   OO_CHECK_EQ(set.count(), 2u);
-  OO_CHECK(oo::detail::WeakAccess::existingControl(outsider.get()) ==
-           nullptr);  // and no side effect
+  OO_CHECK_EQ(outsider.use_count(), 1);  // and no side effect
   set.remove(a.get());
   OO_CHECK(!set.contains(a.get()));
   OO_CHECK_EQ(set.count(), 1u);
@@ -121,29 +122,29 @@ OO_TEST(removeMembersAndNonMembers) {
   OO_CHECK(names(set) == (std::vector<std::string>{"b", "a"}));
   set.removeAll();
   OO_CHECK(set.empty());
-  OO_CHECK_EQ(a->retainCount(), 1u);
+  OO_CHECK_EQ(a.use_count(), 1);
 }
 
 OO_TEST(allObjectsIsLiveRetainedAndInInsertionOrder) {
   oo::WeakSet<Ship> set;
-  std::vector<oo::Ref<Ship>> ships;
+  std::vector<std::shared_ptr<Ship>> ships;
   for (const char* n : {"c", "a", "d", "b"}) {
-    ships.push_back(oo::makeRef<Ship>(n));
+    ships.push_back(oo::makeShared<Ship>(n));
     set.add(ships.back().get());
   }
   OO_CHECK(names(set) == (std::vector<std::string>{"c", "a", "d", "b"}));
   ships[2].reset();  // "d" dies
-  std::vector<oo::Ref<Ship>> all = set.allObjects();
+  std::vector<std::shared_ptr<Ship>> all = set.allObjects();
   OO_CHECK_EQ(all.size(), 3u);
-  OO_CHECK_EQ(all[0]->retainCount(),
-              2u);  // the snapshot retains, as NSArray did
+  OO_CHECK_EQ(all[0].use_count(),
+              2);  // the snapshot retains, as NSArray did
   OO_CHECK(names(set) == (std::vector<std::string>{"c", "a", "b"}));
 }
 
 OO_TEST(forEachIsMakeObjectsPerformSelector) {
   oo::WeakSet<Ship> set;
-  oo::Ref<Ship> a = oo::makeRef<Ship>("a");
-  oo::Ref<Ship> b = oo::makeRef<Ship>("b");
+  std::shared_ptr<Ship> a = oo::makeShared<Ship>("a");
+  std::shared_ptr<Ship> b = oo::makeShared<Ship>("b");
   set.add(a.get());
   set.add(b.get());
   set.forEach([](Ship& s) { ++s.pinged; });
@@ -153,12 +154,12 @@ OO_TEST(forEachIsMakeObjectsPerformSelector) {
 
 OO_TEST(forEachSurvivesMutationAndDeathInTheCallback) {
   oo::WeakSet<Ship> set;
-  std::vector<oo::Ref<Ship>> owners;
+  std::vector<std::shared_ptr<Ship>> owners;
   for (int i = 0; i < 4; ++i) {
-    owners.push_back(oo::makeRef<Ship>("s" + std::to_string(i)));
+    owners.push_back(oo::makeShared<Ship>("s" + std::to_string(i)));
     set.add(owners.back().get());
   }
-  oo::Ref<Ship> late = oo::makeRef<Ship>("late");
+  std::shared_ptr<Ship> late = oo::makeShared<Ship>("late");
   int visited = 0;
   set.forEach([&](Ship& s) {
     ++visited;
@@ -177,16 +178,16 @@ OO_TEST(forEachSurvivesMutationAndDeathInTheCallback) {
 
 OO_TEST(copiesHoldTheLiveMembers) {
   oo::WeakSet<Ship> set(8);
-  oo::Ref<Ship> a = oo::makeRef<Ship>("a");
+  std::shared_ptr<Ship> a = oo::makeShared<Ship>("a");
   set.add(a.get());
   {
-    oo::Ref<Ship> gone = oo::makeRef<Ship>("gone");
+    std::shared_ptr<Ship> gone = oo::makeShared<Ship>("gone");
     set.add(gone.get());
   }
   oo::WeakSet<Ship> copy = set;  // -copyWithZone: compacts first
   OO_CHECK_EQ(copy.count(), 1u);
   OO_CHECK(copy.contains(a.get()));
-  oo::Ref<Ship> b = oo::makeRef<Ship>("b");
+  std::shared_ptr<Ship> b = oo::makeShared<Ship>("b");
   copy.add(b.get());
   OO_CHECK(!set.contains(b.get()));  // independent sets
 
@@ -205,8 +206,8 @@ OO_TEST(copiesHoldTheLiveMembers) {
 }
 
 OO_TEST(equalityIsSameLiveMembers) {
-  oo::Ref<Ship> a = oo::makeRef<Ship>("a");
-  oo::Ref<Ship> b = oo::makeRef<Ship>("b");
+  std::shared_ptr<Ship> a = oo::makeShared<Ship>("a");
+  std::shared_ptr<Ship> b = oo::makeShared<Ship>("b");
   oo::WeakSet<Ship> x, y;
   x.add(a.get());
   x.add(b.get());
@@ -214,12 +215,12 @@ OO_TEST(equalityIsSameLiveMembers) {
   y.add(a.get());
   OO_CHECK(x == y);  // order does not matter for equality
   {
-    oo::Ref<Ship> c = oo::makeRef<Ship>("c");
+    std::shared_ptr<Ship> c = oo::makeShared<Ship>("c");
     x.add(c.get());
     OO_CHECK(x != y);
   }
   OO_CHECK(x == y);  // c died: the sets are equal again
-  oo::Ref<Ship> twin = oo::makeRef<Ship>("a");
+  std::shared_ptr<Ship> twin = oo::makeShared<Ship>("a");
   oo::WeakSet<Ship> z;
   z.add(twin.get());
   z.add(b.get());
@@ -227,8 +228,8 @@ OO_TEST(equalityIsSameLiveMembers) {
 }
 
 OO_TEST(addAllFromARange) {
-  std::vector<oo::Ref<Ship>> refs{oo::makeRef<Ship>("r1"),
-                                  oo::makeRef<Ship>("r2")};
+  std::vector<std::shared_ptr<Ship>> refs{oo::makeShared<Ship>("r1"),
+                                  oo::makeShared<Ship>("r2")};
   std::vector<Ship*> raws{refs[0].get(), nullptr, refs[1].get()};
   oo::WeakSet<Ship> set;
   set.addAll(refs);
@@ -242,10 +243,10 @@ OO_TEST(addAllFromARange) {
 
 OO_TEST(subclassMembers) {
   oo::WeakSet<Ship> set;
-  oo::Ref<Cruiser> c = oo::makeRef<Cruiser>("cruiser");
+  std::shared_ptr<Cruiser> c = oo::makeShared<Cruiser>("cruiser");
   set.add(c.get());
   OO_CHECK(set.contains(c.get()));
-  std::vector<oo::Ref<Cruiser>> cruisers{c};
+  std::vector<std::shared_ptr<Cruiser>> cruisers{c};
   set.addAll(cruisers);
   OO_CHECK_EQ(set.count(), 1u);
   c.reset();
@@ -256,15 +257,15 @@ OO_TEST(subclassMembers) {
 OO_TEST(aMemberCanOwnTheSetThatWatchesIt) {
   // OOWeakSet's common shape: an object keeps a weak set of things that may
   // point back to it.
-  struct Group : oo::RefCounted {
+  struct Group : oo::Object {
     oo::WeakSet<Group> peers;
     ~Group() override { --gLive; }
     Group() { ++gLive; }
   };
   int before = gLive;
   {
-    oo::Ref<Group> g1 = oo::makeRef<Group>();
-    oo::Ref<Group> g2 = oo::makeRef<Group>();
+    std::shared_ptr<Group> g1 = oo::makeShared<Group>();
+    std::shared_ptr<Group> g2 = oo::makeShared<Group>();
     g1->peers.add(g2.get());
     g2->peers.add(g1.get());
     g1->peers.add(g1.get());  // even itself

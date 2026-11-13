@@ -65,8 +65,8 @@ SOFTWARE.
 #include "OOJSPrivateObject.h"          // the console's JS glue
 #include "OOJavaScriptEngineMonitor.h"  // the engine's monitor, a C++ interface
 #include "oofnd/Notification.hpp"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 class OOJavaScriptEngine;
 #include "OOColor.h"   // the colour maps hold std::shared_ptr<OOColor>

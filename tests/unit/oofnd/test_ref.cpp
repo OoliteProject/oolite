@@ -1,8 +1,9 @@
 /*	test_ref.cpp
-        Unit tests for oofnd/Ref.hpp: oo::RefCounted, oo::Ref<T>,
-   oo::WeakRef<T> and oo::AutoreleaseScope, against the Objective-C
-   retain/release/autorelease contract they mirror and the
-   OOWeakReference semantics they replace.
+        Unit tests for the game's shared ownership: oo::Object, oo::makeShared,
+   oo::share and the weak-reference helpers (oofnd/Object.hpp) over
+   std::shared_ptr / std::weak_ptr, and oo::AutoreleaseScope, against the
+   Objective-C retain/release/autorelease contract they replace and the
+   OOWeakReference semantics.
 
         Every test object records its destruction in a log, so the tests assert
    not just counts but WHEN and in WHAT ORDER objects die. Running
@@ -21,18 +22,18 @@
 #include <vector>
 
 #include "oo_test.hpp"
-#include "oofnd/Ref.hpp"
+#include "oofnd/AutoreleaseScope.hpp"
+#include "oofnd/Object.hpp"
 
 namespace {
 
 std::vector<std::string> gDeathLog;
 int gLive = 0;
 
-class Thing : public oo::RefCounted {
+class Thing : public oo::Object {
  public:
   explicit Thing(std::string name) : name_(std::move(name)) { ++gLive; }
-  Thing(const Thing& other)
-      : oo::RefCounted(other), name_(other.name_ + "-copy") {
+  Thing(const Thing& other) : oo::Object(other), name_(other.name_ + "-copy") {
     ++gLive;
   }
   Thing& operator=(const Thing&) = default;
@@ -44,8 +45,8 @@ class Thing : public oo::RefCounted {
   const std::string& name() const { return name_; }
   int frob() const { return static_cast<int>(name_.size()); }
 
-  oo::Ref<Thing> strong;    // a retained ivar
-  oo::WeakRef<Thing> weak;  // a weakRetain'd ivar
+  std::shared_ptr<Thing> strong;  // a retained ivar
+  std::weak_ptr<Thing> weak;      // a weakRetain'd ivar
 
  private:
   std::string name_;
@@ -59,29 +60,30 @@ class Derived : public Thing {
 
 // A -dealloc that does work: it autoreleases a new object and observes weak
 // refs to itself.
-class Dealloc : public oo::RefCounted {
+class Dealloc : public oo::Object {
  public:
-  explicit Dealloc(oo::WeakRef<Dealloc>* watcher, bool* sawSelfNull)
+  explicit Dealloc(std::weak_ptr<Dealloc>* watcher, bool* sawSelfNull)
       : watcher_(watcher), sawSelfNull_(sawSelfNull) {
     ++gLive;
   }
   ~Dealloc() override {
     if (watcher_ != nullptr && sawSelfNull_ != nullptr)
-      *sawSelfNull_ = watcher_->get() == nullptr && watcher_->expired();
-    oo::autorelease(new Thing("born-in-dealloc"));
+      *sawSelfNull_ = watcher_->lock() == nullptr && watcher_->expired();
+    oo::autorelease(oo::makeShared<Thing>("born-in-dealloc"));
     --gLive;
     gDeathLog.push_back("dealloc");
   }
 
  private:
-  oo::WeakRef<Dealloc>* watcher_;
+  std::weak_ptr<Dealloc>* watcher_;
   bool* sawSelfNull_;
 };
 
-// Records what the Ref that held it contains while it is being destroyed.
-class Watched : public oo::RefCounted {
+// Records what the shared_ptr that held it contains while it is being
+// destroyed.
+class Watched : public oo::Object {
  public:
-  static inline oo::Ref<Watched>* holder = nullptr;
+  static inline std::shared_ptr<Watched>* holder = nullptr;
   static inline std::string seenDuringDealloc;
 
   explicit Watched(std::string n) : name(std::move(n)) {}
@@ -98,128 +100,125 @@ void reset() { gDeathLog.clear(); }
 // --- compile-time contract
 // --------------------------------------------------------------------
 
-static_assert(sizeof(oo::Ref<Thing>) == sizeof(std::shared_ptr<Thing>),
-              "Ref<T> is a std::shared_ptr<T> and nothing more");
-static_assert(std::is_nothrow_move_constructible_v<oo::Ref<Thing>>);
-static_assert(std::is_nothrow_move_assignable_v<oo::Ref<Thing>>);
-static_assert(!std::is_convertible_v<Thing*, oo::Ref<Thing>>,
-              "raw -> Ref retains, so it is explicit");
-static_assert(std::is_convertible_v<oo::Ref<Derived>, oo::Ref<Thing>>);
-static_assert(!std::is_convertible_v<oo::Ref<Thing>, oo::Ref<Derived>>);
-static_assert(std::is_convertible_v<Thing*, oo::WeakRef<Thing>>,
-              "thing = [aThing weakRetain] stays one line");
-static_assert(std::is_convertible_v<oo::WeakRef<Derived>, oo::WeakRef<Thing>>);
+static_assert(sizeof(std::shared_ptr<Thing>) == sizeof(std::shared_ptr<Thing>),
+              "an owning reference is a std::shared_ptr<T> and nothing more");
+static_assert(std::is_nothrow_move_constructible_v<std::shared_ptr<Thing>>);
+static_assert(std::is_nothrow_move_assignable_v<std::shared_ptr<Thing>>);
+static_assert(!std::is_convertible_v<Thing*, std::shared_ptr<Thing>>,
+              "raw -> owner takes ownership, so it is explicit (oo::share)");
+static_assert(
+    std::is_convertible_v<std::shared_ptr<Derived>, std::shared_ptr<Thing>>);
+static_assert(
+    !std::is_convertible_v<std::shared_ptr<Thing>, std::shared_ptr<Derived>>);
+static_assert(
+    std::is_convertible_v<std::shared_ptr<Thing>, std::weak_ptr<Thing>>,
+    "thing = [aThing weakRetain] stays one line");
+static_assert(
+    std::is_convertible_v<std::weak_ptr<Derived>, std::weak_ptr<Thing>>);
 static_assert(!std::is_copy_constructible_v<oo::AutoreleaseScope>);
 
-// A Ref to an incomplete type can be declared as a member, like an ivar of a
-// @class.
+// An owning reference to an incomplete type can be declared as a member, like
+// an ivar of a @class.
 class Incomplete;
 struct HoldsIncomplete {
-  oo::Ref<Incomplete>* p = nullptr;
+  std::shared_ptr<Incomplete>* p = nullptr;
 };
 
-// --- RefCounted: retain / release / alloc
+// --- ownership counts
 // ---------------------------------------------------
 
 OO_TEST(countStartsAtOneAndDeletesAtZero) {
   reset();
-  Thing* t = new Thing("a");  // [[Thing alloc] init]
-  OO_CHECK_EQ(t->retainCount(), 1u);
-  t->retain();
-  OO_CHECK_EQ(t->retainCount(), 2u);
-  t->release();
-  OO_CHECK_EQ(t->retainCount(), 1u);
+  std::shared_ptr<Thing> t = oo::makeShared<Thing>("a");  // [[Thing alloc] init]
+  OO_CHECK_EQ(t.use_count(), 1);
+  std::shared_ptr<Thing> another = t;
+  OO_CHECK_EQ(t.use_count(), 2);
+  another.reset();
+  OO_CHECK_EQ(t.use_count(), 1);
   OO_CHECK_EQ(gLive, 1);
-  t->release();  // dealloc
+  t.reset();  // dealloc
   OO_CHECK_EQ(gLive, 0);
   OO_CHECK(gDeathLog == std::vector<std::string>{"a"});
 }
 
 OO_TEST(nullSafeFreeFunctions) {
-  Thing* none = nullptr;
-  OO_CHECK(oo::retain(none) == nullptr);  // [nil retain] is nil
-  oo::release(none);                      // [nil release] is a no-op
-  OO_CHECK(oo::autorelease(none) == nullptr);
-
-  Thing* t = new Thing("n");
-  OO_CHECK(oo::retain(t) == t);
-  OO_CHECK_EQ(t->retainCount(), 2u);
-  oo::release(t);
-  oo::release(t);
-  OO_CHECK_EQ(gLive, 0);
+  // [nil autorelease] is nil.
+  OO_CHECK(oo::autorelease(std::shared_ptr<Thing>()) == nullptr);
+  OO_CHECK(oo::share(static_cast<Thing*>(nullptr)) == nullptr);
 }
 
 OO_TEST(copyingAnObjectGivesAFreshCount) {
-  oo::Ref<Thing> a = oo::makeRef<Thing>("orig");
-  oo::Ref<Thing> alias = a;
-  OO_CHECK_EQ(a->retainCount(), 2u);
-  oo::WeakRef<Thing> weakA = a;
-  oo::Ref<Thing> b = oo::adopt(new Thing(*a));  // -copyWithZone:
-  OO_CHECK_EQ(b->retainCount(), 1u);
+  std::shared_ptr<Thing> a = oo::makeShared<Thing>("orig");
+  std::shared_ptr<Thing> alias = a;
+  OO_CHECK_EQ(a.use_count(), 2);
+  std::weak_ptr<Thing> weakA = a;
+  std::shared_ptr<Thing> b = oo::makeShared<Thing>(*a);  // -copyWithZone:
+  OO_CHECK_EQ(b.use_count(), 1);
   OO_CHECK(b != a);
-  oo::WeakRef<Thing> weakB = b;
-  OO_CHECK(!(weakA == weakB));  // the copy has its own identity
-  *b = *a;                      // assignment leaves counts alone
-  OO_CHECK_EQ(a->retainCount(), 2u);
-  OO_CHECK_EQ(b->retainCount(), 1u);
+  std::weak_ptr<Thing> weakB = b;
+  OO_CHECK(!oo::sameObject(weakA, weakB));  // the copy has its own identity
+  *b = *a;                                  // assignment leaves counts alone
+  OO_CHECK_EQ(a.use_count(), 2);
+  OO_CHECK_EQ(b.use_count(), 1);
   b.reset();
   OO_CHECK(weakB.expired());
   OO_CHECK(!weakA.expired());
 }
 
-// --- Ref<T>: copy / move / adopt
+// --- std::shared_ptr<T>: copy / move / share
 // ----------------------------------------------------------------
 
 OO_TEST(refRetainsAndReleases) {
   reset();
-  Thing* raw = new Thing("r");
+  std::shared_ptr<Thing> owner = oo::makeShared<Thing>("r");
+  Thing* raw = owner.get();
   {
-    oo::Ref<Thing> a(raw);  // retains: 2
-    OO_CHECK_EQ(raw->retainCount(), 2u);
+    std::shared_ptr<Thing> a = oo::share(raw);  // retains: 2
+    OO_CHECK_EQ(owner.use_count(), 2);
     {
-      oo::Ref<Thing> b = a;  // copy retains: 3
-      OO_CHECK_EQ(raw->retainCount(), 3u);
+      std::shared_ptr<Thing> b = a;  // copy retains: 3
+      OO_CHECK_EQ(owner.use_count(), 3);
       OO_CHECK(b == a);
       OO_CHECK(b.get() == raw);
     }
-    OO_CHECK_EQ(raw->retainCount(), 2u);
+    OO_CHECK_EQ(owner.use_count(), 2);
   }
-  OO_CHECK_EQ(raw->retainCount(), 1u);  // the alloc's +1 is still ours
+  OO_CHECK_EQ(owner.use_count(), 1);  // the alloc's +1 is still ours
   OO_CHECK_EQ(gLive, 1);
-  raw->release();
+  owner.reset();
   OO_CHECK_EQ(gLive, 0);
 }
 
 OO_TEST(adoptAndMakeRefTakeTheAllocPlusOne) {
   {
-    oo::Ref<Thing> a = oo::adopt(new Thing("adopted"));
-    OO_CHECK_EQ(a->retainCount(), 1u);
-    oo::Ref<Thing> b = oo::makeRef<Thing>("made");
-    OO_CHECK_EQ(b->retainCount(), 1u);
+    std::shared_ptr<Thing> a = oo::makeShared<Thing>("adopted");
+    OO_CHECK_EQ(a.use_count(), 1);
+    std::shared_ptr<Thing> b = oo::makeShared<Thing>("made");
+    OO_CHECK_EQ(b.use_count(), 1);
     OO_CHECK_EQ(gLive, 2);
   }
   OO_CHECK_EQ(gLive, 0);
 }
 
 OO_TEST(moveStealsWithoutTouchingTheCount) {
-  oo::Ref<Thing> a = oo::makeRef<Thing>("m");
+  std::shared_ptr<Thing> a = oo::makeShared<Thing>("m");
   Thing* raw = a.get();
-  oo::Ref<Thing> b = std::move(a);
+  std::shared_ptr<Thing> b = std::move(a);
   OO_CHECK(a == nullptr);
   OO_CHECK(!a);
   OO_CHECK(b.get() == raw);
-  OO_CHECK_EQ(raw->retainCount(), 1u);
+  OO_CHECK_EQ(b.use_count(), 1);
 
-  oo::Ref<Thing> c;
+  std::shared_ptr<Thing> c;
   c = std::move(b);
   OO_CHECK(b == nullptr);
-  OO_CHECK_EQ(raw->retainCount(), 1u);
+  OO_CHECK_EQ(c.use_count(), 1);
 
-  oo::Ref<Thing>& self = c;
+  std::shared_ptr<Thing>& self = c;
   c = std::move(self);  // self-move leaves it intact
   OO_CHECK(c.get() == raw);
   c = self;  // self-copy too
-  OO_CHECK_EQ(raw->retainCount(), 1u);
+  OO_CHECK_EQ(c.use_count(), 1);
   OO_CHECK_EQ(gLive, 1);
   c = nullptr;
   OO_CHECK_EQ(gLive, 0);
@@ -229,10 +228,10 @@ OO_TEST(assignmentInstallsNewBeforeReleasingOld) {
   // The old object's destructor must observe the holder's NEW value, like a
   // retaining setter.
   Watched::holder = nullptr;
-  oo::Ref<Watched> slot;
+  std::shared_ptr<Watched> slot;
   Watched::holder = &slot;
-  slot = oo::makeRef<Watched>("old");
-  slot = oo::makeRef<Watched>("new");
+  slot = oo::makeShared<Watched>("old");
+  slot = oo::makeShared<Watched>("new");
   OO_CHECK_EQ(Watched::seenDuringDealloc, std::string("new"));
   slot.reset();
   OO_CHECK_EQ(Watched::seenDuringDealloc, std::string("null"));
@@ -240,48 +239,37 @@ OO_TEST(assignmentInstallsNewBeforeReleasingOld) {
 }
 
 OO_TEST(convertingAndComparing) {
-  oo::Ref<Derived> d = oo::makeRef<Derived>("d");
-  oo::Ref<Thing> t = d;  // upcast copy retains
-  OO_CHECK_EQ(d->retainCount(), 2u);
+  std::shared_ptr<Derived> d = oo::makeShared<Derived>("d");
+  std::shared_ptr<Thing> t = d;  // upcast copy retains
+  OO_CHECK_EQ(d.use_count(), 2);
   OO_CHECK(t == d);
-  OO_CHECK(t == d.get());
-  OO_CHECK(d.get() == t);
-  oo::Ref<Thing> moved = std::move(d);  // upcast move steals
+  OO_CHECK(t.get() == d.get());
+  std::shared_ptr<Thing> moved = std::move(d);  // upcast move steals
   OO_CHECK(d == nullptr);
-  OO_CHECK_EQ(moved->retainCount(), 2u);
+  OO_CHECK_EQ(moved.use_count(), 2);
   OO_CHECK(t != nullptr);
   OO_CHECK_EQ(static_cast<Derived&>(*t).extra, 7);
 
-  oo::Ref<Thing> x = oo::makeRef<Thing>("x");
+  std::shared_ptr<Thing> x = oo::makeShared<Thing>("x");
   OO_CHECK((t < x) != (x < t));  // a strict order, for std::set / std::map
-  std::set<oo::Ref<Thing>> ordered{t, x, moved};
+  std::set<std::shared_ptr<Thing>> ordered{t, x, moved};
   OO_CHECK_EQ(ordered.size(), 2u);
-  std::unordered_set<oo::Ref<Thing>> hashed{t, x, moved};
+  std::unordered_set<std::shared_ptr<Thing>> hashed{t, x, moved};
   OO_CHECK_EQ(hashed.size(), 2u);
-  OO_CHECK_EQ(x->retainCount(), 3u);  // x, ordered, hashed
-}
-
-OO_TEST(leakRefHandsOverThePlusOne) {
-  oo::Ref<Thing> a = oo::makeRef<Thing>("leak");
-  Thing* raw = a.leakRef();  // an OO_RETURNS_RETAINED return
-  OO_CHECK(a == nullptr);
-  OO_CHECK_EQ(raw->retainCount(), 1u);
-  OO_CHECK_EQ(gLive, 1);
-  oo::Ref<Thing> back = oo::adopt(raw);
-  back.reset();
-  OO_CHECK_EQ(gLive, 0);
+  OO_CHECK_EQ(x.use_count(), 3);  // x, ordered, hashed
 }
 
 OO_TEST(resetAndSwap) {
-  oo::Ref<Thing> a = oo::makeRef<Thing>("a");
-  oo::Ref<Thing> b = oo::makeRef<Thing>("b");
+  std::shared_ptr<Thing> a = oo::makeShared<Thing>("a");
+  std::shared_ptr<Thing> b = oo::makeShared<Thing>("b");
   Thing* ra = a.get();
   swap(a, b);
   OO_CHECK(b.get() == ra);
-  Thing* raw = new Thing("c");
-  a.reset(raw);  // retains, like the constructor
-  OO_CHECK_EQ(raw->retainCount(), 2u);
-  raw->release();
+  std::shared_ptr<Thing> owner = oo::makeShared<Thing>("c");
+  Thing* raw = owner.get();
+  a = oo::share(raw);  // retains, like the constructor
+  OO_CHECK_EQ(owner.use_count(), 2);
+  owner.reset();
   a.reset();
   b.reset();
   OO_CHECK_EQ(gLive, 0);
@@ -292,10 +280,10 @@ OO_TEST(resetAndSwap) {
 
 OO_TEST(strongCyclesAreNotCollected) {
   reset();
-  oo::WeakRef<Thing> watchA, watchB;
+  std::weak_ptr<Thing> watchA, watchB;
   {
-    oo::Ref<Thing> a = oo::makeRef<Thing>("cycle-a");
-    oo::Ref<Thing> b = oo::makeRef<Thing>("cycle-b");
+    std::shared_ptr<Thing> a = oo::makeShared<Thing>("cycle-a");
+    std::shared_ptr<Thing> b = oo::makeShared<Thing>("cycle-b");
     a->strong = b;
     b->strong = a;
     watchA = a;
@@ -307,22 +295,22 @@ OO_TEST(strongCyclesAreNotCollected) {
   OO_CHECK_EQ(gLive, 2);
   OO_CHECK(gDeathLog.empty());
   OO_CHECK(!watchA.expired() && !watchB.expired());
-  OO_CHECK_EQ(watchA.get()->retainCount(), 1u);
-  OO_CHECK_EQ(watchB.get()->retainCount(), 1u);
+  OO_CHECK_EQ(watchA.use_count(), 1);
+  OO_CHECK_EQ(watchB.use_count(), 1);
 
   // Only breaking an edge by hand frees them (and keeps the rest of this file
   // leak-free).
-  watchA.get()->strong.reset();
+  watchA.lock()->strong.reset();
   OO_CHECK(watchA.expired() && watchB.expired());
   OO_CHECK_EQ(gLive, 0);
 }
 
 OO_TEST(breakingACycleByHandFreesIt) {
   reset();
-  oo::WeakRef<Thing> watchA, watchB;
+  std::weak_ptr<Thing> watchA, watchB;
   {
-    oo::Ref<Thing> a = oo::makeRef<Thing>("a");
-    oo::Ref<Thing> b = oo::makeRef<Thing>("b");
+    std::shared_ptr<Thing> a = oo::makeShared<Thing>("a");
+    std::shared_ptr<Thing> b = oo::makeShared<Thing>("b");
     a->strong = b;
     b->strong = a;
     watchA = a;
@@ -342,48 +330,47 @@ OO_TEST(aWeakBackEdgeMeansNoCycle) {
   reset();
   int before = gLive;
   {
-    oo::Ref<Thing> parent = oo::makeRef<Thing>("parent");
-    oo::Ref<Thing> child = oo::makeRef<Thing>("child");
-    parent->strong = child;      // owner -> owned: strong
-    child->weak = parent.get();  // owned -> owner: weak, as in the entity graph
-    OO_CHECK(child->weak.get() == parent.get());
+    std::shared_ptr<Thing> parent = oo::makeShared<Thing>("parent");
+    std::shared_ptr<Thing> child = oo::makeShared<Thing>("child");
+    parent->strong = child;  // owner -> owned: strong
+    child->weak = parent;    // owned -> owner: weak, as in the entity graph
+    OO_CHECK(child->weak.lock() == parent);
   }
   OO_CHECK_EQ(gLive, before);
   OO_CHECK(gDeathLog == (std::vector<std::string>{"parent", "child"}));
 }
 
-// --- WeakRef<T>: OOWeakReference semantics
+// --- std::weak_ptr<T>: OOWeakReference semantics
 // ----------------------------------------------------
 
 OO_TEST(weakRefNullsOnDealloc) {
-  oo::WeakRef<Thing> w;
+  std::weak_ptr<Thing> w;
   OO_CHECK(w.expired());
-  OO_CHECK(w.get() == nullptr);
+  OO_CHECK(w.lock() == nullptr);
   {
-    oo::Ref<Thing> t = oo::makeRef<Thing>("w");
-    w = t.get();  // thing = [aThing weakRetain]
+    std::shared_ptr<Thing> t = oo::makeShared<Thing>("w");
+    w = t;  // thing = [aThing weakRetain]
     OO_CHECK(!w.expired());
-    OO_CHECK(w.get() == t.get());       // weakRefUnderlyingObject
-    OO_CHECK_EQ(t->retainCount(), 1u);  // a weak reference does not retain
-    oo::Ref<Thing> locked = w.lock();
+    OO_CHECK(w.lock() == t);         // weakRefUnderlyingObject
+    OO_CHECK_EQ(t.use_count(), 1);   // a weak reference does not retain
+    std::shared_ptr<Thing> locked = w.lock();
     OO_CHECK(locked == t);
-    OO_CHECK_EQ(t->retainCount(), 2u);
+    OO_CHECK_EQ(t.use_count(), 2);
   }
   OO_CHECK(w.expired());
-  OO_CHECK(w.get() == nullptr);  // messages to it now act like messages to nil
-  OO_CHECK(w.lock() == nullptr);
+  OO_CHECK(w.lock() == nullptr);  // messages to it now act like messages to nil
   OO_CHECK_EQ(gLive, 0);
 }
 
 OO_TEST(weakRefsAreZeroedBeforeTheDestructorRuns) {
   reset();
-  oo::WeakRef<Dealloc> watcher;
+  std::weak_ptr<Dealloc> watcher;
   bool sawSelfNull = false;
   {
     oo::AutoreleaseScope scope;
-    Dealloc* d = new Dealloc(&watcher, &sawSelfNull);
+    std::shared_ptr<Dealloc> d = oo::makeShared<Dealloc>(&watcher, &sawSelfNull);
     watcher = d;
-    d->release();
+    d.reset();
     OO_CHECK(sawSelfNull);  // inside ~Dealloc, the weak ref already read null
     OO_CHECK_EQ(scope.pendingCount(), 1u);  // what the destructor autoreleased
   }
@@ -393,118 +380,87 @@ OO_TEST(weakRefsAreZeroedBeforeTheDestructorRuns) {
 }
 
 OO_TEST(manyWeakRefsOneControl) {
-  oo::Ref<Thing> t = oo::makeRef<Thing>("shared");
-  std::vector<oo::WeakRef<Thing>> refs(50, oo::WeakRef<Thing>(t.get()));
-  oo::WeakRef<Thing> another = t;
+  std::shared_ptr<Thing> t = oo::makeShared<Thing>("shared");
+  std::vector<std::weak_ptr<Thing>> refs(50, std::weak_ptr<Thing>(t));
+  std::weak_ptr<Thing> another = t;
   for (const auto& r : refs)
-    OO_CHECK(r == another);  // one identity, like the one weakSelf proxy
-  OO_CHECK_EQ(t->retainCount(), 1u);
+    OO_CHECK(oo::sameObject(r, another));  // one identity, like the one
+                                           // weakSelf proxy
+  OO_CHECK_EQ(t.use_count(), 1);
   t.reset();
   bool allExpired = true;
   for (const auto& r : refs) allExpired = allExpired && r.expired();
   OO_CHECK(allExpired);
-  refs.clear();  // the control block goes with the last WeakRef (ASan)
+  refs.clear();  // the control block goes with the last weak_ptr (ASan)
   OO_CHECK(another.expired());
 }
 
 OO_TEST(weakRefCopyMoveAndConversion) {
-  oo::Ref<Derived> d = oo::makeRef<Derived>("d");
-  oo::WeakRef<Derived> wd = d;
-  oo::WeakRef<Thing> wt = wd;             // upcast copy
-  oo::WeakRef<Thing> wm = std::move(wd);  // upcast move
+  std::shared_ptr<Derived> d = oo::makeShared<Derived>("d");
+  std::weak_ptr<Derived> wd = d;
+  std::weak_ptr<Thing> wt = wd;             // upcast copy
+  std::weak_ptr<Thing> wm = std::move(wd);  // upcast move
   OO_CHECK(wd.expired());
-  OO_CHECK(wd.get() == nullptr);
-  OO_CHECK(wt.get() == d.get());
-  OO_CHECK(wm.get() == d.get());
-  OO_CHECK(wt == wm);
+  OO_CHECK(wd.lock() == nullptr);
+  OO_CHECK(wt.lock() == d);
+  OO_CHECK(wm.lock() == d);
+  OO_CHECK(oo::sameObject(wt, wm));
 
-  oo::WeakRef<Thing> copy = wt;
-  oo::WeakRef<Thing> moved;
+  std::weak_ptr<Thing> copy = wt;
+  std::weak_ptr<Thing> moved;
   moved = std::move(copy);
   OO_CHECK(copy.expired());
-  OO_CHECK(moved == wt);
-  oo::WeakRef<Thing>& self = moved;
+  OO_CHECK(oo::sameObject(moved, wt));
+  std::weak_ptr<Thing>& self = moved;
   moved = self;
   moved = std::move(self);
-  OO_CHECK(moved == wt);
-  moved = nullptr;
+  OO_CHECK(oo::sameObject(moved, wt));
+  moved.reset();
   OO_CHECK(moved.expired());
   d.reset();
   OO_CHECK(wt.expired() && wm.expired());
 }
 
 OO_TEST(weakIdentitySurvivesDeathAndAddressReuse) {
-  oo::Ref<Thing> a = oo::makeRef<Thing>("a");
-  oo::WeakRef<Thing> w = a;
-  std::size_t hashBefore = std::hash<oo::WeakRef<Thing>>{}(w);
-  OO_CHECK(w == a.get());
+  std::shared_ptr<Thing> a = oo::makeShared<Thing>("a");
+  std::weak_ptr<Thing> w = a;
+  const std::weak_ptr<Thing> before = w;
+  OO_CHECK(oo::sameObject(w, std::weak_ptr<Thing>(a)));
   a.reset();
-  OO_CHECK_EQ(std::hash<oo::WeakRef<Thing>>{}(w), hashBefore);
-  OO_CHECK(w == w);
+  OO_CHECK(oo::sameObject(w, before));
+  OO_CHECK(oo::sameObject(w, w));
   // However the allocator reuses the address, a new object is never the dead
   // referent.
   for (int i = 0; i < 16; ++i) {
-    oo::Ref<Thing> n = oo::makeRef<Thing>("a");
-    OO_CHECK(!(w == n.get()));
-    oo::WeakRef<Thing> wn = n;
-    OO_CHECK(!(w == wn));
+    std::shared_ptr<Thing> n = oo::makeShared<Thing>("a");
+    std::weak_ptr<Thing> wn = n;
+    OO_CHECK(!oo::sameObject(w, wn));
   }
-  OO_CHECK(!(w == static_cast<const Thing*>(nullptr)));
+  OO_CHECK(!oo::isUnset(w));
 }
 
 OO_TEST(weakRefOnlyComparisonCreatesNoControl) {
-  oo::Ref<Thing> a = oo::makeRef<Thing>("a");
-  oo::Ref<Thing> b = oo::makeRef<Thing>("b");
-  oo::WeakRef<Thing> w = a;
-  OO_CHECK(!(w == b.get()));
-  OO_CHECK(oo::detail::WeakAccess::existingControl(b.get()) == nullptr);
+  std::shared_ptr<Thing> a = oo::makeShared<Thing>("a");
+  std::shared_ptr<Thing> b = oo::makeShared<Thing>("b");
+  std::weak_ptr<Thing> w = a;
+  OO_CHECK(!oo::sameObject(w, b->weak_from_this()));
+  OO_CHECK_EQ(b.use_count(), 1);  // comparing took no ownership of b
 }
 
-// dropWeakReferences(): an object whose identity dies
-// before its count does zeroes its weak refs early; the object
-// lives on, and a WeakRef made afterwards is a new identity.
-class Droppable : public Thing {
- public:
-  explicit Droppable(std::string name) : Thing(std::move(name)) {}
-  using oo::RefCounted::dropWeakReferences;
-};
-
-OO_TEST(dropWeakReferencesZeroesThemWhileTheObjectLives) {
-  oo::Ref<Droppable> a = oo::makeRef<Droppable>("a");
-  oo::WeakRef<Thing> w = a.get();
-  OO_CHECK(w.get() == a.get());
-  a->dropWeakReferences();
-  OO_CHECK(w.get() == nullptr && w.expired());
-  OO_CHECK(a->retainCount() == 1 && a->name() == "a");
-  oo::WeakRef<Thing> again = a.get();
-  OO_CHECK(again.get() == a.get());
-  OO_CHECK(!(again == w) && !(w == a.get()) && again == a.get());
-  a->dropWeakReferences();
-  a->dropWeakReferences();  // nothing to drop: harmless
-  OO_CHECK(again.get() == nullptr);
-  a.reset();  // dies without weak refs (ASan: no double free)
-  OO_CHECK(w.get() == nullptr && again.get() == nullptr);
-}
-
-// willDispose(): the last release runs it once, with the object
-// whole (its weak references still read it), before the weak references are
-// zeroed and the destructor runs; a balanced retain and release inside it do
-// not dispose again.
+// willDispose(): the last owner's release runs it once, with the object whole
+// and its weak references already empty, before the destructor runs.
 class Disposing : public Thing {
  public:
   explicit Disposing(std::string name, std::vector<std::string>* log)
       : Thing(std::move(name)), _log(log) {}
   ~Disposing() override { _log->push_back("destructor"); }
-  oo::WeakRef<Thing> watcher;
+  std::weak_ptr<Thing> watcher;
 
  protected:
   void willDispose() noexcept override {
     _log->push_back(std::string("willDispose, weak ") +
-                    (watcher.get() == this ? "live" : "dead") + ", count " +
-                    std::to_string(retainCount()));
-    retain();
-    release();  // balanced: no second dispose
-    _log->push_back("after balanced pair");
+                    (watcher.lock().get() == this ? "live" : "dead") +
+                    ", name " + name());
   }
 
  private:
@@ -513,17 +469,17 @@ class Disposing : public Thing {
 
 OO_TEST(willDisposeRunsOnceWithTheObjectWhole) {
   std::vector<std::string> log;
-  oo::Ref<Disposing> d = oo::makeRef<Disposing>("d", &log);
-  d->watcher = d.get();
-  oo::WeakRef<Thing> outside = d.get();
-  d->retain();
-  d->release();
+  std::shared_ptr<Disposing> d = oo::makeShared<Disposing>("d", &log);
+  d->watcher = d;
+  std::weak_ptr<Thing> outside = d;
+  {
+    std::shared_ptr<Disposing> extra = d;  // a balanced retain and release
+  }
   OO_CHECK(log.empty());
   d.reset();
-  OO_CHECK(
-      (log == std::vector<std::string>{"willDispose, weak dead, count 1",
-                                       "after balanced pair", "destructor"}));
-  OO_CHECK(outside.get() == nullptr);
+  OO_CHECK((log == std::vector<std::string>{"willDispose, weak dead, name d",
+                                            "destructor"}));
+  OO_CHECK(outside.expired());
 }
 
 // --- AutoreleaseScope: the autorelease pool
@@ -535,24 +491,24 @@ OO_TEST(autoreleaseReleasesAtScopeEnd) {
   {
     oo::AutoreleaseScope scope;
     OO_CHECK(oo::AutoreleaseScope::current() == &scope);
-    Thing* t =
-        oo::autorelease(new Thing("ar"));  // [[[Thing alloc] init] autorelease]
-    OO_CHECK_EQ(t->retainCount(), 1u);
+    Thing* t = oo::autorelease(
+        oo::makeShared<Thing>("ar"));  // [[[Thing alloc] init] autorelease]
     OO_CHECK_EQ(scope.pendingCount(), 1u);
-    oo::Ref<Thing> keep(t);  // a retain that outlives the pool
+    std::shared_ptr<Thing> keep = oo::share(t);  // a retain that outlives
+                                                 // the pool
+    OO_CHECK_EQ(keep.use_count(), 2);            // the pool's and keep's
     OO_CHECK_EQ(gLive, 1);
-    (void)keep;
   }
   OO_CHECK_EQ(gLive, 0);  // keep died first, then the pool's release
   OO_CHECK(oo::AutoreleaseScope::current() == nullptr);
 
-  oo::Ref<Thing> survivor;
+  std::shared_ptr<Thing> survivor;
   {
     oo::AutoreleaseScope scope;
-    survivor = oo::Ref<Thing>(oo::autorelease(new Thing("survivor")));
+    survivor = oo::share(oo::autorelease(oo::makeShared<Thing>("survivor")));
   }
   OO_CHECK_EQ(gLive, 1);  // retained past the pool: alive
-  OO_CHECK_EQ(survivor->retainCount(), 1u);
+  OO_CHECK_EQ(survivor.use_count(), 1);
   survivor.reset();
   OO_CHECK_EQ(gLive, 0);
 }
@@ -561,12 +517,12 @@ OO_TEST(autoreleaseScopesNest) {
   reset();
   {
     oo::AutoreleaseScope outer;
-    oo::autorelease(new Thing("outer-1"));
+    oo::autorelease(oo::makeShared<Thing>("outer-1"));
     {
       oo::AutoreleaseScope inner;
       OO_CHECK(oo::AutoreleaseScope::current() == &inner);
-      oo::autorelease(new Thing("inner-1"));
-      oo::autorelease(new Thing("inner-2"));
+      oo::autorelease(oo::makeShared<Thing>("inner-1"));
+      oo::autorelease(oo::makeShared<Thing>("inner-2"));
       OO_CHECK_EQ(inner.pendingCount(), 2u);
       OO_CHECK_EQ(outer.pendingCount(),
                   1u);  // the innermost scope receives them
@@ -575,7 +531,7 @@ OO_TEST(autoreleaseScopesNest) {
     OO_CHECK(gDeathLog ==
              (std::vector<std::string>{"inner-2", "inner-1"}));  // LIFO
     OO_CHECK_EQ(gLive, 1);
-    oo::autorelease(new Thing("outer-2"));
+    oo::autorelease(oo::makeShared<Thing>("outer-2"));
   }
   OO_CHECK(gDeathLog == (std::vector<std::string>{"inner-2", "inner-1",
                                                   "outer-2", "outer-1"}));
@@ -586,13 +542,13 @@ OO_TEST(drainReleasesInOrderAndKeepsTheScopeOpen) {
   reset();
   oo::AutoreleaseScope scope;
   for (int i = 0; i < 3; ++i)
-    oo::autorelease(new Thing("t" + std::to_string(i)));
+    oo::autorelease(oo::makeShared<Thing>("t" + std::to_string(i)));
   scope.drain();  // [pool release]; pool = [[... alloc] init]
   OO_CHECK(gDeathLog == (std::vector<std::string>{
                             "t2", "t1", "t0"}));  // the game's order: LIFO
   OO_CHECK_EQ(scope.pendingCount(), 0u);
   OO_CHECK(oo::AutoreleaseScope::current() == &scope);
-  oo::autorelease(new Thing("after-drain"));
+  oo::autorelease(oo::makeShared<Thing>("after-drain"));
   OO_CHECK_EQ(scope.pendingCount(), 1u);
   scope.drain();
   OO_CHECK_EQ(gLive, 0);
@@ -606,9 +562,9 @@ OO_TEST(drainingCascades) {
   reset();
   {
     oo::AutoreleaseScope scope;
-    oo::autorelease(new Dealloc(
+    oo::autorelease(oo::makeShared<Dealloc>(
         nullptr, nullptr));  // no watcher: it would die before the drain
-    oo::autorelease(new Thing("sibling"));
+    oo::autorelease(oo::makeShared<Thing>("sibling"));
   }
   OO_CHECK(gDeathLog ==
            (std::vector<std::string>{"sibling", "dealloc", "born-in-dealloc"}));
@@ -619,11 +575,10 @@ OO_TEST(autoreleaseAnOwnedRef) {
   reset();
   {
     oo::AutoreleaseScope scope;
-    oo::Ref<Thing> r = oo::makeRef<Thing>("owned");
-    Thing* t =
-        oo::autorelease(std::move(r));  // return [[x retain] autorelease]
+    std::shared_ptr<Thing> r = oo::makeShared<Thing>("owned");
+    Thing* t = oo::autorelease(std::move(r));  // return [[x retain] autorelease]
     OO_CHECK(r == nullptr);
-    OO_CHECK_EQ(t->retainCount(), 1u);
+    OO_CHECK_EQ(oo::share(t).use_count(), 2);  // the pool's, and this one
     OO_CHECK_EQ(t->frob(), 5);
   }
   OO_CHECK_EQ(gLive, 0);
@@ -633,10 +588,9 @@ OO_TEST(multipleAutoreleasesOfOneObject) {
   reset();
   {
     oo::AutoreleaseScope scope;
-    Thing* t = new Thing("twice");
-    t->retain();
+    std::shared_ptr<Thing> t = oo::makeShared<Thing>("twice");
     oo::autorelease(t);
-    oo::autorelease(t);  // two +1s handed over, two releases
+    oo::autorelease(std::move(t));  // two owners handed over, two releases
     OO_CHECK_EQ(scope.pendingCount(), 2u);
   }
   OO_CHECK(gDeathLog == std::vector<std::string>{"twice"});
@@ -644,15 +598,15 @@ OO_TEST(multipleAutoreleasesOfOneObject) {
 }
 
 OO_TEST(autoreleaseWithNoScopeLeaksAndIsCounted) {
+  // Not a Thing: the object is kept forever, so it must stay out of gLive.
+  class Orphan : public oo::Object {};
   std::size_t before = oo::AutoreleaseScope::leakedWithoutScope();
-  Thing* t = new Thing("orphan");
-  t->retain();         // keep our own +1 so the test can clean up
-  oo::autorelease(t);  // GNUstep: "autorelease called without pool"
+  std::shared_ptr<Orphan> t = oo::makeShared<Orphan>();
+  std::weak_ptr<Orphan> watch = t;
+  oo::autorelease(std::move(t));  // GNUstep: "autorelease called without pool"
   OO_CHECK_EQ(oo::AutoreleaseScope::leakedWithoutScope(), before + 1);
-  OO_CHECK_EQ(t->retainCount(), 2u);  // nothing will ever release that +1
-  t->release();
-  t->release();  // the test pays the leaked +1 back
-  OO_CHECK_EQ(gLive, 0);
+  OO_CHECK(!watch.expired());  // nothing will ever release that owner
+  OO_CHECK_EQ(watch.use_count(), 1);
 }
 
 OO_TEST(scopesArePerThread) {
@@ -664,7 +618,7 @@ OO_TEST(scopesArePerThread) {
     threadSawNoScope = oo::AutoreleaseScope::current() == nullptr;
     {
       oo::AutoreleaseScope workerScope;
-      oo::autorelease(new Thing("worker"));
+      oo::autorelease(oo::makeShared<Thing>("worker"));
     }
     threadDrained = true;
   });
@@ -680,7 +634,7 @@ OO_TEST(scopesArePerThread) {
 // ----------------------------------------------------
 
 OO_TEST(retainReleaseAreAtomicAcrossThreads) {
-  class Counter : public oo::RefCounted {
+  class Counter : public oo::Object {
    public:
     explicit Counter(std::atomic<int>* deaths) : deaths_(deaths) {}
     ~Counter() override { deaths_->fetch_add(1); }
@@ -689,27 +643,27 @@ OO_TEST(retainReleaseAreAtomicAcrossThreads) {
     std::atomic<int>* deaths_;
   };
   std::atomic<int> deaths{0};
-  oo::Ref<Counter> shared = oo::makeRef<Counter>(&deaths);
+  std::shared_ptr<Counter> shared = oo::makeShared<Counter>(&deaths);
   constexpr int kThreads = 8;
   constexpr int kIterations = 20000;
   std::vector<std::thread> threads;
   for (int i = 0; i < kThreads; ++i) {
-    threads.emplace_back([shared] {  // each thread copies (retains) the Ref
+    threads.emplace_back([shared] {  // each thread copies (retains) the owner
       for (int j = 0; j < kIterations; ++j) {
-        oo::Ref<Counter> local = shared;
-        oo::Ref<Counter> moved = std::move(local);
+        std::shared_ptr<Counter> local = shared;
+        std::shared_ptr<Counter> moved = std::move(local);
       }
     });
   }
   for (std::thread& t : threads) t.join();
-  OO_CHECK_EQ(shared->retainCount(), 1u);
+  OO_CHECK_EQ(shared.use_count(), 1);
   OO_CHECK_EQ(deaths.load(), 0);
   shared.reset();
   OO_CHECK_EQ(deaths.load(), 1);  // exactly one dealloc
 
   // The final release may happen on another thread; the destructor runs there,
   // once.
-  oo::Ref<Counter> handedOff = oo::makeRef<Counter>(&deaths);
+  std::shared_ptr<Counter> handedOff = oo::makeShared<Counter>(&deaths);
   std::thread last([r = std::move(handedOff)]() mutable { r.reset(); });
   last.join();
   OO_CHECK_EQ(deaths.load(), 2);

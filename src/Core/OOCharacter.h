@@ -52,8 +52,8 @@ MA 02110-1301, USA.
 #include "OOScript.h"  // std::shared_ptr<OOScript> members and results
 #include "OOTypes.h"
 #include "legacy_random.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 class OOCharacter : public oo::PListForeign {
  public:

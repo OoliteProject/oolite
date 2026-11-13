@@ -48,6 +48,7 @@ MA 02110-1301, USA.
 #include "OOPListParsing.h"
 #include "OOSystemDescriptionManager.h"
 #include "Universe.h"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/Defaults.hpp"
 #include "oofnd/Encoding.hpp"
 #include "oofnd/FileSystem.hpp"

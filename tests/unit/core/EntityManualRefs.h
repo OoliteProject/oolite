@@ -2,9 +2,8 @@
 
 EntityManualRefs.h
 
-The manual references to an entity's object that the tests still take (spec
-009 T095): the game holds its entities by std::shared_ptr and no longer has
-them. They are what the game's oo::RetainEntity(), oo::ReleaseEntity(),
+The manual references to an entity's object that the tests still take: the
+game holds its entities by std::shared_ptr and no longer has them. They are what the game's oo::RetainEntity(), oo::ReleaseEntity(),
 oo::AutoreleaseEntity() and the bridge's two adapters did, on standard types:
 each object's manual references are a list of owning references, one per
 retain, given back one per release (a release with none aborts, as before):
@@ -44,8 +43,8 @@ ManualHolds() {
 }  // namespace test_detail
 
 // The same manual references for any object the tests own by hand (a view, a
-// texture, a script...): Retain() and Release() on the list above;
-// NewRetained<T>() is new T with its +1 ([[T alloc] init]).
+// texture, a script...): Retain(), Release() and Autorelease() on the list
+// above; NewRetained<T>() is new T with its +1 ([[T alloc] init]).
 namespace test {
 
 template <class T>
@@ -65,6 +64,23 @@ void Release(T* object) {
   found->second.pop_back();
   if (found->second.empty()) test_detail::ManualHolds().erase(found);
   last.reset();  // may destroy the object
+}
+
+// -autorelease: one of the object's manual references to the innermost
+// oo::AutoreleaseScope (the bridge's oo::autorelease(T*)). Null is answered as
+// it is.
+template <class T>
+T* Autorelease(T* object) {
+  if (object == nullptr) return object;
+  auto found = test_detail::ManualHolds().find(object);
+  if (found == test_detail::ManualHolds().end() || found->second.empty())
+    std::abort();  // no +1 to hand on
+  std::shared_ptr<const void> last = std::move(found->second.back());
+  found->second.pop_back();
+  if (found->second.empty()) test_detail::ManualHolds().erase(found);
+  (void)oo::autorelease(oo::share(object));  // the scope's reference
+  last.reset();
+  return object;
 }
 
 template <class T, class... Args>

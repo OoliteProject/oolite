@@ -52,7 +52,7 @@ SOFTWARE.
 #include <vector>
 
 #include "OOFoundation.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 
 /*	Roles are UTF-8 std::strings. An empty
         role means "no role", as nil did. Results that could be nil are

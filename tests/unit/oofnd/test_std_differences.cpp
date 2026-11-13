@@ -1,5 +1,5 @@
 /*	test_std_differences.cpp
-        Spec 009 FR-014: what an oofnd component that stays does where the standard
+        What an oofnd component does where the standard
    library has no equivalent or answers differently, for the cases no other test
    pins. Run: tests/run.sh unit
 */
