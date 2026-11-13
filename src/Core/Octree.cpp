@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 
 #include "Octree.h"
 
+#include <algorithm>
 #include <cstring>
 
 #include "Entity.h"
@@ -83,7 +84,7 @@ Octree::Octree(const oo::Data& data, GLfloat radius) {
                   ? reinterpret_cast<const int*>(_data.bytes())
                   : nullptr;
 
-    _collisionOctree = static_cast<unsigned char*>(calloc(1, _nodeCount));
+    _collisionOctree.assign(_nodeCount, 0);
   }
 }
 
@@ -93,7 +94,7 @@ std::shared_ptr<Octree> Octree::initWithData(const oo::Data& data,
                                              GLfloat radius) {
   std::shared_ptr<Octree> result =
       std::shared_ptr<Octree>(new Octree(data, radius), oo::Dispose{});
-  if (result->_octree == nullptr || result->_collisionOctree == nullptr) {
+  if (result->_octree == nullptr) {
     return nullptr;
   }
 
@@ -113,10 +114,7 @@ std::shared_ptr<Octree> Octree::initWithDictionary(
   return initWithData(*data, representation.get<float>("radius"));
 }
 
-Octree::~Octree() {
-  _data = oo::Data();
-  free(_collisionOctree);
-}
+Octree::~Octree() { _data = oo::Data(); }
 
 bool Octree::hasCollision() { return _hasCollision; }
 
@@ -125,7 +123,7 @@ void Octree::setHasCollision(bool value) { _hasCollision = !!value; }
 Octree_details Octree::octreeDetails() {
   Octree_details details = {.radius = _radius,
                             .octree = _octree,
-                            .octree_collision = _collisionOctree};
+                            .octree_collision = _collisionOctree.data()};
   return details;
 }
 
@@ -487,11 +485,11 @@ static bool isHitByLine(const int* octbuffer, unsigned char* collbuffer,
 }
 
 GLfloat Octree::isHitByLine(Vector v0, Vector v1) {
-  memset(_collisionOctree, 0, _nodeCount * sizeof *_collisionOctree);
+  std::ranges::fill(_collisionOctree, 0);
   hasCollided = false;
 
-  if (::isHitByLine(_octree, _collisionOctree, 0, _radius, v0, v1, kZeroVector,
-                    0)) {
+  if (::isHitByLine(_octree, _collisionOctree.data(), 0, _radius, v0, v1,
+                    kZeroVector, 0)) {
     OctreeDebugLog("DEBUG Hit at distance {:.2f}", hit_dist);
     _hasCollision = hasCollided;
     return hit_dist;
@@ -768,7 +766,7 @@ size_t Octree::totalSize() {
   // (the data object is now a member: its size is sizeof _data where it was the
   // Foundation object's) (sizeof *this is the object's own size)
   return sizeof *this + _nodeCount * sizeof _data + _data.length() +
-         _nodeCount * sizeof *_collisionOctree;
+         _collisionOctree.size();
 }
 #endif
 
@@ -789,7 +787,7 @@ OOINLINE OOOctreeBuilder::OOOctreeBuildState* OOOctreeBuilder::State(
 // SetNode(): set the value of an entry in _octree, making space if needed.
 OOINLINE void OOOctreeBuilder::SetNode(OOOctreeBuilder* self, uint32_t index,
                                        int value) {
-  if (index < self->_capacity) {
+  if (index < self->_octree.size()) {
     self->_octree[index] = value;
   } else {
     SetNode_slow(self, index, value);
@@ -808,14 +806,7 @@ OOINLINE void OOOctreeBuilder::InsertNode(OOOctreeBuilder* self, int value) {
 
 OOOctreeBuilder::OOOctreeBuilder() {
   {
-    _capacity = kMinimumBuilderCapacity;
-    _octree = static_cast<int*>(malloc(_capacity * sizeof *_octree));
-    if (_octree == nullptr) {
-      // -init released itself and returned nil; a constructor cannot, so it
-      // raises what SetNode_slow() raises.
-      OORaiseException(OOMallocException,
-                       "Failed to allocate memory for octree.");
-    }
+    _octree.resize(kMinimumBuilderCapacity);
 
     /*
             We're initially inserting into the root slot, which must exist and
@@ -826,26 +817,18 @@ OOOctreeBuilder::OOOctreeBuilder() {
   }
 }
 
-OOOctreeBuilder::~OOOctreeBuilder() { free(_octree); }
+OOOctreeBuilder::~OOOctreeBuilder() = default;
 
 std::shared_ptr<Octree> OOOctreeBuilder::buildOctreeWithRadius(GLfloat radius) {
   OOCAssert(State(this)->remaining == 0 && _level == 0,
             "Attempt to produce octree from an octree builder in an incomplete "
             "state.");
 
-  size_t dataSize = _nodeCount * sizeof *_octree;
-  int* resized = static_cast<int*>(realloc(_octree, dataSize));
-  if (resized == nullptr) resized = _octree;
+  // Copy the nodes into the data object, which the Octree uses directly.
+  oo::Data data(_octree.data(), _nodeCount * sizeof(int));
 
-  /*	Copy the bytes into the data object, which will be used directly by
-          the Octree, and free them (the Foundation data object took them over).
-  */
-  oo::Data data(resized, dataSize);
-  free(resized);
-
-  _octree = nullptr;
+  _octree = {};
   _nodeCount = 0;
-  _capacity = 0;
 
   return Octree::initWithData(data, radius);
 }
@@ -908,22 +891,14 @@ void OOOctreeBuilder::endInnerNode() {
   _nodeCount -= 8;
 }
 
-// Slow path for SetNode() when writing beyond _capacity: expand, then perform
-// set.
+// Slow path for SetNode() when writing beyond the capacity: expand, then
+// perform set.
 void OOOctreeBuilder::SetNode_slow(OOOctreeBuilder* self, uint32_t index,
                                    int value) {
-  uint32_t newCapacity =
-      MAX(self->_capacity * 2, static_cast<uint32_t>(kMinimumBuilderCapacity));
-  newCapacity = MAX(newCapacity, index + 1);
+  std::size_t newCapacity =
+      std::max(self->_octree.size() * 2, std::size_t{kMinimumBuilderCapacity});
+  newCapacity = std::max(newCapacity, std::size_t{index} + 1);
 
-  int* newBuffer = static_cast<int*>(
-      realloc(self->_octree, newCapacity * sizeof *newBuffer));
-  if (EXPECT_NOT(newBuffer == nullptr)) {
-    OORaiseException(OOMallocException,
-                     "Failed to allocate memory for octree.");
-  }
-
-  self->_octree = newBuffer;
-  self->_capacity = newCapacity;
+  self->_octree.resize(newCapacity);
   self->_octree[index] = value;
 }

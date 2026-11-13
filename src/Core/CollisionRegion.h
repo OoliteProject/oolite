@@ -115,10 +115,8 @@ class CollisionRegion : public oo::Object {
 
   bool isPlayerInRegion = {};
 
-  Entity** entity_array = {};  // entities within the region: their C++ parts,
-                               // borrowed
-  unsigned n_entities = {};    // number of entities
-  unsigned max_entities = {};  // so storage can be expanded
+  std::vector<Entity*> entity_array;  // entities within the region: their C++
+                                      // parts, borrowed
 
   CollisionRegion* parentRegion = {};
 };

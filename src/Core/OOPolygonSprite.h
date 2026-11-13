@@ -114,10 +114,8 @@ class OOPolygonSprite : public OOHUDBeaconIcon, public OOGraphicsResetClient {
   void drawWithData(GLfloat* data, size_t count, GLuint* vbo);
   bool loadPolygons(const oo::PList& dataArray, float outlineWidth);
 
-  GLfloat* _solidData = {};
-  size_t _solidCount = {};
-  GLfloat* _outlineData = {};
-  size_t _outlineCount = {};
+  std::vector<GLfloat> _solidData;    // the fill's triangles, as x, y pairs
+  std::vector<GLfloat> _outlineData;  // the outline's, likewise
 
 #if OO_USE_VBO
   GLuint _solidVBO = {};

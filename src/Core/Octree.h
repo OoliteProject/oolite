@@ -26,6 +26,8 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#include <vector>
+
 #include "OOFoundation.h"
 #include "OOMaths.h"
 #include "OOOpenGL.h"
@@ -103,7 +105,7 @@ class Octree : public oo::Object {
   const int* _octree = {};
   bool _hasCollision = {};
 
-  unsigned char* _collisionOctree = {};
+  std::vector<unsigned char> _collisionOctree;
 
   oo::Data _data;
 };
@@ -158,8 +160,8 @@ class OOOctreeBuilder : public oo::Object {
   static void SetNode(OOOctreeBuilder* self, uint32_t index, int value);
   static void InsertNode(OOOctreeBuilder* self, int value);
 
-  int* _octree = {};
-  uint32_t _nodeCount = {}, _capacity = {};
+  std::vector<int> _octree;  // the nodes; its size is the capacity
+  uint32_t _nodeCount = {};
   OOOctreeBuildState _stateStack[kMaxOctreeDepth + 1] = {};
   uint8_t _level = {};
 };

@@ -65,16 +65,7 @@ bool EntityChecksCloseCollisionWith(Entity* entity, Entity* other) {
 CollisionRegion::CollisionRegion()  // Designated initializer.
 {
   {
-    max_entities = COLLISION_MAX_ENTITIES;
-    entity_array =
-        static_cast<Entity**>(malloc(max_entities * sizeof(Entity*)));
-    if (entity_array == nullptr) {
-      // -init released itself and returned nil; a constructor cannot, so it
-      // raises what -addEntity: raises when the list cannot grow.
-      OORaiseException(
-          OOMallocException,
-          "Not enough memory to create collision region member list.");
-    }
+    entity_array.reserve(COLLISION_MAX_ENTITIES);
 
     crid = crid_counter++;
   }
@@ -97,16 +88,13 @@ CollisionRegion::CollisionRegion(HPVector locn, GLfloat rad,
   }
 }
 
-CollisionRegion::~CollisionRegion() {
-  free(entity_array);
-  subregions.clear();
-}
+CollisionRegion::~CollisionRegion() { subregions.clear(); }
 
 // OOObject's -description wraps this as "<CollisionRegion 0x...>{ID: ...}",
 // which is what this class's own -description printed.
 std::optional<std::string> CollisionRegion::descriptionComponents() const {
   return std::format("ID: {}, {} subregions, {} ents", crid, subregions.size(),
-                     n_entities);
+                     entity_array.size());
 }
 
 void CollisionRegion::clearSubregions() {
@@ -193,28 +181,13 @@ bool CollisionRegion::positionIsWithinBorders(HPVector position,
 //
 void CollisionRegion::clearEntityList() {
   for (const auto& sub : subregions) sub->clearEntityList();
-  n_entities = 0;
+  entity_array.clear();
   isPlayerInRegion = false;
 }
 
 void CollisionRegion::addEntity(Entity* ent) {
-  // expand if necessary
-  //
-  if (n_entities == max_entities) {
-    max_entities = 1 + max_entities * 2;
-    Entity** new_store = static_cast<Entity**>(realloc(
-        static_cast<void*>(entity_array), max_entities * sizeof(Entity*)));
-    if (new_store == nullptr) {
-      OORaiseException(
-          OOMallocException,
-          "Not enough memory to grow collision region member list.");
-    }
-
-    entity_array = new_store;
-  }
-
   if (EntityIsPlayer(ent)) isPlayerInRegion = true;
-  entity_array[n_entities++] = ent;
+  entity_array.push_back(ent);
 }
 
 bool CollisionRegion::checkEntity(Entity* ent) {
@@ -241,7 +214,7 @@ void CollisionRegion::findCollisions() {
   for (const auto& sub : subregions) sub->findCollisions();
 
   // reject trivial cases
-  if (n_entities < 2) return;
+  if (entity_array.size() < 2) return;
 
   //
   // According to Shark, when this was in Universe this was where Oolite spent
@@ -251,11 +224,11 @@ void CollisionRegion::findCollisions() {
   HPVector p1;
   double dist2, r1, r2, r0, min_dist2;
   unsigned i;
-  std::vector<Entity*> entities_to_test(n_entities);
+  std::vector<Entity*> entities_to_test(entity_array.size());
 
   // only check unfiltered entities
   unsigned n_entities_to_test = 0;
-  for (i = 0; i < n_entities; i++) {
+  for (i = 0; i < entity_array.size(); i++) {
     e1 = entity_array[i];
     if (e1->collisionTestFilter != 3) {
       entities_to_test[n_entities_to_test++] = e1;
@@ -269,7 +242,7 @@ void CollisionRegion::findCollisions() {
            std::format("<CollisionRegion {}>{{{}}}",
                        oo::str::pointerDescription(this),
                        descriptionComponents().value_or("")),
-           n_entities_to_test, n_entities);
+           n_entities_to_test, entity_array.size());
   }
 #endif
 
@@ -555,7 +528,7 @@ inline bool testEntityOccludedByEntity(Entity* e1, Entity* e2,
 
 void CollisionRegion::findShadowedEntities() {
   // reject trivial cases
-  if (n_entities < 2) return;
+  if (entity_array.size() < 2) return;
 
   //
   // Copy/pasting the collision code to detect occlusion!
@@ -604,7 +577,7 @@ void CollisionRegion::findShadowedEntities() {
   for (const auto& sub : subregions) sub->findShadowedEntities();
 
   // test each entity in this region against the others
-  for (i = 0; i < n_entities; i++) {
+  for (i = 0; i < entity_array.size(); i++) {
     Entity* e1 = entity_array[i];
     if (!EntityIsVisible(e1)) {
       continue;  // don't check shading of objects we can't see
@@ -682,7 +655,8 @@ std::string CollisionRegion::collisionDescription() {
 }
 
 std::optional<std::string> CollisionRegion::debugOut() {
-  std::string result = std::format("{}:", static_cast<int>(n_entities));
+  std::string result =
+      std::format("{}:", static_cast<int>(entity_array.size()));
   for (const auto& sub : subregions) {
     if (const auto subOut = sub->debugOut()) result += *subOut;
   }
