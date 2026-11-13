@@ -135,11 +135,10 @@ void PlayerEntity::awardCommodityType(const std::string& type,
           while (amount > 0) {
             int smaller_quantity = 1 + ((amount - 1) % amount_per_container);
             if (cargo.size() < maxAvailableCargoSpace()) {
-              ::ShipEntity* container =
+              std::shared_ptr<::ShipEntity> container =
                   (UNIVERSE != nullptr
-                       ? oo::RetainedEntity(
-                             UNIVERSE->newShipWithRole("1t-cargopod"))
-                       : static_cast<::ShipEntity*>(nullptr));
+                       ? UNIVERSE->newShipWithRole("1t-cargopod")
+                       : nullptr);
               if (container) {
                 // the cargopod ship is just being set up. If ejected,  will
                 // call UNIVERSE addEntity [container wasAddedToUniverse]; //
@@ -150,8 +149,8 @@ void PlayerEntity::awardCommodityType(const std::string& type,
                   container->setStatus(OOEntityStatus::kInHold);
                 if (container != nullptr)
                   container->setCommodity(type, smaller_quantity);
-                cargo.emplace_back(oo::Hold(container));
-                if (container != nullptr) oo::ReleaseEntity(container);
+                cargo.emplace_back(container);
+                container.reset();
               }
             }
             amount -= smaller_quantity;
@@ -163,11 +162,9 @@ void PlayerEntity::awardCommodityType(const std::string& type,
         // put each ton in a separate container
         while (amount) {
           if (cargo.size() < maxAvailableCargoSpace()) {
-            ::ShipEntity* container =
-                (UNIVERSE != nullptr
-                     ? oo::RetainedEntity(
-                           UNIVERSE->newShipWithRole("1t-cargopod"))
-                     : static_cast<::ShipEntity*>(nullptr));
+            std::shared_ptr<::ShipEntity> container =
+                (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("1t-cargopod")
+                                     : nullptr);
             if (container) {
               // the cargopod ship is just being set up. If ejected, will call
               // UNIVERSE addEntity [container wasAddedToUniverse]; // seems to
@@ -177,8 +174,8 @@ void PlayerEntity::awardCommodityType(const std::string& type,
               if (container != nullptr)
                 container->setStatus(OOEntityStatus::kInHold);
               if (container != nullptr) container->setCommodity(type, 1);
-              cargo.emplace_back(oo::Hold(container));
-              if (container != nullptr) oo::ReleaseEntity(container);
+              cargo.emplace_back(container);
+              container.reset();
             }
           }
           amount--;

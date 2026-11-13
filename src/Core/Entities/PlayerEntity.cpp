@@ -676,16 +676,15 @@ void PlayerEntity::unloadCargoPods() {
 // pods causes a CTD?
 void PlayerEntity::createCargoPodWithType(const std::string& type,
                                           OOCargoQuantity amount) {
-  ::ShipEntity* container =
-      (UNIVERSE != nullptr
-           ? oo::RetainedEntity(UNIVERSE->newShipWithRole("1t-cargopod"))
-           : static_cast<::ShipEntity*>(nullptr));
+  std::shared_ptr<::ShipEntity> container =
+      (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("1t-cargopod")
+                           : nullptr);
   if (container) {
     if (container != nullptr) container->setScanClass(OOScanClass::kCargo);
     if (container != nullptr) container->setStatus(OOEntityStatus::kInHold);
     if (container != nullptr) container->setCommodity(type, amount);
-    cargo.emplace_back(oo::Hold(container));
-    if (container != nullptr) oo::ReleaseEntity(container);
+    cargo.emplace_back(container);
+    container.reset();
   } else {
     OO_LOG_ERR("player.loadCargoPods.noContainer", "{}",
                "couldn't create a container in [PlayerEntity loadCargoPods]");
@@ -2230,15 +2229,14 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
       const std::optional<std::string> missile_desc =
           StringAt(*missileRoles, roleIndex);
       if (missile_desc.has_value() && *missile_desc != "NONE") {
-        ::ShipEntity* amiss =
-            (UNIVERSE != nullptr
-                 ? oo::RetainedEntity(UNIVERSE->newShipWithRole(*missile_desc))
-                 : static_cast<::ShipEntity*>(nullptr));
+        std::shared_ptr<::ShipEntity> amiss =
+            (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(*missile_desc)
+                                 : nullptr);
         if (amiss) {
           missile_list[missileCount] =
               OOEquipmentType::equipmentTypeWithIdentifier(*missile_desc).get();
           missile_entity[missileCount] =
-              oo::AdoptHold(amiss);  // retain count = 1
+              oo::AdoptHold(amiss.get());  // retain count = 1
           missileCount++;
         } else {
           OO_LOG_WARN(
@@ -2255,13 +2253,11 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
     for (std::size_t i = 0; i < missiles; i++) {
       missile_list[i] =
           OOEquipmentType::equipmentTypeWithIdentifier("EQ_MISSILE").get();
-      missile_entity[i] = oo::AdoptHold(
-          (UNIVERSE != nullptr
-               ? oo::RetainedEntity(UNIVERSE->newShipWithRole("EQ_MISSILE"))
-               : static_cast<::ShipEntity*>(
-                     nullptr)));  // retain count = 1 - should be okay
-                                  // as long as we keep a missile with
-                                  // this role in the base package.
+      missile_entity[i] =
+          (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("EQ_MISSILE")
+                               : nullptr);  // should be okay
+                                            // as long as we keep a missile with
+                                            // this role in the base package.
     }
   }
 
@@ -3412,18 +3408,17 @@ void PlayerEntity::doBookkeeping(double delta_t) {
       if (doppelganger != nullptr)
         doppelganger->becomeExplosion();  // blow up the doppelganger
       // restore player ship
-      ::ShipEntity* player_ship =
+      std::shared_ptr<::ShipEntity> player_ship =
           (UNIVERSE != nullptr
-               ? oo::RetainedEntity(
-                     UNIVERSE->newShipWithName(shipDataKey().value_or("")))
-               : static_cast<::ShipEntity*>(nullptr));  // retained
+               ? UNIVERSE->newShipWithName(shipDataKey().value_or(""))
+               : nullptr);  // retained
       if (player_ship) {
         // FIXME: this should use OOShipType, which should exist. -- Ahruman
         setMesh((player_ship != nullptr ? player_ship->mesh()
                                         : static_cast<OOMesh*>(nullptr)));
         if (player_ship != nullptr)
           oo::ReleaseEntity(
-              player_ship);  // we only wanted it for its polygons!
+              player_ship.get());  // we only wanted it for its polygons!
       }
       if (UNIVERSE != nullptr) UNIVERSE->setViewDirection(OOViewID::kForward);
       if (UNIVERSE != nullptr)
@@ -6629,7 +6624,7 @@ void PlayerEntity::takeHeatDamage(double amount) {
 
 ::ShipEntity* PlayerEntity::launchEscapeCapsule() {
   ::ShipEntity* doppelganger = nullptr;
-  ::ShipEntity* escapePod = nullptr;
+  std::shared_ptr<::ShipEntity> escapePod;
 
   if ((UNIVERSE != nullptr ? UNIVERSE->getDisplayGUI() : false))
     switchToMainView();  // Clear the F7 screen!
@@ -6684,10 +6679,8 @@ void PlayerEntity::takeHeatDamage(double amount) {
       vectorToHPVector(vector_multiply_scalar(v_forward, sdepth / 2.0)));
 
   // set up you
-  escapePod =
-      (UNIVERSE != nullptr
-           ? oo::RetainedEntity(UNIVERSE->newShipWithName("escape-capsule"))
-           : static_cast<::ShipEntity*>(nullptr));  // retained
+  escapePod = (UNIVERSE != nullptr ? UNIVERSE->newShipWithName("escape-capsule")
+                                   : nullptr);  // retained
   if (escapePod != nullptr) {
     // FIXME: this should use OOShipType, which should exist. -- Ahruman
     setMesh((escapePod != nullptr ? escapePod->mesh()
@@ -6729,7 +6722,8 @@ void PlayerEntity::takeHeatDamage(double amount) {
 
   doScriptEvent(
       OOJSID("shipLaunchedEscapePod"),
-      escapePod);  // no player.ship properties should be available to script
+      escapePod
+          .get());  // no player.ship properties should be available to script
 
   // reset legal status
   setBounty(0, OOLegalStatusReason::kEscapePod);
@@ -6762,7 +6756,7 @@ void PlayerEntity::takeHeatDamage(double amount) {
   port_shot_time = 0.0;
   starboard_shot_time = 0.0;
 
-  if (escapePod != nullptr) oo::ReleaseEntity(escapePod);
+  escapePod.reset();
 
   return doppelganger;
 }

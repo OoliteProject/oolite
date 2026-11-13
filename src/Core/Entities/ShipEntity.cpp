@@ -1304,7 +1304,7 @@ bool ShipEntity::setUpOneFlasher(const oo::PList& subentDict) {
 
 bool ShipEntity::setUpOneStandardSubentity(const oo::PList& subentDict,
                                            bool asTurret) {
-  ::ShipEntity* subentity = nullptr;
+  std::shared_ptr<::ShipEntity> subentity;
   HPVector subPosition;
   Quaternion subOrientation;
 
@@ -1318,15 +1318,13 @@ bool ShipEntity::setUpOneStandardSubentity(const oo::PList& subentDict,
   }
 
   if (!asTurret && getIsStation() && subentDict.get<bool>("is_dock")) {
-    subentity =
-        (UNIVERSE != nullptr ? oo::RetainedEntity(UNIVERSE->newDockWithName(
-                                   *subentKey, _scaleFactor))
-                             : static_cast<::ShipEntity*>(nullptr));
+    subentity = (UNIVERSE != nullptr
+                     ? UNIVERSE->newDockWithName(*subentKey, _scaleFactor)
+                     : nullptr);
   } else {
     subentity = (UNIVERSE != nullptr
-                     ? oo::RetainedEntity(UNIVERSE->newSubentityWithName(
-                           *subentKey, _scaleFactor))
-                     : static_cast<::ShipEntity*>(nullptr));
+                     ? UNIVERSE->newSubentityWithName(*subentKey, _scaleFactor)
+                     : nullptr);
   }
   if (subentity == nullptr) {
     OO_LOG("setup.ship.badEntry.subentities", "Failed to set up entity {}",
@@ -1370,7 +1368,7 @@ bool ShipEntity::setUpOneStandardSubentity(const oo::PList& subentDict,
             ? *scriptInfoOverride
             : oo::PList());
 
-  addSubEntity(subentity);
+  addSubEntity(subentity.get());
   if (subentity != nullptr) subentity->setSubIdx(_maxShipSubIdx);
   _maxShipSubIdx++;
 
@@ -1389,18 +1387,19 @@ bool ShipEntity::setUpOneStandardSubentity(const oo::PList& subentDict,
     // shipdata
     bool virtual_dock = subentDict.get<bool>("_is_virtual_dock", false);
     if (virtual_dock) {
-      if (oo::ToDock(subentity) != nullptr) oo::ToDock(subentity)->setVirtual();
+      if (oo::ToDock(subentity.get()) != nullptr)
+        oo::ToDock(subentity.get())->setVirtual();
     }
 
-    if (oo::ToDock(subentity) != nullptr)
-      oo::ToDock(subentity)->setDimensionsAndCorridor(allow_docking, ddc,
-                                                      allow_launching);
+    if (oo::ToDock(subentity.get()) != nullptr)
+      oo::ToDock(subentity.get())
+          ->setDimensionsAndCorridor(allow_docking, ddc, allow_launching);
     if (subentity != nullptr)
       subentity->setDisplayName(
           subentDict.get<std::string>("dock_label", "the docking bay"));
   }
 
-  if (subentity != nullptr) oo::ReleaseEntity(subentity);
+  subentity.reset();
 
   return true;
 }
@@ -1936,7 +1935,7 @@ void ShipEntity::setUpEscorts() {
     if (!oo::ToShip(oo::AutoreleaseEntity(
             (UNIVERSE != nullptr
                  ? oo::RetainedEntity(UNIVERSE->newShipWithRole(escortRole))
-                 : static_cast<::ShipEntity*>(nullptr))))) {
+                 : nullptr)))) {
       escortRole = defaultRole;
     }
   }
@@ -1949,7 +1948,7 @@ void ShipEntity::setUpEscorts() {
     if (!oo::ToShip(oo::AutoreleaseEntity(
             (UNIVERSE != nullptr
                  ? oo::RetainedEntity(UNIVERSE->newShipWithName(*escortShipKey))
-                 : static_cast<::ShipEntity*>(nullptr))))) {
+                 : nullptr)))) {
       escortShipKey = std::nullopt;
     } else {
       escortRole = std::format("[{}]", *escortShipKey);
@@ -1974,17 +1973,16 @@ void ShipEntity::setUpEscorts() {
     // The following line adds escort 1 in position 1, etc... up to MAX_ESCORTS.
     HPVector ex_pos = coordinatesForEscortPosition(currentEscortCount);
 
-    ::ShipEntity* escorter = nullptr;
+    std::shared_ptr<::ShipEntity> escorter;
 
-    escorter = (UNIVERSE != nullptr
-                    ? oo::RetainedEntity(UNIVERSE->newShipWithRole(escortRole))
-                    : static_cast<::ShipEntity*>(nullptr));  // retained
+    escorter = (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(escortRole)
+                                    : nullptr);  // retained
 
     if (escorter == nullptr) break;
-    setUpOneEscort(escorter, escortGroup, escortRole, ex_pos,
+    setUpOneEscort(escorter.get(), escortGroup, escortRole, ex_pos,
                    currentEscortCount);
 
-    if (escorter != nullptr) oo::ReleaseEntity(escorter);
+    escorter.reset();
 
     _pendingEscortCount--;
     currentEscortCount =
@@ -2055,7 +2053,7 @@ void ShipEntity::setUpMixedEscorts() {
         ::ShipEntity* escorter =
             (UNIVERSE != nullptr
                  ? oo::RetainedEntity(UNIVERSE->newShipWithRole(escortRole))
-                 : static_cast<::ShipEntity*>(nullptr));  // retained
+                 : nullptr);  // retained
         if (escorter == nullptr) {
           break;
         }
@@ -2413,25 +2411,22 @@ void ShipEntity::addSubentityToCollisionRadius(Entity* subent) {
 
 ::ShipEntity* ShipEntity::launchPodWithCrew(
     const std::vector<std::shared_ptr<OOCharacter>>& podCrew) {
-  ::ShipEntity* pod = nullptr;
+  std::shared_ptr<::ShipEntity> pod;
 
   const oo::PList& info = shipinfoDictionary;
   pod = (UNIVERSE != nullptr
-             ? oo::RetainedEntity(UNIVERSE->newShipWithRole(
-                   StringForKey(info, "escape_pod_role").value_or("")))
-             : static_cast<::ShipEntity*>(nullptr));  // or nil
+             ? UNIVERSE->newShipWithRole(
+                   StringForKey(info, "escape_pod_role").value_or(""))
+             : nullptr);  // or nil
   if (!pod) {
     //	_role not defined? it might have _model defined;
     pod =
-        (UNIVERSE != nullptr
-             ? oo::RetainedEntity(UNIVERSE->newShipWithRole(
-                   info.get<std::string>("escape_pod_model", "escape-capsule")))
-             : static_cast<::ShipEntity*>(nullptr));
+        (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(info.get<std::string>(
+                                   "escape_pod_model", "escape-capsule"))
+                             : nullptr);
     if (!pod) {
-      pod =
-          (UNIVERSE != nullptr
-               ? oo::RetainedEntity(UNIVERSE->newShipWithRole("escape-capsule"))
-               : static_cast<::ShipEntity*>(nullptr));
+      pod = (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("escape-capsule")
+                                 : nullptr);
       OO_LOG("shipEntity.noEscapePod",
              "Ship {} has no correct escape_pod_role defined. Now using "
              "default capsule.",
@@ -2446,12 +2441,12 @@ void ShipEntity::addSubentityToCollisionRadius(Entity* subent) {
     if (pod != nullptr) pod->setCommodity("slaves", 1);
     if (pod != nullptr) pod->setCrew(podCrew);
     if (pod != nullptr) pod->switchAITo("oolite-shuttleAI.js");
-    dumpItem(pod);  // OOScanClass::kCargo, OOEntityStatus::kInFlight, AI state
-                    // GLOBAL
-    if (pod != nullptr) oo::ReleaseEntity(pod);  // release
+    dumpItem(pod.get());  // OOScanClass::kCargo, OOEntityStatus::kInFlight, AI
+                          // state GLOBAL
+    pod.reset();  // release
   }
 
-  return pod;
+  return pod.get();
 }
 
 bool ShipEntity::validForAddToUniverse() {
@@ -2974,8 +2969,7 @@ void ShipEntity::update(OOTimeDelta delta_t) {
         }
 
         ::ShipEntity* leader =
-            (escortGroup() != nullptr ? escortGroup()->leader()
-                                      : static_cast<::ShipEntity*>(nullptr));
+            (escortGroup() != nullptr ? escortGroup()->leader() : nullptr);
         if (leader != nullptr &&
             ((leader != nullptr ? leader->getScanClass() : OOScanClass{}) !=
              getScanClass())) {
@@ -3227,8 +3221,7 @@ void ShipEntity::respondToAttackFrom(Entity* from, Entity* other) {
         }
 
         ::ShipEntity* groupLeader =
-            (group != nullptr ? group->leader()
-                              : static_cast<::ShipEntity*>(nullptr));
+            (group != nullptr ? group->leader() : nullptr);
         if (hunter == groupLeader) {
           // oops we were attacked by our leader, desert him
           if (group != nullptr) group->removeShip(this);
@@ -3997,7 +3990,7 @@ bool ShipEntity::removeExternalStore(::OOEquipmentType* eqType) {
   std::string role = requestedRole;
   std::optional<std::string> eqRole;
   std::optional<std::string> shipKey;
-  ::ShipEntity* missile = nullptr;
+  std::shared_ptr<::ShipEntity> missile;
   ::OOEquipmentType* missileType = nullptr;
   bool isRandomMissile = role == "missile";
 
@@ -4033,9 +4026,8 @@ bool ShipEntity::removeExternalStore(::OOEquipmentType* eqType) {
       *shipKey);  // eqRole != role for generic missiles.
 
   if (!eqRole.has_value()) {
-    missile = (UNIVERSE != nullptr
-                   ? oo::RetainedEntity(UNIVERSE->newShipWithName(*shipKey))
-                   : static_cast<::ShipEntity*>(nullptr));
+    missile =
+        (UNIVERSE != nullptr ? UNIVERSE->newShipWithName(*shipKey) : nullptr);
     if (!missile) {
       if (isRandomMissile)
         OO_LOG_WARN(
@@ -4090,7 +4082,7 @@ bool ShipEntity::removeExternalStore(::OOEquipmentType* eqType) {
     }
 
     OOEquipmentType::setMissileRegistryRole(role, *shipKey);
-    if (missile != nullptr) oo::ReleaseEntity(missile);
+    missile.reset();
   } else {
     if (eqRole->empty()) {
       // wrong ship definition, already written to the log in a previous call.
@@ -8534,8 +8526,7 @@ void ShipEntity::releaseCargoPodsDebris() {
       limit--;
       ::ShipEntity* cargoObj = oo::ToShip(jetsam[i].get());
       ::ShipEntity* container =
-          (UNIVERSE != nullptr ? UNIVERSE->reifyCargoPod(cargoObj)
-                               : static_cast<::ShipEntity*>(nullptr));
+          (UNIVERSE != nullptr ? UNIVERSE->reifyCargoPod(cargoObj) : nullptr);
       /* TODO: this debris position/velocity setting code is
        * duplicated - sometimes not very cleanly - all over the
        * place. Unify to a single function - CIM */
@@ -8754,12 +8745,9 @@ void ShipEntity::becomeExplosion() {
                 shipInfoDictionary().get<std::string>("debris_role",
                                                       defaultRole);
             for (i = 0; i < n_rocks; i++) {
-              ::ShipEntity* rock =
-                  (UNIVERSE != nullptr
-                       ? oo::RetainedEntity(
-                             UNIVERSE->newShipWithRole(debrisRole))
-                       : static_cast<::ShipEntity*>(
-                             nullptr));  // retain count = 1
+              std::shared_ptr<::ShipEntity> rock =
+                  (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(debrisRole)
+                                       : nullptr);  // retain count = 1
               if (rock) {
                 float r_speed =
                     (rock != nullptr ? rock->getMaxFlightSpeed() : 0.0f) > 0
@@ -8801,9 +8789,9 @@ void ShipEntity::becomeExplosion() {
                   if (rock != nullptr) rock->setIsBoulder(true);
                 }
                 if (UNIVERSE != nullptr)
-                  UNIVERSE->addEntity(
-                      rock);  // OOEntityStatus::kInFlight, AI state GLOBAL
-                if (rock != nullptr) oo::ReleaseEntity(rock);
+                  UNIVERSE->addEntity(rock.get());  // OOEntityStatus::kInFlight,
+                                                    // AI state GLOBAL
+                rock.reset();
               }
             }
           }
@@ -8868,10 +8856,9 @@ void ShipEntity::becomeExplosion() {
       // Throw out scrap metal
       //
       for (i = 0; i < numAlloys; i++) {
-        ::ShipEntity* plate =
-            (UNIVERSE != nullptr
-                 ? oo::RetainedEntity(UNIVERSE->newShipWithRole("alloy"))
-                 : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
+        std::shared_ptr<::ShipEntity> plate =
+            (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("alloy")
+                                 : nullptr);  // retain count = 1
         if (plate) {
           HPVector rpos = xposition;
           Vector rrand = OORandomPositionInBoundingBox(boundingBox);
@@ -8896,9 +8883,9 @@ void ShipEntity::becomeExplosion() {
           if (plate != nullptr) plate->setCommodity("alloys", 1);
           if (UNIVERSE != nullptr)
             UNIVERSE->addEntity(
-                plate);  // OOEntityStatus::kInFlight, AI state GLOBAL
+                plate.get());  // OOEntityStatus::kInFlight, AI state GLOBAL
 
-          if (plate != nullptr) oo::ReleaseEntity(plate);
+          plate.reset();
         }
       }
     }
@@ -9529,9 +9516,7 @@ bool ShipEntity::isFriendlyTo(::ShipEntity* otherShip) {
        (otherShip != nullptr ? otherShip->isThargoid() : false)) ||
       (myGroup != nullptr && otherGroup != nullptr &&
        (myGroup == otherGroup ||
-        (otherGroup != nullptr
-             ? otherGroup->leader()
-             : static_cast<::ShipEntity*>(nullptr)) == this)) ||
+        (otherGroup != nullptr ? otherGroup->leader() : nullptr) == this)) ||
       (getScanClass() == OOScanClass::kMilitary &&
        (otherShip != nullptr ? otherShip->getScanClass() : OOScanClass{}) ==
            OOScanClass::kMilitary)) {
@@ -10995,7 +10980,7 @@ bool ShipEntity::fireSubentityLaserShot(double range) {
   ::ShipEntity* victim =
       (UNIVERSE != nullptr ? UNIVERSE->firstShipHitByLaserFromShip(
                                  this, direction, kZeroVector, &hitAtRange)
-                           : static_cast<::ShipEntity*>(nullptr));
+                           : nullptr);
   setShipHitByLaser(victim);
 
   const std::shared_ptr<OOLaserShotEntity> shot =
@@ -11012,8 +10997,7 @@ bool ShipEntity::fireSubentityLaserShot(double range) {
     }
 
     ::ShipEntity* subent =
-        (victim != nullptr ? victim->subEntityTakingDamage()
-                           : static_cast<::ShipEntity*>(nullptr));
+        (victim != nullptr ? victim->subEntityTakingDamage() : nullptr);
     if (subent != nullptr &&
         (victim != nullptr ? victim->getIsFrangible() : false)) {
       // do 1% bleed-through damage...
@@ -11139,7 +11123,7 @@ bool ShipEntity::fireDirectLaserShotAt(Entity* my_target) {
       (UNIVERSE != nullptr
            ? UNIVERSE->firstShipHitByLaserFromShip(
                  this, OOWeaponFacing::kForward, kZeroVector, &hit_at_range)
-           : static_cast<::ShipEntity*>(nullptr));
+           : nullptr);
   setShipHitByLaser(victim);
   orientation = q_save;  // restore rotation
 
@@ -11158,8 +11142,7 @@ bool ShipEntity::fireDirectLaserShotAt(Entity* my_target) {
 
   if (victim != nullptr) {
     ::ShipEntity* subent =
-        (victim != nullptr ? victim->subEntityTakingDamage()
-                           : static_cast<::ShipEntity*>(nullptr));
+        (victim != nullptr ? victim->subEntityTakingDamage() : nullptr);
     if (subent != nullptr &&
         (victim != nullptr ? victim->getIsFrangible() : false)) {
       // do 1% bleed-through damage...
@@ -11253,7 +11236,7 @@ bool ShipEntity::fireLaserShotInDirection(OOWeaponFacing direction,
         (UNIVERSE != nullptr
              ? UNIVERSE->firstShipHitByLaserFromShip(
                    this, direction, laserPortOffset, &hit_at_range)
-             : static_cast<::ShipEntity*>(nullptr));
+             : nullptr);
     setShipHitByLaser(victim);
 
     shot = OOLaserShotEntity::laserFromShip(this, direction, laserPortOffset);
@@ -11283,8 +11266,7 @@ bool ShipEntity::fireLaserShotInDirection(OOWeaponFacing direction,
               -- Ahruman 20070706, 20080304
       */
       ::ShipEntity* subent =
-          (victim != nullptr ? victim->subEntityTakingDamage()
-                             : static_cast<::ShipEntity*>(nullptr));
+          (victim != nullptr ? victim->subEntityTakingDamage() : nullptr);
       if (subent != nullptr &&
           (victim != nullptr ? victim->getIsFrangible() : false)) {
         // do 1% bleed-through damage...
@@ -11504,7 +11486,7 @@ Vector ShipEntity::missileLaunchPosition() {
     missile = (UNIVERSE != nullptr
                    ? oo::RetainedEntity(
                          UNIVERSE->newShipWithRole(identifier.value_or("")))
-                   : static_cast<::ShipEntity*>(nullptr));
+                   : nullptr);
     if (EXPECT_NOT(missile == nullptr))  // invalid missile role.
     {
       // remove that invalid missile role from the missiles list.
@@ -11514,7 +11496,7 @@ Vector ShipEntity::missileLaunchPosition() {
   } else
     missile = (UNIVERSE != nullptr
                    ? oo::RetainedEntity(UNIVERSE->newShipWithRole(*identifier))
-                   : static_cast<::ShipEntity*>(nullptr));
+                   : nullptr);
 
   if (EXPECT_NOT(missile == nullptr)) return nullptr;
 
@@ -11565,8 +11547,7 @@ Vector ShipEntity::missileLaunchPosition() {
                    .get());  // the ship keeps it
 
     ::ShipEntity* thisGroupLeader =
-        (_group != nullptr ? _group->leader()
-                           : static_cast<::ShipEntity*>(nullptr));
+        (_group != nullptr ? _group->leader() : nullptr);
 
     if ((thisGroupLeader != nullptr ? thisGroupLeader->escortGroup()
                                     : static_cast<OOShipGroup*>(nullptr)) !=
@@ -11685,10 +11666,9 @@ void ShipEntity::deactivateCloakingDevice() {
 bool ShipEntity::launchCascadeMine() {
   if (!hasCascadeMine()) return false;
   setSpeed(maxFlightSpeed + 300);
-  ::ShipEntity* bomb =
-      (UNIVERSE != nullptr
-           ? oo::RetainedEntity(UNIVERSE->newShipWithRole("energy-bomb"))
-           : static_cast<::ShipEntity*>(nullptr));
+  std::shared_ptr<::ShipEntity> bomb =
+      (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("energy-bomb")
+                           : nullptr);
   if (bomb == nullptr) return false;
 
   removeEquipmentItem("EQ_QC_MINE");
@@ -11722,8 +11702,9 @@ bool ShipEntity::launchCascadeMine() {
   if (bomb != nullptr) bomb->setBehaviour(OOBehaviour::kEnergyBombCountdown);
   if (bomb != nullptr) bomb->setOwner(this);
   if (UNIVERSE != nullptr)
-    UNIVERSE->addEntity(bomb);  // OOEntityStatus::kInFlight, AI state GLOBAL
-  if (bomb != nullptr) oo::ReleaseEntity(bomb);
+    UNIVERSE->addEntity(
+        bomb.get());  // OOEntityStatus::kInFlight, AI state GLOBAL
+  bomb.reset();
 
   if (cloaking_device_active && cloakPassive) {
     deactivateCloakingDevice();
@@ -11731,7 +11712,7 @@ bool ShipEntity::launchCascadeMine() {
 
   if (this != PLAYER)  // get the heck out of here
   {
-    addTarget(bomb);
+    addTarget(bomb.get());
     setBehaviour(OOBehaviour::kFleeTarget);
     frustration = 0.0;
   }
@@ -11848,8 +11829,7 @@ OOCargoType ShipEntity::dumpItem(::ShipEntity* cargoObj) {
   if (!cargoObj) return static_cast<OOCargoType>(0);
 
   ::ShipEntity* jetto =
-      (UNIVERSE != nullptr ? UNIVERSE->reifyCargoPod(cargoObj)
-                           : static_cast<::ShipEntity*>(nullptr));
+      (UNIVERSE != nullptr ? UNIVERSE->reifyCargoPod(cargoObj) : nullptr);
 
   int result = (jetto != nullptr ? static_cast<int>(jetto->cargoType()) : 0);
   ::AI* jettoAI = nullptr;
@@ -12546,8 +12526,7 @@ void ShipEntity::takeEnergyDamage(double amount, Entity* entPart,
           !(iAmTheLaw || uAreTheLaw)) {
         if (isTrader() || isEscort()) {
           ::ShipEntity* groupLeader =
-              (group != nullptr ? group->leader()
-                                : static_cast<::ShipEntity*>(nullptr));
+              (group != nullptr ? group->leader() : nullptr);
           if (groupLeader != this) {
             if (groupLeader != nullptr) groupLeader->setFoundTarget(hunter);
             if (groupLeader != nullptr)
@@ -13264,8 +13243,7 @@ void ShipEntity::dockEscorts() {
 void ShipEntity::setTargetToNearestStationIncludingHostiles(
     bool includeHostiles) {
   // check if the groupID (parent ship) points to a station...
-  Entity* mother = (group() != nullptr ? group()->leader()
-                                       : static_cast<::ShipEntity*>(nullptr));
+  Entity* mother = (group() != nullptr ? group()->leader() : nullptr);
   if (mother != nullptr && mother->getIsStation()) {
     addTarget(mother);
     setTargetStation(mother);

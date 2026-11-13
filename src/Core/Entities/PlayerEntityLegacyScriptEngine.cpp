@@ -2872,27 +2872,26 @@ bool PlayerEntity::processSceneString(const std::string& item, Vector off) {
       return false;  //		   0... 1... 2 3 4 5 6 7 8 9....
     }
 
-    ::ShipEntity* ship = nullptr;
+    std::shared_ptr<::ShipEntity> ship;
 
     if (i_key == "ship" || i_key == "model") {
-      ship = (UNIVERSE != nullptr
-                  ? oo::RetainedEntity(UNIVERSE->newShipWithName(i_info[1]))
-                  : static_cast<::ShipEntity*>(nullptr));
+      ship = (UNIVERSE != nullptr ? UNIVERSE->newShipWithName(i_info[1])
+                                  : nullptr);
     } else if (i_key == "role") {
-      ship = (UNIVERSE != nullptr
-                  ? oo::RetainedEntity(UNIVERSE->newShipWithRole(i_info[1]))
-                  : static_cast<::ShipEntity*>(nullptr));
+      ship = (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(i_info[1])
+                                  : nullptr);
     }
     if (!ship) return false;
 
     cxx_ScanVectorAndQuaternionFromString(joined(2, 7), &model_p0, &model_q);
 
     Vector model_offset = cxx_positionOffsetForShipInRotationToAlignment(
-        ship, model_q, i_info[9]);
+        ship.get(), model_q, i_info[9]);
     model_p0 = vector_add(model_p0, vector_subtract(off, model_offset));
 
     OO_LOG(kOOLogDebugProcessSceneStringAddModel,
-           "::::: adding model to scene:'{}'", oo::EntityDescription(ship));
+           "::::: adding model to scene:'{}'",
+           oo::EntityDescription(ship.get()));
     if (ship != nullptr) ship->setOrientation(model_q);
     if (ship != nullptr) ship->setPosition(vectorToHPVector(model_p0));
     if (UNIVERSE != nullptr)
@@ -2901,14 +2900,15 @@ bool PlayerEntity::processSceneString(const std::string& item, Vector off) {
     if (ship != nullptr) ship->setScanClass(OOScanClass::kNoDraw);
     if (ship != nullptr) ship->switchAITo("nullAI.plist");
     if (UNIVERSE != nullptr)
-      UNIVERSE->addEntity(ship);  // OOEntityStatus::kInFlight, AI state GLOBAL
+      UNIVERSE->addEntity(
+          ship.get());  // OOEntityStatus::kInFlight, AI state GLOBAL
     if (ship != nullptr) ship->setStatus(OOEntityStatus::kCockpitDisplay);
     if (ship != nullptr) ship->setRoll(0.0);
     if (ship != nullptr) ship->setPitch(0.0);
     if (ship != nullptr) ship->setVelocity(kZeroVector);
     if (ship != nullptr) ship->setBehaviour(OOBehaviour::kStopStill);
 
-    if (ship != nullptr) oo::ReleaseEntity(ship);
+    ship.reset();
     return true;
   }
   //
@@ -2918,24 +2918,23 @@ bool PlayerEntity::processSceneString(const std::string& item, Vector off) {
     if (i_info.size() != 9)  // must be player_x_y_z_W_X_Y_Z_align
       return false;          //		   0..... 1 2 3 4 5 6 7 8....
 
-    ::ShipEntity* doppelganger =
+    std::shared_ptr<::ShipEntity> doppelganger =
         (UNIVERSE != nullptr
-             ? oo::RetainedEntity(UNIVERSE->newShipWithName(
-                   shipDataKey().value_or(std::string())))
-             : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
+             ? UNIVERSE->newShipWithName(shipDataKey().value_or(std::string()))
+             : nullptr);  // retain count = 1
     if (!doppelganger) return false;
 
     cxx_ScanVectorAndQuaternionFromString(joined(1, 7), &model_p0, &model_q);
 
     Vector model_offset = cxx_positionOffsetForShipInRotationToAlignment(
-        doppelganger, model_q, i_info[8]);
+        doppelganger.get(), model_q, i_info[8]);
     model_p0.x += off.x - model_offset.x;
     model_p0.y += off.y - model_offset.y;
     model_p0.z += off.z - model_offset.z;
 
     OO_LOG(kOOLogDebugProcessSceneStringAddModel,
            "::::: adding model to scene:'{}'",
-           oo::EntityDescription(doppelganger));
+           oo::EntityDescription(doppelganger.get()));
     if (doppelganger != nullptr) doppelganger->setOrientation(model_q);
     if (doppelganger != nullptr)
       doppelganger->setPosition(vectorToHPVector(model_p0));
@@ -2945,7 +2944,7 @@ bool PlayerEntity::processSceneString(const std::string& item, Vector off) {
     if (doppelganger != nullptr)
       doppelganger->setScanClass(OOScanClass::kNoDraw);
     if (doppelganger != nullptr) doppelganger->switchAITo("nullAI.plist");
-    if (UNIVERSE != nullptr) UNIVERSE->addEntity(doppelganger);
+    if (UNIVERSE != nullptr) UNIVERSE->addEntity(doppelganger.get());
     if (doppelganger != nullptr)
       doppelganger->setStatus(OOEntityStatus::kCockpitDisplay);
     if (doppelganger != nullptr) doppelganger->setRoll(0.0);
@@ -2954,7 +2953,7 @@ bool PlayerEntity::processSceneString(const std::string& item, Vector off) {
     if (doppelganger != nullptr)
       doppelganger->setBehaviour(OOBehaviour::kStopStill);
 
-    if (doppelganger != nullptr) oo::ReleaseEntity(doppelganger);
+    doppelganger.reset();
     return true;
   }
   //
