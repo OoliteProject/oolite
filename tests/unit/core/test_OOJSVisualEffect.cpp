@@ -743,7 +743,7 @@ JSValue JSValueForObject(JSClassID jsClass, TestEntityObject *entity)
 {
 	JSValue object = JS_NewObjectClass(sContext, static_cast<int>(jsClass));
 	if (entity->_cxxEntity == nullptr)  entity->_cxxEntity = oo::makeRef<Entity>();	// a plain entity's C++ part
-	if (JS_IsException(object) || !OOJSSetCxxPrivate(object, oo::makeRef<OOJSEntityHolder>(entity->_cxxEntity.get()).get()))	// the slot holds the C++ entity
+	if (JS_IsException(object) || !OOJSSetCxxPrivate(object, oo::makeShared<OOJSEntityHolder>(entity->_cxxEntity.get())))	// the slot holds the C++ entity
 	{
 		JS_FreeValue(sContext, object);
 		return JS_NULL;

@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #include "OOJSPrivateObject.h"
 
 #include <format>
+#include <memory>
 #include <string>
 
 #include "OOJSEngineCore.h"
@@ -43,19 +44,21 @@ JSValue OOJSValueFromCxxObject(JSContext* context, OOJSPrivateObject* object) {
   return object->jsValueInContext(context);
 }
 
-// JS_SetOpaque(jsObject, [object retain]), without the retain on failure.
-bool OOJSSetCxxPrivate(JSValueConst jsObject, oo::RefCounted* object) {
-  if (object != nullptr) object->retain();
-  if (JS_SetOpaque(jsObject, object) == 0) return true;
-  if (object != nullptr) object->release();
-  return false;
+// JS_SetOpaque(jsObject, holder of object), the holder deleted on failure.
+bool OOJSSetCxxPrivate(JSValueConst jsObject,
+                       std::shared_ptr<oo::Object> object) {
+  std::unique_ptr<std::shared_ptr<oo::Object>> holder;
+  if (object != nullptr)
+    holder = std::make_unique<std::shared_ptr<oo::Object>>(std::move(object));
+  if (JS_SetOpaque(jsObject, holder.get()) != 0) return false;
+  (void)holder.release();  // the slot owns it; the finalizer deletes it
+  return true;
 }
 
 // OOJSObjectGetterImplPRIVATE(): the same JS class check and error; the slot's
 // object is taken as it is (a C++ slot holds no weak reference to unpack).
 bool OOJSGetCxxPrivateImpl(JSContext* context, JSValueConst object,
-                           JSClassID requiredClassID,
-                           oo::RefCounted** outObject) {
+                           JSClassID requiredClassID, oo::Object** outObject) {
   OOJS_PROFILE_ENTER
 
   OOCParameterAssert(context != nullptr && requiredClassID != 0 &&
@@ -78,26 +81,28 @@ bool OOJSGetCxxPrivateImpl(JSContext* context, JSValueConst object,
   }
 
   JSClassID ignored;
-  *outObject = static_cast<oo::RefCounted*>(JS_GetAnyOpaque(object, &ignored));
+  *outObject = OOJSCxxPrivateFromOpaque(JS_GetAnyOpaque(object, &ignored));
   return true;
 
   OOJS_PROFILE_EXIT
 }
 
-// OOJSObjectWrapperFinalize(): -oo_clearJSSelf: to the object, then the slot's
-// release.
+// OOJSObjectWrapperFinalize(): -oo_clearJSSelf: to the object, then the slot is
+// emptied and its holder deleted (the slot's release).
 void OOJSCxxObjectWrapperFinalize(JSRuntime* /*runtime*/,
                                   JSValueConst thisObj) {
   OOJS_PROFILE_ENTER
 
   JSClassID ignored;
-  oo::RefCounted* object =
-      static_cast<oo::RefCounted*>(JS_GetAnyOpaque(thisObj, &ignored));
-  if (object != nullptr) {
-    if (OOJSPrivateObject* glue = dynamic_cast<OOJSPrivateObject*>(object))
+  std::unique_ptr<std::shared_ptr<oo::Object>> holder(
+      static_cast<std::shared_ptr<oo::Object>*>(
+          JS_GetAnyOpaque(thisObj, &ignored)));
+  if (holder != nullptr) {
+    if (OOJSPrivateObject* glue =
+            dynamic_cast<OOJSPrivateObject*>(holder->get()))
       glue->clearJSSelf(thisObj);
     JS_SetOpaque(thisObj, nullptr);
-    object->release();
+    holder.reset();  // the slot's release
   }
 
   OOJS_PROFILE_EXIT_VOID
@@ -115,8 +120,8 @@ JSValue OOJSCxxObjectWrapperToString(JSContext* context, JSValueConst thisVal,
 
   std::optional<std::string> description;
   JSClassID ignored;
-  oo::RefCounted* object =
-      static_cast<oo::RefCounted*>(JS_GetAnyOpaque(thisVal, &ignored));
+  oo::Object* object =
+      OOJSCxxPrivateFromOpaque(JS_GetAnyOpaque(thisVal, &ignored));
   if (OOJSPrivateObject* glue = dynamic_cast<OOJSPrivateObject*>(object))
     description = glue->jsDescription();
   if (!description.has_value()) {

@@ -245,9 +245,8 @@ bool JSEquipmentInfoGetEquipmentType(JSContext* context, JSValueConst inObject,
 // itself as an Object node, for the callers of cxx_OOJSPListFromJSValue (null
 // for the prototype).
 oo::PList EquipmentInfoConverter(JSContext* /*context*/, JSValueConst object) {
-  OOEquipmentType* type =
-      static_cast<OOEquipmentType*>(static_cast<oo::RefCounted*>(
-          JS_GetOpaque(object, sEquipmentInfoClassID)));
+  OOEquipmentType* type = static_cast<OOEquipmentType*>(
+      OOJSCxxPrivateFromOpaque(JS_GetOpaque(object, sEquipmentInfoClassID)));
   return OOEquipmentTypeObjectNode(type);
 }
 }  // namespace
@@ -272,7 +271,7 @@ OOEquipmentType* JSValueToEquipmentType(JSContext* context,
   if (JS_IsObject(value)) {
     if (JS_GetClassID(value) == sEquipmentInfoClassID) {
       return static_cast<OOEquipmentType*>(
-          static_cast<oo::RefCounted*>(JS_GetOpaque(
+          OOJSCxxPrivateFromOpaque(JS_GetOpaque(
               value, sEquipmentInfoClassID)));  // borrowed: the slot holds it
     }
   }
@@ -628,7 +627,7 @@ JSValue OOEquipmentType::jsValueInContext(JSContext* context) {
       JS_FreeValue(context, JS_GetException(context));
       return JS_NULL;
     }
-    if (!OOJSSetCxxPrivate(newSelf, this)) {
+    if (!OOJSSetCxxPrivate(newSelf, oo::share(this))) {
       JS_FreeValue(context, newSelf);
       return JS_NULL;
     }

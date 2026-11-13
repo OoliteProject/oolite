@@ -1872,8 +1872,8 @@ oo::PList cxx_OOJSPListFromJSObject(JSContext* context, JSValueConst object) {
 oo::PList OOJSBasicPrivateObjectConverter(JSContext* /*context*/,
                                           JSValueConst object) {
   JSClassID ignored;
-  oo::RefCounted* held =
-      static_cast<oo::RefCounted*>(JS_GetAnyOpaque(object, &ignored));
+  oo::Object* held =
+      OOJSCxxPrivateFromOpaque(JS_GetAnyOpaque(object, &ignored));
   if (oo::PListForeign* foreign = dynamic_cast<oo::PListForeign*>(held))
     return oo::PList(oo::PList::Object(foreign));
   return oo::PList();

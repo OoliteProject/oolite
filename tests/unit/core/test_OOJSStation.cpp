@@ -329,7 +329,7 @@ JSValue TestEntityObject::oo_jsValueInContext(JSContext *context)
 		}
 		if (_cxxEntity == nullptr)  _cxxEntity = oo::makeRef<Entity>();	// a plain entity's C++ part
 		sObjects[_cxxEntity.get()] = this;
-		OOJSSetCxxPrivate(_jsSelf, oo::makeRef<OOJSEntityHolder>(_cxxEntity.get()).get());	// the slot holds the C++ entity
+		OOJSSetCxxPrivate(_jsSelf, oo::makeShared<OOJSEntityHolder>(_cxxEntity.get()));	// the slot holds the C++ entity
 	}
 	return JS_DupValue(context, _jsSelf);
 }

@@ -73,7 +73,7 @@ public:
 				JS_FreeValue(context, JS_GetException(context));
 				return JS_NULL;
 			}
-			if (!OOJSSetCxxPrivate(jsSelf, this))
+			if (!OOJSSetCxxPrivate(jsSelf, oo::share(this)))
 			{
 				JS_FreeValue(context, jsSelf);
 				return JS_NULL;
@@ -292,7 +292,7 @@ OO_TEST(jsValue)
 	OO_CHECK(JS_VALUE_GET_PTR(again) == JS_VALUE_GET_PTR(first));
 	JS_FreeValue(sContext, again);
 	// The slot holds the object as an oo::RefCounted *, with one retain.
-	OO_CHECK(JS_GetOpaque(first, sThingClassID) == static_cast<oo::RefCounted *>(thing.get()));
+	OO_CHECK(OOJSCxxPrivateFromOpaque(JS_GetOpaque(first, sThingClassID)) == static_cast<oo::Object *>(thing.get()));
 	OO_CHECK_EQ(thing->retainCount(), 2u);
 	Define("alpha", first);
 	OO_CHECK_EVAL("alpha.name()", "alpha");
@@ -345,7 +345,7 @@ OO_TEST(finalize)
 	// A slot object without the JS glue is released all the same.
 	JSValue plainWrapper = JS_NewObjectClass(sContext, static_cast<int>(sThingClassID));
 	PlainThing *plain = new PlainThing;
-	OO_CHECK(OOJSSetCxxPrivate(plainWrapper, plain));
+	OO_CHECK(OOJSSetCxxPrivate(plainWrapper, oo::share(plain)));
 	OO_CHECK_EQ(plain->retainCount(), 2u);
 	plain->release();
 	JS_FreeValue(sContext, plainWrapper);

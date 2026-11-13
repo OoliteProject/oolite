@@ -117,7 +117,7 @@ bool OOJSTimer::initWithDelay(OOTimeAbsolute delay, OOTimeDelta interval,
     _jsSelf = JS_NewObjectClass(context, sTimerClassID);
     if (!JS_IsException(_jsSelf)) {
       // The private slot holds the timer, retained, as it kept self.
-      if (!OOJSSetCxxPrivate(_jsSelf, this)) {
+      if (!OOJSSetCxxPrivate(_jsSelf, oo::share(this))) {
         JS_FreeValue(context, _jsSelf);
         _jsSelf = JS_EXCEPTION;
       }
@@ -338,7 +338,7 @@ static bool JSTimerGetTimer(JSContext* context, JSValueConst inObject,
 // as a plist Object node; null for the prototype.
 static oo::PList TimerConverter(JSContext* /*context*/, JSValueConst object) {
   OOJSTimer* timer = static_cast<OOJSTimer*>(
-      static_cast<oo::RefCounted*>(JS_GetOpaque(object, sTimerClassID)));
+      OOJSCxxPrivateFromOpaque(JS_GetOpaque(object, sTimerClassID)));
   if (timer == nullptr) return oo::PList();
   return oo::PList(oo::PList::Object(oo::share(timer)));
 }

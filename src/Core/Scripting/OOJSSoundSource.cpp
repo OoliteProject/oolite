@@ -377,7 +377,7 @@ JSValue OOJSSoundSourceJSValueInContext(OOSoundSource* source,
   }
   const std::shared_ptr<OOJSSoundSourceHolder> holder =
       oo::makeShared<OOJSSoundSourceHolder>(source);
-  if (!OOJSSetCxxPrivate(result, holder.get())) {
+  if (!OOJSSetCxxPrivate(result, holder)) {
     JS_FreeValue(context, result);
     return JS_NULL;
   }

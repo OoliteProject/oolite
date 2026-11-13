@@ -672,7 +672,7 @@ OO_TEST(wrappedObject)
 	JSValue a = GetJSSystemInfoForSystem(sContext, 0, 7);
 	JSValue b = GetJSSystemInfoForSystem(sContext, 3, 7);
 	// The slot holds the C++ system info.
-	auto slot = [](JSValueConst v) { JSClassID ignored; return static_cast<OOSystemInfo *>(static_cast<oo::RefCounted *>(JS_GetAnyOpaque(v, &ignored))); };
+	auto slot = [](JSValueConst v) { JSClassID ignored; return static_cast<OOSystemInfo *>(OOJSCxxPrivateFromOpaque(JS_GetAnyOpaque(v, &ignored))); };
 	OOSystemInfo *cxxA = slot(a);
 	OOSystemInfo *cxxB = slot(b);
 	JSValue c = GetJSSystemInfoForSystem(sContext, 0, 7);

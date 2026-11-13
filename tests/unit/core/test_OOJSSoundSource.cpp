@@ -290,20 +290,20 @@ OOSound *SoundFromJSValue(JSContext *, JSValueConst value)
 
 
 /*	The engine's C++ private-slot glue (OOJSPrivateObject.cpp), stood in for: the slot holds the
-object retained; the getter checks the JS class (the
+object shared; the getter checks the JS class (the
 	class registry's OOJSIsSubclass(), OOJSClasses.mm) and gives the slot's object; the finalizer
 	does nothing (as the stub's did); toString() is the shared one's answer here.
 */
-bool OOJSSetCxxPrivate(JSValueConst jsObject, oo::RefCounted *object)
+bool OOJSSetCxxPrivate(JSValueConst jsObject, std::shared_ptr<oo::Object> object)
 {
-	if (object != nullptr)  object->retain();
-	if (JS_SetOpaque(jsObject, object) == 0)  return true;
-	if (object != nullptr)  object->release();
+	std::shared_ptr<oo::Object> *holder = object != nullptr ? new std::shared_ptr<oo::Object>(std::move(object)) : nullptr;
+	if (JS_SetOpaque(jsObject, holder) == 0)  return true;
+	delete holder;
 	return false;
 }
 
 
-bool OOJSGetCxxPrivateImpl(JSContext *context, JSValueConst object, JSClassID requiredClassID, oo::RefCounted **outObject)
+bool OOJSGetCxxPrivateImpl(JSContext *context, JSValueConst object, JSClassID requiredClassID, oo::Object **outObject)
 {
 	if (!OOJSIsSubclass(JS_GetClassID(object), requiredClassID))
 	{
@@ -311,7 +311,7 @@ bool OOJSGetCxxPrivateImpl(JSContext *context, JSValueConst object, JSClassID re
 		return false;
 	}
 	JSClassID ignored;
-	*outObject = static_cast<oo::RefCounted *>(JS_GetAnyOpaque(object, &ignored));
+	*outObject = OOJSCxxPrivateFromOpaque(JS_GetAnyOpaque(object, &ignored));
 	return true;
 }
 

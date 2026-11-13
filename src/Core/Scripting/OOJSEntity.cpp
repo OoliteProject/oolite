@@ -183,7 +183,7 @@ namespace {
 Entity* EntityOfJSObject(JSValueConst object) {
   JSClassID ignored;
   OOJSEntityHolder* holder = static_cast<OOJSEntityHolder*>(
-      static_cast<oo::RefCounted*>(JS_GetAnyOpaque(object, &ignored)));
+      OOJSCxxPrivateFromOpaque(JS_GetAnyOpaque(object, &ignored)));
   return (holder != nullptr) ? holder->entity() : nullptr;
 }
 }  // namespace

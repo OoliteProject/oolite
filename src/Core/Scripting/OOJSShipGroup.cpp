@@ -102,7 +102,7 @@ static const JSCFunctionListEntry sShipGroupMethods[] = {
 static oo::PList ShipGroupConverter(JSContext* /*context*/,
                                     JSValueConst object) {
   OOShipGroup* group = static_cast<OOShipGroup*>(
-      static_cast<oo::RefCounted*>(JS_GetOpaque(object, sShipGroupClassID)));
+      OOJSCxxPrivateFromOpaque(JS_GetOpaque(object, sShipGroupClassID)));
   if (group == nullptr) return oo::PList();
   return OOShipGroupObjectNode(group);
 }
@@ -268,7 +268,7 @@ JSValue OOShipGroup::jsValueInContext(JSContext* context) {
       JS_FreeValue(context, JS_GetException(context));
       return JS_NULL;
     }
-    if (!OOJSSetCxxPrivate(newSelf, this)) {
+    if (!OOJSSetCxxPrivate(newSelf, oo::share(this))) {
       JS_FreeValue(context, newSelf);
       return JS_NULL;
     }
