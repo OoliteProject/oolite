@@ -205,8 +205,7 @@ void AddIfAbsent(std::vector<oo::EntityHold>& entities, Entity* entity) {
 // autoreleased, then the hold's own released), which releases it when it drains
 // (the list itself released them then). The list is left empty.
 void AutoreleaseAll(std::vector<oo::EntityHold>& entities) {
-  for (const oo::EntityHold& entity : entities)
-    oo::AutoreleaseEntity(oo::RetainEntity(entity.get()));
+  for (const oo::EntityHold& entity : entities) oo::autorelease(entity);
   entities.clear();
 }
 
@@ -1521,7 +1520,7 @@ void Universe::setUpUniverseFromStation() {
 
 void Universe::setUpUniverseFromWitchspace() {
   ::PlayerEntity* player;
-  ::ShipEntity* playerObject;  // the player's entity
+  std::shared_ptr<::ShipEntity> playerObject;  // the player's entity
 
   //
   // check the player is still around!
@@ -1530,21 +1529,19 @@ void Universe::setUpUniverseFromWitchspace() {
     /*- the player ship -*/
     playerObject = ::PlayerEntity::newPlayerObject();  // alloc retains!
 
-    addEntity(playerObject);
+    addEntity(playerObject.get());
 
     /*--*/
   } else {
-    playerObject =
-        oo::ToShip(oo::RetainEntity(PLAYER));  // retained here (its object)
+    playerObject = oo::Hold(oo::ToShip(PLAYER));  // retained here (its object)
   }
-  player = static_cast<::PlayerEntity*>(playerObject);
+  player = static_cast<::PlayerEntity*>(playerObject.get());
 
   setUpSpace();
   populateNormalSpace();
 
   if (player != nullptr) player->leaveWitchspace();
-  if (playerObject != nullptr)
-    oo::ReleaseEntity(playerObject);  // released here
+  playerObject.reset();  // released here
 
   setViewDirection(OOViewID::kForward);
 
@@ -1568,7 +1565,7 @@ void Universe::setUpUniverseFromWitchspace() {
 
 void Universe::setUpUniverseFromMisjump() {
   ::PlayerEntity* player;
-  ::ShipEntity* playerObject;  // the player's entity
+  std::shared_ptr<::ShipEntity> playerObject;  // the player's entity
 
   //
   // check the player is still around!
@@ -1577,14 +1574,13 @@ void Universe::setUpUniverseFromMisjump() {
     /*- the player ship -*/
     playerObject = ::PlayerEntity::newPlayerObject();  // alloc retains!
 
-    addEntity(playerObject);
+    addEntity(playerObject.get());
 
     /*--*/
   } else {
-    playerObject =
-        oo::ToShip(oo::RetainEntity(PLAYER));  // retained here (its object)
+    playerObject = oo::Hold(oo::ToShip(PLAYER));  // retained here (its object)
   }
-  player = static_cast<::PlayerEntity*>(playerObject);
+  player = static_cast<::PlayerEntity*>(playerObject.get());
 
   setUpWitchspace();
   // ensure that if we got here from a jump within a planet's atmosphere,
@@ -1592,8 +1588,7 @@ void Universe::setUpUniverseFromMisjump() {
   setAirResistanceFactor(0.0f);
 
   if (player != nullptr) player->leaveWitchspace();
-  if (playerObject != nullptr)
-    oo::ReleaseEntity(playerObject);  // released here
+  playerObject.reset();  // released here
 
   setViewDirection(OOViewID::kForward);
 
@@ -1609,7 +1604,8 @@ void Universe::setUpWitchspace() {
 void Universe::setUpWitchspaceBetweenSystem(OOSystemID s1, OOSystemID s2) {
   // new system is hyper-centric : witchspace exit point is origin
 
-  Entity* thing;  // its object retained by hand where +alloc's was
+  Entity* thing;  // borrowed from thingHold where it holds a new entity
+  std::shared_ptr<Entity> thingHold;  // where +alloc's +1 was
   ::PlayerEntity* player = PLAYER;
   Quaternion randomQ;
 
@@ -1634,14 +1630,15 @@ void Universe::setUpWitchspaceBetweenSystem(OOSystemID s1, OOSystemID s2) {
     // The sky is C++: its object first, retained as +alloc's was, then the
     // body.
     std::shared_ptr<::SkyEntity> skyRef = oo::makeShared<::SkyEntity>();
-    thing = oo::RetainEntity(oo::MadeEntity(skyRef));  // alloc retains!
+    thingHold = oo::Hold(oo::MadeEntity(skyRef));  // alloc retains!
+    thing = thingHold.get();
     skyRef->initWithColors(col1.get(), col2.get(), systeminfo);
   }
   thing->setScanClass(OOScanClass::kNoDraw);
   quaternion_set_random(&randomQ);
   thing->setOrientation(randomQ);
   addEntity(thing);
-  oo::ReleaseEntity(thing);
+  thingHold.reset();
 
   /*- the dust particle system -*/
   std::shared_ptr<DustEntity> dust = oo::makeShared<DustEntity>();
@@ -1704,11 +1701,12 @@ void Universe::setUpWitchspaceBetweenSystem(OOSystemID s1, OOSystemID s2) {
   (*planetDict.getIf<oo::PList::Dict>())["mainForLocalSystem"] =
       oo::PList(true);
   ::OOPlanetEntity* a_planet = nullptr;
+  std::shared_ptr<Entity> planetHold;  // where +alloc's +1 was
   {
-    // A new planet, +1.
+    // A new planet, held.
     std::shared_ptr<::OOPlanetEntity> planetRef =
         oo::makeShared<::OOPlanetEntity>();
-    oo::RetainEntity(oo::MadeEntity(planetRef));
+    planetHold = oo::Hold(oo::MadeEntity(planetRef));
     planetRef->initFromDictionary(planetDict,
                                   planetDict.get<bool>("has_atmosphere", true),
                                   systemSeed, systemID);
@@ -1737,7 +1735,7 @@ void Universe::setUpWitchspaceBetweenSystem(OOSystemID s1, OOSystemID s2) {
   } else {
     addEntity(a_planet);
   }
-  oo::AutoreleaseEntity(a_planet);
+  oo::autorelease(std::move(planetHold));
   return a_planet;
 }
 
@@ -1747,12 +1745,14 @@ void Universe::setUpWitchspaceBetweenSystem(OOSystemID s1, OOSystemID s2) {
  * by populateNormalSpace(). However, at game start, they need to be
  * separated to allow Javascript startUp routines to be run in-between */
 void Universe::setUpSpace() {
-  Entity* thing;  // its object retained by hand where +alloc's was
+  Entity* thing;  // borrowed from thingHold where it holds a new entity
+  std::shared_ptr<Entity> thingHold;  // where +alloc's +1 was
   //	ShipEntity			*nav_buoy;
   std::shared_ptr<::ShipEntity>
       stationObject;  // the station's object, retained
   ::StationEntity* a_station;
   ::OOSunEntity* a_sun;
+  std::shared_ptr<Entity> sunHold;  // where +alloc's +1 was
   ::OOPlanetEntity* a_planet;
 
   HPVector stationPos;
@@ -1832,7 +1832,8 @@ void Universe::setUpSpace() {
     // The sky is C++: its object first, retained as +alloc's was, then the
     // body.
     std::shared_ptr<::SkyEntity> skyRef = oo::makeShared<::SkyEntity>();
-    thing = oo::RetainEntity(oo::MadeEntity(skyRef));  // alloc retains!
+    thingHold = oo::Hold(oo::MadeEntity(skyRef));  // alloc retains!
+    thing = thingHold.get();
     skyRef->initWithColors(col1.get(), col2.get(), systeminfo);
   }
   thing->setScanClass(OOScanClass::kNoDraw);
@@ -1861,7 +1862,7 @@ void Universe::setUpSpace() {
   pale_bgcolor = (bgcolor != nullptr) ? bgcolor->blendedColorWithFraction(
                                             0.5, OOColor::whiteColor().get())
                                       : nullptr;  // nil stayed nil
-  oo::ReleaseEntity(thing);
+  thingHold.reset();
   /*--*/
 
   /*- the dust particle system -*/
@@ -1978,9 +1979,9 @@ void Universe::setUpSpace() {
              .value_or("(null)"));
 #endif
   {
-    // A new sun, +1.
+    // A new sun, held.
     std::shared_ptr<OOSunEntity> sunRef = oo::makeShared<OOSunEntity>();
-    oo::RetainEntity(oo::MadeEntity(sunRef));  // alloc retains!
+    sunHold = oo::Hold(oo::MadeEntity(sunRef));  // alloc retains!
     sunRef->initSunWithColor(bgcolor.get(), sun_dict);
     a_sun = sunRef.get();
   }
@@ -2125,7 +2126,7 @@ void Universe::setUpSpace() {
   populateSpaceFromActiveWormholes();
   OO_DEBUG_POP_PROGRESS();
 
-  oo::ReleaseEntity(a_sun);
+  sunHold.reset();
   stationObject.reset();
 }
 
@@ -2614,8 +2615,8 @@ void Universe::setMainLightPosition(Vector sunPos) {
     launchPos.z += 2 * rfactor * (randf() - 0.5);
   }
 
-  ::ShipEntity* ship =
-      oo::RetainedEntity(newShipWithRole(desc));  // retain count = 1
+  std::shared_ptr<::ShipEntity> ship =
+      newShipWithRole(desc);  // retain count = 1
 
   if (ship) {
     if (ship != nullptr)
@@ -2623,7 +2624,7 @@ void Universe::setMainLightPosition(Vector sunPos) {
 
     // Deal with scripted cargopods and ensure they are filled with something.
     if ((ship != nullptr ? ship->hasRole("cargopod") : false))
-      fillCargopodWithRandomCargo(ship);
+      fillCargopodWithRandomCargo(ship.get());
 
     // Ensure piloted ships have pilots.
     if (!(ship != nullptr
@@ -2639,9 +2640,10 @@ void Universe::setMainLightPosition(Vector sunPos) {
         OOScanClass::kNotSet) {
       if (ship != nullptr) ship->setScanClass(OOScanClass::kNeutral);
     }
-    addEntity(ship);  // OOEntityStatus::kInFlight, AI state GLOBAL
-    if (ship != nullptr) oo::ReleaseEntity(ship);
-    return ship;
+    addEntity(ship.get());  // OOEntityStatus::kInFlight, AI state GLOBAL
+    // The creator's reference goes with ship (on return); the universe holds
+    // it.
+    return ship.get();
   }
   return nullptr;
 }
@@ -3201,18 +3203,18 @@ bool Universe::spawnShip(const std::string& shipdesc) {
 
 void Universe::witchspaceShipWithPrimaryRole(const std::string& role) {
   // adds a ship exiting witchspace (corollary of when ships leave the system)
-  ::ShipEntity* ship = nullptr;
+  std::shared_ptr<::ShipEntity> ship;
   oo::PList systeminfo;
   OOGovernmentID government;
 
   systeminfo = currentSystemData();
   government = systeminfo.get<unsigned char>(std::string(KEY_GOVERNMENT));
 
-  ship = oo::RetainedEntity(newShipWithRole(role));  // retain count = 1
+  ship = newShipWithRole(role);  // retain count = 1
 
   // Deal with scripted cargopods and ensure they are filled with something.
   if (ship && (ship != nullptr ? ship->hasRole("cargopod") : false)) {
-    fillCargopodWithRandomCargo(ship);
+    fillCargopodWithRandomCargo(ship.get());
   }
 
   if (ship) {
@@ -3228,7 +3230,7 @@ void Universe::witchspaceShipWithPrimaryRole(const std::string& role) {
               0.25)  // select 1/4 of the traders suitable for sunskimming.
       {
         if (ship != nullptr) ship->setCargoFlag(OOCargoFlag::kFullPlentiful);
-        makeSunSkimmer(ship, true);
+        makeSunSkimmer(ship.get(), true);
       } else {
         if (ship != nullptr) ship->switchAITo("oolite-traderAI.js");
       }
@@ -3261,7 +3263,7 @@ void Universe::witchspaceShipWithPrimaryRole(const std::string& role) {
     // OOEntityStatus::kExitingWitchspace, ai message: EXITED_WITCHSPACE, then
     // OOEntityStatus::kInFlight
     if (ship != nullptr) ship->leaveWitchspace();
-    if (ship != nullptr) oo::ReleaseEntity(ship);
+    ship.reset();
   }
 }
 
@@ -3331,14 +3333,13 @@ Entity* Universe::addVisualEffectAt(HPVector pos, const std::string& key) {
     pos = HPvector_add(pos, OOHPVectorRandomSpatial(radius));
   }
 
-  ::ShipEntity* ship =
-      oo::RetainedEntity(newShipWithRole(role));  // is retained
+  std::shared_ptr<::ShipEntity> ship = newShipWithRole(role);  // is retained
   bool success = false;
 
   if (ship != nullptr) {
     if (ship != nullptr) ship->setPosition(pos);
     if ((ship != nullptr ? ship->hasRole("cargopod") : false))
-      fillCargopodWithRandomCargo(ship);
+      fillCargopodWithRandomCargo(ship.get());
     OOScanClass scanClass =
         (ship != nullptr ? ship->getScanClass() : OOScanClass{});
     if (scanClass == OOScanClass::kNotSet) {
@@ -3386,7 +3387,8 @@ Entity* Universe::addVisualEffectAt(HPVector pos, const std::string& key) {
 
     if (HPdistance(getWitchspaceExitPosition(), pos) > SCANNER_MAX_RANGE) {
       // nothing extra to do
-      success = addEntity(ship);  // OOEntityStatus::kInFlight, AI state GLOBAL
+      success =
+          addEntity(ship.get());  // OOEntityStatus::kInFlight, AI state GLOBAL
                                   // - ship is retained globally
     } else  // witchspace incoming traders & pirates need extra settings.
     {
@@ -3395,7 +3397,7 @@ Entity* Universe::addVisualEffectAt(HPVector pos, const std::string& key) {
         if ((ship != nullptr ? ship->hasRole("sunskim-trader") : false) &&
             randf() < 0.25) {
           if (ship != nullptr) ship->setCargoFlag(OOCargoFlag::kFullPlentiful);
-          makeSunSkimmer(ship, true);
+          makeSunSkimmer(ship.get(), true);
         } else {
           if (ship != nullptr) ship->switchAITo("oolite-traderAI.js");
         }
@@ -3413,10 +3415,10 @@ Entity* Universe::addVisualEffectAt(HPVector pos, const std::string& key) {
       // addEntity, so ship is retained globally.
       success = (ship != nullptr ? ship->witchspaceLeavingEffects() : false);
     }
-
-    if (ship != nullptr) oo::ReleaseEntity(ship);
   }
-  return success ? ship : static_cast<::ShipEntity*>(nullptr);
+  // The creator's reference goes when ship does (on return): the universe
+  // holds the ship by now if it was added.
+  return success ? ship.get() : nullptr;
 
   OOJS_PROFILE_EXIT
 }
@@ -3743,7 +3745,7 @@ void Universe::handleGameOver() {
 
 void Universe::setupIntroFirstGo(bool justCobra) {
   ::PlayerEntity* player = PLAYER;
-  ::ShipEntity* ship = nullptr;
+  std::shared_ptr<::ShipEntity> ship;
   Quaternion q2 = {0.0f, 0.0f, 1.0f, 0.0f};  // w,x,y,z
 
   // in status demo draw ships and display text
@@ -3760,8 +3762,7 @@ void Universe::setupIntroFirstGo(bool justCobra) {
 
   if (justCobra) {
     /*- cobra - intro1 -*/
-    ship = oo::RetainedEntity(
-        newShipWithName(std::string(PLAYER_SHIP_DESC), true));
+    ship = newShipWithName(std::string(PLAYER_SHIP_DESC), true);
   } else {
     /*- demo ships - intro2 -*/
 
@@ -3797,12 +3798,12 @@ void Universe::setupIntroFirstGo(bool justCobra) {
     }
 
     if (!demo_ship)
-      ship = oo::RetainedEntity(newShipWithName(
+      ship = newShipWithName(
           OptionalStringIn(
               DemoShipEntry(demo_ships, demo_ship_index, demo_ship_subindex),
               kOODemoShipKey)
               .value_or(std::string()),
-          false));
+          false);
     // stop consistency problems on the ship library screen
     if (ship != nullptr) ship->removeEquipmentItem("EQ_SHIELD_BOOSTER");
     if (ship != nullptr) ship->removeEquipmentItem("EQ_SHIELD_ENHANCER");
@@ -3829,12 +3830,12 @@ void Universe::setupIntroFirstGo(bool justCobra) {
     if ((ship != nullptr ? ship->pendingEscortCount() : uint8_t{}) > 0) {
       if (ship != nullptr) ship->setPendingEscortCount(0);
     }
-    addEntity(ship);  // OOEntityStatus::kInFlight, AI state GLOBAL
+    addEntity(ship.get());  // OOEntityStatus::kInFlight, AI state GLOBAL
     // now override status
     if (ship != nullptr) ship->setStatus(OOEntityStatus::kCockpitDisplay);
-    demo_ship = ship;
+    demo_ship = ship.get();
 
-    if (ship != nullptr) oo::ReleaseEntity(ship);
+    ship.reset();
   }
 
   if (!justCobra) {
@@ -6118,8 +6119,8 @@ void Universe::removeDemoShips() {
                    static_cast<GLfloat>(M_SQRT1_2), static_cast<GLfloat>(0.0),
                    static_cast<GLfloat>(0.0)};
 
-  ::ShipEntity* ship =
-      oo::RetainedEntity(newShipWithRole(role));  // retain count = 1
+  std::shared_ptr<::ShipEntity> ship =
+      newShipWithRole(role);  // retain count = 1
   if (ship) {
     double cr = (ship != nullptr ? ship->collisionRadius() : 0.0f);
     if (ship != nullptr) ship->setOrientation(q2);
@@ -6129,7 +6130,8 @@ void Universe::removeDemoShips() {
     if (ship != nullptr) ship->setPendingEscortCount(0);
 
     if (UNIVERSE != nullptr)
-      UNIVERSE->addEntity(ship);  // OOEntityStatus::kInFlight, AI state GLOBAL
+      UNIVERSE->addEntity(
+          ship.get());  // OOEntityStatus::kInFlight, AI state GLOBAL
 
     if (spinning) {
       if (ship != nullptr) ship->setDemoShip(1.0f);
@@ -6143,8 +6145,7 @@ void Universe::removeDemoShips() {
     if (ship != nullptr) ship->removeEquipmentItem("EQ_SHIELD_ENHANCER");
   }
 
-  return (ship != nullptr ? oo::ToShip(oo::AutoreleaseEntity(ship))
-                          : static_cast<::ShipEntity*>(nullptr));
+  return (ship != nullptr ? oo::autorelease(ship) : nullptr);
 }
 
 bool Universe::isVectorClearFromEntity(Entity* e1, double dist, HPVector p2) {
@@ -6446,8 +6447,8 @@ HPVector Universe::getSafeVectorFromEntity(Entity* e1, double dist,
           wreck.get());  // OOEntityStatus::kInFlight, AI state GLOBAL
     if (wreck != nullptr) wreck->performTumble();
     //	[wreck rescaleBy: 1.0/scale_factor];
-    wreck.reset();
   }
+  // The creator's reference goes with wreck (on return).
   return wreck.get();
 }
 
@@ -10676,13 +10677,13 @@ void Universe::setUpCargoPods() {
   for (const std::string& type :
        (commodities != nullptr ? commodities->goods()
                                : std::vector<std::string>())) {
-    ::ShipEntity* container =
-        oo::RetainedEntity(newShipWithRole("oolite-template-cargopod"));
+    std::shared_ptr<::ShipEntity> container =
+        newShipWithRole("oolite-template-cargopod");
     if (container != nullptr) container->setScanClass(OOScanClass::kCargo);
     if (container != nullptr) container->setCommodity(type, 1);
     if (container != nullptr) {
-      tmp[type] = oo::Hold(container);
-      oo::ReleaseEntity(container);
+      tmp[type] = container;
+      container.reset();
     }  // the +1 handed to the list; a nil container was an exception before
   }
   cargoPods = std::move(tmp);

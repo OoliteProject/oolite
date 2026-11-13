@@ -448,21 +448,20 @@ PlayerEntity::~PlayerEntity() = default;
 
 PlayerEntity* PlayerEntity::sharedPlayer() {
   if (EXPECT_NOT(gOOPlayer == nullptr)) {
-    // kept for the process
-    gOOPlayer = static_cast<PlayerEntity*>(newPlayerObject());
+    // kept for the process, by a +1 of its own (the tests give it back)
+    gOOPlayer =
+        static_cast<PlayerEntity*>(oo::RetainedEntity(newPlayerObject()));
   }
   return gOOPlayer;
 }
 
-::ShipEntity* PlayerEntity::newPlayerObject() {
-  // The ship's part only; the player, its object retained (+1).
+std::shared_ptr<::ShipEntity> PlayerEntity::newPlayerObject() {
+  // The ship's part only; the player, owned by the caller.
   OOCAssert(gOOPlayer == nullptr,
             "Expected only one PlayerEntity to exist at a time.");
   std::shared_ptr<PlayerEntity> player = oo::makeShared<PlayerEntity>();
-  {
-    oo::AutoreleaseScope pool;  // was @autoreleasepool
-    return oo::ToShip(oo::RetainEntity(oo::MadeEntity(player)));
-  }
+  (void)oo::MadeEntityRetained(player);  // its object, as +alloc made it
+  return player;
 }
 
 void PlayerEntity::deferredInit() {
@@ -769,11 +768,9 @@ void PlayerEntity::loadCargoPodsForType(const std::string& type,
       while (quantity > 0) {
         int smaller_quantity = 1 + ((quantity - 1) % amount_per_container);
         if (cargo.size() < maxAvailableCargoSpace()) {
-          ::ShipEntity* container =
-              (UNIVERSE != nullptr
-                   ? oo::RetainedEntity(
-                         UNIVERSE->newShipWithRole("1t-cargopod"))
-                   : static_cast<::ShipEntity*>(nullptr));
+          std::shared_ptr<::ShipEntity> container =
+              (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("1t-cargopod")
+                                   : nullptr);
           if (container) {
             // the cargopod ship is just being set up. If ejected,  will call
             // UNIVERSE addEntity
@@ -783,8 +780,8 @@ void PlayerEntity::loadCargoPodsForType(const std::string& type,
               container->setScanClass(OOScanClass::kCargo);
             if (container != nullptr)
               container->setCommodity(type, smaller_quantity);
-            cargo.emplace_back(oo::Hold(container));
-            if (container != nullptr) oo::ReleaseEntity(container);
+            cargo.emplace_back(container);
+            container.reset();
           }
         } else {
           // try to squeeze any surplus, up to half a ton, in the manifest.
@@ -807,11 +804,9 @@ void PlayerEntity::loadCargoPodsForType(const std::string& type,
       // put each ton in a separate container
       while (quantity) {
         if (cargo.size() < maxAvailableCargoSpace()) {
-          ::ShipEntity* container =
-              (UNIVERSE != nullptr
-                   ? oo::RetainedEntity(
-                         UNIVERSE->newShipWithRole("1t-cargopod"))
-                   : static_cast<::ShipEntity*>(nullptr));
+          std::shared_ptr<::ShipEntity> container =
+              (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("1t-cargopod")
+                                   : nullptr);
           if (container) {
             // the cargopod ship is just being set up. If ejected, will call
             // UNIVERSE addEntity
@@ -820,8 +815,8 @@ void PlayerEntity::loadCargoPodsForType(const std::string& type,
             if (container != nullptr)
               container->setStatus(OOEntityStatus::kInHold);
             if (container != nullptr) container->setCommodity(type, 1);
-            cargo.emplace_back(oo::Hold(container));
-            if (container != nullptr) oo::ReleaseEntity(container);
+            cargo.emplace_back(container);
+            container.reset();
           }
         }
         quantity--;
@@ -6116,15 +6111,13 @@ bool PlayerEntity::assignToActivePylon(const std::string& equipmentKey) {
     return false;
   }
 
-  ::ShipEntity* amiss =
-      (UNIVERSE != nullptr
-           ? oo::RetainedEntity(UNIVERSE->newShipWithRole(equipmentKey))
-           : static_cast<::ShipEntity*>(nullptr));
+  std::shared_ptr<::ShipEntity> amiss =
+      (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(equipmentKey) : nullptr);
 
   if (!amiss) return false;
 
   // replace the missile now.
-  missile_entity[activeMissile] = oo::AdoptHold(amiss);
+  missile_entity[activeMissile] = oo::AdoptHold(amiss.get());
   missile_list[activeMissile] = eqType;
 
   // make sure the new missile is properly activated.
