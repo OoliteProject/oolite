@@ -37,14 +37,14 @@ int SaveEXRSnapshot(const char* outfilename, int width, int height,
   image_ptr[1] = &(images[1].at(0));  // G
   image_ptr[2] = &(images[0].at(0));  // R
 
-  image.images = (unsigned char**)image_ptr;
+  image.images = reinterpret_cast<unsigned char**>(image_ptr);
   image.width = width;
   image.height = height;
 
   header.num_channels = 3;
   header.compression_type = TINYEXR_COMPRESSIONTYPE_ZIP;
-  header.channels =
-      (EXRChannelInfo*)malloc(sizeof(EXRChannelInfo) * header.num_channels);
+  header.channels = static_cast<EXRChannelInfo*>(
+      malloc(sizeof(EXRChannelInfo) * header.num_channels));
 
   // sign our snapshot
   header.num_custom_attributes = 1;

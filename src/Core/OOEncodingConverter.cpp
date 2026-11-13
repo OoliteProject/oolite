@@ -187,7 +187,8 @@ std::optional<oo::Data> OOEncodingConverter::performConversionForString(
         * Cache hit ratio is extremely near 100% at most times.
 */
 void OOEncodingConverter::profileFire(void* junk) {
-  float ratio = (float)sCacheHits / (float)(sCacheHits + sCacheMisses);
+  float ratio = static_cast<float>(sCacheHits) /
+                static_cast<float>(sCacheHits + sCacheMisses);
   OO_LOG("strings.encoding.profile",
          "Cache hits: {}, misses: {}, ratio: {:.2g}", sCacheHits, sCacheMisses,
          ratio);

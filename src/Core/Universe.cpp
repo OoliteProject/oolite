@@ -4395,7 +4395,8 @@ std::optional<std::string> Universe::randomShipKeyForRoleRespectingConditions(
            "ship \"{}\". Now {} of {} on slow path ({:f}%).",
            role, shipKey.value_or("(null)"), static_cast<size_t>(profSlowPath),
            static_cast<size_t>(profTotal),
-           ((double)profSlowPath) / ((double)profTotal) * 100.0f);
+           static_cast<double>(profSlowPath) / static_cast<double>(profTotal) *
+               100.0f);
   }
 #endif
 
@@ -9098,7 +9099,8 @@ oo::PList Universe::routeFromSystem(OOSystemID start, OOSystemID goal,
   c_optimizeBy = optimizeBy;
   c_route = oo::PList(oo::PList::Dict{
       {"route", oo::PList(std::move(route))},
-      {"distance", oo::PList((double)cheapest[goal]->distance())}});
+      {"distance",
+       oo::PList(static_cast<double>(cheapest[goal]->distance()))}});
 
   return c_route;
 #else
