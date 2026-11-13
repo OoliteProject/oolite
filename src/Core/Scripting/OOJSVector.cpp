@@ -171,7 +171,6 @@ JSValue JSVectorWithVector(JSContext* context, Vector vector) {
 }
 
 bool VectorToJSValue(JSContext* context, Vector vector, JSValue* outValue) {
-  assert(outValue != nullptr);
 
   return HPVectorToJSValue(context, vectorToHPVector(vector), outValue);
 }
@@ -195,7 +194,6 @@ JSValue JSVectorWithHPVector(JSContext* context, HPVector vector) {
 bool HPVectorToJSValue(JSContext* context, HPVector vector, JSValue* outValue) {
   OOJS_PROFILE_ENTER
 
-  assert(outValue != nullptr);
 
   JSValue object = JSVectorWithHPVector(context, vector);
   if (EXPECT_NOT(JS_IsException(object))) {
@@ -245,7 +243,6 @@ bool JSObjectGetVector(JSContext* context, JSValueConst vectorObj,
                        HPVector* outVector) {
   OOJS_PROFILE_ENTER
 
-  assert(outVector != nullptr);
 
   HPVector* priv = nullptr;
   int64_t arrayLength;

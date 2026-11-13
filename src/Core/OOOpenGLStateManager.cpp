@@ -778,7 +778,6 @@ void OOVerifyOpenGLState_(const char* function, unsigned line) {
 static void GetCurrentOpenGLState(OOOpenGLState* state) {
   static const char* name = "<current state>";
 
-  OOCParameterAssert(state != nullptr);
   OO_ENTER_OPENGL();
   memset(state, 0, sizeof *state);
   state->name = name;

@@ -11378,8 +11378,8 @@ void Universe::initTargetFramebufferWithViewSize(NSSize viewSize) {
   OOGL(glGenTextures(1, &msaaTextureID));
   OOGL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msaaTextureID));
   OOGL(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA16F,
-                               (GLsizei)viewSize.width,
-                               (GLsizei)viewSize.height, GL_TRUE));
+                               static_cast<GLsizei>(viewSize.width),
+                               static_cast<GLsizei>(viewSize.height), GL_TRUE));
   OOGL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0));
   OOGL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                               GL_TEXTURE_2D_MULTISAMPLE, msaaTextureID, 0));
@@ -11606,8 +11606,8 @@ void Universe::resizeTargetFramebufferWithViewSize(NSSize viewSize) {
 #else
   OOGL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msaaTextureID));
   OOGL(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA16F,
-                               (GLsizei)viewSize.width,
-                               (GLsizei)viewSize.height, GL_TRUE));
+                               static_cast<GLsizei>(viewSize.width),
+                               static_cast<GLsizei>(viewSize.height), GL_TRUE));
   OOGL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0));
 #endif
 
