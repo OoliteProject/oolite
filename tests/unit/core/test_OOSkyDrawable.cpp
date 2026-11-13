@@ -36,16 +36,16 @@ extern Universe* gSharedUniverse;
 namespace {
 
 // What the star set-up's stand-in was given.
-oo::Ref<OOColor> sStarColor1;
-oo::Ref<OOColor> sStarColor2;
+std::shared_ptr<OOColor> sStarColor1;
+std::shared_ptr<OOColor> sStarColor2;
 unsigned sStarSetUps = 0;
 
 // --- The drawable, its star set-up's stand-in and its private state
 // ----------------------------------
 
 void SetUpStars(OOSkyDrawable*, OOColor* color1, OOColor* color2) {
-  sStarColor1 = oo::Ref<OOColor>(color1);
-  sStarColor2 = oo::Ref<OOColor>(color2);
+  sStarColor1 = oo::share(color1);
+  sStarColor2 = oo::share(color2);
   sStarSetUps++;
 }
 
@@ -72,7 +72,7 @@ namespace {
 void InstallStandIn() { OOSkyDrawableTestAccess::InstallStandIn(); }
 
 // A sky drawable: a new C++ drawable.
-oo::Ref<OODrawable> Sky(OOColor* color1, OOColor* color2, unsigned starCount,
+std::shared_ptr<OODrawable> Sky(OOColor* color1, OOColor* color2, unsigned starCount,
                         unsigned nebulaCount) {
   return oo::makeRef<OOSkyDrawable>(color1, color2, OOColor::greenColor().get(),
                                     OOColor::whiteColor().get(), starCount,
@@ -112,7 +112,7 @@ OO_TEST(made) {
   {
     SetUp();
     const unsigned setUpsBefore = sStarSetUps;
-    const oo::Ref<OODrawable> sky =
+    const std::shared_ptr<OODrawable> sky =
         Sky(OOColor::redColor().get(), OOColor::blueColor().get(), 7, 5);
     OO_CHECK(sky != nullptr);
     OO_CHECK(sStarSetUps == setUpsBefore + 1);
@@ -128,7 +128,7 @@ OO_TEST(made) {
 OO_TEST(parts) {
   {
     SetUp();
-    const oo::Ref<OODrawable> sky =
+    const std::shared_ptr<OODrawable> sky =
         Sky(OOColor::whiteColor().get(), OOColor::yellowColor().get(), 0, 0);
     OO_CHECK(sky->hasOpaqueParts());
     OO_CHECK(!sky->hasTranslucentParts());
@@ -145,7 +145,7 @@ OO_TEST(resetDeletesTheDisplayList) {
   OO_CHECK(OOTestGLContext());
   {
     SetUp();
-    const oo::Ref<OODrawable> sky =
+    const std::shared_ptr<OODrawable> sky =
         Sky(OOColor::redColor().get(), OOColor::blueColor().get(), 0, 0);
     const GLuint list = glGenLists(1);
     OO_CHECK(list != 0);

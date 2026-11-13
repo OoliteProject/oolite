@@ -98,7 +98,7 @@ static std::size_t sSpace;  // Number of slots allocated.
 using DeferredOperation = struct {
   std::string operation;  // "add" or "remove"
   uint32_t trackingID;
-  oo::Ref<OOJSValue> value;  // the callback, for "add"
+  std::shared_ptr<OOJSValue> value;  // the callback, for "add"
 };
 
 namespace {
@@ -455,7 +455,7 @@ static void QueueDeferredOperation(const std::string& opType,
   if (sDeferredOps == nullptr)
     sDeferredOps = new std::vector<DeferredOperation>;
   sDeferredOps->push_back(
-      DeferredOperation{opType, trackingID, oo::Ref<OOJSValue>(value)});
+      DeferredOperation{opType, trackingID, oo::share(value)});
 }
 }  // namespace
 

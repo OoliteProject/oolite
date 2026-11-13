@@ -118,7 +118,7 @@ OOOXPVerifier* MakeVerifier(
 
 OO_TEST(nameAndNeighbours) {
   {
-    const oo::Ref<OOCheckPListSyntaxVerifierStage> stage =
+    const std::shared_ptr<OOCheckPListSyntaxVerifierStage> stage =
         oo::makeRef<OOCheckPListSyntaxVerifierStage>();
     stage->setVerifier(MakeVerifier({}));
     OO_CHECK(stage->name() ==
@@ -134,7 +134,7 @@ OO_TEST(nameAndNeighbours) {
 
 OO_TEST(checksEachKnownPList) {
   {
-    const oo::Ref<OOCheckPListSyntaxVerifierStage> stage =
+    const std::shared_ptr<OOCheckPListSyntaxVerifierStage> stage =
         oo::makeRef<OOCheckPListSyntaxVerifierStage>();
     stage->setVerifier(MakeVerifier({
         {"array.plist", "( 1, 2 )"},
@@ -193,7 +193,7 @@ OO_TEST(checksEachKnownPList) {
 OO_TEST(facade) {
   {
     OOOXPVerifier* verifier = MakeVerifier({});
-    const oo::Ref<OOCheckPListSyntaxVerifierStage> stage =
+    const std::shared_ptr<OOCheckPListSyntaxVerifierStage> stage =
         oo::makeRef<OOCheckPListSyntaxVerifierStage>();
     OO_CHECK(stage->description().starts_with(
         "<OOCheckPListSyntaxVerifierStage 0x"));

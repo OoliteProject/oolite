@@ -42,7 +42,7 @@ oo::PList Substitutions(
   return oo::PList(std::move(result));
 }
 
-oo::Ref<OOEncodingConverter> ConverterForFont(const oo::PList& font) {
+std::shared_ptr<OOEncodingConverter> ConverterForFont(const oo::PList& font) {
   return oo::makeRef<OOEncodingConverter>(font);
 }
 
@@ -50,7 +50,7 @@ oo::Ref<OOEncodingConverter> ConverterForFont(const oo::PList& font) {
 
 OO_TEST(fontPListLatin1) {
   {
-    oo::Ref<OOEncodingConverter> converter = ConverterForFont(
+    std::shared_ptr<OOEncodingConverter> converter = ConverterForFont(
         FontPList("windows-latin-1",
                   Substitutions({{"\xE2\x98\x85", "\b"}, {"q", "Q"}})));
     OO_CHECK(converter != nullptr);
@@ -75,7 +75,7 @@ OO_TEST(fontPListLatin1) {
 OO_TEST(substitutionOrderAndValues) {
   {
     // Applied in key order: "ab" before "b".
-    oo::Ref<OOEncodingConverter> converter = ConverterForFont(
+    std::shared_ptr<OOEncodingConverter> converter = ConverterForFont(
         FontPList("windows-latin-1", Substitutions({{"b", "Y"}, {"ab", "X"}})));
     OO_CHECK_EQ(Bytes(converter->convertString("abb")), std::string("XY"));
 
@@ -92,7 +92,7 @@ OO_TEST(substitutionOrderAndValues) {
 
 OO_TEST(otherEncodings) {
   {
-    oo::Ref<OOEncodingConverter> converter =
+    std::shared_ptr<OOEncodingConverter> converter =
         ConverterForFont(FontPList("windows-cyrillic", oo::PList()));
     OO_CHECK(converter->encoding() == std::optional<oo::str::Encoding>(
                                           oo::str::Encoding::windowsCP1251));
@@ -119,7 +119,7 @@ OO_TEST(otherEncodings) {
 OO_TEST(noEncoding) {
   {
     // An unknown encoding name: no encoding, and every conversion is empty.
-    oo::Ref<OOEncodingConverter> converter =
+    std::shared_ptr<OOEncodingConverter> converter =
         ConverterForFont(FontPList("klingon", Substitutions({{"a", "b"}})));
     OO_CHECK(converter != nullptr);
     OO_CHECK(!converter->encoding().has_value());

@@ -101,9 +101,9 @@ struct OOWormholeTransit {
       beacon;  // the ship's beacon code when it entered, if any
 };
 
-/*	The player and the ships make it with oo::makeRef<WormholeEntity>() and
-   an initialiser, and find it again with dynamic_cast. The
-   universe's and the player's lists keep the objects (held C++ entities).
+/*	The player and the ships make it with oo::makeShared<WormholeEntity>()
+   and an initialiser, and find it again with dynamic_cast. The universe's and
+   the player's lists keep the objects (held C++ entities).
 */
 class WormholeEntity : public Entity {
  public:

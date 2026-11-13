@@ -80,7 +80,7 @@ oo::PList ResourceManager::whitelistDictionary() { return oo::PList(); }
 void OOFreePixMap(OOPixMap* ioPixMap) { *ioPixMap = OOPixMap{}; }
 
 // The loader factory, as the stand-in answers it (nil).
-oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithPath(
+std::shared_ptr<OOTextureLoader> OOTextureLoader::loaderWithPath(
     const std::optional<std::string>& /*path*/, OOTextureFlags /*options*/) {
   return nullptr;
 }
@@ -99,7 +99,7 @@ int gSchemaVerifiers = 0;
 
 }  // namespace
 
-oo::Ref<OOPListSchemaVerifier> OOPListSchemaVerifier::verifierWithSchema(
+std::shared_ptr<OOPListSchemaVerifier> OOPListSchemaVerifier::verifierWithSchema(
     const oo::PList& schema) {
   if (schema.isNull()) return nullptr;
   return oo::adopt(new OOPListSchemaVerifier(schema));
@@ -244,7 +244,7 @@ std::vector<std::string> LinesForShip(const std::string& ship) {
 OO_TEST(nameAndNeighbours) {
   {
     OOOXPVerifier* verifier = MakeVerifier({});
-    const oo::Ref<OOCheckShipDataPListVerifierStage> stage =
+    const std::shared_ptr<OOCheckShipDataPListVerifierStage> stage =
         oo::makeRef<OOCheckShipDataPListVerifierStage>();
     stage->setVerifier(verifier);
     OO_CHECK(stage->name() ==
@@ -298,10 +298,10 @@ OO_TEST(checksEachShip) {
          "	notDict = 7;"
          "}"},
     });
-    const oo::Ref<OOAIStateMachineVerifierStage> aiStage =
+    const std::shared_ptr<OOAIStateMachineVerifierStage> aiStage =
         oo::makeRef<OOAIStateMachineVerifierStage>();
     verifier->registerStage(aiStage.get());
-    const oo::Ref<OOCheckShipDataPListVerifierStage> stage =
+    const std::shared_ptr<OOCheckShipDataPListVerifierStage> stage =
         oo::makeRef<OOCheckShipDataPListVerifierStage>();
     stage->setVerifier(verifier);
     stage->dependents();  // registers the model stage, as the verifier's
@@ -359,7 +359,7 @@ OO_TEST(checksEachShip) {
 OO_TEST(facade) {
   {
     OOOXPVerifier* verifier = MakeVerifier({});
-    const oo::Ref<OOCheckShipDataPListVerifierStage> stage =
+    const std::shared_ptr<OOCheckShipDataPListVerifierStage> stage =
         oo::makeRef<OOCheckShipDataPListVerifierStage>();
     OO_CHECK(stage->description().starts_with(
         "<OOCheckShipDataPListVerifierStage 0x"));

@@ -112,6 +112,6 @@ class OOMusicController : public oo::RefCounted {
 
   OOMusicMode _mode = {};
   std::optional<std::string> _missionMusic;
-  oo::Ref<OOMusic> _current;
+  std::shared_ptr<OOMusic> _current;
   uint8_t _special = {};
 };

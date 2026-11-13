@@ -160,30 +160,30 @@ SDL_JoyHatEvent Hat(int stick, int hat, int value) {
 }
 
 // [[OOJoystickManager alloc] init]: made, then -init's body.
-oo::Ref<OOJoystickManager> NewManager() {
+std::shared_ptr<OOJoystickManager> NewManager() {
   Defaults();
-  oo::Ref<OOJoystickManager> manager = oo::makeRef<OOJoystickManager>();
+  std::shared_ptr<OOJoystickManager> manager = oo::makeRef<OOJoystickManager>();
   manager->init();
   return manager;
 }
 
 // The decoding manager, made the same way.
-oo::Ref<DecodingStickManager> NewDecodingManager() {
+std::shared_ptr<DecodingStickManager> NewDecodingManager() {
   Defaults();
-  oo::Ref<DecodingStickManager> manager = oo::makeRef<DecodingStickManager>();
+  std::shared_ptr<DecodingStickManager> manager = oo::makeRef<DecodingStickManager>();
   manager->init();
   return manager;
 }
 
-oo::Ref<TestStickManager> NewTestStickManager() {
-  oo::Ref<TestStickManager> manager = oo::makeRef<TestStickManager>();
+std::shared_ptr<TestStickManager> NewTestStickManager() {
+  std::shared_ptr<TestStickManager> manager = oo::makeRef<TestStickManager>();
   manager->init();
   return manager;
 }
 
 // The registered factory: it makes the manager; sharedStickHandler() runs
 // init().
-oo::Ref<OOJoystickManager> MakeTestStickManager() {
+std::shared_ptr<OOJoystickManager> MakeTestStickManager() {
   return oo::makeRef<TestStickManager>();
 }
 
@@ -192,7 +192,7 @@ oo::Ref<OOJoystickManager> MakeTestStickManager() {
 OO_TEST(defaultMapping) {
   ClearStickDefaults();
   {
-    oo::Ref<OOJoystickManager> manager = NewManager();
+    std::shared_ptr<OOJoystickManager> manager = NewManager();
     OO_CHECK(manager != nullptr);
 
     // No hardware in the base class.
@@ -238,7 +238,7 @@ OO_TEST(defaultMapping) {
 OO_TEST(decodesAxes) {
   ClearStickDefaults();
   {
-    oo::Ref<DecodingStickManager> manager = NewDecodingManager();
+    std::shared_ptr<DecodingStickManager> manager = NewDecodingManager();
 
     // Assigning reads the axis now (the base reads 0) and moves the function
     // off its old axis.
@@ -313,7 +313,7 @@ OO_TEST(decodesAxes) {
 OO_TEST(decodesButtonsAndHats) {
   ClearStickDefaults();
   {
-    oo::Ref<DecodingStickManager> manager = NewDecodingManager();
+    std::shared_ptr<DecodingStickManager> manager = NewDecodingManager();
 
     SDL_JoyButtonEvent evt = Button(0, 0, true);
     manager->decodeButtonEvent(&evt);
@@ -386,7 +386,7 @@ OO_TEST(decodesButtonsAndHats) {
 OO_TEST(callsBackForTheNextStickControl) {
   ClearStickDefaults();
   {
-    oo::Ref<DecodingStickManager> manager = NewDecodingManager();
+    std::shared_ptr<DecodingStickManager> manager = NewDecodingManager();
     StickCallbackTarget target;
     manager->setFunction(AXIS_YAW, StickFn(true, 0, 2));
 
@@ -436,11 +436,11 @@ OO_TEST(savesAndLoadsSettings) {
   ClearStickDefaults();
   oo::Defaults& defaults = Defaults();
   {
-    oo::Ref<OOJoystickManager> manager = NewManager();
+    std::shared_ptr<OOJoystickManager> manager = NewManager();
     manager->setFunction(AXIS_YAW, StickFn(true, 1, 6));
     manager->setFunction(BUTTON_ECM, StickFn(false, 2, 11));
 
-    oo::Ref<OOJoystickStandardAxisProfile> standard =
+    std::shared_ptr<OOJoystickStandardAxisProfile> standard =
         oo::makeRef<OOJoystickStandardAxisProfile>();
     standard->setDeadzone(0.0625);
     standard->setPower(2.5);
@@ -448,7 +448,7 @@ OO_TEST(savesAndLoadsSettings) {
     manager->setProfile(standard.get(), AXIS_ROLL);
     OO_CHECK(manager->getProfileForAxis(AXIS_ROLL) == standard.get());
 
-    oo::Ref<OOJoystickSplineAxisProfile> spline =
+    std::shared_ptr<OOJoystickSplineAxisProfile> spline =
         oo::makeRef<OOJoystickSplineAxisProfile>();
     spline->setDeadzone(0.03125);
     spline->addControl(NSMakePoint(0.25, 0.5));
@@ -477,7 +477,7 @@ OO_TEST(savesAndLoadsSettings) {
                  .get<std::string>("Type") == "Standard");
 
     // A new manager reads them all back.
-    oo::Ref<DecodingStickManager> loaded = NewDecodingManager();
+    std::shared_ptr<DecodingStickManager> loaded = NewDecodingManager();
     OO_CHECK(loaded->axisFunctions() == manager->axisFunctions());
     OO_CHECK(loaded->buttonFunctions() == manager->buttonFunctions());
     OOJoystickAxisProfile* loadedRoll = loaded->getProfileForAxis(AXIS_ROLL);
@@ -508,7 +508,7 @@ OO_TEST(savesAndLoadsSettings) {
         BUTTON_FIRE));  // still saved on stick 0 button 0
     loaded->unsetButtonFunction(BUTTON_FIRE);
     loaded->saveStickSettings();
-    oo::Ref<OOJoystickManager> noFire = NewManager();
+    std::shared_ptr<OOJoystickManager> noFire = NewManager();
     OO_CHECK(noFire->buttonFunctions() ==
              Functions({{BUTTON_LAUNCHMISSILE, StickFn(false, 0, 1)},
                         {BUTTON_ECM, StickFn(false, 2, 11)}}));
@@ -522,7 +522,7 @@ OO_TEST(subclassOverrides) {
                        Functions({{AXIS_THRUST, StickFn(true, 0, 1)}}));
   {
     // -init reads the saved functions through the subclass's axis reader.
-    oo::Ref<TestStickManager> manager = NewTestStickManager();
+    std::shared_ptr<TestStickManager> manager = NewTestStickManager();
     OO_CHECK(manager->getAxisState(AXIS_THRUST) == 0.25);
     OO_CHECK(manager->joystickCount() == 2);
     OO_CHECK(manager->listSticks() ==
@@ -575,7 +575,7 @@ void ClearGuiStickDefaults() {
 OO_TEST(guiFunctionsHaveATableOfTheirOwn) {
   ClearGuiStickDefaults();
   {
-    oo::Ref<OOJoystickManager> manager = NewManager();
+    std::shared_ptr<OOJoystickManager> manager = NewManager();
     const oo::PList defaultButtons =
         Functions({{BUTTON_FIRE, StickFn(false, 0, 0)},
                    {BUTTON_LAUNCHMISSILE, StickFn(false, 0, 1)}});
@@ -630,7 +630,7 @@ OO_TEST(guiFunctionsHaveATableOfTheirOwn) {
 OO_TEST(decodesGuiButtons) {
   ClearGuiStickDefaults();
   {
-    oo::Ref<DecodingStickManager> manager = NewDecodingManager();
+    std::shared_ptr<DecodingStickManager> manager = NewDecodingManager();
     manager->setFunction(BUTTON_GUIDOWN, StickFn(false, 1, 2));
     manager->setFunction(BUTTON_GUISELECT, StickFn(false, 0, 0));  // and fire
 
@@ -689,7 +689,7 @@ OO_TEST(savesAndLoadsGuiButtons) {
   ClearGuiStickDefaults();
   oo::Defaults& defaults = Defaults();
   {
-    oo::Ref<OOJoystickManager> manager = NewManager();
+    std::shared_ptr<OOJoystickManager> manager = NewManager();
     manager->setFunction(BUTTON_GUISELECT, StickFn(false, 1, 4));
     manager->setFunction(BUTTON_GUIPAGEUP, StickFn(false, 0, 7));
     manager->setFunction(BUTTON_ECM, StickFn(false, 2, 11));
@@ -706,7 +706,7 @@ OO_TEST(savesAndLoadsGuiButtons) {
 
     // A new manager reads the GUI table back and leaves the flight table as
     // saved.
-    oo::Ref<DecodingStickManager> loaded = NewDecodingManager();
+    std::shared_ptr<DecodingStickManager> loaded = NewDecodingManager();
     OO_CHECK(loaded->guiButtonFunctions() == savedGui);
     OO_CHECK(loaded->buttonFunctions() ==
              Functions({{BUTTON_FIRE, StickFn(false, 0, 0)},
@@ -718,7 +718,7 @@ OO_TEST(savesAndLoadsGuiButtons) {
 
     // GUI settings alone still leave the default flight mapping in place.
     defaults.removeObject(BUTTON_SETTINGS);
-    oo::Ref<OOJoystickManager> guiOnly = NewManager();
+    std::shared_ptr<OOJoystickManager> guiOnly = NewManager();
     OO_CHECK(guiOnly->guiButtonFunctions() == savedGui);
     OO_CHECK(guiOnly->buttonFunctions() ==
              Functions({{BUTTON_FIRE, StickFn(false, 0, 0)},

@@ -6,8 +6,8 @@ Encapsulates a vertex + fragment shader combo. In general, this should only be
 used though OOShaderMaterial. The point of this separation is that more than
 one OOShaderMaterial can use the same OOShaderProgram.
 
-Callers hold an oo::Ref<OOShaderProgram> for as long as they want the cached
-program.
+Callers hold an std::shared_ptr<OOShaderProgram> for as long as they want the
+cached program.
 
 Copyright (C) 2007-2013 Jens Ayton
 
@@ -72,7 +72,7 @@ class OOShaderProgram : public oo::RefCounted {
   ~OOShaderProgram() override;
 
   // Null where no program could be made (it answered nil).
-  static oo::Ref<OOShaderProgram> shaderProgramWithVertexShader(
+  static std::shared_ptr<OOShaderProgram> shaderProgramWithVertexShader(
       const std::optional<std::string>& vertexShaderSource,
       const std::optional<std::string>& fragmentShaderSource,
       const std::optional<std::string>& vertexShaderName,
@@ -84,7 +84,7 @@ class OOShaderProgram : public oo::RefCounted {
       const std::optional<std::string>& cacheKey);
 
   // Loads a shader from a file, caching and sharing shader program instances.
-  static oo::Ref<OOShaderProgram> shaderProgramWithVertexShaderName(
+  static std::shared_ptr<OOShaderProgram> shaderProgramWithVertexShaderName(
       const std::string& vertexShaderName,
       const std::string& fragmentShaderName,
       const std::optional<std::string>&

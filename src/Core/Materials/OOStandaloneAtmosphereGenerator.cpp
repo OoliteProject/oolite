@@ -102,11 +102,11 @@ constexpr int kPlanetScale4096x4096 = kPlanetScale2048x2048 + 1;
 constexpr int kPlanetScaleReducedDetail = kPlanetScale512x512;
 constexpr int kPlanetScaleFullDetail = kPlanetScale1024x1024;
 
-oo::Ref<OOStandaloneAtmosphereGenerator>
+std::shared_ptr<OOStandaloneAtmosphereGenerator>
 OOStandaloneAtmosphereGenerator::generatorWithPlanetInfo(
     const oo::PList& planetInfo, RANROTSeed seed) {
-  oo::Ref<OOStandaloneAtmosphereGenerator> result =
-      oo::makeRef<OOStandaloneAtmosphereGenerator>();
+  std::shared_ptr<OOStandaloneAtmosphereGenerator> result =
+      oo::makeShared<OOStandaloneAtmosphereGenerator>();
   if (!result->initWithPlanetInfo(planetInfo, seed)) return {};
   return result;
 }
@@ -154,10 +154,11 @@ bool OOStandaloneAtmosphereGenerator::initWithPlanetInfo(
   return false;
 }
 
-oo::Ref<OOTexture> OOStandaloneAtmosphereGenerator::planetTextureWithInfo(
+std::shared_ptr<OOTexture>
+OOStandaloneAtmosphereGenerator::planetTextureWithInfo(
     const oo::PList& planetInfo, RANROTSeed seed) {
-  oo::Ref<OOTexture> result;
-  const oo::Ref<OOStandaloneAtmosphereGenerator> generator =
+  std::shared_ptr<OOTexture> result;
+  const std::shared_ptr<OOStandaloneAtmosphereGenerator> generator =
       generatorWithPlanetInfo(planetInfo, seed);
   if (generator) {
     result = OOTexture::textureWithGenerator(generator.get());
@@ -167,10 +168,11 @@ oo::Ref<OOTexture> OOStandaloneAtmosphereGenerator::planetTextureWithInfo(
 }
 
 bool OOStandaloneAtmosphereGenerator::generateAtmosphereTexture(
-    oo::Ref<OOTexture>* texture, const oo::PList& planetInfo, RANROTSeed seed) {
+    std::shared_ptr<OOTexture>* texture, const oo::PList& planetInfo,
+    RANROTSeed seed) {
   OOCParameterAssert(texture != nullptr);
 
-  const oo::Ref<OOStandaloneAtmosphereGenerator> atmoGen =
+  const std::shared_ptr<OOStandaloneAtmosphereGenerator> atmoGen =
       generatorWithPlanetInfo(planetInfo, seed);
   if (!atmoGen) return false;
 

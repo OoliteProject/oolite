@@ -35,8 +35,9 @@ MA 02110-1301, USA.
 class OORingEffectEntity : public Entity {
  public:
   // Null for a null source.
-  static oo::Ref<OORingEffectEntity> ringFromEntity(Entity* sourceEntity);
-  static oo::Ref<OORingEffectEntity> shrinkingRingFromEntity(
+  static std::shared_ptr<OORingEffectEntity> ringFromEntity(
+      Entity* sourceEntity);
+  static std::shared_ptr<OORingEffectEntity> shrinkingRingFromEntity(
       Entity* sourceEntity);
 
   std::optional<std::string> descriptionComponents() const override;

@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #include "OOMaths.h"
 #include "OOTexture.h"
 
-oo::Ref<OOTextureSprite> OOTextureSprite::initWithTexture(
+std::shared_ptr<OOTextureSprite> OOTextureSprite::initWithTexture(
     OOTexture* inTexture) {
   return initWithTexture(
       inTexture, (inTexture != nullptr)
@@ -37,8 +37,8 @@ oo::Ref<OOTextureSprite> OOTextureSprite::initWithTexture(
 }
 
 // -initWithTexture:size:'s failure test, then the object.
-oo::Ref<OOTextureSprite> OOTextureSprite::initWithTexture(OOTexture* inTexture,
-                                                          NSSize spriteSize) {
+std::shared_ptr<OOTextureSprite> OOTextureSprite::initWithTexture(
+    OOTexture* inTexture, NSSize spriteSize) {
   if (inTexture == nullptr) {
     return nullptr;
   }
@@ -47,7 +47,7 @@ oo::Ref<OOTextureSprite> OOTextureSprite::initWithTexture(OOTexture* inTexture,
 }
 
 OOTextureSprite::OOTextureSprite(OOTexture* inTexture, NSSize spriteSize) {
-  texture = oo::Ref<OOTexture>(inTexture);
+  texture = oo::share(inTexture);
   size = spriteSize;
 }
 

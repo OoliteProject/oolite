@@ -50,7 +50,7 @@ class TestPlayer : public PlayerEntity {
 // makes the game's, retained (+1).
 template <class T>
 T* NewTestPlayer() {
-  oo::Ref<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeRef<T>();
   {
     oo::AutoreleaseScope scope;
     oo::RetainEntity(oo::MadeEntity(player));
@@ -243,8 +243,8 @@ OO_TEST(beaconDrawable) {
     SetUp();
     Entity* wp = Waypoint("W");
     // A C++ OOHUDBeaconIcon, held as the test retained it.
-    oo::Ref<OOHUDBeaconIcon> icon(
-        static_cast<OOHUDBeaconIcon*>(oo::BeaconDrawable(wp)));
+    std::shared_ptr<OOHUDBeaconIcon> icon(oo::share(
+        static_cast<OOHUDBeaconIcon*>(oo::BeaconDrawable(wp))));
     OO_CHECK(icon != nullptr && oo::BeaconDrawable(wp) == icon.get());
     oo::SetBeaconCode(wp, std::string("V"));
     OO_CHECK(oo::BeaconDrawable(wp) != nullptr &&

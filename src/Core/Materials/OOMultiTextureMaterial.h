@@ -43,7 +43,7 @@ class OOMultiTextureMaterial : public OOBasicMaterial {
      failed (it answered nil: no texture combiners). It was
      [[OOMultiTextureMaterial alloc] initWithName:configuration:].
   */
-  static oo::Ref<OOMultiTextureMaterial> materialWithName(
+  static std::shared_ptr<OOMultiTextureMaterial> materialWithName(
       const std::optional<std::string>& name, const oo::PList& configuration);
 
   // Runs once, right after construction; false on failure.
@@ -60,12 +60,12 @@ class OOMultiTextureMaterial : public OOBasicMaterial {
   void unapplyWithNext(OOMaterial* next) override;
   size_t objectSize() const override { return sizeof *this; }
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  std::vector<oo::Ref<OOTexture>> allTextures() override;
+  std::vector<std::shared_ptr<OOTexture>> allTextures() override;
 #endif
 
  private:
-  oo::Ref<OOTexture> _diffuseMap = {};
-  oo::Ref<OOTexture> _emissionMap = {};
+  std::shared_ptr<OOTexture> _diffuseMap = {};
+  std::shared_ptr<OOTexture> _emissionMap = {};
 
   std::size_t _unitsUsed = {};
 };

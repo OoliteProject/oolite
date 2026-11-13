@@ -95,7 +95,7 @@ class TestDecoder final : public OOALSoundDecoder {
 };
 }  // namespace
 
-oo::Ref<OOALSoundDecoder> OOALSoundDecoder::initWithPath(
+std::shared_ptr<OOALSoundDecoder> OOALSoundDecoder::initWithPath(
     const std::optional<std::string>& inPath) {
   if (!inPath.has_value() || *inPath == "missing.ogg") return nullptr;
   return oo::makeRef<TestDecoder>(*inPath);
@@ -114,10 +114,10 @@ std::optional<std::string> OOALSoundDecoder::descriptionComponents() const {
 
 // The two concrete sounds. "bad.ogg" fails to load. The buffered sound is a C++
 // stand-in (the members the cluster and the root call).
-oo::Ref<OOALBufferedSound> OOALBufferedSound::initWithDecoder(
+std::shared_ptr<OOALBufferedSound> OOALBufferedSound::initWithDecoder(
     OOALSoundDecoder* inDecoder) {
   if (inDecoder->name() == "bad.ogg") return nullptr;
-  oo::Ref<OOALBufferedSound> sound = oo::adopt(new OOALBufferedSound);
+  std::shared_ptr<OOALBufferedSound> sound = oo::adopt(new OOALBufferedSound);
   sound->_name = inDecoder->name();
   return sound;
 }
@@ -132,9 +132,9 @@ ALuint OOALBufferedSound::soundBuffer() { return 42; }
 // rewind reaches the root's.
 static std::map<const OOALStreamedSound*, int> gStreamedRewinds;
 
-oo::Ref<OOALStreamedSound> OOALStreamedSound::initWithDecoder(
+std::shared_ptr<OOALStreamedSound> OOALStreamedSound::initWithDecoder(
     OOALSoundDecoder* inDecoder) {
-  oo::Ref<OOALStreamedSound> sound = oo::adopt(new OOALStreamedSound);
+  std::shared_ptr<OOALStreamedSound> sound = oo::adopt(new OOALStreamedSound);
   sound->_name = inDecoder->name();
   return sound;
 }
@@ -163,9 +163,9 @@ static int Rewinds(OOSound* sound) {
 // OOMusic does (a C++ subclass).
 class TestMusic final : public OOSound {
  public:
-  static oo::Ref<TestMusic> initWithContentsOfFile(
+  static std::shared_ptr<TestMusic> initWithContentsOfFile(
       const std::optional<std::string>& inPath) {
-    oo::Ref<TestMusic> self = oo::adopt(new TestMusic);
+    std::shared_ptr<TestMusic> self = oo::adopt(new TestMusic);
     self->_sound = OOSound::initWithContentsOfFile(inPath);
     if (nullptr == self->_sound) self = nullptr;
     return self;
@@ -176,7 +176,7 @@ class TestMusic final : public OOSound {
  private:
   TestMusic() = default;
 
-  oo::Ref<OOSound> _sound;
+  std::shared_ptr<OOSound> _sound;
 };
 
 namespace {
@@ -236,7 +236,7 @@ OO_TEST(initSetsUpAtHalfVolume) {
   OO_CHECK(!OOSound::isSoundOK());
   OO_CHECK(oo::Defaults::standard().object("volume_control").isNull());
 
-  const oo::Ref<OOSound> sound = oo::makeRef<OOSound>();
+  const std::shared_ptr<OOSound> sound = oo::makeRef<OOSound>();
   OO_CHECK(sound != nullptr);
   OO_CHECK(OOSound::isSoundOK());
   OO_CHECK(OOSound::setUp());  // once only, and remembered
@@ -278,7 +278,7 @@ OO_TEST(updateAsksTheMixer) {
 
 OO_TEST(rootDefaults) {
   SetUp();
-  const oo::Ref<OOSound> sound = oo::makeRef<OOSound>();
+  const std::shared_ptr<OOSound> sound = oo::makeRef<OOSound>();
   const int before = gSubclassResponsibilities;
   OO_CHECK(sound->name() == std::optional<std::string>(std::string()));
   OO_CHECK(gSubclassResponsibilities == before + 1);
@@ -295,17 +295,17 @@ OO_TEST(loadingPicksBufferedOrStreamed) {
   SetUp();
   StartLog();
   {
-    const oo::Ref<OOSound> small =
+    const std::shared_ptr<OOSound> small =
         OOSound::initWithContentsOfFile(std::string("small.ogg"));
     OO_CHECK(dynamic_cast<OOALBufferedSound*>(small.get()) != nullptr);
     OO_CHECK(small->name() == std::optional<std::string>("small.ogg"));
     OO_CHECK(small->soundBuffer() == 42 && !small->soundIncomplete());
 
-    const oo::Ref<OOSound> edge =
+    const std::shared_ptr<OOSound> edge =
         OOSound::initWithContentsOfFile(std::string("edge.ogg"));
     OO_CHECK(dynamic_cast<OOALBufferedSound*>(edge.get()) != nullptr);
 
-    const oo::Ref<OOSound> big =
+    const std::shared_ptr<OOSound> big =
         OOSound::initWithContentsOfFile(std::string("big.ogg"));
     OO_CHECK(dynamic_cast<OOALStreamedSound*>(big.get()) != nullptr);
     OO_CHECK(big->name() == std::optional<std::string>("big.ogg"));
@@ -339,7 +339,7 @@ OO_TEST(loadingFailures) {
 
 OO_TEST(subclassOverridingTheInitialiser) {
   SetUp();
-  const oo::Ref<TestMusic> music =
+  const std::shared_ptr<TestMusic> music =
       TestMusic::initWithContentsOfFile(std::string("small.ogg"));
   OO_CHECK(dynamic_cast<TestMusic*>(static_cast<OOSound*>(music.get())) !=
            nullptr);
@@ -374,11 +374,11 @@ OO_TEST(cxxApi) {
 
   {
     // The factory answers the concrete sound.
-    const oo::Ref<OOSound> small =
+    const std::shared_ptr<OOSound> small =
         OOSound::initWithContentsOfFile(std::string("small.ogg"));
     OO_CHECK(dynamic_cast<OOALBufferedSound*>(small.get()) != nullptr);
     OO_CHECK(small->name() == std::optional<std::string>("small.ogg"));
-    const oo::Ref<OOSound> big =
+    const std::shared_ptr<OOSound> big =
         OOSound::initWithContentsOfFile(std::string("big.ogg"));
     OO_CHECK(dynamic_cast<OOALStreamedSound*>(big.get()) != nullptr);
     OO_CHECK(!OOSound::initWithContentsOfFile(std::nullopt));
@@ -386,7 +386,7 @@ OO_TEST(cxxApi) {
     OO_CHECK(gLiveDecoders == 0);
   }
 
-  const oo::Ref<OOSound> root = oo::makeRef<OOSound>();
+  const std::shared_ptr<OOSound> root = oo::makeRef<OOSound>();
   const int before = gSubclassResponsibilities;
   OO_CHECK(root->name() == std::optional<std::string>(std::string()) &&
            root->soundBuffer() == 0);
@@ -400,7 +400,7 @@ OO_TEST(cxxApi) {
 // class.
 OO_TEST(cxxSoundBehindTheFacade) {
   SetUp();
-  const oo::Ref<TestCxxSound> sound = oo::makeRef<TestCxxSound>();
+  const std::shared_ptr<TestCxxSound> sound = oo::makeRef<TestCxxSound>();
   OOSound* root = sound.get();
 
   OO_CHECK(root->name() == std::optional<std::string>("cxx.ogg"));
@@ -417,7 +417,7 @@ OO_TEST(cxxSoundBehindTheFacade) {
 // have none.
 OO_TEST(objCSoundBehindACxxPointer) {
   SetUp();
-  const oo::Ref<OOSound> part =
+  const std::shared_ptr<OOSound> part =
       OOSound::initWithContentsOfFile(std::string("big.ogg"));
   OO_CHECK(part != nullptr);
 
@@ -429,7 +429,7 @@ OO_TEST(objCSoundBehindACxxPointer) {
   OO_CHECK(!part->descriptionComponents().has_value());
 
   // A subclass that overrides only some: the root answers the rest.
-  const oo::Ref<TestMusic> music =
+  const std::shared_ptr<TestMusic> music =
       TestMusic::initWithContentsOfFile(std::string("small.ogg"));
   OO_CHECK(music->name() == std::optional<std::string>("small.ogg"));
   OO_CHECK(!music->soundIncomplete());

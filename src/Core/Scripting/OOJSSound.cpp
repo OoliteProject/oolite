@@ -48,7 +48,8 @@ static OOSound* GetNamedSound(const std::string& name);
 static JSValue SoundGetProperty(OOJS_GETTER_ARGS);
 
 // OOJSSoundHolder (OOJSSound.h): the JS glue of a Sound object's slot.
-OOJSSoundHolder::OOJSSoundHolder(OOSound* inSound) : _sound(inSound) {}
+OOJSSoundHolder::OOJSSoundHolder(OOSound* inSound)
+    : _sound(oo::share(inSound)) {}
 OOJSSoundHolder::~OOJSSoundHolder() = default;
 OOSound* OOJSSoundHolder::sound() const { return _sound.get(); }
 JSValue OOJSSoundHolder::jsValueInContext(JSContext* context) {
@@ -320,7 +321,8 @@ JSValue OOJSSoundJSValueInContext(OOSound* sound, JSContext* context) {
     JS_FreeValue(context, JS_GetException(context));
     return JS_NULL;
   }
-  const oo::Ref<OOJSSoundHolder> holder = oo::makeRef<OOJSSoundHolder>(sound);
+  const std::shared_ptr<OOJSSoundHolder> holder =
+      oo::makeShared<OOJSSoundHolder>(sound);
   if (!OOJSSetCxxPrivate(result, holder.get())) {
     JS_FreeValue(context, result);
     return JS_NULL;

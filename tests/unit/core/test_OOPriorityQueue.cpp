@@ -22,7 +22,7 @@ class CxxItem : public oo::RefCounted {
   CxxItem(int inKey, int inTag) : key(inKey), tag(inTag) {}
   ~CxxItem() override { sLive--; }
 
-  static oo::Ref<CxxItem> make(int key, int tag) {
+  static std::shared_ptr<CxxItem> make(int key, int tag) {
     sLive++;
     return oo::adopt(new CxxItem(key, tag));
   }
@@ -44,7 +44,7 @@ OOComparisonResult CompareCxx(CxxItem* a, CxxItem* b) {
 
 namespace {
 
-std::string Tags(const std::vector<oo::Ref<CxxItem>>& items) {
+std::string Tags(const std::vector<std::shared_ptr<CxxItem>>& items) {
   std::string result;
   for (const auto& item : items)
     result += std::to_string(item->key) + "." + std::to_string(item->tag) + " ";
@@ -74,7 +74,7 @@ OO_TEST(cxxQueueGivesTheSameOrder) {
 
     // Take a few, put one back, then empty the queue. The expected orders were
     // measured from a reference implementation on the same keys and steps.
-    std::vector<oo::Ref<CxxItem>> cxxFirst;
+    std::vector<std::shared_ptr<CxxItem>> cxxFirst;
     for (int i = 0; i < 4; i++) {
       cxxFirst.push_back(cxxQueue.removeNextObject());
     }
@@ -92,7 +92,7 @@ OO_TEST(cxxQueueHoldsAndRemovesByIdentity) {
   {
     oo::AutoreleaseScope pool;
     OOPriorityQueueOf<CxxItem> queue(CompareCxx);
-    oo::Ref<CxxItem> three = CxxItem::make(3, 0);
+    std::shared_ptr<CxxItem> three = CxxItem::make(3, 0);
     queue.addObject(three.get());
     queue.addObject(three.get());
     queue.addObject(CxxItem::make(3, 1).get());  // held by the queue alone
@@ -110,7 +110,7 @@ OO_TEST(cxxQueueHoldsAndRemovesByIdentity) {
     queue.removeExactObject(nullptr);
     OO_CHECK(queue.count() == 3);
     {
-      oo::Ref<CxxItem> next =
+      std::shared_ptr<CxxItem> next =
           queue.removeNextObject();  // the caller now holds it
       OO_CHECK(next != nullptr && next->key == 1);
       OO_CHECK_EQ(CxxItem::sLive, 3);

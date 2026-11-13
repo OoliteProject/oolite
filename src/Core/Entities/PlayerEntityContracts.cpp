@@ -97,7 +97,7 @@ PlayerEntity::processEscapePods()  // removes pods from cargo bay and treats
   bool added_entry =
       false;  // to prevent empty lines for slaves and the rare empty report.
   std::string result;
-  std::vector<oo::Ref<OOCharacter>> rescuees;
+  std::vector<std::shared_ptr<OOCharacter>> rescuees;
   // -intValue of the system's government: a string's leading integer, a number
   // truncated, nil 0
   const oo::PList systemData =
@@ -117,10 +117,10 @@ PlayerEntity::processEscapePods()  // removes pods from cargo bay and treats
   for (i = 0; i < cargo.size(); i++) {
     ::ShipEntity* cargoItem = oo::ToShip(cargo[i].get());
 
-    const std::optional<std::vector<oo::Ref<OOCharacter>>> podCrew =
+    const std::optional<std::vector<std::shared_ptr<OOCharacter>>> podCrew =
         (cargoItem != nullptr
              ? cargoItem->getCrew()
-             : std::optional<std::vector<oo::Ref<OOCharacter>>>());
+             : std::optional<std::vector<std::shared_ptr<OOCharacter>>>());
     if (podCrew.has_value()) {
       // Has crew -> is escape pod.
       rescuees.insert(rescuees.end(), podCrew->begin(), podCrew->end());

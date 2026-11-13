@@ -71,5 +71,5 @@ class OOJSSoundHolder final : public oo::RefCounted, public OOJSPrivateObject {
   std::optional<std::string> jsDescription() override;
 
  private:
-  oo::Ref<OOSound> _sound;
+  std::shared_ptr<OOSound> _sound;
 };

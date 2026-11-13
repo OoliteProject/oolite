@@ -130,7 +130,7 @@ void RunWith(const char* requiresPList, const char* ooliteVersion) {
                   .c_str());
   }
 
-  const oo::Ref<OOCheckRequiresPListVerifierStage> stage =
+  const std::shared_ptr<OOCheckRequiresPListVerifierStage> stage =
       oo::makeRef<OOCheckRequiresPListVerifierStage>();
   stage->setVerifier(MakeVerifier({{"requires.plist", requiresPList}}));
   std::filesystem::current_path(game);
@@ -143,7 +143,7 @@ void RunWith(const char* requiresPList, const char* ooliteVersion) {
 
 OO_TEST(nameAndNeighbours) {
   {
-    const oo::Ref<OOCheckRequiresPListVerifierStage> stage =
+    const std::shared_ptr<OOCheckRequiresPListVerifierStage> stage =
         oo::makeRef<OOCheckRequiresPListVerifierStage>();
     stage->setVerifier(MakeVerifier({}));
     OO_CHECK(stage->name() ==
@@ -236,7 +236,7 @@ OO_TEST(versions) {
 OO_TEST(facade) {
   {
     OOOXPVerifier* verifier = MakeVerifier({});
-    const oo::Ref<OOCheckRequiresPListVerifierStage> stage =
+    const std::shared_ptr<OOCheckRequiresPListVerifierStage> stage =
         oo::makeRef<OOCheckRequiresPListVerifierStage>();
     OO_CHECK(stage->description().starts_with(
         "<OOCheckRequiresPListVerifierStage 0x"));

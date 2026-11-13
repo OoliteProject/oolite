@@ -41,7 +41,7 @@ class OOBreakPatternEntity : public Entity {
  public:
   // +breakPatternWithPolygonSides:startAngle:aspectRatio:: a new ring,
   // initialised.
-  static oo::Ref<OOBreakPatternEntity> breakPatternWithPolygonSides(
+  static std::shared_ptr<OOBreakPatternEntity> breakPatternWithPolygonSides(
       std::size_t sides, float startAngleDegrees, float aspectRatio);
 
   void setInnerColor(OOColor* color1, OOColor* color2);

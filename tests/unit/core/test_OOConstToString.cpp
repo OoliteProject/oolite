@@ -78,7 +78,7 @@ class Universe : public oo::RefCounted {
  public:
   OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
 
-  oo::Ref<OOCommodityMarket> market;
+  std::shared_ptr<OOCommodityMarket> market;
 
   oo::PList getEquipmentData();
   oo::PList getEquipmentDataOutfitting();
@@ -160,8 +160,8 @@ JSValue OOScript::jsValueInContext(JSContext*) {
   std::abort();
 }  // never reached (no engine is linked)
 void OOScript::clearJSSelf(JSValueConst) {}
-void OOScriptAutorelease(oo::Ref<OOScript>) {}
-oo::Ref<OOScript> OOScript::jsScriptFromFileNamed(const std::string&,
+void OOScriptAutorelease(std::shared_ptr<OOScript>) {}
+std::shared_ptr<OOScript> OOScript::jsScriptFromFileNamed(const std::string&,
                                                   const oo::PList&) {
   return nullptr;
 }
@@ -295,7 +295,7 @@ OO_TEST(massUnitOfACommodity) {
     OO_CHECK(cxx_DisplayStringForMassUnitForCommodity("gold") ==
              std::optional<std::string>("t"));
 
-    oo::Ref<OOCommodityMarket> market = oo::makeRef<OOCommodityMarket>();
+    std::shared_ptr<OOCommodityMarket> market = oo::makeRef<OOCommodityMarket>();
     market->setGood("gold", Good({{"name", oo::PList("Gold")},
                                   {"quantity_unit", oo::PList(1)}}));
     market->setGood("gems", Good({{"name", oo::PList("Gem-stones")},

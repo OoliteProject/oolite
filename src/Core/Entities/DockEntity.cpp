@@ -98,7 +98,7 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value) {
 ::ShipEntity* DockEntity::newDockObject(const std::string& key,
                                         const oo::PList& dict) {
   ::ShipEntity* object = oo::ToShip(
-      oo::NewShipObject(oo::makeRef<DockEntity>(), key,
+      oo::NewShipObject(oo::makeShared<DockEntity>(), key,
                         dict));  // [super cxx_initWithKey:key definition:dict]
   if (object != nullptr) static_cast<DockEntity*>(object)->initDockDefaults();
   return object;
@@ -235,7 +235,7 @@ void DockEntity::clearIdLocks(::ShipEntity* ship) {
   int i;
   for (i = 1; i < MAX_DOCKING_STAGES; i++) {
     if (ship == nullptr || ship == oo::LiveEntity(id_lock[i])) {
-      id_lock[i] = nullptr;
+      id_lock[i].reset();
     }
   }
 }
@@ -243,7 +243,7 @@ void DockEntity::clearIdLocks(::ShipEntity* ship) {
 void DockEntity::clearAllIdLocks() {
   int i;
   for (i = 1; i < MAX_DOCKING_STAGES; i++) {
-    id_lock[i] = nullptr;
+    id_lock[i].reset();
   }
 }
 
@@ -652,8 +652,8 @@ oo::PList DockEntity::dockingInstructionsForShip(::ShipEntity* ship) {
 
     if (docking_stage > 1)  // don't claim first docking stage
     {
-      id_lock[docking_stage] =
-          oo::WeakRef<Entity>(ship);  // otherwise - claim this docking stage
+      id_lock[docking_stage] = std::weak_ptr<Entity>(
+          oo::share(ship));  // otherwise - claim this docking stage
     }
 
     // remove the previous stage from the stack

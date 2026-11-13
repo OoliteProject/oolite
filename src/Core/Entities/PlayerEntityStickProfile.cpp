@@ -341,9 +341,9 @@ void StickProfileScreen::nextProfileType() {
 
   if (dynamic_cast<OOJoystickStandardAxisProfile*>(profile) != nullptr) {
     deadzone = profile->deadzone();
-    profiles[current_axis][0] = oo::Ref<OOJoystickAxisProfile>(profile);
+    profiles[current_axis][0] = oo::share(profile);
     if (!profiles[current_axis][1]) {
-      profiles[current_axis][1] = oo::makeRef<OOJoystickSplineAxisProfile>();
+      profiles[current_axis][1] = oo::makeShared<OOJoystickSplineAxisProfile>();
     }
     profiles[current_axis][1]->setDeadzone(deadzone);
     stickHandler->setProfile(profiles[current_axis][1].get(), current_axis);
@@ -360,9 +360,10 @@ void StickProfileScreen::previousProfileType() {
 
   if (dynamic_cast<OOJoystickSplineAxisProfile*>(profile) != nullptr) {
     deadzone = profile->deadzone();
-    profiles[current_axis][1] = oo::Ref<OOJoystickAxisProfile>(profile);
+    profiles[current_axis][1] = oo::share(profile);
     if (!profiles[current_axis][0]) {
-      profiles[current_axis][0] = oo::makeRef<OOJoystickStandardAxisProfile>();
+      profiles[current_axis][0] =
+          oo::makeShared<OOJoystickStandardAxisProfile>();
     }
     profiles[current_axis][0]->setDeadzone(deadzone);
     stickHandler->setProfile(profiles[current_axis][0].get(), current_axis);

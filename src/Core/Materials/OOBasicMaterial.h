@@ -60,9 +60,9 @@ class OOBasicMaterial : public OOMaterial {
           [[OOBasicMaterial alloc] cxx_initWithName:] and [[OOBasicMaterial
      alloc] initWithName:configuration:].
   */
-  static oo::Ref<OOBasicMaterial> materialWithName(
+  static std::shared_ptr<OOBasicMaterial> materialWithName(
       const std::optional<std::string>& name);
-  static oo::Ref<OOBasicMaterial> materialWithName(
+  static std::shared_ptr<OOBasicMaterial> materialWithName(
       const std::optional<std::string>& name, const oo::PList& configuration);
 
   /*	The initialisers. Each runs once, right after construction: from a
@@ -97,7 +97,7 @@ class OOBasicMaterial : public OOMaterial {
   void unapplyWithNext(OOMaterial* next) override;
   size_t objectSize() const override { return sizeof *this; }
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  std::vector<oo::Ref<OOTexture>> allTextures() override;
+  std::vector<std::shared_ptr<OOTexture>> allTextures() override;
 #endif
 
   std::shared_ptr<OOColor> diffuseColor();

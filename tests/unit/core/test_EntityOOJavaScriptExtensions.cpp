@@ -110,7 +110,7 @@ bool SameObject(JSValueConst a, JSValueConst b) {
 // never released), never set up from a definition, a ship (it answers -isShip,
 // as the Objective-C class did, so shipSubEntities() keeps it).
 TestShip* Ship(const char* name) {
-  oo::Ref<TestShip> ship = oo::makeRef<TestShip>();
+  std::shared_ptr<TestShip> ship = oo::makeRef<TestShip>();
   {
     oo::RetainEntity(oo::MadeEntity(ship));
   }

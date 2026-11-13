@@ -471,7 +471,7 @@ class MyOpenGLView : public oo::RefCounted {
 
   NSSize firstScreen = {};
 
-  oo::Ref<OOOpenGLMatrixManager>
+  std::shared_ptr<OOOpenGLMatrixManager>
       matrixManager;  // Mouse mode indicator (for mouse movement model)
   bool mouseInDeltaMode = {};
   float _mouseWheelDelta = {};

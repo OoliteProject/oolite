@@ -56,7 +56,7 @@ class Entity;  // Entity.h: the shader binding target
 #include <utility>
 #include <vector>
 
-#include "OOTexture.h"  // allTextures() answers oo::Ref<OOTexture>, which needs the class
+#include "OOTexture.h"  // allTextures() answers std::shared_ptr<OOTexture>, which needs the class
 #include "oofnd/Ref.hpp"
 
 class OODrawable : public oo::RefCounted {
@@ -86,7 +86,7 @@ class OODrawable : public oo::RefCounted {
   std::string description() const;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  virtual std::vector<oo::Ref<OOTexture>> allTextures();
+  virtual std::vector<std::shared_ptr<OOTexture>> allTextures();
   virtual size_t
   totalSize();  // Size including dynamic data, not counting textures.
 
@@ -101,4 +101,4 @@ class OODrawable : public oo::RefCounted {
    replaces lives exactly as long as an autoreleased object would. Nothing for
    null.
 */
-void OODrawableAutorelease(oo::Ref<OODrawable> drawable);
+void OODrawableAutorelease(std::shared_ptr<OODrawable> drawable);

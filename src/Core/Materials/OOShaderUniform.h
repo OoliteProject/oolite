@@ -4,7 +4,8 @@ OOShaderUniform.h
 
 Manages a uniform variable for OOShaderMaterial.
 
-OOShaderMaterial and DustEntity hold its uniforms as oo::Ref<OOShaderUniform>.
+OOShaderMaterial and DustEntity hold its uniforms as
+std::shared_ptr<OOShaderUniform>.
 
 
 Copyright (C) 2007-2013 Jens Ayton
@@ -77,24 +78,24 @@ class OOShaderUniform : public oo::RefCounted {
      initialiser answered nil (no program, no uniform of that name in it, a nil
      colour, no property name).
   */
-  static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName,
-                                               OOShaderProgram* shaderProgram,
-                                               GLint constValue);  // intValue:
-  static oo::Ref<OOShaderUniform> initWithName(
+  static std::shared_ptr<OOShaderUniform> initWithName(
+      const std::string& uniformName, OOShaderProgram* shaderProgram,
+      GLint constValue);  // intValue:
+  static std::shared_ptr<OOShaderUniform> initWithName(
       const std::string& uniformName, OOShaderProgram* shaderProgram,
       GLfloat constValue);  // floatValue:
-  static oo::Ref<OOShaderUniform> initWithName(
+  static std::shared_ptr<OOShaderUniform> initWithName(
       const std::string& uniformName, OOShaderProgram* shaderProgram,
       GLfloat constValue[4]);  // vectorValue:
-  static oo::Ref<OOShaderUniform> initWithName(
+  static std::shared_ptr<OOShaderUniform> initWithName(
       const std::string& uniformName, OOShaderProgram* shaderProgram,
       OOColor* constValue);  // colorValue: Converted to vector
-  static oo::Ref<OOShaderUniform> initWithName(
+  static std::shared_ptr<OOShaderUniform> initWithName(
       const std::string& uniformName, OOShaderProgram* shaderProgram,
       Quaternion constValue,
       bool asMatrix);  // quaternionValue:asMatrix: Converted to vector (in xyzw
                        // order, not wxyz!) or rotation matrix.
-  static oo::Ref<OOShaderUniform> initWithName(
+  static std::shared_ptr<OOShaderUniform> initWithName(
       const std::string& uniformName, OOShaderProgram* shaderProgram,
       OOMatrix constValue);  // matrixValue:
 
@@ -110,7 +111,7 @@ class OOShaderUniform : public oo::RefCounted {
      there is no program, no uniform of that name in it, no getter or an
      unbindable type. A null target binds nothing.
   */
-  static oo::Ref<OOShaderUniform> initWithName(
+  static std::shared_ptr<OOShaderUniform> initWithName(
       const std::string& uniformName, OOShaderProgram* shaderProgram,
       oo::RefCounted* target, const std::string& property,
       uint8_t type,  // OOShaderUniformType (OOShaderUniformMethodType.h)
@@ -124,7 +125,7 @@ class OOShaderUniform : public oo::RefCounted {
      binds nothing. The property is named (NULL for none), where it was the
      selector.
   */
-  static oo::Ref<OOShaderUniform> initWithEntityTarget(
+  static std::shared_ptr<OOShaderUniform> initWithEntityTarget(
       const std::string& uniformName, OOShaderProgram* shaderProgram,
       Entity* target, const char* property, OOUniformConvertOptions options);
 
@@ -172,7 +173,7 @@ class OOShaderUniform : public oo::RefCounted {
       OOShaderCxxBindingGetter cxxGet;
     } binding;
   } value = {};
-  oo::WeakRef<oo::RefCounted> cxxTarget = {};
+  std::weak_ptr<oo::RefCounted> cxxTarget = {};
   std::string cxxProperty = {};
 };
 

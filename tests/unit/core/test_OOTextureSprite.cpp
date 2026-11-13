@@ -45,7 +45,7 @@ oo::PList ResourceManager::dictionaryFromFilesNamed(
 }
 
 // OORegExpMatcher stub: answers no match.
-oo::Ref<OORegExpMatcher> OORegExpMatcher::regExpMatcher() {
+std::shared_ptr<OORegExpMatcher> OORegExpMatcher::regExpMatcher() {
   return oo::makeRef<OORegExpMatcher>();
 }
 bool OORegExpMatcher::string(const std::string&, const std::string&) {
@@ -113,9 +113,9 @@ namespace {
 TestTexture* Texture(float width, float height) {
   // What an autoreleased texture is: the texture, kept until the current
   // autorelease scope drains.
-  oo::Ref<TestTexture> texture = oo::makeRef<TestTexture>();
+  std::shared_ptr<TestTexture> texture = oo::makeRef<TestTexture>();
   texture->_dimensions = NSMakeSize(width, height);
-  oo::autorelease(oo::Ref<TestTexture>(texture));
+  oo::autorelease(std::shared_ptr<TestTexture>(texture));
   return texture.get();
 }
 
@@ -250,7 +250,7 @@ OO_TEST(noTextureNoSprite) {
 OO_TEST(sizeIsTheTexturesOrGiven) {
   {
     oo::AutoreleaseScope pool;
-    oo::Ref<OOTextureSprite> sprite =
+    std::shared_ptr<OOTextureSprite> sprite =
         OOTextureSprite::initWithTexture(Texture(64, 32));
     OO_CHECK(sprite != nullptr);
     OO_CHECK(sprite->getSize().width == 64 && sprite->getSize().height == 32);
@@ -262,7 +262,7 @@ OO_TEST(sizeIsTheTexturesOrGiven) {
 }
 
 OO_TEST(spriteKeepsItsTexture) {
-  oo::Ref<OOTextureSprite> sprite;
+  std::shared_ptr<OOTextureSprite> sprite;
   TestTexture* texture = nullptr;
   {
     oo::AutoreleaseScope pool;
@@ -281,7 +281,7 @@ OO_TEST(blitDrawsTheTexturedQuad) {
   {
     oo::AutoreleaseScope pool;
     TestTexture* texture = Texture(64, 32);
-    oo::Ref<OOTextureSprite> sprite =
+    std::shared_ptr<OOTextureSprite> sprite =
         OOTextureSprite::initWithTexture(texture, NSMakeSize(100, 50));
 
     std::vector<Vertex> quad =
@@ -306,7 +306,7 @@ OO_TEST(centredBlits) {
   {
     oo::AutoreleaseScope pool;
     TestTexture* texture = Texture(64, 32);
-    oo::Ref<OOTextureSprite> sprite =
+    std::shared_ptr<OOTextureSprite> sprite =
         OOTextureSprite::initWithTexture(texture, NSMakeSize(1.5, 0.75));
 
     OO_CHECK(
@@ -337,7 +337,7 @@ OO_TEST(cxxSprite) {
              nullptr);
 
     TestTexture* texture = Texture(64, 32);
-    oo::Ref<OOTextureSprite> sprite = OOTextureSprite::initWithTexture(texture);
+    std::shared_ptr<OOTextureSprite> sprite = OOTextureSprite::initWithTexture(texture);
     OO_CHECK(sprite.get() != nullptr && sprite->getSize().width == 64 &&
              sprite->getSize().height == 32);
 

@@ -38,9 +38,9 @@ MA 02110-1301, USA.
 class OOExplosionCloudEntity : public OOParticleSystem {
  public:
   // Null where the texture is not found.
-  static oo::Ref<OOExplosionCloudEntity> explosionCloudFromEntity(
+  static std::shared_ptr<OOExplosionCloudEntity> explosionCloudFromEntity(
       Entity* entity, const oo::PList& settings);
-  static oo::Ref<OOExplosionCloudEntity> explosionCloudFromEntity(
+  static std::shared_ptr<OOExplosionCloudEntity> explosionCloudFromEntity(
       Entity* entity, float size, const oo::PList& settings);
 
   void update(OOTimeDelta delta_t) override;
@@ -54,6 +54,6 @@ class OOExplosionCloudEntity : public OOParticleSystem {
   OOTimeDelta _cloudDuration = {};
   float _alpha = {};
   float _brightnessMult = {};
-  oo::Ref<OOTexture> _texture;
+  std::shared_ptr<OOTexture> _texture;
   oo::PList _settings;
 };

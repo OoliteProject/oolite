@@ -766,7 +766,7 @@ static JSValue VisualEffectSetMaterialsInternal(OOJS_NATIVE_ARGS,
   const oo::PList shaderMacros = (macros != nullptr) ? *macros : oo::PList();
 
   // First we test to see if we can create the mesh.
-  const oo::Ref<OOMesh> mesh = OOMesh::meshWithName(
+  const std::shared_ptr<OOMesh> mesh = OOMesh::meshWithName(
       modelName.value_or(std::string()), std::nullopt, materials, shaders,
       effectDict.get<bool>("smooth", false), shaderMacros, thisEnt);
 

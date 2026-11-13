@@ -82,7 +82,7 @@ void OOMusicController::playMusicNamed(const std::string& name, bool loop,
 
   if (_mode == OOMusicMode::kOn ||
       (_mode == OOMusicMode::kITunes && name == "OoliteTheme.ogg")) {
-    oo::Ref<OOMusic> music =
+    std::shared_ptr<OOMusic> music =
         ResourceManager::ooMusicNamed(name, std::string("Music"));
     if (music) {
       if (_current) _current->stop();

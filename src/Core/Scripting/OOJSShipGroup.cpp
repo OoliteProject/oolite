@@ -248,7 +248,7 @@ static JSValue ShipGroupConstruct(OOJS_NATIVE_ARGS) {
     }
   }
 
-  const oo::Ref<OOShipGroup> group = OOShipGroup::groupWithName(
+  const std::shared_ptr<OOShipGroup> group = OOShipGroup::groupWithName(
       name, leader);  // kept until the JS object holds it
   OOJS_RETURN(OOJSValueFromCxxObject(context, group.get()));
 
@@ -376,10 +376,9 @@ static JSValue ShipGroupAddShip(OOJS_NATIVE_ARGS) {
           // Default unescorted, unescortable, ship. Create new group and use
           // that instead.
           if (thisGroupLeader != nullptr)
-            thisGroupLeader->setGroup(
-                OOShipGroup::groupWithName(std::string("ship group"))
-                    .leakRef());  // +1 kept, as [[OOShipGroup alloc]
-                                  // cxx_initWithName:] was
+            thisGroupLeader->setGroup(oo::leakRef(OOShipGroup::groupWithName(
+                std::string("ship group"))));  // +1 kept, as [[OOShipGroup
+                                               // alloc] cxx_initWithName:] was
           thisGroup =
               (thisGroupLeader != nullptr ? thisGroupLeader->group()
                                           : static_cast<OOShipGroup*>(nullptr));

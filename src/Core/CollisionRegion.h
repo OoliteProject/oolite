@@ -111,7 +111,7 @@ class CollisionRegion : public oo::RefCounted {
   unsigned checks_this_tick = {};
   unsigned checks_within_range = {};
 
-  std::vector<oo::Ref<CollisionRegion>> subregions;
+  std::vector<std::shared_ptr<CollisionRegion>> subregions;
 
   bool isPlayerInRegion = {};
 

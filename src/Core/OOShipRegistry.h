@@ -86,7 +86,8 @@ class OOShipRegistry : public oo::RefCounted {
                           // by class
   std::vector<std::string>
       _playerShips;  // shipyard keys, in shipyard.plist key order
-  std::optional<std::map<std::string, oo::Ref<OOProbabilitySet>, std::less<>>>
+  std::optional<
+      std::map<std::string, std::shared_ptr<OOProbabilitySet>, std::less<>>>
       _probabilitySets;  // role -> ship keys; nullopt: none cached yet
 
   void init();  // -init's body: run by sharedRegistry() once sSingleton is set,
@@ -114,9 +115,10 @@ class OOShipRegistry : public oo::RefCounted {
   oo::PList mergeShip(
       const oo::PList& child,
       const oo::PList& parent);  // a null PList where the parent was nil
-  void mergeShipRoles(const std::string& roles, const std::string& shipKey,
-                      std::map<std::string, oo::Ref<OOMutableProbabilitySet>,
-                               std::less<>>& probabilitySets);
+  void mergeShipRoles(
+      const std::string& roles, const std::string& shipKey,
+      std::map<std::string, std::shared_ptr<OOMutableProbabilitySet>,
+               std::less<>>& probabilitySets);
 
   // Declarations and ship data are property lists; a result is a declaration
   // dictionary, or a null PList where it was nil.

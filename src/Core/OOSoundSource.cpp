@@ -36,7 +36,7 @@ namespace {
 // The sources that are playing, each once, retained (a Foundation mutable set
 // before; sources compare by identity). Created lazily and dropped by +stopAll,
 // as the set was.
-std::vector<oo::Ref<OOSoundSource>>* sPlayingSoundSources = nullptr;
+std::vector<std::shared_ptr<OOSoundSource>>* sPlayingSoundSources = nullptr;
 
 /*	The class as the delegate of a stopped source's channel
    (+channel:didFinishPlayingSound:, which -stop made the channel's delegate by
@@ -58,8 +58,9 @@ std::string SoundDescription(const OOSound* sound) {
 }
 }  // namespace
 
-oo::Ref<OOSoundSource> OOSoundSource::sourceWithSound(OOSound* inSound) {
-  return oo::makeRef<OOSoundSource>(inSound);
+std::shared_ptr<OOSoundSource> OOSoundSource::sourceWithSound(
+    OOSound* inSound) {
+  return oo::makeShared<OOSoundSource>(inSound);
 }
 
 OOSoundSource::OOSoundSource() {
@@ -102,7 +103,7 @@ OOSound* OOSoundSource::sound() { return _sound.get(); }
 void OOSoundSource::setSound(OOSound* sound) {
   if (_sound.get() != sound) {
     stop();
-    _sound = oo::Ref<OOSound>(sound);  // [_sound autorelease]; [sound retain]
+    _sound = oo::share(sound);  // [_sound autorelease]; [sound retain]
   }
 }
 
@@ -139,11 +140,12 @@ void OOSoundSource::play() {
   }
 
   if (EXPECT_NOT(sPlayingSoundSources == nullptr)) {
-    sPlayingSoundSources = new std::vector<oo::Ref<OOSoundSource>>();
+    sPlayingSoundSources = new std::vector<std::shared_ptr<OOSoundSource>>();
   }
-  if (std::find(sPlayingSoundSources->begin(), sPlayingSoundSources->end(),
-                this) == sPlayingSoundSources->end()) {
-    sPlayingSoundSources->emplace_back(this);
+  if (std::ranges::find(*sPlayingSoundSources, this, [](const auto& owner) {
+        return owner.get();
+      }) == sPlayingSoundSources->end()) {
+    sPlayingSoundSources->emplace_back(oo::share(this));
   }
 
   OOSoundReleaseLock();
@@ -165,8 +167,9 @@ void OOSoundSource::stop() {
     _channel = nullptr;
 
     if (sPlayingSoundSources != nullptr) {
-      auto it = std::find(sPlayingSoundSources->begin(),
-                          sPlayingSoundSources->end(), this);
+      auto it =
+          std::ranges::find(*sPlayingSoundSources, this,
+                            [](const auto& owner) { return owner.get(); });
       if (it != sPlayingSoundSources->end()) sPlayingSoundSources->erase(it);
     }
     release();  // may free this source: nothing after it touches the object
@@ -181,12 +184,13 @@ void OOSoundSource::stopAll() {
           end up empty we may as well use the original set and let a new one be
           set up lazily.
   */
-  std::vector<oo::Ref<OOSoundSource>>* playing = sPlayingSoundSources;
+  std::vector<std::shared_ptr<OOSoundSource>>* playing = sPlayingSoundSources;
   sPlayingSoundSources = nullptr;
 
   if (playing != nullptr) {
     // In the order they started playing (the set's hash order before).
-    for (const oo::Ref<OOSoundSource>& source : *playing) source->stop();
+    for (const std::shared_ptr<OOSoundSource>& source : *playing)
+      source->stop();
     delete playing;
   }
 }

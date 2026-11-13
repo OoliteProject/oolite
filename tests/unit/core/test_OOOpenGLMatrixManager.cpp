@@ -42,7 +42,7 @@ oo::PList ResourceManager::dictionaryFromFilesNamed(
 }
 
 // OORegExpMatcher: the stub answers no match.
-oo::Ref<OORegExpMatcher> OORegExpMatcher::regExpMatcher() {
+std::shared_ptr<OORegExpMatcher> OORegExpMatcher::regExpMatcher() {
   return oo::makeRef<OORegExpMatcher>();
 }
 bool OORegExpMatcher::string(const std::string&, const std::string&) {
@@ -67,7 +67,7 @@ Universe* gSharedUniverse = nullptr;
 
 namespace {
 
-oo::Ref<MyOpenGLView> sView;
+std::shared_ptr<MyOpenGLView> sView;
 
 }  // namespace
 
@@ -141,7 +141,7 @@ GLuint Shader(GLenum type, const char* source) {
 
 OO_TEST(stack) {
   {
-    oo::Ref<OOOpenGLMatrixStack> stack = oo::makeRef<OOOpenGLMatrixStack>();
+    std::shared_ptr<OOOpenGLMatrixStack> stack = oo::makeRef<OOOpenGLMatrixStack>();
     OO_CHECK(stack->stackCount() == 0);
     OO_CHECK(Same(stack->pop(),
                   kIdentityMatrix));  // empty: identity, and still empty
@@ -157,7 +157,7 @@ OO_TEST(stack) {
 
 OO_TEST(modelView) {
   {
-    oo::Ref<OOOpenGLMatrixManager> m = oo::makeRef<OOOpenGLMatrixManager>();
+    std::shared_ptr<OOOpenGLMatrixManager> m = oo::makeRef<OOOpenGLMatrixManager>();
     OO_CHECK(Same(m->getModelView(), kIdentityMatrix));
     OO_CHECK(Same(m->getProjection(), kIdentityMatrix));
     OO_CHECK(m->countModelView() == 0);
@@ -205,7 +205,7 @@ OO_TEST(modelView) {
 
 OO_TEST(projection) {
   {
-    oo::Ref<OOOpenGLMatrixManager> m = oo::makeRef<OOOpenGLMatrixManager>();
+    std::shared_ptr<OOOpenGLMatrixManager> m = oo::makeRef<OOOpenGLMatrixManager>();
 
     m->loadProjection(kSample);
     OO_CHECK(Same(m->getProjection(), kSample));
@@ -268,7 +268,7 @@ OO_TEST(projection) {
 
 OO_TEST(derivedMatrices) {
   {
-    oo::Ref<OOOpenGLMatrixManager> m = oo::makeRef<OOOpenGLMatrixManager>();
+    std::shared_ptr<OOOpenGLMatrixManager> m = oo::makeRef<OOOpenGLMatrixManager>();
     for (int i = 0; i < OOLITE_GL_MATRIX_END; i++)
       OO_CHECK(Same(m->getMatrix(i), kIdentityMatrix));
     OO_CHECK(Same(m->getMatrix(-1), kIdentityMatrix));
@@ -343,7 +343,7 @@ OO_TEST(derivedMatrices) {
 OO_TEST(syncLoadsOpenGL) {
   OO_CHECK(OOTestGLContext());
   {
-    oo::Ref<OOOpenGLMatrixManager> m = oo::makeRef<OOOpenGLMatrixManager>();
+    std::shared_ptr<OOOpenGLMatrixManager> m = oo::makeRef<OOOpenGLMatrixManager>();
     m->loadModelView(kSample);
     m->loadProjection(OOMatrixForScale(2, 3, 4));
 
@@ -369,7 +369,7 @@ OO_TEST(standardUniformLocations) {
   OO_CHECK(OOOpenGLExtensionManager::sharedManager()
                ->shadersSupported());  // loads the ARB entry points
   {
-    oo::Ref<OOOpenGLMatrixManager> m = oo::makeRef<OOOpenGLMatrixManager>();
+    std::shared_ptr<OOOpenGLMatrixManager> m = oo::makeRef<OOOpenGLMatrixManager>();
 
     const char* vertex =
         "uniform mat4 ooliteModelViewProjection;\n"
@@ -434,7 +434,7 @@ struct MyOpenGLViewTestAccess {
 OO_TEST(openGLFunctionsUseTheGameViewsManager) {
   OO_CHECK(OOTestGLContext());
   {
-    oo::Ref<OOOpenGLMatrixManager> manager =
+    std::shared_ptr<OOOpenGLMatrixManager> manager =
         oo::makeRef<OOOpenGLMatrixManager>();
     OOOpenGLMatrixManager* m = manager.get();
     sView = oo::makeRef<MyOpenGLView>();

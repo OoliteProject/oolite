@@ -306,13 +306,11 @@ OOTexture* OOLightParticleEntity::texture() {
 
 void OOLightParticleEntity::setUpTexture() {
   if (sBlobTexture == nullptr) {
-    sBlobTexture =
-        OOTexture::textureWithName("oolite-particle-blur.png", "Textures",
-                                   OOTextureFlags::kMinFilterMipMap |
-                                       OOTextureFlags::kMagFilterLinear |
-                                       OOTextureFlags::kAlphaMask,
-                                   kOOTextureDefaultAnisotropy / 2.0, 0.0)
-            .leakRef();
+    sBlobTexture = oo::leakRef(OOTexture::textureWithName(
+        "oolite-particle-blur.png", "Textures",
+        OOTextureFlags::kMinFilterMipMap | OOTextureFlags::kMagFilterLinear |
+            OOTextureFlags::kAlphaMask,
+        kOOTextureDefaultAnisotropy / 2.0, 0.0));
     OOGraphicsResetManager::sharedManager()->registerCxxClient(
         new BlobTextureResetClient);
   }
@@ -333,9 +331,9 @@ bool OOLightParticleEntity::isEffect() { return true; }
 bool OOLightParticleEntity::canCollide() { return false; }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::Ref<OOTexture>> OOLightParticleEntity::allTextures() {
-  std::vector<oo::Ref<OOTexture>> result;
-  result.emplace_back(texture());
+std::vector<std::shared_ptr<OOTexture>> OOLightParticleEntity::allTextures() {
+  std::vector<std::shared_ptr<OOTexture>> result;
+  result.emplace_back(oo::share(texture()));
   return result;
 }
 #endif

@@ -47,7 +47,7 @@ static std::vector<std::string>
 // The C++ OOTexture: the factory the trumble calls, recorded, answering a
 // texture; and the root's own members, which a texture needs (OOTexture.mm
 // links the loaders and the game). The trumble never applies it here.
-oo::Ref<OOTexture> OOTexture::textureWithName(
+std::shared_ptr<OOTexture> OOTexture::textureWithName(
     const std::optional<std::string>& name,
     const std::optional<std::string>& directory, OOTextureFlags options,
     GLfloat anisotropy, GLfloat lodBias) {
@@ -110,7 +110,7 @@ class TestSound final : public OOSound {
 ::OOSound* OOSoundWithCustomSoundKey(const std::string& key);
 
 ::OOSound* OOSoundWithCustomSoundKey(const std::string& aKey) {
-  static std::vector<oo::Ref<OOSound>> sKept;
+  static std::vector<std::shared_ptr<OOSound>> sKept;
   gLog.push_back("sound " + aKey);
   sKept.push_back(oo::makeRef<TestSound>(aKey));
   return sKept.back().get();
@@ -147,7 +147,7 @@ class TestEntityObject final : public oo::RefCounted {
     return "Entity";
   }  // the class's runtime name
 
-  oo::Ref<Entity> _cxxEntity;
+  std::shared_ptr<Entity> _cxxEntity;
 };
 
 Entity::~Entity() = default;
@@ -212,7 +212,7 @@ class Universe : public oo::RefCounted {
   OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
 
   OOViewID view;
-  oo::Ref<OOCommodityMarket> market;
+  std::shared_ptr<OOCommodityMarket> market;
 
   ::OOCommodityMarket* getCommodityMarket();
   std::optional<std::string> displayNameForCommodity(const std::string&);
@@ -306,7 +306,7 @@ namespace {
 std::map<Entity*, ::TestEntityObject*> sObjects;  // what TestObjectOf answers
 
 ::TestEntityObject* NewPod(const char* good) {
-  oo::Ref<ShipEntity> ship = oo::makeRef<ShipEntity>();
+  std::shared_ptr<ShipEntity> ship = oo::makeRef<ShipEntity>();
   ship->commodity = good;
   ::TestEntityObject* pod = oo::autorelease(oo::makeRef<::TestEntityObject>());
   pod->_cxxEntity = ship;
@@ -337,7 +337,7 @@ void Reset() {
 }
 
 // Everything a trumble is, in one line.
-std::string State(const oo::Ref<OOTrumble>& t) {
+std::string State(const std::shared_ptr<OOTrumble>& t) {
   return OOTrumbleTestAccess::State(t.get());
 }
 
@@ -356,11 +356,11 @@ std::string Dictionary(const oo::PList& dict) {
   return result;
 }
 
-oo::Ref<OOTrumble> Trumble(const char* digram) {
+std::shared_ptr<OOTrumble> Trumble(const char* digram) {
   return oo::makeRef<OOTrumble>(Player(), digram);
 }
 
-void Run(const oo::Ref<OOTrumble>& t, int ticks, double dt = 0.1) {
+void Run(const std::shared_ptr<OOTrumble>& t, int ticks, double dt = 0.1) {
   for (int i = 0; i < ticks; i++) t->updateTrumble(dt);
 }
 
@@ -439,7 +439,7 @@ OO_TEST(setUp) {
   {
     oo::AutoreleaseScope pool;
     Reset();
-    oo::Ref<OOTrumble> t = oo::makeRef<OOTrumble>(Player());
+    std::shared_ptr<OOTrumble> t = oo::makeRef<OOTrumble>(Player());
     OO_CHECK(expect(State(t)));
     OO_CHECK(expect(Log()));
     for (const char* digram : {"Zq", "@G", "8", ""}) {
@@ -487,16 +487,16 @@ OO_TEST(spawningAndActions) {
   {
     oo::AutoreleaseScope pool;
     Reset();
-    oo::Ref<OOTrumble> parent = Trumble("Zq");
-    oo::Ref<OOTrumble> child = Trumble("a1");
+    std::shared_ptr<OOTrumble> parent = Trumble("Zq");
+    std::shared_ptr<OOTrumble> child = Trumble("a1");
     child->spawnFrom(parent.get());
     OO_CHECK(expect(State(child)));
-    oo::Ref<OOTrumble> orphan = Trumble("a1");
+    std::shared_ptr<OOTrumble> orphan = Trumble("a1");
     orphan->spawnFrom(nullptr);
     OO_CHECK(expect(State(orphan)));
 
     Reset();
-    oo::Ref<OOTrumble> t = Trumble("a1");
+    std::shared_ptr<OOTrumble> t = Trumble("a1");
     std::string actions;
     t->actionIdle();
     actions += State(t).substr(State(t).find("next")) + " / ";
@@ -585,7 +585,7 @@ OO_TEST(living) {
       p->pitch = 0.5f;
       p->roll = -0.25f;
       p->heat = 0.5f;
-      oo::Ref<OOTrumble> t = Trumble("Zq");
+      std::shared_ptr<OOTrumble> t = Trumble("Zq");
       Run(t, 50);
       OO_CHECK(expect(State(t)));
       Run(t, 400);
@@ -613,11 +613,11 @@ OO_TEST(savegame) {
   {
     oo::AutoreleaseScope pool;
     Reset();
-    oo::Ref<OOTrumble> t = Trumble("Zq");
+    std::shared_ptr<OOTrumble> t = Trumble("Zq");
     Run(t, 30);
     oo::PList dict = t->dictionary();
     OO_CHECK(expect(Dictionary(dict)));
-    oo::Ref<OOTrumble> copy = Trumble("a1");
+    std::shared_ptr<OOTrumble> copy = Trumble("a1");
     copy->setFromDictionary(dict);
     OO_CHECK(expect(State(copy)));
     OO_CHECK(expect(Dictionary(copy->dictionary())));
@@ -660,7 +660,7 @@ OO_TEST(feedingPopAndSpawn) {
     }
     Entity* food = p->cargo[2].get();
     p->appetite = 9.5f;
-    oo::Ref<OOTrumble> t = Trumble("Zq");
+    std::shared_ptr<OOTrumble> t = Trumble("Zq");
     oo::PList::Dict state = *t->dictionary().getIf<oo::PList::Dict>();
     state["hunger"] = oo::PList(0.9);
     state["size"] = oo::PList(1.1);
@@ -702,7 +702,7 @@ OO_TEST(feedingPopAndSpawn) {
 OO_TEST(cxxClass) {
   // The C++ API: a trumble and its growth.
   Reset();
-  oo::Ref<OOTrumble> t = oo::makeRef<OOTrumble>(Player(), "Zq");
+  std::shared_ptr<OOTrumble> t = oo::makeRef<OOTrumble>(Player(), "Zq");
   OO_CHECK(t->getDigram()[0] == 'Z' && t->getDigram()[1] == 'q');
   OO_CHECK(std::fabs(t->getSize() - 0.91782f) < 1e-5f &&
            t->getHunger() == 0.0f && t->getDiscomfort() == 0.0f);
@@ -712,13 +712,13 @@ OO_TEST(cxxClass) {
   Reset();
   OO_CHECK(State(Trumble("Zq")) == State(t));
 
-  oo::Ref<OOTrumble> child = oo::makeRef<OOTrumble>(Player());
+  std::shared_ptr<OOTrumble> child = oo::makeRef<OOTrumble>(Player());
   child->spawnFrom(t.get());
   OO_CHECK(child->getSize() == 0.5f && child->getHunger() == 0.25f);
   child->spawnFrom(nullptr);
   OO_CHECK(child->getSize() == 0.5f);
 
-  oo::Ref<OOTrumble> blank = oo::makeRef<OOTrumble>();
+  std::shared_ptr<OOTrumble> blank = oo::makeRef<OOTrumble>();
   OO_CHECK(blank->getSize() == 0.0f && blank->getDigram()[0] == 0);
   OO_CHECK(blank->dictionary().count() == 9);
 }

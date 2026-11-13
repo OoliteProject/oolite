@@ -98,14 +98,14 @@ void CacheShaderProgram(const std::string& cacheKey, OOShaderProgram* program) {
 /*	The program in use, retained (sActiveProgram). Never destroyed, as the
    static pointer was not.
 */
-oo::Ref<OOShaderProgram>& ActiveProgram() {
-  static auto* active = new oo::Ref<OOShaderProgram>;
+std::shared_ptr<OOShaderProgram>& ActiveProgram() {
+  static auto* active = new std::shared_ptr<OOShaderProgram>;
   return *active;
 }
 
 }  // namespace
 
-oo::Ref<OOShaderProgram> OOShaderProgram::shaderProgramWithVertexShader(
+std::shared_ptr<OOShaderProgram> OOShaderProgram::shaderProgramWithVertexShader(
     const std::optional<std::string>& vertexShaderSource,
     const std::optional<std::string>& fragmentShaderSource,
     const std::optional<std::string>& vertexShaderName,
@@ -115,7 +115,7 @@ oo::Ref<OOShaderProgram> OOShaderProgram::shaderProgramWithVertexShader(
     const oo::PList&
         attributeBindings,  // Maps vertex attribute names to "locations".
     const std::optional<std::string>& cacheKey) {
-  oo::Ref<OOShaderProgram> result;
+  std::shared_ptr<OOShaderProgram> result;
   std::optional<std::string> prefixString = inPrefixString;
 
   if (prefixString.has_value() && prefixString->empty())
@@ -124,7 +124,7 @@ oo::Ref<OOShaderProgram> OOShaderProgram::shaderProgramWithVertexShader(
   // Use cache to avoid creating duplicate shader programs -- saves on GPU
   // resources and potentially state changes.
   // FIXME: probably needs to respond to graphics resets.
-  result = oo::Ref<OOShaderProgram>(CachedShaderProgram(cacheKey));
+  result = oo::share(CachedShaderProgram(cacheKey));
 
   if (result == nullptr) {
     // No cached program; create one...
@@ -144,12 +144,13 @@ oo::Ref<OOShaderProgram> OOShaderProgram::shaderProgramWithVertexShader(
   return result;
 }
 
-oo::Ref<OOShaderProgram> OOShaderProgram::shaderProgramWithVertexShaderName(
+std::shared_ptr<OOShaderProgram>
+OOShaderProgram::shaderProgramWithVertexShaderName(
     const std::string& vertexShaderName, const std::string& fragmentShaderName,
     const std::optional<std::string>& inPrefixString,
     const oo::PList& attributeBindings) {
   std::string cacheKey;
-  oo::Ref<OOShaderProgram> result;
+  std::shared_ptr<OOShaderProgram> result;
   std::optional<std::string> vertexSource;
   std::optional<std::string> fragmentSource;
   std::optional<std::string> prefixString = inPrefixString;
@@ -162,7 +163,7 @@ oo::Ref<OOShaderProgram> OOShaderProgram::shaderProgramWithVertexShaderName(
   // FIXME: probably needs to respond to graphics resets.
   cacheKey = "vertex:" + vertexShaderName + "\nfragment:" + fragmentShaderName +
              "\n----\n" + prefixString.value_or("");
-  result = oo::Ref<OOShaderProgram>(CachedShaderProgram(cacheKey));
+  result = oo::share(CachedShaderProgram(cacheKey));
 
   if (result == nullptr) {
     // No cached program; create one...
@@ -218,7 +219,7 @@ OOShaderProgram::~OOShaderProgram() {
            "***** OOShaderProgram deallocated while active, indicating a "
            "retain/release imbalance. Expect imminent crash.");
     // applyNone(), but not released: it is being destroyed.
-    (void)ActiveProgram().leakRef();
+    (void)oo::leakRef(ActiveProgram());
     OOGL(glUseProgramObjectARB(NULL_SHADER));
   }
 #endif
@@ -235,7 +236,7 @@ void OOShaderProgram::apply() {
   OO_ENTER_OPENGL();
 
   if (ActiveProgram().get() != this) {
-    ActiveProgram() = oo::Ref<OOShaderProgram>(this);
+    ActiveProgram() = oo::share(this);
     OOGL(glUseProgramObjectARB(_program));
     bindStandardMatrixUniforms();
   }

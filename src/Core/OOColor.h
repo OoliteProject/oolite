@@ -187,7 +187,7 @@ class OOColor : public oo::PListForeign {
 inline oo::PList OOColorObjectNode(OOColor* color)  // null colour -> null PList
 {
   if (color == nullptr) return oo::PList();
-  return oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(color)));
+  return oo::PList(oo::PList::Object(oo::share(color)));
 }
 
 inline OOColor* OOColorInObjectNode(

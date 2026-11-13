@@ -82,8 +82,9 @@ class OOEncodingConverter : public oo::RefCounted {
 
   std::optional<oo::str::Encoding> _encoding =
       {};  // nullopt: an unknown encoding name (was oo::kNotFound)
-  oo::Ref<OOCache> _cache;  // no `= {}`: GCC instantiates ~Ref<T> at a default
-                            // member initializer, and T is incomplete here
+  std::shared_ptr<OOCache>
+      _cache;  // no `= {}`: GCC instantiates ~Ref<T> at a default
+               // member initializer, and T is incomplete here
   std::vector<std::pair<std::string, std::string>> _substitutions =
       {};  // in the order they are applied
 };

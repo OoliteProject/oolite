@@ -201,11 +201,11 @@ OOShaderProgram* DustEntity::getShader() {
         oo::PList(std::move(attributes)));
 
     uniforms.clear();
-    oo::Ref<OOShaderUniform> uWarp = OOShaderUniform::initWithName(
+    std::shared_ptr<OOShaderUniform> uWarp = OOShaderUniform::initWithName(
         "uWarp", shader.get(), this, "warpVector",
         kOOShaderUniformTypeVector,  // -warpVector's return type
         DustWarpVectorBinding, OOUniformConvertOptions::kNone);
-    oo::Ref<OOShaderUniform> uOffsetPlayerPosition =
+    std::shared_ptr<OOShaderUniform> uOffsetPlayerPosition =
         OOShaderUniform::initWithName(
             "uOffsetPlayerPosition", shader.get(), this, "offsetPlayerPosition",
             kOOShaderUniformTypeVector,  // -offsetPlayerPosition's return type
@@ -314,7 +314,7 @@ void DustEntity::drawImmediate(bool /*immediate*/, bool translucent) {
       OOShaderProgram* program = getShader();
       if (program != nullptr) program->apply();
       // A message to a nil uniform (the initialiser answered nil) did nothing.
-      for (const oo::Ref<OOShaderUniform>& uniform : uniforms)
+      for (const std::shared_ptr<OOShaderUniform>& uniform : uniforms)
         if (uniform != nullptr) uniform->apply();
     } else
 #endif

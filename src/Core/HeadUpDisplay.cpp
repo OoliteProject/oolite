@@ -103,8 +103,9 @@ struct OOHUDWidget {
   struct CachedInfo cache;
   bool hasCache;   // NO only for an MFD whose info was not a dictionary (below)
   OOHUDDial dial;  // dials only: the member the selector names (DialNamed())
-  std::string selectorString;       // dials only
-  oo::Ref<OOTextureSprite> sprite;  // legends only: the image legend's sprite
+  std::string selectorString;  // dials only
+  std::shared_ptr<OOTextureSprite>
+      sprite;  // legends only: the image legend's sprite
 };
 
 namespace {
@@ -744,9 +745,9 @@ std::optional<std::string> HeadUpDisplay::getDeferredHudName() {
 
 void HeadUpDisplay::addLegend(const oo::PList& info) {
   std::optional<std::string> imageName;
-  oo::Ref<OOTexture> texture;
+  std::shared_ptr<OOTexture> texture;
   NSSize imageSize;
-  oo::Ref<OOTextureSprite> legendSprite;
+  std::shared_ptr<OOTextureSprite> legendSprite;
   struct CachedInfo cache;
 
   // prefetch data associated with this legend
@@ -1035,8 +1036,8 @@ void HeadUpDisplay::drawCrosshairs() {
     // Make new crosshairs object
     points = crosshairDefinitionForWeaponType(weapon);
 
-    _crosshairs = oo::makeRef<OOCrosshairs>(points, _crosshairScale,
-                                            _crosshairColor.get(), useAlpha);
+    _crosshairs = oo::makeShared<OOCrosshairs>(points, _crosshairScale,
+                                               _crosshairColor.get(), useAlpha);
     _lastWeaponType = weapon;
     _lastOverallAlpha = useAlpha;
     _lastWeaponsOnline = weaponsOnline;
@@ -1992,14 +1993,14 @@ void HeadUpDisplay::drawSecondaryTargetReticle(const oo::PList& info) {
              : static_cast<Entity*>(nullptr));  // the C++ entities: a target
                                                 // may be any entity
     for (unsigned i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++) {
-      const oo::WeakRef<Entity> sec_ref =
+      const std::weak_ptr<Entity> sec_ref =
           (player != nullptr ? player->targetMemory()
-                             : std::vector<oo::WeakRef<Entity>>())
+                             : std::vector<std::weak_ptr<Entity>>())
               .at(i);  // an empty slot (was OONull) is an empty ref
       // An empty slot is an empty reference; a set one whose entity has gone
       // gives null from oo::LiveEntity below.
-      if (sec_ref != oo::WeakRef<Entity>())  // a weak reference (-isProxy), not
-                                             // an empty slot
+      if (!oo::isUnset(
+              sec_ref))  // a weak reference (-isProxy), not an empty slot
       {
         Entity* secondary =
             oo::LiveEntity(sec_ref);  // +0, null once its object has gone
@@ -2232,7 +2233,7 @@ void HeadUpDisplay::drawCustomImage(const oo::PList& info) {
     return;
   }
 
-  oo::Ref<OOTexture> texture = OOTexture::textureWithName(
+  std::shared_ptr<OOTexture> texture = OOTexture::textureWithName(
       textureFile, std::string("Images"),
       OOTextureFlags::kDefaultOptions | OOTextureFlags::kNoShrink,
       kOOTextureDefaultAnisotropy, kOOTextureDefaultLODBias);
@@ -2252,7 +2253,7 @@ void HeadUpDisplay::drawCustomImage(const oo::PList& info) {
    * appear to take any significant amount of time compared with the
    * time taken to actually render it and the texture will be
    * returned from the cache anyway. - CIM */
-  oo::Ref<OOTextureSprite> sprite =
+  std::shared_ptr<OOTextureSprite> sprite =
       OOTextureSprite::initWithTexture(texture.get(), imageSize);
 
   if (sprite != nullptr)
@@ -2826,7 +2827,8 @@ oo::PList MissileIconDefinition(const std::string& key) {
 }
 
 OOPolygonSprite* IconForMissileRole(const std::string& role) {
-  static std::map<std::string, oo::Ref<OOPolygonSprite>, std::less<>> sIcons;
+  static std::map<std::string, std::shared_ptr<OOPolygonSprite>, std::less<>>
+      sIcons;
   OOPolygonSprite* result = nullptr;
 
   auto cached = sIcons.find(role);
@@ -2834,7 +2836,7 @@ OOPolygonSprite* IconForMissileRole(const std::string& role) {
   if (result == nullptr) {
     std::string key = role;
     oo::PList iconDef = MissileIconDefinition(key);
-    oo::Ref<OOPolygonSprite> made;
+    std::shared_ptr<OOPolygonSprite> made;
     if (!iconDef.isNull())
       made = OOPolygonSprite::initWithDataArray(iconDef, kOutlineWidth, key);
     if (made == nullptr)  // No custom icon or bad data
@@ -3578,7 +3580,7 @@ void HeadUpDisplay::drawStickSensitivityIndicator(const oo::PList& /*info*/) {
 
 void HeadUpDisplay::drawTrumbles(const oo::PList& /*info*/) {
   PlayerEntity* player = PLAYER;
-  oo::Ref<OOTrumble>* trumbles = player->trumbleArray();
+  std::shared_ptr<OOTrumble>* trumbles = player->trumbleArray();
   std::size_t i;
   for (i = player->getTrumbleCount(); i > 0; i--) {
     trumbles[i - 1]->drawTrumble(z1);
@@ -4197,10 +4199,9 @@ static void InitTextEngine() {
       "oolite-font.plist", std::string("Config"), false);
 
   texName = fontSpec.get<std::string>("texture", "oolite-font.png");
-  sFontTexture = OOTexture::textureWithName(texName, std::string("Textures"),
-                                            kFontTextureOptions, 0.0f,
-                                            -0.75f)
-                     .leakRef();  // retained, as -retain kept it
+  sFontTexture = oo::leakRef(OOTexture::textureWithName(
+      texName, std::string("Textures"), kFontTextureOptions, 0.0f,
+      -0.75f));  // retained, as -retain kept it
 
   sF6KernGovt = fontSpec.get<float>("f6KernGovernment", 1.0);
   sF6KernTL = fontSpec.get<float>("f6KernTechLevel", 2.0);

@@ -241,12 +241,13 @@ std::optional<std::string> OoliteInfoString(std::string_view key) {
 
 }  // namespace
 
-oo::Ref<OODebugTCPConsoleClient> OODebugTCPConsoleClient::clientWithAddress(
+std::shared_ptr<OODebugTCPConsoleClient>
+OODebugTCPConsoleClient::clientWithAddress(
     const std::optional<std::string>& address, uint16_t port) {
-  oo::Ref<OODebugTCPConsoleClient> client =
+  std::shared_ptr<OODebugTCPConsoleClient> client =
       oo::adopt(new OODebugTCPConsoleClient);
   if (!client->initWithAddress(address, port))
-    return oo::Ref<OODebugTCPConsoleClient>();
+    return std::shared_ptr<OODebugTCPConsoleClient>();
   return client;
 }
 

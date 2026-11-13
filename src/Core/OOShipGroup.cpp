@@ -117,16 +117,16 @@ bool OOShipGroup::initWithName(const std::optional<std::string>& name) {
   return true;
 }
 
-oo::Ref<OOShipGroup> OOShipGroup::groupWithName(
+std::shared_ptr<OOShipGroup> OOShipGroup::groupWithName(
     const std::optional<std::string>& name) {
-  oo::Ref<OOShipGroup> result = oo::makeRef<OOShipGroup>();
+  std::shared_ptr<OOShipGroup> result = oo::makeShared<OOShipGroup>();
   if (!result->initWithName(name)) return nullptr;
   return result;
 }
 
-oo::Ref<OOShipGroup> OOShipGroup::groupWithName(
+std::shared_ptr<OOShipGroup> OOShipGroup::groupWithName(
     const std::optional<std::string>& name, ::ShipEntity* leader) {
-  oo::Ref<OOShipGroup> result = groupWithName(name);
+  std::shared_ptr<OOShipGroup> result = groupWithName(name);
   if (result != nullptr) result->setLeader(leader);
   return result;
 }
@@ -170,7 +170,7 @@ void OOShipGroup::setName(const std::optional<std::string>& name) {
 }
 
 ::ShipEntity* OOShipGroup::leader() {
-  ::ShipEntity* result = oo::ToShip(_leader.get());
+  ::ShipEntity* result = oo::ToShip(_leader.lock().get());
 
   // If reference is stale, delete weakref object.
   if (result == nullptr) _leader.reset();
@@ -184,7 +184,7 @@ void OOShipGroup::setLeader(::ShipEntity* leader) {
   if (leader != this->leader()) {
     _leader.reset();
     addShip(leader);
-    _leader = oo::WeakRef<Entity>(leader);  // empty for none
+    _leader = std::weak_ptr<Entity>(oo::share(leader));  // empty for none
   }
 }
 
@@ -247,7 +247,8 @@ bool OOShipGroup::addShip(::ShipEntity* ship) {
     }
   }
 
-  _members[_count++] = oo::WeakRef<Entity>(ship);  // empty for none
+  _members[_count++] =
+      std::weak_ptr<Entity>(oo::share(ship));  // empty for none
   return true;
 }
 
@@ -354,7 +355,7 @@ std::size_t OOShipGroup::updateCount() { return _updateCount; }
   }
 
   while (enumerator->_index < group->_count) {
-    result = oo::ToShip(group->_members[enumerator->_index].get());
+    result = oo::ToShip(group->_members[enumerator->_index].lock().get());
     if (result != nullptr) {
       enumerator->_index++;
       break;
@@ -388,7 +389,7 @@ std::size_t OOShipGroupMembers::FillBatch(OOShipGroup* group,
 
   srcIndex = *ioIndex;
   while (srcIndex < group->_count && dstIndex < length) {
-    item = oo::ToShip(group->_members[srcIndex].get());
+    item = oo::ToShip(group->_members[srcIndex].lock().get());
     if (item != nullptr) {
       buffer[dstIndex++] =
           oo::EntityHold(item);  // its object retained (and autoreleased by
@@ -410,7 +411,7 @@ std::size_t OOShipGroupMembers::FillBatch(OOShipGroup* group,
 OOShipGroupCursor::OOShipGroupCursor(OOShipGroup* group) {
   assert(group != nullptr);
 
-  _group = oo::Ref<OOShipGroup>(group);
+  _group = oo::share(group);
   _considerCleanup = true;
   _updateCount = group->updateCount();
 }

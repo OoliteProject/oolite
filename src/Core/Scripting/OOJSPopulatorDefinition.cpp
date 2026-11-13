@@ -37,7 +37,7 @@ OOJSPopulatorDefinition::OOJSPopulatorDefinition() {
   _callback = JS_UNDEFINED;
   _callbackThis = JS_UNDEFINED;
 
-  _owningScript = OOJSScript::currentlyRunningScript();
+  _owningScript = oo::share(OOJSScript::currentlyRunningScript());
 
   // Stays registered until destruction, so values set after a reset are also
   // released on the next one.
@@ -61,7 +61,7 @@ OOJSPopulatorDefinition::~OOJSPopulatorDefinition() {
       this, kOOJavaScriptEngineWillResetNotificationName,
       OOJavaScriptEngine::sharedEngine());
 
-  _owningScript = nullptr;
+  _owningScript.reset();
 
   deleteJSPointers();
 }
@@ -104,7 +104,7 @@ void OOJSPopulatorDefinition::runPopulatorCallback(HPVector location) {
   JSValue loc = JS_UNDEFINED;
   VectorToJSValue(context, HPVectorToVector(location), &loc);
 
-  const oo::WeakRef<OOJSScript> owner = _owningScript;  // local copy needed
+  const std::weak_ptr<OOJSScript> owner = _owningScript;  // local copy needed
   OOJSScript::pushScript(owner);
 
   // Hold our own references in case the callback replaces them.
@@ -116,7 +116,7 @@ void OOJSPopulatorDefinition::runPopulatorCallback(HPVector location) {
   JS_FreeValue(context, callback);
   JS_FreeValue(context, callbackThis);
 
-  OOJSScript::popScript(owner.get());
+  OOJSScript::popScript(owner.lock().get());
 
   JS_FreeValue(context, rval);
   JS_FreeValue(context, loc);
@@ -127,7 +127,7 @@ namespace {
 class PopulatorDefinitionForeign final : public oo::PListForeign {
  public:
   explicit PopulatorDefinitionForeign(
-      oo::Ref<OOJSPopulatorDefinition> definition)
+      std::shared_ptr<OOJSPopulatorDefinition> definition)
       : definition_(std::move(definition)) {}
   OOJSPopulatorDefinition* definition() const noexcept {
     return definition_.get();
@@ -138,15 +138,15 @@ class PopulatorDefinitionForeign final : public oo::PListForeign {
   }
 
  private:
-  oo::Ref<OOJSPopulatorDefinition> definition_;
+  std::shared_ptr<OOJSPopulatorDefinition> definition_;
 };
 }  // namespace
 
 oo::PList OOJSPopulatorDefinitionToPList(
-    oo::Ref<OOJSPopulatorDefinition> definition) {
+    std::shared_ptr<OOJSPopulatorDefinition> definition) {
   if (!definition) return oo::PList();
   return oo::PList(oo::PList::Object(
-      oo::makeRef<PopulatorDefinitionForeign>(std::move(definition))));
+      oo::makeShared<PopulatorDefinitionForeign>(std::move(definition))));
 }
 
 OOJSPopulatorDefinition* OOJSPopulatorDefinitionIn(const oo::PList& plist) {

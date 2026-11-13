@@ -76,7 +76,7 @@ struct OOOXPVerifierTestAccess;  // tests only
    an oo::PList, paths and names are UTF-8 std::strings, stages are retained
    through oo::Ref. The stages waiting to be examined or run are a vector in
    registration order (they were a set). A stage is kept as the C++ stage itself
-   (oo::Ref<::OOOXPVerifierStage>).
+   (std::shared_ptr<::OOOXPVerifierStage>).
 */
 class OOOXPVerifier : public oo::RefCounted {
  public:
@@ -122,7 +122,7 @@ class OOOXPVerifier : public oo::RefCounted {
 
   // -initWithPath:, which could fail (verifyOXP.plist unreadable):
   // createWithPath() runs it on a new object and answers null then.
-  static oo::Ref<OOOXPVerifier> createWithPath(
+  static std::shared_ptr<OOOXPVerifier> createWithPath(
       const std::optional<std::string>& path);
   bool initWithPath(const std::optional<std::string>& path);  // nullopt: nil
   void run();
@@ -146,7 +146,7 @@ class OOOXPVerifier : public oo::RefCounted {
      OOOXPVerifierTestAccess.
   */
   friend struct ::OOOXPVerifierTestAccess;
-  static oo::Ref<::OOOXPVerifierStage> (*sTestStageMaker)(
+  static std::shared_ptr<::OOOXPVerifierStage> (*sTestStageMaker)(
       const std::string& name);
 
   oo::PList _verifierPList = {};
@@ -154,10 +154,10 @@ class OOOXPVerifier : public oo::RefCounted {
   std::string _basePath = {};
   std::string _displayName = {};
 
-  std::map<std::string, oo::Ref<::OOOXPVerifierStage>, std::less<>>
+  std::map<std::string, std::shared_ptr<::OOOXPVerifierStage>, std::less<>>
       _stagesByName;  // no `= {}`: GCC instantiates ~Ref<T> at a default member
                       // initializer, and T is incomplete here
-  std::vector<oo::Ref<::OOOXPVerifierStage>>
+  std::vector<std::shared_ptr<::OOOXPVerifierStage>>
       _waitingStages;  // no `= {}`: GCC instantiates ~Ref<T> at a default
                        // member initializer, and T is incomplete here
 

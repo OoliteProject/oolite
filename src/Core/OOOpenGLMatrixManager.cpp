@@ -101,8 +101,8 @@ OOOpenGLMatrixManager::OOOpenGLMatrixManager() {
         break;
     }
   }
-  modelViewStack = oo::makeRef<OOOpenGLMatrixStack>();
-  projectionStack = oo::makeRef<OOOpenGLMatrixStack>();
+  modelViewStack = oo::makeShared<OOOpenGLMatrixStack>();
+  projectionStack = oo::makeShared<OOOpenGLMatrixStack>();
 }
 
 // -dealloc released the two stacks: their oo::Ref members do.

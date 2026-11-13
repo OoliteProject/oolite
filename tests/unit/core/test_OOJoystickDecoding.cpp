@@ -75,7 +75,7 @@ OO_TEST(sdlManagerDecodesSDLEvents) {
 OO_TEST(oneDeadzone) {
   OO_CHECK(STICK_DEADZONE == 0.05);
   OO_CHECK(STICK_MAX_DEADZONE == 0.1);
-  oo::Ref<OOJoystickStandardAxisProfile> profile =
+  std::shared_ptr<OOJoystickStandardAxisProfile> profile =
       oo::makeRef<OOJoystickStandardAxisProfile>();
   OO_CHECK(profile->deadzone() == 0.05);
   profile->setDeadzone(1.0);

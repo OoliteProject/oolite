@@ -458,7 +458,7 @@ PlayerEntity* PlayerEntity::sharedPlayer() {
   // The ship's part only; the player, its object retained (+1).
   OOCAssert(gOOPlayer == nullptr,
             "Expected only one PlayerEntity to exist at a time.");
-  oo::Ref<PlayerEntity> player = oo::makeRef<PlayerEntity>();
+  std::shared_ptr<PlayerEntity> player = oo::makeShared<PlayerEntity>();
   {
     oo::AutoreleaseScope pool;  // was @autoreleasepool
     return oo::ToShip(oo::RetainEntity(oo::MadeEntity(player)));
@@ -512,7 +512,7 @@ void PlayerEntity::deferredInit() {
 
 // The player's part of destruction, which runs before the ship's.
 void PlayerEntity::willDealloc() {
-  compassTarget = nullptr;
+  compassTarget.reset();
   hud = nullptr;
 
   worldScripts.clear();
@@ -534,7 +534,8 @@ void PlayerEntity::willDealloc() {
 
   int i;
   for (i = 0; i < PLAYER_MAX_MISSILES; i++) missile_entity[i] = nullptr;
-  for (i = 0; i < PLAYER_MAX_TRUMBLES; i++) trumble[i] = oo::Ref<OOTrumble>();
+  for (i = 0; i < PLAYER_MAX_TRUMBLES; i++)
+    trumble[i] = std::shared_ptr<OOTrumble>();
 }
 
 /*	Members named for an ivar the player keeps (alertCondition, legalStatus,
@@ -1836,7 +1837,7 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
     compassMode = OOCompassMode::kPlanet;
   else
     compassMode = OOCompassMode::kBasic;
-  compassTarget = nullptr;
+  compassTarget.reset();
 
   // speech
   isSpeechOn = static_cast<OOSpeechSettings>(dict.get<int>("speech_on"));
@@ -2301,7 +2302,7 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
   if (whList != nullptr) scannedWormholes.reserve(whList->size());
   for (const oo::PList& whCurrDict :
        (whList != nullptr) ? *whList : oo::PList::Array()) {
-    oo::Ref<WormholeEntity> whRef = oo::makeRef<WormholeEntity>();
+    std::shared_ptr<WormholeEntity> whRef = oo::makeShared<WormholeEntity>();
     Entity* wh = oo::RetainEntity(
         oo::MadeEntity(whRef));  // its object (the +1 of the old +alloc is
                                  // still never released, as before)
@@ -2617,7 +2618,7 @@ bool PlayerEntity::setUpAndConfirmOK(bool stopOnError, bool saveGame) {
   shipCommodityData =
       ((UNIVERSE != nullptr ? UNIVERSE->getCommodities() : nullptr) != nullptr
            ? UNIVERSE->getCommodities()->generateManifestForPlayer()
-           : oo::Ref<OOCommodityMarket>());
+           : std::shared_ptr<OOCommodityMarket>());
 
   // set up missiles
   missiles = PLAYER_STARTING_MISSILES;
@@ -2734,7 +2735,7 @@ bool PlayerEntity::setUpAndConfirmOK(bool stopOnError, bool saveGame) {
                     // pointer did
 
   OOMusicController::sharedController()->justStop();
-  stickProfileScreen = oo::makeRef<StickProfileScreen>();
+  stickProfileScreen = oo::makeShared<StickProfileScreen>();
   return true;
 }
 
@@ -2774,7 +2775,7 @@ void PlayerEntity::startUpComplete() {
 }
 
 bool PlayerEntity::setUpShipFromDictionary(const oo::PList& shipDict) {
-  compassTarget = nullptr;
+  compassTarget.reset();
   if (UNIVERSE != nullptr)
     UNIVERSE->setBlockJSPlayerShipProps(
         false);  // full access to player.ship properties!
@@ -2825,7 +2826,7 @@ bool PlayerEntity::setUpShipFromDictionary(const oo::PList& shipDict) {
              : static_cast<::ShipEntity*>(nullptr)));  // retain count = 1
   }
 
-  _primaryTarget = nullptr;
+  _primaryTarget.reset();
   safeAllMissiles();
   setActiveMissile(0);
 
@@ -3560,7 +3561,7 @@ void PlayerEntity::doBookkeeping(double delta_t) {
   // and one thing which isn't a subentity. Fixes bug with
   // mispositioned laser beams particularly noticeable on side view.
   if (!lastShot.empty()) {
-    for (const oo::Ref<OOLaserShotEntity>& lse : lastShot) {
+    for (const std::shared_ptr<OOLaserShotEntity>& lse : lastShot) {
       lse->update(0.0);
     }
     lastShot.clear();
@@ -3946,11 +3947,11 @@ void PlayerEntity::checkScriptsIfAppropriate() {
 }
 
 void PlayerEntity::updateTrumbles(OOTimeDelta delta_t) {
-  oo::Ref<OOTrumble>* trumbles = trumbleArray();
+  std::shared_ptr<OOTrumble>* trumbles = trumbleArray();
   std::size_t i;
 
   for (i = getTrumbleCount(); i > 0; i--) {
-    oo::Ref<OOTrumble> trum = trumbles[i - 1];
+    std::shared_ptr<OOTrumble> trum = trumbles[i - 1];
     trum->updateTrumble(delta_t);
   }
 }
@@ -4023,7 +4024,7 @@ bool PlayerEntity::engageAutopilotToStation(
   }
 
   setTargetStation(stationForDocking);
-  _primaryTarget = nullptr;
+  _primaryTarget.reset();
   autopilot_engaged = true;
   ident_engaged = false;
   safeAllMissiles();
@@ -4051,7 +4052,7 @@ void PlayerEntity::disengageAutopilot() {
     behaviour = OOBehaviour::kIdle;
     frustration = 0.0;
     autopilot_engaged = false;
-    _primaryTarget = nullptr;
+    _primaryTarget.reset();
     setTargetStation(nullptr);
     setStatus(OOEntityStatus::kInFlight);
     playAutopilotOff();
@@ -4516,7 +4517,7 @@ void PlayerEntity::updateTargeting() {
         suppressTargetLostFlag = false;
       }
 
-      _primaryTarget = nullptr;
+      _primaryTarget.reset();
     }
   }
 
@@ -4539,7 +4540,7 @@ void PlayerEntity::updateTargeting() {
           oo::ToShip(missile_entity[i].get())->removeTarget(nullptr);
         if (i == activeMissile) {
           noteLostTarget();
-          _primaryTarget = nullptr;
+          _primaryTarget.reset();
           missile_status = OOMissileStatus::kArmed;
         }
       } else if (i == activeMissile &&
@@ -4819,16 +4820,15 @@ void PlayerEntity::setOcclusionLevel(float level) { occlusion_dial = level; }
 
 void PlayerEntity::setDockedAtMainStation() {
   setDockedStation((UNIVERSE != nullptr ? UNIVERSE->station() : nullptr));
-  if (_dockedStation != oo::WeakRef<Entity>())
-    setStatus(OOEntityStatus::kDocked);
+  if (!oo::isUnset(_dockedStation)) setStatus(OOEntityStatus::kDocked);
 }
 
 ::StationEntity* PlayerEntity::dockedStation() {
-  return oo::ToStation(_dockedStation.get());
+  return oo::ToStation(_dockedStation.lock().get());
 }
 
 void PlayerEntity::setDockedStation(::StationEntity* station) {
-  _dockedStation = oo::WeakRef<Entity>(station);
+  _dockedStation = std::weak_ptr<Entity>(oo::share(station));
 }
 
 void PlayerEntity::setTargetDockStationTo(::StationEntity* value) {
@@ -4888,8 +4888,8 @@ bool PlayerEntity::switchHudTo(const std::string& hudFileName) {
     if (hud != nullptr)
       hud->setHidden(true);  // hide the hud while rebuilding it.
     hud = nullptr;
-    hud = oo::makeRef<HeadUpDisplay>();  // [[HeadUpDisplay alloc]
-                                         // cxx_initWithDictionary:inFile:]
+    hud = oo::makeShared<HeadUpDisplay>();  // [[HeadUpDisplay alloc]
+                                            // cxx_initWithDictionary:inFile:]
     hud->initWithDictionary(hudDict, hudFileName);
     hud->resetGuis(hudDict);
     // reset zoom & hidden to what they were before the swich
@@ -5333,15 +5333,15 @@ void PlayerEntity::updateSystemMemory() {
 Entity* PlayerEntity::getCompassTargetEntity() {
   Entity* result = oo::LiveEntity(compassTarget);
   if (result == nullptr) {
-    compassTarget = nullptr;
+    compassTarget.reset();
     return nullptr;
   }
   return result;
 }
 
 void PlayerEntity::setCompassTargetEntity(Entity* value) {
-  compassTarget =
-      oo::WeakRef<Entity>(value);  // oo::WeakEntityRef() of its object
+  compassTarget = std::weak_ptr<Entity>(
+      oo::share(value));  // oo::WeakEntityRef() of its object
 }
 
 void PlayerEntity::validateCompassTarget() {
@@ -5870,7 +5870,7 @@ void PlayerEntity::selectNextMissile() {
             if (hasEquipmentItemProviding("EQ_MULTI_TARGET") &&
                 !launchingMissile) {
               noteLostTarget();
-              _primaryTarget = nullptr;
+              _primaryTarget.reset();
             } else {
               if (oo::ToShip(missile_entity[activeMissile].get()) != nullptr)
                 oo::ToShip(missile_entity[activeMissile].get())
@@ -5962,7 +5962,7 @@ void PlayerEntity::interpretAIMessage(const std::string& message) {
       UNIVERSE->addMessage(OO_DESC("autopilot-denied"), 4.5);
     autopilot_engaged = false;
     resetAutopilotAI();
-    _primaryTarget = nullptr;
+    _primaryTarget.reset();
     setStatus(OOEntityStatus::kInFlight);
     OOMusicController::sharedController()->stopDockingMusic();
     doScriptEvent(OOJSID("playerDockingRefused"));
@@ -7170,8 +7170,8 @@ void PlayerEntity::enterDock(::StationEntity* station) {
   hyperspeed_engaged = false;
   hyperspeed_locked = false;
   safeAllMissiles();
-  _primaryTarget = nullptr;  // must happen before showing break_pattern to
-                             // suppress active reticule.
+  _primaryTarget.reset();  // must happen before showing break_pattern to
+                           // suppress active reticule.
   clearTargetMemory();
 
   scanner_zoom_rate = 0.0f;
@@ -7445,7 +7445,7 @@ void PlayerEntity::witchStart() {
 
   if (primaryTarget() != nullptr) {
     noteLostTarget();  // losing target? Fire lost target event!
-    _primaryTarget = nullptr;
+    _primaryTarget.reset();
   }
 
   scanner_zoom_rate = 0.0f;
@@ -7812,7 +7812,7 @@ void PlayerEntity::enterWitchspace() {
   // Create the players' wormhole
   {
     // A new C++ wormhole, +1.
-    oo::Ref<WormholeEntity> whRef = oo::makeRef<WormholeEntity>();
+    std::shared_ptr<WormholeEntity> whRef = oo::makeShared<WormholeEntity>();
     wormholeObject.leak();  // a wormhole held here was dropped without a
                             // release, as before
     wormholeObject = oo::EntityHold(oo::MadeEntity(whRef));
@@ -8249,7 +8249,7 @@ std::vector<oo::PList> PlayerEntity::equipmentList() {
   bool prioritiseDamaged =
       gui->userSettings().get<bool>(cxx_kGuiStatusPrioritiseDamaged, true);
 
-  const std::vector<oo::Ref<::OOEquipmentType>> allEquipmentTypes =
+  const std::vector<std::shared_ptr<::OOEquipmentType>> allEquipmentTypes =
       OOEquipmentType::allEquipmentTypes();
   for (auto eqTypeRef = allEquipmentTypes.rbegin();
        eqTypeRef != allEquipmentTypes.rend(); ++eqTypeRef) {
@@ -8585,7 +8585,7 @@ void PlayerEntity::setFastEquipmentB(const std::optional<std::string>& eqKey) {
 // Scripting lists (missiles, cargo, contracts), the system data screen, marked
 // destinations, the chart screens. (Sends to self are member calls.)
 
-std::vector<oo::Ref<::OOEquipmentType>> PlayerEntity::missilesList() {
+std::vector<std::shared_ptr<::OOEquipmentType>> PlayerEntity::missilesList() {
   tidyMissilePylons();  // just in case.
   return ShipEntity::missilesList();
 }
@@ -9838,7 +9838,7 @@ void PlayerEntity::setGuiToEquipShipScreen(
     equipmentAllowed.push_back(*eqKeyForSelectFacing);
     equipmentAllowed.push_back(*eqKeyForSelectFacing);
   } else
-    for (const oo::Ref<::OOEquipmentType>& eqTypeRef :
+    for (const std::shared_ptr<::OOEquipmentType>& eqTypeRef :
          OOEquipmentType::allEquipmentTypesOutfitting())  // (i counts at the
                                                           // end of the body)
     {
@@ -10272,8 +10272,9 @@ void PlayerEntity::setGuiToInterfacesScreen(int skip) {
   const auto* interfaces =
       (dockedStation() != nullptr
            ? dockedStation()->getLocalInterfaces()
-           : static_cast<std::map<std::string, oo::Ref<OOJSInterfaceDefinition>,
-                                  std::less<>>*>(nullptr));
+           : static_cast<
+                 std::map<std::string, std::shared_ptr<OOJSInterfaceDefinition>,
+                          std::less<>>*>(nullptr));
   std::vector<std::string> interfaceKeys;
   if (interfaces != nullptr) {
     for (const auto& entry : *interfaces) interfaceKeys.push_back(entry.first);
@@ -11701,13 +11702,13 @@ void PlayerEntity::setGuiToMarketScreen() {
         ->setMouseInteractionModeForUIWithMouseInteraction(true);
 
   // fix problems with economies in witchspace
-  oo::Ref<OOCommodityMarket>
+  std::shared_ptr<OOCommodityMarket>
       blankMarket;  // held for the screen, as the autoreleased market was
   if (localMarket == nullptr) {
     blankMarket =
         ((UNIVERSE != nullptr ? UNIVERSE->getCommodities() : nullptr) != nullptr
              ? UNIVERSE->getCommodities()->generateBlankMarket()
-             : oo::Ref<OOCommodityMarket>());
+             : std::shared_ptr<OOCommodityMarket>());
     localMarket = blankMarket.get();
   }
 
@@ -11921,13 +11922,13 @@ void PlayerEntity::setGuiToMarketInfoScreen() {
         ->setMouseInteractionModeForUIWithMouseInteraction(true);
 
   // fix problems with economies in witchspace
-  oo::Ref<OOCommodityMarket>
+  std::shared_ptr<OOCommodityMarket>
       blankMarket;  // held for the screen, as the autoreleased market was
   if (localMarket == nullptr) {
     blankMarket =
         ((UNIVERSE != nullptr ? UNIVERSE->getCommodities() : nullptr) != nullptr
              ? UNIVERSE->getCommodities()->generateBlankMarket()
-             : oo::Ref<OOCommodityMarket>());
+             : std::shared_ptr<OOCommodityMarket>());
     localMarket = blankMarket.get();
   }
 
@@ -12715,7 +12716,7 @@ void PlayerEntity::setUpTrumbles() {
     const std::string digramstring = {
         static_cast<char>(digramchars[0]),
         static_cast<char>(digramchars[1])};  // both ASCII
-    trumble[i] = oo::makeRef<OOTrumble>(this, digramstring);
+    trumble[i] = oo::makeShared<OOTrumble>(this, digramstring);
   }
 
   trumbleCount = 0;
@@ -12739,7 +12740,7 @@ void PlayerEntity::removeTrumble(OOTrumble* deadTrumble) {
   std::size_t i;
 
   for (i = 0; (trumble_index == oo::kNotFound) && (i < trumbleCount); i++) {
-    if (trumble[i] == deadTrumble) trumble_index = i;
+    if (trumble[i].get() == deadTrumble) trumble_index = i;
   }
   if (trumble_index == oo::kNotFound) {
     OO_LOG("trumble.zombie", "DEBUG can't get rid of inactive trumble {}",
@@ -12751,7 +12752,7 @@ void PlayerEntity::removeTrumble(OOTrumble* deadTrumble) {
             trumble[trumbleCount]);  // swap with the current last trumble
 }
 
-oo::Ref<OOTrumble>* PlayerEntity::trumbleArray() { return trumble; }
+std::shared_ptr<OOTrumble>* PlayerEntity::trumbleArray() { return trumble; }
 
 std::size_t PlayerEntity::getTrumbleCount() { return trumbleCount; }
 
@@ -12927,7 +12928,7 @@ void PlayerEntity::setFoundTarget(Entity* targetEntity) {
   if (status() == OOEntityStatus::kEscapeSequence) {
     return;
   }
-  _foundTarget = oo::WeakRef<Entity>(targetEntity);
+  _foundTarget = std::weak_ptr<Entity>(oo::share(targetEntity));
 }
 
 // override shipentity addTarget to implement target_memory
@@ -12947,14 +12948,17 @@ void PlayerEntity::addTarget(Entity* targetEntity)  // the C++ entity
   // wormholes don't go in target memory
   else if (hasEquipmentItemProviding("EQ_TARGET_MEMORY") &&
            targetEntity != nullptr) {
-    const oo::WeakRef<Entity> targetRef =
-        oo::WeakRef<Entity>(targetEntity);  // was [targetEntity weakSelf]
+    const std::weak_ptr<Entity> targetRef = std::weak_ptr<Entity>(
+        oo::share(targetEntity));  // was [targetEntity weakSelf]
     // -indexOfObject: compared the weak references (proxies) by identity;
-    // WeakRef's == compares the same identity
-    const auto slotFor = [this](const oo::WeakRef<Entity>& ref) -> std::size_t {
-      const auto found = std::find_if(
-          target_memory.begin(), target_memory.end(),
-          [&ref](const oo::WeakRef<Entity>& slot) { return slot == ref; });
+    // oo::sameObject compares the same identity
+    const auto slotFor =
+        [this](const std::weak_ptr<Entity>& ref) -> std::size_t {
+      const auto found =
+          std::find_if(target_memory.begin(), target_memory.end(),
+                       [&ref](const std::weak_ptr<Entity>& slot) {
+                         return oo::sameObject(slot, ref);
+                       });
       return (found != target_memory.end())
                  ? static_cast<std::size_t>(found - target_memory.begin())
                  : oo::kNotFound;
@@ -12964,7 +12968,7 @@ void PlayerEntity::addTarget(Entity* targetEntity)  // the C++ entity
     if (i != oo::kNotFound) {
       target_memory_index = i;
     } else {
-      i = slotFor(oo::WeakRef<Entity>());  // an empty slot
+      i = slotFor(std::weak_ptr<Entity>());  // an empty slot
       // find and use a blank space in memory
       if (i != oo::kNotFound) {
         target_memory.at(i) = targetRef;
@@ -13006,7 +13010,7 @@ void PlayerEntity::clearTargetMemory() {
   std::size_t memoryCount = target_memory.size();
   for (std::size_t i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++) {
     if (i < memoryCount) {
-      target_memory[i] = nullptr;
+      target_memory[i].reset();
     } else {
       target_memory.emplace_back();
     }
@@ -13014,7 +13018,7 @@ void PlayerEntity::clearTargetMemory() {
   target_memory_index = 0;
 }
 
-std::vector<oo::WeakRef<Entity>> PlayerEntity::targetMemory() {
+std::vector<std::weak_ptr<Entity>> PlayerEntity::targetMemory() {
   return target_memory;
 }
 
@@ -13028,11 +13032,12 @@ bool PlayerEntity::moveTargetMemoryBy(std::ptrdiff_t delta) {
     while (idx >= PLAYER_TARGET_MEMORY_SIZE) idx -= PLAYER_TARGET_MEMORY_SIZE;
     target_memory_index = idx;
 
-    const oo::WeakRef<Entity>& targ_ref = target_memory.at(target_memory_index);
-    if (targ_ref != oo::WeakRef<Entity>())  // a weak reference (-isProxy), not
-                                            // an empty slot
+    const std::weak_ptr<Entity>& targ_ref =
+        target_memory.at(target_memory_index);
+    if (!oo::isUnset(
+            targ_ref))  // a weak reference (-isProxy), not an empty slot
     {
-      ::ShipEntity* potential_target = oo::ToShip(targ_ref.get());
+      ::ShipEntity* potential_target = oo::ToShip(targ_ref.lock().get());
 
       if ((potential_target) && (potential_target->isShip) &&
           ((potential_target != nullptr ? potential_target->isInSpace()
@@ -13064,7 +13069,7 @@ bool PlayerEntity::moveTargetMemoryBy(std::ptrdiff_t delta) {
           return true;
         }
       } else {
-        target_memory.at(target_memory_index) = nullptr;
+        target_memory.at(target_memory_index).reset();
       }
     }
   }
@@ -13458,7 +13463,7 @@ std::vector<std::string> PlayerEntity::worldScriptNames() {
   return names;
 }
 
-std::vector<std::pair<std::string, oo::Ref<OOScript>>>
+std::vector<std::pair<std::string, std::shared_ptr<OOScript>>>
 PlayerEntity::worldScriptsByName() {
   return worldScripts;
 }
@@ -13476,7 +13481,7 @@ PlayerEntity::worldScriptsByName() {
   if (cscript != nullptr) {
     return cscript;
   }
-  const oo::Ref<OOScript> loaded =
+  const std::shared_ptr<OOScript> loaded =
       OOScript::jsScriptFromFileNamed(*scriptName, oo::PList());
   cscript = loaded.get();
   if (cscript != nullptr) {
@@ -13498,7 +13503,7 @@ void PlayerEntity::doScriptEvent(OOJSPropID message, JSContext* context,
 // ORDER-SENSITIVE (decision D): the world scripts run in load order (was the
 // dictionary's order).
 bool PlayerEntity::doWorldEventUntilMissionScreen(OOJSPropID message) {
-  const std::vector<std::pair<std::string, oo::Ref<OOScript>>> scripts =
+  const std::vector<std::pair<std::string, std::shared_ptr<OOScript>>> scripts =
       worldScripts;  // a snapshot, as the enumerator kept the dictionary
   auto scriptEntry = scripts.begin();
 
@@ -13538,7 +13543,7 @@ void PlayerEntity::doWorldScriptEvent(OOJSPropID message, JSContext* context,
 
   // ORDER-SENSITIVE (decision D): load order (was -allValues order); a
   // snapshot, as -allValues was.
-  const std::vector<std::pair<std::string, oo::Ref<OOScript>>> scripts =
+  const std::vector<std::pair<std::string, std::shared_ptr<OOScript>>> scripts =
       worldScripts;
   for (const auto& entry : scripts) {
     OOJSStartTimeLimiterWithTimeLimit(limit);
@@ -13870,7 +13875,7 @@ oo::PList PlayerEntity::getMissionDestinations() {
 oo::PList::Dict* PlayerEntity::shipyardRecord() { return &shipyard_record; }
 
 void PlayerEntity::setLastShot(
-    const std::vector<oo::Ref<OOLaserShotEntity>>& shot) {
+    const std::vector<std::shared_ptr<OOLaserShotEntity>>& shot) {
   lastShot = shot;
 }
 
@@ -13891,7 +13896,7 @@ void PlayerEntity::clearExtraGuiScreenKeys(OOGUIScreenID gui,
                                            const std::string& key) {
   const auto screenKeys = extraGuiScreenKeys.find(gui);
   if (screenKeys == extraGuiScreenKeys.end()) return;
-  std::vector<oo::Ref<::OOJSGuiScreenKeyDefinition>>& keydefs =
+  std::vector<std::shared_ptr<::OOJSGuiScreenKeyDefinition>>& keydefs =
       screenKeys->second;
   std::size_t i = keydefs.size();
   while (i--) {
@@ -13930,7 +13935,7 @@ bool PlayerEntity::setExtraGuiScreenKeys(
   if (definition != nullptr)
     definition->setRegisterKeys(oo::PList(std::move(final)));
 
-  std::vector<oo::Ref<::OOJSGuiScreenKeyDefinition>> newarray;
+  std::vector<std::shared_ptr<::OOJSGuiScreenKeyDefinition>> newarray;
   const auto existing = extraGuiScreenKeys.find(gui);
   if (existing != extraGuiScreenKeys.end()) {
     newarray = existing->second;
@@ -13972,7 +13977,7 @@ bool PlayerEntity::setExtraGuiScreenKeys(
       }
     }
   }
-  newarray.push_back(oo::Ref<::OOJSGuiScreenKeyDefinition>(definition));
+  newarray.push_back(oo::share(definition));
   // only add the item if there were no errors
   if (result) extraGuiScreenKeys[gui] = std::move(newarray);
   return result;

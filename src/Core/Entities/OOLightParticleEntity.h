@@ -65,7 +65,7 @@ class OOLightParticleEntity : public Entity {
   bool canCollide() override;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  std::vector<oo::Ref<OOTexture>> allTextures() override;
+  std::vector<std::shared_ptr<OOTexture>> allTextures() override;
 #endif
 
   // Public, as the tests read them.

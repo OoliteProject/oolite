@@ -107,8 +107,8 @@ std::optional<std::string> DescriptorName(const oo::PList& descriptor) {
   return descriptor.get<std::string>("name");
 }
 
-oo::Ref<OOTexture> TextureForGUITexture(const oo::PList& descriptor,
-                                        OOTextureFlags srgbaOption) {
+std::shared_ptr<OOTexture> TextureForGUITexture(const oo::PList& descriptor,
+                                                OOTextureFlags srgbaOption) {
   /*
           GUI textures like backgrounds, foregrounds etc. are not processed in
      any way after loading. However, they are subject to tone nmapping and gamma
@@ -132,9 +132,9 @@ oo::Ref<OOTexture> TextureForGUITexture(const oo::PList& descriptor,
         Load a texture sprite given a descriptor. Null where there is no such
    texture.
 */
-oo::Ref<OOTextureSprite> NewTextureSpriteWithDescriptor(
+std::shared_ptr<OOTextureSprite> NewTextureSpriteWithDescriptor(
     const oo::PList& descriptor, OOTextureFlags srgbaOption) {
-  oo::Ref<OOTexture> texture;
+  std::shared_ptr<OOTexture> texture;
   NSSize size;
 
   texture = TextureForGUITexture(descriptor, srgbaOption);

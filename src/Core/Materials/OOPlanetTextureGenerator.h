@@ -88,7 +88,7 @@ class OOPlanetTextureGenerator : public OOTextureGenerator {
      Was [[OOPlanetTextureGenerator alloc] initWithPlanetInfo:seed:]; null
      where that answered nil.
   */
-  static oo::Ref<OOPlanetTextureGenerator> generatorWithPlanetInfo(
+  static std::shared_ptr<OOPlanetTextureGenerator> generatorWithPlanetInfo(
       const oo::PList& planetInfo, RANROTSeed seed);
   bool initWithPlanetInfo(const oo::PList& planetInfo,
                           RANROTSeed seed);  // false where it answered nil
@@ -100,21 +100,21 @@ class OOPlanetTextureGenerator : public OOTextureGenerator {
      name: its arguments have the types of the one that took a texture and a
      secondary texture.
   */
-  static oo::Ref<OOTexture> planetTextureWithInfo(const oo::PList& planetInfo,
-                                                  RANROTSeed seed);
-  static bool generatePlanetTextureAndAtmosphere(oo::Ref<OOTexture>* texture,
-                                                 oo::Ref<OOTexture>* atmosphere,
-                                                 const oo::PList& planetInfo,
-                                                 RANROTSeed seed);
-  static bool generatePlanetTexture(oo::Ref<OOTexture>* texture,
-                                    oo::Ref<OOTexture>* secondaryTexture,
-                                    const oo::PList& planetInfo,
-                                    RANROTSeed seed);
-  static bool generatePlanetTexture(oo::Ref<OOTexture>* texture,
-                                    oo::Ref<OOTexture>* secondaryTexture,
-                                    oo::Ref<OOTexture>* atmosphere,
-                                    const oo::PList& planetInfo,
-                                    RANROTSeed seed);
+  static std::shared_ptr<OOTexture> planetTextureWithInfo(
+      const oo::PList& planetInfo, RANROTSeed seed);
+  static bool generatePlanetTextureAndAtmosphere(
+      std::shared_ptr<OOTexture>* texture,
+      std::shared_ptr<OOTexture>* atmosphere, const oo::PList& planetInfo,
+      RANROTSeed seed);
+  static bool generatePlanetTexture(
+      std::shared_ptr<OOTexture>* texture,
+      std::shared_ptr<OOTexture>* secondaryTexture, const oo::PList& planetInfo,
+      RANROTSeed seed);
+  static bool generatePlanetTexture(
+      std::shared_ptr<OOTexture>* texture,
+      std::shared_ptr<OOTexture>* secondaryTexture,
+      std::shared_ptr<OOTexture>* atmosphere, const oo::PList& planetInfo,
+      RANROTSeed seed);
 
   std::optional<std::string> descriptionComponents() const override;
   OOTextureFlags textureOptions() override;
@@ -145,6 +145,6 @@ class OOPlanetTextureGenerator : public OOTextureGenerator {
   OOPlanetTextureGeneratorInfo _info = {};
   unsigned _planetScale = {};
 
-  oo::Ref<OOPlanetNormalMapGenerator> _nMapGenerator;
-  oo::Ref<OOPlanetAtmosphereGenerator> _atmoGenerator;
+  std::shared_ptr<OOPlanetNormalMapGenerator> _nMapGenerator;
+  std::shared_ptr<OOPlanetAtmosphereGenerator> _atmoGenerator;
 };

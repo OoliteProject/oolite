@@ -71,7 +71,7 @@ class TestPlayer : public PlayerEntity {
 // the game's, retained (+1) as +alloc's object was.
 template <class T>
 T* NewTestPlayer() {
-  oo::Ref<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeRef<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -132,8 +132,8 @@ class TestArgument final : public oo::RefCounted {};
 void Call(TestTarget* target, void (TestTarget::*method)(oo::RefCounted*),
           oo::RefCounted* argument, double delay) {
   OOScheduleDeferredCall(
-      [target = oo::Ref<TestTarget>(target), method,
-       argument = oo::Ref<oo::RefCounted>(argument)]() {
+      [target = oo::share(target), method,
+       argument = oo::share(argument)]() {
         (target.get()->*method)(argument.get());
       },
       delay);

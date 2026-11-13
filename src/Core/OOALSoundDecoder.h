@@ -67,9 +67,10 @@ class OOALSoundDecoder : public oo::RefCounted {
      "ogg", else nil. Null where it answered nil (also when the codec could not
      open the file).
   */
-  static oo::Ref<OOALSoundDecoder> initWithPath(
+  static std::shared_ptr<OOALSoundDecoder> initWithPath(
       const std::optional<std::string>& inPath);  // nullopt: null
-  static oo::Ref<OOALSoundDecoder> codecWithPath(const std::string& inPath);
+  static std::shared_ptr<OOALSoundDecoder> codecWithPath(
+      const std::string& inPath);
 
   // Full-buffer reading.
   virtual bool readCreatingBuffer(char** outBuffer, size_t* outSize);

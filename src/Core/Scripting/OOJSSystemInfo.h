@@ -64,8 +64,8 @@ class OOSystemInfo : public oo::PListForeign, public ::OOJSPrivateObject {
  public:
   // -initWithGalaxy:system:, as a factory: null for a galaxy or system out of
   // range.
-  static oo::Ref<OOSystemInfo> initWithGalaxy(OOGalaxyID galaxy,
-                                              OOSystemID system);
+  static std::shared_ptr<OOSystemInfo> initWithGalaxy(OOGalaxyID galaxy,
+                                                      OOSystemID system);
 
   std::optional<std::string> descriptionComponents() const;
   std::optional<std::string> shortDescriptionComponents() const;

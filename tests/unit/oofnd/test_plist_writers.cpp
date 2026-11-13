@@ -994,7 +994,7 @@ class DescribedForeign : public oo::PListForeign {
 OO_TEST(xmlWritesForeignObjectAsItsDescription_capture) {
   oo::PList::Dict inner;
   inner["k"] = oo::PList(oo::PList::Object(
-      oo::Ref<oo::PListForeign>::adopt(new DescribedForeign("<Foo thing>"))));
+      oo::adopt<oo::PListForeign>(new DescribedForeign("<Foo thing>"))));
   oo::PList::Dict outer;
   outer["configuration"] = oo::PList(inner);
   outer["packet type"] = oo::PList(std::string("Note Configuration"));

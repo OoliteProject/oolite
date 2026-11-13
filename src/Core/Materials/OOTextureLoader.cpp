@@ -70,10 +70,10 @@ static bool sHaveNPOTTextures =
     false;  // TODO: support "true" non-power-of-two textures.
 static bool sHaveSetUp = false;
 
-oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithPath(
+std::shared_ptr<OOTextureLoader> OOTextureLoader::loaderWithPath(
     const std::optional<std::string>& inPath, OOTextureFlags options) {
   std::string extension;
-  oo::Ref<OOTextureLoader> result;
+  std::shared_ptr<OOTextureLoader> result;
 
   if (EXPECT_NOT(!inPath.has_value())) return nullptr;
   if (EXPECT_NOT(!sHaveSetUp)) setUp();
@@ -88,8 +88,8 @@ oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithPath(
   extension = oo::str::lowercase(oo::str::pathExtension(*inPath));
   if (extension == "png") {
     // A C++ loader; the work manager retains it while it is queued.
-    const oo::Ref<::OOPNGTextureLoader> loader =
-        oo::makeRef<::OOPNGTextureLoader>();
+    const std::shared_ptr<::OOPNGTextureLoader> loader =
+        oo::makeShared<::OOPNGTextureLoader>();
     if (loader->initWithPath(inPath, options)) result = loader;
   } else {
     OO_LOG("texture.load.unknownType",
@@ -107,7 +107,7 @@ oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithPath(
   return result;
 }
 
-oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithTextureSpecifier(
+std::shared_ptr<OOTextureLoader> OOTextureLoader::loaderWithTextureSpecifier(
     const oo::PList& specifier, OOTextureFlags extraOptions,
     const std::optional<std::string>& folder) {
   std::string name;

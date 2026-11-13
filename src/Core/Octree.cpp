@@ -89,8 +89,9 @@ Octree::Octree(const oo::Data& data, GLfloat radius) {
 
 // Designated initializer: null where -initWithData:radius: released itself and
 // returned nil.
-oo::Ref<Octree> Octree::initWithData(const oo::Data& data, GLfloat radius) {
-  oo::Ref<Octree> result = oo::adopt(new Octree(data, radius));
+std::shared_ptr<Octree> Octree::initWithData(const oo::Data& data,
+                                             GLfloat radius) {
+  std::shared_ptr<Octree> result = oo::adopt(new Octree(data, radius));
   if (result->_octree == nullptr || result->_collisionOctree == nullptr) {
     return nullptr;
   }
@@ -98,7 +99,8 @@ oo::Ref<Octree> Octree::initWithData(const oo::Data& data, GLfloat radius) {
   return result;
 }
 
-oo::Ref<Octree> Octree::initWithDictionary(const oo::PList& representation) {
+std::shared_ptr<Octree> Octree::initWithDictionary(
+    const oo::PList& representation) {
   const oo::PList* octree = representation.find("octree");
   const oo::Data* data =
       (octree != nullptr) ? octree->getIf<oo::Data>() : nullptr;
@@ -126,7 +128,7 @@ Octree_details Octree::octreeDetails() {
   return details;
 }
 
-oo::Ref<Octree> Octree::octreeScaledBy(GLfloat factor) {
+std::shared_ptr<Octree> Octree::octreeScaledBy(GLfloat factor) {
   // (the octree data is copied; it was shared, being immutable)
   return initWithData(_data, _radius * factor);
 }
@@ -825,7 +827,7 @@ OOOctreeBuilder::OOOctreeBuilder() {
 
 OOOctreeBuilder::~OOOctreeBuilder() { free(_octree); }
 
-oo::Ref<Octree> OOOctreeBuilder::buildOctreeWithRadius(GLfloat radius) {
+std::shared_ptr<Octree> OOOctreeBuilder::buildOctreeWithRadius(GLfloat radius) {
   OOCAssert(State(this)->remaining == 0 && _level == 0,
             "Attempt to produce octree from an octree builder in an incomplete "
             "state.");

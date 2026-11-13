@@ -71,7 +71,7 @@ MA 02110-1301, USA.
 #endif
 
 /*	The universe makes it with
-   oo::makeRef<OOSunEntity>() and holds it as the C++ class; its
+   oo::makeShared<OOSunEntity>() and holds it as the C++ class; its
    OOStellarBody answers are members (OOStellarBodyRadius()).
 */
 class OOSunEntity : public Entity {

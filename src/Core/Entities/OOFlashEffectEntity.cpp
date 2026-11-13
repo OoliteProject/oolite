@@ -80,9 +80,10 @@ void OOFlashEffectEntity::initLaserFlashWithPosition(HPVector pos, Vector vel,
 // The C++ entity: the
 // members -position, -velocity and -collisionRadius forwarded to; none answers
 // zero, as nil did.
-oo::Ref<OOFlashEffectEntity> OOFlashEffectEntity::explosionFlashFromEntity(
-    Entity* entity) {
-  const oo::Ref<OOFlashEffectEntity> flash = oo::makeRef<OOFlashEffectEntity>();
+std::shared_ptr<OOFlashEffectEntity>
+OOFlashEffectEntity::explosionFlashFromEntity(Entity* entity) {
+  const std::shared_ptr<OOFlashEffectEntity> flash =
+      oo::makeShared<OOFlashEffectEntity>();
   flash->initExplosionFlashWithPosition(
       entity != nullptr ? entity->getPosition() : kZeroHPVector,
       entity != nullptr ? entity->getVelocity() : kZeroVector,
@@ -90,9 +91,11 @@ oo::Ref<OOFlashEffectEntity> OOFlashEffectEntity::explosionFlashFromEntity(
   return flash;
 }
 
-oo::Ref<OOFlashEffectEntity> OOFlashEffectEntity::laserFlashWithPosition(
-    HPVector pos, Vector vel, OOColor* color) {
-  const oo::Ref<OOFlashEffectEntity> flash = oo::makeRef<OOFlashEffectEntity>();
+std::shared_ptr<OOFlashEffectEntity>
+OOFlashEffectEntity::laserFlashWithPosition(HPVector pos, Vector vel,
+                                            OOColor* color) {
+  const std::shared_ptr<OOFlashEffectEntity> flash =
+      oo::makeShared<OOFlashEffectEntity>();
   flash->initLaserFlashWithPosition(pos, vel, color);
   return flash;
 }
@@ -139,13 +142,11 @@ OOTexture* OOFlashEffectEntity::texture() {
 
 void OOFlashEffectEntity::setUpTexture() {
   if (sFlashTexture == nullptr) {
-    sFlashTexture =
-        OOTexture::textureWithName("oolite-particle-flash.png", "Textures",
-                                   OOTextureFlags::kMinFilterMipMap |
-                                       OOTextureFlags::kMagFilterLinear |
-                                       OOTextureFlags::kAlphaMask,
-                                   kOOTextureDefaultAnisotropy, 0.0)
-            .leakRef();
+    sFlashTexture = oo::leakRef(OOTexture::textureWithName(
+        "oolite-particle-flash.png", "Textures",
+        OOTextureFlags::kMinFilterMipMap | OOTextureFlags::kMagFilterLinear |
+            OOTextureFlags::kAlphaMask,
+        kOOTextureDefaultAnisotropy, 0.0));
     OOGraphicsResetManager::sharedManager()->registerCxxClient(
         new FlashTextureResetClient);
   }

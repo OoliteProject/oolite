@@ -53,7 +53,7 @@ class TestPlayer : public PlayerEntity {
 // object was.
 template <class T>
 T* NewTestPlayer() {
-  oo::Ref<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeRef<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -90,11 +90,11 @@ bool sTextureFound = true;
 OOTexture* sTexture = nullptr;  // never released
 
 // OOTexture::nameFactory, the test-only loader hook.
-oo::Ref<OOTexture> LoadTexture(const std::optional<std::string>& name,
+std::shared_ptr<OOTexture> LoadTexture(const std::optional<std::string>& name,
                                const std::optional<std::string>&,
                                OOTextureFlags, GLfloat, GLfloat) {
   sTextureName = name;
-  return oo::Ref<OOTexture>(sTextureFound ? sTexture : nullptr);
+  return oo::share(sTextureFound ? sTexture : nullptr);
 }
 
 void SetUp() {

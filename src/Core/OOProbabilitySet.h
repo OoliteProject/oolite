@@ -70,12 +70,12 @@ class OOProbabilitySet : public oo::RefCounted {
   // Object node (oo::PListObject) carries an object. Two elements
   // are the same if they are == or are Object nodes holding the same object.
   // The factories make an immutable set, null where the initialiser fails.
-  static oo::Ref<OOProbabilitySet>
+  static std::shared_ptr<OOProbabilitySet>
   probabilitySet();  // the empty set: one shared object
-  static oo::Ref<OOProbabilitySet> probabilitySetWithObjects(
+  static std::shared_ptr<OOProbabilitySet> probabilitySetWithObjects(
       const oo::PList* objects, const float* weights, std::size_t count);
-  static oo::Ref<OOProbabilitySet> probabilitySetWithPropertyListRepresentation(
-      const oo::PList& plist);
+  static std::shared_ptr<OOProbabilitySet>
+  probabilitySetWithPropertyListRepresentation(const oo::PList& plist);
 
   // propertyListRepresentation is only valid if objects are property list
   // objects.
@@ -99,8 +99,8 @@ class OOProbabilitySet : public oo::RefCounted {
                                  // from 0 to 1 inclusive for known objects.
 
   // -copy (an immutable set) and -mutableCopy.
-  virtual oo::Ref<OOProbabilitySet> copy();
-  virtual oo::Ref<OOMutableProbabilitySet> mutableCopy();
+  virtual std::shared_ptr<OOProbabilitySet> copy();
+  virtual std::shared_ptr<OOMutableProbabilitySet> mutableCopy();
 
   // What "%@" printed between the braces of <Class 0x...>{...}
   // (OODescription.h).
@@ -110,10 +110,10 @@ class OOProbabilitySet : public oo::RefCounted {
 class OOMutableProbabilitySet : public OOProbabilitySet {
  public:
   // The same factories, for a mutable set (+probabilitySet: a new empty one).
-  static oo::Ref<OOMutableProbabilitySet> probabilitySet();
-  static oo::Ref<OOMutableProbabilitySet> probabilitySetWithObjects(
+  static std::shared_ptr<OOMutableProbabilitySet> probabilitySet();
+  static std::shared_ptr<OOMutableProbabilitySet> probabilitySetWithObjects(
       const oo::PList* objects, const float* weights, std::size_t count);
-  static oo::Ref<OOMutableProbabilitySet>
+  static std::shared_ptr<OOMutableProbabilitySet>
   probabilitySetWithPropertyListRepresentation(const oo::PList& plist);
 
   virtual void setWeight(
@@ -122,5 +122,5 @@ class OOMutableProbabilitySet : public OOProbabilitySet {
           object) = 0;  // Adds object if needed; a null object is ignored.
   virtual void removeObject(const oo::PList& object) = 0;
 
-  oo::Ref<OOProbabilitySet> copy() override;
+  std::shared_ptr<OOProbabilitySet> copy() override;
 };

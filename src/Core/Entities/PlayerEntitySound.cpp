@@ -129,21 +129,20 @@ void PlayerEntity::setUpSound() {
   sHyperspaceSoundSource = NewSource();
   sHyperspaceSoundSource->setPosition(kWitchspacePosition);
 
-  sBuySellSourcePool =
-      OOSoundSourcePool::poolWithCount(kBuySellSourcePoolSize, 0.0).leakRef();
+  sBuySellSourcePool = oo::leakRef(
+      OOSoundSourcePool::poolWithCount(kBuySellSourcePoolSize, 0.0));
   sWarningSoundPool =
-      OOSoundSourcePool::poolWithCount(kWarningPoolSize, 0.0).leakRef();
+      oo::leakRef(OOSoundSourcePool::poolWithCount(kWarningPoolSize, 0.0));
   sWeaponSoundPool =
-      OOSoundSourcePool::poolWithCount(kWeaponPoolSize, 0.0).leakRef();
-  sDamageSoundPool =
-      OOSoundSourcePool::poolWithCount(kDamagePoolSize, 0.1)
-          .leakRef();  // Repeat time limit is to avoid playing a scrape sound
-                       // every frame on glancing scrapes. This does limit the
-                       // number of laser hits that can be played in a furrball,
-                       // though; maybe lasers and scrapes should use different
-                       // pools.
+      oo::leakRef(OOSoundSourcePool::poolWithCount(kWeaponPoolSize, 0.0));
+  sDamageSoundPool = oo::leakRef(OOSoundSourcePool::poolWithCount(
+      kDamagePoolSize, 0.1));  // Repeat time limit is to avoid playing a scrape
+                               // sound every frame on glancing scrapes. This
+                               // does limit the number of laser hits that can
+                               // be played in a furrball, though; maybe lasers
+                               // and scrapes should use different pools.
   sMiscSoundPool =
-      OOSoundSourcePool::poolWithCount(kMiscPoolSize, 0.0).leakRef();
+      oo::leakRef(OOSoundSourcePool::poolWithCount(kMiscPoolSize, 0.0));
 
   // Two sources with the same sound are used to simulate looping.
   ::OOSound* afterburnerSound =
@@ -181,7 +180,7 @@ void PlayerEntity::setUpWeaponSounds() {
                .value_or("")] = std::move(soundName);
   };
 
-  for (const oo::Ref<::OOEquipmentType>& eqTypeRef :
+  for (const std::shared_ptr<::OOEquipmentType>& eqTypeRef :
        OOEquipmentType::allEquipmentTypes()) {
     ::OOEquipmentType* eqType = eqTypeRef.get();
     if (oo::str::hasPrefix((eqType != nullptr ? eqType->identifier()

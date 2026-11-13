@@ -59,10 +59,11 @@ class PlumeTextureResetClient : public OOGraphicsResetClient {
 
 }  // namespace
 
-oo::Ref<OOExhaustPlumeEntity> OOExhaustPlumeEntity::exhaustForShip(
+std::shared_ptr<OOExhaustPlumeEntity> OOExhaustPlumeEntity::exhaustForShip(
     ::ShipEntity* ship, const std::vector<std::string>& definition,
     float scale) {
-  oo::Ref<OOExhaustPlumeEntity> exhaust = oo::makeRef<OOExhaustPlumeEntity>();
+  std::shared_ptr<OOExhaustPlumeEntity> exhaust =
+      oo::makeShared<OOExhaustPlumeEntity>();
   if (!exhaust->initForShip(ship, definition, scale)) return nullptr;
   return exhaust;
 }
@@ -648,14 +649,12 @@ OOTexture* OOExhaustPlumeEntity::texture() {
 
 void OOExhaustPlumeEntity::setUpTexture() {
   if (sPlumeTexture == nullptr) {
-    sPlumeTexture =
-        OOTexture::textureWithName(
-            "oolite-exhaust-blur.png", "Textures",
-            OOTextureFlags::kMinFilterMipMap |
-                OOTextureFlags::kMagFilterLinear | OOTextureFlags::kAlphaMask |
-                OOTextureFlags::kRepeatT | OOTextureFlags::kRepeatS,
-            kOOTextureDefaultAnisotropy / 2.0, 0.0)
-            .leakRef();
+    sPlumeTexture = oo::leakRef(OOTexture::textureWithName(
+        "oolite-exhaust-blur.png", "Textures",
+        OOTextureFlags::kMinFilterMipMap | OOTextureFlags::kMagFilterLinear |
+            OOTextureFlags::kAlphaMask | OOTextureFlags::kRepeatT |
+            OOTextureFlags::kRepeatS,
+        kOOTextureDefaultAnisotropy / 2.0, 0.0));
     OOGraphicsResetManager::sharedManager()->registerCxxClient(
         new PlumeTextureResetClient);
   }

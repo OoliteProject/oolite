@@ -58,7 +58,7 @@ public:
 template <class T>
 T *NewTestPlayer()
 {
-	oo::Ref<T> player = oo::makeRef<T>();
+	std::shared_ptr<T> player = oo::makeRef<T>();
 	{
 		oo::RetainEntity(oo::MadeEntity(player));
 	}
@@ -162,12 +162,12 @@ void SetExplicitlyUnpiloted(ShipEntity *s, bool value)	{ s->_explicitlyUnpiloted
 
 void SetPrimaryTarget(ShipEntity *s, Entity *target)
 {
-	s->_primaryTarget = oo::WeakRef<Entity>(target);	// the entity's C++ part
+	s->_primaryTarget = oo::share(target);	// the entity's C++ part
 }
 
 void SetProximityAlert(ShipEntity *s, Entity *other)
 {
-	s->_proximityAlert = oo::WeakRef<Entity>(other);	// the entity's C++ part
+	s->_proximityAlert = oo::share(other);	// the entity's C++ part
 }
 
 void SetNavpoints(ShipEntity *s, std::initializer_list<HPVector> points, unsigned next)
@@ -267,14 +267,14 @@ OO_TEST(initClampsAnInfiniteTopSpeed)
 
 OO_TEST(deallocLeavesItsGroups)
 {
-	oo::Ref<OOShipGroup> group;
-	oo::Ref<OOShipGroup> escorts;
+	std::shared_ptr<OOShipGroup> group;
+	std::shared_ptr<OOShipGroup> escorts;
 	{
 		SetUp();
 		group = OOShipGroup::groupWithName(std::nullopt);	// -init
 		TestShip *ship = NewShip<TestShip>("grouped", Definition());
 		if (ship != nullptr)  ship->setGroup(group.get());
-		escorts = oo::Ref<OOShipGroup>((ship != nullptr ? ship->escortGroup() : (OOShipGroup *)nullptr));
+		escorts = oo::share((ship != nullptr ? ship->escortGroup() : (OOShipGroup *)nullptr));
 		OO_CHECK(group->containsShip(ship) && escorts->containsShip(ship) && escorts->leader() == ship);
 		if (ship != nullptr)  oo::ReleaseEntity(ship);
 	}
@@ -932,7 +932,7 @@ OO_TEST(weaponMountsAndLists)
 		OO_CHECK(isWeaponNone((ship != nullptr ? ship->weaponTypeIDForFacing(OOWeaponFacing::kForward, true) : OOWeaponType{})));
 		OO_CHECK((ship != nullptr ? ship->weaponTypeIDForFacing(OOWeaponFacing::kPort, false) : OOWeaponType{}) == nullptr);
 		OO_CHECK((ship != nullptr ? ship->weaponTypeForFacing(OOWeaponFacing::kStarboard, false) : (OOEquipmentType *)nullptr) == nullptr);
-		OO_CHECK((ship != nullptr ? ship->missilesList() : std::vector<oo::Ref<OOEquipmentType>>()).empty());
+		OO_CHECK((ship != nullptr ? ship->missilesList() : std::vector<std::shared_ptr<OOEquipmentType>>()).empty());
 		const oo::PList passengers = (ship != nullptr ? ship->passengerListForScripting() : oo::PList());
 		OO_CHECK(passengers.isArray() && passengers.count() == 0);
 		OO_CHECK((ship != nullptr ? ship->parcelListForScripting() : oo::PList()).isArray() && (ship != nullptr ? ship->contractListForScripting() : oo::PList()).isArray());
@@ -1385,15 +1385,15 @@ OO_TEST(scannerColours)
 	{
 		SetUp();
 		TestShip *ship = FlyingShip("coloured");
-		oo::Ref<OOColor>	red = OOColor::colorWithRed(1, 0, 0, 1);
-		oo::Ref<OOColor>	blue = OOColor::colorWithRed(0, 0, 1, 1);
+		std::shared_ptr<OOColor>	red = OOColor::colorWithRed(1, 0, 0, 1);
+		std::shared_ptr<OOColor>	blue = OOColor::colorWithRed(0, 0, 1, 1);
 		OO_CHECK((ship != nullptr ? ship->scannerDisplayColor1() : (OOColor *)nullptr) == nullptr && (ship != nullptr ? ship->scannerDisplayColorHostile2() : (OOColor *)nullptr) == nullptr);
 		if (ship != nullptr)  ship->setScannerDisplayColor1(red.get());
 		if (ship != nullptr)  ship->setScannerDisplayColor2(blue.get());
 		if (ship != nullptr)  ship->setScannerDisplayColorHostile1(blue.get());
 		if (ship != nullptr)  ship->setScannerDisplayColorHostile2(red.get());
-		OO_CHECK((ship != nullptr ? ship->scannerDisplayColor1() : (OOColor *)nullptr) == red && (ship != nullptr ? ship->scannerDisplayColor2() : (OOColor *)nullptr) == blue);
-		OO_CHECK((ship != nullptr ? ship->scannerDisplayColorHostile1() : (OOColor *)nullptr) == blue && (ship != nullptr ? ship->scannerDisplayColorHostile2() : (OOColor *)nullptr) == red);
+		OO_CHECK((ship != nullptr ? ship->scannerDisplayColor1() : (OOColor *)nullptr) == red.get() && (ship != nullptr ? ship->scannerDisplayColor2() : (OOColor *)nullptr) == blue.get());
+		OO_CHECK((ship != nullptr ? ship->scannerDisplayColorHostile1() : (OOColor *)nullptr) == blue.get() && (ship != nullptr ? ship->scannerDisplayColorHostile2() : (OOColor *)nullptr) == red.get());
 		if (ship != nullptr)  ship->setScannerDisplayColor2(nullptr);		// nil: the ship's definition's, which has none
 		OO_CHECK((ship != nullptr ? ship->scannerDisplayColor2() : (OOColor *)nullptr) == nullptr);
 
@@ -1541,11 +1541,11 @@ OO_TEST(groupsAndEscorts)
 		OO_CHECK((ship != nullptr ? ship->hasEscorts() : false) && (ship != nullptr ? ship->escortCount() : uint8_t{}) == 1);
 		OO_CHECK((ship != nullptr ? ship->escorts() : std::vector<oo::EntityHold>()).size() == 1 && (ship != nullptr ? ship->escorts() : std::vector<oo::EntityHold>())[0].get() == wingman && (ship != nullptr ? ship->escortArray() : std::vector<oo::EntityHold>()).size() == 1);
 
-		oo::Ref<OOShipGroup> other = OOShipGroup::groupWithName(std::nullopt);	// held here
+		std::shared_ptr<OOShipGroup> other = OOShipGroup::groupWithName(std::nullopt);	// held here
 		if (ship != nullptr)  ship->setEscortGroup(other.get());
 		OO_CHECK((ship != nullptr ? ship->escortGroup() : (OOShipGroup *)nullptr) == other.get() && other->leader() == ship);
 
-		oo::Ref<OOShipGroup> group = OOShipGroup::groupWithName(std::nullopt);
+		std::shared_ptr<OOShipGroup> group = OOShipGroup::groupWithName(std::nullopt);
 		if (wingman != nullptr)  wingman->setGroup(group.get());
 		OO_CHECK((wingman != nullptr ? wingman->group() : (OOShipGroup *)nullptr) == group.get() && group->containsShip(wingman));
 		if (wingman != nullptr)  wingman->setGroup(nullptr);
@@ -1604,7 +1604,7 @@ OO_TEST(roles)
 		OO_CHECK((ship != nullptr ? ship->hasRole("pirate") : false));
 		if (ship != nullptr)  ship->addRole("hunter", 0.5f);
 		OO_CHECK((ship != nullptr ? ship->hasRole("hunter") : false));
-		const oo::Ref<OORoleSet> roles = ship->getRoleSet();
+		const std::shared_ptr<OORoleSet> roles = ship->getRoleSet();
 		OO_CHECK(roles->hasRole("pirate") && roles->hasRole("hunter") && roles->hasRole("trader") && roles->hasRole("[cobra3-trader]"));
 		if (ship != nullptr)  ship->removeRole("pirate");
 		OO_CHECK(!(ship != nullptr ? ship->hasRole("pirate") : false) && (ship != nullptr ? ship->hasRole("hunter") : false));
@@ -1731,15 +1731,15 @@ OO_TEST(crewAndAI)
 	{
 		SetUp();
 		TestShip *ship = FlyingShip("crewed");
-		OO_CHECK(!(ship != nullptr ? ship->getCrew() : std::optional<std::vector<oo::Ref<OOCharacter>>>()).has_value() && (ship != nullptr ? ship->crewForScripting() : std::vector<oo::PList>()).empty());
-		if (ship != nullptr)  ship->setCrew(std::vector<oo::Ref<OOCharacter>>{});
-		OO_CHECK((ship != nullptr ? ship->getCrew() : std::optional<std::vector<oo::Ref<OOCharacter>>>()).has_value() && (ship != nullptr ? ship->getCrew() : std::optional<std::vector<oo::Ref<OOCharacter>>>())->empty());
+		OO_CHECK(!(ship != nullptr ? ship->getCrew() : std::optional<std::vector<std::shared_ptr<OOCharacter>>>()).has_value() && (ship != nullptr ? ship->crewForScripting() : std::vector<oo::PList>()).empty());
+		if (ship != nullptr)  ship->setCrew(std::vector<std::shared_ptr<OOCharacter>>{});
+		OO_CHECK((ship != nullptr ? ship->getCrew() : std::optional<std::vector<std::shared_ptr<OOCharacter>>>()).has_value() && (ship != nullptr ? ship->getCrew() : std::optional<std::vector<std::shared_ptr<OOCharacter>>>())->empty());
 		SetExplicitlyUnpiloted(ship, true);
-		if (ship != nullptr)  ship->setCrew(std::vector<oo::Ref<OOCharacter>>{});	// unpiloted ships have none
-		OO_CHECK(!(ship != nullptr ? ship->getCrew() : std::optional<std::vector<oo::Ref<OOCharacter>>>()).has_value());
+		if (ship != nullptr)  ship->setCrew(std::vector<std::shared_ptr<OOCharacter>>{});	// unpiloted ships have none
+		OO_CHECK(!(ship != nullptr ? ship->getCrew() : std::optional<std::vector<std::shared_ptr<OOCharacter>>>()).has_value());
 
 		OO_CHECK((ship != nullptr ? ship->getAI() : (::AI *)nullptr) == nullptr && !(ship != nullptr ? ship->hasNewAI() : false));
-		oo::Ref<AI> heldAI = oo::makeRef<AI>();
+		std::shared_ptr<AI> heldAI = oo::makeRef<AI>();
 		AI *ai = heldAI.get();
 		if (ship != nullptr)  ship->setAI(ai);
 		OO_CHECK((ship != nullptr ? ship->getAI() : (::AI *)nullptr) == ai);
@@ -2196,7 +2196,7 @@ OO_TEST(slice24IsFriendlyTo)
 		if (other != nullptr)  other->setScanClass(OOScanClass::kNeutral);
 		OO_CHECK(!(ship != nullptr ? ship->isFriendlyTo(other) : false));
 
-		oo::Ref<OOShipGroup> group = OOShipGroup::groupWithName(std::nullopt);	// held here
+		std::shared_ptr<OOShipGroup> group = OOShipGroup::groupWithName(std::nullopt);	// held here
 		if (ship != nullptr)  ship->setGroup(group.get());
 		if (other != nullptr)  other->setGroup(group.get());
 		OO_CHECK((ship != nullptr ? ship->isFriendlyTo(other) : false) && (other != nullptr ? other->isFriendlyTo(ship) : false));
@@ -2574,15 +2574,15 @@ OO_TEST(slice27Colours)
 	{
 		SetUp();
 		TestShip *ship = MakeLateSliceShip("painted");
-		oo::Ref<OOColor>	red = OOColor::redColor();
-		oo::Ref<OOColor>	blue = OOColor::blueColor();
+		std::shared_ptr<OOColor>	red = OOColor::redColor();
+		std::shared_ptr<OOColor>	blue = OOColor::blueColor();
 		if (ship != nullptr)  ship->setLaserColor(red.get());
 		if (ship != nullptr)  ship->setExhaustEmissiveColor(blue.get());
-		OO_CHECK((ship != nullptr ? ship->laserColor() : (OOColor *)nullptr) == red && (ship != nullptr ? ship->exhaustEmissiveColor() : (OOColor *)nullptr) == blue);
+		OO_CHECK((ship != nullptr ? ship->laserColor() : (OOColor *)nullptr) == red.get() && (ship != nullptr ? ship->exhaustEmissiveColor() : (OOColor *)nullptr) == blue.get());
 		// nil is ignored.
 		if (ship != nullptr)  ship->setLaserColor(nullptr);
 		if (ship != nullptr)  ship->setExhaustEmissiveColor(nullptr);
-		OO_CHECK((ship != nullptr ? ship->laserColor() : (OOColor *)nullptr) == red && (ship != nullptr ? ship->exhaustEmissiveColor() : (OOColor *)nullptr) == blue);
+		OO_CHECK((ship != nullptr ? ship->laserColor() : (OOColor *)nullptr) == red.get() && (ship != nullptr ? ship->exhaustEmissiveColor() : (OOColor *)nullptr) == blue.get());
 	}
 }
 

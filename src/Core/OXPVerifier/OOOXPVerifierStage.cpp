@@ -45,11 +45,13 @@ SOFTWARE.
 // Adding a stage to a set of stages: identity, no duplicates, null ignored.
 namespace {
 
-void AddStage(std::vector<oo::Ref<OOOXPVerifierStage>>& stages,
+void AddStage(std::vector<std::shared_ptr<OOOXPVerifierStage>>& stages,
               OOOXPVerifierStage* stage) {
   if (stage == nullptr) return;
-  if (std::find(stages.begin(), stages.end(), stage) == stages.end())
-    stages.emplace_back(stage);
+  if (std::ranges::find(stages, stage, [](const auto& owner) {
+        return owner.get();
+      }) == stages.end())
+    stages.emplace_back(oo::share(stage));
 }
 
 }  // namespace
@@ -110,8 +112,9 @@ bool OOOXPVerifierStage::isDependentOf(OOOXPVerifierStage* stage) {
   if (stage == nullptr) return false;
 
   // Direct dependency check.
-  if (std::find(_dependencies.begin(), _dependencies.end(), stage) !=
-      _dependencies.end())
+  if (std::ranges::find(_dependencies, stage, [](const auto& owner) {
+        return owner.get();
+      }) != _dependencies.end())
     return true;
 
   // Recursive dependency check.
@@ -169,12 +172,12 @@ void OOOXPVerifierStage::dependencyRegistrationComplete() {
   _canRun = _incompleteDependencies.empty();
 }
 
-std::vector<oo::Ref<OOOXPVerifierStage>>
+std::vector<std::shared_ptr<OOOXPVerifierStage>>
 OOOXPVerifierStage::resolvedDependencies() {
   return _dependencies;
 }
 
-std::vector<oo::Ref<OOOXPVerifierStage>>
+std::vector<std::shared_ptr<OOOXPVerifierStage>>
 OOOXPVerifierStage::resolvedDependents() {
   return _dependents;
 }
@@ -188,8 +191,9 @@ void OOOXPVerifierStage::registerDepedent(OOOXPVerifierStage* dependent) {
 }
 
 void OOOXPVerifierStage::dependencyCompleted(OOOXPVerifierStage* dependency) {
-  const auto where = std::find(_incompleteDependencies.begin(),
-                               _incompleteDependencies.end(), dependency);
+  const auto where =
+      std::ranges::find(_incompleteDependencies, dependency,
+                        [](const auto& owner) { return owner.get(); });
   if (where != _incompleteDependencies.end())
     _incompleteDependencies.erase(where);
   if (_incompleteDependencies.empty()) _canRun = true;
@@ -198,7 +202,8 @@ void OOOXPVerifierStage::dependencyCompleted(OOOXPVerifierStage* dependency) {
 // -makeObjectsPerformSelector:withObject: over the dependents: each is told
 // once, in the order they registered.
 void OOOXPVerifierStage::notifyDependents() {
-  const std::vector<oo::Ref<OOOXPVerifierStage>> dependents = _dependents;
+  const std::vector<std::shared_ptr<OOOXPVerifierStage>> dependents =
+      _dependents;
   for (const auto& dependent : dependents) {
     dependent->dependencyCompleted(this);
   }

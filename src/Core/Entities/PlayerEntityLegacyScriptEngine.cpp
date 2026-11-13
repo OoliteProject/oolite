@@ -49,7 +49,7 @@ MA 02110-1301, USA.
 #include "OOLegacyScriptWhitelist.h"
 #include "OOLoggingExtended.h"
 #include "OOMusicController.h"
-#include "OOPlanetDrawable.h"  // oo::makeRef<OOPlanetEntity>() destroys its drawables
+#include "OOPlanetDrawable.h"  // oo::makeShared<OOPlanetEntity>() destroys its drawables
 #include "OOPlanetEntity.h"
 #include "OOScript.h"
 #include "OOSound.h"
@@ -403,13 +403,13 @@ static bool sRunningScript = false;
 
 // Return the world scripts that care about -checkScript, by name, in the world
 // scripts' (load) order.
-std::vector<std::pair<std::string, oo::Ref<OOScript>>>
+std::vector<std::pair<std::string, std::shared_ptr<OOScript>>>
 PlayerEntity::getWorldScriptsRequiringTickle() {
   // The cache ivar is PlayerEntity.h's; it is built once per script load.
   if (worldScriptsRequiringTickle.has_value())
     return *worldScriptsRequiringTickle;
 
-  std::vector<std::pair<std::string, oo::Ref<OOScript>>> tickleScripts;
+  std::vector<std::pair<std::string, std::shared_ptr<OOScript>>> tickleScripts;
   for (const auto& entry : worldScripts) {
     if (entry.second != nullptr && entry.second->requiresTickle()) {
       tickleScripts.push_back(entry);
@@ -424,8 +424,8 @@ void PlayerEntity::checkScript() {
   bool wasRunningScript = sRunningScript;
   OOEntityStatus status, restoreStatus;
 
-  const std::vector<std::pair<std::string, oo::Ref<OOScript>>> tickleScripts =
-      getWorldScriptsRequiringTickle();
+  const std::vector<std::pair<std::string, std::shared_ptr<OOScript>>>
+      tickleScripts = getWorldScriptsRequiringTickle();
   if (tickleScripts.empty()) {
     // Quick exit if we only have JS scripts.
     return;
@@ -2459,7 +2459,8 @@ void PlayerEntity::addPlanet(const std::string& planetKey)  // called by name
   ::OOPlanetEntity* planet = nullptr;
   {
     // A new C++ planet.
-    oo::Ref<::OOPlanetEntity> planetRef = oo::makeRef<::OOPlanetEntity>();
+    std::shared_ptr<::OOPlanetEntity> planetRef =
+        oo::makeShared<::OOPlanetEntity>();
     oo::MadeEntity(planetRef);
     planetRef->initFromDictionary(
         dict, true,
@@ -2551,7 +2552,8 @@ void PlayerEntity::addMoon(const std::string& moonKey)  // called by name
   ::OOPlanetEntity* planet = nullptr;
   {
     // A new C++ planet.
-    oo::Ref<::OOPlanetEntity> planetRef = oo::makeRef<::OOPlanetEntity>();
+    std::shared_ptr<::OOPlanetEntity> planetRef =
+        oo::makeShared<::OOPlanetEntity>();
     oo::MadeEntity(planetRef);
     planetRef->initFromDictionary(
         dict, false,
@@ -2979,7 +2981,8 @@ bool PlayerEntity::processSceneString(const std::string& item, Vector off) {
       originalPlanet = (UNIVERSE != nullptr ? UNIVERSE->planet() : nullptr);
     } else {
       // A new C++ planet.
-      oo::Ref<::OOPlanetEntity> planetRef = oo::makeRef<::OOPlanetEntity>();
+      std::shared_ptr<::OOPlanetEntity> planetRef =
+          oo::makeShared<::OOPlanetEntity>();
       oo::MadeEntity(planetRef);
       planetRef->initAsMainPlanetForSystem(info_system_id);
       originalPlanet = planetRef.get();
@@ -2987,7 +2990,8 @@ bool PlayerEntity::processSceneString(const std::string& item, Vector off) {
     // miniatureVersion(): a new C++ planet; null for null.
     ::OOPlanetEntity* doppelganger = nullptr;
     if (originalPlanet != nullptr) {
-      oo::Ref<::OOPlanetEntity> miniature = originalPlanet->miniatureVersion();
+      std::shared_ptr<::OOPlanetEntity> miniature =
+          originalPlanet->miniatureVersion();
       oo::MadeEntity(miniature);
       doppelganger = miniature.get();
     }
@@ -3053,7 +3057,7 @@ bool PlayerEntity::addEqScriptForKey(const std::string& eq_key) {
   oo::PList::Dict properties;
   properties["ship"] = oo::EntityObjectNode(this);
   properties["equipmentKey"] = oo::PList(eq_key);
-  oo::Ref<OOScript> s = OOScript::jsScriptFromFileNamed(
+  std::shared_ptr<OOScript> s = OOScript::jsScriptFromFileNamed(
       *scriptName, oo::PList(std::move(properties)));
   if (s == nullptr) return false;
 

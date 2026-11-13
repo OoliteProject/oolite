@@ -477,7 +477,7 @@ void InitOOJSPlayerShip(JSContext* context, JSValueConst global) {
       JS_NewObjectClass(context, static_cast<int>(sPlayerShipClassID));
   // The slot holds a weak reference to the C++ player, as every entity's JS
   // object's does.
-  OOJSSetCxxPrivate(shipObject, oo::makeRef<OOJSEntityHolder>(player).get());
+  OOJSSetCxxPrivate(shipObject, oo::makeShared<OOJSEntityHolder>(player).get());
   // The player object's property and the player entity each own a reference.
   JS_DefinePropertyValueStr(context, playerObject, "ship",
                             JS_DupValue(context, shipObject),
@@ -1516,7 +1516,7 @@ static JSValue PlayerShipAwardEquipmentToCurrentPylon(OOJS_NATIVE_ARGS) {
 
   PlayerEntity* player = OOPlayerForScripting();
   std::optional<std::string> key;
-  oo::Ref<OOEquipmentType>
+  std::shared_ptr<OOEquipmentType>
       eqType;  // the equipment types are converted (OOEquipmentType)
 
   if (argc > 0) key = JSValueToEquipmentKey(context, OOJS_ARGV[0]);

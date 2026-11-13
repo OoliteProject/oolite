@@ -95,7 +95,7 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(
 
   // A role set without a role string (nil before, which -setObject:forKey:
   // refused) adds no key.
-  const oo::Ref<OORoleSet> roles = getRoleSet();
+  const std::shared_ptr<OORoleSet> roles = getRoleSet();
   if (const std::optional<std::string> roleString =
           (roles != nullptr) ? roles->roleString() : std::nullopt)
     updatedShipInfo[KEY_ROLES] = *roleString;
@@ -236,7 +236,7 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(
           StationEntity::newStationObject(shipKey, mergedPlist)));
     else
       ship = oo::ToShip(oo::AutoreleaseEntity(oo::NewShipObject(
-          oo::makeRef<::ShipEntity>(), shipKey, mergedPlist)));
+          oo::makeShared<::ShipEntity>(), shipKey, mergedPlist)));
 
     // FIXME: restore AI.
     if (ship != nullptr)
@@ -380,7 +380,7 @@ std::size_t GroupIDForGroup(OOShipGroup* group, OOShipSaveContext& context) {
             ships in wormholes all the time (each wormhole would then need a
             persistent context).
     */
-    context.groups.emplace_back(group);
+    context.groups.emplace_back(oo::share(group));
   } else {
     groupID = found->second;
   }
@@ -389,7 +389,7 @@ std::size_t GroupIDForGroup(OOShipGroup* group, OOShipSaveContext& context) {
 }
 
 OOShipGroup* GroupForGroupID(std::size_t groupID, OOShipSaveContext& context) {
-  oo::Ref<OOShipGroup>& group = context.groupsByID[groupID];
+  std::shared_ptr<OOShipGroup>& group = context.groupsByID[groupID];
   if (group == nullptr) {
     group = OOShipGroup::groupWithName(std::nullopt);  // -init
   }

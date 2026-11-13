@@ -36,8 +36,8 @@ OOProfilingStopwatch::OOProfilingStopwatch() {
   _running = true;
 }
 
-oo::Ref<OOProfilingStopwatch> OOProfilingStopwatch::stopwatch() {
-  return oo::makeRef<OOProfilingStopwatch>();
+std::shared_ptr<OOProfilingStopwatch> OOProfilingStopwatch::stopwatch() {
+  return oo::makeShared<OOProfilingStopwatch>();
 }
 
 OOProfilingStopwatch::~OOProfilingStopwatch() {

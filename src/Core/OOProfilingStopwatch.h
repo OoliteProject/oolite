@@ -120,7 +120,7 @@ class OOProfilingStopwatch : public oo::RefCounted {
   OOProfilingStopwatch();
   ~OOProfilingStopwatch() override;
 
-  static oo::Ref<OOProfilingStopwatch>
+  static std::shared_ptr<OOProfilingStopwatch>
   stopwatch();  // New stopwatch is initially started.
 
   void start();

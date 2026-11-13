@@ -66,7 +66,7 @@ OOJavaScriptEngine* OOJavaScriptEngine::sharedEngine() {
 // OOJSFunction (src/Core/Scripting/OOJSFunction.h): the members the matcher
 // calls, defined here in place of OOJSFunction.mm. The function is compiled
 // as a function expression in the global scope, as OOJSFunction.mm does.
-oo::Ref<OOJSFunction> OOJSFunction::initWithName(
+std::shared_ptr<OOJSFunction> OOJSFunction::initWithName(
     const std::optional<std::string>& name, JSValueConst scope,
     const std::optional<std::string>& code, std::size_t argCount,
     const char** argNames, const std::optional<std::string>& fileName,
@@ -86,7 +86,7 @@ oo::Ref<OOJSFunction> OOJSFunction::initWithName(
     JS_FreeValue(context, JS_GetException(context));
     return nullptr;
   }
-  oo::Ref<OOJSFunction> result = oo::adopt(new OOJSFunction(function, context));
+  std::shared_ptr<OOJSFunction> result = oo::adopt(new OOJSFunction(function, context));
   JS_FreeValue(context, function);
   return result;
 }
@@ -115,9 +115,9 @@ bool OOJSFunction::evaluateWithContext(JSContext* context, JSValueConst jsThis,
 
 // The held value (OOJSEngineCore.h; a C++ class): the members the matcher
 // calls, defined here with the stand-in's answers.
-oo::Ref<OOJSValue> OOJSValue::valueWithJSValue(JSValueConst value,
+std::shared_ptr<OOJSValue> OOJSValue::valueWithJSValue(JSValueConst value,
                                                JSContext* context) {
-  oo::Ref<OOJSValue> result = oo::makeRef<OOJSValue>();
+  std::shared_ptr<OOJSValue> result = oo::makeRef<OOJSValue>();
   sRegExpsMade++;
   result->_val = JS_DupValue(context, value);  // owned
   return result;
@@ -154,7 +154,7 @@ namespace {
 
 bool Matches(const std::string& string, const std::string& regExp,
              OORegExpFlags flags = {}) {
-  oo::Ref<OORegExpMatcher> matcher = OORegExpMatcher::regExpMatcher();
+  std::shared_ptr<OORegExpMatcher> matcher = OORegExpMatcher::regExpMatcher();
   return matcher != nullptr && matcher->string(string, regExp, flags);
 }
 
@@ -185,7 +185,7 @@ OO_TEST(emptyPatternMatchesNothing) {
 }
 
 OO_TEST(regExpIsCachedByPatternAndFlags) {
-  oo::Ref<OORegExpMatcher> matcher = OORegExpMatcher::regExpMatcher();
+  std::shared_ptr<OORegExpMatcher> matcher = OORegExpMatcher::regExpMatcher();
   unsigned made = sRegExpsMade;
   OO_CHECK(matcher->string("abc", "c$", OORegExpFlags::kNone));
   OO_CHECK(sRegExpsMade == made + 1);
@@ -203,7 +203,7 @@ OO_TEST(matchersHeldAcrossMatches) {
   unsigned made = sFunctionsMade;
   unsigned engineCalls = sEngineCalls;
   {
-    oo::Ref<OORegExpMatcher> first = OORegExpMatcher::regExpMatcher();
+    std::shared_ptr<OORegExpMatcher> first = OORegExpMatcher::regExpMatcher();
     OO_CHECK(first != nullptr);
     OO_CHECK(OORegExpMatcher::regExpMatcher() == first);
     OO_CHECK(Matches("x", "x"));
@@ -229,7 +229,7 @@ OO_TEST(failedInitGivesNilAndRetries) {
 }
 
 OO_TEST(cxxMatches) {
-  oo::Ref<OORegExpMatcher> matcher = OORegExpMatcher::regExpMatcher();
+  std::shared_ptr<OORegExpMatcher> matcher = OORegExpMatcher::regExpMatcher();
   OO_CHECK(matcher != nullptr);
   OO_CHECK(matcher->string("GeForce GTX 1080", "^GeForce GTX [0-9]+$"));
   OO_CHECK(!matcher->string("geforce", "GeForce"));
@@ -241,7 +241,7 @@ OO_TEST(cxxMatches) {
 OO_TEST(cxxOneMatcherWhileHeld) {
   unsigned made = sFunctionsMade;
   {
-    oo::Ref<OORegExpMatcher> first = OORegExpMatcher::regExpMatcher();
+    std::shared_ptr<OORegExpMatcher> first = OORegExpMatcher::regExpMatcher();
     OO_CHECK(OORegExpMatcher::regExpMatcher() == first);
     OO_CHECK(sFunctionsMade == made + 1);
   }

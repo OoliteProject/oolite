@@ -55,7 +55,7 @@ class OOSoundSource : public oo::RefCounted, public ::OOSoundChannelDelegate {
   explicit OOSoundSource(OOSound* inSound);  // was -initWithSound:
   ~OOSoundSource() override;
 
-  static oo::Ref<OOSoundSource> sourceWithSound(OOSound* inSound);
+  static std::shared_ptr<OOSoundSource> sourceWithSound(OOSound* inSound);
 
   // These options should be set before playing. Effect of setting them while
   // playing is undefined.
@@ -109,7 +109,7 @@ class OOSoundSource : public oo::RefCounted, public ::OOSoundChannelDelegate {
   std::optional<std::string> descriptionComponents() const;
 
  private:
-  oo::Ref<OOSound> _sound;  // retained
+  std::shared_ptr<OOSound> _sound;  // retained
   ::OOSoundChannel* _channel =
       {};  // borrowed from the mixer, not retained, as before
   bool _loop = {};

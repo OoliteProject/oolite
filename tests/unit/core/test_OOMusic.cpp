@@ -57,7 +57,7 @@ class TestDecoder final : public OOALSoundDecoder {
 };
 }  // namespace
 
-oo::Ref<OOALSoundDecoder> OOALSoundDecoder::initWithPath(
+std::shared_ptr<OOALSoundDecoder> OOALSoundDecoder::initWithPath(
     const std::optional<std::string>& inPath) {
   if (!inPath.has_value() || *inPath == "missing.ogg") return nullptr;
   return oo::makeRef<TestDecoder>(*inPath);
@@ -78,9 +78,9 @@ static int gLiveSounds = 0;
 
 // The buffered sound: a C++ stand-in (the members the cluster and the root
 // call). Counts the live ones.
-oo::Ref<OOALBufferedSound> OOALBufferedSound::initWithDecoder(
+std::shared_ptr<OOALBufferedSound> OOALBufferedSound::initWithDecoder(
     OOALSoundDecoder* inDecoder) {
-  oo::Ref<OOALBufferedSound> sound = oo::adopt(new OOALBufferedSound);
+  std::shared_ptr<OOALBufferedSound> sound = oo::adopt(new OOALBufferedSound);
   sound->_name = inDecoder->name();
   gLiveSounds++;
   return sound;
@@ -95,7 +95,7 @@ ALuint OOALBufferedSound::soundBuffer() {
 }
 
 // The streamed sound: a C++ stand-in. It refuses every decoder.
-oo::Ref<OOALStreamedSound> OOALStreamedSound::initWithDecoder(
+std::shared_ptr<OOALStreamedSound> OOALStreamedSound::initWithDecoder(
     OOALSoundDecoder* inDecoder) {
   (void)inDecoder;
   return nullptr;
@@ -128,13 +128,13 @@ bool OOSoundChannel::playSound(OOSound* sound, bool loop) {
       "play " +
       ((sound != nullptr) ? sound->name() : std::nullopt).value_or("(none)") +
       (loop ? " looped" : ""));
-  _sound = oo::Ref<OOSound>(sound);  // [sound retain]
+  _sound = oo::share(sound);  // [sound retain]
   return true;
 }
 
 void OOSoundChannel::stop() {
   gChannelLog.push_back("stop");
-  oo::Ref<OOSound> sound = std::move(
+  std::shared_ptr<OOSound> sound = std::move(
       _sound);  // _sound = nil; [sound release] at the end of the scope
   if (_delegate != nullptr) _delegate->channel(this, sound.get());
 }
@@ -192,7 +192,7 @@ std::vector<std::string> TakeChannelLog() {
 OO_TEST(noSourceBeforeTheFirstPlay) {
   SetUp();
   {
-    oo::Ref<OOMusic> music =
+    std::shared_ptr<OOMusic> music =
         OOMusic::initWithContentsOfFile(std::string("theme.ogg"));
     OO_CHECK(music != nullptr);
     OO_CHECK(music->musicSoundSource() == nullptr);
@@ -208,7 +208,7 @@ OO_TEST(noSourceBeforeTheFirstPlay) {
 OO_TEST(wrapsTheClustersSound) {
   SetUp();
   {
-    oo::Ref<OOMusic> music =
+    std::shared_ptr<OOMusic> music =
         OOMusic::initWithContentsOfFile(std::string("theme.ogg"));
     OO_CHECK(music.get() != nullptr);
     OO_CHECK(music->name() == std::optional<std::string>("theme.ogg"));
@@ -226,7 +226,7 @@ OO_TEST(playsThroughTheSharedSource) {
   SetUp();
   TakeChannelLog();
   {
-    oo::Ref<OOMusic> theme =
+    std::shared_ptr<OOMusic> theme =
         OOMusic::initWithContentsOfFile(std::string("theme.ogg"));
     theme->playLooped(true);
     OO_CHECK(
@@ -244,7 +244,7 @@ OO_TEST(playsThroughTheSharedSource) {
     OO_CHECK((TakeChannelLog() == std::vector<std::string>{"gain 0.250000"}));
 
     // Another music takes the source; the first is no longer playing.
-    oo::Ref<OOMusic> docked =
+    std::shared_ptr<OOMusic> docked =
         OOMusic::initWithContentsOfFile(std::string("docked.ogg"));
     OO_CHECK(!docked->isPlaying());
     docked->playLooped(false);
@@ -276,7 +276,7 @@ OO_TEST(releasedWhilePlaying) {
   TakeChannelLog();
   OOSoundSource* source = nullptr;
   {
-    oo::Ref<OOMusic> music =
+    std::shared_ptr<OOMusic> music =
         OOMusic::initWithContentsOfFile(std::string("theme.ogg"));
     music->playLooped(true);
     source = music->musicSoundSource();
@@ -296,7 +296,7 @@ OO_TEST(cxxApi) {
   TakeChannelLog();
   {
     OO_CHECK(!OOMusic::initWithContentsOfFile(std::string("missing.ogg")));
-    const oo::Ref<OOMusic> music =
+    const std::shared_ptr<OOMusic> music =
         OOMusic::initWithContentsOfFile(std::string("theme.ogg"));
     OO_CHECK(music && music->name() == std::optional<std::string>("theme.ogg"));
     OO_CHECK(!music->isPlaying() &&

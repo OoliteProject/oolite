@@ -66,12 +66,12 @@ class TestTexture final : public OOTexture {
 
 void OOTexture::applyNone() { gTextureApplyNones++; }
 
-oo::Ref<OOTexture> OOTexture::textureWithConfiguration(
+std::shared_ptr<OOTexture> OOTexture::textureWithConfiguration(
     const oo::PList& configuration) {
   gTextureConfigurations.push_back(configuration);
   if (configuration.isNull() || configuration == oo::PList("missing"))
     return nullptr;
-  oo::Ref<TestTexture> texture = oo::makeRef<TestTexture>();
+  std::shared_ptr<TestTexture> texture = oo::makeRef<TestTexture>();
   texture->_configuration = configuration;
   return texture;
 }
@@ -151,7 +151,7 @@ TestTexture* MakeTexture() {
       OOTexture::textureWithConfiguration(oo::PList("hull.png"))));
 }
 
-oo::Ref<OOSingleTextureMaterial> Make(
+std::shared_ptr<OOSingleTextureMaterial> Make(
     const std::optional<std::string>& name, OOTexture* texture,
     const oo::PList& configuration = oo::PList()) {
   return OOSingleTextureMaterial::materialWithName(name, texture,
@@ -177,7 +177,7 @@ OO_TEST(initWithTexture) {
   {
     oo::AutoreleaseScope pool;
     TestTexture* texture = MakeTexture();
-    const oo::Ref<OOSingleTextureMaterial> m = Make(
+    const std::shared_ptr<OOSingleTextureMaterial> m = Make(
         std::string("Hull"), texture,
         oo::PList(oo::PList::Dict{{"diffuse_color", oo::PList("redColor")}}));
     OO_CHECK(m != nullptr && m->name() == std::optional<std::string>("Hull"));
@@ -187,7 +187,7 @@ OO_TEST(initWithTexture) {
         Same(c, {1, 0, 0, 1}));  // the configuration reached the basic material
     OO_CHECK(m->shininess() == 10);
 #ifndef NDEBUG
-    const std::vector<oo::Ref<OOTexture>> textures = m->allTextures();
+    const std::vector<std::shared_ptr<OOTexture>> textures = m->allTextures();
     OO_CHECK(textures.size() == 1 && textures[0].get() == texture);
 #endif
 
@@ -203,7 +203,7 @@ OO_TEST(initWithConfiguration) {
     // A configuration: the texture is the diffuse_map's specifier, with the
     // name as its default.
     gTextureConfigurations.clear();
-    oo::Ref<OOSingleTextureMaterial> m =
+    std::shared_ptr<OOSingleTextureMaterial> m =
         OOSingleTextureMaterial::materialWithName(
             std::string("Hull"),
             oo::PList(oo::PList::Dict{
@@ -248,7 +248,7 @@ OO_TEST(initWithConfiguration) {
 
 OO_TEST(textureKeptForTheMaterialsLife) {
   const int deallocated = gTexturesDeallocated;
-  oo::Ref<OOSingleTextureMaterial> m;
+  std::shared_ptr<OOSingleTextureMaterial> m;
   {
     oo::AutoreleaseScope pool;
     m = Make(std::string("Kept"), MakeTexture());
@@ -262,7 +262,7 @@ OO_TEST(texturesQuestions) {
   {
     oo::AutoreleaseScope pool;
     TestTexture* texture = MakeTexture();
-    const oo::Ref<OOSingleTextureMaterial> m =
+    const std::shared_ptr<OOSingleTextureMaterial> m =
         Make(std::string("Asks"), texture);
     OO_CHECK(!m->isFinishedLoading() && !m->wantsNormalsAsTextureCoordinates());
     texture->_finished = true;
@@ -286,7 +286,7 @@ OO_TEST(doApply) {
   {
     oo::AutoreleaseScope pool;
     TestTexture* texture = MakeTexture();
-    const oo::Ref<OOSingleTextureMaterial> m =
+    const std::shared_ptr<OOSingleTextureMaterial> m =
         Make(std::string("Applied"), texture);
     m->setDiffuseRed(0.5f, 0.25f, 0.125f, 1);
     const int applyNones = gTextureApplyNones;
@@ -311,7 +311,7 @@ OO_TEST(unapplyWithNext) {
   }
   {
     oo::AutoreleaseScope pool;
-    const oo::Ref<OOSingleTextureMaterial> m =
+    const std::shared_ptr<OOSingleTextureMaterial> m =
         Make(std::string("Current"), MakeTexture());
     m->setDiffuseRed(0.5f, 0.25f, 0.125f, 1);
     m->doApply();
@@ -358,7 +358,7 @@ OO_TEST(cxxAPI) {
   {
     oo::AutoreleaseScope pool;
     TestTexture* texture = MakeTexture();
-    const oo::Ref<OOSingleTextureMaterial> m =
+    const std::shared_ptr<OOSingleTextureMaterial> m =
         OOSingleTextureMaterial::materialWithName(std::string("Cxx"), texture,
                                                   oo::PList());
     OO_CHECK(m != nullptr && m->name() == std::optional<std::string>("Cxx") &&
@@ -398,7 +398,7 @@ OO_TEST(cxxAPI) {
 OO_TEST(nameAndDescription) {
   {
     oo::AutoreleaseScope pool;
-    const oo::Ref<OOSingleTextureMaterial> m =
+    const std::shared_ptr<OOSingleTextureMaterial> m =
         OOSingleTextureMaterial::materialWithName(std::string("Cxx"),
                                                   MakeTexture(), oo::PList());
     OO_CHECK(m->name() == std::optional<std::string>("Cxx"));

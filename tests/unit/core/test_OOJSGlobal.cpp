@@ -57,7 +57,7 @@ public:
 	OOGalaxyID _galaxy = {};
 	OOGUIScreenID _screen = {};
 	std::string _lastKeys;
-	oo::Ref<OOJSGuiScreenKeyDefinition> _definition;
+	std::shared_ptr<OOJSGuiScreenKeyDefinition> _definition;
 	oo::PList _equipBackground;
 };
 
@@ -135,12 +135,12 @@ public:
 namespace {
 PlayerEntity *sPlayer = nullptr;
 Universe *sUniverse = nullptr;
-oo::Ref<GuiDisplayGen> sGui;
+std::shared_ptr<GuiDisplayGen> sGui;
 // The GUI stand-in's state: a texture descriptor from JS is {name: <string>}; the backgrounds and
 // colours it holds (the facade stand-in's ivars).
 oo::PList sGuiBackground;
 oo::PList sGuiForeground;
-std::map<std::string, oo::Ref<OOColor>> sGuiColors;
+std::map<std::string, std::shared_ptr<OOColor>> sGuiColors;
 }  // namespace
 
 OOGalaxyID PlayerEntity::currentGalaxyID()  { return _galaxy; }
@@ -158,7 +158,7 @@ void PlayerEntity::setEquipScreenBackgroundDescriptor(const oo::PList &descripto
 bool PlayerEntity::setExtraGuiScreenKeys(OOGUIScreenID gui, ::OOJSGuiScreenKeyDefinition *definition)
 {
 	_lastKeys = "set " + std::to_string(static_cast<int>(gui)) + " " + definition->name().value_or("(none)") + " " + oo::DescriptionOf(definition->registerKeys());
-	_definition = oo::Ref<OOJSGuiScreenKeyDefinition>(definition);
+	_definition = oo::share(definition);
 	return gui != OOGUIScreenID::kShipyard;	// the player refuses the shipyard here
 }
 
@@ -219,13 +219,13 @@ bool GuiDisplayGen::setForegroundTextureDescriptor(const oo::PList &descriptor) 
 std::shared_ptr<OOColor> GuiDisplayGen::colorFromSetting(const std::optional<std::string> &setting, OOColor *def)
 {
 	auto found = sGuiColors.find(setting.value_or(""));
-	return found != sGuiColors.end() ? found->second : oo::Ref<OOColor>(def);
+	return found != sGuiColors.end() ? found->second : oo::share(def);
 }
 
 void GuiDisplayGen::setGuiColorSettingFromKey(const std::string &key, OOColor *col)
 {
 	if (col == nullptr)  sGuiColors.erase(key);
-	else  sGuiColors[key] = oo::Ref<OOColor>(col);
+	else  sGuiColors[key] = oo::share(col);
 }
 
 // The GUI's virtual members the binding does not call (its vtable needs them): never run.
@@ -300,14 +300,14 @@ class OOJSScript : public OOScript
 {
 public:
 	static OOJSScript *currentlyRunningScript();
-	static void pushScript(const oo::WeakRef<OOJSScript> &script);
+	static void pushScript(const std::weak_ptr<OOJSScript> &script);
 	static void popScript(OOJSScript *script);
 };
 
 OOJSScript *OOJSScript::currentlyRunningScript()  { return nullptr; }
 // The GUI-screen key definition linked here pushes its owner when its callback runs, which no case does
 // (the class methods were never sent; as C++ statics they must be defined).
-void OOJSScript::pushScript(const oo::WeakRef<OOJSScript> &)  { std::abort(); }
+void OOJSScript::pushScript(const std::weak_ptr<OOJSScript> &)  { std::abort(); }
 void OOJSScript::popScript(OOJSScript *)  { std::abort(); }
 
 

@@ -57,7 +57,7 @@ class OOALBufferedSound : public OOSound {
      answered nil (sound not OK, no decoder, or the decoder could not read the
      sound).
   */
-  static oo::Ref<OOALBufferedSound> initWithDecoder(
+  static std::shared_ptr<OOALBufferedSound> initWithDecoder(
       OOALSoundDecoder* inDecoder);
 
   ~OOALBufferedSound() override;

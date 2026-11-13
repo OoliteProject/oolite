@@ -43,9 +43,9 @@ SOFTWARE.
 #include "oofnd/String.hpp"
 
 namespace {
-std::vector<oo::Ref<OOEquipmentType>> sEquipmentTypes;
-std::vector<oo::Ref<OOEquipmentType>> sEquipmentTypesOutfitting;
-std::map<std::string, oo::Ref<OOEquipmentType>, std::less<>>
+std::vector<std::shared_ptr<OOEquipmentType>> sEquipmentTypes;
+std::vector<std::shared_ptr<OOEquipmentType>> sEquipmentTypesOutfitting;
+std::map<std::string, std::shared_ptr<OOEquipmentType>, std::less<>>
     sEquipmentTypesByIdentifier;
 std::map<std::string, std::string, std::less<>>
     sMissilesRegistry;  // ship key -> missile role
@@ -111,13 +111,14 @@ std::optional<std::vector<std::string>> EquipmentKeysFrom(
 }  // namespace
 
 void OOEquipmentType::loadEquipment() {
-  std::vector<oo::Ref<OOEquipmentType>> equipmentTypes;
+  std::vector<std::shared_ptr<OOEquipmentType>> equipmentTypes;
   std::vector<std::string> conditionScripts;  // first-seen order
-  std::map<std::string, oo::Ref<OOEquipmentType>, std::less<>> byIdentifier;
+  std::map<std::string, std::shared_ptr<OOEquipmentType>, std::less<>>
+      byIdentifier;
 
   for (const oo::PList& itemInfo : EquipmentItems((
            UNIVERSE != nullptr ? UNIVERSE->getEquipmentData() : oo::PList()))) {
-    oo::Ref<OOEquipmentType> item = createWithInfo(itemInfo);
+    std::shared_ptr<OOEquipmentType> item = createWithInfo(itemInfo);
     if (item != nullptr) {
       equipmentTypes.emplace_back(item);
       byIdentifier[*item->identifier()] = item;
@@ -147,7 +148,7 @@ void OOEquipmentType::loadEquipment() {
   for (const oo::PList& itemInfo : EquipmentItems(
            (UNIVERSE != nullptr ? UNIVERSE->getEquipmentDataOutfitting()
                                 : oo::PList()))) {
-    oo::Ref<OOEquipmentType> item = createWithInfo(itemInfo);
+    std::shared_ptr<OOEquipmentType> item = createWithInfo(itemInfo);
     if (item != nullptr) {
       equipmentTypes.emplace_back(item);
     }
@@ -156,7 +157,7 @@ void OOEquipmentType::loadEquipment() {
 }
 
 void OOEquipmentType::addEquipmentWithInfo(const oo::PList& itemInfo) {
-  oo::Ref<OOEquipmentType> item = createWithInfo(itemInfo);
+  std::shared_ptr<OOEquipmentType> item = createWithInfo(itemInfo);
   if (item != nullptr) {
     sEquipmentTypes.emplace_back(item);
     sEquipmentTypesOutfitting.emplace_back(item);
@@ -180,16 +181,17 @@ void OOEquipmentType::setMissileRegistryRole(const std::string& role,
   }
 }
 
-std::vector<oo::Ref<OOEquipmentType>> OOEquipmentType::allEquipmentTypes() {
+std::vector<std::shared_ptr<OOEquipmentType>>
+OOEquipmentType::allEquipmentTypes() {
   return sEquipmentTypes;
 }
 
-std::vector<oo::Ref<OOEquipmentType>>
+std::vector<std::shared_ptr<OOEquipmentType>>
 OOEquipmentType::allEquipmentTypesOutfitting() {
   return sEquipmentTypesOutfitting;
 }
 
-oo::Ref<OOEquipmentType> OOEquipmentType::equipmentTypeWithIdentifier(
+std::shared_ptr<OOEquipmentType> OOEquipmentType::equipmentTypeWithIdentifier(
     const std::string& identifier) {
   const auto entry = sEquipmentTypesByIdentifier.find(identifier);
   return (entry != sEquipmentTypesByIdentifier.end()) ? entry->second : nullptr;
@@ -197,9 +199,9 @@ oo::Ref<OOEquipmentType> OOEquipmentType::equipmentTypeWithIdentifier(
 
 // -initWithInfo: on a new object: nullptr where it failed (released self and
 // returned nil).
-oo::Ref<OOEquipmentType> OOEquipmentType::createWithInfo(
+std::shared_ptr<OOEquipmentType> OOEquipmentType::createWithInfo(
     const oo::PList& info) {
-  oo::Ref<OOEquipmentType> item = oo::adopt(new OOEquipmentType);
+  std::shared_ptr<OOEquipmentType> item = oo::adopt(new OOEquipmentType);
   if (!item->initWithInfo(info)) return nullptr;
   return item;
 }
@@ -368,7 +370,7 @@ bool OOEquipmentType::initWithInfo(const oo::PList& info) {
       if (_script.has_value()) {
         // (the loaded script, which nothing keeps, lived until the pool
         // drained)
-        oo::Ref<OOScript> loaded =
+        std::shared_ptr<OOScript> loaded =
             OOScript::jsScriptFromFileNamed(*_script, oo::PList());
         if (loaded == nullptr) _script.reset();
         OOScriptAutorelease(std::move(loaded));

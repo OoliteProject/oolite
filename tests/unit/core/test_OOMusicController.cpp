@@ -56,9 +56,9 @@ std::optional<std::string> OOSound::descriptionComponents() const {
 
 // The music: this file's C++ stand-in for OOMusic (OOALMusic.mm is not linked;
 // not linked).
-oo::Ref<OOMusic> OOMusic::initWithContentsOfFile(
+std::shared_ptr<OOMusic> OOMusic::initWithContentsOfFile(
     const std::optional<std::string>& inPath) {
-  oo::Ref<OOMusic> self = oo::adopt(new OOMusic);
+  std::shared_ptr<OOMusic> self = oo::adopt(new OOMusic);
   gLiveMusics++;
   gMusics[self.get()]._name = inPath.value_or(std::string());
   return self;
@@ -96,7 +96,7 @@ bool OOMusic::isPlaying() { return gMusics[this]._playing; }
 
 // The resource manager: each name is a new music (as a cache miss is), from the
 // "Music" folder.
-oo::Ref<OOMusic> ResourceManager::ooMusicNamed(
+std::shared_ptr<OOMusic> ResourceManager::ooMusicNamed(
     const std::string& fileName, const std::optional<std::string>& folderName) {
   if (fileName == "missing.ogg" ||
       folderName != std::optional<std::string>("Music"))

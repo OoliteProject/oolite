@@ -39,7 +39,7 @@ void OOLogGenericSubclassResponsibilityForFunction(const char* inFunction) {
 
 // The decoder the root's cluster asks for: none, for every path (a C++
 // stand-in).
-oo::Ref<OOALSoundDecoder> OOALSoundDecoder::initWithPath(
+std::shared_ptr<OOALSoundDecoder> OOALSoundDecoder::initWithPath(
     const std::optional<std::string>& inPath) {
   (void)inPath;
   return nullptr;
@@ -47,7 +47,7 @@ oo::Ref<OOALSoundDecoder> OOALSoundDecoder::initWithPath(
 
 // The buffered sound the root's cluster names: a C++ stand-in. The decoder
 // above refuses every path, so none is made.
-oo::Ref<OOALBufferedSound> OOALBufferedSound::initWithDecoder(
+std::shared_ptr<OOALBufferedSound> OOALBufferedSound::initWithDecoder(
     OOALSoundDecoder* inDecoder) {
   (void)inDecoder;
   return nullptr;
@@ -58,7 +58,7 @@ ALuint OOALBufferedSound::soundBuffer() { return 0; }
 
 // The streamed sound the root's cluster names: a C++ stand-in. None is made
 // here.
-oo::Ref<OOALStreamedSound> OOALStreamedSound::initWithDecoder(
+std::shared_ptr<OOALStreamedSound> OOALStreamedSound::initWithDecoder(
     OOALSoundDecoder* inDecoder) {
   (void)inDecoder;
   return nullptr;

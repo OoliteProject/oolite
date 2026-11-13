@@ -64,7 +64,7 @@ class OOExhaustPlumeEntity : public Entity, public cxx::OOSubEntityInterface {
  public:
   // definition: the exhaust's tokens (x y z scale_x scale_y scale_z), read as
   // -oo_floatAtIndex: read them. A new plume, initialised; null for no tokens.
-  static oo::Ref<OOExhaustPlumeEntity> exhaustForShip(
+  static std::shared_ptr<OOExhaustPlumeEntity> exhaustForShip(
       ::ShipEntity* ship, const std::vector<std::string>& definition,
       float scale);
   // The initialiser's body, run once right after

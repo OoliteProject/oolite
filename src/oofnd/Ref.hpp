@@ -503,6 +503,22 @@ void release(T* object) noexcept {
   if (object != nullptr) object->release();
 }
 
+// A shared owner turned into a manual +1 (Ref::leakRef's std::shared_ptr form):
+// the object is retained and the pointer emptied. Returns the object.
+template <class T>
+  requires std::is_base_of_v<RefCounted, std::remove_const_t<T>>
+[[nodiscard]] T* leakRef(std::shared_ptr<T>& owner) noexcept {
+  T* object = retain(owner.get());
+  owner.reset();
+  return object;
+}
+
+template <class T>
+  requires std::is_base_of_v<RefCounted, std::remove_const_t<T>>
+[[nodiscard]] T* leakRef(std::shared_ptr<T>&& owner) noexcept {
+  return leakRef(owner);
+}
+
 // [object autorelease]: hands the caller's +1 to the innermost AutoreleaseScope
 // on this thread, which releases it when it drains. Null-safe. Returns object.
 // With no scope the +1 is kept forever and counted.

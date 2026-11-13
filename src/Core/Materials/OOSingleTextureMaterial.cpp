@@ -30,19 +30,21 @@ SOFTWARE.
 #include "OOFunctionAttributes.h"
 #include "OOTexture.h"
 
-oo::Ref<OOSingleTextureMaterial> OOSingleTextureMaterial::materialWithName(
+std::shared_ptr<OOSingleTextureMaterial>
+OOSingleTextureMaterial::materialWithName(
     const std::optional<std::string>& name, const oo::PList& configuration) {
-  oo::Ref<OOSingleTextureMaterial> result =
-      oo::makeRef<OOSingleTextureMaterial>();
+  std::shared_ptr<OOSingleTextureMaterial> result =
+      oo::makeShared<OOSingleTextureMaterial>();
   if (!result->initWithName(name, configuration)) return nullptr;
   return result;
 }
 
-oo::Ref<OOSingleTextureMaterial> OOSingleTextureMaterial::materialWithName(
+std::shared_ptr<OOSingleTextureMaterial>
+OOSingleTextureMaterial::materialWithName(
     const std::optional<std::string>& name, OOTexture* texture,
     const oo::PList& configuration) {
-  oo::Ref<OOSingleTextureMaterial> result =
-      oo::makeRef<OOSingleTextureMaterial>();
+  std::shared_ptr<OOSingleTextureMaterial> result =
+      oo::makeShared<OOSingleTextureMaterial>();
   if (!result->initWithName(name, texture, configuration)) return nullptr;
   return result;
 }
@@ -69,7 +71,7 @@ bool OOSingleTextureMaterial::initWithName(
     const oo::PList& configuration) {
   if (name.has_value() && texture != nullptr) {
     OOBasicMaterial::initWithName(name, configuration);
-    _texture = oo::Ref<OOTexture>(texture);
+    _texture = oo::share(texture);
   } else {
     return false;  // DESTROY(self): the factory drops the object
   }
@@ -111,9 +113,9 @@ bool OOSingleTextureMaterial::wantsNormalsAsTextureCoordinates() {
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::Ref<OOTexture>> OOSingleTextureMaterial::allTextures() {
-  std::vector<oo::Ref<OOTexture>> result;
-  result.emplace_back(_texture.get());
+std::vector<std::shared_ptr<OOTexture>> OOSingleTextureMaterial::allTextures() {
+  std::vector<std::shared_ptr<OOTexture>> result;
+  result.emplace_back(_texture);
   return result;
 }
 #endif

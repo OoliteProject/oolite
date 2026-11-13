@@ -132,7 +132,7 @@ void CollisionRegion::addSubregionAtPosition(HPVector pos, GLfloat rad) {
   // no subregion fit - move on...
   //
   if (subregions.empty()) subregions.reserve(32);
-  subregions.push_back(oo::makeRef<CollisionRegion>(pos, rad, this));
+  subregions.push_back(oo::makeShared<CollisionRegion>(pos, rad, this));
 }
 
 // update routines to check if a position is within the radius or within its

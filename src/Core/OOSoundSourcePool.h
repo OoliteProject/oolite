@@ -67,8 +67,8 @@ class OOSoundSourcePool : public oo::RefCounted {
      -initWithCount:minRepeatTime:, which answered nil when the sources could
      not be allocated: null then.
   */
-  static oo::Ref<OOSoundSourcePool> poolWithCount(uint8_t count,
-                                                  OOTimeDelta minRepeat);
+  static std::shared_ptr<OOSoundSourcePool> poolWithCount(
+      uint8_t count, OOTimeDelta minRepeat);
 
   ~OOSoundSourcePool() override;
 

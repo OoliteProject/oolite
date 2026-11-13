@@ -107,7 +107,7 @@ JSContext* gOOJSMainThreadContext = nullptr;
 #include "OOScript.h"
 
 // OOScript's loader.
-oo::Ref<OOScript> OOScript::jsScriptFromFileNamed(const std::string&,
+std::shared_ptr<OOScript> OOScript::jsScriptFromFileNamed(const std::string&,
                                                   const oo::PList&) {
   std::abort();
 }
@@ -133,11 +133,11 @@ std::string Describe(OOCharacter* c) {
          c->species().value_or("-");
 }
 
-std::string Describe(const oo::Ref<OOCharacter>& c) {
+std::string Describe(const std::shared_ptr<OOCharacter>& c) {
   return Describe(c.get());
 }
 
-oo::Ref<OOCharacter> FromDictionary(oo::PList::Dict dict) {
+std::shared_ptr<OOCharacter> FromDictionary(oo::PList::Dict dict) {
   return OOCharacter::characterWithDictionary(oo::PList(std::move(dict)));
 }
 
@@ -168,7 +168,7 @@ OO_TEST(generatedCharacters) {
                       "nobody in particular", 4)),
                   kHuman4 + "|0|125|4|human colonials"));
     Fake();
-    oo::Ref<OOCharacter> pirate = OOCharacter::characterWithRole("pirate", 3);
+    std::shared_ptr<OOCharacter> pirate = OOCharacter::characterWithRole("pirate", 3);
     OO_CHECK(Same(Describe(pirate),
                   "R1 <nom>|<character-generic-description species=human "
                   "colonials planet=System 3>|8|500|3|human colonials"));
@@ -186,7 +186,7 @@ OO_TEST(generatedCharacters) {
         Same(Describe(OOCharacter::randomCharacterWithRole("", 9)),
              "R1 R2|<character-generic-description planet=System 9>|32|0|9|-"));
     Fake();
-    oo::Ref<OOCharacter> nowhere =
+    std::shared_ptr<OOCharacter> nowhere =
         OOCharacter::randomCharacterWithRole("", 200);
     OO_CHECK(Same(Describe(nowhere),
                   "R1 <nom>|<character-generic-description species=human "
@@ -236,7 +236,7 @@ OO_TEST(roles) {
   {
     for (const auto& c : cases) {
       Fake();
-      oo::Ref<OOCharacter> character =
+      std::shared_ptr<OOCharacter> character =
           FromDictionary({{"origin", oo::PList(4)}, {"random_seed", kSeed}});
       OO_CHECK(Same(Describe(character), kHuman4 + "|0|250|4|human colonials"));
       OO_CHECK(character->castInRole(c.role) == c.cast);
@@ -244,7 +244,7 @@ OO_TEST(roles) {
     }
 
     Fake();
-    oo::Ref<OOCharacter> thargoid =
+    std::shared_ptr<OOCharacter> thargoid =
         FromDictionary({{"origin", oo::PList(4)}, {"random_seed", kSeed}});
     OO_CHECK(thargoid->castInRole("thargoid"));
     OO_CHECK(Same(Describe(thargoid),
@@ -297,7 +297,7 @@ OO_TEST(dictionaries) {
     // Everything else overrides the generated character; bounty wins over
     // legal_status.
     Fake();
-    oo::Ref<OOCharacter> c = FromDictionary(
+    std::shared_ptr<OOCharacter> c = FromDictionary(
         {{"origin", oo::PList(4)},
          {"random_seed", kSeed},
          {"role", oo::PList("police")},
@@ -322,7 +322,7 @@ OO_TEST(dictionaries) {
 OO_TEST(scriptingInfoAndSetters) {
   {
     Fake();
-    oo::Ref<OOCharacter> c =
+    std::shared_ptr<OOCharacter> c =
         FromDictionary({{"origin", oo::PList(4)}, {"random_seed", kSeed}});
     OO_CHECK(c->infoForScripting() ==
              oo::PList(oo::PList::Dict{
@@ -346,7 +346,7 @@ OO_TEST(scriptingInfoAndSetters) {
     // The list ended at the first missing value: no species, no description, no
     // name.
     Fake();
-    oo::Ref<OOCharacter> alien = OOCharacter::randomCharacterWithRole("", 9);
+    std::shared_ptr<OOCharacter> alien = OOCharacter::randomCharacterWithRole("", 9);
     OO_CHECK(
         alien->infoForScripting() ==
         oo::PList(oo::PList::Dict{
@@ -375,7 +375,7 @@ OO_TEST(cxxClass) {
                    .get()),
       kHuman4 + "|0|125|4|human colonials"));
   Fake();
-  oo::Ref<OOCharacter> pirate = OOCharacter::characterWithRole("pirate", 3);
+  std::shared_ptr<OOCharacter> pirate = OOCharacter::characterWithRole("pirate", 3);
   OO_CHECK(Same(Describe(pirate.get()),
                 "R1 <nom>|<character-generic-description species=human "
                 "colonials planet=System 3>|8|500|3|human colonials"));
@@ -386,7 +386,7 @@ OO_TEST(cxxClass) {
                 "colonials planet=System 3>|8|500|3|human colonials"));
 
   Fake();
-  oo::Ref<OOCharacter> c = OOCharacter::characterWithDictionary(oo::PList(
+  std::shared_ptr<OOCharacter> c = OOCharacter::characterWithDictionary(oo::PList(
       oo::PList::Dict{{"origin", oo::PList(4)}, {"random_seed", kSeed}}));
   OO_CHECK(Same(Describe(c.get()), kHuman4 + "|0|250|4|human colonials"));
   OO_CHECK(c->castInRole("police"));
@@ -401,7 +401,7 @@ OO_TEST(cxxClass) {
   OO_CHECK(c->infoForScripting().count() == 6);
 
   // [[OOCharacter alloc] init]: every field zero.
-  oo::Ref<OOCharacter> blank = oo::makeRef<OOCharacter>();
+  std::shared_ptr<OOCharacter> blank = oo::makeRef<OOCharacter>();
   OO_CHECK(!blank->name().has_value() &&
            !blank->shortDescription().has_value());
   OO_CHECK(blank->legalStatus() == 0 && blank->insuranceCredits() == 0 &&
@@ -411,19 +411,19 @@ OO_TEST(cxxClass) {
 
 OO_TEST(facadeIdentity) {
   Fake();
-  oo::Ref<OOCharacter> pilot =
+  std::shared_ptr<OOCharacter> pilot =
       FromDictionary({{"origin", oo::PList(4)}, {"random_seed", kSeed}});
 
   // A crew list (oo::Ref) keeps finding the same object.
-  std::vector<oo::Ref<OOCharacter>> crew{pilot};
+  std::vector<std::shared_ptr<OOCharacter>> crew{pilot};
   OO_CHECK(crew[0] == pilot);
 
   // Objects made as +alloc and an initialiser made them.
-  oo::Ref<OOCharacter> blank = oo::makeRef<OOCharacter>();
+  std::shared_ptr<OOCharacter> blank = oo::makeRef<OOCharacter>();
   OO_CHECK(!blank->name().has_value() && blank->legalStatus() == 0 &&
            blank->planetIDOfOrigin() == 0);
   Fake();
-  oo::Ref<OOCharacter> trader = oo::makeRef<OOCharacter>("pirate", 3);
+  std::shared_ptr<OOCharacter> trader = oo::makeRef<OOCharacter>("pirate", 3);
   OO_CHECK(Same(Describe(trader),
                 "R1 <nom>|<character-generic-description species=human "
                 "colonials planet=System 3>|8|500|3|human colonials"));

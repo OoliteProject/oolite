@@ -51,7 +51,7 @@ OO_TEST(factoriesAndComponents) {
       OOColor::colorWithHSBAComponents({240.0f, 1.0f, 1.0f, 1.0f}).get(), 0.0f,
       0.0f, 1.0f, 1.0f));
 
-  oo::Ref<OOColor> c = OOColor::colorWithRed(0.2f, 0.4f, 0.6f, 0.8f);
+  std::shared_ptr<OOColor> c = OOColor::colorWithRed(0.2f, 0.4f, 0.6f, 0.8f);
   float r, g, b, a;
   c->getRed(&r, &g, &b, &a);
   OO_CHECK(Near(r, 0.2f) && Near(g, 0.4f) && Near(b, 0.6f) && Near(a, 0.8f));
@@ -86,7 +86,7 @@ OO_TEST(namedColours) {
 }
 
 OO_TEST(hueSaturationBrightness) {
-  oo::Ref<OOColor> c = OOColor::colorWithRed(0.0f, 0.5f, 1.0f, 0.25f);
+  std::shared_ptr<OOColor> c = OOColor::colorWithRed(0.0f, 0.5f, 1.0f, 0.25f);
   float h, s, b, a;
   c->getHue(&h, &s, &b, &a);
   OO_CHECK(Near(h, c->hueComponent()) && Near(s, c->saturationComponent()) &&
@@ -156,17 +156,17 @@ OO_TEST(colorWithDescription) {
 
   // The saturation factor: applied to any description, and to a HSB
   // dictionary's own saturation.
-  oo::Ref<OOColor> desaturated =
+  std::shared_ptr<OOColor> desaturated =
       OOColor::colorWithDescription(oo::PList(std::string("redColor")), 0.5f);
   OO_CHECK(Near(desaturated->saturationComponent(), 0.5f) &&
            Near(desaturated->brightnessComponent(), 1.0f));
-  oo::Ref<OOColor> scaled = OOColor::colorWithDescription(
+  std::shared_ptr<OOColor> scaled = OOColor::colorWithDescription(
       Dict({{"hue", oo::PList(0.0)}, {"saturation", oo::PList(0.8)}}), 0.5f);
   OO_CHECK(Near(scaled->saturationComponent(), 0.4f));
 
   // Bright: at least 0.5 brightness, alpha forced to 1; bright enough is
   // returned as is.
-  oo::Ref<OOColor> bright = OOColor::brightColorWithDescription(
+  std::shared_ptr<OOColor> bright = OOColor::brightColorWithDescription(
       oo::PList(std::string("0 0 0.25 0.5")));
   OO_CHECK(Near(bright->brightnessComponent(), 0.5f) &&
            Near(bright->alphaComponent(), 1.0f));
@@ -178,7 +178,7 @@ OO_TEST(colorWithDescription) {
 }
 
 OO_TEST(derivedColours) {
-  oo::Ref<OOColor> opaque = OOColor::colorWithRed(0.5f, 0.5f, 0.5f, 1.0f);
+  std::shared_ptr<OOColor> opaque = OOColor::colorWithRed(0.5f, 0.5f, 0.5f, 1.0f);
   OO_CHECK(opaque->premultipliedColor() == opaque);  // itself, as before
   OO_CHECK(HasRGBA(
       OOColor::colorWithRed(0.5f, 1.0f, 0.2f, 0.5f)->premultipliedColor().get(),
@@ -195,7 +195,7 @@ OO_TEST(derivedColours) {
 }
 
 OO_TEST(text) {
-  oo::Ref<OOColor> c = OOColor::colorWithRed(1.0f, 0.5f, 0.0f, 1.0f);
+  std::shared_ptr<OOColor> c = OOColor::colorWithRed(1.0f, 0.5f, 0.0f, 1.0f);
   OO_CHECK(c->descriptionComponents() ==
            std::optional<std::string>("1, 0.5, 0, 1"));
   OO_CHECK(c->rgbaDescription() ==
@@ -211,7 +211,7 @@ OO_TEST(text) {
 OO_TEST(facadeForwards) {
   {
     // What the selectors answer, asked of the C++ colour.
-    oo::Ref<OOColor> red = OOColor::redColor();
+    std::shared_ptr<OOColor> red = OOColor::redColor();
     OO_CHECK(red->redComponent() == 1.0f && red->greenComponent() == 0.0f &&
              red->alphaComponent() == 1.0f);
     OO_CHECK(red->normalizedArray() == std::vector<float>({1, 0, 0, 1}));
@@ -235,7 +235,7 @@ OO_TEST(facadeForwards) {
 
 OO_TEST(facadeIdentity) {
   {
-    oo::Ref<OOColor> opaque = OOColor::colorWithRed(0.5f, 0.5f, 0.5f, 1.0f);
+    std::shared_ptr<OOColor> opaque = OOColor::colorWithRed(0.5f, 0.5f, 0.5f, 1.0f);
     OO_CHECK(opaque->premultipliedColor() ==
              opaque);  // returned itself before the conversion
 

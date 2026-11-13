@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #include "OOLogging.h"
 
 OOFullScreenController::OOFullScreenController(MyOpenGLView* view)
-    : _gameView(view) {}
+    : _gameView(oo::share(view)) {}
 
 MyOpenGLView* OOFullScreenController::gameView() { return _gameView.get(); }
 

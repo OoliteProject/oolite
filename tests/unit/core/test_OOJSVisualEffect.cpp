@@ -71,7 +71,7 @@ public:
 	std::optional<std::string> cxx_oo_jsClassName();
 	bool isVisibleToScripts();
 
-	oo::Ref<Entity> _cxxEntity;
+	std::shared_ptr<Entity> _cxxEntity;
 };
 
 // A mesh: its materials and shaders, and the arguments the last one was made
@@ -81,7 +81,7 @@ public:
 class OOMesh : public oo::RefCounted
 {
 public:
-	static oo::Ref<OOMesh> meshWithName(const std::string &name,
+	static std::shared_ptr<OOMesh> meshWithName(const std::string &name,
 										const std::optional<std::string> &cacheKey,
 										const oo::PList &materialDict,
 										const oo::PList &shadersDict,
@@ -163,8 +163,8 @@ public:
 	std::optional<std::string> _effectKey;
 	bool _isBreakPattern = false;
 	float _scaleX = 0, _scaleY = 0, _scaleZ = 0;
-	oo::Ref<OOColor> _color1;
-	oo::Ref<OOColor> _color2;
+	std::shared_ptr<OOColor> _color1;
+	std::shared_ptr<OOColor> _color2;
 	float _hullHeatLevel = 0;
 	float _shaderFloat1 = 0, _shaderFloat2 = 0;
 	int _shaderInt1 = 0, _shaderInt2 = 0;
@@ -174,7 +174,7 @@ public:
 	OOScript *_script = nullptr;	// a C++ script (retained)
 	oo::PList _scriptInfo;
 	oo::PList _effectInfo;
-	oo::Ref<OOMesh> _mesh;
+	std::shared_ptr<OOMesh> _mesh;
 	::TestEntityObject *_removedSub = nullptr;
 	int _removed = 0;
 	std::optional<std::string> _beaconCode;
@@ -311,7 +311,7 @@ bool sMeshSmooth = false;
 int sMeshesMade = 0;
 }  // namespace
 
-oo::Ref<OOMesh> OOMesh::meshWithName(const std::string &name,
+std::shared_ptr<OOMesh> OOMesh::meshWithName(const std::string &name,
 									 const std::optional<std::string> &cacheKey,
 									 const oo::PList &materialDict,
 									 const oo::PList &shadersDict,
@@ -328,7 +328,7 @@ oo::Ref<OOMesh> OOMesh::meshWithName(const std::string &name,
 	sMeshTarget = TestObjectOf(object);	// its object
 	sMeshesMade++;
 	if (name == "nomesh.dat")  return nullptr;
-	oo::Ref<OOMesh> mesh = oo::makeRef<OOMesh>();
+	std::shared_ptr<OOMesh> mesh = oo::makeRef<OOMesh>();
 	mesh->_materials = materialDict;
 	mesh->_shaders = shadersDict;
 	return mesh;
@@ -365,8 +365,8 @@ GLfloat OOVisualEffectEntity::scaleZ()  { return _scaleZ; }
 void OOVisualEffectEntity::setScaleZ(GLfloat factor)  { _scaleZ = factor; }
 OOColor *OOVisualEffectEntity::scannerDisplayColor1()  { return _color1.get(); }
 OOColor *OOVisualEffectEntity::scannerDisplayColor2()  { return _color2.get(); }
-void OOVisualEffectEntity::setScannerDisplayColor1(OOColor *color)  { _color1 = oo::Ref<OOColor>(color); }
-void OOVisualEffectEntity::setScannerDisplayColor2(OOColor *color)  { _color2 = oo::Ref<OOColor>(color); }
+void OOVisualEffectEntity::setScannerDisplayColor1(OOColor *color)  { _color1 = oo::share(color); }
+void OOVisualEffectEntity::setScannerDisplayColor2(OOColor *color)  { _color2 = oo::share(color); }
 void OOVisualEffectEntity::setHullHeatLevel(GLfloat value)  { _hullHeatLevel = value; }
 GLfloat OOVisualEffectEntity::shaderFloat1()  { return _shaderFloat1; }
 void OOVisualEffectEntity::setShaderFloat1(GLfloat value)  { _shaderFloat1 = value; }
@@ -385,7 +385,7 @@ std::optional<std::vector<oo::EntityHold>> OOVisualEffectEntity::visualEffectSub
 oo::PList OOVisualEffectEntity::scriptInfo()  { return _scriptInfo; }
 oo::PList OOVisualEffectEntity::effectInfoDictionary()  { return _effectInfo; }
 ::OOMesh *OOVisualEffectEntity::mesh()  { return _mesh.get(); }
-void OOVisualEffectEntity::setMesh(::OOMesh *mesh)  { _mesh = oo::Ref<OOMesh>(mesh); }
+void OOVisualEffectEntity::setMesh(::OOMesh *mesh)  { _mesh = oo::share(mesh); }
 void OOVisualEffectEntity::removeSubEntity(OOVisualEffectSubEntity *sub)  { _removedSub = sub; }
 void OOVisualEffectEntity::removeSubEntity(Entity *sub)  { _removedSub = TestObjectOf(sub); }	// its object, as the binding passed it
 void OOVisualEffectEntity::remove()  { _removed++; }

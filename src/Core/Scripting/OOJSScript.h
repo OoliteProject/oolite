@@ -42,7 +42,7 @@ class OOJSScript : public OOScript {
   // +scriptWithPath:properties:: a new script, null when it could not be
   // loaded. path nullopt is nil (the script is then named after its address);
   // properties may hold live objects.
-  static oo::Ref<OOJSScript> scriptWithPath(
+  static std::shared_ptr<OOJSScript> scriptWithPath(
       const std::optional<std::string>& path, const oo::PList& properties);
 
   // The old -dealloc's body.
@@ -61,7 +61,7 @@ class OOJSScript : public OOScript {
   // The running scripts, outermost first; an entry is null once a weakly pushed
   // script has gone. Raises, as -addObject: did on nil, if the stack holds a
   // script-less push.
-  static std::vector<oo::Ref<OOJSScript>> scriptStack();
+  static std::vector<std::shared_ptr<OOJSScript>> scriptStack();
 
   /*	External manipulation of acrtive script stack. Used, for instance, by
           timers. Failing to balance these will crash!
@@ -71,7 +71,7 @@ class OOJSScript : public OOScript {
      with its get().
   */
   static void pushScript(OOJSScript* script);
-  static void pushScript(const oo::WeakRef<OOJSScript>& script);
+  static void pushScript(const std::weak_ptr<OOJSScript>& script);
   static void popScript(OOJSScript* script);
 
   /*	Call a method.

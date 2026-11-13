@@ -10,7 +10,7 @@ I've stepped back, and this simply wraps the old plist scripting in
 PlayerEntity.
 
 The class is global and derives from OOScript, overriding its members. A plist
-script is held as oo::Ref<OOScript>.
+script is held as std::shared_ptr<OOScript>.
 
 
 Oolite
@@ -68,8 +68,8 @@ class OOPListScript : public OOScript {
 
   // The scripts of a legacy script file, each a new OOPListScript; nullopt when
   // the file is not a dictionary.
-  static std::optional<std::vector<oo::Ref<OOScript>>> scriptsInPListFile(
-      const std::string& filePath);
+  static std::optional<std::vector<std::shared_ptr<OOScript>>>
+  scriptsInPListFile(const std::string& filePath);
 
   // OOScript overrides.
   std::optional<std::string> name() override;
@@ -79,9 +79,9 @@ class OOPListScript : public OOScript {
   void runWithTarget(Entity* target) override;
 
  private:
-  static std::vector<oo::Ref<OOScript>> scriptsFromDictionaryOfScripts(
+  static std::vector<std::shared_ptr<OOScript>> scriptsFromDictionaryOfScripts(
       const oo::PList& dictionary, const std::string& filePath);
-  static std::vector<oo::Ref<OOScript>> loadCachedScripts(
+  static std::vector<std::shared_ptr<OOScript>> loadCachedScripts(
       const oo::PList& cachedScripts);
 
   oo::PList _script;  // the sanitized script actions (an array)

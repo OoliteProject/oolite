@@ -106,30 +106,30 @@ typedef struct {
 class Octree;
 
 /*	A mesh: the class shell, its factories, lifecycle and accessors,
-   loading, geometry and rendering. Its callers hold oo::Ref<OOMesh>.
+   loading, geometry and rendering. Its callers hold std::shared_ptr<OOMesh>.
 */
 class OOMesh : public OODrawable, public OOGraphicsResetClient {
  public:
-  static oo::Ref<OOMesh> meshWithName(
+  static std::shared_ptr<OOMesh> meshWithName(
       const std::string& name, const std::optional<std::string>& cacheKey,
       const oo::PList& materialDict, const oo::PList& shadersDict, bool smooth,
       const oo::PList& macros, Entity* object);
 
-  static oo::Ref<OOMesh> meshWithName(
+  static std::shared_ptr<OOMesh> meshWithName(
       const std::string& name, const std::optional<std::string>& cacheKey,
       const oo::PList& materialDict, const oo::PList& shadersDict, bool smooth,
       const oo::PList& macros, Entity* object, float factor,
       bool cacheWriteable);
 
-  static oo::Ref<OOMaterial> placeholderMaterial();
+  static std::shared_ptr<OOMaterial> placeholderMaterial();
 
   OOMesh();
   OOMesh(const OOMesh&) = default;  // -mutableCopyWithZone:'s copy: every
                                     // member, the buffers shared
   ~OOMesh() override;
 
-  oo::Ref<OOMesh> copyWithZone(OOZone* zone);
-  oo::Ref<OOMesh> mutableCopyWithZone(OOZone* zone);
+  std::shared_ptr<OOMesh> copyWithZone(OOZone* zone);
+  std::shared_ptr<OOMesh> mutableCopyWithZone(OOZone* zone);
 
   std::optional<std::string> modelName();
 
@@ -148,12 +148,13 @@ class OOMesh : public OODrawable, public OOGraphicsResetClient {
   std::optional<std::string> descriptionComponents() const override;
 #ifdef OO_DEBUG_MONITOR_ENABLED
   void dumpSelfState() override;
-  std::vector<oo::Ref<OOTexture>> allTextures() override;
+  std::vector<std::shared_ptr<OOTexture>> allTextures() override;
   size_t totalSize() override;
   size_t objectSize() const override { return sizeof *this; }
 #endif
 
-  oo::Ref<Octree> getOctree();  // -octree (the member octree is the octree)
+  std::shared_ptr<Octree>
+  getOctree();  // -octree (the member octree is the octree)
 
   // This needs a better name.
   BoundingBox findBoundingBoxRelativeToPosition(Vector opv, Vector ri,
@@ -163,7 +164,7 @@ class OOMesh : public OODrawable, public OOGraphicsResetClient {
   BoundingBox findSubentityBoundingBoxWithPosition(Vector position,
                                                    OOMatrix rotMatrix);
 
-  oo::Ref<OOMesh> meshRescaledBy(GLfloat scaleFactor);
+  std::shared_ptr<OOMesh> meshRescaledBy(GLfloat scaleFactor);
 
   BoundingBox boundingBox() override;
 
@@ -207,16 +208,16 @@ class OOMesh : public OODrawable, public OOGraphicsResetClient {
   GLfloat _maxDrawDistance = {};
   BoundingBox _boundingBox = {};
 
-  oo::Ref<Octree> octree;
+  std::shared_ptr<Octree> octree;
 
-  std::map<std::string, oo::Ref<OOMeshBuffer>, std::less<>>
+  std::map<std::string, std::shared_ptr<OOMeshBuffer>, std::less<>>
       _retainedObjects;  // the buffers _vertices & co. point into, by key
 
   oo::PList _materialDict;  // mixed configurations; null = nil
   oo::PList _shadersDict;
   std::optional<std::string> _cacheKey;  // nil and @"" differ for OOMaterial
   oo::PList _shaderMacros;
-  oo::WeakRef<Entity> _shaderBindingTarget =
+  std::weak_ptr<Entity> _shaderBindingTarget =
       {};  // the entity, held weakly as its object's weak reference was
 
   Vector _lastPosition = {};
@@ -228,7 +229,7 @@ class OOMesh : public OODrawable, public OOGraphicsResetClient {
 #endif
 
 #if OOMESH_PROFILE
-  oo::Ref<OOProfilingStopwatch> _stopwatch;
+  std::shared_ptr<OOProfilingStopwatch> _stopwatch;
   double _stopwatchLastTime = {};
 #endif
 
@@ -282,6 +283,6 @@ class OOMesh : public OODrawable, public OOGraphicsResetClient {
 // The OOCacheManager (Octree) category, as free functions next to the cache.
 // The octree cached for a model key, made afresh from its representation; null
 // when none.
-oo::Ref<Octree> OOCacheManagerOctreeForModel(const std::string& inKey);
+std::shared_ptr<Octree> OOCacheManagerOctreeForModel(const std::string& inKey);
 // Caches the octree's representation under the key; a null octree does nothing.
 void OOCacheManagerSetOctree(Octree* inOctree, const std::string& inKey);

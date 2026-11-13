@@ -38,7 +38,7 @@ OO_TEST(deltaInSeconds) {
 }
 
 OO_TEST(newStopwatchIsRunning) {
-  oo::Ref<OOProfilingStopwatch> watch = OOProfilingStopwatch::stopwatch();
+  std::shared_ptr<OOProfilingStopwatch> watch = OOProfilingStopwatch::stopwatch();
   OO_CHECK(watch != nullptr);
   OOTimeDelta first = watch->currentTime();
   OO_CHECK(first >= 0.0 && first < 5.0);
@@ -48,7 +48,7 @@ OO_TEST(newStopwatchIsRunning) {
 }
 
 OO_TEST(stopFreezesTheTime) {
-  oo::Ref<OOProfilingStopwatch> watch = oo::makeRef<OOProfilingStopwatch>();
+  std::shared_ptr<OOProfilingStopwatch> watch = oo::makeRef<OOProfilingStopwatch>();
   Sleep(20);
   watch->stop();
   OOTimeDelta stopped = watch->currentTime();
@@ -58,7 +58,7 @@ OO_TEST(stopFreezesTheTime) {
 }
 
 OO_TEST(resetWhileStopped) {
-  oo::Ref<OOProfilingStopwatch> watch = OOProfilingStopwatch::stopwatch();
+  std::shared_ptr<OOProfilingStopwatch> watch = OOProfilingStopwatch::stopwatch();
   Sleep(20);
   watch->stop();
   OOTimeDelta stopped = watch->currentTime();
@@ -70,7 +70,7 @@ OO_TEST(resetWhileStopped) {
 
 OO_TEST(resetWhileRunningIsDriftFree) {
   OOHighResTimeValue before = OOGetHighResTime();
-  oo::Ref<OOProfilingStopwatch> watch = OOProfilingStopwatch::stopwatch();
+  std::shared_ptr<OOProfilingStopwatch> watch = OOProfilingStopwatch::stopwatch();
   Sleep(20);
   OOTimeDelta firstLap = watch->reset();
   OO_CHECK(firstLap >= 0.015 && firstLap < 5.0);
@@ -87,7 +87,7 @@ OO_TEST(resetWhileRunningIsDriftFree) {
 }
 
 OO_TEST(startRestartsAStoppedWatch) {
-  oo::Ref<OOProfilingStopwatch> watch = OOProfilingStopwatch::stopwatch();
+  std::shared_ptr<OOProfilingStopwatch> watch = OOProfilingStopwatch::stopwatch();
   Sleep(30);
   watch->stop();
   OOTimeDelta stopped = watch->currentTime();

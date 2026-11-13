@@ -75,7 +75,7 @@ MA 02110-1301, USA.
 #include "OOOpenGLExtensionManager.h"
 #include "OOOpenGLMatrixManager.h"
 #include "OOPListGameTypes.h"  // used by every build, not only OO_LOCALIZATION_TOOLS ones
-#include "OOPlanetDrawable.h"  // oo::makeRef<OOPlanetEntity>() destroys its drawables
+#include "OOPlanetDrawable.h"  // oo::makeShared<OOPlanetEntity>() destroys its drawables
 #include "OOPlanetEntity.h"
 #include "OOProbabilitySet.h"
 #include "OORingEffectEntity.h"
@@ -397,8 +397,8 @@ void Universe::initWithGameView(::MyOpenGLView* inGameView) {
 
   // this MUST have the default no. of rows else the GUI_ROW macros in
   // PlayerEntity.h need modification
-  gui = oo::makeRef<GuiDisplayGen>();
-  comm_log_gui = oo::makeRef<GuiDisplayGen>();
+  gui = oo::makeShared<GuiDisplayGen>();
+  comm_log_gui = oo::makeShared<GuiDisplayGen>();
 
   missiontext = ResourceManager::dictionaryFromFilesNamed(
       "missiontext.plist", std::string("Config"), true);
@@ -427,7 +427,7 @@ void Universe::initWithGameView(::MyOpenGLView* inGameView) {
   setUpInitialUniverse();
 
   universeRegion =
-      oo::makeRef<::CollisionRegion>(::CollisionRegion::AsUniverse{});
+      oo::makeShared<::CollisionRegion>(::CollisionRegion::AsUniverse{});
   entitiesDeadThisUpdate.clear();
   framesDoneThisUpdate = 0;
   drawCounter = 0;
@@ -491,8 +491,8 @@ void Universe::dealloc() {
   replacedCharacterPool.clear();
   universeRegion = nullptr;
 
-  _firstBeacon = nullptr;
-  _lastBeacon = nullptr;
+  _firstBeacon.reset();
+  _lastBeacon.reset();
   waypoints.clear();
 
   unsigned i;
@@ -1633,7 +1633,7 @@ void Universe::setUpWitchspaceBetweenSystem(OOSystemID s1, OOSystemID s2) {
   {
     // The sky is C++: its object first, retained as +alloc's was, then the
     // body.
-    oo::Ref<::SkyEntity> skyRef = oo::makeRef<::SkyEntity>();
+    std::shared_ptr<::SkyEntity> skyRef = oo::makeShared<::SkyEntity>();
     thing = oo::RetainEntity(oo::MadeEntity(skyRef));  // alloc retains!
     skyRef->initWithColors(col1.get(), col2.get(), systeminfo);
   }
@@ -1644,7 +1644,7 @@ void Universe::setUpWitchspaceBetweenSystem(OOSystemID s1, OOSystemID s2) {
   oo::ReleaseEntity(thing);
 
   /*- the dust particle system -*/
-  oo::Ref<DustEntity> dust = oo::makeRef<DustEntity>();
+  std::shared_ptr<DustEntity> dust = oo::makeShared<DustEntity>();
   dust->init();
   dust->setScanClass(OOScanClass::kNoDraw);
   thing = oo::MadeEntity(dust);
@@ -1706,7 +1706,8 @@ void Universe::setUpWitchspaceBetweenSystem(OOSystemID s1, OOSystemID s2) {
   ::OOPlanetEntity* a_planet = nullptr;
   {
     // A new planet, +1.
-    oo::Ref<::OOPlanetEntity> planetRef = oo::makeRef<::OOPlanetEntity>();
+    std::shared_ptr<::OOPlanetEntity> planetRef =
+        oo::makeShared<::OOPlanetEntity>();
     oo::RetainEntity(oo::MadeEntity(planetRef));
     planetRef->initFromDictionary(planetDict,
                                   planetDict.get<bool>("has_atmosphere", true),
@@ -1829,7 +1830,7 @@ void Universe::setUpSpace() {
   {
     // The sky is C++: its object first, retained as +alloc's was, then the
     // body.
-    oo::Ref<::SkyEntity> skyRef = oo::makeRef<::SkyEntity>();
+    std::shared_ptr<::SkyEntity> skyRef = oo::makeShared<::SkyEntity>();
     thing = oo::RetainEntity(oo::MadeEntity(skyRef));  // alloc retains!
     skyRef->initWithColors(col1.get(), col2.get(), systeminfo);
   }
@@ -1863,7 +1864,7 @@ void Universe::setUpSpace() {
   /*--*/
 
   /*- the dust particle system -*/
-  oo::Ref<DustEntity> dust = oo::makeRef<DustEntity>();
+  std::shared_ptr<DustEntity> dust = oo::makeShared<DustEntity>();
   dust->init();
   dust->setScanClass(OOScanClass::kNoDraw);
   thing = oo::MadeEntity(dust);
@@ -1977,7 +1978,7 @@ void Universe::setUpSpace() {
 #endif
   {
     // A new sun, +1.
-    oo::Ref<OOSunEntity> sunRef = oo::makeRef<OOSunEntity>();
+    std::shared_ptr<OOSunEntity> sunRef = oo::makeShared<OOSunEntity>();
     oo::RetainEntity(oo::MadeEntity(sunRef));  // alloc retains!
     sunRef->initSunWithColor(bgcolor.get(), sun_dict);
     a_sun = sunRef.get();
@@ -2622,13 +2623,14 @@ void Universe::setMainLightPosition(Vector sunPos) {
       fillCargopodWithRandomCargo(ship);
 
     // Ensure piloted ships have pilots.
-    if (!(ship != nullptr ? ship->getCrew()
-                          : std::optional<std::vector<oo::Ref<OOCharacter>>>())
+    if (!(ship != nullptr
+              ? ship->getCrew()
+              : std::optional<std::vector<std::shared_ptr<OOCharacter>>>())
              .has_value() &&
         !(ship != nullptr ? ship->isUnpiloted() : false))
       if (ship != nullptr)
-        ship->setCrew(std::vector<oo::Ref<OOCharacter>>{oo::Ref<OOCharacter>(
-            OOCharacter::randomCharacterWithRole(desc, Ranrot() & 255))});
+        ship->setCrew(std::vector<std::shared_ptr<OOCharacter>>{
+            OOCharacter::randomCharacterWithRole(desc, Ranrot() & 255)});
 
     if ((ship != nullptr ? ship->getScanClass() : OOScanClass{}) ==
         OOScanClass::kNotSet) {
@@ -3244,13 +3246,14 @@ void Universe::witchspaceShipWithPrimaryRole(const std::string& role) {
             OOLegalStatusReason::kSetup);  // they already have a price on their
                                            // heads
     }
-    if (!(ship != nullptr ? ship->getCrew()
-                          : std::optional<std::vector<oo::Ref<OOCharacter>>>())
+    if (!(ship != nullptr
+              ? ship->getCrew()
+              : std::optional<std::vector<std::shared_ptr<OOCharacter>>>())
              .has_value() &&
         !(ship != nullptr ? ship->isUnpiloted() : false))
       if (ship != nullptr)
-        ship->setCrew(std::vector<oo::Ref<OOCharacter>>{oo::Ref<OOCharacter>(
-            OOCharacter::randomCharacterWithRole(role, Ranrot() & 255))});
+        ship->setCrew(std::vector<std::shared_ptr<OOCharacter>>{
+            OOCharacter::randomCharacterWithRole(role, Ranrot() & 255)});
     // The following is set inside leaveWitchspace: AI state GLOBAL,
     // OOEntityStatus::kExitingWitchspace, ai message: EXITED_WITCHSPACE, then
     // OOEntityStatus::kInFlight
@@ -3339,13 +3342,14 @@ Entity* Universe::addVisualEffectAt(HPVector pos, const std::string& key) {
       if (ship != nullptr) ship->setScanClass(scanClass);
     }
 
-    if (!(ship != nullptr ? ship->getCrew()
-                          : std::optional<std::vector<oo::Ref<OOCharacter>>>())
+    if (!(ship != nullptr
+              ? ship->getCrew()
+              : std::optional<std::vector<std::shared_ptr<OOCharacter>>>())
              .has_value() &&
         !(ship != nullptr ? ship->isUnpiloted() : false)) {
       if (ship != nullptr)
-        ship->setCrew(std::vector<oo::Ref<OOCharacter>>{oo::Ref<OOCharacter>(
-            OOCharacter::randomCharacterWithRole(role, Ranrot() & 255))});
+        ship->setCrew(std::vector<std::shared_ptr<OOCharacter>>{
+            OOCharacter::randomCharacterWithRole(role, Ranrot() & 255)});
     }
 
     if (ship != nullptr) ship->setOrientation(OORandomQuaternion());
@@ -3422,7 +3426,7 @@ std::vector<oo::EntityHold> Universe::addShipsAt(HPVector pos,
   std::vector<oo::EntityHold> ships;
   ships.reserve(count);
   ::ShipEntity* ship = nullptr;
-  oo::Ref<::OOShipGroup> group;  // kept for the pass
+  std::shared_ptr<::OOShipGroup> group;  // kept for the pass
 
   if (isGroup) {
     group = OOShipGroup::groupWithName(std::format("{} group", role));
@@ -3589,7 +3593,7 @@ GLfloat Universe::safeWitchspaceExitDistance() {
 
 void Universe::setUpBreakPattern(HPVector pos, Quaternion q, bool forDocking) {
   int i;
-  oo::Ref<OOBreakPatternEntity> ring;
+  std::shared_ptr<OOBreakPatternEntity> ring;
   oo::PList colorDesc;
   std::shared_ptr<OOColor> color;
 
@@ -4211,8 +4215,8 @@ void Universe::setFirstBeacon(Entity* beacon) {
     oo::SetPrevBeacon(beacon, nullptr);
     oo::SetNextBeacon(beacon, firstBeacon());
     oo::SetPrevBeacon(firstBeacon(), beacon);
-    _firstBeacon =
-        oo::WeakRef<Entity>(beacon);  // oo::WeakEntityRef() of its object
+    _firstBeacon = std::weak_ptr<Entity>(
+        oo::share(beacon));  // oo::WeakEntityRef() of its object
   }
 }
 
@@ -4223,7 +4227,7 @@ void Universe::setLastBeacon(Entity* beacon) {
     oo::SetNextBeacon(beacon, nullptr);
     oo::SetPrevBeacon(beacon, lastBeacon());
     oo::SetNextBeacon(lastBeacon(), beacon);
-    _lastBeacon = oo::WeakRef<Entity>(beacon);
+    _lastBeacon = std::weak_ptr<Entity>(oo::share(beacon));
   }
 }
 
@@ -4365,7 +4369,7 @@ std::optional<std::string> Universe::randomShipKeyForRoleRespectingConditions(
 
   ::OOShipRegistry* registry = OOShipRegistry::sharedRegistry();
   std::optional<std::string> shipKey;
-  oo::Ref<OOMutableProbabilitySet> pset;
+  std::shared_ptr<OOMutableProbabilitySet> pset;
 
 #if PROFILE_SHIP_SELECTION
   static unsigned long profTotal = 0, profSlowPath = 0;
@@ -4553,7 +4557,7 @@ Entity* Universe::newVisualEffectWithName(const std::string& effectKey) {
       ship = ::StationEntity::newStationObject(shipKey, shipDict);
     } else {
       ship = oo::ToShip(
-          oo::NewShipObject(oo::makeRef<::ShipEntity>(), shipKey, shipDict));
+          oo::NewShipObject(oo::makeShared<::ShipEntity>(), shipKey, shipDict));
     }
   } catch (...) {
     const auto exception = oo::CurrentOOException();
@@ -6453,7 +6457,7 @@ void Universe::addLaserHitEffectsAt(HPVector pos, ::ShipEntity* target,
     const oo::PList settings =
         (UNIVERSE != nullptr ? UNIVERSE->explosionSetting(std::string(key))
                              : oo::PList());
-    oo::Ref<::OOExplosionCloudEntity> burst =
+    std::shared_ptr<::OOExplosionCloudEntity> burst =
         ::OOExplosionCloudEntity::explosionCloudFromEntity(target, settings);
     if (burst != nullptr) burst->setPosition(pos);
     addEntity(oo::MadeEntity(burst));
@@ -8266,7 +8270,7 @@ void Universe::setSystemTo(OOSystemID s) {
   commodityMarket =
       (commodities != nullptr ? commodities->generateMarketForSystemWithEconomy(
                                     economy, scriptName)
-                              : oo::Ref<OOCommodityMarket>());
+                              : std::shared_ptr<OOCommodityMarket>());
 }
 
 OOSystemID Universe::currentSystemID() { return systemID; }
@@ -8707,10 +8711,9 @@ namespace {
 
 class RouteElement : public oo::RefCounted {
  public:
-  static oo::Ref<RouteElement> elementWithLocation(OOSystemID location,
-                                                   OOSystemID parent,
-                                                   double cost, double distance,
-                                                   double time, int jumps);
+  static std::shared_ptr<RouteElement> elementWithLocation(
+      OOSystemID location, OOSystemID parent, double cost, double distance,
+      double time, int jumps);
   OOSystemID parent();
   OOSystemID location();
   double cost();
@@ -8724,10 +8727,10 @@ class RouteElement : public oo::RefCounted {
   int _jumps = 0;
 };
 
-oo::Ref<RouteElement> RouteElement::elementWithLocation(
+std::shared_ptr<RouteElement> RouteElement::elementWithLocation(
     OOSystemID location, OOSystemID parent, double cost, double distance,
     double time, int jumps) {
-  oo::Ref<RouteElement> r = oo::makeRef<RouteElement>();
+  std::shared_ptr<RouteElement> r = oo::makeShared<RouteElement>();
 
   r->_location = location;
   r->_parent = parent;
@@ -9029,18 +9032,18 @@ oo::PList Universe::routeFromSystem(OOSystemID start, OOSystemID goal,
     }
   }
 
-  oo::Ref<::RouteElement>
+  std::shared_ptr<::RouteElement>
       cheapest[256];  // keeps each element, as the autorelease pool did
 
   double maxCost =
       optimizeBy == OORouteType::kTime ? 256 * (7 * 7) : 256 * (7 * 256 + 7);
 
-  std::vector<oo::Ref<::RouteElement>> curr;
+  std::vector<std::shared_ptr<::RouteElement>> curr;
   curr.reserve(256);
   curr.push_back(cheapest[start] = ::RouteElement::elementWithLocation(
                      start, -1, 0, 0, 0, 0));
 
-  std::vector<oo::Ref<::RouteElement>> next;
+  std::vector<std::shared_ptr<::RouteElement>> next;
   next.reserve(256);
   while (curr.size() != 0) {
     for (i = 0; i < curr.size(); i++) {
@@ -9076,8 +9079,9 @@ oo::PList Universe::routeFromSystem(OOSystemID start, OOSystemID goal,
 
         if (cost < maxCost &&
             (cheapest[n] == nullptr || cheapest[n]->cost() > cost)) {
-          oo::Ref<::RouteElement> e = ::RouteElement::elementWithLocation(
-              n, c, cost, distance, time, jumps);
+          std::shared_ptr<::RouteElement> e =
+              ::RouteElement::elementWithLocation(n, c, cost, distance, time,
+                                                  jumps);
           cheapest[n] = e;
           next.push_back(e);
 
@@ -10570,7 +10574,7 @@ void Universe::setUpSettings() {
 
   replacedGuis.clear();
   if (gui) replacedGuis.push_back(gui);  // [gui autorelease]
-  gui = oo::makeRef<GuiDisplayGen>();
+  gui = oo::makeShared<GuiDisplayGen>();
   const oo::PList guiSettings = gui->userSettings();
   const oo::PList* defaultTextColor =
       guiSettings.find(cxx_kGuiDefaultTextColor);
@@ -10583,21 +10587,21 @@ void Universe::setUpSettings() {
   // via [player deferredInit], called from the code that calls this method).
   if (message_gui)
     replacedGuis.push_back(message_gui);  // [message_gui autorelease]
-  message_gui = oo::makeRef<GuiDisplayGen>(NSMakeSize(480, 160),
-                                           1,              // columns
-                                           9,              // rows
-                                           19,             // rowHeight
-                                           20,             // rowStart
-                                           std::nullopt);  // title
+  message_gui = oo::makeShared<GuiDisplayGen>(NSMakeSize(480, 160),
+                                              1,              // columns
+                                              9,              // rows
+                                              19,             // rowHeight
+                                              20,             // rowStart
+                                              std::nullopt);  // title
 
   if (comm_log_gui)
     replacedGuis.push_back(comm_log_gui);  // [comm_log_gui autorelease]
-  comm_log_gui = oo::makeRef<GuiDisplayGen>(NSMakeSize(360, 120),
-                                            1,              // columns
-                                            10,             // rows
-                                            12,             // rowHeight
-                                            12,             // rowStart
-                                            std::nullopt);  // title
+  comm_log_gui = oo::makeShared<GuiDisplayGen>(NSMakeSize(360, 120),
+                                               1,              // columns
+                                               10,             // rows
+                                               12,             // rowHeight
+                                               12,             // rowStart
+                                               std::nullopt);  // title
 
   //
 
@@ -10615,7 +10619,7 @@ void Universe::setUpSettings() {
 #endif
 
   replacedCommodities = std::move(commodities);  // [commodities autorelease]
-  commodities = oo::makeRef<OOCommodities>();
+  commodities = oo::makeShared<OOCommodities>();
 
   loadDescriptions();
 
@@ -11284,7 +11288,7 @@ void Universe::loadConditionScripts() {
 void Universe::addConditionScripts(const std::vector<std::string>& scripts) {
   for (const std::string& scriptname : scripts) {
     if (!conditionScripts.contains(scriptname)) {
-      oo::Ref<OOScript> script =
+      std::shared_ptr<OOScript> script =
           OOScript::jsScriptFromFileNamed(scriptname, oo::PList());
       if (script != nullptr) {
         conditionScripts[scriptname] = std::move(script);

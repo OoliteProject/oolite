@@ -241,9 +241,10 @@ OOTexture* OOParticleSystem::texture() {
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::Ref<OOTexture>> OOParticleSystem::allTextures() {
-  std::vector<oo::Ref<OOTexture>> result;
-  result.emplace_back(::OOLightParticleEntity::defaultParticleTexture());
+std::vector<std::shared_ptr<OOTexture>> OOParticleSystem::allTextures() {
+  std::vector<std::shared_ptr<OOTexture>> result;
+  result.emplace_back(
+      oo::share(::OOLightParticleEntity::defaultParticleTexture()));
   return result;
 }
 #endif
@@ -276,10 +277,10 @@ void OOSmallFragmentBurstEntity::initFragmentBurstFrom(HPVector fragPosition,
   }
 }
 
-oo::Ref<OOSmallFragmentBurstEntity>
+std::shared_ptr<OOSmallFragmentBurstEntity>
 OOSmallFragmentBurstEntity::fragmentBurstFromEntity(Entity* entity) {
-  oo::Ref<OOSmallFragmentBurstEntity> result =
-      oo::makeRef<OOSmallFragmentBurstEntity>();
+  std::shared_ptr<OOSmallFragmentBurstEntity> result =
+      oo::makeShared<OOSmallFragmentBurstEntity>();
   result->initFragmentBurstFrom(
       entity != nullptr ? entity->getPosition() : kZeroHPVector,
       entity != nullptr ? entity->getVelocity() : kZeroVector,
@@ -329,10 +330,10 @@ void OOBigFragmentBurstEntity::initFragmentBurstFrom(HPVector fragPosition,
   }
 }
 
-oo::Ref<OOBigFragmentBurstEntity>
+std::shared_ptr<OOBigFragmentBurstEntity>
 OOBigFragmentBurstEntity::fragmentBurstFromEntity(Entity* entity) {
-  oo::Ref<OOBigFragmentBurstEntity> result =
-      oo::makeRef<OOBigFragmentBurstEntity>();
+  std::shared_ptr<OOBigFragmentBurstEntity> result =
+      oo::makeShared<OOBigFragmentBurstEntity>();
   result->initFragmentBurstFrom(
       entity != nullptr ? entity->getPosition() : kZeroHPVector,
       vector_multiply_scalar(

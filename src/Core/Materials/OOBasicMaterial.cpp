@@ -51,16 +51,16 @@ OOBasicMaterial* sDefaultMaterial = nullptr;
 
 }  // namespace
 
-oo::Ref<OOBasicMaterial> OOBasicMaterial::materialWithName(
+std::shared_ptr<OOBasicMaterial> OOBasicMaterial::materialWithName(
     const std::optional<std::string>& name) {
-  oo::Ref<OOBasicMaterial> result = oo::makeRef<OOBasicMaterial>();
+  std::shared_ptr<OOBasicMaterial> result = oo::makeShared<OOBasicMaterial>();
   result->initWithName(name);
   return result;
 }
 
-oo::Ref<OOBasicMaterial> OOBasicMaterial::materialWithName(
+std::shared_ptr<OOBasicMaterial> OOBasicMaterial::materialWithName(
     const std::optional<std::string>& name, const oo::PList& configuration) {
-  oo::Ref<OOBasicMaterial> result = oo::makeRef<OOBasicMaterial>();
+  std::shared_ptr<OOBasicMaterial> result = oo::makeShared<OOBasicMaterial>();
   result->initWithName(name, configuration);
   return result;
 }
@@ -130,7 +130,7 @@ void OOBasicMaterial::unapplyWithNext(OOMaterial* next) {
   if (dynamic_cast<OOBasicMaterial*>(next) == nullptr) {
     if (EXPECT_NOT(sDefaultMaterial == nullptr))
       sDefaultMaterial =
-          materialWithName(std::string("<default material>")).leakRef();
+          oo::leakRef(materialWithName(std::string("<default material>")));
     sDefaultMaterial->doApply();
   }
 }
@@ -273,5 +273,7 @@ bool OOBasicMaterial::permitSpecular() {
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::Ref<OOTexture>> OOBasicMaterial::allTextures() { return {}; }
+std::vector<std::shared_ptr<OOTexture>> OOBasicMaterial::allTextures() {
+  return {};
+}
 #endif

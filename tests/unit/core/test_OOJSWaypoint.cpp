@@ -79,7 +79,7 @@ public:
 	std::optional<std::string> cxx_oo_jsClassName();
 	bool isVisibleToScripts();
 
-	oo::Ref<Entity> _cxxEntity;
+	std::shared_ptr<Entity> _cxxEntity;
 	std::optional<std::string> _beaconCode;
 	std::optional<std::string> _beaconLabel;
 	Quaternion _orientation = {};	// zeroed, as the object's ivar was

@@ -464,8 +464,8 @@ template <> struct OOTypeEncoding<std::optional<std::string>> { static constexpr
 template <> struct OOTypeEncoding<std::vector<oo::EntityHold> *> { static constexpr char value[] = 
 		"^{vector<oo::EntityHold, std::allocator<oo::EntityHold>>={_Vector_impl=^{EntityHold}^{EntityHold}^{E"
 		"ntityHold}}}"; };
-// std::vector<oo::Ref<OOTexture>>
-template <> struct OOTypeEncoding<std::vector<oo::Ref<OOTexture>>> { static constexpr char value[] = 
+// std::vector<std::shared_ptr<OOTexture>>: the encoding std::vector<oo::Ref<OOTexture>> had
+template <> struct OOTypeEncoding<std::vector<std::shared_ptr<OOTexture>>> { static constexpr char value[] = 
 		"{vector<oo::Ref<OOTexture>, std::allocator<oo::Ref<OOTexture>>>={_Vector_impl=^{Ref<OOTexture>}^{Ref"
 		"<OOTexture>}^{Ref<OOTexture>}}}"; };
 // id

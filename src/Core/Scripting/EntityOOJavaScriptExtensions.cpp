@@ -90,8 +90,8 @@ JSValue EntityJSValueInContext(Entity* entity, JSContext* context) {
     if (JS_IsException(jsSelf)) {
       JS_FreeValue(context, JS_GetException(context));
     } else {
-      const oo::Ref<OOJSEntityHolder> holder =
-          oo::makeRef<OOJSEntityHolder>(entity);
+      const std::shared_ptr<OOJSEntityHolder> holder =
+          oo::makeShared<OOJSEntityHolder>(entity);
       if (!OOJSSetCxxPrivate(jsSelf, holder.get())) {
         JS_FreeValue(context, jsSelf);
       } else {

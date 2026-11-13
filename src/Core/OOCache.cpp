@@ -192,8 +192,8 @@ std::optional<std::string> OOCache::descriptionComponents() const {
       _pruneThreshold, _autoPrune ? "yes" : "no", _dirty ? "yes" : "no");
 }
 
-oo::Ref<OOCache> OOCache::cacheWithPList(const oo::PList& pList) {
-  oo::Ref<OOCache> result = oo::makeRef<OOCache>();
+std::shared_ptr<OOCache> OOCache::cacheWithPList(const oo::PList& pList) {
+  std::shared_ptr<OOCache> result = oo::makeShared<OOCache>();
   if (!result->initWithPList(pList)) return nullptr;
   return result;
 }

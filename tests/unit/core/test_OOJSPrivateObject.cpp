@@ -284,7 +284,7 @@ OO_TEST(jsValue)
 	SetUpContext();
 	// -oo_jsValueInContext: of nil was null; of an object, its own JS object, made once.
 	OO_CHECK(JS_IsNull(OOJSValueFromCxxObject(sContext, nullptr)));
-	oo::Ref<Thing> thing = oo::adopt(new Thing("alpha", std::nullopt));
+	std::shared_ptr<Thing> thing = oo::adopt(new Thing("alpha", std::nullopt));
 	OO_CHECK_EQ(thing->retainCount(), 1u);
 	JSValue first = OOJSValueFromCxxObject(sContext, thing.get());
 	OO_CHECK(JS_IsObject(first));
@@ -303,7 +303,7 @@ OO_TEST(jsValue)
 OO_TEST(getter)
 {
 	SetUpContext();
-	oo::Ref<Thing> sub = oo::adopt(new Thing("beta", std::nullopt, &sSubThingClassID));
+	std::shared_ptr<Thing> sub = oo::adopt(new Thing("beta", std::nullopt, &sSubThingClassID));
 	Define("beta", OOJSValueFromCxxObject(sContext, sub.get()));
 	// A registered subclass passes the class check; the prototype has no object.
 	OO_CHECK_EVAL("beta.name()", "beta");
@@ -357,9 +357,9 @@ OO_TEST(finalize)
 OO_TEST(toString)
 {
 	SetUpContext();
-	oo::Ref<Thing> described = oo::adopt(new Thing("delta", std::string("[Thing delta, caf\xC3\xA9]")));
-	oo::Ref<Thing> plain = oo::adopt(new Thing("epsilon", std::nullopt));
-	oo::Ref<Thing> sub = oo::adopt(new Thing("zeta", std::nullopt, &sSubThingClassID));
+	std::shared_ptr<Thing> described = oo::adopt(new Thing("delta", std::string("[Thing delta, caf\xC3\xA9]")));
+	std::shared_ptr<Thing> plain = oo::adopt(new Thing("epsilon", std::nullopt));
+	std::shared_ptr<Thing> sub = oo::adopt(new Thing("zeta", std::nullopt, &sSubThingClassID));
 	Define("delta", OOJSValueFromCxxObject(sContext, described.get()));
 	Define("epsilon", OOJSValueFromCxxObject(sContext, plain.get()));
 	Define("zeta", OOJSValueFromCxxObject(sContext, sub.get()));
@@ -373,7 +373,7 @@ OO_TEST(toString)
 	OO_CHECK_EVAL("thingPrototype.toString.call({})", "foreign");
 	OO_CHECK_EQ(sForeignToStrings, 1);
 	// An exception under jsDescription() becomes a JS error, as under any native.
-	oo::Ref<Thing> boom = oo::adopt(new Thing("boom", std::nullopt));
+	std::shared_ptr<Thing> boom = oo::adopt(new Thing("boom", std::nullopt));
 	Define("boom", OOJSValueFromCxxObject(sContext, boom.get()));
 	OO_CHECK_EVAL("String(boom)", "threw: Native exception: description boom");
 }

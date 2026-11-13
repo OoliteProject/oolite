@@ -39,8 +39,8 @@ struct OOOXPVerifierTestAccess {
   // configuration.
   static OOOXPVerifier* Make(const std::string& path,
                              const char* configuration) {
-    static auto* kept = new std::vector<oo::Ref<OOOXPVerifier>>;
-    const oo::Ref<OOOXPVerifier> verifier = oo::adopt(new OOOXPVerifier());
+    static auto* kept = new std::vector<std::shared_ptr<OOOXPVerifier>>;
+    const std::shared_ptr<OOOXPVerifier> verifier = oo::adopt(new OOOXPVerifier());
     verifier->_basePath = path;
     verifier->_verifierPList = *oo::parsePropertyListData(configuration);
     verifier->_openForRegistration = true;
@@ -58,7 +58,7 @@ struct OOOXPVerifierTestAccess {
    of the class is defined, so nothing else may be called.
 */
 void OOOXPVerifier::registerStage(::OOOXPVerifierStage* stage) {
-  _stagesByName[*stage->name()] = oo::Ref<::OOOXPVerifierStage>(stage);
+  _stagesByName[*stage->name()] = oo::share(stage);
   stage->setVerifier(this);
   gRegistrations++;
 }

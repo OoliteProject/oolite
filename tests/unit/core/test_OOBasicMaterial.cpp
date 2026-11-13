@@ -135,7 +135,7 @@ Components Emission(OOBasicMaterial* m) {
   return c;
 }
 
-bool SameColor(const oo::Ref<OOColor>& color,
+bool SameColor(const std::shared_ptr<OOColor>& color,
                std::initializer_list<GLfloat> b) {
   if (color == nullptr) return false;
   const GLfloat v[4] = {color->redComponent(), color->greenComponent(),
@@ -157,14 +157,14 @@ GLfloat GLShininess() {
 
 oo::PList Config(oo::PList::Dict dict) { return oo::PList(std::move(dict)); }
 
-oo::Ref<OOBasicMaterial> Named(const char* name) {
+std::shared_ptr<OOBasicMaterial> Named(const char* name) {
   return OOBasicMaterial::materialWithName(std::string(name));
 }
 
-oo::Ref<TestSubMaterial> NamedSub(
+std::shared_ptr<TestSubMaterial> NamedSub(
     const std::optional<std::string>& name,
     const oo::PList& configuration = oo::PList()) {
-  oo::Ref<TestSubMaterial> result = oo::makeRef<TestSubMaterial>();
+  std::shared_ptr<TestSubMaterial> result = oo::makeRef<TestSubMaterial>();
   result->initWithName(name, configuration);
   return result;
 }
@@ -173,7 +173,7 @@ oo::Ref<TestSubMaterial> NamedSub(
 
 OO_TEST(defaults) {
   {
-    const oo::Ref<OOBasicMaterial> m = Named("Hull");
+    const std::shared_ptr<OOBasicMaterial> m = Named("Hull");
     OO_CHECK(m->name() == std::optional<std::string>("Hull"));
     OO_CHECK(Same(Diffuse(m.get()).v, {1, 1, 1, 1}));
     OO_CHECK(Same(Ambient(m.get()).v, {1, 1, 1, 1}));
@@ -194,7 +194,7 @@ OO_TEST(emptyConfiguration) {
   {
     // A null configuration is an empty one: the specifier's defaults apply
     // (exponent 10, 0.2 white).
-    const oo::Ref<OOBasicMaterial> m =
+    const std::shared_ptr<OOBasicMaterial> m =
         OOBasicMaterial::materialWithName(std::string("Plain"), oo::PList());
     OO_CHECK(m->name() == std::optional<std::string>("Plain"));
     OO_CHECK(Same(Diffuse(m.get()).v, {1, 1, 1, 1}));
@@ -207,7 +207,7 @@ OO_TEST(emptyConfiguration) {
 
 OO_TEST(configuration) {
   {
-    oo::Ref<OOBasicMaterial> m = OOBasicMaterial::materialWithName(
+    std::shared_ptr<OOBasicMaterial> m = OOBasicMaterial::materialWithName(
         std::string("Painted"),
         Config({
             {"diffuse_color", oo::PList("redColor")},
@@ -249,7 +249,7 @@ OO_TEST(permitSpecular) {
     TestUniverse* universe = new TestUniverse();
     universe->_reducedDetail = true;
     gSharedUniverse = universe;
-    const oo::Ref<OOBasicMaterial> m =
+    const std::shared_ptr<OOBasicMaterial> m =
         OOBasicMaterial::materialWithName(std::string("Reduced"), config);
     OO_CHECK(!m->permitSpecular());
     OO_CHECK(m->shininess() == 0 && Same(Specular(m.get()).v, {0, 0, 0, 1}));
@@ -258,7 +258,7 @@ OO_TEST(permitSpecular) {
     gSharedUniverse = nullptr;
 
     // A subclass's override is asked while the superclass initialises.
-    const oo::Ref<TestSubMaterial> sub = NamedSub(std::string("Sub"), config);
+    const std::shared_ptr<TestSubMaterial> sub = NamedSub(std::string("Sub"), config);
     OO_CHECK(sub->shininess() == 0 &&
              Same(Specular(sub.get()).v, {0, 0, 0, 1}));
     OO_CHECK(sub->name() == std::optional<std::string>("Sub"));
@@ -268,7 +268,7 @@ OO_TEST(permitSpecular) {
 
 OO_TEST(accessors) {
   {
-    const oo::Ref<OOBasicMaterial> mRef = Named("Accessors");
+    const std::shared_ptr<OOBasicMaterial> mRef = Named("Accessors");
     OOBasicMaterial* m = mRef.get();
 
     m->setDiffuseRed(0.1f, 0.2f, 0.3f, 0.4f);
@@ -332,7 +332,7 @@ OO_TEST(doApplySetsTheGLMaterial) {
     return;
   }
   {
-    const oo::Ref<OOBasicMaterial> m = Named("Applied");
+    const std::shared_ptr<OOBasicMaterial> m = Named("Applied");
     m->setDiffuseRed(0.1f, 0.2f, 0.3f, 0.4f);
     m->setAmbientRed(0.5f, 0.6f, 0.7f, 0.8f);
     m->setSpecularRed(0.9f, 0.8f, 0.7f, 0.6f);
@@ -351,7 +351,7 @@ OO_TEST(doApplySetsTheGLMaterial) {
 
     // A subclass's base-class doApply() sets the same state, and leaves the
     // texture to the subclass.
-    const oo::Ref<TestSubMaterial> sub = NamedSub(std::string("Sub"));
+    const std::shared_ptr<TestSubMaterial> sub = NamedSub(std::string("Sub"));
     sub->setShininess(3);
     OO_CHECK(sub->doApply() && sub->doApplies == 1);
     OO_CHECK(gTextureApplyNones == applyNones + 1);
@@ -367,7 +367,7 @@ OO_TEST(unapplyFallsBackToTheDefaultMaterial) {
     return;
   }
   {
-    const oo::Ref<OOBasicMaterial> m = Named("Current");
+    const std::shared_ptr<OOBasicMaterial> m = Named("Current");
     m->setDiffuseRed(0.1f, 0.2f, 0.3f, 0.4f);
     m->setSpecularRed(0.9f, 0.8f, 0.7f, 0.6f);
     m->setShininess(64);
@@ -393,7 +393,7 @@ OO_TEST(unapplyFallsBackToTheDefaultMaterial) {
     OO_CHECK(GLShininess() == 0);
 
     m->doApply();
-    const oo::Ref<OOMaterial> plainMaterial = oo::makeRef<OOMaterial>();
+    const std::shared_ptr<OOMaterial> plainMaterial = oo::makeRef<OOMaterial>();
     m->unapplyWithNext(plainMaterial.get());
     OO_CHECK(gTextureApplyNones == applyNones + 3);
     OO_CHECK(Same(GLMaterial(GL_DIFFUSE).v, {1, 1, 1, 1}) &&
@@ -407,8 +407,8 @@ OO_TEST(applyAndCurrent) {
     return;
   }
   {
-    const oo::Ref<OOBasicMaterial> a = Named("A");
-    const oo::Ref<TestSubMaterial> b = NamedSub(std::string("B"));
+    const std::shared_ptr<OOBasicMaterial> a = Named("A");
+    const std::shared_ptr<TestSubMaterial> b = NamedSub(std::string("B"));
     a->apply();
     OO_CHECK(OOMaterial::current().get() == a.get());
     b->apply();
@@ -420,11 +420,11 @@ OO_TEST(applyAndCurrent) {
 
 OO_TEST(description) {
   {
-    const oo::Ref<OOBasicMaterial> m = Named("Hull");
+    const std::shared_ptr<OOBasicMaterial> m = Named("Hull");
     const std::string text = m->description();
     OO_CHECK(text.starts_with("<OOBasicMaterial 0x"));
     OO_CHECK(text.ends_with(">{\"Hull\"}"));
-    const oo::Ref<TestSubMaterial> sub = NamedSub(std::string("Sub"));
+    const std::shared_ptr<TestSubMaterial> sub = NamedSub(std::string("Sub"));
     const std::string subText = sub->description();
     OO_CHECK(subText.starts_with("<TestSubMaterial 0x") &&
              subText.ends_with(">{\"Sub\"}"));
@@ -433,7 +433,7 @@ OO_TEST(description) {
 
 OO_TEST(cxxAPI) {
   {
-    const oo::Ref<OOBasicMaterial> m =
+    const std::shared_ptr<OOBasicMaterial> m =
         OOBasicMaterial::materialWithName(std::string("Cxx"));
     OO_CHECK(m->name() == std::optional<std::string>("Cxx") &&
              m->shininess() == 0);
@@ -452,7 +452,7 @@ OO_TEST(cxxAPI) {
              std::optional<std::string>("\"Cxx\""));
     OO_CHECK(m->permitSpecular() && m->isFinishedLoading());
 
-    const oo::Ref<OOBasicMaterial> configured =
+    const std::shared_ptr<OOBasicMaterial> configured =
         OOBasicMaterial::materialWithName(
             std::nullopt,
             Config({
@@ -466,7 +466,7 @@ OO_TEST(cxxAPI) {
     OO_CHECK(Same(c, {0.2f, 0.2f, 0.2f, 1}));
 
     // The C++ subclass's override is asked by the initialiser.
-    const oo::Ref<TestSubMaterial> denying =
+    const std::shared_ptr<TestSubMaterial> denying =
         NamedSub(std::string("Denying"),
                  Config({{"specular_exponent", oo::PList(std::int64_t(20))}}));
     OO_CHECK(denying->shininess() == 0 &&
@@ -477,7 +477,7 @@ OO_TEST(cxxAPI) {
 // The name of a C++ material.
 OO_TEST(nameOfACxxMaterial) {
   {
-    const oo::Ref<OOBasicMaterial> m =
+    const std::shared_ptr<OOBasicMaterial> m =
         OOBasicMaterial::materialWithName(std::string("Cxx"));
     OO_CHECK(m->name() == std::optional<std::string>("Cxx"));
   }

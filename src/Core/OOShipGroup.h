@@ -67,9 +67,9 @@ class OOShipGroup : public oo::PListForeign, public ::OOJSPrivateObject {
  public:
   // Null if the member array cannot be allocated (-cxx_initWithName: returned
   // nil).
-  static oo::Ref<OOShipGroup> groupWithName(
+  static std::shared_ptr<OOShipGroup> groupWithName(
       const std::optional<std::string>& name);
-  static oo::Ref<OOShipGroup> groupWithName(
+  static std::shared_ptr<OOShipGroup> groupWithName(
       const std::optional<std::string>& name, ::ShipEntity* leader);
 
   ~OOShipGroup() override;
@@ -123,8 +123,8 @@ class OOShipGroup : public oo::PListForeign, public ::OOJSPrivateObject {
   unsigned long _updateCount = {};
   // Weak references to the ships' C++ parts: each reads null exactly when the
   // object's reference did. _capacity slots, the first _count in use.
-  std::vector<oo::WeakRef<Entity>> _members = {};
-  oo::WeakRef<Entity> _leader = {};
+  std::vector<std::weak_ptr<Entity>> _members = {};
+  std::weak_ptr<Entity> _leader = {};
   std::optional<std::string> _name = {};
   JSValue _jsSelf =
       JS_UNDEFINED;  // The JS ShipGroup object proxy for this group; not an
@@ -146,7 +146,7 @@ class OOShipGroupCursor {
 
   // Public so ShipGroupIterate() can peek at both these and OOShipGroup's
   // ivars. Naughty!
-  oo::Ref<OOShipGroup> _group;
+  std::shared_ptr<OOShipGroup> _group;
   std::size_t _index = 0, _updateCount = 0;
   bool _considerCleanup = true, _cleanupNeeded = false;
 };
@@ -158,7 +158,7 @@ inline oo::PList OOShipGroupObjectNode(
     OOShipGroup* group)  // null group -> null PList
 {
   if (group == nullptr) return oo::PList();
-  return oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(group)));
+  return oo::PList(oo::PList::Object(oo::share(group)));
 }
 
 inline OOShipGroup* OOShipGroupInObjectNode(

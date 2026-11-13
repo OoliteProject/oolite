@@ -51,7 +51,7 @@ class TestPlayer : public PlayerEntity {
 // object was.
 template <class T>
 T* NewTestPlayer() {
-  oo::Ref<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeRef<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -81,11 +81,11 @@ std::optional<std::string> sTextureName;
 OOTexture* sTexture = nullptr;  // never released
 
 // OOTexture::nameFactory, the test-only loader hook.
-oo::Ref<OOTexture> LoadTexture(const std::optional<std::string>& name,
+std::shared_ptr<OOTexture> LoadTexture(const std::optional<std::string>& name,
                                const std::optional<std::string>&,
                                OOTextureFlags, GLfloat, GLfloat) {
   sTextureName = name;
-  return oo::Ref<OOTexture>(sTexture);
+  return oo::share(sTexture);
 }
 
 void SetUp(OOTimeAbsolute time) {
@@ -117,7 +117,7 @@ float Diameter(Entity* e) {
 bool Near(double a, double b) { return std::fabs(a - b) < 1e-4; }
 
 // The flash's object, as the ship and the universe hand it to Objective-C.
-Entity* FlashObject(const oo::Ref<OOFlashEffectEntity>& flash) {
+Entity* FlashObject(const std::shared_ptr<OOFlashEffectEntity>& flash) {
   return oo::MadeEntity(flash);
 }
 OOFlashEffectEntity* Part(Entity* flash) {

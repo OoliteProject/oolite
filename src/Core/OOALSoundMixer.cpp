@@ -61,19 +61,20 @@ OOSoundMixer* OOSoundMixer::sharedMixer() {
 bool OOSoundMixer::init() {
   bool OK = true;
   uint32_t idx = 0, count = kMixerGeneralChannels;
-  oo::Ref<OOSoundChannel> channel;
+  std::shared_ptr<OOSoundChannel> channel;
 
   if (!OOSound::setUp()) OK = false;
 
   if (OK) {
     // Allocate channels
     do {
-      channel = oo::makeRef<OOSoundChannel>();
+      channel = oo::makeShared<OOSoundChannel>();
       if (!channel->init())
         channel = nullptr;  // [[OOSoundChannel alloc] init] answered nil
       if (nullptr != channel) {
         pushChannel(channel.get());
-        _channels[idx++] = channel.leakRef();  // the reference alloc/init gave
+        _channels[idx++] =
+            oo::leakRef(channel);  // the reference alloc/init gave
       }
     } while (--count);
   }

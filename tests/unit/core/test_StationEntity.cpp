@@ -55,7 +55,7 @@ public:
 template <class T>
 T *NewTestPlayer()
 {
-	oo::Ref<T> player = oo::makeRef<T>();
+	std::shared_ptr<T> player = oo::makeRef<T>();
 	{
 		oo::RetainEntity(oo::MadeEntity(player));
 	}
@@ -197,7 +197,7 @@ OO_TEST(initAndSetUpFromDictionary)
 		OO_CHECK(vector_equal((station != nullptr ? station->virtualPortDimensions() : Vector{}), make_vector(69, 69, 250)));
 		OO_CHECK((station != nullptr ? station->playerReservedDock() : (DockEntity *)nullptr) == nullptr);
 		OO_CHECK((station != nullptr ? station->group() : (OOShipGroup *)nullptr) != nullptr && (station != nullptr ? station->group() : (OOShipGroup *)nullptr) == (station != nullptr ? station->stationGroup() : (OOShipGroup *)nullptr));
-		OO_CHECK(!(station != nullptr ? station->getCrew() : std::optional<std::vector<oo::Ref<OOCharacter>>>()).has_value());
+		OO_CHECK(!(station != nullptr ? station->getCrew() : std::optional<std::vector<std::shared_ptr<OOCharacter>>>()).has_value());
 
 		// No docks: a virtual one, at the port radius.
 		OO_CHECK(sVirtualDocks == 1);
@@ -319,13 +319,13 @@ OO_TEST(shipyardAndInterfaces)
 		shipyard->push_back(oo::PList());
 		OO_CHECK((station != nullptr ? station->getLocalShipyard() : (std::vector<oo::PList> *)nullptr)->size() == 2);
 
-		auto *interfaces = (station != nullptr ? station->getLocalInterfaces() : (std::map<std::string, oo::Ref<OOJSInterfaceDefinition>, std::less<>> *)nullptr);
+		auto *interfaces = (station != nullptr ? station->getLocalInterfaces() : (std::map<std::string, std::shared_ptr<OOJSInterfaceDefinition>, std::less<>> *)nullptr);
 		OO_CHECK(interfaces != nullptr && interfaces->empty());
 		if (station != nullptr)  station->setInterfaceDefinition(nullptr, "absent");	// removing nothing
-		OO_CHECK((station != nullptr ? station->getLocalInterfaces() : (std::map<std::string, oo::Ref<OOJSInterfaceDefinition>, std::less<>> *)nullptr)->empty());
+		OO_CHECK((station != nullptr ? station->getLocalInterfaces() : (std::map<std::string, std::shared_ptr<OOJSInterfaceDefinition>, std::less<>> *)nullptr)->empty());
 
 		StationEntity *none = nullptr;
-		OO_CHECK((none != nullptr ? none->getLocalShipyard() : (std::vector<oo::PList> *)nullptr) == nullptr && (none != nullptr ? none->getLocalInterfaces() : (std::map<std::string, oo::Ref<OOJSInterfaceDefinition>, std::less<>> *)nullptr) == nullptr);
+		OO_CHECK((none != nullptr ? none->getLocalShipyard() : (std::vector<oo::PList> *)nullptr) == nullptr && (none != nullptr ? none->getLocalInterfaces() : (std::map<std::string, std::shared_ptr<OOJSInterfaceDefinition>, std::less<>> *)nullptr) == nullptr);
 	}
 }
 
@@ -541,7 +541,7 @@ void SetEnergy3(Entity *e, GLfloat energy)		{ e->energy = energy; e->maxEnergy =
 GLfloat Energy3(Entity *e)						{ return e->energy; }
 void SetPrimaryTarget3(ShipEntity *s, Entity *target)
 {
-	s->_primaryTarget = oo::WeakRef<Entity>(target);
+	s->_primaryTarget = oo::share(target);
 }
 
 }	// namespace

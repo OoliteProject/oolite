@@ -39,10 +39,10 @@ std::optional<std::string> OOALStreamedSound::name() { return _name; }
    release]; self = nil; is the null it answers. [inDecoder retain] is the
    oo::Ref.
 */
-oo::Ref<OOALStreamedSound> OOALStreamedSound::initWithDecoder(
+std::shared_ptr<OOALStreamedSound> OOALStreamedSound::initWithDecoder(
     OOALSoundDecoder* inDecoder) {
   bool OK = true;
-  oo::Ref<OOALStreamedSound> self;
+  std::shared_ptr<OOALStreamedSound> self;
 
   setUp();
   if (!isSoundOK() || nullptr == inDecoder) OK = false;
@@ -57,7 +57,7 @@ oo::Ref<OOALStreamedSound> OOALStreamedSound::initWithDecoder(
     self->_stereo = inDecoder->isStereo();
     self->_reachedEnd = false;
     self->_buffer.resize(OOAL_STREAM_CHUNK_SIZE);
-    self->decoder = oo::Ref<OOALSoundDecoder>(inDecoder);
+    self->decoder = oo::share(inDecoder);
     self->rewind();
   }
 

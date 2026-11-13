@@ -46,7 +46,7 @@ class TestPlayer : public PlayerEntity {
 // the game's, retained (+1) as +alloc's object was.
 template <class T>
 T* NewTestPlayer() {
-  oo::Ref<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeRef<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -91,7 +91,7 @@ void SetCamZeroDistance(Entity* e, GLfloat value) {
 // root's facade, autoreleased.
 template <class T = OOEntityWithDrawable>
 T* NewWithDrawable(Entity** outObject) {
-  const oo::Ref<T> part = oo::makeRef<T>();
+  const std::shared_ptr<T> part = oo::makeRef<T>();
   *outObject = oo::MadeEntity(part);
   return part.get();
 }
@@ -122,7 +122,7 @@ OO_TEST(setDrawable) {
     OO_CHECK(entity->allTextures().empty());
 #endif
 
-    const oo::Ref<TestDrawable> drawable = oo::makeRef<TestDrawable>();
+    const std::shared_ptr<TestDrawable> drawable = oo::makeRef<TestDrawable>();
     drawable->_maxDrawDistance = 1000.0f;
     part->setDrawable(drawable.get());
     OO_CHECK(part->getDrawable() == drawable.get());
@@ -152,7 +152,7 @@ OO_TEST(drawImmediate) {
     TestCxxEntityWithDrawable* part =
         NewWithDrawable<TestCxxEntityWithDrawable>(
             &entity);  // a subclass, as a ship is
-    const oo::Ref<TestDrawable> drawable = oo::makeRef<TestDrawable>();
+    const std::shared_ptr<TestDrawable> drawable = oo::makeRef<TestDrawable>();
     drawable->_maxDrawDistance = 1.0e9f;
     part->setDrawable(drawable.get());
     entity->setPosition(make_HPvector(0, 0, 100));
@@ -203,13 +203,13 @@ OO_TEST(description) {
 OO_TEST(cxxSubclassFacade) {
   {
     SetUp();
-    const oo::Ref<TestCxxEntityWithDrawable> entity =
+    const std::shared_ptr<TestCxxEntityWithDrawable> entity =
         oo::makeRef<TestCxxEntityWithDrawable>();
     Entity* facade = oo::MadeEntity(entity);
     OO_CHECK(facade != nullptr);
     OO_CHECK(facade == entity.get() && entity.get() == facade);
 
-    const oo::Ref<TestDrawable> drawable = oo::makeRef<TestDrawable>();
+    const std::shared_ptr<TestDrawable> drawable = oo::makeRef<TestDrawable>();
     drawable->_maxDrawDistance = 1.0e9f;
     entity->setDrawable(drawable.get());
     OO_CHECK(entity->getDrawable() == drawable.get() &&

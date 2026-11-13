@@ -104,12 +104,12 @@ OOCharacter::OOCharacter(const std::string& role, OOSystemID system)
   castInRole(role);
 }
 
-oo::Ref<OOCharacter> OOCharacter::characterWithRole(const std::string& role,
-                                                    OOSystemID system) {
-  return oo::makeRef<OOCharacter>(role, system);
+std::shared_ptr<OOCharacter> OOCharacter::characterWithRole(
+    const std::string& role, OOSystemID system) {
+  return oo::makeShared<OOCharacter>(role, system);
 }
 
-oo::Ref<OOCharacter> OOCharacter::randomCharacterWithRole(
+std::shared_ptr<OOCharacter> OOCharacter::randomCharacterWithRole(
     const std::string& role, OOSystemID system) {
   Random_Seed seed;
 
@@ -120,15 +120,16 @@ oo::Ref<OOCharacter> OOCharacter::randomCharacterWithRole(
   seed.e = (Ranrot() & 0xff);
   seed.f = (Ranrot() & 0xff);
 
-  oo::Ref<OOCharacter> character = oo::adopt(new OOCharacter(seed, system));
+  std::shared_ptr<OOCharacter> character =
+      oo::adopt(new OOCharacter(seed, system));
   character->castInRole(role);
 
   return character;
 }
 
-oo::Ref<OOCharacter> OOCharacter::characterWithDictionary(
+std::shared_ptr<OOCharacter> OOCharacter::characterWithDictionary(
     const oo::PList& dict) {
-  oo::Ref<OOCharacter> character = oo::makeRef<OOCharacter>();
+  std::shared_ptr<OOCharacter> character = oo::makeShared<OOCharacter>();
   // (an oo::PList, which carries any non-plist values exactly)
   character->setCharacterFromDictionary(dict);
 
@@ -409,8 +410,7 @@ void OOCharacter::setCharacterScript(const std::string& scriptName) {
   _script = OOScript::jsScriptFromFileNamed(
       scriptName,
       oo::PList(oo::PList::Dict{
-          {"character",
-           oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(this)))}}));
+          {"character", oo::PList(oo::PList::Object(oo::share(this)))}}));
 }
 
 void OOCharacter::doScriptEvent(OOJSPropID message) {

@@ -153,7 +153,7 @@ bool OOVisualEffectEntity::setUpVisualEffectFromDictionary(
   const std::optional<std::string> modelName =
       OptionalStringForKey(effectDict, "model");
   if (modelName.has_value()) {
-    const oo::Ref<::OOMesh> mesh = ::OOMesh::meshWithName(
+    const std::shared_ptr<::OOMesh> mesh = ::OOMesh::meshWithName(
         *modelName, _effectKey, DictionaryForKey(effectDict, "materials"),
         DictionaryForKey(effectDict, "shaders"),
         effectDict.get<bool>("smooth", false), OODefaultShipShaderMacros(),
@@ -807,10 +807,10 @@ OOHUDBeaconIcon* OOVisualEffectEntity::beaconDrawable() {
 
     if (_beaconDrawable == nullptr) {
       if (length > 0)
-        _beaconDrawable = oo::makeRef<OOHUDBeaconCodeIcon>(
+        _beaconDrawable = oo::makeShared<OOHUDBeaconCodeIcon>(
             oo::utf16ToUtf8(beaconCode.substr(0, 1)));  // -substringToIndex:1
       else
-        _beaconDrawable = oo::makeRef<OOHUDBeaconCodeIcon>(std::string());
+        _beaconDrawable = oo::makeShared<OOHUDBeaconCodeIcon>(std::string());
     }
   }
 
@@ -827,13 +827,13 @@ Entity* OOVisualEffectEntity::nextBeacon() {
 
 void OOVisualEffectEntity::setPrevBeacon(Entity* beaconShip) {
   if (beaconShip != prevBeacon()) {
-    _prevBeacon = oo::WeakRef<Entity>(beaconShip);
+    _prevBeacon = std::weak_ptr<Entity>(oo::share(beaconShip));
   }
 }
 
 void OOVisualEffectEntity::setNextBeacon(Entity* beaconShip) {
   if (beaconShip != nextBeacon()) {
-    _nextBeacon = oo::WeakRef<Entity>(beaconShip);
+    _nextBeacon = std::weak_ptr<Entity>(oo::share(beaconShip));
   }
 }
 

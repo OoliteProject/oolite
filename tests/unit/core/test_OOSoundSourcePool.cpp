@@ -146,7 +146,7 @@ OO_TEST(countsAndSources) {
   {
     oo::AutoreleaseScope scope;  // was @autoreleasepool
     Reset(100.0);
-    oo::Ref<OOSoundSourcePool> one = OOSoundSourcePool::poolWithCount(0, 0.0);
+    std::shared_ptr<OOSoundSourcePool> one = OOSoundSourcePool::poolWithCount(0, 0.0);
     OO_CHECK(one != nullptr && gSources.empty());
     one->playSoundWithKey("[a]");
     OO_CHECK((Playing() == std::vector<std::string>{"[a]"}));
@@ -159,14 +159,14 @@ OO_TEST(countsAndSources) {
              Source(0)->_stops == 1);
 
     Reset(100.0);
-    oo::Ref<OOSoundSourcePool> many =
+    std::shared_ptr<OOSoundSourcePool> many =
         OOSoundSourcePool::poolWithCount(255, -1.0);
     for (int i = 0; i < 300; i++) many->playSoundWithKey("[k]", 1.0f, 10.0);
     OO_CHECK(gSources.size() == 254);
 
     // A missing sound plays nothing and makes no source.
     Reset(100.0);
-    oo::Ref<OOSoundSourcePool> pool = OOSoundSourcePool::poolWithCount(2, 0.0);
+    std::shared_ptr<OOSoundSourcePool> pool = OOSoundSourcePool::poolWithCount(2, 0.0);
     pool->playSoundWithKey("[missing]");
     OO_CHECK(gSources.empty());
   }
@@ -176,7 +176,7 @@ OO_TEST(slotsByPriorityAndExpiry) {
   {
     oo::AutoreleaseScope scope;  // was @autoreleasepool
     Reset(100.0);
-    oo::Ref<OOSoundSourcePool> pool = OOSoundSourcePool::poolWithCount(3, 0.0);
+    std::shared_ptr<OOSoundSourcePool> pool = OOSoundSourcePool::poolWithCount(3, 0.0);
     pool->playSoundWithKey("[low]", 1.0f, 1.0);
     pool->playSoundWithKey("[mid]", 2.0f, 5.0);
     pool->playSoundWithKey("[high]", 3.0f, 1.0);
@@ -214,7 +214,7 @@ OO_TEST(positionsAndDefaults) {
   {
     oo::AutoreleaseScope scope;  // was @autoreleasepool
     Reset(100.0);
-    oo::Ref<OOSoundSourcePool> pool = OOSoundSourcePool::poolWithCount(4, 0.0);
+    std::shared_ptr<OOSoundSourcePool> pool = OOSoundSourcePool::poolWithCount(4, 0.0);
     pool->playSoundWithKey("[p]", 1.0f, make_vector(1, 2, 3));
     OO_CHECK(vector_equal(Source(0)->_position, make_vector(1, 2, 3)));
     pool->playSoundWithKey("[q]", make_vector(4, 5, 6));
@@ -241,7 +241,7 @@ OO_TEST(minimumRepeatTime) {
   {
     oo::AutoreleaseScope scope;  // was @autoreleasepool
     Reset(100.0);
-    oo::Ref<OOSoundSourcePool> pool = OOSoundSourcePool::poolWithCount(4, 0.1);
+    std::shared_ptr<OOSoundSourcePool> pool = OOSoundSourcePool::poolWithCount(4, 0.1);
     pool->playSoundWithKey("[scrape]");
     pool->playSoundWithKey("[scrape]");
     OO_CHECK(gSources.size() == 1);
@@ -260,7 +260,7 @@ OO_TEST(noOverlap) {
   {
     oo::AutoreleaseScope scope;  // was @autoreleasepool
     Reset(100.0);
-    oo::Ref<OOSoundSourcePool> pool = OOSoundSourcePool::poolWithCount(3, 0.0);
+    std::shared_ptr<OOSoundSourcePool> pool = OOSoundSourcePool::poolWithCount(3, 0.0);
     pool->playSoundWithKey("[overheat]", static_cast<bool>(false));
     pool->playSoundWithKey("[overheat]", static_cast<bool>(false));
     pool->playSoundWithKey("[other]", static_cast<bool>(false), kZeroVector);
@@ -281,7 +281,7 @@ OO_TEST(cxxApi) {
   {
     oo::AutoreleaseScope scope;  // was @autoreleasepool
     Reset(100.0);
-    const oo::Ref<OOSoundSourcePool> pool =
+    const std::shared_ptr<OOSoundSourcePool> pool =
         OOSoundSourcePool::poolWithCount(3, 0.0);
     OO_CHECK(pool);
     pool->playSoundWithKey("[a]", overlap);  // overlapping, priority 1

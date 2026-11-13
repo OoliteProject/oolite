@@ -120,7 +120,8 @@ class OOCacheManager : public oo::RefCounted {
   std::optional<std::map<
       std::string, std::map<std::string, oo::PList, std::less<>>, std::less<>>>
       _caches = {};
-  oo::Ref<OOAsyncCacheWriter> _scheduledWrite = {};  // the pending write task
+  std::shared_ptr<OOAsyncCacheWriter> _scheduledWrite =
+      {};  // the pending write task
   bool _permitWrites = {};
   bool _dirty = {};
 };
@@ -129,7 +130,7 @@ class OOCacheManager : public oo::RefCounted {
 class OOAsyncCacheWriter : public OOAsyncWorkTask {
  public:
   // Null for a null contents (-initWithCacheContents: answered nil).
-  static oo::Ref<OOAsyncCacheWriter> writerWithCacheContents(
+  static std::shared_ptr<OOAsyncCacheWriter> writerWithCacheContents(
       const oo::PList& cacheContents);
 
   void performAsyncTask() override;

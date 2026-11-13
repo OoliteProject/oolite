@@ -242,7 +242,7 @@ void OOJavaScriptEngine::createMainThreadContext() {
 
   // Run prefix scripts.
   JSValue special = JSSpecialFunctionsObjectWrapper(_context);
-  oo::Ref<OOJSValue> specialWrapper =
+  std::shared_ptr<OOJSValue> specialWrapper =
       OOJSValue::valueWithJSValue(special, _context);
   JS_FreeValue(_context, special);
   OOScriptAutorelease(OOScript::jsScriptFromFileNamed(
@@ -1266,9 +1266,9 @@ JSValue OOJSValueFromPList(JSContext* context, const oo::PList& plist) {
   return JS_UNDEFINED;
 }
 
-oo::Ref<OOJSValue> OOJSValue::valueWithJSValue(JSValueConst value,
-                                               JSContext* context) {
-  oo::Ref<OOJSValue> result = oo::makeRef<OOJSValue>();
+std::shared_ptr<OOJSValue> OOJSValue::valueWithJSValue(JSValueConst value,
+                                                       JSContext* context) {
+  std::shared_ptr<OOJSValue> result = oo::makeShared<OOJSValue>();
   result->initWithJSValue(value, context);
   return result;
 }

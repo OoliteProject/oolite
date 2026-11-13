@@ -130,7 +130,7 @@ bool OOSoundChannel::playSound(OOSound* sound, bool loop) {
   _bigSound = false;
   sound->rewind();
   if (enqueueBuffer(sound)) {
-    _sound = oo::Ref<OOSound>(sound);
+    _sound = oo::share(sound);
     return true;
   } else {
     return false;
@@ -161,7 +161,7 @@ void OOSoundChannel::hasStopped() {
   }
   _bigSound = false;
 
-  oo::Ref<OOSound> sound =
+  std::shared_ptr<OOSound> sound =
       std::move(_sound);  // [sound release] at the end of the scope
 
   if (nullptr != _delegate) {

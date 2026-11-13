@@ -703,7 +703,7 @@ OO_TEST(nativeObjectValues)
 		OO_CHECK(JS_IsNull(Owned(null->jsValueInContext(context))));
 
 		// A native vector is a Vector3D.
-		oo::Ref<OONativeVector> vector = oo::makeRef<OONativeVector>(make_vector(1.0f, 2.0f, 3.0f));
+		std::shared_ptr<OONativeVector> vector = oo::makeRef<OONativeVector>(make_vector(1.0f, 2.0f, 3.0f));
 		Owned vectorValue(OOJSValueFromPList(context, oo::PList(oo::PList::Object(vector))));
 		OO_CHECK(JS_IsObject(vectorValue));
 		const char *className = OOJSClassName(JS_GetClassID(vectorValue));
@@ -721,19 +721,19 @@ OO_TEST(jsValueHolder)
 	{
 		JSContext *context = OOJSAcquireContext();
 		Owned object = Eval(context, "({ held: 'yes' })");
-		oo::Ref<OOJSValue> holder = OOJSValue::valueWithJSValue(object, context);
+		std::shared_ptr<OOJSValue> holder = OOJSValue::valueWithJSValue(object, context);
 		OO_CHECK(holder != nullptr);
 		OO_CHECK(IsSameObject(Owned(holder->jsValueInContext(context)), object));
 		OO_CHECK(IsSameObject(Owned(OOJSValueFromPList(context, OOJSValueObjectNode(holder.get()))), object));
 		OOJSRelinquishContext(context);
 
 		// A nil context is acquired for the call.
-		oo::Ref<OOJSValue> noContext = OOJSValue::valueWithJSValue(JS_NewInt32(context, 9), NULL);
+		std::shared_ptr<OOJSValue> noContext = OOJSValue::valueWithJSValue(JS_NewInt32(context, 9), NULL);
 		JSValue nine = noContext->jsValueInContext(NULL);
 		OO_CHECK(JS_VALUE_GET_TAG(nine) == JS_TAG_INT && JS_VALUE_GET_INT(nine) == 9);
 
 		// Undefined holds undefined.
-		oo::Ref<OOJSValue> undefinedHolder = OOJSValue::valueWithJSValue(JS_UNDEFINED, NULL);
+		std::shared_ptr<OOJSValue> undefinedHolder = OOJSValue::valueWithJSValue(JS_UNDEFINED, NULL);
 		OO_CHECK(JS_IsUndefined(undefinedHolder->jsValueInContext(NULL)));
 
 		OOJavaScriptEngine::sharedEngine()->garbageCollectionOpportunity(true);	// the held object survives
@@ -750,7 +750,7 @@ OO_TEST(jsValueHolder)
 OO_TEST(cxxObjectWrapper)
 {
 	SetUp();
-	oo::Ref<TestCxxNative> native = oo::makeRef<TestCxxNative>();
+	std::shared_ptr<TestCxxNative> native = oo::makeRef<TestCxxNative>();
 	const int deallocs = sCxxNativeDeallocs;
 	{
 		JSContext *context = OOJSAcquireContext();

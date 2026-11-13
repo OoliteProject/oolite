@@ -75,12 +75,12 @@ static JSClassID sTimerClassID;
         deallocated or the engine is reset.
 */
 
-oo::Ref<OOJSTimer> OOJSTimer::timerWithDelay(OOTimeAbsolute delay,
-                                             OOTimeDelta interval,
-                                             JSContext* context,
-                                             JSValueConst function,
-                                             JSValueConst jsThis) {
-  oo::Ref<OOJSTimer> timer = oo::adopt(new OOJSTimer);
+std::shared_ptr<OOJSTimer> OOJSTimer::timerWithDelay(OOTimeAbsolute delay,
+                                                     OOTimeDelta interval,
+                                                     JSContext* context,
+                                                     JSValueConst function,
+                                                     JSValueConst jsThis) {
+  std::shared_ptr<OOJSTimer> timer = oo::adopt(new OOJSTimer);
   if (!timer->initWithDelay(delay, interval, context, function, jsThis))
     return nullptr;
   return timer;
@@ -128,7 +128,7 @@ bool OOJSTimer::initWithDelay(OOTimeAbsolute delay, OOTimeDelta interval,
       return false;
     }
 
-    _owningScript = OOJSScript::currentlyRunningScript();
+    _owningScript = oo::share(OOJSScript::currentlyRunningScript());
 
     oo::NotificationCenter::defaultCenter().addObserver(
         this, kOOJavaScriptEngineWillResetNotificationName,
@@ -144,7 +144,7 @@ void OOJSTimer::deleteJSPointers() {
   /*	Freeing _jsThis may free the JS Timer object, whose finalizer releases
           us, so stay alive until we're done.
   */
-  oo::Ref<OOJSTimer> keepAlive(this);
+  std::shared_ptr<OOJSTimer> keepAlive = oo::share(this);
   releaseJSValues();
 }
 
@@ -170,7 +170,7 @@ void OOJSTimer::releaseJSValues() {
 }
 
 OOJSTimer::~OOJSTimer() {
-  _owningScript = nullptr;
+  _owningScript.reset();
 
   /*	Not deleteJSPointers(): we can't be retained during destruction. Freeing
           _jsThis can't re-enter, since the JS Timer object, which held our
@@ -219,7 +219,7 @@ void OOJSTimer::timerFired() {
   }
 
   // The callback may stop the timer and drop the last references to it.
-  oo::Ref<OOJSTimer> keepAlive(this);
+  std::shared_ptr<OOJSTimer> keepAlive = oo::share(this);
   JSValue function = JS_DupValue(context, _function);
   JSValue jsThis = JS_DupValue(context, _jsThis);
 
@@ -227,7 +227,7 @@ void OOJSTimer::timerFired() {
   _firing = true;
   engine->callJSFunction(function, jsThis, 0, nullptr, &rval);
   _firing = false;
-  OOJSScript::popScript(_owningScript.get());
+  OOJSScript::popScript(_owningScript.lock().get());
 
   JS_FreeValue(context, rval);
   JS_FreeValue(context, function);
@@ -340,7 +340,7 @@ static oo::PList TimerConverter(JSContext* /*context*/, JSValueConst object) {
   OOJSTimer* timer = static_cast<OOJSTimer*>(
       static_cast<oo::RefCounted*>(JS_GetOpaque(object, sTimerClassID)));
   if (timer == nullptr) return oo::PList();
-  return oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(timer)));
+  return oo::PList(oo::PList::Object(oo::share(timer)));
 }
 
 void InitOOJSTimer(JSContext* context, JSValueConst global) {
@@ -433,7 +433,7 @@ static JSValue TimerConstruct(OOJS_NATIVE_ARGS) {
   JSValueConst function = JS_UNDEFINED;
   double delay;
   double interval = -1.0;
-  oo::Ref<OOJSTimer> timer;
+  std::shared_ptr<OOJSTimer> timer;
   JSValue callbackThis = JS_NULL;
 
   if (EXPECT_NOT(!OOJS_IS_CONSTRUCTING)) {

@@ -110,7 +110,7 @@ SOFTWARE.
 
 class OOTimeProfile;
 
-oo::Ref<OOTimeProfile> OOJSEndProfiling(void);
+std::shared_ptr<OOTimeProfile> OOJSEndProfiling(void);
 
 void OOJSBeginProfiling(bool trace);
 bool OOJSIsProfiling(void);
@@ -130,7 +130,7 @@ class OOTimeProfile : public oo::RefCounted {
   double nonExtensionTime();
   double profilerOverhead();
 
-  std::vector<oo::Ref<OOTimeProfileEntry>>
+  std::vector<std::shared_ptr<OOTimeProfileEntry>>
   profileEntries();  // sorted by self time, longest first
 
   JSValue oo_jsValueInContext(JSContext* context);
@@ -140,7 +140,8 @@ class OOTimeProfile : public oo::RefCounted {
   void setNativeTime(double value);
   void setProfilerOverhead(double value);
   void setExtensionTime(double value);
-  void setProfileEntries(const std::vector<oo::Ref<OOTimeProfileEntry>>& value);
+  void setProfileEntries(
+      const std::vector<std::shared_ptr<OOTimeProfileEntry>>& value);
 
  private:
   oo::PList propertyListRepresentation();
@@ -150,7 +151,7 @@ class OOTimeProfile : public oo::RefCounted {
   double _extensionTime = {};
   double _profilerOverhead = {};
 
-  std::vector<oo::Ref<OOTimeProfileEntry>> _profileEntries;
+  std::vector<std::shared_ptr<OOTimeProfileEntry>> _profileEntries;
 };
 
 class OOTimeProfileEntry : public oo::RefCounted {

@@ -178,8 +178,9 @@ OOCommodities::OOCommodities() {
     _commodityLists = *entries;
 }
 
-oo::Ref<OOCommodityMarket> OOCommodities::generateManifestForPlayer() {
-  oo::Ref<OOCommodityMarket> market = oo::makeRef<OOCommodityMarket>();
+std::shared_ptr<OOCommodityMarket> OOCommodities::generateManifestForPlayer() {
+  std::shared_ptr<OOCommodityMarket> market =
+      oo::makeShared<OOCommodityMarket>();
 
   for (const auto& [commodity, info] : _commodityLists)  // key order
   {
@@ -200,8 +201,9 @@ oo::Ref<OOCommodityMarket> OOCommodities::generateManifestForPlayer() {
   return market;
 }
 
-oo::Ref<OOCommodityMarket> OOCommodities::generateBlankMarket() {
-  oo::Ref<OOCommodityMarket> market = oo::makeRef<OOCommodityMarket>();
+std::shared_ptr<OOCommodityMarket> OOCommodities::generateBlankMarket() {
+  std::shared_ptr<OOCommodityMarket> market =
+      oo::makeShared<OOCommodityMarket>();
 
   for (const auto& [commodity, info] : _commodityLists)  // key order
   {
@@ -323,13 +325,15 @@ oo::PList OOCommodities::modifyGood(const oo::PList& good, ::OOScript* script,
   return result;
 }
 
-oo::Ref<OOCommodityMarket> OOCommodities::generateMarketForSystemWithEconomy(
+std::shared_ptr<OOCommodityMarket>
+OOCommodities::generateMarketForSystemWithEconomy(
     OOEconomyID economy, const std::optional<std::string>& scriptName) {
   ::OOScript* script =
       (PLAYER != nullptr ? PLAYER->commodityScriptNamed(scriptName)
                          : static_cast<OOScript*>(nullptr));
 
-  oo::Ref<OOCommodityMarket> market = oo::makeRef<OOCommodityMarket>();
+  std::shared_ptr<OOCommodityMarket> market =
+      oo::makeShared<OOCommodityMarket>();
 
   for (const auto& [commodity, info] : _commodityLists)  // key order
   {
@@ -356,7 +360,7 @@ oo::Ref<OOCommodityMarket> OOCommodities::generateMarketForSystemWithEconomy(
   return market;
 }
 
-oo::Ref<OOCommodityMarket> OOCommodities::generateMarketForStation(
+std::shared_ptr<OOCommodityMarket> OOCommodities::generateMarketForStation(
     ::StationEntity* station) {
   const oo::PList marketDefinition =
       (station != nullptr ? station->getMarketDefinition() : oo::PList());
@@ -367,11 +371,12 @@ oo::Ref<OOCommodityMarket> OOCommodities::generateMarketForStation(
                                                : std::optional<std::string>()))
            : static_cast<OOScript*>(nullptr));
   if (!marketDefinition && marketScript == nullptr) {
-    oo::Ref<OOCommodityMarket> market = generateBlankMarket();
+    std::shared_ptr<OOCommodityMarket> market = generateBlankMarket();
     return market;
   }
 
-  oo::Ref<OOCommodityMarket> market = oo::makeRef<OOCommodityMarket>();
+  std::shared_ptr<OOCommodityMarket> market =
+      oo::makeShared<OOCommodityMarket>();
   OOCargoQuantity capacity =
       (station != nullptr ? station->getMarketCapacity() : 0);
   OOCommodityMarket* mainMarket =

@@ -55,7 +55,7 @@ uint32_t gDebugFlags = 0;
 // The ship's group, private again in C++, and nothing else.
 struct ShipEntityTestAccess
 {
-	static oo::Ref<::OOShipGroup> &Group(::ShipEntity *s)	{ return s->_group; }
+	static std::shared_ptr<::OOShipGroup> &Group(::ShipEntity *s)	{ return s->_group; }
 };
 
 
@@ -139,7 +139,7 @@ public:
 template <class T>
 T *NewTestPlayer()
 {
-	oo::Ref<T> player = oo::makeRef<T>();
+	std::shared_ptr<T> player = oo::makeRef<T>();
 	{
 		oo::RetainEntity(oo::MadeEntity(player));
 	}
@@ -313,7 +313,7 @@ FakePlayer *sPlayer = nullptr;
 // Its object (the test keeps entities as their objects), +1 as +alloc's was.
 Entity *MakeEntity(double x, bool visible)
 {
-	oo::Ref<TestEntity> part = oo::makeRef<TestEntity>();
+	std::shared_ptr<TestEntity> part = oo::makeRef<TestEntity>();
 	Entity *entity = nullptr;
 	{
 		entity = oo::RetainEntity(oo::MadeEntity(part));	// kept for the life of the test
@@ -330,7 +330,7 @@ Entity *MakeEntity(double x, bool visible)
 // never set up.
 ::ShipEntity *MakeShip(double x)
 {
-	oo::Ref<::ShipEntity> ship = oo::makeRef<::ShipEntity>();
+	std::shared_ptr<::ShipEntity> ship = oo::makeRef<::ShipEntity>();
 	{
 		oo::RetainEntity(oo::MadeEntity(ship));
 	}

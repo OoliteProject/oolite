@@ -108,7 +108,8 @@ class OOCheckShipDataPListVerifierStage : public OOTextureHandlingStage,
   std::vector<std::string> _ooliteShipNames = {};
   std::vector<std::string> _basicKeys = {}, _stationKeys = {}, _playerKeys = {},
                            _allKeys = {};
-  oo::Ref<OOPListSchemaVerifier> _schemaVerifier = {};  // Made by run().
+  std::shared_ptr<OOPListSchemaVerifier> _schemaVerifier =
+      {};  // Made by run().
   OOAIStateMachineVerifierStage* _aiVerifierStage =
       {};  // Not retained (the verifier holds it).
 

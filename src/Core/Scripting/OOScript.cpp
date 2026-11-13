@@ -66,11 +66,11 @@ static std::string ClassName(const OOScript& script) {
 }
 }  // namespace
 
-std::optional<std::vector<oo::Ref<OOScript>>> OOScript::worldScriptsAtPath(
-    const std::string& path) {
+std::optional<std::vector<std::shared_ptr<OOScript>>>
+OOScript::worldScriptsAtPath(const std::string& path) {
   std::string filePath;
-  std::optional<std::vector<oo::Ref<OOScript>>> result;
-  oo::Ref<OOScript> script;
+  std::optional<std::vector<std::shared_ptr<OOScript>>> result;
+  std::shared_ptr<OOScript> script;
   bool foundScript = false;
 
   // First, look for world-scripts.plist.
@@ -100,7 +100,7 @@ std::optional<std::vector<oo::Ref<OOScript>>> OOScript::worldScriptsAtPath(
 
       script = OOJSScript::scriptWithPath(filePath, oo::PList());
       if (script != nullptr) {
-        result = std::vector<oo::Ref<OOScript>>{script};
+        result = std::vector<std::shared_ptr<OOScript>>{script};
         OO_LOG("script.load.parseOK",
                "Successfully loaded JavaScript script {}", filePath);
       } else
@@ -143,9 +143,9 @@ std::optional<std::vector<oo::Ref<OOScript>>> OOScript::worldScriptsAtPath(
   return result;
 }
 
-std::optional<std::vector<oo::Ref<OOScript>>> OOScript::scriptsFromFileNamed(
-    const std::string& fileName) {
-  std::optional<std::vector<oo::Ref<OOScript>>> result;
+std::optional<std::vector<std::shared_ptr<OOScript>>>
+OOScript::scriptsFromFileNamed(const std::string& fileName) {
+  std::optional<std::vector<std::shared_ptr<OOScript>>> result;
   std::optional<std::string> path =
       ResourceManager::pathForFileNamed(fileName, "Scripts");
   if (path.has_value()) {
@@ -160,14 +160,14 @@ std::optional<std::vector<oo::Ref<OOScript>>> OOScript::scriptsFromFileNamed(
   return result;
 }
 
-std::vector<oo::Ref<OOScript>> OOScript::scriptsFromList(
+std::vector<std::shared_ptr<OOScript>> OOScript::scriptsFromList(
     const std::vector<std::string>& fileNames) {
-  std::vector<oo::Ref<OOScript>> result;
+  std::vector<std::shared_ptr<OOScript>> result;
 
   result.reserve(fileNames.size());
 
   for (const std::string& name : fileNames) {
-    std::optional<std::vector<oo::Ref<OOScript>>> scripts =
+    std::optional<std::vector<std::shared_ptr<OOScript>>> scripts =
         scriptsFromFileNamed(name);
     if (scripts.has_value())
       result.insert(result.end(), scripts->begin(), scripts->end());
@@ -176,18 +176,19 @@ std::vector<oo::Ref<OOScript>> OOScript::scriptsFromList(
   return result;
 }
 
-std::optional<std::vector<oo::Ref<OOScript>>> OOScript::scriptsFromFileAtPath(
-    const std::string& filePath) {
+std::optional<std::vector<std::shared_ptr<OOScript>>>
+OOScript::scriptsFromFileAtPath(const std::string& filePath) {
   // OXZ-aware exists is false for directories
   if (!OOOxzFileExistsAtPath(filePath)) return std::nullopt;
 
   std::string extension = oo::str::lowercase(oo::str::pathExtension(filePath));
 
   if (extension == "js" || extension == "es") {
-    std::optional<std::vector<oo::Ref<OOScript>>> result;
-    oo::Ref<OOScript> script =
+    std::optional<std::vector<std::shared_ptr<OOScript>>> result;
+    std::shared_ptr<OOScript> script =
         OOJSScript::scriptWithPath(filePath, oo::PList());
-    if (script != nullptr) result = std::vector<oo::Ref<OOScript>>{script};
+    if (script != nullptr)
+      result = std::vector<std::shared_ptr<OOScript>>{script};
     return result;
   } else if (extension == "plist") {
     cxx_OOStandardsDeprecated(
@@ -203,8 +204,8 @@ std::optional<std::vector<oo::Ref<OOScript>>> OOScript::scriptsFromFileAtPath(
   return std::nullopt;
 }
 
-oo::Ref<OOScript> OOScript::jsScriptFromFileNamed(const std::string& fileName,
-                                                  const oo::PList& properties) {
+std::shared_ptr<OOScript> OOScript::jsScriptFromFileNamed(
+    const std::string& fileName, const oo::PList& properties) {
   std::string extension;
   std::optional<std::string> path;
 
@@ -232,7 +233,7 @@ oo::Ref<OOScript> OOScript::jsScriptFromFileNamed(const std::string& fileName,
   return nullptr;
 }
 
-oo::Ref<OOScript> OOScript::jsAIScriptFromFileNamed(
+std::shared_ptr<OOScript> OOScript::jsAIScriptFromFileNamed(
     const std::string& fileName, const oo::PList& properties) {
   std::string extension;
   std::optional<std::string> path;
@@ -334,7 +335,7 @@ void OOScript::clearJSSelf(JSValueConst) {}
    oo::AutoreleaseScope, whose drain releases it where the keeper object that
    held it was released.
 */
-void OOScriptAutorelease(oo::Ref<OOScript> script) {
+void OOScriptAutorelease(std::shared_ptr<OOScript> script) {
   if (script == nullptr) return;
   oo::autorelease(std::move(script));
 }

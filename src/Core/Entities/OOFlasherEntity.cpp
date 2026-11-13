@@ -31,9 +31,10 @@ MA 02110-1301, USA.
 #include "Universe.h"
 #include "oofnd/PListGet.hpp"
 
-oo::Ref<OOFlasherEntity> OOFlasherEntity::flasherWithDictionary(
+std::shared_ptr<OOFlasherEntity> OOFlasherEntity::flasherWithDictionary(
     const oo::PList& dictionary) {
-  const oo::Ref<OOFlasherEntity> flasher = oo::makeRef<OOFlasherEntity>();
+  const std::shared_ptr<OOFlasherEntity> flasher =
+      oo::makeShared<OOFlasherEntity>();
   flasher->initWithDictionary(dictionary);
   return flasher;
 }

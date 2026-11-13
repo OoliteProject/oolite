@@ -189,8 +189,7 @@ class OONull : public oo::PListForeign {
 // oo::PListObject()), and whether a node is that null (oo::ObjectIn(node) ==
 // [OONull null]).
 inline oo::PList OONullObjectNode() {
-  return oo::PList(
-      oo::PList::Object(oo::Ref<oo::PListForeign>(OONull::null())));
+  return oo::PList(oo::PList::Object(oo::share(OONull::null())));
 }
 
 inline bool OOIsNullObjectNode(const oo::PList& plist) {

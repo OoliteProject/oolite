@@ -51,7 +51,7 @@ public:
 	void setColor(OOColor *color);
 
 	float _diameter = 0;
-	oo::Ref<OOColor> _color;
+	std::shared_ptr<OOColor> _color;
 };
 
 
@@ -63,7 +63,7 @@ class OOFlasherEntity : public OOLightParticleEntity
 public:
 	bool isActive();
 	void setActive(bool active);
-	oo::Ref<OOColor> color();
+	std::shared_ptr<OOColor> color();
 	float frequency();
 	void setFrequency(float frequency);
 	float phase();
@@ -96,7 +96,7 @@ public:
 	bool isVisibleToScripts();
 	const char *className() const  { return "Entity"; }	// its Objective-C class's runtime name
 
-	oo::Ref<Entity> _cxxEntity;	// the flasher's C++ part (oo::ToCxx reads it)
+	std::shared_ptr<Entity> _cxxEntity;	// the flasher's C++ part (oo::ToCxx reads it)
 	::TestEntityObject *_owner = nullptr;
 	::TestEntityObject *_removed = nullptr;
 	bool _isShip = false;
@@ -170,11 +170,11 @@ bool Entity::isVisibleToScripts()  { return false; }
 
 float OOLightParticleEntity::diameter()  { return _diameter; }
 void OOLightParticleEntity::setDiameter(float diameter)  { _diameter = diameter; }
-void OOLightParticleEntity::setColor(OOColor *color)  { _color = oo::Ref<OOColor>(color); }
+void OOLightParticleEntity::setColor(OOColor *color)  { _color = oo::share(color); }
 
 bool OOFlasherEntity::isActive()  { return _active; }
 void OOFlasherEntity::setActive(bool active)  { _active = active; }
-oo::Ref<OOColor> OOFlasherEntity::color()  { return _color; }
+std::shared_ptr<OOColor> OOFlasherEntity::color()  { return _color; }
 void OOFlasherEntity::setFrequency(float frequency)  { _frequency = frequency; }
 float OOFlasherEntity::fraction()  { return _fraction; }
 void OOFlasherEntity::setFraction(float fraction)  { _fraction = fraction; }
@@ -465,7 +465,7 @@ void SetUpContext()
 	sEffect->_cxxEntity = oo::makeRef<OOVisualEffectEntity>();
 	sEffectPart = static_cast<OOVisualEffectEntity *>(sEffect->_cxxEntity.get());
 	sFlasher = oo::makeRef<TestEntityObject>().leakRef();
-	const oo::Ref<OOFlasherEntity> part = oo::makeRef<OOFlasherEntity>();
+	const std::shared_ptr<OOFlasherEntity> part = oo::makeRef<OOFlasherEntity>();
 	sFlasher->_cxxEntity = part;
 	sFlasherPart = part.get();
 	sFlasherPart->_active = true;

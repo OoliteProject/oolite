@@ -46,8 +46,8 @@ constexpr const char* kCacheName = "sanitized legacy scripts";
    directly.
 */
 
-std::optional<std::vector<oo::Ref<OOScript>>> OOPListScript::scriptsInPListFile(
-    const std::string& filePath) {
+std::optional<std::vector<std::shared_ptr<OOScript>>>
+OOPListScript::scriptsInPListFile(const std::string& filePath) {
   OOCacheManager* cache = OOCacheManager::sharedCache();
   const oo::PList cachedScripts = (cache != nullptr)
                                       ? cache->pListForKey(filePath, kCacheName)
@@ -110,9 +110,10 @@ void OOPListScript::runWithTarget(Entity* target) {
   oo::log::outdentIf("script.legacy.run");
 }
 
-std::vector<oo::Ref<OOScript>> OOPListScript::scriptsFromDictionaryOfScripts(
-    const oo::PList& dictionary, const std::string& filePath) {
-  std::vector<oo::Ref<OOScript>> result;
+std::vector<std::shared_ptr<OOScript>>
+OOPListScript::scriptsFromDictionaryOfScripts(const oo::PList& dictionary,
+                                              const std::string& filePath) {
+  std::vector<std::shared_ptr<OOScript>> result;
   oo::PList::Dict cachedScripts;
   const oo::PList* metadata = nullptr;
 
@@ -132,8 +133,8 @@ std::vector<oo::Ref<OOScript>> OOPListScript::scriptsFromDictionaryOfScripts(
       if (sanitized) {
         // [[OOPListScript alloc] initWithName:scriptArray:metadata:], which
         // could not fail: the new script, kept by the result.
-        const oo::Ref<OOPListScript> script =
-            oo::makeRef<OOPListScript>(key, sanitized, metadata);
+        const std::shared_ptr<OOPListScript> script =
+            oo::makeShared<OOPListScript>(key, sanitized, metadata);
         {
           result.emplace_back(script);
           // +dictionaryWithObjectsAndKeys: stopped at a nil metadata.
@@ -152,9 +153,9 @@ std::vector<oo::Ref<OOScript>> OOPListScript::scriptsFromDictionaryOfScripts(
   return result;
 }
 
-std::vector<oo::Ref<OOScript>> OOPListScript::loadCachedScripts(
+std::vector<std::shared_ptr<OOScript>> OOPListScript::loadCachedScripts(
     const oo::PList& cachedScripts) {
-  std::vector<oo::Ref<OOScript>> result;
+  std::vector<std::shared_ptr<OOScript>> result;
   result.reserve(cachedScripts.count());
 
   const oo::PList::Dict* entries = cachedScripts.getIf<oo::PList::Dict>();
@@ -170,7 +171,7 @@ std::vector<oo::Ref<OOScript>> OOPListScript::loadCachedScripts(
     const oo::PList* metadata =
         (cacheValue != nullptr) ? cacheValue->get<oo::PList::Dict>(kKeyMetadata)
                                 : nullptr;
-    const oo::Ref<OOPListScript> script = oo::makeRef<OOPListScript>(
+    const std::shared_ptr<OOPListScript> script = oo::makeShared<OOPListScript>(
         key, (scriptArray != nullptr) ? *scriptArray : oo::PList(), metadata);
     result.emplace_back(script);
   }

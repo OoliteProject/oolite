@@ -94,7 +94,7 @@ void OOTextureVerifierStage::textureNamed(const std::string& name,
 
 void OOTextureVerifierStage::checkTextureNamed(const std::string& name,
                                                const std::string& folder) {
-  oo::Ref<OOTextureLoader> loader;
+  std::shared_ptr<OOTextureLoader> loader;
   std::optional<std::string> path;
   OOFileScannerVerifierStage* fileScanner = nullptr;
   std::optional<std::string> displayName;

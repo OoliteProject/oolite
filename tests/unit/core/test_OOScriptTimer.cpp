@@ -58,9 +58,9 @@ static std::vector<std::string> gFired;
 
 class TestTimer final : public OOScriptTimer {
  public:
-  static oo::Ref<TestTimer> timerWithNextTime(OOTimeAbsolute nextTime,
+  static std::shared_ptr<TestTimer> timerWithNextTime(OOTimeAbsolute nextTime,
                                               OOTimeDelta interval) {
-    oo::Ref<TestTimer> timer = oo::adopt(new TestTimer);
+    std::shared_ptr<TestTimer> timer = oo::adopt(new TestTimer);
     if (!timer->initWithNextTime(nextTime, interval)) return nullptr;
     return timer;
   }
@@ -84,9 +84,9 @@ void SetUp(double now) {
   gFired.clear();
 }
 
-oo::Ref<TestTimer> MakeTimer(const char* name, double nextTime,
+std::shared_ptr<TestTimer> MakeTimer(const char* name, double nextTime,
                              double interval) {
-  oo::Ref<TestTimer> timer = TestTimer::timerWithNextTime(nextTime, interval);
+  std::shared_ptr<TestTimer> timer = TestTimer::timerWithNextTime(nextTime, interval);
   if (timer != nullptr) timer->name = name;
   return timer;
 }
@@ -103,7 +103,7 @@ std::string Fired() {
 OO_TEST(initialisers) {
   {
     SetUp(100.0);
-    oo::Ref<OOScriptTimer> timer = OOScriptTimer::timerWithNextTime(110.0, 5.0);
+    std::shared_ptr<OOScriptTimer> timer = OOScriptTimer::timerWithNextTime(110.0, 5.0);
     OO_CHECK(timer != nullptr);
     OO_CHECK_EQ(timer->nextTime(), 110.0);
     OO_CHECK_EQ(timer->interval(), 5.0);
@@ -132,7 +132,7 @@ OO_TEST(initialisers) {
 OO_TEST(accessors) {
   {
     SetUp(100.0);
-    oo::Ref<OOScriptTimer> timer = OOScriptTimer::timerWithNextTime(110.0, 5.0);
+    std::shared_ptr<OOScriptTimer> timer = OOScriptTimer::timerWithNextTime(110.0, 5.0);
     timer->setInterval(-3.0);
     OO_CHECK_EQ(timer->interval(), -1.0);
     timer->setInterval(7.0);
@@ -156,7 +156,7 @@ OO_TEST(accessors) {
 OO_TEST(description) {
   {
     SetUp(100.0);
-    oo::Ref<OOScriptTimer> timer = OOScriptTimer::timerWithNextTime(110.0, 5.0);
+    std::shared_ptr<OOScriptTimer> timer = OOScriptTimer::timerWithNextTime(110.0, 5.0);
     OO_CHECK_EQ(timer->descriptionComponents().value_or("<none>"),
                 "nextTime: 110, interval: 5, not running");
     timer->scheduleTimer();
@@ -173,8 +173,8 @@ OO_TEST(description) {
 OO_TEST(ordering) {
   {
     SetUp(100.0);
-    oo::Ref<OOScriptTimer> early = OOScriptTimer::timerWithNextTime(110.0, 5.0);
-    oo::Ref<OOScriptTimer> late = OOScriptTimer::timerWithNextTime(120.0, 5.0);
+    std::shared_ptr<OOScriptTimer> early = OOScriptTimer::timerWithNextTime(110.0, 5.0);
+    std::shared_ptr<OOScriptTimer> late = OOScriptTimer::timerWithNextTime(120.0, 5.0);
     OO_CHECK_EQ(early->compareByNextFireTime(late.get()), OOComparisonResult::kAscending);
     OO_CHECK_EQ(late->compareByNextFireTime(early.get()), OOComparisonResult::kDescending);
     OO_CHECK_EQ(early->compareByNextFireTime(early.get()), OOComparisonResult::kSame);
@@ -186,9 +186,9 @@ OO_TEST(ordering) {
 OO_TEST(firing) {
   {
     SetUp(100.0);
-    oo::Ref<TestTimer> b = MakeTimer("b", 120.0, -1.0);
-    oo::Ref<TestTimer> a = MakeTimer("a", 110.0, -1.0);
-    oo::Ref<TestTimer> r = MakeTimer("r", 105.0, 10.0);
+    std::shared_ptr<TestTimer> b = MakeTimer("b", 120.0, -1.0);
+    std::shared_ptr<TestTimer> a = MakeTimer("a", 110.0, -1.0);
+    std::shared_ptr<TestTimer> r = MakeTimer("r", 105.0, 10.0);
     OO_CHECK(b->scheduleTimer() && a->scheduleTimer() && r->scheduleTimer());
 
     OOScriptTimer::updateTimers();
@@ -223,12 +223,12 @@ OO_TEST(firing) {
 OO_TEST(scheduleMovesPastTimeForward) {
   {
     SetUp(100.0);
-    oo::Ref<TestTimer> r = MakeTimer("r", 101.0, 4.0);
+    std::shared_ptr<TestTimer> r = MakeTimer("r", 101.0, 4.0);
     gNow = 110.0;
     OO_CHECK(r->isValidForScheduling());
     OO_CHECK_EQ(r->nextTime(), 113.0);  // the next 101 + 4n after now
     gNow = 113.0;
-    oo::Ref<TestTimer> s = MakeTimer("s", 105.0, 4.0);
+    std::shared_ptr<TestTimer> s = MakeTimer("s", 105.0, 4.0);
     OO_CHECK(s->isValidForScheduling());
     OO_CHECK_EQ(s->nextTime(),
                 113.0);  // exactly now: not run yet, so it may fire now
@@ -238,10 +238,10 @@ OO_TEST(scheduleMovesPastTimeForward) {
 OO_TEST(stopsItselfAndDefers) {
   {
     SetUp(100.0);
-    oo::Ref<TestTimer> stopper = MakeTimer("stopper", 101.0, 5.0);
+    std::shared_ptr<TestTimer> stopper = MakeTimer("stopper", 101.0, 5.0);
     stopper->stopWhenFired = true;
-    oo::Ref<TestTimer> later = MakeTimer("later", 102.0, -1.0);
-    oo::Ref<TestTimer> starter = MakeTimer("starter", 101.5, -1.0);
+    std::shared_ptr<TestTimer> later = MakeTimer("later", 102.0, -1.0);
+    std::shared_ptr<TestTimer> starter = MakeTimer("starter", 101.5, -1.0);
     starter->startWhenFired = later.get();
     OO_CHECK(stopper->scheduleTimer() && starter->scheduleTimer());
 
@@ -262,8 +262,8 @@ OO_TEST(stopsItselfAndDefers) {
 OO_TEST(gameReset) {
   {
     SetUp(100.0);
-    oo::Ref<TestTimer> a = MakeTimer("a", 110.0, 5.0);
-    oo::Ref<TestTimer> b = MakeTimer("b", 120.0, -1.0);
+    std::shared_ptr<TestTimer> a = MakeTimer("a", 110.0, 5.0);
+    std::shared_ptr<TestTimer> b = MakeTimer("b", 120.0, -1.0);
     OO_CHECK(a->scheduleTimer() && b->scheduleTimer());
     OOScriptTimer::noteGameReset();
     OO_CHECK(!a->isScheduled());
@@ -281,7 +281,7 @@ OO_TEST(gameReset) {
 OO_TEST(baseTimerFired) {
   {
     SetUp(100.0);
-    oo::Ref<OOScriptTimer> timer =
+    std::shared_ptr<OOScriptTimer> timer =
         OOScriptTimer::timerWithNextTime(101.0, -1.0);
     OO_CHECK(timer->scheduleTimer());
     gSubclassResponsibilities = 0;

@@ -183,34 +183,31 @@ static bool IsPerVertexNormalMode(OOMeshNormalMode mode) {
   return false;
 }
 
-oo::Ref<OOMesh> OOMesh::meshWithName(const std::string& name,
-                                     const std::optional<std::string>& cacheKey,
-                                     const oo::PList& materialDict,
-                                     const oo::PList& shadersDict, bool smooth,
-                                     const oo::PList& macros, Entity* object) {
+std::shared_ptr<OOMesh> OOMesh::meshWithName(
+    const std::string& name, const std::optional<std::string>& cacheKey,
+    const oo::PList& materialDict, const oo::PList& shadersDict, bool smooth,
+    const oo::PList& macros, Entity* object) {
   // [[self alloc] initWithName:...] autoreleased: a new mesh, loaded, or null
   // when it did not load.
-  oo::Ref<OOMesh> mesh = oo::makeRef<OOMesh>();
+  std::shared_ptr<OOMesh> mesh = oo::makeShared<OOMesh>();
   if (!mesh->initWithName(name, cacheKey, materialDict, shadersDict, smooth,
                           macros, object, 1.0f, true))
     return nullptr;
   return mesh;
 }
 
-oo::Ref<OOMesh> OOMesh::meshWithName(const std::string& name,
-                                     const std::optional<std::string>& cacheKey,
-                                     const oo::PList& materialDict,
-                                     const oo::PList& shadersDict, bool smooth,
-                                     const oo::PList& macros, Entity* object,
-                                     float scale, bool cacheWriteable) {
-  oo::Ref<OOMesh> mesh = oo::makeRef<OOMesh>();
+std::shared_ptr<OOMesh> OOMesh::meshWithName(
+    const std::string& name, const std::optional<std::string>& cacheKey,
+    const oo::PList& materialDict, const oo::PList& shadersDict, bool smooth,
+    const oo::PList& macros, Entity* object, float scale, bool cacheWriteable) {
+  std::shared_ptr<OOMesh> mesh = oo::makeShared<OOMesh>();
   if (!mesh->initWithName(name, cacheKey, materialDict, shadersDict, smooth,
                           macros, object, scale, cacheWriteable))
     return nullptr;
   return mesh;
 }
 
-oo::Ref<OOMaterial> OOMesh::placeholderMaterial() {
+std::shared_ptr<OOMaterial> OOMesh::placeholderMaterial() {
   static OOBasicMaterial* placeholderMaterial =
       nullptr;  // never released, as before
 
@@ -219,14 +216,12 @@ oo::Ref<OOMaterial> OOMesh::placeholderMaterial() {
     // points into it.
     const oo::PList materialDefaults = ResourceManager::materialDefaults();
     const oo::PList* noTextures = materialDefaults.find("no-textures-material");
-    placeholderMaterial =
-        OOBasicMaterial::materialWithName(
-            std::string("/placeholder/"),
-            (noTextures != nullptr ? *noTextures : oo::PList()))
-            .leakRef();
+    placeholderMaterial = oo::leakRef(OOBasicMaterial::materialWithName(
+        std::string("/placeholder/"),
+        (noTextures != nullptr ? *noTextures : oo::PList())));
   }
 
-  return oo::Ref<OOMaterial>(placeholderMaterial);
+  return oo::share(placeholderMaterial);
 }
 
 OOMesh::OOMesh() {
@@ -288,11 +283,10 @@ std::optional<std::string> OOMesh::descriptionComponents() const {
       NormalModeDescription(static_cast<OOMeshNormalMode>(_normalMode)));
 }
 
-oo::Ref<OOMesh> OOMesh::copyWithZone(OOZone* zone) {
+std::shared_ptr<OOMesh> OOMesh::copyWithZone(OOZone* zone) {
   // -zone is always nil (OOObject.h), so this is [self zone].
   if (zone == nullptr)
-    return oo::Ref<OOMesh>(
-        this);  // OK because we're immutable seen from the outside
+    return oo::share(this);  // OK because we're immutable seen from the outside
   else
     return mutableCopyWithZone(zone);
 }
@@ -307,7 +301,7 @@ void OOMesh::renderOpaqueParts() {
   OO_ENTER_OPENGL();
 
   Entity* bindingEntity =
-      _shaderBindingTarget
+      _shaderBindingTarget.lock()
           .get();  // a message to a gone target's weak reference answered NO
   bool meshBelongsToVisualEffect =
       bindingEntity != nullptr && bindingEntity->getIsVisualEffect();
@@ -490,7 +484,7 @@ void OOMesh::renderOpaqueParts() {
 
 void OOMesh::rebindMaterials() {
   OOMeshMaterialCount i;
-  oo::Ref<OOMaterial> material;
+  std::shared_ptr<OOMaterial> material;
 
   if (materialCount != 0) {
     for (i = 0; i != materialCount; ++i) {
@@ -500,7 +494,7 @@ void OOMesh::rebindMaterials() {
         material = OOMaterial::materialWithName(
             materialKeys[i], _cacheKey, _materialDict, _shadersDict,
             _shaderMacros,
-            _shaderBindingTarget.get(),  // Windows DEP fix.
+            _shaderBindingTarget.lock().get(),  // Windows DEP fix.
             IsPerVertexNormalMode(static_cast<OOMeshNormalMode>(_normalMode)));
       } else {
         material = nullptr;
@@ -510,7 +504,7 @@ void OOMesh::rebindMaterials() {
       if (material != nullptr) {
         materials[i] = oo::retain(material.get());
       } else {
-        materials[i] = placeholderMaterial().leakRef();
+        materials[i] = oo::leakRef(placeholderMaterial());
       }
 
       /*	Release is deferred to here to ensure we don't end up releasing
@@ -569,14 +563,14 @@ unsigned OOMesh::octreeDepth() {
 unsigned OOMesh::octreeDepth() { return kBaseOctreeDepth; }
 #endif
 
-oo::Ref<Octree> OOMesh::getOctree() {
+std::shared_ptr<Octree> OOMesh::getOctree() {
   if (octree == nullptr) {
     octree = baseFileOctreeCacheRef
                  ? OOCacheManagerOctreeForModel(*baseFileOctreeCacheRef)
-                 : oo::Ref<Octree>();
+                 : std::shared_ptr<Octree>();
     if (octree == nullptr) {
       {
-        oo::Ref<OOMeshToOctreeConverter> converter =
+        std::shared_ptr<OOMeshToOctreeConverter> converter =
             OOMeshToOctreeConverter::converterWithCapacity(faceCount);
         OOMeshFaceCount i;
         for (i = 0; i < faceCount; i++) {
@@ -682,8 +676,9 @@ BoundingBox OOMesh::findSubentityBoundingBoxWithPosition(Vector position,
   return result;
 }
 
-oo::Ref<OOMesh> OOMesh::meshRescaledBy(GLfloat scaleFactor) {
-  oo::Ref<OOMesh> result = mutableCopyWithZone(nullptr);  // [self mutableCopy]
+std::shared_ptr<OOMesh> OOMesh::meshRescaledBy(GLfloat scaleFactor) {
+  std::shared_ptr<OOMesh> result =
+      mutableCopyWithZone(nullptr);  // [self mutableCopy]
   result->rescaleByFactor(scaleFactor);
   return result;
 }
@@ -710,15 +705,15 @@ void OOMesh::dumpSelfState() {
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::Ref<OOTexture>> OOMesh::allTextures() {
+std::vector<std::shared_ptr<OOTexture>> OOMesh::allTextures() {
   // Every material's textures; duplicates are dropped.
-  std::vector<oo::Ref<OOTexture>> result;
+  std::vector<std::shared_ptr<OOTexture>> result;
   OOMeshMaterialCount i;
   for (i = 0; i != materialCount; i++) {
     // A nil material answered no textures.
     OOMaterial* material = materials[i];
     if (material == nullptr) continue;
-    for (const oo::Ref<OOTexture>& texture : material->allTextures())
+    for (const std::shared_ptr<OOTexture>& texture : material->allTextures())
       result.push_back(texture);
   }
 
@@ -774,7 +769,7 @@ bool OOMesh::initWithName(const std::string& name,
     _cacheWriteable = cacheWriteable;
 
 #if OOMESH_PROFILE
-    _stopwatch = oo::makeRef<OOProfilingStopwatch>();
+    _stopwatch = oo::makeShared<OOProfilingStopwatch>();
 #endif
 
     if (loadData(name, scale)) {
@@ -792,7 +787,7 @@ bool OOMesh::initWithName(const std::string& name,
       _shadersDict = shadersDict;
       _cacheKey = cacheKey;
       _shaderMacros = macros;
-      _shaderBindingTarget = target;
+      _shaderBindingTarget = oo::share(target);
 
       rebindMaterials();
       PROFILE("finished material setup");
@@ -814,12 +809,12 @@ bool OOMesh::initWithName(const std::string& name,
   OOJS_PROFILE_EXIT
 }
 
-oo::Ref<OOMesh> OOMesh::mutableCopyWithZone(OOZone* /*zone*/) {
+std::shared_ptr<OOMesh> OOMesh::mutableCopyWithZone(OOZone* /*zone*/) {
   OOMeshMaterialCount i;
 
   // A new mesh whose members are copied one by one (the copy constructor),
   // so the buffers are shared. Zones are unused.
-  oo::Ref<OOMesh> result = oo::makeRef<OOMesh>(*this);
+  std::shared_ptr<OOMesh> result = oo::makeShared<OOMesh>(*this);
 
   // (The binding target is a weak reference, copied; the octree is a C++
   // reference, copied.)
@@ -1987,8 +1982,8 @@ static const char* const kOOCacheOctrees = "octrees";
 // The OOCacheManager (Octree) category, as free functions next to the cache
 // (OOMesh.h).
 
-oo::Ref<Octree> OOCacheManagerOctreeForModel(const std::string& inKey) {
-  oo::Ref<Octree> result;
+std::shared_ptr<Octree> OOCacheManagerOctreeForModel(const std::string& inKey) {
+  std::shared_ptr<Octree> result;
   OOCacheManager* cache = OOCacheManager::sharedCache();
 
   const oo::PList data =

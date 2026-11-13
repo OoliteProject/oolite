@@ -125,7 +125,7 @@ class DockEntity : public ShipEntity {
   //	double					approach_spacing; // not needed
   // now holding pattern changed
 
-  oo::WeakRef<Entity>
+  std::weak_ptr<Entity>
       id_lock[MAX_DOCKING_STAGES];  // weak references to a ship (its C++ part)
 
   Vector port_dimensions = {};

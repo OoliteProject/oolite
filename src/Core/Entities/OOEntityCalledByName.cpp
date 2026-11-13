@@ -904,6 +904,6 @@ void oo::ScheduleEntityCall(Entity* entity, void (*call)(Entity* entity),
                             double delay) {
   if (entity == nullptr || call == nullptr) return;
   // The call holds the entity, so it keeps the entity alive until it has run.
-  oo::Ref<Entity> held(entity);
+  std::shared_ptr<Entity> held = oo::share(entity);
   OOScheduleDeferredCall([held, call]() { call(held.get()); }, delay);
 }

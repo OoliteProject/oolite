@@ -91,17 +91,18 @@ bool OORingEffectEntity::initRingFromEntity(Entity* sourceEntity) {
   return true;
 }
 
-oo::Ref<OORingEffectEntity> OORingEffectEntity::ringFromEntity(
+std::shared_ptr<OORingEffectEntity> OORingEffectEntity::ringFromEntity(
     Entity* sourceEntity) {
   initialize();
-  oo::Ref<OORingEffectEntity> result = oo::makeRef<OORingEffectEntity>();
+  std::shared_ptr<OORingEffectEntity> result =
+      oo::makeShared<OORingEffectEntity>();
   if (!result->initRingFromEntity(sourceEntity)) return nullptr;
   return result;
 }
 
-oo::Ref<OORingEffectEntity> OORingEffectEntity::shrinkingRingFromEntity(
+std::shared_ptr<OORingEffectEntity> OORingEffectEntity::shrinkingRingFromEntity(
     Entity* sourceEntity) {
-  oo::Ref<OORingEffectEntity> result = ringFromEntity(sourceEntity);
+  std::shared_ptr<OORingEffectEntity> result = ringFromEntity(sourceEntity);
   if (result != nullptr) {
     result->_innerGrowthRate *= kShrinkingRingInnerGrowthFactor;
     result->_outerGrowthRate *= kShrinkingRingOuterGrowthFactor;

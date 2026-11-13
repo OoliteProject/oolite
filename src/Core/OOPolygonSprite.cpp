@@ -156,9 +156,9 @@ using TessFuncPtr = GLvoid (*)();
 
 // Null where -initWithDataArray:outlineWidth:name: released itself and answered
 // nil.
-oo::Ref<OOPolygonSprite> OOPolygonSprite::initWithDataArray(
+std::shared_ptr<OOPolygonSprite> OOPolygonSprite::initWithDataArray(
     const oo::PList& dataArray, GLfloat outlineWidth, const std::string& name) {
-  oo::Ref<OOPolygonSprite> sprite = oo::adopt(new OOPolygonSprite);
+  std::shared_ptr<OOPolygonSprite> sprite = oo::adopt(new OOPolygonSprite);
   {
 #ifndef NDEBUG
     sprite->_name = name;

@@ -84,7 +84,7 @@ OO_TEST(baseDefaults) {
   {
     MyOpenGLView* view = new MyOpenGLView();
     const std::size_t viewRetains = view->retainCount();
-    oo::Ref<OOFullScreenController> controller =
+    std::shared_ptr<OOFullScreenController> controller =
         oo::makeRef<OOFullScreenController>(view);
     OO_CHECK(controller != nullptr);
     OO_CHECK(controller->gameView() == view);
@@ -122,7 +122,7 @@ OO_TEST(baseDefaults) {
 
 OO_TEST(nilGameView) {
   {
-    oo::Ref<OOFullScreenController> controller =
+    std::shared_ptr<OOFullScreenController> controller =
         oo::makeRef<OOFullScreenController>(nullptr);
     OO_CHECK(controller != nullptr);
     OO_CHECK(controller->gameView() == nullptr);
@@ -131,7 +131,7 @@ OO_TEST(nilGameView) {
 
 OO_TEST(currentDisplayMode) {
   {
-    oo::Ref<TestFullScreenController> controller =
+    std::shared_ptr<TestFullScreenController> controller =
         oo::makeRef<TestFullScreenController>(nullptr);
     gSubclassResponsibilities = 0;
 

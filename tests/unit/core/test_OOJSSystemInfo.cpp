@@ -57,8 +57,8 @@ public:
 	bool _interstellar;
 	std::map<std::string, oo::PList> _data;
 	oo::PList _currentSystemData;
-	oo::Ref<OOSystemDescriptionManager> _systemManager;
-	oo::Ref<OOCommodities> _commodities;
+	std::shared_ptr<OOSystemDescriptionManager> _systemManager;
+	std::shared_ptr<OOCommodities> _commodities;
 	std::string _lastSet;
 	OOSystemID _routeFrom, _routeTo;
 	OORouteType _routeType;

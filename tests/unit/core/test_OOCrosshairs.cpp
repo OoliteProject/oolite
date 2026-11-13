@@ -91,7 +91,7 @@ OO_TEST(greenWithoutAColour) {
 }
 
 OO_TEST(colourAndAlpha) {
-  oo::Ref<OOColor> color = OOColor::colorWithRed(0.25f, 0.5f, 0.75f, 0.5f);
+  std::shared_ptr<OOColor> color = OOColor::colorWithRed(0.25f, 0.5f, 0.75f, 0.5f);
   oo::PList points(oo::PList::Array{Segment(1.0, -1.0, 0.0, 0.5, 1.0, 0.0),
                                     Segment(0.0, 0.0, -2.0, 1.0, 0.0, 2.0)});
 

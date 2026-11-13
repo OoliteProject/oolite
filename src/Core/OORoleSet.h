@@ -6,7 +6,7 @@ Manage a set of roles for a ship (or ship type), including probabilities.
 
 A role set is an immutable object.
 
-Ships hold an oo::Ref<OORoleSet>.
+Ships hold an std::shared_ptr<OORoleSet>.
 
 
 Copyright (C) 2007-2013 Jens Ayton
@@ -63,9 +63,10 @@ SOFTWARE.
 class OORoleSet : public oo::RefCounted {
  public:
   // The factories: null where there are no roles.
-  static oo::Ref<OORoleSet> roleSetWithString(const std::string& roleString);
-  static oo::Ref<OORoleSet> roleSetWithRole(const std::string& role,
-                                            float probability);
+  static std::shared_ptr<OORoleSet> roleSetWithString(
+      const std::string& roleString);
+  static std::shared_ptr<OORoleSet> roleSetWithRole(const std::string& role,
+                                                    float probability);
 
   std::optional<std::string> roleString();
 
@@ -81,13 +82,13 @@ class OORoleSet : public oo::RefCounted {
   std::optional<std::string> anyRole();
 
   // Creating modified copies of role sets:
-  oo::Ref<OORoleSet> roleSetWithAddedRole(const std::string& role,
-                                          float probability);
-  oo::Ref<OORoleSet> roleSetWithAddedRoleIfNotSet(
+  std::shared_ptr<OORoleSet> roleSetWithAddedRole(const std::string& role,
+                                                  float probability);
+  std::shared_ptr<OORoleSet> roleSetWithAddedRoleIfNotSet(
       const std::string& role,
       float probability);  // Unlike the above, does not change probability if
                            // role exists.
-  oo::Ref<OORoleSet> roleSetWithRemovedRole(const std::string& role);
+  std::shared_ptr<OORoleSet> roleSetWithRemovedRole(const std::string& role);
 
   // -isEqual: and -hash: equal role sets have the same roles with the same
   // probabilities.
@@ -107,7 +108,7 @@ class OORoleSet : public oo::RefCounted {
 
   // [[[self class] alloc] initWithRolesAndProbabilities:dict]: null where that
   // returned nil.
-  static oo::Ref<OORoleSet> roleSetWithRolesAndProbabilities(
+  static std::shared_ptr<OORoleSet> roleSetWithRolesAndProbabilities(
       const std::map<std::string, float>* dict);
 
   std::map<std::string, float> _rolesAndProbabilities = {};

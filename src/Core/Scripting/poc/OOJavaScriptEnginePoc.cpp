@@ -66,7 +66,7 @@ static const JSCFunctionListEntry sGlobalMethods[] = {
 */
 OOJavaScriptEngine* OOJavaScriptEngine::sharedEngine() {
   if (sSharedEngine == nullptr) {
-    OOJavaScriptEngine* engine = oo::makeRef<OOJavaScriptEngine>().leakRef();
+    OOJavaScriptEngine* engine = oo::makeShared<OOJavaScriptEngine>().leakRef();
     sSharedEngine = engine;
     engine->init();
   }

@@ -54,7 +54,7 @@ uint32_t gDebugFlags = 0;
 */
 struct OOOXPVerifierTestAccess {
   static void SetStageMaker(
-      oo::Ref<OOOXPVerifierStage> (*maker)(const std::string& name)) {
+      std::shared_ptr<OOOXPVerifierStage> (*maker)(const std::string& name)) {
     OOOXPVerifier::sTestStageMaker = maker;
   }
 };
@@ -66,7 +66,7 @@ namespace stdfs = std::filesystem;
 stdfs::path sRoot;
 std::vector<std::string> gEvents;
 
-oo::Ref<OOOXPVerifierStage> MakeTestStage(
+std::shared_ptr<OOOXPVerifierStage> MakeTestStage(
     const std::string& name);  // with the test's stages, below
 
 // What a stage read from the verifier during its run.
@@ -255,7 +255,7 @@ void run() override {
 // K registers a substage when asked for its dependents, as the verifier allows.
 TEST_STAGE(OOTestStageK, "K")
 std::optional<std::vector<std::string>> dependents() override {
-  const oo::Ref<OOTestStageSub> sub = oo::makeRef<OOTestStageSub>();
+  const std::shared_ptr<OOTestStageSub> sub = oo::makeRef<OOTestStageSub>();
   verifier()->registerStage(sub.get());
   return std::nullopt;
 }
@@ -266,7 +266,7 @@ std::optional<std::vector<std::string>> dependents() override {
 TEST_STAGE(OOTestStageL, "L")
 void run() override {
   OOTestStage::run();
-  const oo::Ref<OOTestStageLate> late = oo::makeRef<OOTestStageLate>();
+  const std::shared_ptr<OOTestStageLate> late = oo::makeRef<OOTestStageLate>();
   verifier()->registerStage(late.get());
   gEvents.push_back(verifier()->stageWithName("Late") == nullptr
                         ? "Late refused"
@@ -279,12 +279,12 @@ void run() override {
 namespace {
 
 template <class Stage>
-oo::Ref<OOOXPVerifierStage> Make() {
-  return oo::Ref<OOOXPVerifierStage>(oo::makeRef<Stage>());
+std::shared_ptr<OOOXPVerifierStage> Make() {
+  return std::shared_ptr<OOOXPVerifierStage>(oo::makeRef<Stage>());
 }
 
-oo::Ref<OOOXPVerifierStage> MakeTestStage(const std::string& name) {
-  static const std::map<std::string, oo::Ref<OOOXPVerifierStage> (*)()> makers =
+std::shared_ptr<OOOXPVerifierStage> MakeTestStage(const std::string& name) {
+  static const std::map<std::string, std::shared_ptr<OOOXPVerifierStage> (*)()> makers =
       {
           {"OOTestStageA", Make<OOTestStageA>},
           {"OOTestStageB", Make<OOTestStageB>},

@@ -71,7 +71,7 @@ class OOSound;
 class OOSoundSource;
 class OOTexture;
 #include "OOJSGuiScreenKeyDefinition.h"  // extraGuiScreenKeys keeps it (oo::Ref)
-#include "OOScript.h"      // oo::Ref<OOScript> members and results
+#include "OOScript.h"      // std::shared_ptr<OOScript> members and results
 class StickProfileScreen;  // PlayerEntityStickProfile.h
 
 #define ALLOW_CUSTOM_VIEWS_WHILE_PAUSED 1
@@ -821,7 +821,7 @@ class PlayerEntity : public ShipEntity {
 
   // scripting lists (missiles, cargo, contracts), the system data screen,
   // marked destinations, the chart screens.
-  std::vector<oo::Ref<::OOEquipmentType>> missilesList() override;
+  std::vector<std::shared_ptr<::OOEquipmentType>> missilesList() override;
   std::vector<std::string> cargoList();
   oo::PList cargoListForScripting() override;
   unsigned legalStatusOfCargoList();
@@ -947,7 +947,7 @@ class PlayerEntity : public ShipEntity {
   void setUpTrumbles();
   void addTrumble(OOTrumble* papaTrumble);
   void removeTrumble(OOTrumble* deadTrumble);
-  oo::Ref<OOTrumble>* trumbleArray();
+  std::shared_ptr<OOTrumble>* trumbleArray();
   virtual std::size_t getTrumbleCount();
 
   // trumble values, checksums, screen modes, target memory, missile ident,
@@ -965,7 +965,7 @@ class PlayerEntity : public ShipEntity {
   void setFoundTarget(Entity* targetEntity) override;
   void addTarget(Entity* targetEntity) override;
   void clearTargetMemory();
-  std::vector<oo::WeakRef<Entity>> targetMemory();
+  std::vector<std::weak_ptr<Entity>> targetMemory();
   bool moveTargetMemoryBy(std::ptrdiff_t delta);
   virtual void printIdentLockedOnForMissile(bool missile);
   Quaternion getCustomViewQuaternion();
@@ -1014,7 +1014,8 @@ class PlayerEntity : public ShipEntity {
   void setEquipScreenBackgroundDescriptor(const oo::PList& descriptor);
   bool scriptsLoaded();
   std::vector<std::string> worldScriptNames();
-  std::vector<std::pair<std::string, oo::Ref<OOScript>>> worldScriptsByName();
+  std::vector<std::pair<std::string, std::shared_ptr<OOScript>>>
+  worldScriptsByName();
   ::OOScript* commodityScriptNamed(
       const std::optional<std::string>& scriptName);
   using ShipEntity::doScriptEvent;  // the ship's other overloads, which the
@@ -1065,7 +1066,7 @@ class PlayerEntity : public ShipEntity {
   bool removeMissionDestinationMarker(const oo::PList& marker);
   oo::PList getMissionDestinations();
   oo::PList::Dict* shipyardRecord();
-  void setLastShot(const std::vector<oo::Ref<OOLaserShotEntity>>& shot);
+  void setLastShot(const std::vector<std::shared_ptr<OOLaserShotEntity>>& shot);
   void clearExtraMissionKeys();
   void setExtraMissionKeys(const oo::PList& keys);
   void clearExtraGuiScreenKeys(OOGUIScreenID gui, const std::string& key);
@@ -1341,7 +1342,7 @@ class PlayerEntity : public ShipEntity {
   // in for it.
   void setScriptTargetToSelf();
   ::ShipEntity* scriptTarget();
-  std::vector<std::pair<std::string, oo::Ref<OOScript>>>
+  std::vector<std::pair<std::string, std::shared_ptr<OOScript>>>
   getWorldScriptsRequiringTickle();
   void checkScript();
   void runScriptActions(const oo::PList& actions,
@@ -1602,12 +1603,12 @@ class PlayerEntity : public ShipEntity {
   OOSystemID found_system_id = {};
   int ship_trade_in_factor = {};
 
-  std::vector<std::pair<std::string, oo::Ref<OOScript>>>
+  std::vector<std::pair<std::string, std::shared_ptr<OOScript>>>
       worldScripts;  // in load order (+cxx_loadScripts)
-  std::optional<std::vector<std::pair<std::string, oo::Ref<OOScript>>>>
+  std::optional<std::vector<std::pair<std::string, std::shared_ptr<OOScript>>>>
       worldScriptsRequiringTickle;  // PlayerEntityLegacyScriptEngine's cache;
                                     // nullopt: not built
-  std::map<std::string, oo::Ref<OOScript>, std::less<>>
+  std::map<std::string, std::shared_ptr<OOScript>, std::less<>>
       commodityScripts;         // by script file name
   oo::PList mission_variables;  // a Dict (saved as mission_variables); null
                                 // before set-up
@@ -1627,7 +1628,7 @@ class PlayerEntity : public ShipEntity {
 
   std::vector<std::string> commLog;  // trimmed by -cxx_commLog
 
-  std::vector<std::pair<std::string, oo::Ref<OOScript>>>
+  std::vector<std::pair<std::string, std::shared_ptr<OOScript>>>
       eqScripts;  // (key, script), in insertion order
 
   oo::PList _missionOverlayDescriptor;  // null = none (was nil)
@@ -1698,7 +1699,7 @@ class PlayerEntity : public ShipEntity {
   OOMarketFilterMode marketFilterMode = {};
   OOMarketSorterMode marketSorterMode = {};
 
-  oo::WeakRef<Entity>
+  std::weak_ptr<Entity>
       _dockedStation;  // a weak reference to the station's C++ part
 
   /* Used by the DOCKING_CLEARANCE code to implement docking at non-main
@@ -1706,7 +1707,7 @@ class PlayerEntity : public ShipEntity {
    * but that needs futher investigation to ensure it doesn't break anything. */
   ::StationEntity* targetDockStation = {};
 
-  oo::Ref<HeadUpDisplay> hud;
+  std::shared_ptr<HeadUpDisplay> hud;
   std::map<std::string, std::string, std::less<>>
       multiFunctionDisplayText;  // MFD key -> text
   std::vector<std::optional<std::string>>
@@ -1770,7 +1771,7 @@ class PlayerEntity : public ShipEntity {
   OOCreditsQuantity credits = {};
   OOGalaxyID galaxy_number = {};
 
-  oo::Ref<OOCommodityMarket> shipCommodityData;
+  std::shared_ptr<OOCommodityMarket> shipCommodityData;
 
   oo::EntityHold
       missile_entity[PLAYER_MAX_MISSILES];  // holds the actual missile entities
@@ -1783,7 +1784,7 @@ class PlayerEntity : public ShipEntity {
   unsigned ship_kills = {};
 
   OOCompassMode compassMode = {};
-  oo::WeakRef<Entity>
+  std::weak_ptr<Entity>
       compassTarget;  // a weak reference to the target's C++ part
 
   GLfloat fuel_leak_rate = {};
@@ -1959,7 +1960,8 @@ class PlayerEntity : public ShipEntity {
   std::map<std::string, oo::PList, std::less<>>
       extraMissionKeys;  // key name -> processed key definitions
 
-  std::map<OOGUIScreenID, std::vector<oo::Ref<::OOJSGuiScreenKeyDefinition>>>
+  std::map<OOGUIScreenID,
+           std::vector<std::shared_ptr<::OOJSGuiScreenKeyDefinition>>>
       extraGuiScreenKeys;  // by GUI screen ID
 
   // save-file
@@ -1973,7 +1975,7 @@ class PlayerEntity : public ShipEntity {
 
   // trumbles
   std::size_t trumbleCount = {};
-  oo::Ref<OOTrumble> trumble[PLAYER_MAX_TRUMBLES];
+  std::shared_ptr<OOTrumble> trumble[PLAYER_MAX_TRUMBLES];
   float _trumbleAppetiteAccumulator = {};
 
   // smart zoom
@@ -1981,7 +1983,7 @@ class PlayerEntity : public ShipEntity {
 
   // target memory
   // TODO: this should use weakrefs
-  std::vector<oo::WeakRef<Entity>>
+  std::vector<std::weak_ptr<Entity>>
       target_memory;  // an empty ref = an empty slot (was [OONull null])
   std::size_t target_memory_index = {};
 
@@ -2068,11 +2070,11 @@ class PlayerEntity : public ShipEntity {
 
   oo::EntityHold
       demoShip;  // Used while docked to maintain demo ship rotation. (held)
-  std::vector<oo::Ref<OOLaserShotEntity>>
+  std::vector<std::shared_ptr<OOLaserShotEntity>>
       lastShot;  // used to correctly position laser shots on first frame of
                  // firing
 
-  oo::Ref<::StickProfileScreen> stickProfileScreen;
+  std::shared_ptr<::StickProfileScreen> stickProfileScreen;
 
   double maxFieldOfView = {};
   double fieldOfView = {};

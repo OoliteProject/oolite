@@ -357,7 +357,8 @@ void OOCacheManager::write() {
   if (_scheduledWrite != nullptr) return;
 
 #if PROFILE_WRITES
-  oo::Ref<OOProfilingStopwatch> stopwatch = OOProfilingStopwatch::stopwatch();
+  std::shared_ptr<OOProfilingStopwatch> stopwatch =
+      OOProfilingStopwatch::stopwatch();
 #endif
 
 #if WRITE_ASYNC
@@ -447,7 +448,8 @@ bool OOCacheManager::writeDict(const oo::PList& inDict) {
   if (!path.has_value()) return false;
 
 #if PROFILE_WRITES
-  oo::Ref<OOProfilingStopwatch> stopwatch = OOProfilingStopwatch::stopwatch();
+  std::shared_ptr<OOProfilingStopwatch> stopwatch =
+      OOProfilingStopwatch::stopwatch();
 #endif
 
   const auto plist = oo::writeXMLPList(inDict);
@@ -541,7 +543,7 @@ std::optional<std::string> OOCacheManager::cachePathCreatingIfNecessary(
   return oo::str::appendingPathComponent(*cachePath, "Oolite-cache.plist");
 }
 
-oo::Ref<OOAsyncCacheWriter> OOAsyncCacheWriter::writerWithCacheContents(
+std::shared_ptr<OOAsyncCacheWriter> OOAsyncCacheWriter::writerWithCacheContents(
     const oo::PList& cacheContents) {
   if (cacheContents.isNull()) return nullptr;
   return oo::adopt(new OOAsyncCacheWriter(cacheContents));

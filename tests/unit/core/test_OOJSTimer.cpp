@@ -254,12 +254,12 @@ class OOJSScript : public OOScript
 {
 public:
 	static OOJSScript *currentlyRunningScript();
-	static void pushScript(const oo::WeakRef<OOJSScript> &script);
+	static void pushScript(const std::weak_ptr<OOJSScript> &script);
 	static void popScript(OOJSScript *script);
 };
 
 OOJSScript *OOJSScript::currentlyRunningScript()  { return nullptr; }
-void OOJSScript::pushScript(const oo::WeakRef<OOJSScript> &script)  { (void)script; sScriptDepth++; sScriptPushes++; }
+void OOJSScript::pushScript(const std::weak_ptr<OOJSScript> &script)  { (void)script; sScriptDepth++; sScriptPushes++; }
 void OOJSScript::popScript(OOJSScript *script)  { (void)script; sScriptDepth--; }
 
 

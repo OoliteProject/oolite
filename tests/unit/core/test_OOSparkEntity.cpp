@@ -39,7 +39,7 @@ class TestPlayer : public PlayerEntity {
 // PlayerEntity::sharedPlayer() makes the game's, retained (+1).
 template <class T>
 T* NewTestPlayer() {
-  oo::Ref<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeRef<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -102,7 +102,7 @@ bool ComponentsAre(Entity* e, GLfloat r, GLfloat g, GLfloat b, GLfloat a) {
 OO_TEST(initWithPosition) {
   {
     SetUp();
-    oo::Ref<OOColor> color = OOColor::colorWithRed(0.2f, 0.4f, 0.6f, 0.8f);
+    std::shared_ptr<OOColor> color = OOColor::colorWithRed(0.2f, 0.4f, 0.6f, 0.8f);
     Entity* spark = MakeSpark(make_HPvector(1, 2, 3), make_vector(10, 0, 0),
                               2.0, 4.0f, color.get());
     OO_CHECK(spark != nullptr);
@@ -121,7 +121,7 @@ OO_TEST(initWithPosition) {
 OO_TEST(fadesTowardsRedAndIsRemoved) {
   {
     SetUp();
-    oo::Ref<OOColor> color = OOColor::colorWithRed(0.2f, 0.4f, 0.6f, 0.8f);
+    std::shared_ptr<OOColor> color = OOColor::colorWithRed(0.2f, 0.4f, 0.6f, 0.8f);
     Entity* spark = MakeSpark(make_HPvector(1, 2, 3), make_vector(10, 0, 0),
                               2.0, 4.0f, color.get());
 

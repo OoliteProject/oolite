@@ -54,7 +54,7 @@ class TestPlayer : public PlayerEntity {
 // makes the game's, retained (+1).
 template <class T>
 T* NewTestPlayer() {
-  oo::Ref<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeRef<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -119,7 +119,7 @@ bool Near(double a, double b) { return std::fabs(a - b) < 1e-4; }
 
 // A new C++ sun.
 OOSunEntity* Sun(OOColor* color, double radius) {
-  oo::Ref<OOSunEntity> sun = oo::makeRef<OOSunEntity>();
+  std::shared_ptr<OOSunEntity> sun = oo::makeRef<OOSunEntity>();
   (void)oo::MadeEntity(sun);
   sun->initSunWithColor(color, Dict({
                                    {"sun_name", oo::PList("Sol")},

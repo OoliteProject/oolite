@@ -49,7 +49,7 @@ class TestPlayer : public PlayerEntity {
 // the game's, retained (+1) as +alloc's object was.
 template <class T>
 T* NewTestPlayer() {
-  oo::Ref<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeRef<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -158,7 +158,7 @@ OO_TEST(dictionary) {
     OO_CHECK(RGBIs(flasher, 0, 0, 0) &&
              ColorComponents(flasher)[3] == 1.0f);  // the first colour
 
-    oo::Ref<OOColor> color = flasher->color();
+    std::shared_ptr<OOColor> color = flasher->color();
     float r = -1, g = -1, b = -1, a = -1;
     color->getRed(&r, &g, &b, &a);
     OO_CHECK(r == 0 && g == 0 && b == 0 && a == 1);
@@ -284,7 +284,7 @@ OO_TEST(isFlasher) {
     // Callers ask the C++ part.
     Entity* plain = oo::MadeEntity(oo::makeRef<Entity>());
     OO_CHECK(dynamic_cast<OOFlasherEntity*>(plain) == nullptr);
-    const oo::Ref<OOLightParticleEntity> lightParticle =
+    const std::shared_ptr<OOLightParticleEntity> lightParticle =
         oo::makeRef<OOLightParticleEntity>();
     Entity* particle = oo::MadeEntity(lightParticle);
     lightParticle->initWithDiameter(1.0f);

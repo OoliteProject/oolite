@@ -83,7 +83,7 @@ oo::PList NativeVectorArray(const std::vector<Vector>& vectors) {
     // The box is the Object node's foreign object; the engine gives JavaScript
     // its Vector3D.
     result.push_back(
-        oo::PList(oo::PList::Object(oo::makeRef<OONativeVector>(v))));
+        oo::PList(oo::PList::Object(oo::makeShared<OONativeVector>(v))));
   }
   return oo::PList(std::move(result));
 }
@@ -867,14 +867,14 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS) {
       break;
 
     case kRoles: {
-      const oo::Ref<OORoleSet> roleSet = ship->getRoleSet();
+      const std::shared_ptr<OORoleSet> roleSet = ship->getRoleSet();
       result = roleSet != nullptr ? StringArray(roleSet->sortedRoles())
                                   : oo::PList();
     } break;
 
     case kRoleWeights: {
       // Floats, as numberWithFloat: made them; nil when there is no role set.
-      const oo::Ref<OORoleSet> roleSet = ship->getRoleSet();
+      const std::shared_ptr<OORoleSet> roleSet = ship->getRoleSet();
       if (const auto roleWeights = (roleSet != nullptr)
                                        ? roleSet->rolesAndProbabilities()
                                        : std::nullopt) {
@@ -1240,8 +1240,9 @@ static JSValue ShipGetProperty(OOJS_GETTER_ARGS) {
     case kIsPiloted:
       return OOJSValueFromBOOL(
           ship->getIsPlayer() ||
-          ship->getCrew().value_or(std::vector<oo::Ref<OOCharacter>>()).size() >
-              0);
+          ship->getCrew()
+                  .value_or(std::vector<std::shared_ptr<OOCharacter>>())
+                  .size() > 0);
 
     case kScriptedMisjump:
       return OOJSValueFromBOOL(ship->scriptedMisjump());
@@ -3322,9 +3323,10 @@ static JSValue ShipSetCrew(OOJS_NATIVE_ARGS) {
     if (JS_IsNull(OOJS_ARGV[0])) {
       ship->setCrew(std::nullopt);
     } else {
-      const oo::Ref<OOCharacter> crew = OOCharacter::characterWithDictionary(
-          cxx_OOJSPListFromJSObject(context, OOJS_ARGV[0]));
-      std::vector<oo::Ref<OOCharacter>> members;
+      const std::shared_ptr<OOCharacter> crew =
+          OOCharacter::characterWithDictionary(
+              cxx_OOJSPListFromJSObject(context, OOJS_ARGV[0]));
+      std::vector<std::shared_ptr<OOCharacter>> members;
       if (crew != nullptr)
         members.emplace_back(crew);  // a nil character was skipped (a
                                      // Foundation array cannot hold nil)
@@ -3500,7 +3502,7 @@ JSValue ShipSetMaterialsInternal(OOJS_NATIVE_ARGS, ShipEntity* thisEnt,
   const oo::PList* prefixMacros = materialDefaults.find("ship-prefix-macros");
 
   // First we test to see if we can create the mesh.
-  const oo::Ref<OOMesh> mesh = OOMesh::meshWithName(
+  const std::shared_ptr<OOMesh> mesh = OOMesh::meshWithName(
       shipDict.get<std::string>("model"), std::nullopt, materials, shaders,
       shipDict.get<bool>("smooth", false),
       (prefixMacros != nullptr && prefixMacros->isDict()) ? *prefixMacros

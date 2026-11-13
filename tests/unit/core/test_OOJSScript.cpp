@@ -11,7 +11,7 @@
    main's (tests/unit/core/meson.build entry ['*']), defines gDebugFlags and
    points the user's directories at a scratch folder. The scripts are written to
    that folder. The script is held as
-   oo::Ref<OOJSScript>, every case asks the C++ class, and the crossing case
+   std::shared_ptr<OOJSScript>, every case asks the C++ class, and the crossing case
    pins the script's identity (the running stack holds the C++ script, the
    Script object's private slot refers to it weakly). Run: bash
    meson test -C build/meson_test test_OOJSScript
@@ -75,7 +75,7 @@ std::string Script(const std::string& relativePath, const std::string& source) {
 }
 
 // The script.
-OOJSScript* JS(const oo::Ref<OOJSScript>& script) { return script.get(); }
+OOJSScript* JS(const std::shared_ptr<OOJSScript>& script) { return script.get(); }
 
 std::string Text(const oo::PList& value) {
   if (const std::string* string = value.getIf<std::string>()) return *string;
@@ -95,7 +95,7 @@ const char* const kNamedScript =
 OO_TEST(load) {
   SetUp();
   {
-    const oo::Ref<OOJSScript> script = OOJSScript::scriptWithPath(
+    const std::shared_ptr<OOJSScript> script = OOJSScript::scriptWithPath(
         Script("named/named.js", kNamedScript), oo::PList());
     OO_CHECK(script != nullptr);
     if (script == nullptr) return;
@@ -127,7 +127,7 @@ OO_TEST(defaultNames) {
   {
     // A script that names itself nothing is named after its file, or its OXP
     // for script.js.
-    const oo::Ref<OOJSScript> byFile = OOJSScript::scriptWithPath(
+    const std::shared_ptr<OOJSScript> byFile = OOJSScript::scriptWithPath(
         Script("loose/unnamed.js", "\"use strict\";\n"), oo::PList());
     OO_CHECK_EQ(byFile->name().value_or("<none>"), "unnamed.js.anon-script");
     OO_CHECK(!byFile->version().has_value());
@@ -136,11 +136,11 @@ OO_TEST(defaultNames) {
     OO_CHECK_EQ(Text(JS(byFile)->propertyNamed("name")),
                 "unnamed.js.anon-script");
 
-    const oo::Ref<OOJSScript> byOXP = OOJSScript::scriptWithPath(
+    const std::shared_ptr<OOJSScript> byOXP = OOJSScript::scriptWithPath(
         Script("Foo.oxp/Config/script.js", "\"use strict\";\n"), oo::PList());
     OO_CHECK_EQ(byOXP->name().value_or("<none>"), "Foo.anon-script");
 
-    const oo::Ref<OOJSScript> byFolder = OOJSScript::scriptWithPath(
+    const std::shared_ptr<OOJSScript> byFolder = OOJSScript::scriptWithPath(
         Script("Bar/Scripts/script.js", "\"use strict\";\n"), oo::PList());
     OO_CHECK_EQ(byFolder->name().value_or("<none>"), "Scripts.anon-script");
   }
@@ -154,7 +154,7 @@ OO_TEST(manifestAndProperties) {
               "\"Tester\"; license = \"CC0\"; }");
     oo::PList::Dict given;
     given["mission"] = oo::PList(std::string("given"));
-    const oo::Ref<OOJSScript> script = OOJSScript::scriptWithPath(
+    const std::shared_ptr<OOJSScript> script = OOJSScript::scriptWithPath(
         Script("Baz.oxp/Config/script.js",
                "\"use strict\";\nthis.name = \"baz\";\n"),
         oo::PList(std::move(given)));
@@ -181,7 +181,7 @@ OO_TEST(manifestAndProperties) {
     // A temporary manifest identifier sets nothing.
     WriteText(sRoot / "Tmp.oxp" / "manifest.plist",
               "{ identifier = \"__oolite.tmp.1\"; version = \"9\"; }");
-    const oo::Ref<OOJSScript> temporary = OOJSScript::scriptWithPath(
+    const std::shared_ptr<OOJSScript> temporary = OOJSScript::scriptWithPath(
         Script("Tmp.oxp/Config/script.js",
                "\"use strict\";\nthis.name = \"tmp\";\n"),
         oo::PList());
@@ -193,7 +193,7 @@ OO_TEST(manifestAndProperties) {
 OO_TEST(callMethod) {
   SetUp();
   {
-    const oo::Ref<OOJSScript> script = OOJSScript::scriptWithPath(
+    const std::shared_ptr<OOJSScript> script = OOJSScript::scriptWithPath(
         Script("call/call.js", kNamedScript), oo::PList());
     OO_CHECK(script != nullptr);
     if (script == nullptr) return;
@@ -215,7 +215,7 @@ OO_TEST(callMethod) {
     JS_FreeValue(context, self);
 
     // A script that is not JavaScript answers NO (OOScript (JavaScriptEvents)).
-    const oo::Ref<OOScript> plain = oo::makeRef<OOScript>();
+    const std::shared_ptr<OOScript> plain = oo::makeRef<OOScript>();
     OO_CHECK(!plain->callMethod(OOJSID("bump"), context, argv, 1, NULL));
     OOJSRelinquishContext(context);
 
@@ -227,10 +227,10 @@ OO_TEST(callMethod) {
 OO_TEST(runningStack) {
   SetUp();
   {
-    const oo::Ref<OOJSScript> first = OOJSScript::scriptWithPath(
+    const std::shared_ptr<OOJSScript> first = OOJSScript::scriptWithPath(
         Script("stack/first.js", "\"use strict\";\nthis.name = \"first\";\n"),
         oo::PList());
-    const oo::Ref<OOJSScript> second = OOJSScript::scriptWithPath(
+    const std::shared_ptr<OOJSScript> second = OOJSScript::scriptWithPath(
         Script("stack/second.js", "\"use strict\";\nthis.name = \"second\";\n"),
         oo::PList());
     OO_CHECK(first != nullptr && second != nullptr);
@@ -239,7 +239,7 @@ OO_TEST(runningStack) {
     OO_CHECK(OOJSScript::currentlyRunningScript() == first.get());
     OOJSScript::pushScript(second.get());
     OO_CHECK(OOJSScript::currentlyRunningScript() == second.get());
-    const std::vector<oo::Ref<OOJSScript>> stack = OOJSScript::scriptStack();
+    const std::vector<std::shared_ptr<OOJSScript>> stack = OOJSScript::scriptStack();
     OO_CHECK(stack.size() == 2 && stack[0].get() == first.get() &&
              stack[1].get() == second.get());  // outermost first
     OOJSScript::popScript(second.get());
@@ -262,7 +262,7 @@ OO_TEST(runningStack) {
 OO_TEST(crossing) {
   SetUp();
   {
-    oo::Ref<OOJSScript> script = OOJSScript::scriptWithPath(
+    std::shared_ptr<OOJSScript> script = OOJSScript::scriptWithPath(
         Script("crossing/crossing.js", kNamedScript), oo::PList());
     OO_CHECK(script != nullptr);
     if (script == nullptr) return;
@@ -284,10 +284,10 @@ OO_TEST(crossing) {
 
     // A weak push answers the script while it lives (a timer's or
     // definition's).
-    const oo::WeakRef<OOJSScript> weak = script.get();
+    const std::weak_ptr<OOJSScript> weak = script;
     OOJSScript::pushScript(weak);
     OO_CHECK(OOJSScript::currentlyRunningScript() == script.get());
-    OOJSScript::popScript(weak.get());
+    OOJSScript::popScript(weak.lock().get());
 
     // The Script object converts back to the script (a plist Object node), and
     // its JS glue answers; any other script answers undefined.
@@ -300,7 +300,7 @@ OO_TEST(crossing) {
     OO_CHECK(
         script->jsDescription() ==
         std::optional<std::string>("[Script \"test-script\" version 1.0]"));
-    const oo::Ref<OOScript> plain = oo::makeRef<OOScript>();
+    const std::shared_ptr<OOScript> plain = oo::makeRef<OOScript>();
     JSValue plainValue = plain->jsValueInContext(context);
     OO_CHECK(JS_IsUndefined(plainValue));
     JS_FreeValue(context, plainValue);
@@ -308,7 +308,7 @@ OO_TEST(crossing) {
     // The slot does not keep the script: once it goes, the object converts to
     // nothing, and a weak push answers no script.
     script = nullptr;
-    OO_CHECK(weak.get() == nullptr);
+    OO_CHECK(weak.lock().get() == nullptr);
     OO_CHECK(cxx_OOJSPListFromJSValue(context, value).isNull());
     OOJSScript::pushScript(weak);
     OO_CHECK(OOJSScript::currentlyRunningScript() == nullptr);
@@ -323,7 +323,7 @@ OO_TEST(crossing) {
 OO_TEST(engineReset) {
   SetUp();
   {
-    const oo::Ref<OOJSScript> script = OOJSScript::scriptWithPath(
+    const std::shared_ptr<OOJSScript> script = OOJSScript::scriptWithPath(
         Script("reset/reset.js", kNamedScript), oo::PList());
     OO_CHECK(script != nullptr);
     if (script == nullptr) return;
@@ -359,7 +359,7 @@ OO_TEST(broken) {
     OO_CHECK(OOJSScript::scriptStack().empty());
   }
   {
-    const oo::Ref<OOJSScript> after = OOJSScript::scriptWithPath(
+    const std::shared_ptr<OOJSScript> after = OOJSScript::scriptWithPath(
         Script("broken/after.js", kNamedScript), oo::PList());
     OO_CHECK(after != nullptr);
     OO_CHECK_EQ(after->name().value_or("<none>"), "test-script");

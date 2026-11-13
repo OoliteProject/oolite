@@ -78,8 +78,8 @@ public:
 	OOStellarBodyType _type = (OOStellarBodyType)0;
 	double _radius = 0;
 	std::optional<std::string> _name;
-	oo::Ref<OOColor> _airColor;
-	oo::Ref<OOColor> _illuminationColor;
+	std::shared_ptr<OOColor> _airColor;
+	std::shared_ptr<OOColor> _illuminationColor;
 	float _airColorMixRatio = 0;
 	float _airDensity = 0;
 	bool _hasAtmosphere = false;
@@ -105,7 +105,7 @@ public:
 	std::optional<std::string> cxx_oo_jsClassName();
 	bool isVisibleToScripts();
 
-	oo::Ref<Entity> _cxxEntity;	// the planet's C++ part (oo::ToCxx reads it)
+	std::shared_ptr<Entity> _cxxEntity;	// the planet's C++ part (oo::ToCxx reads it)
 	Quaternion _orientation = {};	// zeroed, as the object's ivar was
 };
 
@@ -172,9 +172,9 @@ OOStellarBodyType OOPlanetEntity::planetType()  { return _type; }
 std::optional<std::string> OOPlanetEntity::name()  { return _name; }
 void OOPlanetEntity::setName(const std::optional<std::string> &name)  { _name = name; }
 OOColor *OOPlanetEntity::airColor()  { return _airColor.get(); }
-void OOPlanetEntity::setAirColor(OOColor *newColor)  { _airColor = oo::Ref<OOColor>(newColor); }
+void OOPlanetEntity::setAirColor(OOColor *newColor)  { _airColor = oo::share(newColor); }
 OOColor *OOPlanetEntity::illuminationColor()  { return _illuminationColor.get(); }
-void OOPlanetEntity::setIlluminationColor(OOColor *newColor)  { _illuminationColor = oo::Ref<OOColor>(newColor); }
+void OOPlanetEntity::setIlluminationColor(OOColor *newColor)  { _illuminationColor = oo::share(newColor); }
 float OOPlanetEntity::airColorMixRatio()  { return _airColorMixRatio; }
 void OOPlanetEntity::setAirColorMixRatio(float newRatio)  { _airColorMixRatio = newRatio; }
 float OOPlanetEntity::airDensity()  { return _airDensity; }
@@ -211,7 +211,7 @@ bool OOPlanetEntity::isVisibleToScripts()  { return ::OOJSPlanetIsVisibleToScrip
 // A new C++ planet and its object (as in the game); the object owns it.
 OOPlanetEntity *NewPlanet()
 {
-	oo::Ref<OOPlanetEntity> planet = oo::makeRef<OOPlanetEntity>();
+	std::shared_ptr<OOPlanetEntity> planet = oo::makeRef<OOPlanetEntity>();
 	TestEntityObject *object = oo::makeRef<TestEntityObject>().leakRef();
 	object->_cxxEntity = planet;
 	planet->_object = object;

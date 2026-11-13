@@ -200,7 +200,7 @@ bool Same(const oo::PList* value, const oo::PList& expected) {
 struct Session {
   SOCKET listener = INVALID_SOCKET;
   SOCKET console = INVALID_SOCKET;
-  oo::Ref<OODebugTCPConsoleClient> client;
+  std::shared_ptr<OODebugTCPConsoleClient> client;
   oo::PList request;
 
   Session() {
@@ -215,7 +215,7 @@ struct Session {
   }
 
   ~Session() {
-    client = oo::Ref<OODebugTCPConsoleClient>();
+    client = std::shared_ptr<OODebugTCPConsoleClient>();
     if (console != INVALID_SOCKET) closesocket(console);
     closesocket(listener);
   }
@@ -474,7 +474,7 @@ OO_TEST(nobodyAnswers) {
     SOCKET listener = Listen(&port);
     closesocket(listener);
 
-    oo::Ref<OODebugTCPConsoleClient> client =
+    std::shared_ptr<OODebugTCPConsoleClient> client =
         OODebugTCPConsoleClient::clientWithAddress(std::string("127.0.0.1"),
                                                    port);
     OO_CHECK(client == nullptr);
@@ -498,7 +498,7 @@ OO_TEST(cxxClientAndItsFacade) {
   {
     uint16_t port = 0;
     SOCKET listener = Listen(&port);
-    oo::Ref<OODebugTCPConsoleClient> client =
+    std::shared_ptr<OODebugTCPConsoleClient> client =
         OODebugTCPConsoleClient::clientWithAddress(std::string("127.0.0.1"),
                                                    port);
     OO_CHECK(client.get() != nullptr);
@@ -510,7 +510,7 @@ OO_TEST(cxxClientAndItsFacade) {
 
     client->debugMonitorShowConsole(Monitor());
     OO_CHECK(TypeOf(ReadPacket(console)) == "Show Console");
-    client = oo::Ref<OODebugTCPConsoleClient>();
+    client = std::shared_ptr<OODebugTCPConsoleClient>();
     closesocket(console);
     closesocket(listener);
   }

@@ -39,7 +39,7 @@ oo::PList Contours(std::initializer_list<oo::PList> contours) {
   return oo::PList(oo::PList::Array(contours));
 }
 
-oo::Ref<OOPolygonSprite> Sprite(const oo::PList& data, const char* name) {
+std::shared_ptr<OOPolygonSprite> Sprite(const oo::PList& data, const char* name) {
   return OOPolygonSprite::initWithDataArray(data, 0.5f, name);
 }
 
@@ -77,7 +77,7 @@ OO_TEST(emptyDataAnswersNil) {
 
 OO_TEST(descriptionAndProtocols) {
   {
-    oo::Ref<OOPolygonSprite> sprite =
+    std::shared_ptr<OOPolygonSprite> sprite =
         Sprite(Numbers({0, 0, 1, 0, 1, 1}), "triangle");
     std::string text = sprite->description();
     OO_CHECK(text.starts_with("<OOPolygonSprite 0x"));
@@ -94,7 +94,7 @@ OO_TEST(descriptionAndProtocols) {
 }
 
 OO_TEST(cxxSprite) {
-  oo::Ref<OOPolygonSprite> sprite = OOPolygonSprite::initWithDataArray(
+  std::shared_ptr<OOPolygonSprite> sprite = OOPolygonSprite::initWithDataArray(
       Numbers({0, 0, 1, 0, 1, 1, 0, 1}), 0.5f, "square");
   OO_CHECK(sprite.get() != nullptr);
 #ifndef NDEBUG

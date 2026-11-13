@@ -63,7 +63,7 @@ class ShipEntity;
 class OOPlanetDrawable;  // this class is its one caller
 
 /*	The universe and the legacy scripts make it with
-   oo::makeRef<OOPlanetEntity>() and hold it as
+   oo::makeShared<OOPlanetEntity>() and hold it as
    the C++ class. Its OOStellarBody answers are members (OOStellarBodyRadius()),
    and the shader binding names are answered for a planet only
    (OOEntityCalledByName.cpp).
@@ -79,7 +79,7 @@ class OOPlanetEntity : public Entity, public ::OOGraphicsResetClient {
   void initFromDictionary(const oo::PList& dict, bool atmosphere,
                           Random_Seed seed, OOSystemID systemID);
 
-  oo::Ref<OOPlanetEntity> miniatureVersion();
+  std::shared_ptr<OOPlanetEntity> miniatureVersion();
 
   double rotationalVelocity();
   void setRotationalVelocity(double v);
@@ -155,10 +155,10 @@ class OOPlanetEntity : public Entity, public ::OOGraphicsResetClient {
   void setUpTypeParametersWithSourceInfo(const oo::PList& sourceInfo,
                                          oo::PList& targetInfo);
 
-  oo::Ref<OOPlanetDrawable> _planetDrawable;
-  oo::Ref<OOPlanetDrawable> _atmosphereDrawable;
-  oo::Ref<OOPlanetDrawable> _cloudsShaderDrawable;
-  oo::Ref<OOPlanetDrawable> _atmosphereShaderDrawable;
+  std::shared_ptr<OOPlanetDrawable> _planetDrawable;
+  std::shared_ptr<OOPlanetDrawable> _atmosphereDrawable;
+  std::shared_ptr<OOPlanetDrawable> _cloudsShaderDrawable;
+  std::shared_ptr<OOPlanetDrawable> _atmosphereShaderDrawable;
 
   bool _miniature = false;
   std::shared_ptr<OOColor> _airColor;

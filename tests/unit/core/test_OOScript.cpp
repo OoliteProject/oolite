@@ -116,7 +116,7 @@ void CacheLegacyScript(const std::string& path, const char* scriptName) {
                                           kCacheName);
 }
 
-std::vector<std::string> Names(const std::vector<oo::Ref<OOScript>>& scripts) {
+std::vector<std::string> Names(const std::vector<std::shared_ptr<OOScript>>& scripts) {
   std::vector<std::string> names;
   for (const auto& script : scripts)
     names.push_back(script->name().value_or("<none>"));
@@ -130,7 +130,7 @@ OO_TEST(abstractRoot) {
   {
     // The root's own answers: none, and an error logged for each subclass
     // responsibility.
-    const oo::Ref<OOScript> root = oo::makeRef<OOScript>();
+    const std::shared_ptr<OOScript> root = oo::makeRef<OOScript>();
     OO_CHECK(root != nullptr);
     OO_CHECK(!root->name().has_value());
     OO_CHECK(!root->scriptDescription().has_value());
@@ -146,7 +146,7 @@ OO_TEST(abstractRoot) {
 OO_TEST(objCSubclass) {
   SetUp();
   {
-    const oo::Ref<TestObjCScript> script = oo::makeRef<TestObjCScript>();
+    const std::shared_ptr<TestObjCScript> script = oo::makeRef<TestObjCScript>();
     OO_CHECK_EQ(script->name().value_or("<none>"), "objc");
     OO_CHECK_EQ(script->displayName().value_or("<none>"),
                 "objc");  // no version: just the name
@@ -204,7 +204,7 @@ OO_TEST(scriptsByName) {
     // A name the resource manager does not find: none, and a list of such names
     // loads nothing.
     OO_CHECK(!OOScript::scriptsFromFileNamed("oo-test-missing.js").has_value());
-    const std::vector<oo::Ref<OOScript>> listed =
+    const std::vector<std::shared_ptr<OOScript>> listed =
         OOScript::scriptsFromList(std::vector<std::string>{
             "oo-test-missing.js", "oo-test-missing.plist"});
     OO_CHECK(listed.empty());
@@ -213,7 +213,7 @@ OO_TEST(scriptsByName) {
     // The single JavaScript loaders: nil for no name, a legacy or unknown
     // extension, or a name not found.
     for (int ai = 0; ai < 2; ai++) {
-      auto load = [ai](const std::string& name) -> oo::Ref<OOScript> {
+      auto load = [ai](const std::string& name) -> std::shared_ptr<OOScript> {
         if (ai) return OOScript::jsAIScriptFromFileNamed(name, oo::PList());
         return OOScript::jsScriptFromFileNamed(name, oo::PList());
       };
@@ -285,7 +285,7 @@ OO_TEST(crossingCxxSubclass) {
   SetUp();
   {
     // A C++ subclass's overrides answer.
-    const oo::Ref<TestCxxScript> script = oo::makeRef<TestCxxScript>();
+    const std::shared_ptr<TestCxxScript> script = oo::makeRef<TestCxxScript>();
     OO_CHECK_EQ(script->name().value_or("<none>"), "cxx");
     OO_CHECK_EQ(script->version().value_or("<none>"), "2");
     OO_CHECK(!script->scriptDescription()

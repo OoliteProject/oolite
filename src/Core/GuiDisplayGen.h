@@ -458,8 +458,8 @@ class GuiDisplayGen : public oo::RefCounted {
   std::shared_ptr<OOColor> textColor;
   std::shared_ptr<OOColor> textCommsColor;
 
-  oo::Ref<OOTextureSprite> backgroundSprite;
-  oo::Ref<OOTextureSprite> foregroundSprite;
+  std::shared_ptr<OOTextureSprite> backgroundSprite;
+  std::shared_ptr<OOTextureSprite> foregroundSprite;
   OOGUIBackgroundSpecial backgroundSpecial = {};
 
   std::optional<std::string> title;  // none: no title bar

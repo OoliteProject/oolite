@@ -47,7 +47,7 @@ MA 02110-1301, USA.
 #include "OOEnumFlags.h"
 #include "OOFoundation.h"
 #include "OOOpenGL.h"
-#include "OOScript.h"  // oo::Ref<OOScript> members and results
+#include "OOScript.h"  // std::shared_ptr<OOScript> members and results
 #include "oofnd/Data.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
@@ -123,7 +123,7 @@ class ResourceManager {
   // Clear ResourceManager-internal caches (not those handled by OOCacheManager)
   static void clearCaches();
 
-  static oo::Ref<OOSystemDescriptionManager>
+  static std::shared_ptr<OOSystemDescriptionManager>
   systemDescriptionManager();  // a new manager
   static oo::PList shaderBindingTypesDictionary();
   // nullopt when not found (was nil); folderName nullopt where nil was passed.
@@ -133,7 +133,7 @@ class ResourceManager {
   static std::optional<std::string> pathForFileNamed(
       const std::string& fileName, const std::optional<std::string>& folderName,
       bool useCache);
-  static oo::Ref<OOMusic> ooMusicNamed(
+  static std::shared_ptr<OOMusic> ooMusicNamed(
       const std::string& fileName,
       const std::optional<std::string>&
           folderName);  // a new music each call (not cached); null when none
@@ -150,7 +150,8 @@ class ResourceManager {
       const std::string& fileName, const std::optional<std::string>& folderName,
       bool useCache);
   // World scripts by name, in the order each name was first loaded.
-  static std::vector<std::pair<std::string, oo::Ref<OOScript>>> loadScripts();
+  static std::vector<std::pair<std::string, std::shared_ptr<OOScript>>>
+  loadScripts();
   /*	writeDiagnosticData()
           writeDiagnosticString()
           writeDiagnosticPList()
@@ -223,7 +224,7 @@ class ResourceManager {
                                  const std::string& path);
   static OOSound* retrieveFileNamed(
       const std::string& fileName, const std::optional<std::string>& folderName,
-      std::map<std::string, oo::Ref<OOSound>, std::less<>>* ioCache,
+      std::map<std::string, std::shared_ptr<OOSound>, std::less<>>* ioCache,
       std::optional<std::string> key,
       bool useCache);  // the class was always OOSound; borrowed: the cache
                        // keeps it

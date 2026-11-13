@@ -40,11 +40,11 @@ MA 02110-1301, USA.
 
 class OOJSEntityHolder final : public oo::RefCounted, public OOJSPrivateObject {
  public:
-  explicit OOJSEntityHolder(Entity* entity) : _entity(entity) {}
+  explicit OOJSEntityHolder(Entity* entity) : _entity(oo::share(entity)) {}
 
   // The entity, borrowed; null once it has gone (what the weak reference
   // proxy's underlying object was: nil).
-  Entity* entity() const { return _entity.get(); }
+  Entity* entity() const { return _entity.lock().get(); }
 
   // The entity's own glue: its JS value, nothing on finalization, its
   // description; null, nothing and nullopt once it has gone.
@@ -53,5 +53,5 @@ class OOJSEntityHolder final : public oo::RefCounted, public OOJSPrivateObject {
   std::optional<std::string> jsDescription() override;
 
  private:
-  oo::WeakRef<Entity> _entity;
+  std::weak_ptr<Entity> _entity;
 };

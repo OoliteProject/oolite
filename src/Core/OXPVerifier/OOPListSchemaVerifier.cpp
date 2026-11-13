@@ -294,8 +294,8 @@ VERIFY_PROTO(Quaternion);
 VERIFY_PROTO(DelegatedType);
 }  // namespace
 
-oo::Ref<OOPListSchemaVerifier> OOPListSchemaVerifier::verifierWithSchema(
-    const oo::PList& schema) {
+std::shared_ptr<OOPListSchemaVerifier>
+OOPListSchemaVerifier::verifierWithSchema(const oo::PList& schema) {
   return initWithSchema(schema);
 }
 
@@ -311,9 +311,9 @@ OOPListSchemaVerifier::OOPListSchemaVerifier(const oo::PList& schema) {
     oo::log::logger().setDisplay("verifyOXP.verbose.plistDebugDump", true);
 }
 
-oo::Ref<OOPListSchemaVerifier> OOPListSchemaVerifier::initWithSchema(
+std::shared_ptr<OOPListSchemaVerifier> OOPListSchemaVerifier::initWithSchema(
     const oo::PList& schema) {
-  oo::Ref<OOPListSchemaVerifier> verifier =
+  std::shared_ptr<OOPListSchemaVerifier> verifier =
       oo::adopt(new OOPListSchemaVerifier(schema));
   if (!verifier->_schema) {
     return nullptr;

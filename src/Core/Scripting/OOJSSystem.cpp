@@ -1541,8 +1541,8 @@ static JSValue SystemSetPopulator(OOJS_NATIVE_ARGS) {
     }
 
     // The reference releases the definition where -release did.
-    oo::Ref<OOJSPopulatorDefinition> populator =
-        oo::makeRef<OOJSPopulatorDefinition>();
+    std::shared_ptr<OOJSPopulatorDefinition> populator =
+        oo::makeShared<OOJSPopulatorDefinition>();
     populator->setCallback(callback);  // Takes its own reference.
     JS_FreeValue(context, callback);
 

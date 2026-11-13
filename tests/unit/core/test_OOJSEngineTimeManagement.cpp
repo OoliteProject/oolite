@@ -100,7 +100,7 @@ OO_TEST(profiling)
 		OOJSProfileEnter(&nameless, NULL);
 		OOJSProfileExit(&nameless);
 
-		oo::Ref<OOTimeProfile> profileRef = OOJSEndProfiling();
+		std::shared_ptr<OOTimeProfile> profileRef = OOJSEndProfiling();
 		OOTimeProfile *profile = profileRef.get();
 		OO_CHECK(!OOJSIsProfiling());
 		OO_CHECK(profile != nullptr);

@@ -42,10 +42,10 @@ std::optional<std::string> OOALBufferedSound::name() { return _name; }
    release]; self = nil; is the null it answers (the object is freed as the
    release freed it).
 */
-oo::Ref<OOALBufferedSound> OOALBufferedSound::initWithDecoder(
+std::shared_ptr<OOALBufferedSound> OOALBufferedSound::initWithDecoder(
     OOALSoundDecoder* inDecoder) {
   bool OK = true;
-  oo::Ref<OOALBufferedSound> self;
+  std::shared_ptr<OOALBufferedSound> self;
 
   setUp();
   if (!isSoundOK() || nullptr == inDecoder) OK = false;

@@ -42,7 +42,7 @@ void OOInitDebugSupport() {
   oo::PList debugSettings;
   std::optional<std::string> consoleHost;
   unsigned short consolePort = 0;
-  oo::Ref<OODebuggerInterface> debugger;
+  std::shared_ptr<OODebuggerInterface> debugger;
   bool activateDebugConsole = false;
 
   // Load debug settings.

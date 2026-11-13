@@ -46,9 +46,9 @@ class TestGenerator : public OOTextureGenerator {
 
 // What an autoreleased texture is: the C++ texture, kept until the current
 // autorelease scope drains (oo::autorelease).
-static OOTexture* Autoreleased(const oo::Ref<OOTexture>& texture) {
+static OOTexture* Autoreleased(const std::shared_ptr<OOTexture>& texture) {
   if (texture == nullptr) return nullptr;
-  oo::autorelease(oo::Ref<OOTexture>(texture));
+  oo::autorelease(std::shared_ptr<OOTexture>(texture));
   return texture.get();
 }
 
@@ -75,10 +75,10 @@ void SetUpLoaders() {
 
 // The generators made, kept for the test's life (each was autoreleased in its
 // case's pool).
-std::vector<oo::Ref<TestGenerator>> gKeptGenerators;
+std::vector<std::shared_ptr<TestGenerator>> gKeptGenerators;
 
 TestGenerator* NewGenerator(OOTextureFlags options) {
-  const oo::Ref<TestGenerator> generator = oo::makeRef<TestGenerator>();
+  const std::shared_ptr<TestGenerator> generator = oo::makeRef<TestGenerator>();
   if (!generator->initWithPath(std::string("test generator"), options))
     return nullptr;
   gKeptGenerators.push_back(generator);
@@ -259,7 +259,7 @@ OO_TEST(deallocUncaches) {
 #ifndef NDEBUG
   {
     oo::AutoreleaseScope pool;
-    for (const oo::Ref<OOTexture>& texture : OOTexture::allTextures()) {
+    for (const std::shared_ptr<OOTexture>& texture : OOTexture::allTextures()) {
       OO_CHECK(texture->cacheKey() != std::optional<std::string>("test:gone"));
     }
   }
@@ -283,7 +283,7 @@ OO_TEST(cxxApi) {
 
     const OOTextureFlags options =
         OOTextureFlags::kMinFilterLinear | OOTextureFlags::kMagFilterLinear;
-    const oo::Ref<OOConcreteTexture> texture =
+    const std::shared_ptr<OOConcreteTexture> texture =
         OOConcreteTexture::initWithLoader(QueuedGenerator(options, false),
                                           std::string("test:cxx"), options,
                                           0.5f, 0.0f);

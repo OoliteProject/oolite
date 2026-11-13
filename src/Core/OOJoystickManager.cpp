@@ -45,11 +45,11 @@ OOJoystickManager* sSharedStickHandler = nullptr;  // never released, as before
 // manager as [[class alloc] init] ran it.
 OOJoystickManager* OOJoystickManager::sharedStickHandler() {
   if (sSharedStickHandler == nullptr) {
-    oo::Ref<OOJoystickManager> handler = (sStickHandlerFactory != nullptr)
-                                             ? sStickHandlerFactory()
-                                             : oo::makeRef<OOJoystickManager>();
+    std::shared_ptr<OOJoystickManager> handler =
+        (sStickHandlerFactory != nullptr) ? sStickHandlerFactory()
+                                          : oo::makeShared<OOJoystickManager>();
     handler->init();
-    sSharedStickHandler = handler.leakRef();
+    sSharedStickHandler = oo::leakRef(handler);
   }
   return sSharedStickHandler;
 }
@@ -145,15 +145,15 @@ double OOJoystickManager::getSensitivity() {
 void OOJoystickManager::setProfile(OOJoystickAxisProfile* profile, int axis) {
   switch (axis) {
     case AXIS_ROLL:
-      roll_profile = oo::Ref<OOJoystickAxisProfile>(profile);
+      roll_profile = oo::share(profile);
       break;
 
     case AXIS_PITCH:
-      pitch_profile = oo::Ref<OOJoystickAxisProfile>(profile);
+      pitch_profile = oo::share(profile);
       break;
 
     case AXIS_YAW:
-      yaw_profile = oo::Ref<OOJoystickAxisProfile>(profile);
+      yaw_profile = oo::share(profile);
       break;
   }
   return;
@@ -223,8 +223,8 @@ void OOJoystickManager::saveProfileForAxis(int axis) {
 void OOJoystickManager::loadProfileForAxis(int axis) {
   oo::Defaults& defaults = oo::Defaults::standard();
   oo::PList dict;
-  oo::Ref<OOJoystickStandardAxisProfile> standard_profile;
-  oo::Ref<OOJoystickSplineAxisProfile> spline_profile;
+  std::shared_ptr<OOJoystickStandardAxisProfile> standard_profile;
+  std::shared_ptr<OOJoystickSplineAxisProfile> spline_profile;
 
   if (axis == AXIS_ROLL) {
     dict = defaults.object(std::string(STICK_ROLL_AXIS_PROFILE_SETTING));
@@ -239,14 +239,14 @@ void OOJoystickManager::loadProfileForAxis(int axis) {
   const oo::PList* type = dict.find("Type");
   if (type != nullptr && type->isString() &&
       *type->getIf<std::string>() == "Standard") {
-    standard_profile = oo::makeRef<OOJoystickStandardAxisProfile>();
+    standard_profile = oo::makeShared<OOJoystickStandardAxisProfile>();
     standard_profile->setDeadzone(dict.get<double>("Deadzone"));
     standard_profile->setPower(dict.get<double>("Power"));
     standard_profile->setParameter(dict.get<double>("Parameter"));
     setProfile(standard_profile.get(), axis);
   } else if (type != nullptr && type->isString() &&
              *type->getIf<std::string>() == "Spline") {
-    spline_profile = oo::makeRef<OOJoystickSplineAxisProfile>();
+    spline_profile = oo::makeShared<OOJoystickSplineAxisProfile>();
     spline_profile->setDeadzone(dict.get<double>("Deadzone"));
     const oo::PList *points = dict.get<oo::PList::Array>("ControlPoints"),
                     *pointArray;
@@ -262,7 +262,7 @@ void OOJoystickManager::loadProfileForAxis(int axis) {
     }
     setProfile(spline_profile.get(), axis);
   } else {
-    setProfile(oo::makeRef<OOJoystickStandardAxisProfile>().get(), axis);
+    setProfile(oo::makeShared<OOJoystickStandardAxisProfile>().get(), axis);
   }
 }
 

@@ -143,7 +143,7 @@ OO_TEST(watchdog) {
     oo::AutoreleaseScope pool;  // was @autoreleasepool
     const stdfs::path scriptPath = sRoot / "running" / "running.js";
     WriteText(scriptPath, "this.name = \"test script\";\n");
-    const oo::Ref<OOJSScript> script =
+    const std::shared_ptr<OOJSScript> script =
         OOJSScript::scriptWithPath(scriptPath.generic_string(), oo::PList());
     OO_CHECK(script != nullptr);
     OOJSScript::pushScript(script.get());  // the script named in the log line

@@ -63,7 +63,7 @@ MA 02110-1301, USA.
 
 class Entity;
 class Universe;
-#include "OOTexture.h"  // allTextures() answers oo::Ref<OOTexture>, which needs the class
+#include "OOTexture.h"  // allTextures() answers std::shared_ptr<OOTexture>, which needs the class
 class OOVisualEffectEntity;
 class ShipEntity;
 
@@ -380,7 +380,8 @@ class Entity : public oo::RefCounted, public ::OOJSPrivateObject {
 
   Entity* collider = {};
 
-  oo::Ref<CollisionRegion> collisionRegion;  // initially nil - then maintained
+  std::shared_ptr<CollisionRegion>
+      collisionRegion;  // initially nil - then maintained
 
   // Public: subclasses and the game read them.
   HPVector lastPosition = {};
@@ -415,7 +416,7 @@ class Entity : public oo::RefCounted, public ::OOJSPrivateObject {
 
   std::size_t _sessionID = {};
 
-  oo::WeakRef<Entity> _owner;  // the owner's C++ part
+  std::weak_ptr<Entity> _owner;  // the owner's C++ part
   OOEntityStatus _status = {};
 };
 
@@ -466,8 +467,9 @@ namespace oo {
 */
 class EntityWeakPListForeign final : public PListForeign {
  public:
-  explicit EntityWeakPListForeign(Entity* entity) : _entity(entity) {}
-  Entity* entity() const noexcept { return _entity.get(); }
+  explicit EntityWeakPListForeign(Entity* entity)
+      : _entity(oo::share(entity)) {}
+  Entity* entity() const noexcept { return _entity.lock().get(); }
   std::string className() const override {
     return "OOWeakReference";
   }  // what the proxy's class was
@@ -476,7 +478,7 @@ class EntityWeakPListForeign final : public PListForeign {
                        // 0x...> (Entity.cpp)
 
  private:
-  WeakRef<Entity> _entity;
+  std::weak_ptr<Entity> _entity;
 };
 
 // The entity's weak node; a null PList for null.

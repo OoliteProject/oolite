@@ -73,7 +73,7 @@ float Level(float lod) { return roundf(lod * kGranularity) / kGranularity; }
 
 // A material kept until the pool drains.
 OOMaterial* NamedMaterial(const char* name) {
-  oo::Ref<OOMaterial> material =
+  std::shared_ptr<OOMaterial> material =
       OOBasicMaterial::materialWithName(std::string(name), oo::PList());
   OOMaterial* result = material.get();
   OOMaterialAutorelease(std::move(material));
@@ -83,7 +83,7 @@ OOMaterial* NamedMaterial(const char* name) {
 // --- The drawable, made and read; the only lines the conversion ported
 // ------------------------------
 
-using Planet = oo::Ref<OOPlanetDrawable>;
+using Planet = std::shared_ptr<OOPlanetDrawable>;
 
 Planet NewPlanet() { return oo::makeRef<OOPlanetDrawable>(); }
 Planet NewAtmosphere() { return OOPlanetDrawable::initAsAtmosphere(); }

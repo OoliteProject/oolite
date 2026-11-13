@@ -48,7 +48,7 @@ oo::PList ResourceManager::dictionaryFromFilesNamed(
 }
 
 // OORegExpMatcher: the stub answers no match.
-oo::Ref<OORegExpMatcher> OORegExpMatcher::regExpMatcher() {
+std::shared_ptr<OORegExpMatcher> OORegExpMatcher::regExpMatcher() {
   return oo::makeRef<OORegExpMatcher>();
 }
 bool OORegExpMatcher::string(const std::string&, const std::string&) {
@@ -96,7 +96,7 @@ namespace {
 
 // Kept until the test's process ends, as the autoreleased clients outlived each
 // case's use.
-std::vector<oo::Ref<OOTestResetClient>> sClients;
+std::vector<std::shared_ptr<OOTestResetClient>> sClients;
 
 OOTestResetClient* Client(int tag) {
   sClients.push_back(oo::makeRef<OOTestResetClient>());
@@ -181,7 +181,7 @@ OO_TEST(clientsAreNotRetained) {
   OO_CHECK(OOTestGLContext());
   {
     OOGraphicsResetManager* manager = OOGraphicsResetManager::sharedManager();
-    oo::Ref<OOTestResetClient> client = oo::makeRef<OOTestResetClient>();
+    std::shared_ptr<OOTestResetClient> client = oo::makeRef<OOTestResetClient>();
     const std::uint32_t before = client->retainCount();
     manager->registerCxxClient(client.get());
     OO_CHECK(client->retainCount() == before);

@@ -73,7 +73,7 @@ class OOSkyDrawable : public OODrawable, public OOGraphicsResetClient {
   bool hasOpaqueParts() override;
   GLfloat maxDrawDistance() override;
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  std::vector<oo::Ref<OOTexture>> allTextures() override;
+  std::vector<std::shared_ptr<OOTexture>> allTextures() override;
   size_t totalSize() override;
   size_t objectSize() const override { return sizeof *this; }
 #endif
@@ -103,8 +103,9 @@ class OOSkyDrawable : public OODrawable, public OOGraphicsResetClient {
   unsigned _starCount = {};
   unsigned _nebulaCount = {};
 
-  std::vector<oo::Ref<OOSkyQuadSet>> _quadSets;  // no `= {}` (GCC, incomplete
-                                                 // T);	// one per texture
+  std::vector<std::shared_ptr<OOSkyQuadSet>>
+      _quadSets;  // no `= {}` (GCC, incomplete
+                  // T);	// one per texture
 
   GLint _displayListName = {};
 };

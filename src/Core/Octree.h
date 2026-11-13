@@ -50,9 +50,10 @@ class Octree : public oo::RefCounted {
           Deserialize an octree from cache representation; null if it is not a
      valid one. (To make a new octree, build it with OOOctreeBuilder.)
   */
-  static oo::Ref<Octree> initWithDictionary(const oo::PList& dictionary);
+  static std::shared_ptr<Octree> initWithDictionary(
+      const oo::PList& dictionary);
 
-  oo::Ref<Octree> octreeScaledBy(GLfloat factor);
+  std::shared_ptr<Octree> octreeScaledBy(GLfloat factor);
 
 #ifndef OODEBUGLDRAWING_DISABLE
   void drawOctree();
@@ -83,7 +84,7 @@ class Octree : public oo::RefCounted {
 
   Octree(const oo::Data& data,
          GLfloat radius);  // -initWithData:radius:, less its failure
-  static oo::Ref<Octree> initWithData(
+  static std::shared_ptr<Octree> initWithData(
       const oo::Data& data, GLfloat radius);  // Designated initializer.
 
 #ifndef OODEBUGLDRAWING_DISABLE
@@ -121,7 +122,7 @@ class OOOctreeBuilder : public oo::RefCounted {
      specified radius, and clear the builder. If NDEBUG is undefined, throws an
      exception if the structure of the octree is invalid.
   */
-  oo::Ref<Octree> buildOctreeWithRadius(GLfloat radius);
+  std::shared_ptr<Octree> buildOctreeWithRadius(GLfloat radius);
 
   /*
           Append nodes to the octree.

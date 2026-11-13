@@ -46,7 +46,7 @@ namespace {
 // A C++ player, as PlayerEntity::sharedPlayer() makes the game's, retained
 // (+1).
 TestPlayer* NewTestPlayer() {
-  oo::Ref<TestPlayer> player = oo::makeRef<TestPlayer>();
+  std::shared_ptr<TestPlayer> player = oo::makeRef<TestPlayer>();
   {
     oo::AutoreleaseScope scope;
     oo::RetainEntity(oo::MadeEntity(player));
@@ -114,14 +114,14 @@ OO_TEST(removingTheFirstBeaconMovesTheHeadBeforeItsLastRelease) {
     OO_CHECK(oo::PrevBeacon(b) == nullptr && oo::NextBeacon(b) == c);
     OO_CHECK(!oo::EntityIsBeacon(a));  // clearBeacon cleared its code
 
-    oo::WeakRef<Entity> removed(a);
+    std::weak_ptr<Entity> removed(oo::share(a));
     oo::ReleaseEntity(a);  // the test's hold; the universe's dead list keeps it
     {
       oo::AutoreleaseScope frame;
       u->no_update = true;
       u->update(1.0);  // the dead are autoreleased
     }  // the pool drains: the last release, and disposal
-    OO_CHECK(removed.get() == nullptr);  // it was disposed
+    OO_CHECK(removed.lock().get() == nullptr);  // it was disposed
     OO_CHECK(u->firstBeacon() == headAfterRemoval);  // as removal left it
     OO_CHECK(u->lastBeacon() == tailAfterRemoval);
 
@@ -150,14 +150,14 @@ OO_TEST(removingTheLastBeaconMovesTheTailBeforeItsLastRelease) {
     OO_CHECK(tailAfterRemoval == b);  // the tail moved to the previous beacon
     OO_CHECK(!oo::EntityIsBeacon(c));
 
-    oo::WeakRef<Entity> removed(c);
+    std::weak_ptr<Entity> removed(oo::share(c));
     oo::ReleaseEntity(c);  // the test's hold; the universe's dead list keeps it
     {
       oo::AutoreleaseScope frame;
       u->no_update = true;
       u->update(1.0);  // the dead are autoreleased
     }  // the pool drains: the last release, and disposal
-    OO_CHECK(removed.get() == nullptr);  // it was disposed
+    OO_CHECK(removed.lock().get() == nullptr);  // it was disposed
     OO_CHECK(u->firstBeacon() == headAfterRemoval);  // as removal left it
     OO_CHECK(u->lastBeacon() == tailAfterRemoval);
 

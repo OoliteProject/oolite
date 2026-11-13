@@ -139,7 +139,7 @@ oo::PList GoodShip() {
 
 OO_TEST(nullSchemaGivesNil) {
   OO_CHECK(OOPListSchemaVerifier::verifierWithSchema(oo::PList()) == nullptr);
-  const oo::Ref<OOPListSchemaVerifier> allocated =
+  const std::shared_ptr<OOPListSchemaVerifier> allocated =
       OOPListSchemaVerifier::initWithSchema(oo::PList());
   OO_CHECK(allocated == nullptr);
   OO_CHECK(OOPListSchemaVerifier::verifierWithSchema(Parse("string")) !=
@@ -148,10 +148,10 @@ OO_TEST(nullSchemaGivesNil) {
 
 OO_TEST(keepsItsDelegate) {
   {
-    const oo::Ref<OOPListSchemaVerifier> verifier =
+    const std::shared_ptr<OOPListSchemaVerifier> verifier =
         OOPListSchemaVerifier::verifierWithSchema(Parse(kShipSchema));
     OO_CHECK(verifier->delegate() == nullptr);
-    const oo::Ref<TestSchemaDelegate> delegate =
+    const std::shared_ptr<TestSchemaDelegate> delegate =
         oo::makeRef<TestSchemaDelegate>();
     verifier->setDelegate(delegate.get());
     OO_CHECK(verifier->delegate() == delegate.get());
@@ -163,9 +163,9 @@ OO_TEST(keepsItsDelegate) {
 
 OO_TEST(acceptsAValidPropertyList) {
   {
-    const oo::Ref<OOPListSchemaVerifier> verifier =
+    const std::shared_ptr<OOPListSchemaVerifier> verifier =
         OOPListSchemaVerifier::verifierWithSchema(Parse(kShipSchema));
-    const oo::Ref<TestSchemaDelegate> delegate =
+    const std::shared_ptr<TestSchemaDelegate> delegate =
         oo::makeRef<TestSchemaDelegate>();
     verifier->setDelegate(delegate.get());
     OO_CHECK(verifier->verifyPropertyList(GoodShip(), "cobra"));
@@ -176,9 +176,9 @@ OO_TEST(acceptsAValidPropertyList) {
 
 OO_TEST(reportsEachFailureToTheDelegate) {
   {
-    const oo::Ref<OOPListSchemaVerifier> verifier =
+    const std::shared_ptr<OOPListSchemaVerifier> verifier =
         OOPListSchemaVerifier::verifierWithSchema(Parse(kShipSchema));
-    const oo::Ref<TestSchemaDelegate> delegate =
+    const std::shared_ptr<TestSchemaDelegate> delegate =
         oo::makeRef<TestSchemaDelegate>();
     delegate->continueAfterFailure = true;
     verifier->setDelegate(delegate.get());
@@ -213,9 +213,9 @@ OO_TEST(reportsEachFailureToTheDelegate) {
 
 OO_TEST(stopsWhenTheDelegateSaysSo) {
   {
-    const oo::Ref<OOPListSchemaVerifier> verifier =
+    const std::shared_ptr<OOPListSchemaVerifier> verifier =
         OOPListSchemaVerifier::verifierWithSchema(Parse(kShipSchema));
-    const oo::Ref<TestSchemaDelegate> delegate =
+    const std::shared_ptr<TestSchemaDelegate> delegate =
         oo::makeRef<TestSchemaDelegate>();
     delegate->continueAfterFailure = false;
     verifier->setDelegate(delegate.get());
@@ -239,22 +239,22 @@ OO_TEST(stopsWhenTheDelegateSaysSo) {
 
 OO_TEST(reportsABadSchema) {
   {
-    const oo::Ref<TestSchemaDelegate> delegate =
+    const std::shared_ptr<TestSchemaDelegate> delegate =
         oo::makeRef<TestSchemaDelegate>();
     delegate->continueAfterFailure = true;
 
-    const oo::Ref<OOPListSchemaVerifier> undefinedMacro =
+    const std::shared_ptr<OOPListSchemaVerifier> undefinedMacro =
         OOPListSchemaVerifier::verifierWithSchema(
             Parse("{ type = $nothing; }"));
     undefinedMacro->setDelegate(delegate.get());
     OO_CHECK(!undefinedMacro->verifyPropertyList(oo::PList("x"), "macro"));
 
-    const oo::Ref<OOPListSchemaVerifier> unknownType =
+    const std::shared_ptr<OOPListSchemaVerifier> unknownType =
         OOPListSchemaVerifier::verifierWithSchema(Parse("{ type = gizmo; }"));
     unknownType->setDelegate(delegate.get());
     OO_CHECK(!unknownType->verifyPropertyList(oo::PList("x"), "unknown"));
 
-    const oo::Ref<OOPListSchemaVerifier> noType =
+    const std::shared_ptr<OOPListSchemaVerifier> noType =
         OOPListSchemaVerifier::verifierWithSchema(Parse("{ minimum = 1; }"));
     noType->setDelegate(delegate.get());
     OO_CHECK(!noType->verifyPropertyList(oo::PList("x"), "untyped"));
@@ -273,11 +273,11 @@ OO_TEST(reportsABadSchema) {
 
 OO_TEST(asksTheDelegateAboutDelegatedTypes) {
   {
-    const oo::Ref<OOPListSchemaVerifier> verifier =
+    const std::shared_ptr<OOPListSchemaVerifier> verifier =
         OOPListSchemaVerifier::verifierWithSchema(
             Parse("{ type = array; valueType = { type = delegatedType; "
                   "baseType = string; key = shipKey; }; }"));
-    const oo::Ref<TestSchemaDelegate> delegate =
+    const std::shared_ptr<TestSchemaDelegate> delegate =
         oo::makeRef<TestSchemaDelegate>();
     delegate->continueAfterFailure = true;
     verifier->setDelegate(delegate.get());
@@ -332,7 +332,7 @@ OO_TEST(asksTheDelegateAboutDelegatedTypes) {
 OO_TEST(aDelegateThatHandlesNothing) {
   {
     // Delegated types pass; a failure stops verification.
-    const oo::Ref<OOPListSchemaVerifier> verifier =
+    const std::shared_ptr<OOPListSchemaVerifier> verifier =
         OOPListSchemaVerifier::verifierWithSchema(
             Parse("{ type = array; valueType = { type = delegatedType; "
                   "baseType = string; key = shipKey; }; }"));
@@ -342,7 +342,7 @@ OO_TEST(aDelegateThatHandlesNothing) {
         "mute"));
     OO_CHECK(!verifier->verifyPropertyList(oo::PList(4), "mute"));
 
-    const oo::Ref<OOPListSchemaVerifier> orphan =
+    const std::shared_ptr<OOPListSchemaVerifier> orphan =
         OOPListSchemaVerifier::verifierWithSchema(Parse("string"));
     OO_CHECK(!orphan->verifyPropertyList(oo::PList(4), "orphan"));
     OO_CHECK(orphan->verifyPropertyList(oo::PList("four"), "orphan"));
@@ -373,9 +373,9 @@ OO_TEST(delegateIsHandedTheVerifier) {
     OO_CHECK(OOPListSchemaVerifier::verifierWithSchema(oo::PList()).get() ==
              nullptr);
 
-    oo::Ref<OOPListSchemaVerifier> made =
+    std::shared_ptr<OOPListSchemaVerifier> made =
         OOPListSchemaVerifier::verifierWithSchema(Parse("string"));
-    const oo::Ref<TestSchemaDelegate> delegate =
+    const std::shared_ptr<TestSchemaDelegate> delegate =
         oo::makeRef<TestSchemaDelegate>();
     made->setDelegate(delegate.get());
     OO_CHECK(made->delegate() == delegate.get());

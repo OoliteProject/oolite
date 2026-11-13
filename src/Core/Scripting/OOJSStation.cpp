@@ -869,7 +869,7 @@ static JSValue StationSetInterface(OOJS_NATIVE_ARGS) {
   std::optional<std::string> title;
   std::optional<std::string> summary;
   std::optional<std::string> category;
-  oo::Ref<OOJSInterfaceDefinition> definition;
+  std::shared_ptr<OOJSInterfaceDefinition> definition;
   OOJSInterfaceDefinition* cxxDefinition = nullptr;
 
   // SpiderMonkey's JS_ValueToObject() boxed primitives. (It gave no object for
@@ -950,7 +950,7 @@ static JSValue StationSetInterface(OOJS_NATIVE_ARGS) {
   }
 
   // C++ (its façade was deleted); the station keeps it (oo::Ref).
-  definition = oo::makeRef<OOJSInterfaceDefinition>();
+  definition = oo::makeShared<OOJSInterfaceDefinition>();
   cxxDefinition = definition.get();
   cxxDefinition->setTitle(title);
   cxxDefinition->setCategory(*category);

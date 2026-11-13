@@ -49,7 +49,7 @@ class TestPlayer : public PlayerEntity {
 // the game's, retained (+1) as +alloc's object was.
 template <class T>
 T* NewTestPlayer() {
-  oo::Ref<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeRef<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -75,7 +75,7 @@ TestPlayer* SetUp() {
 
 // What the universe does: a dust entity, and its root facade.
 Entity* MakeDust(DustEntity** outDust) {
-  oo::Ref<DustEntity> dust = oo::makeRef<DustEntity>();
+  std::shared_ptr<DustEntity> dust = oo::makeRef<DustEntity>();
   dust->init();
   *outDust = dust.get();
   return oo::MadeEntity(dust);
@@ -101,9 +101,9 @@ OO_TEST(init) {
     OO_CHECK(ColorIs(dust->dustColor(), 0.5f, 1.0f, 1.0f, 1.0f));
     OO_CHECK(oo::EntityClassName(dust) == "DustEntity");
 
-    oo::Ref<OOColor> color = OOColor::colorWithRed(0.25f, 0.5f, 0.75f, 1.0f);
+    std::shared_ptr<OOColor> color = OOColor::colorWithRed(0.25f, 0.5f, 0.75f, 1.0f);
     dust->setDustColor(color.get());
-    OO_CHECK(dust->dustColor() == color);
+    OO_CHECK(dust->dustColor() == color.get());
 
     // Nothing is drawn in the opaque pass.
     dust->drawImmediate(false, false);

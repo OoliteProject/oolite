@@ -106,7 +106,7 @@ class OOJSScript : public OOScript
 {
 public:
 	static OOJSScript *currentlyRunningScript();
-	static void pushScript(const oo::WeakRef<OOJSScript> &script);
+	static void pushScript(const std::weak_ptr<OOJSScript> &script);
 	static void popScript(OOJSScript *script);
 };
 
@@ -124,7 +124,7 @@ JSValue OOScript::jsValueInContext(JSContext *)				{ return JS_UNDEFINED; }
 void OOScript::clearJSSelf(JSValueConst)						{}
 
 OOJSScript *OOJSScript::currentlyRunningScript()  { return sRunningScript; }
-void OOJSScript::pushScript(const oo::WeakRef<OOJSScript> &script)  { sPushed.push_back(script.get()); sScriptDepth++; }
+void OOJSScript::pushScript(const std::weak_ptr<OOJSScript> &script)  { sPushed.push_back(script.lock().get()); sScriptDepth++; }
 void OOJSScript::popScript(OOJSScript *script)  { (void)script; sScriptDepth--; }
 
 
@@ -216,7 +216,7 @@ OO_TEST(initialState)
 {
 	{
 		Context();
-		const oo::Ref<OOJSPopulatorDefinition> definition = oo::makeRef<OOJSPopulatorDefinition>();
+		const std::shared_ptr<OOJSPopulatorDefinition> definition = oo::makeRef<OOJSPopulatorDefinition>();
 		OO_CHECK(definition.get() != nullptr);
 		OO_CHECK(IsUndefined(definition->callback()));
 		OO_CHECK(!IsObject(definition->callbackThis()));
@@ -227,9 +227,9 @@ OO_TEST(initialState)
 OO_TEST(runCallback)
 {
 	{
-		const oo::Ref<OOJSScript> owner = oo::makeRef<OOJSScript>();
+		const std::shared_ptr<OOJSScript> owner = oo::makeRef<OOJSScript>();
 		sRunningScript = owner.get();
-		const oo::Ref<OOJSPopulatorDefinition> definition = oo::makeRef<OOJSPopulatorDefinition>();
+		const std::shared_ptr<OOJSPopulatorDefinition> definition = oo::makeRef<OOJSPopulatorDefinition>();
 		sRunningScript = nullptr;
 
 		// Neither the function nor `this` has another reference: the definition keeps them alive.
@@ -253,7 +253,7 @@ OO_TEST(runCallback)
 		OO_CHECK_EQ(String(Evaluate("globalThis.ran")), "second");
 
 		// A definition made with no running script pushes nil.
-		const oo::Ref<OOJSPopulatorDefinition> orphan = oo::makeRef<OOJSPopulatorDefinition>();
+		const std::shared_ptr<OOJSPopulatorDefinition> orphan = oo::makeRef<OOJSPopulatorDefinition>();
 		orphan->setCallback(Evaluate("(function () { globalThis.ran = 'orphan'; })"));
 		sPushed.clear();
 		orphan->runPopulatorCallback(make_HPvector(0, 0, 0));
@@ -266,7 +266,7 @@ OO_TEST(runCallback)
 OO_TEST(engineReset)
 {
 	{
-		const oo::Ref<OOJSPopulatorDefinition> definition = oo::makeRef<OOJSPopulatorDefinition>();
+		const std::shared_ptr<OOJSPopulatorDefinition> definition = oo::makeRef<OOJSPopulatorDefinition>();
 		definition->setCallback(Evaluate("(function () {})"));
 		definition->setCallbackThis(Evaluate("({})"));
 		oo::NotificationCenter::defaultCenter().post(kOOJavaScriptEngineWillResetNotificationName, OOJavaScriptEngine::sharedEngine());
@@ -281,9 +281,9 @@ OO_TEST(engineReset)
 
 OO_TEST(weakReference)
 {
-	oo::WeakRef<OOJSPopulatorDefinition> reference;
+	std::weak_ptr<OOJSPopulatorDefinition> reference;
 	{
-		oo::Ref<OOJSPopulatorDefinition> definition = oo::makeRef<OOJSPopulatorDefinition>();
+		std::shared_ptr<OOJSPopulatorDefinition> definition = oo::makeRef<OOJSPopulatorDefinition>();
 		reference = definition;
 		OO_CHECK(reference.lock().get() == definition.get());
 	}
@@ -293,7 +293,7 @@ OO_TEST(weakReference)
 
 OO_TEST(plistCarrier)
 {
-	const oo::Ref<OOJSPopulatorDefinition> definition = oo::makeRef<OOJSPopulatorDefinition>();
+	const std::shared_ptr<OOJSPopulatorDefinition> definition = oo::makeRef<OOJSPopulatorDefinition>();
 	const oo::PList node = OOJSPopulatorDefinitionToPList(definition);
 	OO_CHECK(node.isObject());
 	OO_CHECK(OOJSPopulatorDefinitionIn(node) == definition.get());

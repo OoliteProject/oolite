@@ -34,11 +34,9 @@ MA 02110-1301, USA.
 class OOPlasmaShotEntity : public OOLightParticleEntity {
  public:
   // [[OOPlasmaShotEntity alloc] initWithPosition:...]: a new shot, initialised.
-  static oo::Ref<OOPlasmaShotEntity> shotWithPosition(HPVector position,
-                                                      Vector velocity,
-                                                      float energy,
-                                                      OOTimeDelta duration,
-                                                      OOColor* color);
+  static std::shared_ptr<OOPlasmaShotEntity> shotWithPosition(
+      HPVector position, Vector velocity, float energy, OOTimeDelta duration,
+      OOColor* color);
 
   // -initWithPosition:...'s body, run once right after construction.
   void initWithPosition(HPVector position, Vector velocity, float energy,

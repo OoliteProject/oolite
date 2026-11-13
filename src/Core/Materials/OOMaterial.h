@@ -10,7 +10,7 @@ This is an abstract class; actual materials should be subclasses.
 Currently, only shader materials are supported. Direct use of textures should
 also be replaced with an OOMaterial subclass.
 
-The current material is held as an oo::Ref<OOMaterial>.
+The current material is held as an std::shared_ptr<OOMaterial>.
 
 
 Copyright (C) 2007-2013 Jens Ayton and contributors
@@ -61,7 +61,7 @@ class Entity;  // Entity.h: the shader binding target
 #include <utility>
 #include <vector>
 
-#include "OOTexture.h"  // allTextures() answers oo::Ref<OOTexture>, which needs the class
+#include "OOTexture.h"  // allTextures() answers std::shared_ptr<OOTexture>, which needs the class
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 
@@ -93,7 +93,7 @@ class OOMaterial : public oo::RefCounted {
 
   /*	Get current material.
    */
-  static oo::Ref<OOMaterial> current();
+  static std::shared_ptr<OOMaterial> current();
 
   /*	Ensure material is ready to be used in a display list. This is not
           required before using a material directly.
@@ -115,7 +115,7 @@ class OOMaterial : public oo::RefCounted {
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  virtual std::vector<oo::Ref<OOTexture>> allTextures();
+  virtual std::vector<std::shared_ptr<OOTexture>> allTextures();
 #endif
 
   // Subclass interface (was the OOSubclassInterface category).
@@ -141,7 +141,7 @@ class OOMaterial : public oo::RefCounted {
      synthesized shader materials; nullopt may be passed for no caching.
      configuration and macros are oo::PList (null = nil).
   */
-  static oo::Ref<OOMaterial> materialWithName(
+  static std::shared_ptr<OOMaterial> materialWithName(
       const std::optional<std::string>& name,
       const std::optional<std::string>& cacheKey,
       const oo::PList& configuration, const oo::PList& macros, Entity* object,
@@ -151,7 +151,7 @@ class OOMaterial : public oo::RefCounted {
           shaders and content of dictionaries, which may be null) and call
           the one above.
   */
-  static oo::Ref<OOMaterial> materialWithName(
+  static std::shared_ptr<OOMaterial> materialWithName(
       const std::optional<std::string>& name,
       const std::optional<std::string>& cacheKey, const oo::PList& materialDict,
       const oo::PList& shadersDict, const oo::PList& macros, Entity* object,
@@ -162,7 +162,7 @@ class OOMaterial : public oo::RefCounted {
   static oo::PList synthesizeMaterialDictionaryWithName(
       const std::optional<std::string>& name, const oo::PList& configuration,
       const oo::PList& macros);
-  static oo::Ref<OOMaterial> defaultShaderMaterialWithName(
+  static std::shared_ptr<OOMaterial> defaultShaderMaterialWithName(
       const std::optional<std::string>& name,
       const std::optional<std::string>& cacheKey,
       const oo::PList& configuration, const oo::PList& macros, Entity* target);
@@ -172,4 +172,4 @@ class OOMaterial : public oo::RefCounted {
    material a drawable replaces lives that long, as OODrawableAutorelease() does
    for drawables. Nothing for null.
 */
-void OOMaterialAutorelease(oo::Ref<OOMaterial> material);
+void OOMaterialAutorelease(std::shared_ptr<OOMaterial> material);

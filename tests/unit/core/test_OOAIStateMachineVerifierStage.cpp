@@ -140,7 +140,7 @@ OO_TEST(nameAndNeighbours) {
     OO_CHECK(OOAIStateMachineVerifierStage::nameForReverseDependencyForVerifier(
                  verifier) == "Validating AIs");
 
-    const oo::Ref<OOAIStateMachineVerifierStage> stage =
+    const std::shared_ptr<OOAIStateMachineVerifierStage> stage =
         oo::makeRef<OOAIStateMachineVerifierStage>();
     stage->setVerifier(verifier);
     OO_CHECK(stage->name() == std::optional<std::string>("Validating AIs"));
@@ -155,7 +155,7 @@ OO_TEST(shipsNameAIs) {
     const std::string base = MakeOXP();
     OOOXPVerifier* verifier = MakeVerifier(base);
     RunScanner(verifier);
-    const oo::Ref<OOAIStateMachineVerifierStage> stage =
+    const std::shared_ptr<OOAIStateMachineVerifierStage> stage =
         oo::makeRef<OOAIStateMachineVerifierStage>();
     stage->setVerifier(verifier);
     StartLog();
@@ -192,7 +192,7 @@ OO_TEST(runChecksEachAIAgainstTheWhitelist) {
     const std::string base = MakeOXP();
     OOOXPVerifier* verifier = MakeVerifier(base);
     RunScanner(verifier);
-    const oo::Ref<OOAIStateMachineVerifierStage> stage =
+    const std::shared_ptr<OOAIStateMachineVerifierStage> stage =
         oo::makeRef<OOAIStateMachineVerifierStage>();
     stage->setVerifier(verifier);
     for (const char* name :
@@ -271,7 +271,7 @@ OO_TEST(facade) {
     const std::string base = MakeOXP();
     OOOXPVerifier* verifier = MakeVerifier(base);
     RunScanner(verifier);
-    const oo::Ref<OOAIStateMachineVerifierStage> stage =
+    const std::shared_ptr<OOAIStateMachineVerifierStage> stage =
         oo::makeRef<OOAIStateMachineVerifierStage>();
 
     // Registered as the verifier registers it, found again by name, as the ship
