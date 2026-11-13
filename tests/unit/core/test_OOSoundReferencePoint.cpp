@@ -18,15 +18,15 @@ OO_TEST(settersAreNoOps) {
   point->setPosition(make_vector(1.0f, 2.0f, 3.0f));
   point->setVelocity(make_vector(-1.0f, 0.0f, 0.5f));
   point->setOrientation(make_vector(0.0f, 0.0f, 1.0f));
-  OO_CHECK(point->retainCount() == 1);
+  OO_CHECK(point.use_count() == 1);
 }
 
 OO_TEST(lastReleaseFrees) {
-  OOSoundReferencePoint* point =
-      new OOSoundReferencePoint;  // +1, as +alloc was
-  std::weak_ptr<OOSoundReferencePoint> weak = oo::share(point);
-  OO_CHECK(weak.lock().get() == point);
-  point->release();
+  std::shared_ptr<OOSoundReferencePoint> point =
+      oo::makeShared<OOSoundReferencePoint>();  // the one owner, as +alloc's +1 was
+  std::weak_ptr<OOSoundReferencePoint> weak = point;
+  OO_CHECK(weak.lock().get() == point.get());
+  point.reset();  // the last release
   OO_CHECK(weak.lock().get() == nullptr);
 }
 

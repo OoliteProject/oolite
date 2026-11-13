@@ -60,7 +60,7 @@ SOFTWARE.
 
 #define OOAL_STREAM_CHUNK_SIZE (sizeof(char) * 409600)
 
-class OOALSoundDecoder : public oo::RefCounted {
+class OOALSoundDecoder : public oo::Object {
  public:
   /*	Was -cxx_initWithPath:, a class cluster's initialiser: it answered, in
      place of the receiver, the Vorbis codec for a path whose extension is

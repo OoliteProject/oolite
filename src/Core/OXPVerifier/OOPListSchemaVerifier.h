@@ -116,7 +116,7 @@ class OOPListSchemaVerifierDelegate {
   ~OOPListSchemaVerifierDelegate() = default;
 };
 
-class OOPListSchemaVerifier : public oo::RefCounted {
+class OOPListSchemaVerifier : public oo::Object {
  public:
   static std::shared_ptr<OOPListSchemaVerifier> verifierWithSchema(
       const oo::PList& schema);  // null for a null schema

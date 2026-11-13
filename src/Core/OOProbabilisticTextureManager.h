@@ -57,7 +57,7 @@ SOFTWARE.
 
 class OOTexture;
 
-class OOProbabilisticTextureManager : public oo::RefCounted {
+class OOProbabilisticTextureManager : public oo::Object {
  public:
   /*	plistName is the name of the property list specifying the actual
      textures to use. The plist will be loaded from Config directories and

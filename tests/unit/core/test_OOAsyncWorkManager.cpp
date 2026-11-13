@@ -108,7 +108,7 @@ OO_TEST(completePendingTasksCollectsReadyTasks) {
   {
     OOAsyncWorkManager* manager = OOAsyncWorkManager::sharedAsyncWorkManager();
     const std::shared_ptr<TestTask> task = oo::makeRef<TestTask>();
-    OO_CHECK_EQ(task->retainCount(), 1u);
+    OO_CHECK_EQ(task.use_count(), 1);
     OO_CHECK(manager->addTask(task.get(), OOAsyncWorkPriority::kHigh));
     OO_CHECK(WaitFor(task->performed));
     // Performed, but completed only when collected: poll until it is ready.

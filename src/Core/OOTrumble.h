@@ -91,7 +91,7 @@ static_assert(static_cast<int>(trumble_mouth::kNormal) == 4);
 
 struct OOTrumbleTestAccess;  // tests/unit/core/test_OOTrumble.cpp
 
-class OOTrumble : public oo::RefCounted {
+class OOTrumble : public oo::Object {
  public:
   OOTrumble();  // -init
   explicit OOTrumble(::PlayerEntity* p1);

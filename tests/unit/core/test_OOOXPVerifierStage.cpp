@@ -140,13 +140,13 @@ OO_TEST(verifierIsNotRetained) {
     const std::shared_ptr<OOOXPVerifier> object = OOOXPVerifierTestAccess::Make();
     OOOXPVerifier* verifier = object.get();
     const std::shared_ptr<TestObjCStage> stage = MakeStage("Stage");
-    const unsigned before = object->retainCount();
+    const long before = object->weak_from_this().use_count();
     stage->setVerifier(verifier);
-    OO_CHECK(object->retainCount() == before);
+    OO_CHECK(object->weak_from_this().use_count() == before);
     {
       OO_CHECK(stage->verifier() == verifier);
     }
-    OO_CHECK(object->retainCount() == before);
+    OO_CHECK(object->weak_from_this().use_count() == before);
   }
 }
 

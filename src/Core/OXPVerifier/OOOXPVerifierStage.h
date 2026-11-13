@@ -60,7 +60,7 @@ SOFTWARE.
    sets are vectors of retained stages (identity, no duplicates), in
    registration order.
 */
-class OOOXPVerifierStage : public oo::RefCounted {
+class OOOXPVerifierStage : public oo::Object {
  public:
   OOOXPVerifier* verifier();
   bool completed();

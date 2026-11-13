@@ -144,7 +144,7 @@ static int gChannelsOut = 0;
 // The mixer (a C++ stand-in): one, never released, handing out a new channel
 // each time.
 OOSoundMixer* OOSoundMixer::sharedMixer() {
-  static OOSoundMixer* mixer = oo::makeRef<OOSoundMixer>().leakRef();
+  static OOSoundMixer* mixer = (*new std::shared_ptr<OOSoundMixer>(oo::makeShared<OOSoundMixer>())).get();
   return mixer;
 }
 
@@ -154,7 +154,7 @@ void OOSoundMixer::shutdown() {}
 
 ::OOSoundChannel* OOSoundMixer::popChannel() {
   gChannelsOut++;
-  return oo::makeRef<OOSoundChannel>().leakRef();  // leaked: a few per run
+  return (*new std::shared_ptr<OOSoundChannel>(oo::makeShared<OOSoundChannel>())).get();  // leaked: a few per run
 }
 
 void OOSoundMixer::pushChannel(::OOSoundChannel* channel) {

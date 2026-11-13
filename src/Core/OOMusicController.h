@@ -64,7 +64,7 @@ static_assert(static_cast<std::int32_t>(OOMusicMode::kOn) == 1);
 static_assert(static_cast<std::int32_t>(OOMusicMode::kITunes) == 2);
 inline constexpr OOMusicMode kOOMusicModeMax = OOMusicMode::kOn;
 
-class OOMusicController : public oo::RefCounted {
+class OOMusicController : public oo::Object {
  public:
   /*	The one controller (was +sharedController),
      made on first use and never released; borrowed.

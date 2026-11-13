@@ -56,7 +56,7 @@ inline constexpr std::string_view kOODisplayRefreshRate = "RefreshRate";
    methods are virtual, so a C++ subclass overrides them; the base's bodies
    still log and answer the default.
 */
-class OOFullScreenController : public oo::RefCounted {
+class OOFullScreenController : public oo::Object {
  public:
   explicit OOFullScreenController(MyOpenGLView* view);  // -initWithGameView:
 

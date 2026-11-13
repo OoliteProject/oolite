@@ -52,7 +52,7 @@ SOFTWARE.
 #include "oofnd/Ref.hpp"
 #include "oofnd/objc/OOObject.h"
 
-class OOSound : public oo::RefCounted {
+class OOSound : public oo::Object {
  public:
   OOSound();
 

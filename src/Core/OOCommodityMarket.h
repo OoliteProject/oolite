@@ -58,7 +58,7 @@ MA 02110-1301, USA.
    -goods returns std::vector<std::string>; -massUnitForGood: takes const
    std::string &; -dictionaryForScripting hands JavaScript a PList dictionary.
 */
-class OOCommodityMarket : public oo::RefCounted {
+class OOCommodityMarket : public oo::Object {
  public:
   std::size_t count();
 

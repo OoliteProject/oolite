@@ -33,7 +33,7 @@ SOFTWARE.
 
 class OOColor;
 
-class OOCrosshairs : public oo::RefCounted {
+class OOCrosshairs : public oo::Object {
  public:
   // points: the crosshair definition, a property-list array of 6-number arrays.
   OOCrosshairs(const oo::PList& points, GLfloat scale, OOColor* color,

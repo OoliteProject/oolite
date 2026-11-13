@@ -60,7 +60,7 @@ SOFTWARE.
    vector). -hasRole: takes a const std::string &. There is no -intersectsSet:;
    HasRoleInSetPredicate tests -hasRole: per role.
 */
-class OORoleSet : public oo::RefCounted {
+class OORoleSet : public oo::Object {
  public:
   // The factories: null where there are no roles.
   static std::shared_ptr<OORoleSet> roleSetWithString(

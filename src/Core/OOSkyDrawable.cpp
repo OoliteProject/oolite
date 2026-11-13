@@ -74,7 +74,7 @@ constexpr std::uint8_t kSkyQuadSetColorEntriesPerVertex = 4;
         optimized for rendering.
         A second class in the file with no caller outside it: global.
 */
-class OOSkyQuadSet : public oo::RefCounted {
+class OOSkyQuadSet : public oo::Object {
  public:
   static void addQuads(OOSkyQuadDesc* quads, unsigned count,
                        std::vector<std::shared_ptr<OOSkyQuadSet>>& ioArray);
@@ -402,12 +402,17 @@ void OOSkyDrawable::addQuads(OOSkyQuadDesc* quads, unsigned count) {
 
 void OOSkyDrawable::loadStarTextures() {
   if (sStarTextures == nullptr) {
-    sStarTextures =
-        oo::leakRef(OOProbabilisticTextureManager::createWithPListName(
+    // Never destroyed: a heap std::shared_ptr that is never deleted.
+    std::shared_ptr<OOProbabilisticTextureManager> stars =
+        OOProbabilisticTextureManager::createWithPListName(
             "startextures.plist",
             OOTextureFlags::kMinFilterMipMap |
                 OOTextureFlags::kMagFilterLinear | OOTextureFlags::kAlphaMask,
-            0.0f, -0.0f));
+            0.0f, -0.0f);
+    if (stars != nullptr)
+      sStarTextures = (*new std::shared_ptr<OOProbabilisticTextureManager>(
+                           std::move(stars)))
+                          .get();
     if (sStarTextures == nullptr) {
       OORaiseException(OOLITE_EXCEPTION_DATA_NOT_FOUND,
                        "No star textures could be loaded.");
@@ -419,11 +424,16 @@ void OOSkyDrawable::loadStarTextures() {
 
 void OOSkyDrawable::loadNebulaTextures() {
   if (sNebulaTextures == nullptr) {
-    sNebulaTextures =
-        oo::leakRef(OOProbabilisticTextureManager::createWithPListName(
+    // Never destroyed: a heap std::shared_ptr that is never deleted.
+    std::shared_ptr<OOProbabilisticTextureManager> nebulae =
+        OOProbabilisticTextureManager::createWithPListName(
             "nebulatextures.plist",
             OOTextureFlags::kDefaultOptions | OOTextureFlags::kAlphaMask, 0.0f,
-            0.0f));
+            0.0f);
+    if (nebulae != nullptr)
+      sNebulaTextures = (*new std::shared_ptr<OOProbabilisticTextureManager>(
+                             std::move(nebulae)))
+                            .get();
     if (sNebulaTextures == nullptr) {
       OORaiseException(OOLITE_EXCEPTION_DATA_NOT_FOUND,
                        "No nebula textures could be loaded.");

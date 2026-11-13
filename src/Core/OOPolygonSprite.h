@@ -64,7 +64,7 @@ SOFTWARE.
         their beacon drawables by it, as std::shared_ptr<OOHUDBeaconIcon>, and
    the HUD draws them.
 */
-class OOHUDBeaconIcon : public oo::RefCounted {
+class OOHUDBeaconIcon : public oo::Object {
  public:
   virtual void drawHUDBeaconIconAt(
       NSPoint where, NSSize size, GLfloat alpha,

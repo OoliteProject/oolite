@@ -53,7 +53,7 @@ class StationEntity;
 class OOScript;
 class OOCommodityMarket;
 
-class OOCommodities : public oo::RefCounted {
+class OOCommodities : public oo::Object {
  public:
   OOCommodities();  // reads trade-goods.plist
 

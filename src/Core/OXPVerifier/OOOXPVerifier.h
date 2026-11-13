@@ -78,7 +78,7 @@ struct OOOXPVerifierTestAccess;  // tests only
    registration order (they were a set). A stage is kept as the C++ stage itself
    (std::shared_ptr<::OOOXPVerifierStage>).
 */
-class OOOXPVerifier : public oo::RefCounted {
+class OOOXPVerifier : public oo::Object {
  public:
   /*	Look for command-line arguments requesting OXP verification. If any are
           found, run the verification and return true. Otherwise, return false.

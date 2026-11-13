@@ -33,9 +33,9 @@ SOFTWARE.
 constexpr uint8_t kNoSlot = UINT8_MAX;
 
 using PoolElement = struct OOSoundSourcePoolElement {
-  OOSoundSource* source;  // one retain, or null
-  OOTimeAbsolute expiryTime;
-  float priority;
+  std::shared_ptr<OOSoundSource> source;  // or null
+  OOTimeAbsolute expiryTime = 0;
+  float priority = 0;
 };
 
 std::shared_ptr<OOSoundSourcePool> OOSoundSourcePool::poolWithCount(
@@ -59,22 +59,13 @@ bool OOSoundSourcePool::initWithCount(uint8_t count, OOTimeDelta minRepeat) {
     _minRepeat = minRepeat;
 
     // Create source pool
-    _sources = static_cast<PoolElement*>(calloc(sizeof(PoolElement), count));
-    if (_sources == nullptr) {
-      return false;
-    }
+    _sources = std::make_unique<PoolElement[]>(count);
   }
   return true;
 }
 
-OOSoundSourcePool::~OOSoundSourcePool() {
-  uint8_t i;
-
-  for (i = 0; i != _count; i++) {
-    oo::release(_sources[i].source);
-  }
-  free(_sources);
-}
+OOSoundSourcePool::~OOSoundSourcePool() =
+    default;  // the sources go with _sources
 
 /*	The sound for a key is OOSoundWithCustomSoundKey() (Universe.h) and the
    pool makes its sources (its test stands in for both).
@@ -111,8 +102,7 @@ void OOSoundSourcePool::playSoundWithKey(const std::string& key, float priority,
   if (element->source != nullptr)
     element->source->stop();
   else {
-    element->source = new ::OOSoundSource();
-    if (element->source == nullptr) return;
+    element->source = oo::makeShared<::OOSoundSource>();
   }
   if (slot == _reserved)
     _reserved = kNoSlot;  // _reserved has finished playing!

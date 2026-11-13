@@ -124,7 +124,7 @@ void FireAIDeferredCall(AI* ai, std::string_view selectorName,
 #include "oofnd/Defaults.hpp"
 #endif
 
-class OOPreservedAIStateMachine : public oo::RefCounted {
+class OOPreservedAIStateMachine : public oo::Object {
  public:
   OOPreservedAIStateMachine(const oo::PList& stateMachine,
                             const std::string& name,

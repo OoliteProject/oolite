@@ -64,7 +64,7 @@ MA 02110-1301, USA.
 */
 class OOAsyncCacheWriter;
 
-class OOCacheManager : public oo::RefCounted {
+class OOCacheManager : public oo::Object {
  public:
   static OOCacheManager*
   sharedCache();  // the one instance, made on first use and never released

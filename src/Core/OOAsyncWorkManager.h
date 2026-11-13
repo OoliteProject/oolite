@@ -47,7 +47,7 @@ static_assert(static_cast<std::int32_t>(OOAsyncWorkPriority::kHigh) == 2);
    completeAsyncTask(). The manager retains a task while it is queued or
    pending.
 */
-class OOAsyncWorkTask : public oo::RefCounted {
+class OOAsyncWorkTask : public oo::Object {
  public:
   // Called on a work thread. There may be multiple work threads.
   virtual void performAsyncTask() = 0;
@@ -66,7 +66,7 @@ class OOAsyncWorkTask : public oo::RefCounted {
 
 /*	The concrete managers are private to OOAsyncWorkManager.cpp.
  */
-class OOAsyncWorkManager : public oo::RefCounted {
+class OOAsyncWorkManager : public oo::Object {
  public:
   // The one manager, made on first use and never destroyed (borrowed).
   static OOAsyncWorkManager* sharedAsyncWorkManager();

@@ -900,9 +900,13 @@ static void InitTrumbleSounds() {
     sTrumbleSoundSource =
         (*new std::shared_ptr<OOSoundSource>(oo::makeShared<OOSoundSource>()))
             .get();
-    sTrumbleIdleSound = oo::retain(OOSoundWithCustomSoundKey("[trumble-idle]"));
-    sTrumbleSqealSound =
-        oo::retain(OOSoundWithCustomSoundKey("[trumble-squeal]"));
+    // Never released: heap std::shared_ptrs that are never deleted.
+    sTrumbleIdleSound = (*new std::shared_ptr<OOSound>(oo::share(
+                             OOSoundWithCustomSoundKey("[trumble-idle]"))))
+                            .get();
+    sTrumbleSqealSound = (*new std::shared_ptr<OOSound>(oo::share(
+                              OOSoundWithCustomSoundKey("[trumble-squeal]"))))
+                             .get();
   }
 }
 

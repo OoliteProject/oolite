@@ -310,7 +310,11 @@ OOEmptyProbabilitySet* sOOEmptyProbabilitySetSingleton =
 
 OOEmptyProbabilitySet* OOEmptyProbabilitySet::singleton() {
   if (sOOEmptyProbabilitySetSingleton == nullptr) {
-    sOOEmptyProbabilitySetSingleton = new OOEmptyProbabilitySet();
+    // Never destroyed: a heap std::shared_ptr that is never deleted.
+    sOOEmptyProbabilitySetSingleton =
+        (*new std::shared_ptr<OOEmptyProbabilitySet>(
+             oo::makeShared<OOEmptyProbabilitySet>()))
+            .get();
   }
 
   return sOOEmptyProbabilitySetSingleton;

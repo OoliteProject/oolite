@@ -54,7 +54,7 @@ static constexpr const char* kOOLogSoundInitError =
 static constexpr const char* kOOLogSoundLoadingSuccess = "sound.load.success";
 static constexpr const char* kOOLogSoundLoadingError = "sound.load.error";
 
-class OOOpenALController : public oo::RefCounted {
+class OOOpenALController : public oo::Object {
  public:
   /*	The shared controller, made on first use; borrowed (it is never
      released). Null when init() refused it, and then the next call makes and

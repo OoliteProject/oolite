@@ -77,7 +77,7 @@ constexpr std::string_view kOOTextureSpecifierFlagValueInternalKey =
         so that they can be notified of graphics resets. This also holds raw
         pointers to avoid retaining the textures.
 
-        sRecentTextures tracks up to kRecentTexturesCount textures which
+        RecentTextures() tracks up to kRecentTexturesCount textures which
         have been used recently, and retains them.
 
         This means that the number of live texture objects will never fall below
@@ -87,9 +87,9 @@ constexpr std::string_view kOOTextureSpecifierFlagValueInternalKey =
         sLiveTextureCache, but only a most-recently-fetched subset will be kept
         around by the cache when the number drops.
 
-        Note the textures in sRecentTextures are a superset of the textures in
+        Note the textures in RecentTextures() are a superset of the textures in
         sLiveTextureCache, and the textures in sLiveTextureCache are a superset
-        of sRecentTextures.
+        of RecentTextures().
 */
 constexpr unsigned kRecentTexturesCount = 50;
 
@@ -100,8 +100,13 @@ namespace {
 // boxed pointers. They hold the C++ textures.
 std::unordered_map<std::string, OOTexture*>* sLiveTextureCache;
 std::unordered_set<OOTexture*>* sAllLiveTextures;
-// The textures, retained, as Object nodes (OOTextureObjectNode()).
-OOCache* sRecentTextures;
+// The textures, retained, as Object nodes (OOTextureObjectNode()); null until
+// the first texture is cached. The holder is never deleted, so exit(0) frees no
+// texture after the GL context and the logger have gone.
+std::shared_ptr<OOCache>& RecentTextures() {
+  static std::shared_ptr<OOCache>& recent = *new std::shared_ptr<OOCache>();
+  return recent;
+}
 
 }  // namespace
 
@@ -311,17 +316,14 @@ void OOTexture::clearCache() {
   // oo::AutoreleaseScope, as upstream's pool did; the only caller,
   // Universe::reinitAndShowDemo(), runs in the frame loop's or the start-up's
   // scope.
-  oo::autorelease(sRecentTextures);
-  sRecentTextures = nullptr;
+  oo::autorelease(std::move(RecentTextures()));
   CLEAR_TRACE_CONTEXT();
 }
 
 void OOTexture::rebindAllTextures() {
   // Keeping around unused, cached textures is unhelpful at this point.
-  OOCache* recentTextures =
-      sRecentTextures;  // DESTROY(): cleared before the release
-  sRecentTextures = nullptr;
-  oo::release(recentTextures);
+  // DESTROY(): cleared before the release
+  const std::shared_ptr<OOCache> recentTextures = std::move(RecentTextures());
 
   if (sAllLiveTextures == nullptr) return;
   // A copy: the set is unordered (as the Foundation set was) and must not
@@ -336,8 +338,8 @@ void OOTexture::rebindAllTextures() {
 #ifdef OO_DEBUG_MONITOR_ENABLED
 std::vector<std::shared_ptr<OOTexture>> OOTexture::cachedTexturesByAge() {
   std::vector<std::shared_ptr<OOTexture>> result;
-  for (const oo::PList& texture : (sRecentTextures != nullptr)
-                                      ? sRecentTextures->pListsByAge()
+  for (const oo::PList& texture : (RecentTextures() != nullptr)
+                                      ? RecentTextures()->pListsByAge()
                                       : std::vector<oo::PList>()) {
     result.emplace_back(oo::share(OOTextureInObjectNode(texture)));
   }
@@ -433,15 +435,15 @@ void OOTexture::addToCaches() {
   CLEAR_TRACE_CONTEXT();
 
   // Add self to recent textures cache.
-  if (EXPECT_NOT(sRecentTextures == nullptr)) {
-    sRecentTextures = oo::leakRef(OOCache::cacheWithPList(oo::PList()));
-    sRecentTextures->setName(std::string("recent textures"));
-    sRecentTextures->setAutoPrune(true);
-    sRecentTextures->setPruneThreshold(kRecentTexturesCount);
+  if (EXPECT_NOT(RecentTextures() == nullptr)) {
+    RecentTextures() = OOCache::cacheWithPList(oo::PList());
+    RecentTextures()->setName(std::string("recent textures"));
+    RecentTextures()->setAutoPrune(true);
+    RecentTextures()->setPruneThreshold(kRecentTexturesCount);
   }
 
   SET_TRACE_CONTEXT("adding to recent textures cache");
-  sRecentTextures->setPList(OOTextureObjectNode(this), *cacheKey);
+  RecentTextures()->setPList(OOTextureObjectNode(this), *cacheKey);
   CLEAR_TRACE_CONTEXT();
 #endif
 }
@@ -455,8 +457,8 @@ void OOTexture::removeFromCaches() {
   // Called from a texture's destructor: the cached texture is compared by
   // address.
   OOTexture* cached = OOTextureInObjectNode(
-      (sRecentTextures != nullptr) ? sRecentTextures->pListForKey(*cacheKey)
-                                   : oo::PList());
+      (RecentTextures() != nullptr) ? RecentTextures()->pListForKey(*cacheKey)
+                                    : oo::PList());
   if (EXPECT_NOT(cached != nullptr && cached == this)) {
     /* Experimental for now: I think the recent crash problems may
      * be because if the last reference to a texture is in
@@ -475,7 +477,7 @@ void OOTexture::removeFromCaches() {
               cacheKey->c_str());  // miscount in autorelease
     // The following line is needed in order to avoid crashes when there's a
     // 'texture retain count error'. Please do not delete. -- Kaks 20091221
-    sRecentTextures->removePListForKey(
+    RecentTextures()->removePListForKey(
         *cacheKey);  // make sure there's no reference left inside
                      // sRecentTexture ( was a show stopper for 1.73)
   }

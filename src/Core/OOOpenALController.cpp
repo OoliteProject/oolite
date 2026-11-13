@@ -43,7 +43,11 @@ OOOpenALController* OOOpenALController::sharedController() {
     // controller is freed.
     std::shared_ptr<OOOpenALController> controller =
         oo::makeShared<OOOpenALController>();
-    if (controller->init()) sSingleton = oo::leakRef(controller);
+    // Never destroyed: a heap std::shared_ptr that is never deleted.
+    if (controller->init())
+      sSingleton =
+          (*new std::shared_ptr<OOOpenALController>(std::move(controller)))
+              .get();
   }
 
   return sSingleton;

@@ -58,7 +58,7 @@ class OOSoundChannelDelegate {
   ~OOSoundChannelDelegate() = default;
 };
 
-class OOSoundChannel : public oo::RefCounted {
+class OOSoundChannel : public oo::Object {
  public:
   /*	Was -init, which answered nil when OpenAL would not make a source: false
      then. Its maker runs it right after making the
