@@ -1,0 +1,13 @@
+# OXPs that the smoke test (launch_snapshot.py) loads, from the Oolite add-ons
+# catalogue (https://addons.oolite.space/api/1.0/overview). Chosen as popular,
+# script-heavy OXPs with no dependencies. fetch_oxps.py downloads and caches
+# them; a download that fails is skipped with a warning (the catalogue's
+# files are on wiki.alioth.net, which is sometimes down), but a file whose
+# checksum does not match fails the test.
+#
+# sha256                                                           identifier                           url
+5c07406a7bdfc5d4040afed9b975ef8b3c04931cbedc2c470148e16629aa5877 oolite.oxp.Svengali.Library          https://wiki.alioth.net/img_auth.php/8/82/Library_1.10.5.oxz
+d03a403f8cb9989d2c1d0f4f66e769364de6f1e9629171efdc626a7c2e32fd7b oolite.oxp.phkb.BulletinBoardSystem https://wiki.alioth.net/img_auth.php/8/8a/BulletinBoardSystem_2.11.oxz
+4984f03abafc3be8821812c0f2a6afa62bd674505f028573417f8399fea60a1a oolite.oxp.phkb.EmailSystem         https://wiki.alioth.net/img_auth.php/f/f1/EmailSystem.oxz
+04ca1db5ca06fcdcca1314f30d4a4871c67f59a1081fa5328b570b0f7da63f2a oolite.oxp.Norby.HUDSelector        https://wiki.alioth.net/img_auth.php/7/75/HUDSelector-1.28.oxz
+f4f6e84faaa34e5de0d55ada0e2f7c104964d1d75525766742751a0ee933fc87 oolite.oxp.Norby.Telescope          https://wiki.alioth.net/img_auth.php/7/77/Telescope_1.15.oxz

@@ -111,13 +111,7 @@ Next run the following to build the GNUstep libraries needed by Oolite:
 ShellScripts/Linux/build_gnustep.sh
 ```
 
-Run the following to install the Mozilla JavaScript library needed by Oolite:
-
-```bash
-ShellScripts/Linux/install_mozilla_js.sh
-```
-
-By default, the above two commands will install to $HOME/.local, but you can supply an argument system or build
+By default, the above command will install to $HOME/.local, but you can supply an argument system or build
 to specify /usr/local or the project build folder respectively. When installing to /usr/local, sudo is used by 
 default, but you can supply a further argument to specify an alternative like doas.
 
@@ -129,6 +123,9 @@ meson setup, compile, configure and install flags. Type the following for help:
 ```bash
 ./mk.sh help
 ```
+
+Oolite's JavaScript engine, [QuickJS-ng](https://github.com/quickjs-ng/quickjs), is downloaded, patched and built as a
+Meson subproject (`subprojects/quickjs-ng.wrap`) the first time the build is set up, so that needs network access.
 
 Oolite has various build types:
 
@@ -157,8 +154,10 @@ require this step:
 ./mk.sh clean dev
 ```
 
-You can run a test of the development build that launches the game and takes a snapshot from your Bash or MSYS2 prompt 
-as follows:
+You can test the development build from your Bash or MSYS2 prompt as follows. A smoke test loads the standard starting
+game with a few OXPs, launches, fires a missile and docks with the docking computer, taking snapshots; JavaScript tests
+then run inside the game, and a probe flies through hyperspace and compares what scripts see with stored output. Any
+script error, or JavaScript objects leaked at shutdown, fails the test. See [tests/README.md](tests/README.md):
 
 ```bash
 ./mk.sh test dev
@@ -216,13 +215,6 @@ GNUstep, with the same SDL front end as Linux and Windows. It needs Xcode (or th
 
 ```bash
 ShellScripts/macOS/install_packages.sh
-```
-
-Next, build the Mozilla JavaScript library. There is no prebuilt macOS version, so this compiles it from source into
-`build/mozilla_js`:
-
-```bash
-ShellScripts/macOS/build_mozilla_js.sh
 ```
 
 Then build with `./mk.sh` as described below. The result is a self-contained application bundle, for example

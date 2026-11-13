@@ -1,0 +1,1080 @@
+[oojs.probe]: event startUp
+[oojs.probe]: worldScripts: Oolite Equipment Control,Oolite Ship Library,oojs_probe,oolite-cloaking-device,oolite-constrictor-hunt,oolite-contracts-cargo,oolite-contracts-helpers,oolite-contracts-parcels,oolite-contracts-passengers,oolite-libPriorityAI,oolite-nova,oolite-populator,oolite-primable-equipment-register,oolite-registership,oolite-thargoid-plans,oolite-trumbles,oolite-tutorial
+[oojs.probe]: event startUpComplete
+[oojs.probe]: player.ship keys: 229
+[oojs.probe]: player.ship.AI = "oolite-player-AI.plist"
+[oojs.probe]: player.ship.AIFoundTarget = null
+[oojs.probe]: player.ship.AIPrimaryAggressor = null
+[oojs.probe]: player.ship.AIScript = null
+[oojs.probe]: player.ship.AIScriptWakeTime = 0
+[oojs.probe]: player.ship.AIState = "GLOBAL"
+[oojs.probe]: player.ship.accuracy = 0
+[oojs.probe]: player.ship.activeMissile = 0
+[oojs.probe]: player.ship.aftShield = 128
+[oojs.probe]: player.ship.aftShieldRechargeRate = 2
+[oojs.probe]: player.ship.aftWeapon = {calculatedPrice:0, canBeDamaged:true, canCarryMultiple:false, damageProbability:1, defaultActivateKey:null, defaultModeKey:null, description:"Remove laser weapon from selected mounting.", displayColor:null, effectiveTechLevel:3, equipmentKey:"EQ_WEAPON_NONE", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:600, isAvailableToAll:true, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:false, isPortableBetweenShips:false, isVisible:true, name:"Remove Laser", price:0, provides:[], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:false, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{}, scriptName:"", techLevel:3, weaponInfo:{damage:"0.0", energy:"0.0", range:"32000", recharge_rate:"100.0", shot_temperature:"0.0", threat_assessment:"-1.0"}}
+[oojs.probe]: player.ship.alertCondition = 0
+[oojs.probe]: player.ship.autoAI = true
+[oojs.probe]: player.ship.autoWeapons = true
+[oojs.probe]: player.ship.beaconCode = null
+[oojs.probe]: player.ship.beaconLabel = null
+[oojs.probe]: player.ship.boundingBox = Vector3D130,34.9649,81.3726
+[oojs.probe]: player.ship.bounty = 0
+[oojs.probe]: player.ship.cargoList = []
+[oojs.probe]: player.ship.cargoSpaceAvailable = 20
+[oojs.probe]: player.ship.cargoSpaceCapacity = 20
+[oojs.probe]: player.ship.cargoSpaceUsed = 0
+[oojs.probe]: player.ship.chartHighlightMode = "OOLRC_MODE_SUNCOLOR"
+[oojs.probe]: player.ship.cloakAutomatic = true
+[oojs.probe]: player.ship.collisionExceptions = []
+[oojs.probe]: player.ship.collisionRadius = 72.697342
+[oojs.probe]: player.ship.commodity = null
+[oojs.probe]: player.ship.commodityAmount = 0
+[oojs.probe]: player.ship.compassMode = "COMPASS_MODE_BASIC"
+[oojs.probe]: player.ship.compassTarget = null
+[oojs.probe]: player.ship.compassType = "OO_COMPASSTYPE_BASIC"
+[oojs.probe]: player.ship.contracts = []
+[oojs.probe]: player.ship.crew = null
+[oojs.probe]: player.ship.crosshairs = null
+[oojs.probe]: player.ship.cruiseSpeed = 280
+[oojs.probe]: player.ship.currentWeapon = {calculatedPrice:4000, canBeDamaged:true, canCarryMultiple:false, damageProbability:1, defaultActivateKey:null, defaultModeKey:null, description:"High powered pulse laser, a basic defense configuration.", displayColor:null, effectiveTechLevel:3, equipmentKey:"EQ_WEAPON_PULSE_LASER", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:4600, isAvailableToAll:true, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:false, isPortableBetweenShips:false, isVisible:true, name:"Pulse Laser", price:4000, provides:[], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:false, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{}, scriptName:"", techLevel:3, weaponInfo:{color:"redColor", damage:"15.0", energy:"0.8", range:"12500", recharge_rate:"0.5", shot_temperature:"7.0", threat_assessment:"0.0"}}
+[oojs.probe]: player.ship.cursorCoordinates = Vector3D20,173,0
+[oojs.probe]: player.ship.cursorCoordinatesInLY = Vector3D8,34.6,0
+[oojs.probe]: player.ship.dataKey = "cobra3-player"
+[oojs.probe]: player.ship.defenseTargets = []
+[oojs.probe]: player.ship.desiredRange = 0
+[oojs.probe]: player.ship.desiredSpeed = 0
+[oojs.probe]: player.ship.destination = Vector3D0,0,0
+[oojs.probe]: player.ship.destinationSystem = 0
+[oojs.probe]: player.ship.displayName = "Cobra Mark III"
+[oojs.probe]: player.ship.distanceTravelled = 0
+[oojs.probe]: player.ship.docked = true
+[oojs.probe]: player.ship.dockedStation = <coriolis-station>
+[oojs.probe]: player.ship.dockingInstructions = null
+[oojs.probe]: player.ship.energy = 256
+[oojs.probe]: player.ship.energyRechargeRate = 4
+[oojs.probe]: player.ship.entityPersonality = 27313
+[oojs.probe]: player.ship.equipment = []
+[oojs.probe]: player.ship.escortGroup = {count:1, leader:<cobra3-player>, name:"escort group", ships:[<cobra3-player>]}
+[oojs.probe]: player.ship.escorts = []
+[oojs.probe]: player.ship.exhaustEmissiveColor = [0.7, 0.9, 1, 0.9]
+[oojs.probe]: player.ship.exhausts = [<entity>, <entity>]
+[oojs.probe]: player.ship.extraCargo = 15
+[oojs.probe]: player.ship.fastEquipmentA = "EQ_CLOAKING_DEVICE"
+[oojs.probe]: player.ship.fastEquipmentB = "EQ_ENERGY_BOMB"
+[oojs.probe]: player.ship.flashers = []
+[oojs.probe]: player.ship.forwardShield = 128
+[oojs.probe]: player.ship.forwardShieldRechargeRate = 2
+[oojs.probe]: player.ship.forwardWeapon = {calculatedPrice:4000, canBeDamaged:true, canCarryMultiple:false, damageProbability:1, defaultActivateKey:null, defaultModeKey:null, description:"High powered pulse laser, a basic defense configuration.", displayColor:null, effectiveTechLevel:3, equipmentKey:"EQ_WEAPON_PULSE_LASER", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:4600, isAvailableToAll:true, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:false, isPortableBetweenShips:false, isVisible:true, name:"Pulse Laser", price:4000, provides:[], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:false, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{}, scriptName:"", techLevel:3, weaponInfo:{color:"redColor", damage:"15.0", energy:"0.8", range:"12500", recharge_rate:"0.5", shot_temperature:"7.0", threat_assessment:"0.0"}}
+[oojs.probe]: player.ship.fuel = 7
+[oojs.probe]: player.ship.fuelChargeRate = 1
+[oojs.probe]: player.ship.fuelLeakRate = 0
+[oojs.probe]: player.ship.galacticHyperspaceBehaviour = "BEHAVIOUR_STANDARD"
+[oojs.probe]: player.ship.galacticHyperspaceFixedCoords = Vector3D96,96,0
+[oojs.probe]: player.ship.galacticHyperspaceFixedCoordsInLY = Vector3D38.4,19.2,0
+[oojs.probe]: player.ship.galaxyCoordinates = Vector3D20,173,0
+[oojs.probe]: player.ship.galaxyCoordinatesInLY = Vector3D8,34.6,0
+[oojs.probe]: player.ship.group = null
+[oojs.probe]: player.ship.hasHostileTarget = false
+[oojs.probe]: player.ship.hasHyperspaceMotor = true
+[oojs.probe]: player.ship.hasSuspendedAI = false
+[oojs.probe]: player.ship.heading = Vector3D0,0,1
+[oojs.probe]: player.ship.heatInsulation = 1
+[oojs.probe]: player.ship.homeSystem = 0
+[oojs.probe]: player.ship.hud = "hud.plist"
+[oojs.probe]: player.ship.hudAllowsBigGui = false
+[oojs.probe]: player.ship.hudHidden = false
+[oojs.probe]: player.ship.hyperspaceSpinTime = 15
+[oojs.probe]: player.ship.infoSystem = 7
+[oojs.probe]: player.ship.injectorBurnRate = 0.25
+[oojs.probe]: player.ship.injectorSpeedFactor = 7
+[oojs.probe]: player.ship.injectorsEngaged = false
+[oojs.probe]: player.ship.isBeacon = false
+[oojs.probe]: player.ship.isBoulder = false
+[oojs.probe]: player.ship.isCargo = false
+[oojs.probe]: player.ship.isCloaked = false
+[oojs.probe]: player.ship.isDerelict = false
+[oojs.probe]: player.ship.isDock = false
+[oojs.probe]: player.ship.isFleeing = false
+[oojs.probe]: player.ship.isFrangible = false
+[oojs.probe]: player.ship.isInSpace = false
+[oojs.probe]: player.ship.isJamming = false
+[oojs.probe]: player.ship.isMinable = false
+[oojs.probe]: player.ship.isMine = false
+[oojs.probe]: player.ship.isMissile = false
+[oojs.probe]: player.ship.isPiloted = true
+[oojs.probe]: player.ship.isPirate = false
+[oojs.probe]: player.ship.isPirateVictim = true
+[oojs.probe]: player.ship.isPlanet = false
+[oojs.probe]: player.ship.isPlayer = true
+[oojs.probe]: player.ship.isPolice = false
+[oojs.probe]: player.ship.isRock = false
+[oojs.probe]: player.ship.isShip = true
+[oojs.probe]: player.ship.isStation = false
+[oojs.probe]: player.ship.isSubEntity = false
+[oojs.probe]: player.ship.isSun = false
+[oojs.probe]: player.ship.isSunlit = true
+[oojs.probe]: player.ship.isThargoid = false
+[oojs.probe]: player.ship.isTrader = false
+[oojs.probe]: player.ship.isTurret = false
+[oojs.probe]: player.ship.isValid = true
+[oojs.probe]: player.ship.isVisible = true
+[oojs.probe]: player.ship.isVisualEffect = false
+[oojs.probe]: player.ship.isWeapon = false
+[oojs.probe]: player.ship.isWormhole = false
+[oojs.probe]: player.ship.laserHeatLevel = 0
+[oojs.probe]: player.ship.laserHeatLevelAft = 0
+[oojs.probe]: player.ship.laserHeatLevelForward = 0
+[oojs.probe]: player.ship.laserHeatLevelPort = 0
+[oojs.probe]: player.ship.laserHeatLevelStarboard = 0
+[oojs.probe]: player.ship.lightsActive = true
+[oojs.probe]: player.ship.manifest = {list:[]}
+[oojs.probe]: player.ship.markedForFines = false
+[oojs.probe]: player.ship.mass = 214737.6875
+[oojs.probe]: player.ship.massLockable = true
+[oojs.probe]: player.ship.maxAftShield = 128
+[oojs.probe]: player.ship.maxEnergy = 256
+[oojs.probe]: player.ship.maxEscorts = 0
+[oojs.probe]: player.ship.maxForwardShield = 128
+[oojs.probe]: player.ship.maxPitch = 1
+[oojs.probe]: player.ship.maxRoll = 2
+[oojs.probe]: player.ship.maxSpeed = 350
+[oojs.probe]: player.ship.maxThrust = 32
+[oojs.probe]: player.ship.maxYaw = 1
+[oojs.probe]: player.ship.messageGuiTextColor = [1, 1, 0, 1]
+[oojs.probe]: player.ship.messageGuiTextCommsColor = [0, 1, 0, 1]
+[oojs.probe]: player.ship.missileCapacity = 4
+[oojs.probe]: player.ship.missileLoadTime = 0
+[oojs.probe]: player.ship.missiles = [{calculatedPrice:300, canBeDamaged:false, canCarryMultiple:true, damageProbability:0, defaultActivateKey:null, defaultModeKey:null, description:"Faulcon de Lacy HM3 homing missile, fast and accurate when used in conjunction with standard targeting scanners.", displayColor:null, effectiveTechLevel:1, equipmentKey:"EQ_MISSILE", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:900, isAvailableToAll:true, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:true, isPortableBetweenShips:false, isVisible:true, name:"Missile", price:300, provides:[array 0], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:true, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{object}, scriptName:"", techLevel:1, weaponInfo:{object}}, {calculatedPrice:300, canBeDamaged:false, canCarryMultiple:true, damageProbability:0, defaultActivateKey:null, defaultModeKey:null, description:"Faulcon de Lacy HM3 homing missile, fast and accurate when used in conjunction with standard targeting scanners.", displayColor:null, effectiveTechLevel:1, equipmentKey:"EQ_MISSILE", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:900, isAvailableToAll:true, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:true, isPortableBetweenShips:false, isVisible:true, name:"Missile", price:300, provides:[array 0], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:true, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{object}, scriptName:"", techLevel:1, weaponInfo:{object}}, {calculatedPrice:300, canBeDamaged:false, canCarryMultiple:true, damageProbability:0, defaultActivateKey:null, defaultModeKey:null, description:"Faulcon de Lacy HM3 homing missile, fast and accurate when used in conjunction with standard targeting scanners.", displayColor:null, effectiveTechLevel:1, equipmentKey:"EQ_MISSILE", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:900, isAvailableToAll:true, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:true, isPortableBetweenShips:false, isVisible:true, name:"Missile", price:300, provides:[array 0], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:true, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{object}, scriptName:"", techLevel:1, weaponInfo:{object}}]
+[oojs.probe]: player.ship.missilesOnline = true
+[oojs.probe]: player.ship.multiFunctionDisplayList = [null, null]
+[oojs.probe]: player.ship.multiFunctionDisplays = 2
+[oojs.probe]: player.ship.name = "Cobra Mark III"
+[oojs.probe]: player.ship.nextSystem = 7
+[oojs.probe]: player.ship.orientation = Quaternion-1,0,0,0
+[oojs.probe]: player.ship.owner = null
+[oojs.probe]: player.ship.parcelCount = 0
+[oojs.probe]: player.ship.parcels = []
+[oojs.probe]: player.ship.passengerCapacity = 0
+[oojs.probe]: player.ship.passengerCount = 0
+[oojs.probe]: player.ship.passengers = []
+[oojs.probe]: player.ship.pitch = 0
+[oojs.probe]: player.ship.portWeapon = {calculatedPrice:0, canBeDamaged:true, canCarryMultiple:false, damageProbability:1, defaultActivateKey:null, defaultModeKey:null, description:"Remove laser weapon from selected mounting.", displayColor:null, effectiveTechLevel:3, equipmentKey:"EQ_WEAPON_NONE", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:600, isAvailableToAll:true, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:false, isPortableBetweenShips:false, isVisible:true, name:"Remove Laser", price:0, provides:[], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:false, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{}, scriptName:"", techLevel:3, weaponInfo:{damage:"0.0", energy:"0.0", range:"32000", recharge_rate:"100.0", shot_temperature:"0.0", threat_assessment:"-1.0"}}
+[oojs.probe]: player.ship.position = Vector3D-49474.3203,60752.1563,427652.3984
+[oojs.probe]: player.ship.potentialCollider = null
+[oojs.probe]: player.ship.previousSystem = 0
+[oojs.probe]: player.ship.price = 150000
+[oojs.probe]: player.ship.primaryRole = "player"
+[oojs.probe]: player.ship.primedEquipment = ""
+[oojs.probe]: player.ship.reactionTime = 0
+[oojs.probe]: player.ship.renovationCost = 0
+[oojs.probe]: player.ship.renovationMultiplier = 1
+[oojs.probe]: player.ship.reportAIMessages = false
+[oojs.probe]: player.ship.reticleColorTarget = [0, 1, 0, 1]
+[oojs.probe]: player.ship.reticleColorTargetSensitive = [1, 0, 0, 1]
+[oojs.probe]: player.ship.reticleColorWormhole = [0, 1, 1, 1]
+[oojs.probe]: player.ship.reticleTargetSensitive = false
+[oojs.probe]: player.ship.roleWeights = {[cobra3-player]:1, player:1}
+[oojs.probe]: player.ship.roles = ["[cobra3-player]", "player"]
+[oojs.probe]: player.ship.roll = 0
+[oojs.probe]: player.ship.routeMode = "OPTIMIZED_BY_NONE"
+[oojs.probe]: player.ship.savedCoordinates = Vector3D0,0,0
+[oojs.probe]: player.ship.scanClass = "CLASS_PLAYER"
+[oojs.probe]: player.ship.scanDescription = null
+[oojs.probe]: player.ship.scannerDisplayColor1 = null
+[oojs.probe]: player.ship.scannerDisplayColor2 = null
+[oojs.probe]: player.ship.scannerHostileDisplayColor1 = null
+[oojs.probe]: player.ship.scannerHostileDisplayColor2 = null
+[oojs.probe]: player.ship.scannerMinimalistic = false
+[oojs.probe]: player.ship.scannerNonLinear = false
+[oojs.probe]: player.ship.scannerRange = 25600
+[oojs.probe]: player.ship.scannerUltraZoom = false
+[oojs.probe]: player.ship.scoopOverride = false
+[oojs.probe]: player.ship.script = {author:"Jens Ayton", copyright:"© 2007-2013 the Oolite team.", description:"Standard script for player ship.", license:"GPL 2+ / CC-BY-NC-SA 3.0 - see LICENSE.md for details", name:"oolite-default-player-script", oolite_manifest_identifier:"org.oolite.oolite", ship:<cobra3-player>, version:"1.93.1-quickjs-poc.1"}
+[oojs.probe]: player.ship.scriptInfo = {}
+[oojs.probe]: player.ship.scriptedMisjump = false
+[oojs.probe]: player.ship.scriptedMisjumpRange = 0.5
+[oojs.probe]: player.ship.serviceLevel = 100
+[oojs.probe]: player.ship.shipClassName = "Cobra Mark III"
+[oojs.probe]: player.ship.shipUniqueName = ""
+[oojs.probe]: player.ship.spawnTime = 0
+[oojs.probe]: player.ship.specialCargo = null
+[oojs.probe]: player.ship.speed = 0
+[oojs.probe]: player.ship.starboardWeapon = {calculatedPrice:0, canBeDamaged:true, canCarryMultiple:false, damageProbability:1, defaultActivateKey:null, defaultModeKey:null, description:"Remove laser weapon from selected mounting.", displayColor:null, effectiveTechLevel:3, equipmentKey:"EQ_WEAPON_NONE", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:600, isAvailableToAll:true, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:false, isPortableBetweenShips:false, isVisible:true, name:"Remove Laser", price:0, provides:[], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:false, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{}, scriptName:"", techLevel:3, weaponInfo:{damage:"0.0", energy:"0.0", range:"32000", recharge_rate:"100.0", shot_temperature:"0.0", threat_assessment:"-1.0"}}
+[oojs.probe]: player.ship.status = "STATUS_DOCKED"
+[oojs.probe]: player.ship.subEntities = []
+[oojs.probe]: player.ship.subEntityCapacity = 0
+[oojs.probe]: player.ship.subEntityRotation = Quaternion1,0,0,0
+[oojs.probe]: player.ship.sunGlareFilter = 0.97
+[oojs.probe]: player.ship.target = null
+[oojs.probe]: player.ship.targetSystem = 7
+[oojs.probe]: player.ship.temperature = 0.234375
+[oojs.probe]: player.ship.thrust = 32
+[oojs.probe]: player.ship.thrustVector = Vector3D0,0,0
+[oojs.probe]: player.ship.torusEngaged = false
+[oojs.probe]: player.ship.trackCloseContacts = false
+[oojs.probe]: player.ship.vectorForward = Vector3D0,0,1
+[oojs.probe]: player.ship.vectorRight = Vector3D1,0,0
+[oojs.probe]: player.ship.vectorUp = Vector3D0,1,0
+[oojs.probe]: player.ship.velocity = Vector3D0,0,0
+[oojs.probe]: player.ship.viewDirection = "VIEW_GUI_DISPLAY"
+[oojs.probe]: player.ship.viewPositionAft = Vector3D0,6,-35.5
+[oojs.probe]: player.ship.viewPositionForward = Vector3D0,7.25,31
+[oojs.probe]: player.ship.viewPositionPort = Vector3D-35.5,7.5,0
+[oojs.probe]: player.ship.viewPositionStarboard = Vector3D35.5,7.5,0
+[oojs.probe]: player.ship.weaponFacings = 15
+[oojs.probe]: player.ship.weaponPositionAft = [Vector3D0,0,-33.5]
+[oojs.probe]: player.ship.weaponPositionForward = [Vector3D-0.0961,0.9367,43.4655]
+[oojs.probe]: player.ship.weaponPositionPort = [Vector3D-47.4,-2.3,0]
+[oojs.probe]: player.ship.weaponPositionStarboard = [Vector3D47.4,-2.3,0]
+[oojs.probe]: player.ship.weaponRange = 12500
+[oojs.probe]: player.ship.weaponsOnline = true
+[oojs.probe]: player.ship.withinStationAegis = false
+[oojs.probe]: player.ship.yaw = 0
+[oojs.probe]: station keys: 184
+[oojs.probe]: station.AI = "nullAI.plist"
+[oojs.probe]: station.AIFoundTarget = null
+[oojs.probe]: station.AIPrimaryAggressor = null
+[oojs.probe]: station.AIScript = {aiStarted:function, author:"Giles Williams, Jens Ayton and contributors", license:"GPL 2+ / CC-BY-NC-SA 3.0 - see LICENSE.md for details", name:"Oolite Main Station AI", oolite_manifest_identifier:"org.oolite.oolite", ship:<coriolis-station>, version:"1.93.1-quickjs-poc.1"}
+[oojs.probe]: station.AIScriptWakeTime = 0
+[oojs.probe]: station.AIState = "GLOBAL"
+[oojs.probe]: station.accuracy = -3.209381
+[oojs.probe]: station.aftWeapon = {calculatedPrice:0, canBeDamaged:true, canCarryMultiple:false, damageProbability:1, defaultActivateKey:null, defaultModeKey:null, description:"Remove laser weapon from selected mounting.", displayColor:null, effectiveTechLevel:3, equipmentKey:"EQ_WEAPON_NONE", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:600, isAvailableToAll:true, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:false, isPortableBetweenShips:false, isVisible:true, name:"Remove Laser", price:0, provides:[], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:false, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{}, scriptName:"", techLevel:3, weaponInfo:{damage:"0.0", energy:"0.0", range:"32000", recharge_rate:"100.0", shot_temperature:"0.0", threat_assessment:"-1.0"}}
+[oojs.probe]: station.alertCondition = 1
+[oojs.probe]: station.allegiance = "galcop"
+[oojs.probe]: station.allowsAutoDocking = true
+[oojs.probe]: station.allowsFastDocking = true
+[oojs.probe]: station.autoAI = true
+[oojs.probe]: station.autoWeapons = false
+[oojs.probe]: station.beaconCode = null
+[oojs.probe]: station.beaconLabel = null
+[oojs.probe]: station.boundingBox = Vector3D1000,1000,1034.298
+[oojs.probe]: station.bounty = 0
+[oojs.probe]: station.breakPattern = true
+[oojs.probe]: station.cargoList = []
+[oojs.probe]: station.cargoSpaceAvailable = 0
+[oojs.probe]: station.cargoSpaceCapacity = 0
+[oojs.probe]: station.cargoSpaceUsed = 0
+[oojs.probe]: station.cloakAutomatic = true
+[oojs.probe]: station.collisionExceptions = []
+[oojs.probe]: station.collisionRadius = 779.370239
+[oojs.probe]: station.commodity = null
+[oojs.probe]: station.commodityAmount = 0
+[oojs.probe]: station.contracts = []
+[oojs.probe]: station.crew = [{description:"a human colonial from Lave", homeSystem:7, insuranceCredits:125, legalStatus:0, name:"No Dourson", species:"human colonial"}]
+[oojs.probe]: station.cruiseSpeed = 0
+[oojs.probe]: station.currentWeapon = {calculatedPrice:0, canBeDamaged:true, canCarryMultiple:false, damageProbability:1, defaultActivateKey:null, defaultModeKey:null, description:"Remove laser weapon from selected mounting.", displayColor:null, effectiveTechLevel:3, equipmentKey:"EQ_WEAPON_NONE", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:600, isAvailableToAll:true, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:false, isPortableBetweenShips:false, isVisible:true, name:"Remove Laser", price:0, provides:[], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:false, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{}, scriptName:"", techLevel:3, weaponInfo:{damage:"0.0", energy:"0.0", range:"32000", recharge_rate:"100.0", shot_temperature:"0.0", threat_assessment:"-1.0"}}
+[oojs.probe]: station.dataKey = "coriolis-station"
+[oojs.probe]: station.defenseTargets = []
+[oojs.probe]: station.desiredRange = 0
+[oojs.probe]: station.desiredSpeed = 0
+[oojs.probe]: station.destination = Vector3D0,0,0
+[oojs.probe]: station.destinationSystem = 7
+[oojs.probe]: station.displayName = "Coriolis Station"
+[oojs.probe]: station.distanceTravelled = 0
+[oojs.probe]: station.dockedContractors = 3
+[oojs.probe]: station.dockedDefenders = 3
+[oojs.probe]: station.dockedPolice = 8
+[oojs.probe]: station.dockingInstructions = null
+[oojs.probe]: station.energy = 25000
+[oojs.probe]: station.energyRechargeRate = 100
+[oojs.probe]: station.entityPersonality = 12651
+[oojs.probe]: station.equipment = [{calculatedPrice:6000, canBeDamaged:true, canCarryMultiple:false, damageProbability:1, defaultActivateKey:null, defaultModeKey:null, description:"High power disruptor circuits capable of remotely detonating inbound missiles.", displayColor:null, effectiveTechLevel:2, equipmentKey:"EQ_ECM", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:6600, isAvailableToAll:false, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:false, isPortableBetweenShips:false, isVisible:true, name:"E.C.M. System", price:6000, provides:[array 0], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:false, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{object}, scriptName:"", techLevel:2, weaponInfo:{object}}]
+[oojs.probe]: station.equipmentPriceFactor = 1
+[oojs.probe]: station.equivalentTechLevel = 4
+[oojs.probe]: station.escortGroup = {count:1, leader:<coriolis-station>, name:"escort group", ships:[<coriolis-station>]}
+[oojs.probe]: station.escorts = []
+[oojs.probe]: station.exhaustEmissiveColor = [0.7, 0.9, 1, 0.9]
+[oojs.probe]: station.exhausts = []
+[oojs.probe]: station.extraCargo = 15
+[oojs.probe]: station.flashers = [<entity>, <entity>, <entity>, <entity>, <entity>, <entity>, <entity>, <entity>, <entity>, <entity>, <entity>, <entity>, <entity>, <entity>]
+[oojs.probe]: station.forwardWeapon = {calculatedPrice:0, canBeDamaged:true, canCarryMultiple:false, damageProbability:1, defaultActivateKey:null, defaultModeKey:null, description:"Remove laser weapon from selected mounting.", displayColor:null, effectiveTechLevel:3, equipmentKey:"EQ_WEAPON_NONE", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:600, isAvailableToAll:true, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:false, isPortableBetweenShips:false, isVisible:true, name:"Remove Laser", price:0, provides:[], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:false, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{}, scriptName:"", techLevel:3, weaponInfo:{damage:"0.0", energy:"0.0", range:"32000", recharge_rate:"100.0", shot_temperature:"0.0", threat_assessment:"-1.0"}}
+[oojs.probe]: station.fuel = 0
+[oojs.probe]: station.fuelChargeRate = 3
+[oojs.probe]: station.group = {count:2, leader:<coriolis-station>, name:"station group", ships:[<coriolis-station>, <viper>]}
+[oojs.probe]: station.hasHostileTarget = false
+[oojs.probe]: station.hasHyperspaceMotor = true
+[oojs.probe]: station.hasNPCTraffic = true
+[oojs.probe]: station.hasShipyard = true
+[oojs.probe]: station.hasSuspendedAI = false
+[oojs.probe]: station.heading = Vector3D0.6013,-0.7383,0.3056
+[oojs.probe]: station.heatInsulation = 1
+[oojs.probe]: station.homeSystem = 7
+[oojs.probe]: station.hyperspaceSpinTime = 15
+[oojs.probe]: station.injectorBurnRate = 0.25
+[oojs.probe]: station.injectorSpeedFactor = 7
+[oojs.probe]: station.isBeacon = false
+[oojs.probe]: station.isBoulder = false
+[oojs.probe]: station.isCargo = false
+[oojs.probe]: station.isCloaked = false
+[oojs.probe]: station.isDerelict = false
+[oojs.probe]: station.isDock = false
+[oojs.probe]: station.isFleeing = false
+[oojs.probe]: station.isFrangible = false
+[oojs.probe]: station.isInSpace = true
+[oojs.probe]: station.isJamming = false
+[oojs.probe]: station.isMainStation = true
+[oojs.probe]: station.isMinable = false
+[oojs.probe]: station.isMine = false
+[oojs.probe]: station.isMissile = false
+[oojs.probe]: station.isPiloted = true
+[oojs.probe]: station.isPirate = false
+[oojs.probe]: station.isPirateVictim = false
+[oojs.probe]: station.isPlanet = false
+[oojs.probe]: station.isPlayer = false
+[oojs.probe]: station.isPolice = false
+[oojs.probe]: station.isRock = false
+[oojs.probe]: station.isShip = true
+[oojs.probe]: station.isStation = true
+[oojs.probe]: station.isSubEntity = false
+[oojs.probe]: station.isSun = false
+[oojs.probe]: station.isSunlit = true
+[oojs.probe]: station.isThargoid = false
+[oojs.probe]: station.isTrader = false
+[oojs.probe]: station.isTurret = false
+[oojs.probe]: station.isValid = true
+[oojs.probe]: station.isVisible = true
+[oojs.probe]: station.isVisualEffect = false
+[oojs.probe]: station.isWeapon = false
+[oojs.probe]: station.isWormhole = false
+[oojs.probe]: station.laserHeatLevel = 0
+[oojs.probe]: station.laserHeatLevelAft = 0
+[oojs.probe]: station.laserHeatLevelForward = 0
+[oojs.probe]: station.laserHeatLevelPort = 0
+[oojs.probe]: station.laserHeatLevelStarboard = 0
+[oojs.probe]: station.lightsActive = true
+[oojs.probe]: station.markedForFines = false
+[oojs.probe]: station.market = {alien_items:{capacity:127, classes:[array 3], key:"alien_items", legality_export:"0", legality_import:"0", name:"[commodity-name alien_items]", peak_export:"0", peak_import:"7", price:516, price_average:"436", price_economic:"0.48", price_random:"0.03", quantity:0, quantity_average:"0", quantity_economic:"0", quantity_random:"0", quantity_unit:"0", sort_order:"1700", trumble_opinion:"0"}, alloys:{capacity:127, classes:[array 4], key:"alloys", legality_export:"0", legality_import:"0", name:"[commodity-name alloys]", peak_export:"0", peak_import:"7", price:368, price_average:"388", price_economic:"0.03", price_random:"0.16", quantity:21, quantity_average:"29", quantity_economic:"0.12", quantity_random:"0.53", quantity_unit:"0", sort_order:"1000", trumble_opinion:"0"}, computers:{capacity:127, classes:[array 3], key:"computers", legality_export:"0", legality_import:"0", name:"[commodity-name computers]", peak_export:"0", peak_import:"7", price:900, price_average:"818", price_economic:"0.24", price_random:"0.01", quantity:0, quantity_average:"8.5", quantity_economic:"5.77", quantity_random:"0.17", quantity_unit:"0", sort_order:"800", trumble_opinion:"0"}, firearms:{capacity:127, classes:[array 4], comment:"[oolite-commodity-illegal]", key:"firearms", legality_export:"1", legality_import:"0", name:"[commodity-name firearms]", peak_export:"0", peak_import:"7", price:760, price_average:"692", price_economic:"0.26", price_random:"0.02", quantity:0, quantity_average:"1", quantity_economic:"32.5", quantity_random:"3.5", quantity_unit:"0", sort_order:"1100", trumble_opinion:"0"}, food:{capacity:127, classes:[array 3], key:"food", legality_export:"0", legality_import:"0", name:"[commodity-name food]", peak_export:"7", peak_import:"0", price:40, price_average:"50", price_economic:"0.55", price_random:"0.04", quantity:17, quantity_average:"13.5", quantity_economic:"0.52", quantity_random:"0.04", quantity_unit:"0", sort_order:"100", trumble_opinion:"1.0"}, furs:{capacity:127, classes:[array 4], key:"furs", legality_export:"0", legality_import:"0", name:"[commodity-name furs]", peak_export:"7", peak_import:"0", price:688, price_average:"704", price_economic:"0.18", price_random:"0.18", quantity:50, quantity_average:"27.5", quantity_economic:"1.15", quantity_random:"1.15", quantity_unit:"0", sort_order:"1200", trumble_opinion:"0.15"}, gem_stones:{capacity:127, classes:[array 2], key:"gem_stones", legality_export:"0", legality_import:"0", name:"[commodity-name gem_stones]", peak_export:"7", peak_import:"0", price:196, price_average:"196", price_economic:"0.07", price_random:"0.15", quantity:8, quantity_average:"6.75", quantity_economic:"0.26", quantity_random:"1.11", quantity_unit:"2", sort_order:"1600", trumble_opinion:"0"}, gold:{capacity:127, classes:[array 4], key:"gold", legality_export:"0", legality_import:"0", name:"[commodity-name gold]", peak_export:"7", peak_import:"0", price:372, price_average:"388", price_economic:"0.04", price_random:"0.05", quantity:8, quantity_average:"9", quantity_economic:"0.39", quantity_random:"0.39", quantity_unit:"1", sort_order:"1400", trumble_opinion:"0"}, liquor_wines:{capacity:127, classes:[array 3], key:"liquor_wines", legality_export:"0", legality_import:"0", name:"[commodity-name liquor_wines]", peak_export:"7", peak_import:"0", price:268, price_average:"291", price_economic:"0.24", price_random:"0.05", quantity:29, quantity_average:"20", quantity_economic:"0.88", quantity_random:"0.38", quantity_unit:"0", sort_order:"500", trumble_opinion:"0.95"}, luxuries:{capacity:127, classes:[array 2], key:"luxuries", legality_export:"0", legality_import:"0", name:"[commodity-name luxuries]", peak_export:"0", peak_import:"7", price:948, price_average:"902", price_economic:"0.12", price_random:"0.01", quantity:15, quantity_average:"27.5", quantity_economic:"1.02", quantity_random:"0.05", quantity_unit:"0", sort_order:"600", trumble_opinion:"1.25"}, machinery:{capacity:127, classes:[array 3], key:"machinery", legality_export:"0", legality_import:"0", name:"[commodity-name machinery]", peak_export:"0", peak_import:"7", price:592, price_average:"560", price_economic:"0.14", price_random:"0.03", quantity:11, quantity_average:"22.5", quantity_economic:"0.93", quantity_random:"0.16", quantity_unit:"0", sort_order:"900", trumble_opinion:"0"}, minerals:{capacity:127, classes:[array 3], key:"minerals", legality_export:"0", legality_import:"0", name:"[commodity-name minerals]", peak_export:"7", peak_import:"0", price:112, price_average:"120", price_economic:"0.11", price_random:"0.05", quantity:59, quantity_average:"58", quantity_economic:"0.06", quantity_random:"0.03", quantity_unit:"0", sort_order:"1300", trumble_opinion:"0"}, narcotics:{capacity:127, classes:[array 4], comment:"[oolite-commodity-illegal]", key:"narcotics", legality_export:"2", legality_import:"0", name:"[commodity-name narcotics]", peak_export:"0", peak_import:"0", price:912, price_average:"512", price_economic:"0", price_random:"1.0", quantity:0, quantity_average:"32", quantity_economic:"0", quantity_random:"1.0", quantity_unit:"0", sort_order:"700", trumble_opinion:"1.05"}, platinum:{capacity:127, classes:[array 4], key:"platinum", legality_export:"0", legality_import:"0", name:"[commodity-name platinum]", peak_export:"7", peak_import:"0", price:680, price_average:"718", price_economic:"0.04", price_random:"0.09", quantity:10, quantity_average:"13.5", quantity_economic:"0.52", quantity_random:"1.15", quantity_unit:"1", sort_order:"1500", trumble_opinion:"0"}, radioactives:{capacity:127, classes:[array 2], key:"radioactives", legality_export:"0", legality_import:"0", name:"[commodity-name radioactives]", peak_export:"7", peak_import:"0", price:204, price_average:"231", price_economic:"0.19", price_random:"0.06", quantity:18, quantity_average:"16", quantity_economic:"0.66", quantity_random:"0.09", quantity_unit:"0", sort_order:"300", trumble_opinion:"0.75"}, slaves:{capacity:127, classes:[array 4], comment:"[oolite-commodity-illegal]", key:"slaves", legality_export:"1", legality_import:"0", name:"[commodity-name slaves]", peak_export:"7", peak_import:"0", price:96, price_average:"152", price_economic:"0.45", price_random:"0.40", quantity:4, quantity_average:"9.75", quantity_economic:"1.10", quantity_random:"1.59", quantity_unit:"0", sort_order:"400", trumble_opinion:"0.01"}, textiles:{capacity:127, classes:[array 3], key:"textiles", legality_export:"0", legality_import:"0", name:"[commodity-name textiles]", peak_export:"7", peak_import:"0", price:64, price_average:"71", price_economic:"0.18", price_random:"0.09", quantity:16, quantity_average:"15", quantity_economic:"0.23", quantity_random:"0.1", quantity_unit:"0", sort_order:"200", trumble_opinion:"0.25"}}
+[oojs.probe]: station.mass = 515483904
+[oojs.probe]: station.maxEnergy = 25000
+[oojs.probe]: station.maxEscorts = 0
+[oojs.probe]: station.maxPitch = 8
+[oojs.probe]: station.maxRoll = 8
+[oojs.probe]: station.maxSpeed = 0
+[oojs.probe]: station.maxThrust = 100
+[oojs.probe]: station.maxYaw = 8
+[oojs.probe]: station.missileCapacity = 0
+[oojs.probe]: station.missileLoadTime = 0
+[oojs.probe]: station.missiles = []
+[oojs.probe]: station.name = "Coriolis Station"
+[oojs.probe]: station.orientation = Quaternion0.8079,-0.4569,-0.3721,0
+[oojs.probe]: station.owner = null
+[oojs.probe]: station.parcelCount = 0
+[oojs.probe]: station.parcels = []
+[oojs.probe]: station.passengerCapacity = 0
+[oojs.probe]: station.passengerCount = 0
+[oojs.probe]: station.passengers = []
+[oojs.probe]: station.pitch = 0
+[oojs.probe]: station.portWeapon = {calculatedPrice:0, canBeDamaged:true, canCarryMultiple:false, damageProbability:1, defaultActivateKey:null, defaultModeKey:null, description:"Remove laser weapon from selected mounting.", displayColor:null, effectiveTechLevel:3, equipmentKey:"EQ_WEAPON_NONE", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:600, isAvailableToAll:true, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:false, isPortableBetweenShips:false, isVisible:true, name:"Remove Laser", price:0, provides:[], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:false, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{}, scriptName:"", techLevel:3, weaponInfo:{damage:"0.0", energy:"0.0", range:"32000", recharge_rate:"100.0", shot_temperature:"0.0", threat_assessment:"-1.0"}}
+[oojs.probe]: station.position = Vector3D-49474.3203,60752.1563,427652.3984
+[oojs.probe]: station.potentialCollider = null
+[oojs.probe]: station.primaryRole = "coriolis"
+[oojs.probe]: station.reactionTime = 1.5
+[oojs.probe]: station.reportAIMessages = false
+[oojs.probe]: station.requiresDockingClearance = true
+[oojs.probe]: station.roleWeights = {[coriolis-station]:1, coriolis:1, station:1}
+[oojs.probe]: station.roles = ["[coriolis-station]", "coriolis", "station"]
+[oojs.probe]: station.roll = 0.125664
+[oojs.probe]: station.savedCoordinates = Vector3D0,0,0
+[oojs.probe]: station.scanClass = "CLASS_STATION"
+[oojs.probe]: station.scanDescription = null
+[oojs.probe]: station.scannerDisplayColor1 = null
+[oojs.probe]: station.scannerDisplayColor2 = null
+[oojs.probe]: station.scannerHostileDisplayColor1 = null
+[oojs.probe]: station.scannerHostileDisplayColor2 = null
+[oojs.probe]: station.scannerRange = 25600
+[oojs.probe]: station.script = {author:"Jens Ayton", copyright:"© 2007-2013 the Oolite team.", description:"Standard script for ships.", license:"GPL 2+ / CC-BY-NC-SA 3.0 - see LICENSE.md for details", name:"oolite-default-ship-script", ooliteDetonateAsStandardMissile:function, oolite_manifest_identifier:"org.oolite.oolite", ship:<coriolis-station>, version:"1.93.1-quickjs-poc.1"}
+[oojs.probe]: station.scriptInfo = {}
+[oojs.probe]: station.scriptedMisjump = false
+[oojs.probe]: station.scriptedMisjumpRange = 0.5
+[oojs.probe]: station.shipClassName = "Coriolis Station"
+[oojs.probe]: station.shipUniqueName = ""
+[oojs.probe]: station.shipyard = [{extras:[array 0], id:"69789c-e08321", personality:31842, price:100000, ship:{object}, shipdata_key:"cobramk1-player", short_description:"Cobra Mark I: Standard customer model. Price 100 000 ₢."}, {extras:[array 0], id:"59daa0-6e57df", personality:10379, price:200000, ship:{object}, shipdata_key:"python-player", short_description:"Python: Standard customer model. Price 200 000 ₢."}]
+[oojs.probe]: station.spawnTime = 0
+[oojs.probe]: station.speed = 0
+[oojs.probe]: station.starboardWeapon = {calculatedPrice:0, canBeDamaged:true, canCarryMultiple:false, damageProbability:1, defaultActivateKey:null, defaultModeKey:null, description:"Remove laser weapon from selected mounting.", displayColor:null, effectiveTechLevel:3, equipmentKey:"EQ_WEAPON_NONE", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:600, isAvailableToAll:true, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:false, isPortableBetweenShips:false, isVisible:true, name:"Remove Laser", price:0, provides:[], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:false, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{}, scriptName:"", techLevel:3, weaponInfo:{damage:"0.0", energy:"0.0", range:"32000", recharge_rate:"100.0", shot_temperature:"0.0", threat_assessment:"-1.0"}}
+[oojs.probe]: station.status = "STATUS_ACTIVE"
+[oojs.probe]: station.subEntities = [<oolite_coriolis_faceplate>, <oolite_coriolis_tris>, <oolite_coriolis_dock>]
+[oojs.probe]: station.subEntityCapacity = 3
+[oojs.probe]: station.subEntityRotation = Quaternion1,0,0,0
+[oojs.probe]: station.sunGlareFilter = 0.97
+[oojs.probe]: station.suppressArrivalReports = false
+[oojs.probe]: station.target = null
+[oojs.probe]: station.temperature = 0.234375
+[oojs.probe]: station.thrust = 100
+[oojs.probe]: station.thrustVector = Vector3D0,0,0
+[oojs.probe]: station.trackCloseContacts = false
+[oojs.probe]: station.vectorForward = Vector3D0.6013,-0.7383,0.3056
+[oojs.probe]: station.vectorRight = Vector3D0.7231,0.34,-0.6013
+[oojs.probe]: station.vectorUp = Vector3D0.34,0.5825,0.7383
+[oojs.probe]: station.velocity = Vector3D0,0,0
+[oojs.probe]: station.weaponFacings = 15
+[oojs.probe]: station.weaponPositionAft = [Vector3D0,0,0]
+[oojs.probe]: station.weaponPositionForward = [Vector3D0,0,0]
+[oojs.probe]: station.weaponPositionPort = [Vector3D0,0,0]
+[oojs.probe]: station.weaponPositionStarboard = [Vector3D0,0,0]
+[oojs.probe]: station.weaponRange = 32000
+[oojs.probe]: station.withinStationAegis = false
+[oojs.probe]: station.yaw = 0
+[oojs.probe]: ship isShip/isPlayer/isStation -> [true, true, false]
+[oojs.probe]: station isStation -> true
+[oojs.probe]: entity toString -> true
+[oojs.probe]: set read-only property THREW TypeError: ship.isValid is read-only
+[oojs.probe]: set maxEnergy invalid THREW Error: entity.maxEnergy must be positive.
+[oojs.probe]: construct Ship THREW Error: Ship cannot be used as a constructor.
+[oojs.probe]: Ship.prototype.isValid -> false
+[oojs.probe]: JSON vector -> "{\"x\":1,\"y\":2,\"z\":3}"
+[oojs.probe]: JSON quaternion -> "{\"w\":1,\"x\":0,\"y\":0,\"z\":0}"
+[oojs.probe]: vector own keys -> "x,y,z"
+[oojs.probe]: ship hasOwnProperty position -> false
+[oojs.probe]: ship hasOwnProperty hasRole -> false
+[oojs.probe]: player ship own: PlayerShip/Ship/Entity props -> [true, false, false]
+[oojs.probe]: player ship own keys count -> 65
+[oojs.probe]: station own: Station/Ship/Entity props -> [true, false, false]
+[oojs.probe]: station own keys -> 18
+[oojs.probe]: JSON keys of station -> "x,y,z"
+[oojs.probe]: string toSource -> "(new String(\"abc\"))"
+[oojs.probe]: number toSource -> "(new Number(5))"
+[oojs.probe]: object toSource -> "({a:1, b:\"x\"})"
+[oojs.probe]: array toSource -> "[1, \"two\"]"
+[oojs.probe]: uneval undefined -> "(void 0)"
+[oojs.probe]: vector toSource -> "Vector3D(1, 2, 3)"
+[oojs.probe]: function toString -> "function (a) {\u000a    \"use strict\";\u000a    return a + 1;\u000a}"
+[oojs.probe]: for-in integer key order -> "b,2,a,1"
+[oojs.probe]: spawned count -> 1
+[oojs.probe]: spawned keys: 168
+[oojs.probe]: spawned.AI = "nullAI.plist"
+[oojs.probe]: spawned.AIFoundTarget = null
+[oojs.probe]: spawned.AIPrimaryAggressor = null
+[oojs.probe]: spawned.AIScript = {aiStarted:function, author:"Giles Williams, Jens Ayton and contributors", license:"GPL 2+ / CC-BY-NC-SA 3.0 - see LICENSE.md for details", name:"Oolite Scavenger AI", oolite_manifest_identifier:"org.oolite.oolite", ship:<adder>, version:"1.93.1-quickjs-poc.1"}
+[oojs.probe]: spawned.AIScriptWakeTime = 0
+[oojs.probe]: spawned.AIState = "GLOBAL"
+[oojs.probe]: spawned.accuracy = 4.24881
+[oojs.probe]: spawned.aftWeapon = null
+[oojs.probe]: spawned.alertCondition = 2
+[oojs.probe]: spawned.autoAI = true
+[oojs.probe]: spawned.autoWeapons = true
+[oojs.probe]: spawned.beaconCode = null
+[oojs.probe]: spawned.beaconLabel = null
+[oojs.probe]: spawned.boundingBox = Vector3D28.0186,14.8953,51.1851
+[oojs.probe]: spawned.bounty = 0
+[oojs.probe]: spawned.cargoList = []
+[oojs.probe]: spawned.cargoSpaceAvailable = 5
+[oojs.probe]: spawned.cargoSpaceCapacity = 5
+[oojs.probe]: spawned.cargoSpaceUsed = 0
+[oojs.probe]: spawned.cloakAutomatic = true
+[oojs.probe]: spawned.collisionExceptions = []
+[oojs.probe]: spawned.collisionRadius = 29.030518
+[oojs.probe]: spawned.commodity = null
+[oojs.probe]: spawned.commodityAmount = 0
+[oojs.probe]: spawned.contracts = []
+[oojs.probe]: spawned.crew = [{description:"a human colonial from Vebege", homeSystem:212, insuranceCredits:0, legalStatus:0, name:"Bi Bema", species:"human colonial"}]
+[oojs.probe]: spawned.cruiseSpeed = 192
+[oojs.probe]: spawned.currentWeapon = {calculatedPrice:4000, canBeDamaged:true, canCarryMultiple:false, damageProbability:1, defaultActivateKey:null, defaultModeKey:null, description:"High powered pulse laser, a basic defense configuration.", displayColor:null, effectiveTechLevel:3, equipmentKey:"EQ_WEAPON_PULSE_LASER", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:4600, isAvailableToAll:true, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:false, isPortableBetweenShips:false, isVisible:true, name:"Pulse Laser", price:4000, provides:[], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:false, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{}, scriptName:"", techLevel:3, weaponInfo:{color:"redColor", damage:"15.0", energy:"0.8", range:"12500", recharge_rate:"0.5", shot_temperature:"7.0", threat_assessment:"0.0"}}
+[oojs.probe]: spawned.dataKey = "adder"
+[oojs.probe]: spawned.defenseTargets = []
+[oojs.probe]: spawned.desiredRange = 0
+[oojs.probe]: spawned.desiredSpeed = 0
+[oojs.probe]: spawned.destination = Vector3D0,0,0
+[oojs.probe]: spawned.destinationSystem = 7
+[oojs.probe]: spawned.displayName = "Adder"
+[oojs.probe]: spawned.distanceTravelled = 0
+[oojs.probe]: spawned.dockingInstructions = null
+[oojs.probe]: spawned.energy = 85
+[oojs.probe]: spawned.energyRechargeRate = 2
+[oojs.probe]: spawned.entityPersonality = 4765
+[oojs.probe]: spawned.equipment = [{calculatedPrice:5250, canBeDamaged:true, canCarryMultiple:false, damageProbability:1, defaultActivateKey:null, defaultModeKey:null, description:"Wide cargo entrance and magnetic scoops enable in-flight capture of mined materials, fuel gasses from the solar corona, and salvage of space debris.", displayColor:null, effectiveTechLevel:5, equipmentKey:"EQ_FUEL_SCOOPS", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:5850, isAvailableToAll:false, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:false, isPortableBetweenShips:false, isVisible:true, name:"Fuel Scoops", price:5250, provides:[array 1], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:false, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{object}, scriptName:"", techLevel:5, weaponInfo:{object}}]
+[oojs.probe]: spawned.escortGroup = {count:1, leader:<adder>, name:"escort group", ships:[<adder>]}
+[oojs.probe]: spawned.escorts = []
+[oojs.probe]: spawned.exhaustEmissiveColor = [0.7, 0.9, 1, 0.9]
+[oojs.probe]: spawned.exhausts = [<entity>]
+[oojs.probe]: spawned.extraCargo = 15
+[oojs.probe]: spawned.flashers = []
+[oojs.probe]: spawned.forwardWeapon = {calculatedPrice:4000, canBeDamaged:true, canCarryMultiple:false, damageProbability:1, defaultActivateKey:null, defaultModeKey:null, description:"High powered pulse laser, a basic defense configuration.", displayColor:null, effectiveTechLevel:3, equipmentKey:"EQ_WEAPON_PULSE_LASER", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:4600, isAvailableToAll:true, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:false, isPortableBetweenShips:false, isVisible:true, name:"Pulse Laser", price:4000, provides:[], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:false, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{}, scriptName:"", techLevel:3, weaponInfo:{color:"redColor", damage:"15.0", energy:"0.8", range:"12500", recharge_rate:"0.5", shot_temperature:"7.0", threat_assessment:"0.0"}}
+[oojs.probe]: spawned.fuel = 7
+[oojs.probe]: spawned.fuelChargeRate = 0.4
+[oojs.probe]: spawned.group = null
+[oojs.probe]: spawned.hasHostileTarget = false
+[oojs.probe]: spawned.hasHyperspaceMotor = true
+[oojs.probe]: spawned.hasSuspendedAI = false
+[oojs.probe]: spawned.heading = Vector3D-0.5063,0.7543,0.4179
+[oojs.probe]: spawned.heatInsulation = 1
+[oojs.probe]: spawned.homeSystem = 7
+[oojs.probe]: spawned.hyperspaceSpinTime = 15
+[oojs.probe]: spawned.injectorBurnRate = 0.25
+[oojs.probe]: spawned.injectorSpeedFactor = 7
+[oojs.probe]: spawned.isBeacon = false
+[oojs.probe]: spawned.isBoulder = false
+[oojs.probe]: spawned.isCargo = false
+[oojs.probe]: spawned.isCloaked = false
+[oojs.probe]: spawned.isDerelict = false
+[oojs.probe]: spawned.isDock = false
+[oojs.probe]: spawned.isFleeing = false
+[oojs.probe]: spawned.isFrangible = true
+[oojs.probe]: spawned.isInSpace = true
+[oojs.probe]: spawned.isJamming = false
+[oojs.probe]: spawned.isMinable = false
+[oojs.probe]: spawned.isMine = false
+[oojs.probe]: spawned.isMissile = false
+[oojs.probe]: spawned.isPiloted = true
+[oojs.probe]: spawned.isPirate = false
+[oojs.probe]: spawned.isPirateVictim = false
+[oojs.probe]: spawned.isPlanet = false
+[oojs.probe]: spawned.isPlayer = false
+[oojs.probe]: spawned.isPolice = false
+[oojs.probe]: spawned.isRock = false
+[oojs.probe]: spawned.isShip = true
+[oojs.probe]: spawned.isStation = false
+[oojs.probe]: spawned.isSubEntity = false
+[oojs.probe]: spawned.isSun = false
+[oojs.probe]: spawned.isSunlit = true
+[oojs.probe]: spawned.isThargoid = false
+[oojs.probe]: spawned.isTrader = false
+[oojs.probe]: spawned.isTurret = false
+[oojs.probe]: spawned.isValid = true
+[oojs.probe]: spawned.isVisible = true
+[oojs.probe]: spawned.isVisualEffect = false
+[oojs.probe]: spawned.isWeapon = false
+[oojs.probe]: spawned.isWormhole = false
+[oojs.probe]: spawned.laserHeatLevel = 0
+[oojs.probe]: spawned.laserHeatLevelAft = 0
+[oojs.probe]: spawned.laserHeatLevelForward = 0
+[oojs.probe]: spawned.laserHeatLevelPort = 0
+[oojs.probe]: spawned.laserHeatLevelStarboard = 0
+[oojs.probe]: spawned.lightsActive = true
+[oojs.probe]: spawned.markedForFines = false
+[oojs.probe]: spawned.mass = 16045.493164
+[oojs.probe]: spawned.maxEnergy = 85
+[oojs.probe]: spawned.maxEscorts = 0
+[oojs.probe]: spawned.maxPitch = 2
+[oojs.probe]: spawned.maxRoll = 2.8
+[oojs.probe]: spawned.maxSpeed = 240
+[oojs.probe]: spawned.maxThrust = 30
+[oojs.probe]: spawned.maxYaw = 2
+[oojs.probe]: spawned.missileCapacity = 1
+[oojs.probe]: spawned.missileLoadTime = 2
+[oojs.probe]: spawned.missiles = [{calculatedPrice:300, canBeDamaged:false, canCarryMultiple:true, damageProbability:0, defaultActivateKey:null, defaultModeKey:null, description:"Faulcon de Lacy HM3 homing missile, fast and accurate when used in conjunction with standard targeting scanners.", displayColor:null, effectiveTechLevel:1, equipmentKey:"EQ_MISSILE", fastAffinityDefensive:false, fastAffinityOffensive:false, incompatibleEquipment:null, installationTime:900, isAvailableToAll:true, isAvailableToNPCs:true, isAvailableToPlayer:true, isExternalStore:true, isPortableBetweenShips:false, isVisible:true, name:"Missile", price:300, provides:[array 0], repairTime:0, requiredCargoSpace:0, requiresAnyEquipment:null, requiresCleanLegalRecord:false, requiresEmptyPylon:true, requiresEquipment:null, requiresFreePassengerBerth:false, requiresFullFuel:false, requiresMountedPylon:false, requiresNonCleanLegalRecord:false, requiresNonFullFuel:false, scriptInfo:{object}, scriptName:"", techLevel:1, weaponInfo:{object}}]
+[oojs.probe]: spawned.name = "Adder"
+[oojs.probe]: spawned.orientation = Quaternion0.6342,0.5352,-0.0682,-0.5539
+[oojs.probe]: spawned.owner = null
+[oojs.probe]: spawned.parcelCount = 0
+[oojs.probe]: spawned.parcels = []
+[oojs.probe]: spawned.passengerCapacity = 0
+[oojs.probe]: spawned.passengerCount = 0
+[oojs.probe]: spawned.passengers = []
+[oojs.probe]: spawned.pitch = 0
+[oojs.probe]: spawned.portWeapon = null
+[oojs.probe]: spawned.position = Vector3D-49474.3203,60752.1563,477652.3984
+[oojs.probe]: spawned.potentialCollider = null
+[oojs.probe]: spawned.primaryRole = "[adder]"
+[oojs.probe]: spawned.reactionTime = 1.5
+[oojs.probe]: spawned.reportAIMessages = false
+[oojs.probe]: spawned.roleWeights = {[adder]:1, hermit-ship:1, pirate:0.2, pirate-light-fighter:0.25, scavenger:1, shuttle:1, trader:0.25, trader-courier:0.5, trader-smuggler:1}
+[oojs.probe]: spawned.roles = ["[adder]", "hermit-ship", "pirate", "pirate-light-fighter", "scavenger", "shuttle", "trader", "trader-courier", "trader-smuggler"]
+[oojs.probe]: spawned.roll = 0
+[oojs.probe]: spawned.savedCoordinates = Vector3D0,0,0
+[oojs.probe]: spawned.scanClass = "CLASS_NEUTRAL"
+[oojs.probe]: spawned.scanDescription = null
+[oojs.probe]: spawned.scannerDisplayColor1 = null
+[oojs.probe]: spawned.scannerDisplayColor2 = null
+[oojs.probe]: spawned.scannerHostileDisplayColor1 = null
+[oojs.probe]: spawned.scannerHostileDisplayColor2 = null
+[oojs.probe]: spawned.scannerRange = 25600
+[oojs.probe]: spawned.script = {author:"Jens Ayton", copyright:"© 2007-2013 the Oolite team.", description:"Standard script for ships.", license:"GPL 2+ / CC-BY-NC-SA 3.0 - see LICENSE.md for details", name:"oolite-default-ship-script", ooliteDetonateAsStandardMissile:function, oolite_manifest_identifier:"org.oolite.oolite", ship:<adder>, version:"1.93.1-quickjs-poc.1"}
+[oojs.probe]: spawned.scriptInfo = {}
+[oojs.probe]: spawned.scriptedMisjump = false
+[oojs.probe]: spawned.scriptedMisjumpRange = 0.5
+[oojs.probe]: spawned.shipClassName = "Adder"
+[oojs.probe]: spawned.shipUniqueName = ""
+[oojs.probe]: spawned.spawnTime = 0
+[oojs.probe]: spawned.speed = 0
+[oojs.probe]: spawned.starboardWeapon = null
+[oojs.probe]: spawned.status = "STATUS_IN_FLIGHT"
+[oojs.probe]: spawned.subEntities = []
+[oojs.probe]: spawned.subEntityCapacity = 0
+[oojs.probe]: spawned.subEntityRotation = Quaternion1,0,0,0
+[oojs.probe]: spawned.sunGlareFilter = 0.97
+[oojs.probe]: spawned.target = null
+[oojs.probe]: spawned.temperature = 0.234375
+[oojs.probe]: spawned.thrust = 30
+[oojs.probe]: spawned.thrustVector = Vector3D0,0,0
+[oojs.probe]: spawned.trackCloseContacts = false
+[oojs.probe]: spawned.vectorForward = Vector3D-0.5063,0.7543,0.4179
+[oojs.probe]: spawned.vectorRight = Vector3D0.3772,0.6295,-0.6793
+[oojs.probe]: spawned.vectorUp = Vector3D-0.7755,-0.1863,-0.6033
+[oojs.probe]: spawned.velocity = Vector3D0,0,0
+[oojs.probe]: spawned.weaponFacings = 1
+[oojs.probe]: spawned.weaponPositionAft = [Vector3D0,0,-22.5]
+[oojs.probe]: spawned.weaponPositionForward = [Vector3D0,-1.6769,28.8523]
+[oojs.probe]: spawned.weaponPositionPort = [Vector3D-15,0,-14.5]
+[oojs.probe]: spawned.weaponPositionStarboard = [Vector3D15,0,-14.5]
+[oojs.probe]: spawned.weaponRange = 12500
+[oojs.probe]: spawned.withinStationAegis = false
+[oojs.probe]: spawned.yaw = 0
+[oojs.probe]: ship own: Ship/Entity props -> [true, false]
+[oojs.probe]: ship own keys -> "accuracy,aftWeapon,AI,AIScript,AIScriptWakeTime,AIState,AIFoundTarget,AIPrimaryAggressor,alertCondition,autoAI,autoWeapons,beaconCode,beaconLabel,boundingBox,bounty,cargoList,cargoSpaceUsed,cargoSpaceCapacity,cargoSpaceAvailable,collisionExceptions,commodity,commodityAmount,contracts,cloakAutomatic,crew,cruiseSpeed,currentWeapon,dataKey,defenseTargets,desiredRange,desiredSpeed,destination,destinationSystem,displayName,dockingInstructions,energyRechargeRate,entityPersonality,equipment,escorts,escortGroup,exhaustEmissiveColor,exhausts,extraCargo,flashers,forwardWeapon,fuel,fuelChargeRate,group,hasHostileTarget,hasHyperspaceMotor,hasSuspendedAI,heatInsulation,heading,homeSystem,hyperspaceSpinTime,injectorBurnRate,injectorSpeedFactor,isBeacon,isCloaked,isCargo,isDerelict,isFrangible,isFleeing,isJamming,isMinable,isMine,isMissile,isPiloted,isPirate,isPirateVictim,isPolice,isRock,isBoulder,isThargoid,isTurret,isTrader,isWeapon,laserHeatLevel,laserHeatLevelAft,laserHeatLevelForward,laserHeatLevelPort,laserHeatLevelStarboard,lightsActive,markedForFines,maxEscorts,maxPitch,maxSpeed,maxRoll,maxYaw,maxThrust,missileCapacity,missileLoadTime,missiles,name,parcelCount,parcels,passengerCount,passengerCapacity,passengers,pitch,portWeapon,potentialCollider,primaryRole,reactionTime,reportAIMessages,roleWeights,roles,roll,savedCoordinates,scanDescription,scannerDisplayColor1,scannerDisplayColor2,scannerHostileDisplayColor1,scannerHostileDisplayColor2,scannerRange,script,scriptedMisjump,scriptedMisjumpRange,scriptInfo,shipClassName,shipUniqueName,speed,starboardWeapon,subEntities,subEntityCapacity,subEntityRotation,sunGlareFilter,target,temperature,thrust,thrustVector,trackCloseContacts,vectorForward,vectorRight,vectorUp,velocity,weaponFacings,weaponPositionAft,weaponPositionForward,weaponPositionPort,weaponPositionStarboard,weaponRange,withinStationAegis,yaw"
+[oojs.probe]: event staleCheck
+[oojs.probe]: stale isValid -> false
+[oojs.probe]: stale position -> undefined
+[oojs.probe]: stale name -> undefined
+[oojs.probe]: stale set position -> undefined
+[oojs.probe]: stale method -> undefined
+[oojs.probe]: stale toString -> "[object Ship]"
+[oojs.probe]: system keys: 29
+[oojs.probe]: system.ID = 7
+[oojs.probe]: system.allDemoShips = []
+[oojs.probe]: system.allShips = [<cobra3-player>, <coriolis-station>, <buoy>, <viper>, <moray>, <krait>, <mamba>, <gecko>, <cobra3-alternate>, <gecko>, <viper>, <viper>, <ferdelance>, <ferdelance>, <asteroid-alternative>, <cobra3-alternate>, <asteroid>, <asteroid-alternative>, <adder>, <cobra3-pirate>, <krait>, <adder>, <moray>, <ferdelance>, <asteroid-alternative>, <asteroid>, <asteroid>, <asteroid>, <asteroid>, <asteroid>, <asteroid>, <asteroid>, <asteroid>, <cobra3-trader>, <python>, <krait>, <mamba>, <sidewinder>, <gecko>, <krait>, <ferdelance>, <moray>, <moray>, <buoy-witchpoint>, <cobramk1>, <moray>, <moray>, <cobra3-pirate>, <cobramk1-alt>, <asteroid-alternative>, <rock-hermit-chaotic>, <asteroid-alternative>, <asteroid>, <asteroid>, <asteroid>, <asteroid>, <asteroid-alternative>, <asteroid-alternative>, <asteroid>, <asteroid-alternative>]
+[oojs.probe]: system.allVisualEffects = []
+[oojs.probe]: system.ambientLevel = 0.1
+[oojs.probe]: system.breakPattern = false
+[oojs.probe]: system.description = "Lave is most famous for its vast rain forests and the Laveian tree grub."
+[oojs.probe]: system.economy = 5
+[oojs.probe]: system.economyDescription = "Rich Agricultural"
+[oojs.probe]: system.government = 3
+[oojs.probe]: system.governmentDescription = "Dictatorship"
+[oojs.probe]: system.info = {air_color:"0.0 0.0 1.0 1", air_color_mix_ratio:0.5, air_density:0.75, ambient_level:0.1, cloud_alpha:0.75, cloud_color:"0.8 0.8 0.8 1", cloud_fraction:0.26, coordinates:Vector3D8,34.6,0, corona_flare:0.028528, corona_hues:0.621948, corona_shimmer:0.597422, description:"Lave is most famous for its vast rain forests and the Laveian tree grub.", economy:5, government:3, inhabitant:"Human Colonial", inhabitants:"Human Colonials", land_color:"0.36 0.58882 0.120234 1", land_fraction:0.65, name:"Lave", percent_cloud:85, planet_distance:452760, polar_cloud_color:"0.946484 0.675422 0.4127 1", polar_land_color:"0.934 0.908817 0.849174 1", polar_sea_color:"0.9941016 0.9932904 0.9934303 1", population:25, productivity:7000, radius:4116, random_seed:"56 173 156 20 29 21", rotation_speed:0.004504, sea_color:"0.589844 0.393997 0.573013 1", sky_color_1:["0.75", "0.8", "1"], sky_color_2:["1.0", "0.85", "0.6"], sky_n_blurs:129, sky_n_stars:8887, station:"coriolis", station_vector:"0.601 -0.738 0.305", stations_require_docking_clearance:"no", sun_color:"1 1 1 1", sun_distance:905520, sun_radius:84449.095459, sun_vector:"0.865 0.376 -0.334", techlevel:4, terminator_threshold_vector:"0.105 0.18 0.28"}
+[oojs.probe]: system.inhabitantsDescription = "Human Colonials"
+[oojs.probe]: system.isInterstellarSpace = false
+[oojs.probe]: system.mainPlanet = <Lave>
+[oojs.probe]: system.mainStation = <coriolis-station>
+[oojs.probe]: system.name = "Lave"
+[oojs.probe]: system.planets = [<Lave>]
+[oojs.probe]: system.population = 25
+[oojs.probe]: system.populatorSettings = {oolite-assassins:{groupCount:2, location:"WITCHPOINT", priority:40}, oolite-couriers-route1:{groupCount:1, location:"LANE_WP", priority:40}, oolite-couriers-route3:{groupCount:2, location:"LANE_WS", priority:40}, oolite-freighters:{groupCount:5, location:"LANE_WP", priority:40}, oolite-freighters-docking:{groupCount:0, location:"STATION_AEGIS", priority:40}, oolite-hunters-heavy-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-hunters-heavy-route3:{groupCount:0, location:"LANE_WS", priority:40}, oolite-hunters-medium-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-hunters-medium-route3:{groupCount:0, location:"LANE_WS", priority:40}, oolite-hunters-route1:{groupCount:1, location:"LANE_WP", priority:40}, oolite-hunters-triangle:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-interceptors-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-interceptors-witchpoint:{groupCount:0, location:"WITCHPOINT", priority:40}, oolite-nav-buoy:{coordinates:[array 3], deterministic:1, location:"COORDINATES", priority:5}, oolite-offlane-hermit:{deterministic:1, groupCount:1, location:"PLANET_ORBIT_HIGH", locationSeed:71258, priority:99}, oolite-pirate-heavy-remote:{groupCount:0, location:"LANE_WP", priority:40}, oolite-pirate-heavy-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-pirate-heavy-triangle:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-pirate-independent-route1:{groupCount:1, location:"LANE_WP", priority:40}, oolite-pirate-independent-route2:{groupCount:1, location:"LANE_PS", priority:40}, oolite-pirate-independent-route3:{groupCount:0, location:"LANE_WS", priority:40}, oolite-pirate-light-remote:{groupCount:0, location:"LANE_WP", priority:40}, oolite-pirate-light-route1:{groupCount:1, location:"LANE_WP", priority:40}, oolite-pirate-light-triangle:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-pirate-medium-remote:{groupCount:0, location:"LANE_WP", priority:40}, oolite-pirate-medium-route1:{groupCount:0, location:"LANE_WP", priority:40}, oolite-pirate-medium-triangle:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-police-route1:{groupCount:1, location:"LANE_WP", priority:40}, oolite-police-stationpatrol:{location:"STATION_AEGIS", priority:40}, oolite-police-triangle:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-route1-asteroids:{deterministic:1, groupCount:1, location:"LANE_WP", locationSeed:51728, priority:20}, oolite-route2-asteroids:{deterministic:1, groupCount:3, location:"LANE_PS", locationSeed:82715, priority:20}, oolite-smugglers:{groupCount:1, location:"LANE_WP", priority:40}, oolite-thargoid-scouts:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-thargoid-strike:{groupCount:0, location:"LANE_WPS", priority:40}, oolite-witch-buoy:{coordinates:[array 3], deterministic:1, location:"COORDINATES", priority:10}}
+[oojs.probe]: system.productivity = 7000
+[oojs.probe]: system.pseudoRandom100 = 57
+[oojs.probe]: system.pseudoRandom256 = 41
+[oojs.probe]: system.pseudoRandomNumber = 0.161093
+[oojs.probe]: system.stations = [<rock-hermit-chaotic>, <coriolis-station>]
+[oojs.probe]: system.sun = <Star>
+[oojs.probe]: system.techLevel = 4
+[oojs.probe]: system.waypoints = {}
+[oojs.probe]: system.wormholes = []
+[oojs.probe]: system.info keys -> "air_color,air_color_mix_ratio,air_density,ambient_level,cloud_alpha,cloud_color,cloud_fraction,coordinates,corona_flare,corona_hues,corona_shimmer,description,economy,government,inhabitant,inhabitants,land_color,land_fraction,name,percent_cloud,planet_distance,polar_cloud_color,polar_land_color,polar_sea_color,population,productivity,radius,random_seed,rotation_speed,sea_color,sky_color_1,sky_color_2,sky_n_blurs,sky_n_stars,station,station_vector,stations_require_docking_clearance,sun_color,sun_distance,sun_radius,sun_vector,techlevel,terminator_threshold_vector"
+[oojs.probe]: system.info own galaxyID / government / in -> [true, false, false]
+[oojs.probe]: system.info names count -> 43
+[oojs.probe]: infoForSystem name -> "Lave"
+[oojs.probe]: system.info set and read -> "x"
+[oojs.probe]: system.info set null -> null
+[oojs.probe]: player keys: 23
+[oojs.probe]: player.alertAltitude = false
+[oojs.probe]: player.alertCondition = 0
+[oojs.probe]: player.alertEnergy = false
+[oojs.probe]: player.alertHostiles = false
+[oojs.probe]: player.alertMassLocked = false
+[oojs.probe]: player.alertTemperature = false
+[oojs.probe]: player.bounty = 0
+[oojs.probe]: player.contractReputation = 1
+[oojs.probe]: player.contractReputationPrecise = 1.2
+[oojs.probe]: player.credits = 100
+[oojs.probe]: player.dockingClearanceStatus = "DOCKING_CLEARANCE_STATUS_GRANTED"
+[oojs.probe]: player.escapePodRescueTime = 0
+[oojs.probe]: player.legalStatus = "Clean"
+[oojs.probe]: player.name = "Jameson"
+[oojs.probe]: player.parcelReputation = 1
+[oojs.probe]: player.parcelReputationPrecise = 1.2
+[oojs.probe]: player.passengerReputation = 1
+[oojs.probe]: player.passengerReputationPrecise = 1.2
+[oojs.probe]: player.rank = "Harmless"
+[oojs.probe]: player.roleWeights = ["player-unknown", "player-unknown", "player-unknown", "player-unknown", "player-unknown", "player-unknown", "player-unknown", "player-unknown"]
+[oojs.probe]: player.score = 0
+[oojs.probe]: player.ship = <cobra3-player>
+[oojs.probe]: player.trumbleCount = 0
+[oojs.probe]: missionVariables unset -> null
+[oojs.probe]: missionVariables set/get -> [42, "number"]
+[oojs.probe]: missionVariables keys include -> true
+[oojs.probe]: missionVariables underscore THREW Error: Invalid mission variable name "_oojs".
+[oojs.probe]: worldScripts own probe -> "oojs_probe"
+[oojs.probe]: worldScripts keys count -> 17
+[oojs.probe]: manifest food -> 0
+[oojs.probe]: manifest keys -> "list"
+[oojs.probe]: Timer without new THREW Error: Timer() cannot be called as a function, it must be used as a constructor (as in new Timer(...)).
+[oojs.probe]: Timer with new -> false
+[oojs.probe]: oolite.jsVersion -> 185
+[oojs.probe]: Vector3D from entity -> 0
+[oojs.probe]: Quaternion from entity -> false
+[oojs.probe]: bad method this THREW Error: Native method expected Ship, got [object Object].
+[oojs.probe]: strict assign to primitive -> undefined
+[oojs.probe]: legacy const outside block -> 5
+[oojs.probe]: legacy const before declaration -> "undefined"
+[oojs.probe]: set targetSystem -> 55
+[oojs.probe]: launching
+[oojs.probe]: event soakEnd
+[oojs.probe]: in space -> true
+[oojs.probe]: stage space
+[oojs.probe]: vector add/subtract/multiply -> [Vector3D-1,2.5,7, Vector3D3,1.5,-1, Vector3D-1.5,-3,-4.5]
+[oojs.probe]: vector dot/cross/tripleProduct -> [11, Vector3D6.5,-10,4.5, -10]
+[oojs.probe]: vector angleTo/distanceTo/magnitude -> [0.858854, 3.5, 12.25, 3.741657, 14]
+[oojs.probe]: vector direction/rotateBy/rotationTo -> [Vector3D0.2673,0.5345,0.8018, Vector3D-0.5607,2.7078,2.5206, Quaternion2.4495,1.3268,-2.0412,0.9186, Quaternion2.4495,1.3268,-2.0412,0.9186]
+[oojs.probe]: vector interpolate -> Vector3D0.25,1.625,3.25
+[oojs.probe]: vector from array/string THREW Error: Could not construct vector from parameters ("1 2 3") -- expected Vector, Entity or array of three numbers.
+[oojs.probe]: vector random lengths -> [true, 3, true]
+[oojs.probe]: vector toString -> "(1, 2, 3)"
+[oojs.probe]: vector bad argument THREW Error: Vector3D.add: Could not construct vector from parameters ("not a vector") -- expected Vector, Entity or array of three numbers.
+[oojs.probe]: quaternion multiply/dot/conjugate -> [Quaternion0.8484,0.2323,0.472,-0.0593, 0.848398, Quaternion0.9614,-0.1208,-0.2455,0.0308]
+[oojs.probe]: quaternion rotate/normalize -> [Quaternion0.8585,0.2237,0.1575,0.4338, Quaternion0.8832,0.0225,0.2727,-0.3808, Quaternion1,0,0,0]
+[oojs.probe]: quaternion vectors -> [Vector3D-0.4794,0.2171,0.8503, Vector3D0,0.9689,-0.2474, Vector3D0.8776,0.1186,0.4645]
+[oojs.probe]: quaternion toString/toArray -> ["(0.961353 + 0.120799i + 0.245474j - 0.030845k)", [0.961353, 0.120799, 0.245474, -0.030845]]
+[oojs.probe]: quaternion random unit -> true
+[oojs.probe]: system id/name/government -> [7, "Lave", 3, 5, 4]
+[oojs.probe]: system lookups -> ["Lave", 7, "Esrilees"]
+[oojs.probe]: main bodies -> [<coriolis-station>, 41160, true, 1]
+[oojs.probe]: system.locationFromCode -> Vector3D-4964.8437,-21163.2812,-8525.7812
+[oojs.probe]: count buoys -> [1, 1]
+[oojs.probe]: routeToSystem -> [[7, 129], 5.6, 31.36]
+[oojs.probe]: routeToSystem by distance -> 2
+[oojs.probe]: distanceToSystem -> 5.6
+[oojs.probe]: systemsInRange -> [39, 46, 55, 129, 147, 255]
+[oojs.probe]: filteredSystems -> 0
+[oojs.probe]: samplePrice -> [37, 902]
+[oojs.probe]: addGroup -> [3, false, true]
+[oojs.probe]: ship setCargo/cargoList -> [true, []]
+[oojs.probe]: ship equipment -> [true, true, "EQUIPMENT_OK", true, "EQUIPMENT_DAMAGED", false, true, "EQUIPMENT_UNAVAILABLE"]
+[oojs.probe]: ship bounty -> 25
+[oojs.probe]: ship roles -> ["oojs-probe", true, 1]
+[oojs.probe]: ship spawn -> 2
+[oojs.probe]: ship AI script -> "Oolite Trader AI"
+[oojs.probe]: ship script -> "oolite-default-ship-script"
+[oojs.probe]: ship dumpCargo -> false
+[oojs.probe]: ship explode/stale -> false
+[oojs.probe]: player speed/maxSpeed -> [350, 32, 7]
+[oojs.probe]: player compass -> ["COMPASS_MODE_BASIC", <coriolis-station>]
+[oojs.probe]: player scanner zoom -> undefined
+[oojs.probe]: player custom view THREW Error: PlayerShip.setCustomView only works when custom view is active.
+[oojs.probe]: player MFD text -> undefined
+[oojs.probe]: player crosshairs -> null
+[oojs.probe]: player escape pod destination THREW Error: Player.setEscapePodDestination() only works while the escape pod is in flight.
+[oojs.probe]: set targetSystem in flight THREW Error: player.ship.targetSystem is read-only unless called when docked.
+[oojs.probe]: begin countdown bad argument THREW Error: PlayerShip.beginHyperspaceCountdown: Invalid arguments (2) -- expected between 5 and 60 seconds.
+[oojs.probe]: world event playerStartedJumpCountdown("standard", 5)
+[oojs.probe]: world event playerCancelledJumpCountdown()
+[oojs.probe]: begin/cancel countdown -> [true, "STATUS_IN_FLIGHT"]
+[oojs.probe]: world event playerStartedJumpCountdown("standard", 5)
+[oojs.probe]: begin countdown -> true
+[oojs.probe]: world event shipWillEnterWitchspace("standard jump", 55)
+[oojs.probe]: world event systemWillPopulate()
+[oojs.probe]: world event shipWillExitWitchspace("standard jump")
+[oojs.probe]: world event dayChanged(2084005)
+[oojs.probe]: world event shipExitedWitchspace("standard jump")
+[oojs.probe]: stage arrival
+[oojs.probe]: arrived system -> [55, "Leesti", 0, 55]
+[oojs.probe]: fuel after jump -> 3.4
+[oojs.probe]: arrival bodies -> [true, true, 1]
+[oojs.probe]: previous system -> [true]
+[oojs.probe]: world event shipWillDockWithStation(<coriolis-station>)
+[oojs.probe]: dockPlayer -> undefined
+[oojs.probe]: world event shipDockedWithStation(<coriolis-station>)
+[oojs.probe]: world event guiScreenChanged("GUI_SCREEN_STATUS", "GUI_SCREEN_MAIN")
+[oojs.probe]: world event missionScreenOpportunity()
+[oojs.probe]: stage docked
+[oojs.probe]: docked at -> [true, true, "STATUS_DOCKED"]
+[oojs.probe]: market food -> ["number", "number", "0", 127]
+[oojs.probe]: setMarketPrice/Quantity -> [99, 7]
+[oojs.probe]: credits -> 1000.5
+[oojs.probe]: manifest set -> [3, 1, 4, 16]
+[oojs.probe]: manifest list -> ["food:3", "computers:1"]
+[oojs.probe]: manifest comment -> ["probe", ""]
+[oojs.probe]: removeAllCargo -> 0
+[oojs.probe]: displayNameForCommodity -> ["Food", "Gem-Stones"]
+[oojs.probe]: EquipmentInfo -> ["Fuel Scoops", 5250, 5, true, 0]
+[oojs.probe]: world event equipmentAdded("EQ_FUEL_SCOOPS")
+[oojs.probe]: world event equipmentRemoved("EQ_FUEL_SCOOPS")
+[oojs.probe]: award/remove equipment -> [true, "EQUIPMENT_OK", true, "EQUIPMENT_UNAVAILABLE"]
+[oojs.probe]: award unknown equipment THREW Error: Ship.awardEquipment: Invalid arguments ("EQ_OOJS_NONSENSE") -- expected equipment type.
+[oojs.probe]: primed equipment -> false
+[oojs.probe]: addPassenger -> false
+[oojs.probe]: world event playerEnteredContract("parcel", {object})
+[oojs.probe]: addParcel -> true
+[oojs.probe]: world event playerEnteredContract("cargo", {object})
+[oojs.probe]: awardContract -> true
+[oojs.probe]: contract lists -> [0, 1, 1, undefined]
+[oojs.probe]: removePassenger/Parcel/Contract -> [false, true, true]
+[oojs.probe]: reputation -> ["number", "number", "number"]
+[oojs.probe]: mission markSystem -> true
+[oojs.probe]: mission instructions -> true
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): Unknown expansion key [oojs_probe_nonexistent] in string.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 384.
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): Unknown expansion key [credits_word] in string.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 384.
+[oojs.probe]: expandDescription -> ["Leesti is in galaxy [oojs_probe_nonexistent]", "[credits_word]"]
+[oojs.probe]: expandMissionText -> null
+[oojs.probe]: formatting -> ["1234.5 ₢", "1 234 567", "0000011:13:46:40"]
+[oojs.probe]: oolite.compareVersion -> [-1, 1]
+[oojs.probe]: Ship data -> ["Adder", "trader(0.25) trader-courier(0.5) trader-smuggler pirate-light-fighter(0.25) pirate(0.2) scavenger shuttle hermit-ship", null]
+[oojs.probe]: Ship keysForRole -> [null, true]
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): setScreenBackground(): texture "oojs-missing.png" could not be found.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 390.
+[oojs.probe]: setScreenBackground -> [false, true]
+[oojs.probe]: world event guiScreenChanged("GUI_SCREEN_MISSION", "GUI_SCREEN_STATUS")
+[oojs.probe]: runScreen -> true
+[oojs.probe]: mission screen state -> [undefined, "oojs-probe"]
+[oojs.probe]: addMessageText -> true
+[oojs.probe]: world event equipmentAdded("EQ_GAL_DRIVE")
+[oojs.probe]: award galactic drive -> true
+[oojs.probe]: mission callback null
+[oojs.probe]: world event guiScreenChanged("GUI_SCREEN_MAIN", "GUI_SCREEN_MISSION")
+[oojs.probe]: world event shipWillLaunchFromStation(<coriolis-station>)
+[oojs.probe]: launch from mission screen -> "STATUS_LAUNCHING"
+[oojs.probe]: world event shipLaunchedFromStation(<coriolis-station>)
+[oojs.probe]: stage galactic
+[oojs.probe]: begin galactic countdown -> true
+[oojs.probe]: world event shipWillEnterWitchspace("galactic jump", 1)
+[oojs.probe]: world event equipmentRemoved("EQ_GAL_DRIVE")
+[oojs.probe]: world event systemWillPopulate()
+[oojs.probe]: world event playerEnteredNewGalaxy(1)
+[oojs.probe]: world event shipWillExitWitchspace("galactic jump")
+[oojs.probe]: stage new galaxy
+[oojs.probe]: galaxy -> [1, false]
+[oojs.probe]: world event shipExitedWitchspace("galactic jump")
+[oojs.probe]: galaxy system -> [1, 217, "Lemaed"]
+[oojs.probe]: galaxy lookups -> ["Ausis", "Ausis"]
+[oojs.probe]: stage sweep
+[oojs.probe]: sweep Entity.toString: this{}=ok:string; thisVec=ok:string; stale=ok:string; none=ok:string; undef=ok:string; null=ok:string; str=ok:string; neg=ok:string; nan=ok:string; obj=ok:string; arr=ok:string
+[oojs.probe]: sweep Ship.abandonShip: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:boolean; undef=ok:boolean; null=ok:boolean; str=ok:boolean; neg=ok:boolean; nan=ok:boolean; obj=ok:boolean; arr=ok:boolean
+[oojs.probe]: sweep Ship.addCargoEntity: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:PlayerShip.addCargoEntity: Invalid arguments () -- expected scoopable entity..; undef=Error:PlayerShip.addCargoEntity: Invalid arguments (undefined) -- expected scoopable entity..; null=Error:PlayerShip.addCargoEntity: Invalid arguments (null) -- expected scoopable entity..; str=Error:PlayerShip.addCargoEntity: Invalid arguments ("oojs-nonsense") -- expected scoopable entity..; neg=Error:PlayerShip.addCargoEntity: Invalid arguments (-1) -- expected scoopable entity..; nan=Error:PlayerShip.addCargoEntity: Invalid arguments (NaN) -- expected scoopable entity..; obj=Error:PlayerShip.addCargoEntity: Invalid arguments ([object Object]) -- expected scoopable entity..; arr=Error:PlayerShip.addCargoEntity: Invalid arguments ([1, 2]) -- expected scoopable entity..
+[oojs.probe]: sweep Ship.addCollisionException: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.addCollisionException: Invalid arguments (function) -- expected other ship.; undef=Error:Ship.addCollisionException: Invalid arguments (undefined) -- expected other ship.; null=Error:Ship.addCollisionException: Invalid arguments (null) -- expected other ship.; str=Error:Ship.addCollisionException: Invalid arguments ("oojs-nonsense") -- expected other ship.; neg=Error:Ship.addCollisionException: Invalid arguments (-1) -- expected other ship.; nan=Error:Ship.addCollisionException: Invalid arguments (NaN) -- expected other ship.; obj=Error:Ship.addCollisionException: Invalid arguments ([object Object]) -- expected other ship.; arr=Error:Ship.addCollisionException: Invalid arguments ([1, 2]) -- expected other ship.
+[oojs.probe]: sweep Ship.addDefenseTarget: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.addDefenseTarget: Invalid arguments (function) -- expected target.; undef=Error:Ship.addDefenseTarget: Invalid arguments (undefined) -- expected target.; null=Error:Ship.addDefenseTarget: Invalid arguments (null) -- expected target.; str=Error:Ship.addDefenseTarget: Invalid arguments ("oojs-nonsense") -- expected target.; neg=Error:Ship.addDefenseTarget: Invalid arguments (-1) -- expected target.; nan=Error:Ship.addDefenseTarget: Invalid arguments (NaN) -- expected target.; obj=Error:Ship.addDefenseTarget: Invalid arguments ([object Object]) -- expected target.; arr=Error:Ship.addDefenseTarget: Invalid arguments ([1, 2]) -- expected target.
+[oojs.probe]: sweep Ship.adjustCargo: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.adjustCargo: Invalid arguments () -- expected commodity, amount.; undef=Error:Ship.adjustCargo: Invalid arguments (undefined) -- expected commodity, amount.; null=Error:Ship.adjustCargo: Invalid arguments (null) -- expected commodity, amount.; str=Error:Ship.adjustCargo: Invalid arguments ("oojs-nonsense") -- expected commodity, amount.; neg=Error:Ship.adjustCargo: Invalid arguments (-1) -- expected commodity, amount.; nan=Error:Ship.adjustCargo: Invalid arguments (NaN) -- expected commodity, amount.; obj=Error:Ship.adjustCargo: Invalid arguments ([object Object]) -- expected commodity, amount.; arr=Error:Ship.adjustCargo: Invalid arguments ([1, 2]) -- expected commodity, amount.
+[oojs.probe]: sweep Ship.awardEquipment: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.awardEquipment: Invalid arguments () -- expected equipment type.; undef=Error:Ship.awardEquipment: Invalid arguments (undefined) -- expected equipment type.; null=Error:Ship.awardEquipment: Invalid arguments (null) -- expected equipment type.; str=Error:Ship.awardEquipment: Invalid arguments ("oojs-nonsense") -- expected equipment type.; neg=Error:Ship.awardEquipment: Invalid arguments (-1) -- expected equipment type.; nan=Error:Ship.awardEquipment: Invalid arguments (NaN) -- expected equipment type.; obj=Error:Ship.awardEquipment: Invalid arguments ([object Object]) -- expected equipment type.; arr=Error:Ship.awardEquipment: Invalid arguments ([1, 2]) -- expected equipment type.
+[oojs.probe]: sweep Ship.broadcastDistressMessage: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.canAwardEquipment: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.canAwardEquipment: Invalid arguments () -- expected equipment type.; undef=Error:Ship.canAwardEquipment: Invalid arguments (undefined) -- expected equipment type.; null=Error:Ship.canAwardEquipment: Invalid arguments (null) -- expected equipment type.; str=ok:boolean; neg=Error:Ship.canAwardEquipment: Invalid arguments (-1) -- expected equipment type.; nan=Error:Ship.canAwardEquipment: Invalid arguments (NaN) -- expected equipment type.; obj=Error:Ship.canAwardEquipment: Invalid arguments ([object Object]) -- expected equipment type.; arr=Error:Ship.canAwardEquipment: Invalid arguments ([1, 2]) -- expected equipment type.
+[oojs.probe]: sweep Ship.checkCourseToDestination: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:entity-or-null; undef=ok:entity-or-null; null=ok:entity-or-null; str=ok:entity-or-null; neg=ok:entity-or-null; nan=ok:entity-or-null; obj=ok:entity-or-null; arr=ok:entity-or-null
+[oojs.probe]: sweep Ship.checkScanner: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:array; undef=ok:array; null=ok:array; str=ok:array; neg=ok:array; nan=ok:array; obj=ok:array; arr=ok:array
+[oojs.probe]: sweep Ship.clearDefenseTargets: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.commsMessage: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.commsMessage: Invalid arguments () -- expected message and optional target.; undef=Error:Ship.commsMessage: Invalid arguments (undefined) -- expected message and optional target.; null=Error:Ship.commsMessage: Invalid arguments (null) -- expected message and optional target.; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.damageAssessment: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:number; undef=ok:number; null=ok:number; str=ok:number; neg=ok:number; nan=ok:number; obj=ok:number; arr=ok:number
+[oojs.probe]: sweep Ship.deployEscorts: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.dockEscorts: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.dumpCargo: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:null; undef=Error:Ship.dumpCargo: Invalid arguments (undefined) -- expected optional quantity (1 to 64), optional preferred commodity.; null=Error:Ship.dumpCargo: Invalid arguments (null) -- expected optional quantity (1 to 64), optional preferred commodity.; str=Error:Ship.dumpCargo: Invalid arguments ("oojs-nonsense") -- expected optional quantity (1 to 64), optional preferred commodit; neg=Error:Ship.dumpCargo: Invalid arguments (-1) -- expected optional quantity (1 to 64), optional preferred commodity.; nan=Error:Ship.dumpCargo: Invalid arguments (NaN) -- expected optional quantity (1 to 64), optional preferred commodity.; obj=Error:Ship.dumpCargo: Invalid arguments ([object Object]) -- expected optional quantity (1 to 64), optional preferred commodit; arr=Error:Ship.dumpCargo: Invalid arguments ([1, 2]) -- expected optional quantity (1 to 64), optional preferred commodity.
+[oojs.probe]: sweep Ship.ejectItem: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.ejectItem: Invalid arguments () -- expected string (role).; undef=Error:Ship.ejectItem: Invalid arguments (undefined) -- expected string (role).; null=Error:Ship.ejectItem: Invalid arguments (null) -- expected string (role).; str=ok:null; neg=ok:null; nan=ok:null; obj=ok:null; arr=ok:null
+[oojs.probe]: sweep Ship.ejectSpecificItem: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.ejectSpecificItem: Invalid arguments () -- expected string (ship key).; undef=Error:Ship.ejectSpecificItem: Invalid arguments (undefined) -- expected string (ship key).; null=Error:Ship.ejectSpecificItem: Invalid arguments (null) -- expected string (ship key).; str=ok:null; neg=ok:null; nan=ok:null; obj=ok:null; arr=ok:null
+[oojs.probe]: sweep Ship.enterWormhole: this{}=Error:Cannot use this function while player's ship not entering witchspace.; thisVec=Error:Cannot use this function while player's ship not entering witchspace.; stale=Error:Cannot use this function while player's ship not entering witchspace.; none=Error:Cannot use this function while player's ship not entering witchspace.; undef=Error:Cannot use this function while player's ship not entering witchspace.; null=Error:Cannot use this function while player's ship not entering witchspace.; str=Error:Cannot use this function while player's ship not entering witchspace.; neg=Error:Cannot use this function while player's ship not entering witchspace.; nan=Error:Cannot use this function while player's ship not entering witchspace.; obj=Error:Cannot use this function while player's ship not entering witchspace.; arr=Error:Cannot use this function while player's ship not entering witchspace.
+[oojs.probe]: sweep Ship.equipmentStatus: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.equipmentStatus: Invalid arguments () -- expected equipment type.; undef=Error:Ship.equipmentStatus: Invalid arguments (undefined) -- expected equipment type.; null=Error:Ship.equipmentStatus: Invalid arguments (null) -- expected equipment type.; str=ok:string; neg=Error:Ship.equipmentStatus: Invalid arguments (-1) -- expected equipment type.; nan=Error:Ship.equipmentStatus: Invalid arguments (NaN) -- expected equipment type.; obj=Error:Ship.equipmentStatus: Invalid arguments ([object Object]) -- expected equipment type.; arr=Error:Ship.equipmentStatus: Invalid arguments ([1, 2]) -- expected equipment type.
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): Ship.exitAI(): Cannot exit current AI state machine because there are no suspended state machines.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): Ship.exitAI(): Cannot exit current AI state machine because there are no suspended state machines.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): Ship.exitAI(): Cannot exit current AI state machine because there are no suspended state machines.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): Ship.exitAI(): Cannot exit current AI state machine because there are no suspended state machines.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): Ship.exitAI(): Cannot exit current AI state machine because there are no suspended state machines.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): Ship.exitAI(): Cannot exit current AI state machine because there are no suspended state machines.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): Ship.exitAI(): Cannot exit current AI state machine because there are no suspended state machines.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): Ship.exitAI(): Cannot exit current AI state machine because there are no suspended state machines.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[oojs.probe]: sweep Ship.exitAI: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.exitSystem: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:boolean; undef=Error:Ship.exitSystem: Invalid arguments (undefined) -- expected system ID.; null=ok:boolean; str=Error:Ship.exitSystem: Invalid arguments ("oojs-nonsense") -- expected system ID.; neg=Error:Ship.exitSystem: Invalid arguments (-1) -- expected system ID.; nan=Error:Ship.exitSystem: Invalid arguments (NaN) -- expected system ID.; obj=Error:Ship.exitSystem: Invalid arguments ([object Object]) -- expected system ID.; arr=Error:Ship.exitSystem: Invalid arguments ([1, 2]) -- expected system ID.
+[oojs.probe]: sweep Ship.explode: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.findNearestStation: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:entity; undef=ok:entity; null=ok:entity; str=ok:entity; neg=ok:entity; nan=ok:entity; obj=ok:entity; arr=ok:entity
+[oojs.probe]: sweep Ship.getMaterials: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:Object; undef=ok:Object; null=ok:Object; str=ok:Object; neg=ok:Object; nan=ok:Object; obj=ok:Object; arr=ok:Object
+[oojs.probe]: sweep Ship.getSafeCourseToDestination: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:Vector3D; undef=ok:Vector3D; null=ok:Vector3D; str=ok:Vector3D; neg=ok:Vector3D; nan=ok:Vector3D; obj=ok:Vector3D; arr=ok:Vector3D
+[oojs.probe]: sweep Ship.getShaders: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:Object; undef=ok:Object; null=ok:Object; str=ok:Object; neg=ok:Object; nan=ok:Object; obj=ok:Object; arr=ok:Object
+[oojs.probe]: sweep Ship.hasEquipmentProviding: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.hasEquipmentProviding: Invalid arguments () -- expected string (equipment).; undef=Error:Ship.hasEquipmentProviding: Invalid arguments (undefined) -- expected string (equipment).; null=Error:Ship.hasEquipmentProviding: Invalid arguments (null) -- expected string (equipment).; str=ok:boolean; neg=ok:boolean; nan=ok:boolean; obj=ok:boolean; arr=ok:boolean
+[oojs.probe]: sweep Ship.hasRole: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.hasRole: Invalid arguments () -- expected string (role).; undef=Error:Ship.hasRole: Invalid arguments (undefined) -- expected string (role).; null=Error:Ship.hasRole: Invalid arguments (null) -- expected string (role).; str=ok:boolean; neg=ok:boolean; nan=ok:boolean; obj=ok:boolean; arr=ok:boolean
+[oojs.probe]: sweep Ship.markTargetForFines: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:boolean; undef=ok:boolean; null=ok:boolean; str=ok:boolean; neg=ok:boolean; nan=ok:boolean; obj=ok:boolean; arr=ok:boolean
+[oojs.probe]: sweep Ship.notifyGroupOfWormhole: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.offerToEscort: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.offerToEscort: Invalid arguments (function) -- expected target.; undef=Error:Ship.offerToEscort: Invalid arguments (undefined) -- expected target.; null=Error:Ship.offerToEscort: Invalid arguments (null) -- expected target.; str=Error:Ship.offerToEscort: Invalid arguments ("oojs-nonsense") -- expected target.; neg=Error:Ship.offerToEscort: Invalid arguments (-1) -- expected target.; nan=Error:Ship.offerToEscort: Invalid arguments (NaN) -- expected target.; obj=Error:Ship.offerToEscort: Invalid arguments ([object Object]) -- expected target.; arr=Error:Ship.offerToEscort: Invalid arguments ([1, 2]) -- expected target.
+[oojs.probe]: sweep Ship.patrolReportIn: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.addDefenseTarget: Invalid arguments (function) -- expected target.; undef=Error:Ship.addDefenseTarget: Invalid arguments (undefined) -- expected target.; null=Error:Ship.addDefenseTarget: Invalid arguments (null) -- expected target.; str=Error:Ship.addDefenseTarget: Invalid arguments ("oojs-nonsense") -- expected target.; neg=Error:Ship.addDefenseTarget: Invalid arguments (-1) -- expected target.; nan=Error:Ship.addDefenseTarget: Invalid arguments (NaN) -- expected target.; obj=Error:Ship.addDefenseTarget: Invalid arguments ([object Object]) -- expected target.; arr=Error:Ship.addDefenseTarget: Invalid arguments ([1, 2]) -- expected target.
+[oojs.probe]: sweep Ship.performAttack: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.performCollect: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.performEscort: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.performFaceDestination: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.performFlee: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.performFlyToRangeFromDestination: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.performHold: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.performIdle: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.performIntercept: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.performLandOnPlanet: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.performMining: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.performScriptedAI: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.performScriptedAttackAI: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.performStop: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.performTumble: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.reactToAIMessage: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.reactToAIMessage: Invalid arguments () -- expected string.; undef=Error:Ship.reactToAIMessage: Invalid arguments (undefined) -- expected string.; null=Error:Ship.reactToAIMessage: Invalid arguments (null) -- expected string.; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.remove: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.removeCollisionException: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.removeCollisionException: Invalid arguments (function) -- expected other ship.; undef=Error:Ship.removeCollisionException: Invalid arguments (undefined) -- expected other ship.; null=Error:Ship.removeCollisionException: Invalid arguments (null) -- expected other ship.; str=Error:Ship.removeCollisionException: Invalid arguments ("oojs-nonsense") -- expected other ship.; neg=Error:Ship.removeCollisionException: Invalid arguments (-1) -- expected other ship.; nan=Error:Ship.removeCollisionException: Invalid arguments (NaN) -- expected other ship.; obj=Error:Ship.removeCollisionException: Invalid arguments ([object Object]) -- expected other ship.; arr=Error:Ship.removeCollisionException: Invalid arguments ([1, 2]) -- expected other ship.
+[oojs.probe]: sweep Ship.removeDefenseTarget: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.removeDefenseTarget: Invalid arguments (function) -- expected target.; undef=Error:Ship.removeDefenseTarget: Invalid arguments (undefined) -- expected target.; null=Error:Ship.removeDefenseTarget: Invalid arguments (null) -- expected target.; str=Error:Ship.removeDefenseTarget: Invalid arguments ("oojs-nonsense") -- expected target.; neg=Error:Ship.removeDefenseTarget: Invalid arguments (-1) -- expected target.; nan=Error:Ship.removeDefenseTarget: Invalid arguments (NaN) -- expected target.; obj=Error:Ship.removeDefenseTarget: Invalid arguments ([object Object]) -- expected target.; arr=Error:Ship.removeDefenseTarget: Invalid arguments ([1, 2]) -- expected target.
+[oojs.probe]: sweep Ship.removeEquipment: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.removeEquipment: Invalid arguments () -- expected equipment type.; undef=Error:Ship.removeEquipment: Invalid arguments (undefined) -- expected equipment type.; null=Error:Ship.removeEquipment: Invalid arguments (null) -- expected equipment type.; str=Error:Ship.removeEquipment: Invalid arguments ("oojs-nonsense") -- expected equipment type.; neg=Error:Ship.removeEquipment: Invalid arguments (-1) -- expected equipment type.; nan=Error:Ship.removeEquipment: Invalid arguments (NaN) -- expected equipment type.; obj=Error:Ship.removeEquipment: Invalid arguments ([object Object]) -- expected equipment type.; arr=Error:Ship.removeEquipment: Invalid arguments ([1, 2]) -- expected equipment type.
+[oojs.probe]: sweep Ship.requestHelpFromGroup: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.requestDockingInstructions: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:null; undef=ok:null; null=ok:null; str=ok:null; neg=ok:null; nan=ok:null; obj=ok:null; arr=ok:null
+[oojs.probe]: sweep Ship.recallDockingInstructions: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:null; undef=ok:null; null=ok:null; str=ok:null; neg=ok:null; nan=ok:null; obj=ok:null; arr=ok:null
+[oojs.probe]: sweep Ship.restoreSubEntities: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:boolean; undef=ok:boolean; null=ok:boolean; str=ok:boolean; neg=ok:boolean; nan=ok:boolean; obj=ok:boolean; arr=ok:boolean
+[oojs.probe]: sweep Ship.selectNewMissile: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:string; undef=ok:string; null=ok:string; str=ok:string; neg=ok:string; nan=ok:string; obj=ok:string; arr=ok:string
+[oojs.probe]: sweep Ship.sendAIMessage: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.sendAIMessage: Invalid arguments () -- expected string.; undef=Error:Ship.sendAIMessage: Invalid arguments (undefined) -- expected string.; null=Error:Ship.sendAIMessage: Invalid arguments (null) -- expected string.; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.setAI: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.setAI: Invalid arguments () -- expected string (AI name).; undef=Error:Ship.setAI: Invalid arguments (undefined) -- expected string (AI name).; null=Error:Ship.setAI: Invalid arguments (null) -- expected string (AI name).; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.setBounty: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.setBounty: Invalid arguments () -- expected new bounty and reason.; undef=Error:Ship.setBounty: Invalid arguments (undefined) -- expected new bounty and reason.; null=Error:Ship.setBounty: Invalid arguments (null) -- expected new bounty and reason.; str=Error:Ship.setBounty: Invalid arguments ("oojs-nonsense") -- expected new bounty and reason.; neg=Error:Ship.setBounty: Invalid arguments (-1) -- expected new bounty and reason.; nan=Error:Ship.setBounty: Invalid arguments (NaN) -- expected new bounty and reason.; obj=Error:Ship.setBounty: Invalid arguments ([object Object]) -- expected new bounty and reason.; arr=Error:Ship.setBounty: Invalid arguments ([1, 2]) -- expected new bounty and reason.
+[oojs.probe]: sweep Ship.setCargo: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.setCargo: Invalid arguments () -- expected cargo name and optional positive quantity.; undef=Error:Ship.setCargo: Invalid arguments (undefined) -- expected cargo name and optional positive quantity.; null=Error:Ship.setCargo: Invalid arguments (null) -- expected cargo name and optional positive quantity.; str=ok:boolean; neg=ok:boolean; nan=ok:boolean; obj=ok:boolean; arr=ok:boolean
+[oojs.probe]: sweep Ship.setCargoType: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.setCargoType: Invalid arguments () -- expected cargo type name.; undef=Error:Ship.setCargoType: Invalid arguments (undefined) -- expected cargo type name.; null=Error:Ship.setCargoType: Invalid arguments (null) -- expected cargo type name.; str=ok:boolean; neg=ok:boolean; nan=ok:boolean; obj=ok:boolean; arr=ok:boolean
+[oojs.probe]: sweep Ship.setEquipmentStatus: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.setEquipmentStatus: Invalid arguments () -- expected equipment type and status.; undef=Error:Ship.setEquipmentStatus: Invalid arguments (undefined) -- expected equipment type and status.; null=Error:Ship.setEquipmentStatus: Invalid arguments (null) -- expected equipment type and status.; str=Error:Ship.setEquipmentStatus: Invalid arguments ("oojs-nonsense") -- expected equipment type and status.; neg=Error:Ship.setEquipmentStatus: Invalid arguments (-1) -- expected equipment type and status.; nan=Error:Ship.setEquipmentStatus: Invalid arguments (NaN) -- expected equipment type and status.; obj=Error:Ship.setEquipmentStatus: Invalid arguments ([object Object]) -- expected equipment type and status.; arr=Error:Ship.setEquipmentStatus: Invalid arguments ([1, 2]) -- expected equipment type and status.
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): Ship.setMaterials: expected object instead of 'undefined'.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): Ship.setMaterials: expected object instead of 'null'.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): Ship.setMaterials: expected object instead of 'oojs-nonsense'.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): Ship.setMaterials: expected object instead of '-1'.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): Ship.setMaterials: expected object instead of 'NaN'.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[oojs.probe]: sweep Ship.setMaterials: this{}=Error:Ship.setMaterials: Invalid arguments () -- expected parameter object.; thisVec=Error:Ship.setMaterials: Invalid arguments () -- expected parameter object.; stale=ok:undefined; none=Error:Ship.setMaterials: Invalid arguments () -- expected parameter object.; undef=ok:boolean; null=ok:boolean; str=ok:boolean; neg=ok:boolean; nan=ok:boolean; obj=ok:boolean; arr=Error:Native exception
+[oojs.probe]: sweep Ship.setScript: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.setScript: Invalid arguments () -- expected string (script name).; undef=Error:Ship.setScript: Invalid arguments (undefined) -- expected string (script name).; null=Error:Ship.setScript: Invalid arguments (null) -- expected string (script name).; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): Ship.setShaders: expected object instead of 'undefined'.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): Ship.setShaders: expected object instead of 'null'.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): Ship.setShaders: expected object instead of 'oojs-nonsense'.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): Ship.setShaders: expected object instead of '-1'.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): Ship.setShaders: expected object instead of 'NaN'.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[oojs.probe]: sweep Ship.setShaders: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.setShaders: Invalid arguments () -- expected parameter object.; undef=ok:boolean; null=ok:boolean; str=ok:boolean; neg=ok:boolean; nan=ok:boolean; obj=ok:boolean; arr=Error:Native exception
+[oojs.probe]: sweep Ship.spawn: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.spawn: Invalid arguments () -- expected role and optional quantity (1 to 64).; undef=Error:Ship.spawn: Invalid arguments (undefined) -- expected role and optional quantity (1 to 64).; null=Error:Ship.spawn: Invalid arguments (null) -- expected role and optional quantity (1 to 64).; str=ok:array; neg=ok:array; nan=ok:array; obj=ok:array; arr=ok:array
+[oojs.probe]: sweep Ship.spawnOne: this{}=TypeError:this.spawn is not a function; thisVec=TypeError:this.spawn is not a function; stale=ok:null; none=Error:Ship.spawn: Invalid arguments (undefined) -- expected role and optional quantity (1 to 64).; undef=Error:Ship.spawn: Invalid arguments (undefined) -- expected role and optional quantity (1 to 64).; null=Error:Ship.spawn: Invalid arguments (null) -- expected role and optional quantity (1 to 64).; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.switchAI: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=Error:Ship.switchAI: Invalid arguments () -- expected string (AI name).; undef=Error:Ship.switchAI: Invalid arguments (undefined) -- expected string (AI name).; null=Error:Ship.switchAI: Invalid arguments (null) -- expected string (AI name).; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.threatAssessment: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:number; undef=ok:number; null=ok:number; str=ok:number; neg=ok:number; nan=ok:number; obj=ok:number; arr=ok:number
+[oojs.probe]: sweep Ship.throwSpark: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.updateEscortFormation: this{}=Error:Native method expected Ship, got [object Object].; thisVec=Error:Native method expected Ship, got (1, 2, 3).; stale=ok:undefined; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Ship.keys: none=ok:array; undef=ok:array; null=ok:array; str=ok:array; neg=ok:array; nan=ok:array; obj=ok:array; arr=ok:array
+[oojs.probe]: sweep Ship.keysForRole: none=Error:Ship.shipKeysForRole: Invalid arguments () -- expected ship role.; undef=ok:null; null=ok:null; str=ok:null; neg=ok:null; nan=ok:null; obj=ok:null; arr=ok:null
+[oojs.probe]: sweep Ship.roleIsInCategory: none=Error:Ship.roleIsInCategory: Invalid arguments () -- expected role, category.; undef=Error:Ship.roleIsInCategory: Invalid arguments (undefined) -- expected role, category.; null=Error:Ship.roleIsInCategory: Invalid arguments (null) -- expected role, category.; str=Error:Ship.roleIsInCategory: Invalid arguments ("oojs-nonsense") -- expected role, category.; neg=Error:Ship.roleIsInCategory: Invalid arguments (-1) -- expected role, category.; nan=Error:Ship.roleIsInCategory: Invalid arguments (NaN) -- expected role, category.; obj=Error:Ship.roleIsInCategory: Invalid arguments ([object Object]) -- expected role, category.; arr=Error:Ship.roleIsInCategory: Invalid arguments ([1, 2]) -- expected role, category.
+[oojs.probe]: sweep Ship.setCharacterRoleKey: missing
+[oojs.probe]: sweep Ship.shipDataForKey: none=Error:Ship.shipDataForKey: Invalid arguments () -- expected key.; undef=ok:null; null=ok:null; str=ok:null; neg=ok:null; nan=ok:null; obj=ok:null; arr=ok:null
+[oojs.probe]: sweep VisualEffect.getMaterials: this{}=Error:Native method expected Entity, got [object Object].; thisVec=Error:Native method expected Entity, got (1, 2, 3).
+[oojs.probe]: sweep VisualEffect.getShaders: this{}=Error:Native method expected Entity, got [object Object].; thisVec=Error:Native method expected Entity, got (1, 2, 3).
+[oojs.probe]: sweep VisualEffect.remove: this{}=Error:Native method expected Entity, got [object Object].; thisVec=Error:Native method expected Entity, got (1, 2, 3).
+[oojs.probe]: sweep VisualEffect.restoreSubEntities: this{}=Error:Native method expected Entity, got [object Object].; thisVec=Error:Native method expected Entity, got (1, 2, 3).
+[oojs.probe]: sweep VisualEffect.scale: this{}=Error:Native method expected Entity, got [object Object].; thisVec=Error:Native method expected Entity, got (1, 2, 3).
+[oojs.probe]: sweep VisualEffect.setMaterials: this{}=Error:VisualEffect.setMaterials: Invalid arguments () -- expected parameter object.; thisVec=Error:VisualEffect.setMaterials: Invalid arguments () -- expected parameter object.
+[oojs.probe]: sweep VisualEffect.setShaders: this{}=Error:Native method expected Entity, got [object Object].; thisVec=Error:Native method expected Entity, got (1, 2, 3).
+[oojs.probe]: sweep Sun.cancelNova: this{}=Error:Native method expected Sun, got [object Object].; thisVec=Error:Native method expected Sun, got (1, 2, 3).
+[oojs.probe]: sweep Dock.isQueued: this{}=Error:Dock.isQueued: Invalid arguments () -- expected ship.; thisVec=Error:Dock.isQueued: Invalid arguments () -- expected ship.
+[oojs.probe]: sweep Vector3D.toSource: this{}=Error:Vector3D.toSource: Invalid target object ([object Object]) -- expected Vector3D.; thisVec=ok:string; none=ok:string; undef=ok:string; null=ok:string; str=ok:string; neg=ok:string; nan=ok:string; obj=ok:string; arr=ok:string
+[oojs.probe]: sweep Vector3D.toString: this{}=Error:Vector3D.toString: Invalid target object ([object Object]) -- expected Vector3D.; thisVec=ok:string; none=ok:string; undef=ok:string; null=ok:string; str=ok:string; neg=ok:string; nan=ok:string; obj=ok:string; arr=ok:string
+[oojs.probe]: sweep Vector3D.add: this{}=Error:Vector3D.add: Invalid target object ([object Object]) -- expected Vector3D.; thisVec=Error:Vector3D.add: Could not construct vector from parameters () -- expected Vector, Entity or array of three numbers.; none=Error:Vector3D.add: Could not construct vector from parameters () -- expected Vector, Entity or array of three numbers.; undef=Error:Vector3D.add: Could not construct vector from parameters (undefined) -- expected Vector, Entity or array of three number; null=Error:Vector3D.add: Could not construct vector from parameters (null) -- expected Vector, Entity or array of three numbers.; str=Error:Vector3D.add: Could not construct vector from parameters ("oojs-nonsense") -- expected Vector, Entity or array of three ; neg=Error:Vector3D.add: Could not construct vector from parameters (-1) -- expected Vector, Entity or array of three numbers.; nan=Error:Vector3D.add: Could not construct vector from parameters (NaN) -- expected Vector, Entity or array of three numbers.; obj=Error:Vector3D.add: Could not construct vector from parameters ([object Object]) -- expected Vector, Entity or array of three ; arr=Error:Vector3D.add: Could not construct vector from parameters ([1, 2]) -- expected Vector, Entity or array of three numbers.
+[oojs.probe]: sweep Vector3D.angleTo: this{}=Error:Vector3D.angleTo: Invalid target object ([object Object]) -- expected Vector3D.; thisVec=Error:Vector3D.angleTo: Could not construct vector from parameters () -- expected Vector, Entity or array of three numbers.; none=Error:Vector3D.angleTo: Could not construct vector from parameters () -- expected Vector, Entity or array of three numbers.; undef=Error:Vector3D.angleTo: Could not construct vector from parameters (undefined) -- expected Vector, Entity or array of three nu; null=Error:Vector3D.angleTo: Could not construct vector from parameters (null) -- expected Vector, Entity or array of three numbers; str=Error:Vector3D.angleTo: Could not construct vector from parameters ("oojs-nonsense") -- expected Vector, Entity or array of th; neg=Error:Vector3D.angleTo: Could not construct vector from parameters (-1) -- expected Vector, Entity or array of three numbers.; nan=Error:Vector3D.angleTo: Could not construct vector from parameters (NaN) -- expected Vector, Entity or array of three numbers.; obj=Error:Vector3D.angleTo: Could not construct vector from parameters ([object Object]) -- expected Vector, Entity or array of th; arr=Error:Vector3D.angleTo: Could not construct vector from parameters ([1, 2]) -- expected Vector, Entity or array of three numbe
+[oojs.probe]: sweep Vector3D.cross: this{}=Error:Vector3D.cross: Invalid target object ([object Object]) -- expected Vector3D.; thisVec=Error:Vector3D.cross: Could not construct vector from parameters () -- expected Vector, Entity or array of three numbers.; none=Error:Vector3D.cross: Could not construct vector from parameters () -- expected Vector, Entity or array of three numbers.; undef=Error:Vector3D.cross: Could not construct vector from parameters (undefined) -- expected Vector, Entity or array of three numb; null=Error:Vector3D.cross: Could not construct vector from parameters (null) -- expected Vector, Entity or array of three numbers.; str=Error:Vector3D.cross: Could not construct vector from parameters ("oojs-nonsense") -- expected Vector, Entity or array of thre; neg=Error:Vector3D.cross: Could not construct vector from parameters (-1) -- expected Vector, Entity or array of three numbers.; nan=Error:Vector3D.cross: Could not construct vector from parameters (NaN) -- expected Vector, Entity or array of three numbers.; obj=Error:Vector3D.cross: Could not construct vector from parameters ([object Object]) -- expected Vector, Entity or array of thre; arr=Error:Vector3D.cross: Could not construct vector from parameters ([1, 2]) -- expected Vector, Entity or array of three numbers
+[oojs.probe]: sweep Vector3D.direction: this{}=Error:Vector3D.direction: Invalid target object ([object Object]) -- expected Vector3D.; thisVec=ok:Vector3D; none=ok:Vector3D; undef=ok:Vector3D; null=ok:Vector3D; str=ok:Vector3D; neg=ok:Vector3D; nan=ok:Vector3D; obj=ok:Vector3D; arr=ok:Vector3D
+[oojs.probe]: sweep Vector3D.distanceTo: this{}=Error:Vector3D.distanceTo: Invalid target object ([object Object]) -- expected Vector3D.; thisVec=Error:Vector3D.distanceTo: Could not construct vector from parameters () -- expected Vector, Entity or array of three numbers.; none=Error:Vector3D.distanceTo: Could not construct vector from parameters () -- expected Vector, Entity or array of three numbers.; undef=Error:Vector3D.distanceTo: Could not construct vector from parameters (undefined) -- expected Vector, Entity or array of three; null=Error:Vector3D.distanceTo: Could not construct vector from parameters (null) -- expected Vector, Entity or array of three numb; str=Error:Vector3D.distanceTo: Could not construct vector from parameters ("oojs-nonsense") -- expected Vector, Entity or array of; neg=Error:Vector3D.distanceTo: Could not construct vector from parameters (-1) -- expected Vector, Entity or array of three number; nan=Error:Vector3D.distanceTo: Could not construct vector from parameters (NaN) -- expected Vector, Entity or array of three numbe; obj=Error:Vector3D.distanceTo: Could not construct vector from parameters ([object Object]) -- expected Vector, Entity or array of; arr=Error:Vector3D.distanceTo: Could not construct vector from parameters ([1, 2]) -- expected Vector, Entity or array of three nu
+[oojs.probe]: sweep Vector3D.dot: this{}=Error:Vector3D.dot: Invalid target object ([object Object]) -- expected Vector3D.; thisVec=Error:Vector3D.dot: Could not construct vector from parameters () -- expected Vector, Entity or array of three numbers.; none=Error:Vector3D.dot: Could not construct vector from parameters () -- expected Vector, Entity or array of three numbers.; undef=Error:Vector3D.dot: Could not construct vector from parameters (undefined) -- expected Vector, Entity or array of three number; null=Error:Vector3D.dot: Could not construct vector from parameters (null) -- expected Vector, Entity or array of three numbers.; str=Error:Vector3D.dot: Could not construct vector from parameters ("oojs-nonsense") -- expected Vector, Entity or array of three ; neg=Error:Vector3D.dot: Could not construct vector from parameters (-1) -- expected Vector, Entity or array of three numbers.; nan=Error:Vector3D.dot: Could not construct vector from parameters (NaN) -- expected Vector, Entity or array of three numbers.; obj=Error:Vector3D.dot: Could not construct vector from parameters ([object Object]) -- expected Vector, Entity or array of three ; arr=Error:Vector3D.dot: Could not construct vector from parameters ([1, 2]) -- expected Vector, Entity or array of three numbers.
+[oojs.probe]: sweep Vector3D.fromCoordinateSystem: this{}=Error:Vector3D.fromCoordinateSystem: Invalid target object ([object Object]) -- expected Vector3D.; thisVec=Error:Vector3D.fromCoordinateSystem: Invalid arguments () -- expected coordinate system.; none=Error:Vector3D.fromCoordinateSystem: Invalid arguments () -- expected coordinate system.; undef=Error:Vector3D.fromCoordinateSystem: Invalid arguments (undefined) -- expected coordinate system.; null=Error:Vector3D.fromCoordinateSystem: Invalid arguments (null) -- expected coordinate system.; str=ok:Vector3D; neg=ok:Vector3D; nan=ok:Vector3D; obj=ok:Vector3D; arr=ok:Vector3D
+[oojs.probe]: sweep Vector3D.magnitude: this{}=Error:Vector3D.magnitude: Invalid target object ([object Object]) -- expected Vector3D.; thisVec=ok:number; none=ok:number; undef=ok:number; null=ok:number; str=ok:number; neg=ok:number; nan=ok:number; obj=ok:number; arr=ok:number
+[oojs.probe]: sweep Vector3D.multiply: this{}=Error:Vector3D.multiply: Invalid target object ([object Object]) -- expected Vector3D.; thisVec=ok:Vector3D; none=Error:Vector3D.multiply: Expected number, got ().; undef=Error:Vector3D.multiply: Expected number, got (undefined).; null=ok:Vector3D; str=Error:Vector3D.multiply: Expected number, got ("oojs-nonsense").; neg=ok:Vector3D; nan=Error:Vector3D.multiply: Expected number, got (NaN).; obj=Error:Vector3D.multiply: Expected number, got ([object Object]).; arr=Error:Vector3D.multiply: Expected number, got ([1, 2]).
+[oojs.probe]: sweep Vector3D.rotateBy: this{}=Error:Vector3D.rotateBy: Invalid target object ([object Object]) -- expected Vector3D.; thisVec=Error:Vector3D.rotateBy: Could not construct quaternion from parameters () -- expected Quaternion, Entity or four numbers.; none=Error:Vector3D.rotateBy: Could not construct quaternion from parameters () -- expected Quaternion, Entity or four numbers.; undef=Error:Vector3D.rotateBy: Could not construct quaternion from parameters (undefined) -- expected Quaternion, Entity or four num; null=Error:Vector3D.rotateBy: Could not construct quaternion from parameters (null) -- expected Quaternion, Entity or four numbers.; str=Error:Vector3D.rotateBy: Could not construct quaternion from parameters ("oojs-nonsense") -- expected Quaternion, Entity or fo; neg=Error:Vector3D.rotateBy: Could not construct quaternion from parameters (-1) -- expected Quaternion, Entity or four numbers.; nan=Error:Vector3D.rotateBy: Could not construct quaternion from parameters (NaN) -- expected Quaternion, Entity or four numbers.; obj=Error:Vector3D.rotateBy: Could not construct quaternion from parameters ([object Object]) -- expected Quaternion, Entity or fo; arr=Error:Vector3D.rotateBy: Could not construct quaternion from parameters ([1, 2]) -- expected Quaternion, Entity or four number
+[oojs.probe]: sweep Vector3D.rotationTo: this{}=Error:Vector3D.rotationTo: Invalid target object ([object Object]) -- expected Vector3D.; thisVec=Error:Vector3D.rotationTo: Could not construct vector from parameters () -- expected Vector, Entity or array of three numbers.; none=Error:Vector3D.rotationTo: Could not construct vector from parameters () -- expected Vector, Entity or array of three numbers.; undef=Error:Vector3D.rotationTo: Could not construct vector from parameters (undefined) -- expected Vector, Entity or array of three; null=Error:Vector3D.rotationTo: Could not construct vector from parameters (null) -- expected Vector, Entity or array of three numb; str=Error:Vector3D.rotationTo: Could not construct vector from parameters ("oojs-nonsense") -- expected Vector, Entity or array of; neg=Error:Vector3D.rotationTo: Could not construct vector from parameters (-1) -- expected Vector, Entity or array of three number; nan=Error:Vector3D.rotationTo: Could not construct vector from parameters (NaN) -- expected Vector, Entity or array of three numbe; obj=Error:Vector3D.rotationTo: Could not construct vector from parameters ([object Object]) -- expected Vector, Entity or array of; arr=Error:Vector3D.rotationTo: Could not construct vector from parameters ([1, 2]) -- expected Vector, Entity or array of three nu
+[oojs.probe]: sweep Vector3D.squaredDistanceTo: this{}=Error:Vector3D.squaredDistanceTo: Invalid target object ([object Object]) -- expected Vector3D.; thisVec=Error:Vector3D.squaredDistanceTo: Could not construct vector from parameters () -- expected Vector, Entity or array of three n; none=Error:Vector3D.squaredDistanceTo: Could not construct vector from parameters () -- expected Vector, Entity or array of three n; undef=Error:Vector3D.squaredDistanceTo: Could not construct vector from parameters (undefined) -- expected Vector, Entity or array o; null=Error:Vector3D.squaredDistanceTo: Could not construct vector from parameters (null) -- expected Vector, Entity or array of thr; str=Error:Vector3D.squaredDistanceTo: Could not construct vector from parameters ("oojs-nonsense") -- expected Vector, Entity or a; neg=Error:Vector3D.squaredDistanceTo: Could not construct vector from parameters (-1) -- expected Vector, Entity or array of three; nan=Error:Vector3D.squaredDistanceTo: Could not construct vector from parameters (NaN) -- expected Vector, Entity or array of thre; obj=Error:Vector3D.squaredDistanceTo: Could not construct vector from parameters ([object Object]) -- expected Vector, Entity or a; arr=Error:Vector3D.squaredDistanceTo: Could not construct vector from parameters ([1, 2]) -- expected Vector, Entity or array of t
+[oojs.probe]: sweep Vector3D.squaredMagnitude: this{}=Error:Vector3D.squaredMagnitude: Invalid target object ([object Object]) -- expected Vector3D.; thisVec=ok:number; none=ok:number; undef=ok:number; null=ok:number; str=ok:number; neg=ok:number; nan=ok:number; obj=ok:number; arr=ok:number
+[oojs.probe]: sweep Vector3D.subtract: this{}=Error:Vector3D.subtract: Invalid target object ([object Object]) -- expected Vector3D.; thisVec=Error:Vector3D.subtract: Could not construct vector from parameters () -- expected Vector, Entity or array of three numbers.; none=Error:Vector3D.subtract: Could not construct vector from parameters () -- expected Vector, Entity or array of three numbers.; undef=Error:Vector3D.subtract: Could not construct vector from parameters (undefined) -- expected Vector, Entity or array of three n; null=Error:Vector3D.subtract: Could not construct vector from parameters (null) -- expected Vector, Entity or array of three number; str=Error:Vector3D.subtract: Could not construct vector from parameters ("oojs-nonsense") -- expected Vector, Entity or array of t; neg=Error:Vector3D.subtract: Could not construct vector from parameters (-1) -- expected Vector, Entity or array of three numbers.; nan=Error:Vector3D.subtract: Could not construct vector from parameters (NaN) -- expected Vector, Entity or array of three numbers; obj=Error:Vector3D.subtract: Could not construct vector from parameters ([object Object]) -- expected Vector, Entity or array of t; arr=Error:Vector3D.subtract: Could not construct vector from parameters ([1, 2]) -- expected Vector, Entity or array of three numb
+[oojs.probe]: sweep Vector3D.toArray: this{}=Error:Vector3D.toArray: Invalid target object ([object Object]) -- expected Vector3D.; thisVec=ok:array; none=ok:array; undef=ok:array; null=ok:array; str=ok:array; neg=ok:array; nan=ok:array; obj=ok:array; arr=ok:array
+[oojs.probe]: sweep Vector3D.toCoordinateSystem: this{}=Error:Vector3D.toCoordinateSystem: Invalid target object ([object Object]) -- expected Vector3D.; thisVec=Error:Vector3D.toCoordinateSystem: Invalid arguments () -- expected coordinate system.; none=Error:Vector3D.toCoordinateSystem: Invalid arguments () -- expected coordinate system.; undef=Error:Vector3D.toCoordinateSystem: Invalid arguments (undefined) -- expected coordinate system.; null=Error:Vector3D.toCoordinateSystem: Invalid arguments (null) -- expected coordinate system.; str=ok:Vector3D; neg=ok:Vector3D; nan=ok:Vector3D; obj=ok:Vector3D; arr=ok:Vector3D
+[oojs.probe]: sweep Vector3D.tripleProduct: this{}=Error:Vector3D.tripleProduct: Invalid target object ([object Object]) -- expected Vector3D.; thisVec=Error:Vector3D.tripleProduct: Could not construct vector from parameters () -- expected Vector, Entity or array of three numbe; none=Error:Vector3D.tripleProduct: Could not construct vector from parameters () -- expected Vector, Entity or array of three numbe; undef=Error:Vector3D.tripleProduct: Could not construct vector from parameters (undefined) -- expected Vector, Entity or array of th; null=Error:Vector3D.tripleProduct: Could not construct vector from parameters (null) -- expected Vector, Entity or array of three n; str=Error:Vector3D.tripleProduct: Could not construct vector from parameters ("oojs-nonsense") -- expected Vector, Entity or array; neg=Error:Vector3D.tripleProduct: Could not construct vector from parameters (-1) -- expected Vector, Entity or array of three num; nan=Error:Vector3D.tripleProduct: Could not construct vector from parameters (NaN) -- expected Vector, Entity or array of three nu; obj=Error:Vector3D.tripleProduct: Could not construct vector from parameters ([object Object]) -- expected Vector, Entity or array; arr=Error:Vector3D.tripleProduct: Could not construct vector from parameters ([1, 2]) -- expected Vector, Entity or array of three
+[oojs.probe]: sweep Vector3D.interpolate: none=Error:Vector3D.interpolate: Insufficient parameters () -- expected vector expression, vector expression and number.; undef=Error:Vector3D.interpolate: Insufficient parameters (undefined) -- expected vector expression, vector expression and number.; null=Error:Vector3D.interpolate: Insufficient parameters (null) -- expected vector expression, vector expression and number.; str=Error:Vector3D.interpolate: Insufficient parameters ("oojs-nonsense") -- expected vector expression, vector expression and num; neg=Error:Vector3D.interpolate: Insufficient parameters (-1) -- expected vector expression, vector expression and number.; nan=Error:Vector3D.interpolate: Insufficient parameters (NaN) -- expected vector expression, vector expression and number.; obj=Error:Vector3D.interpolate: Insufficient parameters ([object Object]) -- expected vector expression, vector expression and num; arr=Error:Vector3D.interpolate: Insufficient parameters ([1, 2]) -- expected vector expression, vector expression and number.
+[oojs.probe]: sweep Quaternion.toString: this{}=Error:Quaternion.toString: Invalid target object ([object Object]) -- expected Quaternion.; thisVec=Error:Quaternion.toString: Invalid target object ((1, 2, 3)) -- expected Quaternion.; none=ok:string; undef=ok:string; null=ok:string; str=ok:string; neg=ok:string; nan=ok:string; obj=ok:string; arr=ok:string
+[oojs.probe]: sweep Quaternion.toSource: this{}=Error:Quaternion.toSource: Invalid target object ([object Object]) -- expected Quaternion.; thisVec=Error:Quaternion.toSource: Invalid target object ((1, 2, 3)) -- expected Quaternion.; none=ok:string; undef=ok:string; null=ok:string; str=ok:string; neg=ok:string; nan=ok:string; obj=ok:string; arr=ok:string
+[oojs.probe]: sweep Quaternion.dot: this{}=Error:Quaternion.dot: Invalid target object ([object Object]) -- expected Quaternion.; thisVec=Error:Quaternion.dot: Invalid target object ((1, 2, 3)) -- expected Quaternion.; none=Error:Quaternion.dot: Could not construct quaternion from parameters () -- expected Quaternion, Entity or four numbers.; undef=Error:Quaternion.dot: Could not construct quaternion from parameters (undefined) -- expected Quaternion, Entity or four number; null=Error:Quaternion.dot: Could not construct quaternion from parameters (null) -- expected Quaternion, Entity or four numbers.; str=Error:Quaternion.dot: Could not construct quaternion from parameters ("oojs-nonsense") -- expected Quaternion, Entity or four ; neg=Error:Quaternion.dot: Could not construct quaternion from parameters (-1) -- expected Quaternion, Entity or four numbers.; nan=Error:Quaternion.dot: Could not construct quaternion from parameters (NaN) -- expected Quaternion, Entity or four numbers.; obj=Error:Quaternion.dot: Could not construct quaternion from parameters ([object Object]) -- expected Quaternion, Entity or four ; arr=Error:Quaternion.dot: Could not construct quaternion from parameters ([1, 2]) -- expected Quaternion, Entity or four numbers.
+[oojs.probe]: sweep Quaternion.multiply: this{}=Error:Quaternion.multiply: Invalid target object ([object Object]) -- expected Quaternion.; thisVec=Error:Quaternion.multiply: Invalid target object ((1, 2, 3)) -- expected Quaternion.; none=Error:Quaternion.multiply: Could not construct quaternion from parameters () -- expected Quaternion, Entity or four numbers.; undef=Error:Quaternion.multiply: Could not construct quaternion from parameters (undefined) -- expected Quaternion, Entity or four n; null=Error:Quaternion.multiply: Could not construct quaternion from parameters (null) -- expected Quaternion, Entity or four number; str=Error:Quaternion.multiply: Could not construct quaternion from parameters ("oojs-nonsense") -- expected Quaternion, Entity or ; neg=Error:Quaternion.multiply: Could not construct quaternion from parameters (-1) -- expected Quaternion, Entity or four numbers.; nan=Error:Quaternion.multiply: Could not construct quaternion from parameters (NaN) -- expected Quaternion, Entity or four numbers; obj=Error:Quaternion.multiply: Could not construct quaternion from parameters ([object Object]) -- expected Quaternion, Entity or ; arr=Error:Quaternion.multiply: Could not construct quaternion from parameters ([1, 2]) -- expected Quaternion, Entity or four numb
+[oojs.probe]: sweep Quaternion.normalize: this{}=Error:Quaternion.normalize: Invalid target object ([object Object]) -- expected Quaternion.; thisVec=Error:Quaternion.normalize: Invalid target object ((1, 2, 3)) -- expected Quaternion.; none=ok:Quaternion; undef=ok:Quaternion; null=ok:Quaternion; str=ok:Quaternion; neg=ok:Quaternion; nan=ok:Quaternion; obj=ok:Quaternion; arr=ok:Quaternion
+[oojs.probe]: sweep Quaternion.conjugate: this{}=Error:Quaternion.conjugate: Invalid target object ([object Object]) -- expected Quaternion.; thisVec=Error:Quaternion.conjugate: Invalid target object ((1, 2, 3)) -- expected Quaternion.; none=ok:Quaternion; undef=ok:Quaternion; null=ok:Quaternion; str=ok:Quaternion; neg=ok:Quaternion; nan=ok:Quaternion; obj=ok:Quaternion; arr=ok:Quaternion
+[oojs.probe]: sweep Quaternion.rotate: this{}=Error:Quaternion.rotate: Invalid target object ([object Object]) -- expected Quaternion.; thisVec=Error:Quaternion.rotate: Invalid target object ((1, 2, 3)) -- expected Quaternion.; none=Error:Quaternion.rotate: Could not construct vector from parameters () -- expected Vector, Entity or array of three numbers.; undef=Error:Quaternion.rotate: Could not construct vector from parameters (undefined) -- expected Vector, Entity or array of three n; null=Error:Quaternion.rotate: Could not construct vector from parameters (null) -- expected Vector, Entity or array of three number; str=Error:Quaternion.rotate: Could not construct vector from parameters ("oojs-nonsense") -- expected Vector, Entity or array of t; neg=Error:Quaternion.rotate: Could not construct vector from parameters (-1) -- expected Vector, Entity or array of three numbers.; nan=Error:Quaternion.rotate: Could not construct vector from parameters (NaN) -- expected Vector, Entity or array of three numbers; obj=Error:Quaternion.rotate: Could not construct vector from parameters ([object Object]) -- expected Vector, Entity or array of t; arr=Error:Quaternion.rotate: Could not construct vector from parameters ([1, 2]) -- expected Vector, Entity or array of three numb
+[oojs.probe]: sweep Quaternion.rotateX: this{}=Error:Quaternion.rotateX: Invalid target object ([object Object]) -- expected Quaternion.; thisVec=Error:Quaternion.rotateX: Invalid target object ((1, 2, 3)) -- expected Quaternion.; none=Error:Quaternion.rotateX: Expected number, got ().; undef=Error:Quaternion.rotateX: Expected number, got (undefined).; null=ok:Quaternion; str=Error:Quaternion.rotateX: Expected number, got ("oojs-nonsense").; neg=ok:Quaternion; nan=Error:Quaternion.rotateX: Expected number, got (NaN).; obj=Error:Quaternion.rotateX: Expected number, got ([object Object]).; arr=Error:Quaternion.rotateX: Expected number, got ([1, 2]).
+[oojs.probe]: sweep Quaternion.rotateY: this{}=Error:Quaternion.rotateY: Invalid target object ([object Object]) -- expected Quaternion.; thisVec=Error:Quaternion.rotateY: Invalid target object ((1, 2, 3)) -- expected Quaternion.; none=Error:Quaternion.rotateY: Expected number, got ().; undef=Error:Quaternion.rotateY: Expected number, got (undefined).; null=ok:Quaternion; str=Error:Quaternion.rotateY: Expected number, got ("oojs-nonsense").; neg=ok:Quaternion; nan=Error:Quaternion.rotateY: Expected number, got (NaN).; obj=Error:Quaternion.rotateY: Expected number, got ([object Object]).; arr=Error:Quaternion.rotateY: Expected number, got ([1, 2]).
+[oojs.probe]: sweep Quaternion.rotateZ: this{}=Error:Quaternion.rotateZ: Invalid target object ([object Object]) -- expected Quaternion.; thisVec=Error:Quaternion.rotateZ: Invalid target object ((1, 2, 3)) -- expected Quaternion.; none=Error:Quaternion.rotateZ: Expected number, got ().; undef=Error:Quaternion.rotateZ: Expected number, got (undefined).; null=ok:Quaternion; str=Error:Quaternion.rotateZ: Expected number, got ("oojs-nonsense").; neg=ok:Quaternion; nan=Error:Quaternion.rotateZ: Expected number, got (NaN).; obj=Error:Quaternion.rotateZ: Expected number, got ([object Object]).; arr=Error:Quaternion.rotateZ: Expected number, got ([1, 2]).
+[oojs.probe]: sweep Quaternion.toArray: this{}=Error:Quaternion.toArray: Invalid target object ([object Object]) -- expected Quaternion.; thisVec=Error:Quaternion.toArray: Invalid target object ((1, 2, 3)) -- expected Quaternion.; none=ok:array; undef=ok:array; null=ok:array; str=ok:array; neg=ok:array; nan=ok:array; obj=ok:array; arr=ok:array
+[oojs.probe]: sweep Quaternion.vectorForward: this{}=Error:Quaternion.vectorForward: Invalid target object ([object Object]) -- expected Quaternion.; thisVec=Error:Quaternion.vectorForward: Invalid target object ((1, 2, 3)) -- expected Quaternion.; none=ok:Vector3D; undef=ok:Vector3D; null=ok:Vector3D; str=ok:Vector3D; neg=ok:Vector3D; nan=ok:Vector3D; obj=ok:Vector3D; arr=ok:Vector3D
+[oojs.probe]: sweep Quaternion.vectorRight: this{}=Error:Quaternion.vectorRight: Invalid target object ([object Object]) -- expected Quaternion.; thisVec=Error:Quaternion.vectorRight: Invalid target object ((1, 2, 3)) -- expected Quaternion.; none=ok:Vector3D; undef=ok:Vector3D; null=ok:Vector3D; str=ok:Vector3D; neg=ok:Vector3D; nan=ok:Vector3D; obj=ok:Vector3D; arr=ok:Vector3D
+[oojs.probe]: sweep Quaternion.vectorUp: this{}=Error:Quaternion.vectorUp: Invalid target object ([object Object]) -- expected Quaternion.; thisVec=Error:Quaternion.vectorUp: Invalid target object ((1, 2, 3)) -- expected Quaternion.; none=ok:Vector3D; undef=ok:Vector3D; null=ok:Vector3D; str=ok:Vector3D; neg=ok:Vector3D; nan=ok:Vector3D; obj=ok:Vector3D; arr=ok:Vector3D
+[oojs.probe]: sweep SystemInfo.toString: this{}=ok:string; thisVec=ok:string; none=ok:string; undef=ok:string; null=ok:string; str=ok:string; neg=ok:string; nan=ok:string; obj=ok:string; arr=ok:string
+[oojs.probe]: sweep SystemInfo.distanceToSystem: this{}=Error:Native method expected SystemInfo, got [object Object].; thisVec=Error:Native method expected SystemInfo, got (1, 2, 3).; none=Error:SystemInfo.distanceToSystem: Invalid arguments () -- expected system info.; undef=Error:Native exception; null=Error:Native exception; str=Error:SystemInfo.distanceToSystem: Invalid arguments ("oojs-nonsense") -- expected system info.; neg=Error:SystemInfo.distanceToSystem: Invalid arguments (-1) -- expected system info.; nan=Error:SystemInfo.distanceToSystem: Invalid arguments (NaN) -- expected system info.; obj=Error:SystemInfo.distanceToSystem: Invalid arguments ([object Object]) -- expected system info.; arr=Error:SystemInfo.distanceToSystem: Invalid arguments ([1, 2]) -- expected system info.
+[oojs.probe]: sweep SystemInfo.routeToSystem: this{}=Error:Native method expected SystemInfo, got [object Object].; thisVec=Error:Native method expected SystemInfo, got (1, 2, 3).; none=Error:SystemInfo.routeToSystem: Invalid arguments () -- expected system info.; undef=Error:Native exception; null=Error:Native exception; str=Error:SystemInfo.routeToSystem: Invalid arguments ("oojs-nonsense") -- expected system info.; neg=Error:SystemInfo.routeToSystem: Invalid arguments (-1) -- expected system info.; nan=Error:SystemInfo.routeToSystem: Invalid arguments (NaN) -- expected system info.; obj=Error:SystemInfo.routeToSystem: Invalid arguments ([object Object]) -- expected system info.; arr=Error:SystemInfo.routeToSystem: Invalid arguments ([1, 2]) -- expected system info.
+[oojs.probe]: sweep SystemInfo.samplePrice: this{}=Error:Native method expected SystemInfo, got [object Object].; thisVec=Error:Native method expected SystemInfo, got (1, 2, 3).; none=Error:SystemInfo.samplePrice: Invalid arguments () -- expected Unrecognised commodity type.; undef=Error:SystemInfo.samplePrice: Invalid arguments (undefined) -- expected Unrecognised commodity type.; null=Error:SystemInfo.samplePrice: Invalid arguments (null) -- expected Unrecognised commodity type.; str=Error:SystemInfo.samplePrice: Invalid arguments ("oojs-nonsense") -- expected Unrecognised commodity type.; neg=Error:SystemInfo.samplePrice: Invalid arguments (-1) -- expected Unrecognised commodity type.; nan=Error:SystemInfo.samplePrice: Invalid arguments (NaN) -- expected Unrecognised commodity type.; obj=Error:SystemInfo.samplePrice: Invalid arguments ([object Object]) -- expected Unrecognised commodity type.; arr=Error:SystemInfo.samplePrice: Invalid arguments ([1, 2]) -- expected Unrecognised commodity type.
+[oojs.probe]: sweep SystemInfo.setProperty: this{}=Error:Native method expected SystemInfo, got [object Object].; thisVec=Error:Native method expected SystemInfo, got (1, 2, 3).; none=Error:SystemInfo.setProperty: Invalid arguments () -- expected setProperty(layer, property, value [,manifest]).; undef=Error:SystemInfo.setProperty: Invalid arguments (undefined) -- expected setProperty(layer, property, value [,manifest]).; null=Error:SystemInfo.setProperty: Invalid arguments (null) -- expected setProperty(layer, property, value [,manifest]).; str=Error:SystemInfo.setProperty: Invalid arguments ("oojs-nonsense") -- expected setProperty(layer, property, value [,manifest]).; neg=Error:SystemInfo.setProperty: Invalid arguments (-1) -- expected setProperty(layer, property, value [,manifest]).; nan=Error:SystemInfo.setProperty: Invalid arguments (NaN) -- expected setProperty(layer, property, value [,manifest]).; obj=Error:SystemInfo.setProperty: Invalid arguments ([object Object]) -- expected setProperty(layer, property, value [,manifest]).; arr=Error:SystemInfo.setProperty: Invalid arguments ([1, 2]) -- expected setProperty(layer, property, value [,manifest]).
+[oojs.probe]: sweep SystemInfo.systemsInRange: this{}=TypeError:this.distanceToSystem is not a function; thisVec=TypeError:this.distanceToSystem is not a function; none=ok:array; undef=ok:array; null=ok:array; str=ok:array; neg=ok:array; nan=ok:array; obj=ok:array; arr=ok:array
+[oojs.probe]: sweep SystemInfo.filteredSystems: none=Error:SystemInfo.filteredSystems: Invalid arguments () -- expected this and predicate function.; undef=Error:SystemInfo.filteredSystems: Invalid arguments (undefined) -- expected this and predicate function.; null=Error:SystemInfo.filteredSystems: Invalid arguments (null) -- expected this and predicate function.; str=Error:SystemInfo.filteredSystems: Invalid arguments ("oojs-nonsense") -- expected this and predicate function.; neg=Error:SystemInfo.filteredSystems: Invalid arguments (-1) -- expected this and predicate function.; nan=Error:SystemInfo.filteredSystems: Invalid arguments (NaN) -- expected this and predicate function.; obj=Error:SystemInfo.filteredSystems: Invalid arguments ([object Object]) -- expected this and predicate function.; arr=Error:SystemInfo.filteredSystems: Invalid arguments ([1, 2]) -- expected this and predicate function.
+[oojs.probe]: sweep SystemInfo.systemsInRange: none=ok:array; undef=ok:array; null=ok:array; str=ok:array; neg=ok:array; nan=ok:array; obj=ok:array; arr=ok:array
+[oojs.probe]: sweep System.infoForSystem: none=Error:System.infoForSystem: Invalid arguments () -- expected galaxy ID and system ID.; undef=Error:System.infoForSystem: Invalid arguments (undefined) -- expected galaxy ID and system ID.; null=Error:System.infoForSystem: Invalid arguments (null) -- expected galaxy ID and system ID.; str=Error:System.infoForSystem: Invalid arguments ("oojs-nonsense") -- expected galaxy ID and system ID.; neg=Error:System.infoForSystem: Invalid arguments (-1) -- expected galaxy ID and system ID.; nan=Error:System.infoForSystem: Invalid arguments (NaN) -- expected galaxy ID and system ID.; obj=Error:System.infoForSystem: Invalid arguments ([object Object]) -- expected galaxy ID and system ID.; arr=Error:System.infoForSystem: Invalid arguments ([1, 2]) -- expected galaxy ID and system ID.
+[oojs.probe]: sweep System.systemIDForName: none=Error:System.systemIDForName: Invalid arguments () -- expected string.; undef=Error:System.systemIDForName: Invalid arguments (undefined) -- expected string.; null=Error:System.systemIDForName: Invalid arguments (null) -- expected string.; str=ok:number; neg=ok:number; nan=ok:number; obj=ok:number; arr=ok:number
+[oojs.probe]: sweep System.systemNameForID: none=Error:System.systemNameForID: Invalid arguments () -- expected system ID.; undef=Error:System.systemNameForID: Invalid arguments (undefined) -- expected system ID.; null=ok:string; str=Error:System.systemNameForID: Invalid arguments ("oojs-nonsense") -- expected system ID.; neg=ok:string; nan=Error:System.systemNameForID: Invalid arguments (NaN) -- expected system ID.; obj=Error:System.systemNameForID: Invalid arguments ([object Object]) -- expected system ID.; arr=Error:System.systemNameForID: Invalid arguments ([1, 2]) -- expected system ID.
+[oojs.probe]: sweep System.addGroup: none=Error:System.addGroup: Invalid arguments () -- expected string (role).; undef=Error:System.addGroup: Invalid arguments (undefined) -- expected string (role).; null=Error:System.addGroup: Invalid arguments (null) -- expected string (role).; str=Error:System.addGroup: Invalid arguments () -- expected number (positive count no greater than 64).; neg=Error:System.addGroup: Invalid arguments () -- expected number (positive count no greater than 64).; nan=Error:System.addGroup: Invalid arguments () -- expected number (positive count no greater than 64).; obj=Error:System.addGroup: Invalid arguments () -- expected number (positive count no greater than 64).; arr=Error:System.addGroup: Invalid arguments () -- expected number (positive count no greater than 64).
+[oojs.probe]: sweep System.addGroupToRoute: none=Error:System.addGroup: Invalid arguments () -- expected string (role).; undef=Error:System.addGroup: Invalid arguments (undefined) -- expected string (role).; null=Error:System.addGroup: Invalid arguments (null) -- expected string (role).; str=Error:System.addGroup: Invalid arguments () -- expected number (positive count no greater than 64).; neg=Error:System.addGroup: Invalid arguments () -- expected number (positive count no greater than 64).; nan=Error:System.addGroup: Invalid arguments () -- expected number (positive count no greater than 64).; obj=Error:System.addGroup: Invalid arguments () -- expected number (positive count no greater than 64).; arr=Error:System.addGroup: Invalid arguments () -- expected number (positive count no greater than 64).
+[oojs.probe]: sweep System.addMoon: none=Error:System.addMoon: Invalid arguments () -- expected string (planet key).; undef=Error:System.addMoon: Invalid arguments (undefined) -- expected string (planet key).; null=Error:System.addMoon: Invalid arguments (null) -- expected string (planet key).; str=ok:null; neg=ok:null; nan=ok:null; obj=ok:null; arr=ok:null
+[oojs.probe]: sweep System.addPlanet: none=Error:System.addPlanet: Invalid arguments () -- expected string (planet key).; undef=Error:System.addPlanet: Invalid arguments (undefined) -- expected string (planet key).; null=Error:System.addPlanet: Invalid arguments (null) -- expected string (planet key).; str=ok:null; neg=ok:null; nan=ok:null; obj=ok:null; arr=ok:null
+[oojs.probe]: sweep System.addShips: none=Error:System.addShips: Invalid arguments () -- expected string (role).; undef=Error:System.addShips: Invalid arguments (undefined) -- expected string (role).; null=Error:System.addShips: Invalid arguments (null) -- expected string (role).; str=Error:System.addShips: Invalid arguments () -- expected number (positive count no greater than 64).; neg=Error:System.addShips: Invalid arguments () -- expected number (positive count no greater than 64).; nan=Error:System.addShips: Invalid arguments () -- expected number (positive count no greater than 64).; obj=Error:System.addShips: Invalid arguments () -- expected number (positive count no greater than 64).; arr=Error:System.addShips: Invalid arguments () -- expected number (positive count no greater than 64).
+[oojs.probe]: sweep System.addShipsToRoute: none=Error:System.addShips: Invalid arguments () -- expected string (role).; undef=Error:System.addShips: Invalid arguments (undefined) -- expected string (role).; null=Error:System.addShips: Invalid arguments (null) -- expected string (role).; str=Error:System.addShips: Invalid arguments () -- expected number (positive count no greater than 64).; neg=Error:System.addShips: Invalid arguments () -- expected number (positive count no greater than 64).; nan=Error:System.addShips: Invalid arguments () -- expected number (positive count no greater than 64).; obj=Error:System.addShips: Invalid arguments () -- expected number (positive count no greater than 64).; arr=Error:System.addShips: Invalid arguments () -- expected number (positive count no greater than 64).
+[oojs.probe]: sweep System.addVisualEffect: none=Error:System.addVisualEffect: Invalid arguments () -- expected string (key).; undef=Error:System.addVisualEffect: Invalid arguments (undefined) -- expected string (key).; null=Error:System.addVisualEffect: Invalid arguments (null) -- expected string (key).; str=Error:System.addVisualEffect: Invalid arguments () -- expected vector.; neg=Error:System.addVisualEffect: Invalid arguments () -- expected vector.; nan=Error:System.addVisualEffect: Invalid arguments () -- expected vector.; obj=Error:System.addVisualEffect: Invalid arguments () -- expected vector.; arr=Error:System.addVisualEffect: Invalid arguments () -- expected vector.
+[oojs.probe]: sweep System.countEntitiesWithScanClass: none=Error:System.countEntitiesWithScanClass: Invalid arguments () -- expected string (scan class).; undef=Error:System.countEntitiesWithScanClass: Invalid arguments (undefined) -- expected string (scan class).; null=Error:System.countEntitiesWithScanClass: Invalid arguments (null) -- expected string (scan class).; str=Error:System.countEntitiesWithScanClass: Invalid arguments ("oojs-nonsense") -- expected string (scan class).; neg=Error:System.countEntitiesWithScanClass: Invalid arguments (-1) -- expected string (scan class).; nan=Error:System.countEntitiesWithScanClass: Invalid arguments (NaN) -- expected string (scan class).; obj=Error:System.countEntitiesWithScanClass: Invalid arguments ([object Object]) -- expected string (scan class).; arr=Error:System.countEntitiesWithScanClass: Invalid arguments ([1, 2]) -- expected string (scan class).
+[oojs.probe]: sweep System.countShipsWithPrimaryRole: none=Error:System.countShipsWithPrimaryRole: Invalid arguments () -- expected string (role).; undef=Error:System.countShipsWithPrimaryRole: Invalid arguments (undefined) -- expected string (role).; null=Error:System.countShipsWithPrimaryRole: Invalid arguments (null) -- expected string (role).; str=ok:number; neg=ok:number; nan=ok:number; obj=ok:number; arr=ok:number
+[oojs.probe]: sweep System.countShipsWithRole: none=Error:System.countShipsWithRole: Invalid arguments () -- expected string (role).; undef=Error:System.countShipsWithRole: Invalid arguments (undefined) -- expected string (role).; null=Error:System.countShipsWithRole: Invalid arguments (null) -- expected string (role).; str=ok:number; neg=ok:number; nan=ok:number; obj=ok:number; arr=ok:number
+[oojs.probe]: sweep System.entitiesWithScanClass: none=Error:System.countEntitiesWithScanClass: Invalid arguments () -- expected string (scan class).; undef=Error:System.countEntitiesWithScanClass: Invalid arguments (undefined) -- expected string (scan class).; null=Error:System.countEntitiesWithScanClass: Invalid arguments (null) -- expected string (scan class).; str=Error:System.countEntitiesWithScanClass: Invalid arguments ("oojs-nonsense") -- expected string (scan class).; neg=Error:System.countEntitiesWithScanClass: Invalid arguments (-1) -- expected string (scan class).; nan=Error:System.countEntitiesWithScanClass: Invalid arguments (NaN) -- expected string (scan class).; obj=Error:System.countEntitiesWithScanClass: Invalid arguments ([object Object]) -- expected string (scan class).; arr=Error:System.countEntitiesWithScanClass: Invalid arguments ([1, 2]) -- expected string (scan class).
+[oojs.probe]: sweep System.filteredEntities: none=Error:System.filteredEntities: Invalid arguments () -- expected this, predicate function, and optional reference entity and ra; undef=Error:System.filteredEntities: Invalid arguments (undefined) -- expected this, predicate function, and optional reference enti; null=Error:System.filteredEntities: Invalid arguments (null) -- expected this, predicate function, and optional reference entity an; str=Error:System.filteredEntities: Invalid arguments ("oojs-nonsense") -- expected this, predicate function, and optional referenc; neg=Error:System.filteredEntities: Invalid arguments (-1) -- expected this, predicate function, and optional reference entity and ; nan=Error:System.filteredEntities: Invalid arguments (NaN) -- expected this, predicate function, and optional reference entity and; obj=Error:System.filteredEntities: Invalid arguments ([object Object]) -- expected this, predicate function, and optional referenc; arr=Error:System.filteredEntities: Invalid arguments ([1, 2]) -- expected this, predicate function, and optional reference entity 
+[oojs.probe]: sweep System.locationFromCode: none=Error:System.locationFromCode: Invalid arguments () -- expected location code.; undef=Error:System.locationFromCode: Invalid arguments (undefined) -- expected location code.; null=Error:System.locationFromCode: Invalid arguments (null) -- expected location code.; str=ok:Vector3D; neg=ok:Vector3D; nan=ok:Vector3D; obj=ok:Vector3D; arr=ok:Vector3D
+[oojs.probe]: sweep System.shipsWithPrimaryRole: none=Error:System.countShipsWithRole: Invalid arguments () -- expected string (role).; undef=Error:System.countShipsWithRole: Invalid arguments (undefined) -- expected string (role).; null=Error:System.countShipsWithRole: Invalid arguments (null) -- expected string (role).; str=ok:array; neg=ok:array; nan=ok:array; obj=ok:array; arr=ok:array
+[oojs.probe]: sweep System.shipsWithRole: none=Error:System.shipsWithRole: Invalid arguments () -- expected string (role).; undef=Error:System.shipsWithRole: Invalid arguments (undefined) -- expected string (role).; null=Error:System.shipsWithRole: Invalid arguments (null) -- expected string (role).; str=ok:array; neg=ok:array; nan=ok:array; obj=ok:array; arr=ok:array
+[oojs.probe]: sweep System.legacy_addShips: none=Error:System.legacy_addShips: Invalid arguments () -- expected role and positive count no greater than 64.; undef=Error:System.legacy_addShips: Invalid arguments (undefined) -- expected role and positive count no greater than 64.; null=Error:System.legacy_addShips: Invalid arguments (null) -- expected role and positive count no greater than 64.; str=Error:System.legacy_addShips: Invalid arguments ("oojs-nonsense") -- expected role and positive count no greater than 64.; neg=Error:System.legacy_addShips: Invalid arguments (-1) -- expected role and positive count no greater than 64.; nan=Error:System.legacy_addShips: Invalid arguments (NaN) -- expected role and positive count no greater than 64.; obj=Error:System.legacy_addShips: Invalid arguments ([object Object]) -- expected role and positive count no greater than 64.; arr=Error:System.legacy_addShips: Invalid arguments ([1, 2]) -- expected role and positive count no greater than 64.
+[oojs.probe]: sweep System.legacy_addSystemShips: none=Error:System.legacy_addSystemShips: Invalid arguments () -- expected role, positive count no greater than 64, and position alo; undef=Error:System.legacy_addSystemShips: Invalid arguments (undefined) -- expected role, positive count no greater than 64, and pos; null=Error:System.legacy_addSystemShips: Invalid arguments (null) -- expected role, positive count no greater than 64, and position; str=Error:System.legacy_addSystemShips: Invalid arguments ("oojs-nonsense") -- expected role, positive count no greater than 64, a; neg=Error:System.legacy_addSystemShips: Invalid arguments (-1) -- expected role, positive count no greater than 64, and position a; nan=Error:System.legacy_addSystemShips: Invalid arguments (NaN) -- expected role, positive count no greater than 64, and position ; obj=Error:System.legacy_addSystemShips: Invalid arguments ([object Object]) -- expected role, positive count no greater than 64, a; arr=Error:System.legacy_addSystemShips: Invalid arguments ([1, 2]) -- expected role, positive count no greater than 64, and positi
+[oojs.probe]: sweep System.legacy_addShipsAt: none=Error:System.legacy_addShipsAt: Invalid arguments () -- expected role, positive count no greater than 64, coordinate scheme an; undef=Error:System.legacy_addShipsAt: Invalid arguments (undefined) -- expected role, positive count no greater than 64, coordinate ; null=Error:System.legacy_addShipsAt: Invalid arguments (null) -- expected role, positive count no greater than 64, coordinate schem; str=Error:System.legacy_addShipsAt: Invalid arguments ("oojs-nonsense") -- expected role, positive count no greater than 64, coord; neg=Error:System.legacy_addShipsAt: Invalid arguments (-1) -- expected role, positive count no greater than 64, coordinate scheme ; nan=Error:System.legacy_addShipsAt: Invalid arguments (NaN) -- expected role, positive count no greater than 64, coordinate scheme; obj=Error:System.legacy_addShipsAt: Invalid arguments ([object Object]) -- expected role, positive count no greater than 64, coord; arr=Error:System.legacy_addShipsAt: Invalid arguments ([1, 2]) -- expected role, positive count no greater than 64, coordinate sch
+[oojs.probe]: sweep System.legacy_addShipsAtPrecisely: none=Error:System.legacy_addShipsAtPrecisely: Invalid arguments () -- expected role, positive count no greater than 64, coordinate ; undef=Error:System.legacy_addShipsAtPrecisely: Invalid arguments (undefined) -- expected role, positive count no greater than 64, co; null=Error:System.legacy_addShipsAtPrecisely: Invalid arguments (null) -- expected role, positive count no greater than 64, coordin; str=Error:System.legacy_addShipsAtPrecisely: Invalid arguments ("oojs-nonsense") -- expected role, positive count no greater than ; neg=Error:System.legacy_addShipsAtPrecisely: Invalid arguments (-1) -- expected role, positive count no greater than 64, coordinat; nan=Error:System.legacy_addShipsAtPrecisely: Invalid arguments (NaN) -- expected role, positive count no greater than 64, coordina; obj=Error:System.legacy_addShipsAtPrecisely: Invalid arguments ([object Object]) -- expected role, positive count no greater than ; arr=Error:System.legacy_addShipsAtPrecisely: Invalid arguments ([1, 2]) -- expected role, positive count no greater than 64, coord
+[oojs.probe]: sweep System.legacy_addShipsWithinRadius: none=Error:System.legacy_addShipWithinRadius: Invalid arguments () -- expected role, positive count no greater than 64, coordinate ; undef=Error:System.legacy_addShipWithinRadius: Invalid arguments (undefined) -- expected role, positive count no greater than 64, co; null=Error:System.legacy_addShipWithinRadius: Invalid arguments (null) -- expected role, positive count no greater than 64, coordin; str=Error:System.legacy_addShipWithinRadius: Invalid arguments ("oojs-nonsense") -- expected role, positive count no greater than ; neg=Error:System.legacy_addShipWithinRadius: Invalid arguments (-1) -- expected role, positive count no greater than 64, coordinat; nan=Error:System.legacy_addShipWithinRadius: Invalid arguments (NaN) -- expected role, positive count no greater than 64, coordina; obj=Error:System.legacy_addShipWithinRadius: Invalid arguments ([object Object]) -- expected role, positive count no greater than ; arr=Error:System.legacy_addShipWithinRadius: Invalid arguments ([1, 2]) -- expected role, positive count no greater than 64, coord
+[oojs.probe]: sweep System.legacy_spawnShip: none=Error:System.legacy_spawnShip: Invalid arguments () -- expected string (ship key).; undef=Error:System.legacy_spawnShip: Invalid arguments (undefined) -- expected string (ship key).; null=Error:System.legacy_spawnShip: Invalid arguments (null) -- expected string (ship key).; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep System.scrambledPseudoRandomNumber: none=ok:number; undef=ok:number; null=ok:number; str=ok:number; neg=ok:number; nan=ok:number; obj=ok:number; arr=ok:number
+[oojs.probe]: sweep Timer.toString: this{}=ok:string; thisVec=ok:string; none=ok:string; undef=ok:string; null=ok:string; str=ok:string; neg=ok:string; nan=ok:string; obj=ok:string; arr=ok:string
+[oojs.probe]: sweep Timer.start: this{}=Error:Native method expected Timer, got [object Object].; thisVec=Error:Native method expected Timer, got (1, 2, 3).; none=ok:boolean; undef=ok:boolean; null=ok:boolean; str=ok:boolean; neg=ok:boolean; nan=ok:boolean; obj=ok:boolean; arr=ok:boolean
+[oojs.probe]: sweep Timer.stop: this{}=Error:Native method expected Timer, got [object Object].; thisVec=Error:Native method expected Timer, got (1, 2, 3).; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep SoundSource.toString: this{}=ok:string; thisVec=ok:string; none=ok:string; undef=ok:string; null=ok:string; str=ok:string; neg=ok:string; nan=ok:string; obj=ok:string; arr=ok:string
+[oojs.probe]: sweep SoundSource.play: this{}=Error:Native method expected SoundSource, got [object Object].; thisVec=Error:Native method expected SoundSource, got (1, 2, 3).; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=Error:SoundSource.play: Invalid arguments ("oojs-nonsense") -- expected integer count or no argument.; neg=ok:undefined; nan=Error:SoundSource.play: Invalid arguments (NaN) -- expected integer count or no argument.; obj=Error:SoundSource.play: Invalid arguments ([object Object]) -- expected integer count or no argument.; arr=Error:SoundSource.play: Invalid arguments ([1, 2]) -- expected integer count or no argument.
+[oojs.probe]: sweep SoundSource.playOrRepeat: this{}=Error:Native method expected SoundSource, got [object Object].; thisVec=Error:Native method expected SoundSource, got (1, 2, 3).; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep SoundSource.stop: this{}=Error:Native method expected SoundSource, got [object Object].; thisVec=Error:Native method expected SoundSource, got (1, 2, 3).; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep SoundSource.playSound: this{}=TypeError:this.play is not a function; thisVec=TypeError:this.play is not a function; none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep ShipGroup.toString: this{}=ok:string; thisVec=ok:string; none=ok:string; undef=ok:string; null=ok:string; str=ok:string; neg=ok:string; nan=ok:string; obj=ok:string; arr=ok:string
+[oojs.probe]: sweep ShipGroup.addShip: this{}=Error:Native method expected ShipGroup, got [object Object].; thisVec=Error:Native method expected ShipGroup, got (1, 2, 3).; none=Error:ShipGroup.addShip: Invalid arguments () -- expected ship.; undef=Error:ShipGroup.addShip: Invalid arguments (undefined) -- expected ship.; null=ok:undefined; str=Error:ShipGroup.addShip: Invalid arguments ("oojs-nonsense") -- expected ship.; neg=Error:ShipGroup.addShip: Invalid arguments (-1) -- expected ship.; nan=Error:ShipGroup.addShip: Invalid arguments (NaN) -- expected ship.; obj=Error:ShipGroup.addShip: Invalid arguments ([object Object]) -- expected ship.; arr=Error:ShipGroup.addShip: Invalid arguments ([1, 2]) -- expected ship.
+[oojs.probe]: sweep ShipGroup.containsShip: this{}=Error:Native method expected ShipGroup, got [object Object].; thisVec=Error:Native method expected ShipGroup, got (1, 2, 3).; none=Error:ShipGroup.containsShip: Invalid arguments () -- expected ship.; undef=Error:ShipGroup.containsShip: Invalid arguments (undefined) -- expected ship.; null=ok:boolean; str=Error:ShipGroup.containsShip: Invalid arguments ("oojs-nonsense") -- expected ship.; neg=Error:ShipGroup.containsShip: Invalid arguments (-1) -- expected ship.; nan=Error:ShipGroup.containsShip: Invalid arguments (NaN) -- expected ship.; obj=Error:ShipGroup.containsShip: Invalid arguments ([object Object]) -- expected ship.; arr=Error:ShipGroup.containsShip: Invalid arguments ([1, 2]) -- expected ship.
+[oojs.probe]: sweep ShipGroup.removeShip: this{}=Error:Native method expected ShipGroup, got [object Object].; thisVec=Error:Native method expected ShipGroup, got (1, 2, 3).; none=Error:ShipGroup.removeShip: Invalid arguments () -- expected ship.; undef=Error:ShipGroup.removeShip: Invalid arguments (undefined) -- expected ship.; null=ok:undefined; str=Error:ShipGroup.removeShip: Invalid arguments ("oojs-nonsense") -- expected ship.; neg=Error:ShipGroup.removeShip: Invalid arguments (-1) -- expected ship.; nan=Error:ShipGroup.removeShip: Invalid arguments (NaN) -- expected ship.; obj=Error:ShipGroup.removeShip: Invalid arguments ([object Object]) -- expected ship.; arr=Error:ShipGroup.removeShip: Invalid arguments ([1, 2]) -- expected ship.
+[oojs.probe]: sweep EquipmentInfo.infoForKey: none=Error:EquipmentInfo.infoForKey: Invalid arguments () -- expected string.; undef=Error:EquipmentInfo.infoForKey: Invalid arguments (undefined) -- expected string.; null=Error:EquipmentInfo.infoForKey: Invalid arguments (null) -- expected string.; str=ok:null; neg=ok:null; nan=ok:null; obj=ok:null; arr=ok:null
+[oojs.probe]: sweep Sound.load: none=Error:Sound.load: Invalid arguments () -- expected string.; undef=Error:Sound.load: Invalid arguments (undefined) -- expected string.; null=Error:Sound.load: Invalid arguments (null) -- expected string.; str=ok:null; neg=ok:null; nan=ok:null; obj=ok:null; arr=ok:null
+[oojs.probe]: sweep Sound.musicSoundSource: none=ok:null; undef=ok:null; null=ok:null; str=ok:null; neg=ok:null; nan=ok:null; obj=ok:null; arr=ok:null
+[oojs.probe]: sweep Sound.stopMusic: none=ok:undefined; undef=Error:Sound.stopMusic: Invalid arguments (undefined) -- expected string or no argument.; null=Error:Sound.stopMusic: Invalid arguments (null) -- expected string or no argument.; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Mission.addMessageText: none=ok:undefined; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Mission.markSystem: none=ok:undefined; undef=Error:Mission.markSystem: Invalid arguments (undefined) -- expected numbers or objects.; null=ok:undefined; str=Error:Mission.markSystem: Invalid arguments ("oojs-nonsense") -- expected numbers or objects.; neg=ok:undefined; nan=Error:Mission.markSystem: Invalid arguments (NaN) -- expected numbers or objects.; obj=ok:undefined; arr=Error:Native exception
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): Usage error: mission.setInstructions() called with no arguments. Treating as Mission.setInstructions(null). This call may fail in a future version of Oolite.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[oojs.probe]: sweep Mission.setInstructions: none=ok:undefined; undef=Error:Mission.setInstructions: Invalid arguments (undefined) -- expected string or null.; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): Usage error: mission.setInstructionsKey() called with no arguments. Treating as Mission.setInstructionsKey(null). This call may fail in a future version of Oolite.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[oojs.probe]: sweep Mission.setInstructionsKey: none=ok:undefined; undef=Error:Mission.setInstructionsKey: Invalid arguments (undefined) -- expected string or null.; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep Mission.unmarkSystem: none=ok:boolean; undef=Error:Mission.unmarkSystem: Invalid arguments (undefined) -- expected numbers or objects.; null=ok:boolean; str=Error:Mission.unmarkSystem: Invalid arguments ("oojs-nonsense") -- expected numbers or objects.; neg=ok:boolean; nan=Error:Mission.unmarkSystem: Invalid arguments (NaN) -- expected numbers or objects.; obj=ok:boolean; arr=Error:Native exception
+[oojs.probe]: sweep global.addFrameCallback: none=Error:addFrameCallback: Invalid arguments () -- expected function.; undef=Error:addFrameCallback: Invalid arguments (undefined) -- expected function.; null=Error:addFrameCallback: Invalid arguments (null) -- expected function.; str=Error:addFrameCallback: Invalid arguments ("oojs-nonsense") -- expected function.; neg=Error:addFrameCallback: Invalid arguments (-1) -- expected function.; nan=Error:addFrameCallback: Invalid arguments (NaN) -- expected function.; obj=Error:addFrameCallback: Invalid arguments ([object Object]) -- expected function.; arr=Error:addFrameCallback: Invalid arguments ([1, 2]) -- expected function.
+[oojs.probe]: sweep global.autoAIForRole: none=Error:autoAIForRole: Invalid arguments () -- expected string.; undef=Error:autoAIForRole: Invalid arguments (undefined) -- expected string.; null=Error:autoAIForRole: Invalid arguments (null) -- expected string.; str=ok:null; neg=ok:null; nan=ok:null; obj=ok:null; arr=ok:null
+[oojs.probe]: sweep global.displayNameForCommodity: none=Error:displayNameForCommodity: Invalid arguments () -- expected string.; undef=Error:displayNameForCommodity: Invalid arguments (undefined) -- expected string.; null=Error:displayNameForCommodity: Invalid arguments (null) -- expected string.; str=ok:string; neg=ok:string; nan=ok:string; obj=ok:string; arr=ok:string
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): Unknown expansion key [object Object] in string.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[oojs.probe]: sweep global.expandDescription: none=Error:expandDescription: Invalid arguments () -- expected string.; undef=Error:expandDescription: Invalid arguments (undefined) -- expected string.; null=Error:expandDescription: Invalid arguments (null) -- expected string.; str=ok:string; neg=ok:string; nan=ok:string; obj=ok:string; arr=ok:string
+[oojs.probe]: sweep global.expandMissionText: none=Error:expandMissionText: Invalid arguments () -- expected string.; undef=Error:expandMissionText: Invalid arguments (undefined) -- expected string.; null=Error:expandMissionText: Invalid arguments (null) -- expected string.; str=ok:null; neg=ok:null; nan=ok:null; obj=ok:null; arr=ok:null
+[oojs.probe]: sweep global.formatCredits: none=ok:string; undef=ok:string; null=ok:string; str=ok:string; neg=ok:string; nan=ok:string; obj=ok:string; arr=ok:string
+[oojs.probe]: sweep global.formatInteger: none=ok:string; undef=ok:string; null=ok:string; str=ok:string; neg=ok:string; nan=ok:string; obj=ok:string; arr=ok:string
+[oojs.probe]: sweep global.getGuiColorSettingForKey: none=Error:getGuiColorForKey: Invalid arguments () -- expected missing arguments.; undef=Error:getGuiColorForKey: Invalid arguments () -- expected key.; null=Error:getGuiColorForKey: Invalid arguments () -- expected key.; str=Error:getGuiColorForKey: Invalid arguments () -- expected valid color key setting.; neg=Error:getGuiColorForKey: Invalid arguments () -- expected valid color key setting.; nan=Error:getGuiColorForKey: Invalid arguments () -- expected valid color key setting.; obj=Error:getGuiColorForKey: Invalid arguments () -- expected valid color key setting.; arr=Error:getGuiColorForKey: Invalid arguments () -- expected valid color key setting.
+[oojs.probe]: sweep global.getScreenBackgroundForKey: none=Error:getScreenBackgroundDefault: Invalid arguments () -- expected missing arguments.; undef=Error:getScreenBackgroundDefault: Invalid arguments () -- expected key.; null=Error:getScreenBackgroundDefault: Invalid arguments () -- expected key.; str=ok:null; neg=ok:null; nan=ok:null; obj=ok:null; arr=ok:null
+[oojs.probe]: sweep global.isValidFrameCallback: none=Error:isValidFrameCallback: Invalid arguments () -- expected frame callback tracking ID.; undef=ok:boolean; null=ok:boolean; str=ok:boolean; neg=ok:boolean; nan=ok:boolean; obj=ok:boolean; arr=ok:boolean
+[oojs.probe]: sweep global.keyBindingDescription: none=Error:keyBindingDescription: Invalid arguments () -- expected string.; undef=Error:keyBindingDescription: Invalid arguments (undefined) -- expected string.; null=Error:keyBindingDescription: Invalid arguments (null) -- expected string.; str=ok:null; neg=ok:null; nan=ok:null; obj=ok:null; arr=ok:null
+[oojs.probe]: sweep global.randomInhabitantsDescription: none=ok:string; undef=ok:string; null=ok:string; str=ok:string; neg=ok:string; nan=ok:string; obj=ok:string; arr=ok:string
+[oojs.probe]: sweep global.randomName: none=ok:string; undef=ok:string; null=ok:string; str=ok:string; neg=ok:string; nan=ok:string; obj=ok:string; arr=ok:string
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): removeFrameCallback(): invalid tracking ID.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): removeFrameCallback(): invalid tracking ID.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): removeFrameCallback(): invalid tracking ID.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): removeFrameCallback(): invalid tracking ID.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): removeFrameCallback(): invalid tracking ID.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): removeFrameCallback(): invalid tracking ID.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[script.javaScript.warning.ooliteDefined]: ----- JavaScript warning (oojs_probe 1.0): removeFrameCallback(): invalid tracking ID.
+[script.javaScript.warning.ooliteDefined]:       <AddOns>/oojs_probe.oxp/Config/script.js, line 530.
+[oojs.probe]: sweep global.removeFrameCallback: none=Error:removeFrameCallback: Invalid arguments () -- expected frame callback tracking ID.; undef=ok:undefined; null=ok:undefined; str=ok:undefined; neg=ok:undefined; nan=ok:undefined; obj=ok:undefined; arr=ok:undefined
+[oojs.probe]: sweep global.uneval: none=ok:string; undef=ok:string; null=ok:string; str=ok:string; neg=ok:string; nan=ok:string; obj=ok:string; arr=ok:string
+[oojs.probe]: sweep done
+[oojs.probe]: ready for external quit

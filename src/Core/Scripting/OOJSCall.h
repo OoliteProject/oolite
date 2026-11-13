@@ -27,7 +27,7 @@ MA 02110-1301, USA.
 #ifdef OO_DEBUG_MONITOR_ENABLED
 
 #import <Foundation/Foundation.h>
-#include <jsapi.h>
+#include <quickjs.h>
 
 /*	OOJSCallObjCObjectMethod()
 
@@ -41,10 +41,14 @@ MA 02110-1301, USA.
         NSMethodSignature.)
 
         If the method returns an object, *outResult will be set to that object's
-        -oo_jsValueInContext:. Otherwise, it will be left unchanged.
+        -oo_jsValueInContext: (owned by the caller). Otherwise, it will be left
+        unchanged, so the caller should initialize it (normally to JS_UNDEFINED).
+
+        If it returns NO, an error has been reported and the caller (a native)
+        should return JS_EXCEPTION.
 
         argv is assumed to contain at least one value.
 */
-BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, NSString* oo_jsClassName, uintN argc, jsval* argv, jsval* outResult);
+BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, NSString* oo_jsClassName, int argc, JSValueConst* argv, JSValue* outResult);
 
 #endif
