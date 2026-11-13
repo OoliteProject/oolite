@@ -20,7 +20,9 @@ if use_quickjs
         version: '>=0.17.0',
         # No LTO for QuickJS: with clang on Windows (MSYS2), the static library's
         # LTO objects are archived without a symbol index, so linking fails.
-        default_options: ['default_library=static', 'libc=false', 'b_lto=false'],
+        # Warning level 2 (QuickJS defaults to 3) leaves out -Wpedantic, which
+        # clang uses to flag QuickJS's "return f();" in void functions.
+        default_options: ['default_library=static', 'libc=false', 'b_lto=false', 'warning_level=2'],
     )
     add_project_arguments('-DOOJS_QUICKJS=1', language: c_family)
 endif
