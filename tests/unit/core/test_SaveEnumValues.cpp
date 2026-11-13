@@ -10,13 +10,15 @@
 	program through the by-name "behaviour" call, which is pinned instead.
 
 	The player is made as test_PlayerEntity makes it (the whole game linked but main, a Universe
-	never initialised), with an OpenGL context for the trumbles' textures; the save's script events
-	make the JavaScript engine's own context. Run: tests/run.sh unit
+	never initialised), with an OpenGL context for the trumbles' textures. SetUp() makes the
+	JavaScript engine: the player's disposal sends a script event, which needs its context, and
+	nothing else here makes it wherever the test runs from. Run: tests/run.sh unit
 */
 
 #include "OOCallByName.h"
 #include "OOConstToString.h"
 #include "OOEntityCalledByName.h"
+#include "OOJavaScriptEngine.h"
 #include "PlayerEntity.h"
 #include "ShipEntity.h"
 #include "Universe.h"
@@ -72,6 +74,7 @@ void SetUp()
 	if (universe == nullptr)  universe = new Universe();	// never released
 	gSharedUniverse = universe;
 	gOOPlayer = nullptr;
+	OOJavaScriptEngine::sharedEngine();	// the context the entities' disposal events use
 }
 
 template <class T>
