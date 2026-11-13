@@ -224,7 +224,7 @@ std::optional<std::string> OptionalStringAt(const oo::PList& array,
    parse, so the list may be short; an index past its end raised, and still
    does, with the same text.
 */
-OOColor* ReticleColorAt(const std::vector<oo::Ref<OOColor>>& colors,
+OOColor* ReticleColorAt(const std::vector<std::shared_ptr<OOColor>>& colors,
                         std::size_t index) {
   if (EXPECT_NOT(index >= colors.size())) {
     OORaiseException(OORangeException,
@@ -259,12 +259,11 @@ static void hudDrawBarAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz,
 static void hudDrawSurroundAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz);
 namespace {
-void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1,
-                            GLfloat alpha, bool reticleTargetSensitive,
-                            oo::PList* propertiesReticleTargetSensitive,
-                            bool colourFromScannerColour, bool showText,
-                            const oo::PList& info,
-                            const std::vector<oo::Ref<OOColor>>& reticleColors);
+void hudDrawReticleOnTarget(
+    Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat alpha,
+    bool reticleTargetSensitive, oo::PList* propertiesReticleTargetSensitive,
+    bool colourFromScannerColour, bool showText, const oo::PList& info,
+    const std::vector<std::shared_ptr<OOColor>>& reticleColors);
 }  // namespace
 namespace {
 void hudDrawWaypoint(Entity* waypoint, PlayerEntity* player1, GLfloat z1,
@@ -372,12 +371,12 @@ void HeadUpDisplay::initWithDictionary(
       if (targetSensitiveColor.isNull())
         targetSensitiveColor = oo::PList("redColor");
       if (wormholeColor.isNull()) wormholeColor = oo::PList("cyanColor");
-      oo::Ref<OOColor> colors[3] = {
+      std::shared_ptr<OOColor> colors[3] = {
           OOColor::colorWithDescription(targetColor),
           OOColor::colorWithDescription(targetSensitiveColor),
           OOColor::colorWithDescription(wormholeColor)};
       _reticleColors.clear();
-      for (const oo::Ref<OOColor>& color : colors) {
+      for (const std::shared_ptr<OOColor>& color : colors) {
         if (color == nullptr)
           break;  // the list stops at the first nil, as +arrayWithObjects: did
         _reticleColors.push_back(color);
@@ -548,7 +547,7 @@ void HeadUpDisplay::resetGuis(const oo::PList& info) {
     gui->setTextColor(
         OOColor::colorWithDescription(PListForKeyIn(*gui_info, "text_color"))
             .get());
-    oo::Ref<OOColor> textCommsColor = OOColor::colorWithDescription(
+    std::shared_ptr<OOColor> textCommsColor = OOColor::colorWithDescription(
         PListForKeyIn(*gui_info, "text_comms_color"));
     if (!textCommsColor) textCommsColor = OOColor::greenColor();
     gui->setTextCommsColor(textCommsColor.get());
@@ -660,7 +659,7 @@ void HeadUpDisplay::setHudName(const std::optional<std::string>& newHudName) {
   }
 }
 
-oo::Ref<OOColor> HeadUpDisplay::reticleColorForIndex(std::size_t idx) {
+std::shared_ptr<OOColor> HeadUpDisplay::reticleColorForIndex(std::size_t idx) {
   if (idx < _reticleColors.size()) {
     return _reticleColors[idx];
   }
@@ -670,7 +669,7 @@ oo::Ref<OOColor> HeadUpDisplay::reticleColorForIndex(std::size_t idx) {
 bool HeadUpDisplay::setReticleColorForIndex(std::size_t idx,
                                             OOColor* newColor) {
   if (newColor && idx < _reticleColors.size()) {
-    _reticleColors[idx] = oo::Ref<OOColor>(newColor);
+    _reticleColors[idx] = oo::share(newColor);
     return true;
   }
   return false;
@@ -1259,7 +1258,7 @@ void HeadUpDisplay::drawSurround(const oo::PList& info) {
   GLfloat itemColor[4] = {0.0f, 1.0f, 0.0f, 1.0f};
   oo::PList colorDesc = PListForKeyIn(info, COLOR_KEY);
   if (!colorDesc.isNull()) {
-    oo::Ref<OOColor> color = OOColor::colorWithDescription(colorDesc);
+    std::shared_ptr<OOColor> color = OOColor::colorWithDescription(colorDesc);
     if (color != nullptr) {
       itemColor[0] = color->redComponent();
       itemColor[1] = color->greenComponent();
@@ -1294,7 +1293,7 @@ void HeadUpDisplay::drawMultiFunctionDisplay(const oo::PList& info,
       info.get<oo::NonNegative<float>>(ALPHA_KEY, 1.0f) * overallAlpha;
 
   GLfloat mfd_color[4] = {0.0, 1.0, 0.0, static_cast<GLfloat>(0.9 * alpha)};
-  oo::Ref<OOColor> mfdcol =
+  std::shared_ptr<OOColor> mfdcol =
       OOColor::colorWithDescription(PListForKeyIn(info, COLOR_KEY));
   if (mfdcol != nullptr) {
     mfdcol->getRed(&mfd_color[0], &mfd_color[1], &mfd_color[2], &mfd_color[3]);
@@ -2183,11 +2182,11 @@ void HeadUpDisplay::drawCustomLight(const oo::PList& info) {
 
   GLfloat light_color[4] = {0.25, 0.25, 0.25, 0.0};
 
-  oo::Ref<OOColor> color =
+  std::shared_ptr<OOColor> color =
       (PLAYER != nullptr
            ? PLAYER->dialCustomColor(
                  OptionalStringIn(info, CUSTOM_DIAL_KEY).value_or(""))
-           : oo::Ref<OOColor>());
+           : std::shared_ptr<OOColor>());
   if (color != nullptr)  // a message to nil left the colour as it was
   {
     color->getRed(&light_color[0], &light_color[1], &light_color[2],
@@ -3799,7 +3798,7 @@ void hudDrawReticleOnTarget(
     Entity* target, PlayerEntity* player1, GLfloat /*z1*/, GLfloat alpha,
     bool reticleTargetSensitive, oo::PList* propertiesReticleTargetSensitive,
     bool colourFromScannerColour, bool showText, const oo::PList& info,
-    const std::vector<oo::Ref<OOColor>>& reticleColors) {
+    const std::vector<std::shared_ptr<OOColor>>& reticleColors) {
   if (target == nullptr || player1 == nullptr) {
     return;
   }
@@ -3937,14 +3936,14 @@ void hudDrawReticleOnTarget(
         GLColorWithOverallAlpha(green_color, alpha);
       }
     } else {
-      oo::Ref<OOColor> reticleDisplayColor;
+      std::shared_ptr<OOColor> reticleDisplayColor;
       if (reticleTargetSensitive && isTargeted) {
-        reticleDisplayColor = oo::Ref<OOColor>(
+        reticleDisplayColor = oo::share(
             ReticleColorAt(reticleColors, OO_RETICLE_COLOR_TARGET_SENSITIVE));
         if (!reticleDisplayColor) reticleDisplayColor = OOColor::redColor();
       } else {
-        reticleDisplayColor = oo::Ref<OOColor>(
-            ReticleColorAt(reticleColors, OO_RETICLE_COLOR_TARGET));
+        reticleDisplayColor =
+            oo::share(ReticleColorAt(reticleColors, OO_RETICLE_COLOR_TARGET));
         if (!reticleDisplayColor) reticleDisplayColor = OOColor::greenColor();
       }
       GLfloat reticleDisplayColorArray[4] = {
@@ -4776,7 +4775,7 @@ namespace {
 
 void SetGLColourFromInfo(const oo::PList& info, std::string_view key,
                          const GLfloat defaultColor[4], GLfloat alpha) {
-  oo::Ref<OOColor> color;
+  std::shared_ptr<OOColor> color;
   const oo::PList colorDesc = PListForKeyIn(info, key);
   if (!colorDesc.isNull()) {
     color = OOColor::colorWithDescription(colorDesc);
@@ -4791,7 +4790,7 @@ void SetGLColourFromInfo(const oo::PList& info, std::string_view key,
 }
 
 void GetRGBAArrayFromInfo(const oo::PList& info, GLfloat ioColor[4]) {
-  oo::Ref<OOColor> color;
+  std::shared_ptr<OOColor> color;
 
   // First, look for general colour specifier.
   const oo::PList colorDesc = PListForKeyIn(info, RGB_COLOR_KEY);

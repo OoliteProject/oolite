@@ -824,7 +824,7 @@ bool ShipEntity::setUpFromDictionary(const oo::PList& inShipDict) {
   defaultExhaustEmissiveColorComponents.g = 0.9f;
   defaultExhaustEmissiveColorComponents.b = 1.0f;
   defaultExhaustEmissiveColorComponents.a = 0.9f;
-  oo::Ref<OOColor> color = OOColor::brightColorWithDescription(
+  std::shared_ptr<OOColor> color = OOColor::brightColorWithDescription(
       ValueForKey(shipDict, "exhaust_emissive_color"));
   if (color == nullptr)
     color =
@@ -6549,7 +6549,7 @@ void ShipEntity::setScannerDisplayColor1(::OOColor* color) {
     scanner_display_color1 = OOColor::colorWithDescription(
         ValueForKey(shipinfoDictionary, "scanner_display_color1"));
   else
-    scanner_display_color1 = oo::Ref<OOColor>(color);
+    scanner_display_color1 = oo::share(color);
 }
 
 void ShipEntity::setScannerDisplayColor2(::OOColor* color) {
@@ -6557,7 +6557,7 @@ void ShipEntity::setScannerDisplayColor2(::OOColor* color) {
     scanner_display_color2 = OOColor::colorWithDescription(
         ValueForKey(shipinfoDictionary, "scanner_display_color2"));
   else
-    scanner_display_color2 = oo::Ref<OOColor>(color);
+    scanner_display_color2 = oo::share(color);
 }
 
 ::OOColor* ShipEntity::scannerDisplayColor1() {
@@ -6573,7 +6573,7 @@ void ShipEntity::setScannerDisplayColorHostile1(::OOColor* color) {
     scanner_display_color_hostile1 = OOColor::colorWithDescription(
         ValueForKey(shipinfoDictionary, "scanner_hostile_display_color1"));
   else
-    scanner_display_color_hostile1 = oo::Ref<OOColor>(color);
+    scanner_display_color_hostile1 = oo::share(color);
 }
 
 void ShipEntity::setScannerDisplayColorHostile2(::OOColor* color) {
@@ -6581,7 +6581,7 @@ void ShipEntity::setScannerDisplayColorHostile2(::OOColor* color) {
     scanner_display_color_hostile2 = OOColor::colorWithDescription(
         ValueForKey(shipinfoDictionary, "scanner_hostile_display_color2"));
   else
-    scanner_display_color_hostile2 = oo::Ref<OOColor>(color);
+    scanner_display_color_hostile2 = oo::share(color);
 }
 
 ::OOColor* ShipEntity::scannerDisplayColorHostile1() {
@@ -7223,8 +7223,9 @@ void ShipEntity::setWeaponDataFromType(OOWeaponType weapon_type) {
   weapon_damage = (weapon_type != nullptr ? weapon_type->weaponDamage() : 0.0f);
 
   if (default_laser_color == nullptr) {
-    oo::Ref<OOColor> wcol = (weapon_type != nullptr ? weapon_type->weaponColor()
-                                                    : oo::Ref<OOColor>());
+    std::shared_ptr<OOColor> wcol =
+        (weapon_type != nullptr ? weapon_type->weaponColor()
+                                : std::shared_ptr<OOColor>());
     if (wcol != nullptr) {
       setLaserColor(wcol.get());
     }
@@ -10935,13 +10936,13 @@ bool ShipEntity::fireTurretCannon(double range) {
 
 void ShipEntity::setLaserColor(::OOColor* color) {
   if (color) {
-    laser_color = oo::Ref<OOColor>(color);
+    laser_color = oo::share(color);
   }
 }
 
 void ShipEntity::setExhaustEmissiveColor(::OOColor* color) {
   if (color) {
-    exhaust_emissive_color = oo::Ref<OOColor>(color);
+    exhaust_emissive_color = oo::share(color);
   }
 }
 
@@ -11385,7 +11386,7 @@ void ShipEntity::throwSparks() {
   Vector vel = vector_multiply_scalar(
       HPVectorToVector(HPvector_subtract(origin, position)), 2.0);
 
-  oo::Ref<OOColor> color =
+  std::shared_ptr<OOColor> color =
       OOColor::colorWithHue(0.08 + 0.17 * randf(), 1.0, 1.0, 1.0);
 
   Entity* spark = oo::MadeEntity(OOSparkEntity::sparkWithPosition(

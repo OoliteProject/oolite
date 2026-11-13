@@ -1248,13 +1248,13 @@ class ShipEntity : public OOEntityWithDrawable,
   oo::PList dockingInstructions;  // null: none (was nil); the station is an
                                   // Object node (a weak reference)
 
-  oo::Ref<OOColor> laser_color;
-  oo::Ref<OOColor> default_laser_color;
-  oo::Ref<OOColor> exhaust_emissive_color;
-  oo::Ref<OOColor> scanner_display_color1;
-  oo::Ref<OOColor> scanner_display_color2;
-  oo::Ref<OOColor> scanner_display_color_hostile1;
-  oo::Ref<OOColor> scanner_display_color_hostile2;
+  std::shared_ptr<OOColor> laser_color;
+  std::shared_ptr<OOColor> default_laser_color;
+  std::shared_ptr<OOColor> exhaust_emissive_color;
+  std::shared_ptr<OOColor> scanner_display_color1;
+  std::shared_ptr<OOColor> scanner_display_color2;
+  std::shared_ptr<OOColor> scanner_display_color_hostile1;
+  std::shared_ptr<OOColor> scanner_display_color_hostile2;
 
   // per ship-type variables
   //

@@ -542,10 +542,12 @@ OOEquipmentType::incompatibleEquipment() {
   return _incompatibleEquipment;
 }
 
-oo::Ref<OOColor> OOEquipmentType::displayColor() { return _displayColor; }
+std::shared_ptr<OOColor> OOEquipmentType::displayColor() {
+  return _displayColor;
+}
 
 void OOEquipmentType::setDisplayColor(OOColor* color) {
-  _displayColor = oo::Ref<OOColor>(color);
+  _displayColor = oo::share(color);
 }
 
 oo::PList OOEquipmentType::conditions() { return _conditions; }
@@ -619,7 +621,7 @@ GLfloat OOEquipmentType::weaponThreatAssessment() {
   return _weaponInfo.get<float>("threat_assessment", 1.0);
 }
 
-oo::Ref<OOColor> OOEquipmentType::weaponColor() {
+std::shared_ptr<OOColor> OOEquipmentType::weaponColor() {
   const oo::PList* color =
       _weaponInfo.find("color");  // absent: a null PList, as nil was
   return OOColor::brightColorWithDescription((color != nullptr) ? *color

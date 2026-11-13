@@ -206,7 +206,7 @@ GuiDisplayGen::GuiDisplayGen() {
   for (i = 0; i < n_rows; i++) {
     rowText.push_back(oo::PList("."));
     rowKey.push_back(std::format("{}", static_cast<int>(i)));
-    rowColor.push_back(oo::Ref<OOColor>(OOColor::yellowColor()));
+    rowColor.push_back(OOColor::yellowColor());
     rowPosition[i].x = 0.0f;
     rowPosition[i].y =
         size_in_pixels.height - (pixel_row_start + i * pixel_row_height);
@@ -219,7 +219,7 @@ GuiDisplayGen::GuiDisplayGen() {
 
   title = std::string();  // an empty title, not none (-setTitle: would have
                           // made it none)
-  textColor = oo::Ref<OOColor>(OOColor::yellowColor());
+  textColor = OOColor::yellowColor();
 
   drawPosition = make_vector(0.0f, 0.0f, 640.0f);
 
@@ -256,7 +256,7 @@ GuiDisplayGen::GuiDisplayGen(NSSize gui_size, int gui_cols, int gui_rows,
   for (i = 0; i < n_rows; i++) {
     rowText.push_back(oo::PList(""));
     rowKey.push_back(std::string());
-    rowColor.push_back(oo::Ref<OOColor>(OOColor::greenColor()));
+    rowColor.push_back(OOColor::greenColor());
     rowPosition[i].x = 0.0f;
     rowPosition[i].y =
         size_in_pixels.height - (pixel_row_start + i * pixel_row_height);
@@ -264,7 +264,7 @@ GuiDisplayGen::GuiDisplayGen(NSSize gui_size, int gui_cols, int gui_rows,
   }
 
   title = gui_title;  // as given (not through -setTitle:)
-  textColor = oo::Ref<OOColor>(OOColor::yellowColor());
+  textColor = OOColor::yellowColor();
 }
 
 GuiDisplayGen::~GuiDisplayGen() = default;
@@ -318,7 +318,7 @@ void GuiDisplayGen::resizeTo(NSSize gui_size, int csize,
   for (i = 0; i < n_rows; i++) {
     rowText.push_back(oo::PList(""));
     rowKey.push_back(std::string());
-    rowColor.push_back(oo::Ref<OOColor>(OOColor::greenColor()));
+    rowColor.push_back(OOColor::greenColor());
     rowPosition[i].x = 0.0f;
     rowPosition[i].y =
         size_in_pixels.height - (pixel_row_start + i * pixel_row_height);
@@ -380,7 +380,7 @@ void GuiDisplayGen::setAlpha(GLfloat an_alpha) {
 void GuiDisplayGen::setMaxAlpha(GLfloat an_alpha) { max_alpha = an_alpha; }
 
 void GuiDisplayGen::setBackgroundColor(::OOColor* color) {
-  backgroundColor = oo::Ref<OOColor>(color);
+  backgroundColor = oo::share(color);
 }
 
 ::OOColor* GuiDisplayGen::getTextColor() { return textColor.get(); }
@@ -390,7 +390,7 @@ void GuiDisplayGen::setTextColor(::OOColor* color) {
   if (color == nullptr)
     textColor = OOColor::yellowColor();
   else
-    textColor = oo::Ref<OOColor>(color);
+    textColor = oo::share(color);
 }
 
 ::OOColor* GuiDisplayGen::getTextCommsColor() { return textCommsColor.get(); }
@@ -399,12 +399,12 @@ void GuiDisplayGen::setTextCommsColor(::OOColor* color) {
   if (color == nullptr)
     textCommsColor = OOColor::yellowColor();
   else
-    textCommsColor = oo::Ref<OOColor>(color);
+    textCommsColor = oo::share(color);
 }
 
-oo::Ref<OOColor> GuiDisplayGen::colorFromSetting(
+std::shared_ptr<OOColor> GuiDisplayGen::colorFromSetting(
     const std::optional<std::string>& setting, ::OOColor* def) {
-  oo::Ref<OOColor> col;
+  std::shared_ptr<OOColor> col;
   if (setting.has_value()) {
     const oo::PList* description = guiUserSettings.find(*setting);
     col = OOColor::colorWithDescription((description != nullptr) ? *description
@@ -412,7 +412,7 @@ oo::Ref<OOColor> GuiDisplayGen::colorFromSetting(
   }
   if (col == nullptr) {
     if (def != nullptr) {
-      col = oo::Ref<OOColor>(def);
+      col = oo::share(def);
       // def = nil => use default_text_color
     } else {
       col = textColor;
@@ -424,7 +424,7 @@ oo::Ref<OOColor> GuiDisplayGen::colorFromSetting(
 void GuiDisplayGen::setGLColorFromSetting(
     const std::optional<std::string>& setting, ::OOColor* def, GLfloat alpha) {
   GLfloat r, g, b, a;
-  oo::Ref<OOColor> col = colorFromSetting(setting, def);
+  std::shared_ptr<OOColor> col = colorFromSetting(setting, def);
   col->getRed(&r, &g, &b, &a);
 
   OOGL(glColor4f(r, g, b, a * alpha));
@@ -451,7 +451,7 @@ void GuiDisplayGen::setShowAdvancedNavArray(bool inFlag) {
 }
 
 void GuiDisplayGen::setColor(::OOColor* color, OOGUIRow row) {
-  if (RowInRange(row, rowRange)) rowColor[row] = oo::Ref<OOColor>(color);
+  if (RowInRange(row, rowRange)) rowColor[row] = oo::share(color);
 }
 
 oo::PList GuiDisplayGen::objectForRow(OOGUIRow row) {
@@ -1737,7 +1737,7 @@ void GuiDisplayGen::drawSystemMarker(const oo::PList& marker, GLfloat x,
                                      GLfloat scale) {
   const std::string colorDesc =
       marker.get<std::string>("markerColor", "redColor");
-  const oo::Ref<OOColor> markerColor =
+  const std::shared_ptr<OOColor> markerColor =
       OOColor::colorWithDescription(oo::PList(colorDesc));
   OORGBAComponents color =
       (markerColor != nullptr)
@@ -1854,17 +1854,17 @@ void GuiDisplayGen::drawAdvancedNavArrayAtX(float x, float y, float z,
   OOGalaxyID g = (PLAYER != nullptr ? PLAYER->galaxyNumber() : OOGalaxyID{});
   OOSystemID planetNumber = (PLAYER != nullptr ? PLAYER->systemID() : 0);
 
-  oo::Ref<OOColor> defaultConnectionColor = colorFromSetting(
+  std::shared_ptr<OOColor> defaultConnectionColor = colorFromSetting(
       cxx_kGuiChartConnectionColor, OOColor::colorWithWhite(0.25, 1.0).get());
-  oo::Ref<OOColor> currentJumpColorStart =
+  std::shared_ptr<OOColor> currentJumpColorStart =
       colorFromSetting(cxx_kGuiChartCurrentJumpStartColor,
                        OOColor::colorWithWhite(0.25, 0.0).get());
-  oo::Ref<OOColor> currentJumpColorEnd =
+  std::shared_ptr<OOColor> currentJumpColorEnd =
       colorFromSetting(cxx_kGuiChartCurrentJumpEndColor,
                        OOColor::colorWithWhite(0.25, 0.0).get());
 
-  oo::Ref<OOColor> thisConnectionColor;
-  oo::Ref<OOColor> thatConnectionColor;
+  std::shared_ptr<OOColor> thisConnectionColor;
+  std::shared_ptr<OOColor> thatConnectionColor;
 
   float jumpRange =
       MAX_JUMP_RANGE * ((optimizeBy == OORouteType::kNone)
@@ -2396,7 +2396,7 @@ void GuiDisplayGen::drawStarChart(GLfloat x, GLfloat y, GLfloat z,
         case OOLongRangeChartMode::kSunColor:
           if (EXPECT(noNova)) {
             r = g = b = 1.0;
-            oo::Ref<OOColor> sunColor = OOColor::colorWithDescription(
+            std::shared_ptr<OOColor> sunColor = OOColor::colorWithDescription(
                 ((UNIVERSE != nullptr ? UNIVERSE->getSystemManager()
                                       : nullptr) != nullptr
                      ? UNIVERSE->getSystemManager()->getProperty("sun_color", i,

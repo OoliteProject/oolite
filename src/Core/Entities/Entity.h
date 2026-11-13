@@ -288,7 +288,7 @@ class Entity : public oo::RefCounted, public ::OOJSPrivateObject {
   GLfloat getSpawnTime();
   GLfloat timeElapsedSinceSpawn();
   void setAtmosphereFogging(OOColor* fogging);
-  oo::Ref<OOColor> fogUniform();
+  std::shared_ptr<OOColor> fogUniform();
 
   // The category ShaderBindings (EntityShaderBindings.cpp): more values the
   // shader uniforms bind to by name, through the entities' shader binding
@@ -364,7 +364,7 @@ class Entity : public oo::RefCounted, public ::OOJSPrivateObject {
   HPVector position = {};  // use high-precision vectors for global position
   Vector cameraRelativePosition = {};
   Quaternion orientation = {};
-  oo::Ref<OOColor> atmosphereFogging;
+  std::shared_ptr<OOColor> atmosphereFogging;
 
   int zero_index = {};
 

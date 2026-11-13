@@ -109,8 +109,8 @@ class OOCombinedEmissionMapGenerator : public OOTextureGenerator {
   OOPixMap _emissionPx = {};
   OOPixMap _diffusePx = {};
   OOPixMap _illuminationPx = {};
-  oo::Ref<OOColor> _emissionColor;
-  oo::Ref<OOColor> _illuminationColor;
+  std::shared_ptr<OOColor> _emissionColor;
+  std::shared_ptr<OOColor> _illuminationColor;
   bool _isCombinedMap = false;
 
   OOTextureFlags _textureOptions = OOTextureFlags::kNone;

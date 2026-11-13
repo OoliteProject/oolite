@@ -53,10 +53,10 @@ bool OOSunEntity::setSunColor(OOColor* sun_colorIn) {
   OO_ENTER_OPENGL();
 
   float hue, sat, bri, alf;
-  oo::Ref<OOColor> color;
+  std::shared_ptr<OOColor> color;
 
   // blend some white into the sun color to brighten it up
-  const oo::Ref<OOColor> sun_color =
+  const std::shared_ptr<OOColor> sun_color =
       sun_colorIn->blendedColorWithFraction(0.3, OOColor::whiteColor().get());
 
   sun_color->getHue(&hue, &sat, &bri, &alf);

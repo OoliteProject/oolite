@@ -100,7 +100,7 @@ class DustEntity : public Entity, public OOGraphicsResetClient {
   void checkShaderMode();
 #endif
 
-  oo::Ref<OOColor> dust_color;
+  std::shared_ptr<OOColor> dust_color;
   Vector vertices[DUST_N_PARTICLES * 2] = {};
   GLushort indices[DUST_N_PARTICLES * 2] = {};
   GLfloat color_fv[4] = {};

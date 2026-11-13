@@ -41,7 +41,7 @@ namespace {
 */
 struct NamedColor {
   std::string_view name;
-  oo::Ref<OOColor> (*make)();
+  std::shared_ptr<OOColor> (*make)();
 };
 
 const NamedColor kNamedColors[] = {
@@ -125,47 +125,50 @@ void OOColor::setHue(float h, float s, float b, float a) {
   }
 }
 
-oo::Ref<OOColor> OOColor::colorWithHue(float hue, float saturation,
-                                       float brightness, float alpha) {
-  oo::Ref<OOColor> result = oo::makeRef<OOColor>();
+std::shared_ptr<OOColor> OOColor::colorWithHue(float hue, float saturation,
+                                               float brightness, float alpha) {
+  std::shared_ptr<OOColor> result = oo::makeShared<OOColor>();
   result->setHue(360.0f * hue, saturation, brightness, alpha);
   return result;
 }
 
-oo::Ref<OOColor> OOColor::colorWithRed(float red, float green, float blue,
-                                       float alpha) {
-  oo::Ref<OOColor> result = oo::makeRef<OOColor>();
+std::shared_ptr<OOColor> OOColor::colorWithRed(float red, float green,
+                                               float blue, float alpha) {
+  std::shared_ptr<OOColor> result = oo::makeShared<OOColor>();
   result->setRed(red, green, blue, alpha);
   return result;
 }
 
-oo::Ref<OOColor> OOColor::colorWithWhite(float white, float alpha) {
+std::shared_ptr<OOColor> OOColor::colorWithWhite(float white, float alpha) {
   return colorWithRed(white, white, white, alpha);
 }
 
-oo::Ref<OOColor> OOColor::colorWithRGBAComponents(OORGBAComponents components) {
+std::shared_ptr<OOColor> OOColor::colorWithRGBAComponents(
+    OORGBAComponents components) {
   return colorWithRed(components.r, components.g, components.b, components.a);
 }
 
-oo::Ref<OOColor> OOColor::colorWithHSBAComponents(OOHSBAComponents components) {
+std::shared_ptr<OOColor> OOColor::colorWithHSBAComponents(
+    OOHSBAComponents components) {
   return colorWithHue(components.h / 360.0f, components.s, components.b,
                       components.a);
 }
 
-oo::Ref<OOColor> OOColor::colorWithDescription(const oo::PList& description) {
+std::shared_ptr<OOColor> OOColor::colorWithDescription(
+    const oo::PList& description) {
   return colorWithDescription(description, 1.0f);
 }
 
-oo::Ref<OOColor> OOColor::colorWithDescription(const oo::PList& description,
-                                               float factor) {
-  oo::Ref<OOColor> result;
+std::shared_ptr<OOColor> OOColor::colorWithDescription(
+    const oo::PList& description, float factor) {
+  std::shared_ptr<OOColor> result;
 
   if (description.isNull()) return nullptr;
 
   if (description.type() == oo::PList::Type::Object) {
     // The colour in an Object node is the node's foreign object.
     if (OOColor* color = OOColorInObjectNode(description))
-      result = oo::Ref<OOColor>(color);
+      result = oo::share(color);
   } else if (const std::string* string = description.getIf<std::string>()) {
     if (string->ends_with("Color")) {
       // A named colour (kNamedColors)
@@ -229,16 +232,17 @@ oo::Ref<OOColor> OOColor::colorWithDescription(const oo::PList& description,
   return result;
 }
 
-oo::Ref<OOColor> OOColor::brightColorWithDescription(
+std::shared_ptr<OOColor> OOColor::brightColorWithDescription(
     const oo::PList& description) {
-  oo::Ref<OOColor> color = colorWithDescription(description);
+  std::shared_ptr<OOColor> color = colorWithDescription(description);
   if (color == nullptr || 0.5f <= color->brightnessComponent()) return color;
 
   return colorWithHue(color->hueComponent() / 360.0f,
                       color->saturationComponent(), 0.5f, 1.0f);
 }
 
-oo::Ref<OOColor> OOColor::colorFromString(const std::string& colorFloatString) {
+std::shared_ptr<OOColor> OOColor::colorFromString(
+    const std::string& colorFloatString) {
   float rgbaValue[4] = {0.0f, 0.0f, 0.0f, 1.0f};
   oo::str::Scanner scanner(colorFloatString);
   float factor = 1.0f;
@@ -260,90 +264,90 @@ oo::Ref<OOColor> OOColor::colorFromString(const std::string& colorFloatString) {
                       rgbaValue[2] * factor, rgbaValue[3] * factor);
 }
 
-oo::Ref<OOColor> OOColor::blackColor()  // 0.0 white
+std::shared_ptr<OOColor> OOColor::blackColor()  // 0.0 white
 {
   return colorWithWhite(0.0f, 1.0f);
 }
 
-oo::Ref<OOColor> OOColor::darkGrayColor()  // 0.333 white
+std::shared_ptr<OOColor> OOColor::darkGrayColor()  // 0.333 white
 {
   return colorWithWhite(1.0f / 3.0f, 1.0f);
 }
 
-oo::Ref<OOColor> OOColor::lightGrayColor()  // 0.667 white
+std::shared_ptr<OOColor> OOColor::lightGrayColor()  // 0.667 white
 {
   return colorWithWhite(2.0f / 3.0f, 1.0f);
 }
 
-oo::Ref<OOColor> OOColor::whiteColor()  // 1.0 white
+std::shared_ptr<OOColor> OOColor::whiteColor()  // 1.0 white
 {
   return colorWithWhite(1.0f, 1.0f);
 }
 
-oo::Ref<OOColor> OOColor::grayColor()  // 0.5 white
+std::shared_ptr<OOColor> OOColor::grayColor()  // 0.5 white
 {
   return colorWithWhite(0.5f, 1.0f);
 }
 
-oo::Ref<OOColor> OOColor::redColor()  // 1.0, 0.0, 0.0 RGB
+std::shared_ptr<OOColor> OOColor::redColor()  // 1.0, 0.0, 0.0 RGB
 {
   return colorWithRed(1.0f, 0.0f, 0.0f, 1.0f);
 }
 
-oo::Ref<OOColor> OOColor::greenColor()  // 0.0, 1.0, 0.0 RGB
+std::shared_ptr<OOColor> OOColor::greenColor()  // 0.0, 1.0, 0.0 RGB
 {
   return colorWithRed(0.0f, 1.0f, 0.0f, 1.0f);
 }
 
-oo::Ref<OOColor> OOColor::blueColor()  // 0.0, 0.0, 1.0 RGB
+std::shared_ptr<OOColor> OOColor::blueColor()  // 0.0, 0.0, 1.0 RGB
 {
   return colorWithRed(0.0f, 0.0f, 1.0f, 1.0f);
 }
 
-oo::Ref<OOColor> OOColor::cyanColor()  // 0.0, 1.0, 1.0 RGB
+std::shared_ptr<OOColor> OOColor::cyanColor()  // 0.0, 1.0, 1.0 RGB
 {
   return colorWithRed(0.0f, 1.0f, 1.0f, 1.0f);
 }
 
-oo::Ref<OOColor> OOColor::yellowColor()  // 1.0, 1.0, 0.0 RGB
+std::shared_ptr<OOColor> OOColor::yellowColor()  // 1.0, 1.0, 0.0 RGB
 {
   return colorWithRed(1.0f, 1.0f, 0.0f, 1.0f);
 }
 
-oo::Ref<OOColor> OOColor::magentaColor()  // 1.0, 0.0, 1.0 RGB
+std::shared_ptr<OOColor> OOColor::magentaColor()  // 1.0, 0.0, 1.0 RGB
 {
   return colorWithRed(1.0f, 0.0f, 1.0f, 1.0f);
 }
 
-oo::Ref<OOColor> OOColor::orangeColor()  // 1.0, 0.5, 0.0 RGB
+std::shared_ptr<OOColor> OOColor::orangeColor()  // 1.0, 0.5, 0.0 RGB
 {
   return colorWithRed(1.0f, 0.5f, 0.0f, 1.0f);
 }
 
-oo::Ref<OOColor> OOColor::purpleColor()  // 0.5, 0.0, 0.5 RGB
+std::shared_ptr<OOColor> OOColor::purpleColor()  // 0.5, 0.0, 0.5 RGB
 {
   return colorWithRed(0.5f, 0.0f, 0.5f, 1.0f);
 }
 
-oo::Ref<OOColor> OOColor::brownColor()  // 0.6, 0.4, 0.2 RGB
+std::shared_ptr<OOColor> OOColor::brownColor()  // 0.6, 0.4, 0.2 RGB
 {
   return colorWithRed(0.6f, 0.4f, 0.2f, 1.0f);
 }
 
-oo::Ref<OOColor> OOColor::clearColor()  // 0.0 white, 0.0 alpha
+std::shared_ptr<OOColor> OOColor::clearColor()  // 0.0 white, 0.0 alpha
 {
   return colorWithWhite(0.0f, 0.0f);
 }
 
-oo::Ref<OOColor> OOColor::blendedColorWithFraction(float fraction,
-                                                   OOColor* color) {
+std::shared_ptr<OOColor> OOColor::blendedColorWithFraction(float fraction,
+                                                           OOColor* color) {
   // A message to nil left rgba1 unwritten (indeterminate); a null colour now
   // blends with zeros.
   float rgba1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   if (color != nullptr)
     color->getRed(&rgba1[0], &rgba1[1], &rgba1[2], &rgba1[3]);
 
-  oo::Ref<OOColor> result = oo::makeRef<OOColor>();
+  std::shared_ptr<OOColor> result = oo::makeShared<OOColor>();
   result->setRed(
       OOLerp(rgba[0], rgba1[0], fraction), OOLerp(rgba[1], rgba1[1], fraction),
       OOLerp(rgba[2], rgba1[2], fraction), OOLerp(rgba[3], rgba1[3], fraction));
@@ -475,13 +479,13 @@ OOHSBAComponents OOColor::hsbaComponents() {
 // Get the alpha component.
 float OOColor::alphaComponent() { return rgba[3]; }
 
-oo::Ref<OOColor> OOColor::premultipliedColor() {
-  if (rgba[3] == 1.0f) return oo::Ref<OOColor>(this);
+std::shared_ptr<OOColor> OOColor::premultipliedColor() {
+  if (rgba[3] == 1.0f) return oo::share(this);
   return colorWithRed(rgba[0] * rgba[3], rgba[1] * rgba[3], rgba[2] * rgba[3],
                       1.0f);
 }
 
-oo::Ref<OOColor> OOColor::colorWithBrightnessFactor(float factor) {
+std::shared_ptr<OOColor> OOColor::colorWithBrightnessFactor(float factor) {
   return colorWithRed(OOClamp_0_1_f(rgba[0] * factor),
                       OOClamp_0_1_f(rgba[1] * factor),
                       OOClamp_0_1_f(rgba[2] * factor), rgba[3]);

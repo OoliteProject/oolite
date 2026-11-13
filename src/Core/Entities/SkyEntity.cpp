@@ -71,9 +71,10 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict,
 
 // [[OOColor cxx_colorWithDescription:description] premultipliedColor]: null
 // where the colour was nil.
-oo::Ref<OOColor> PremultipliedColorWithDescription(
+std::shared_ptr<OOColor> PremultipliedColorWithDescription(
     const oo::PList& description) {
-  const oo::Ref<OOColor> color = OOColor::colorWithDescription(description);
+  const std::shared_ptr<OOColor> color =
+      OOColor::colorWithDescription(description);
   return color != nullptr ? color->premultipliedColor() : nullptr;
 }
 
@@ -89,10 +90,12 @@ void SkyEntity::initWithColors(OOColor* col1In, OOColor* col2In,
   // self = [super init]: the constructor ran Entity's -init body.
 
   // The colours the body replaces are owned here (they were autoreleased).
-  oo::Ref<OOColor> col1(col1In), col2(col2In);
-  oo::Ref<OOColor> col3 = OOColor::colorWithDescription(OOColorObjectNode(
-      col1.get()));  // a copy, as the id form made of a colour
-  oo::Ref<OOColor> col4 =
+  std::shared_ptr<OOColor> col1 = oo::share(col1In);
+  std::shared_ptr<OOColor> col2 = oo::share(col2In);
+  std::shared_ptr<OOColor> col3 =
+      OOColor::colorWithDescription(OOColorObjectNode(
+          col1.get()));  // a copy, as the id form made of a colour
+  std::shared_ptr<OOColor> col4 =
       OOColor::colorWithDescription(OOColorObjectNode(col2.get()));
 
   // Load colours
@@ -163,7 +166,7 @@ OOColor* SkyEntity::getSkyColor() { return skyColor.get(); }
 bool SkyEntity::changeProperty(const std::string& key, const oo::PList& dict) {
   // TODO: properties requiring reInit?
   if (key == "sun_color") {
-    oo::Ref<OOColor> col =
+    std::shared_ptr<OOColor> col =
         OOColor::colorWithDescription(ValueForKey(dict, key));
     if (col != nullptr) {
       skyColor = col;  // [col copy]: a copy of an immutable colour is the
@@ -218,13 +221,13 @@ std::optional<std::string> SkyEntity::descriptionForObjDump() {
 }
 #endif
 
-bool SkyEntity::readColor1(oo::Ref<OOColor>* ioColor1,
-                           oo::Ref<OOColor>* ioColor2,
-                           oo::Ref<OOColor>* ioColor3,
-                           oo::Ref<OOColor>* ioColor4,
+bool SkyEntity::readColor1(std::shared_ptr<OOColor>* ioColor1,
+                           std::shared_ptr<OOColor>* ioColor2,
+                           std::shared_ptr<OOColor>* ioColor3,
+                           std::shared_ptr<OOColor>* ioColor4,
                            const oo::PList& dictionary) {
   oo::PList colorDesc;
-  oo::Ref<OOColor> color;
+  std::shared_ptr<OOColor> color;
   bool nebulaSet = false;
 
   assert(ioColor1 != nullptr && ioColor2 != nullptr);

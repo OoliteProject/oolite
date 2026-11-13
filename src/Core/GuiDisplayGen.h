@@ -314,8 +314,8 @@ class GuiDisplayGen : public oo::RefCounted {
   virtual void setTextColor(OOColor* color);
   virtual OOColor* getTextCommsColor();
   virtual void setTextCommsColor(OOColor* color);
-  oo::Ref<OOColor> colorFromSetting(const std::optional<std::string>& setting,
-                                    OOColor* def);
+  std::shared_ptr<OOColor> colorFromSetting(
+      const std::optional<std::string>& setting, OOColor* def);
   void setGLColorFromSetting(const std::optional<std::string>& setting,
                              OOColor* def, GLfloat alpha);
   void setGuiColorSettingFromKey(const std::string& key, OOColor* col);
@@ -454,9 +454,9 @@ class GuiDisplayGen : public oo::RefCounted {
 
   NSSize pixel_title_size = {};
 
-  oo::Ref<OOColor> backgroundColor;
-  oo::Ref<OOColor> textColor;
-  oo::Ref<OOColor> textCommsColor;
+  std::shared_ptr<OOColor> backgroundColor;
+  std::shared_ptr<OOColor> textColor;
+  std::shared_ptr<OOColor> textCommsColor;
 
   oo::Ref<OOTextureSprite> backgroundSprite;
   oo::Ref<OOTextureSprite> foregroundSprite;
@@ -467,7 +467,7 @@ class GuiDisplayGen : public oo::RefCounted {
   std::vector<oo::PList>
       rowText;  // each a string, or an array of column strings
   std::vector<std::string> rowKey;
-  std::vector<oo::Ref<OOColor>> rowColor;
+  std::vector<std::shared_ptr<OOColor>> rowColor;
 
   Vector drawPosition = {};
 

@@ -71,7 +71,7 @@ class OOFlasherEntity : public OOLightParticleEntity,
   bool isActive();
   void setActive(bool active);
 
-  oo::Ref<OOColor> color();
+  std::shared_ptr<OOColor> color();
   // setColor is defined by superclass
 
   float frequency();
@@ -111,7 +111,7 @@ class OOFlasherEntity : public OOLightParticleEntity,
   float _phase = {};
   float _wave = {};
   float _brightfraction = {};
-  std::vector<oo::Ref<OOColor>> _colors;
+  std::vector<std::shared_ptr<OOColor>> _colors;
   std::size_t _activeColor = {};
 
   OOTimeDelta _time = {};

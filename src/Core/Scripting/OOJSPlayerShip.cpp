@@ -99,11 +99,13 @@ HeadUpDisplay* HudOf(PlayerEntity* player) {
                             : static_cast<HeadUpDisplay*>(nullptr));
 }
 
-oo::Ref<OOColor> HudReticleColor(PlayerEntity* player, std::size_t idx) {
+std::shared_ptr<OOColor> HudReticleColor(PlayerEntity* player,
+                                         std::size_t idx) {
   HeadUpDisplay* hud =
       (player != nullptr ? player->getHud()
                          : static_cast<HeadUpDisplay*>(nullptr));
-  return (hud != nullptr) ? hud->reticleColorForIndex(idx) : oo::Ref<OOColor>();
+  return (hud != nullptr) ? hud->reticleColorForIndex(idx)
+                          : std::shared_ptr<OOColor>();
 }
 
 // A string, or null for none (what an NSString or nil gave JavaScript).
@@ -881,7 +883,8 @@ static JSValue PlayerShipSetProperty(OOJS_SETTER_ARGS) {
   std::optional<std::string> sValue;
   OOGalacticHyperspaceBehaviour ghBehaviour;
   Vector vValue;
-  oo::Ref<OOColor> colorForScript;  // the colours are converted (OOColor)
+  std::shared_ptr<OOColor>
+      colorForScript;        // the colours are converted (OOColor)
   Entity* eValue = nullptr;  // as JSValueToEntity() answers (the C++ entity)
 
   switch (static_cast<PlayerShipProperty>(magic)) {

@@ -1628,8 +1628,8 @@ void Universe::setUpWitchspaceBetweenSystem(OOSystemID s1, OOSystemID s2) {
   // fixed entities (part of the graphics system really) come first...
 
   /*- the sky backdrop -*/
-  oo::Ref<OOColor> col1 = OOColor::colorWithRed(0.0, 1.0, 0.5, 1.0);
-  oo::Ref<OOColor> col2 = OOColor::colorWithRed(0.0, 1.0, 0.0, 1.0);
+  std::shared_ptr<OOColor> col1 = OOColor::colorWithRed(0.0, 1.0, 0.5, 1.0);
+  std::shared_ptr<OOColor> col2 = OOColor::colorWithRed(0.0, 1.0, 0.0, 1.0);
   {
     // The sky is C++: its object first, retained as +alloc's was, then the
     // body.
@@ -1764,8 +1764,8 @@ void Universe::setUpSpace() {
   unsigned techlevel = systeminfo.get<unsigned int>(std::string(KEY_TECHLEVEL));
   std::optional<std::string> stationDesc,
       defaultStationDesc;  // the default is never set: nullopt, as nil
-  oo::Ref<OOColor> bgcolor;
-  oo::Ref<OOColor> pale_bgcolor;
+  std::shared_ptr<OOColor> bgcolor;
+  std::shared_ptr<OOColor> pale_bgcolor;
   bool sunGoneNova;
 
   Random_Seed systemSeed =
@@ -1821,10 +1821,10 @@ void Universe::setUpSpace() {
   float s1 = randf();  // one draw per local, in the order Clang evaluates the
                        // arguments
   double b1 = 0.5 + randf() / 2.0;
-  oo::Ref<OOColor> col1 = OOColor::colorWithHue(h1, s1, b1, 1.0);
+  std::shared_ptr<OOColor> col1 = OOColor::colorWithHue(h1, s1, b1, 1.0);
   double s2 = 0.5 + randf() / 2.0;
   double b2 = 0.5 + randf() / 2.0;
-  oo::Ref<OOColor> col2 = OOColor::colorWithHue(h2, s2, b2, 1.0);
+  std::shared_ptr<OOColor> col2 = OOColor::colorWithHue(h2, s2, b2, 1.0);
 
   {
     // The sky is C++: its object first, retained as +alloc's was, then the
@@ -3591,7 +3591,7 @@ void Universe::setUpBreakPattern(HPVector pos, Quaternion q, bool forDocking) {
   int i;
   oo::Ref<OOBreakPatternEntity> ring;
   oo::PList colorDesc;
-  oo::Ref<OOColor> color;
+  std::shared_ptr<OOColor> color;
 
   setViewDirection(OOViewID::kForward);
 
@@ -3603,9 +3603,9 @@ void Universe::setUpBreakPattern(HPVector pos, Quaternion q, bool forDocking) {
 
   // hyperspace colours
 
-  oo::Ref<OOColor> col1 =
+  std::shared_ptr<OOColor> col1 =
       OOColor::colorWithRed(1.0, 0.0, 0.0, 0.5);  // standard tunnel colour
-  oo::Ref<OOColor> col2 =
+  std::shared_ptr<OOColor> col2 =
       OOColor::colorWithRed(0.0, 0.0, 1.0, 0.25);  // standard tunnel colour
 
   colorDesc =

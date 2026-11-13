@@ -196,7 +196,7 @@ static JSValue FlasherSetProperty(OOJS_SETTER_ARGS) {
   OOFlasherEntity* entity = nullptr;
   double fValue;
   int bValue;
-  oo::Ref<OOColor> colorForScript;
+  std::shared_ptr<OOColor> colorForScript;
 
   if (!JSFlasherGetFlasherEntity(context, thisObj, &entity))
     return OOJSNativeFailure(context);

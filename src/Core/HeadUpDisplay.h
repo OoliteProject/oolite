@@ -338,7 +338,7 @@ class HeadUpDisplay : public oo::RefCounted {
   bool scannerUltraZoom();
   void setScannerUltraZoom(bool newValue);
 
-  oo::Ref<OOColor> reticleColorForIndex(std::size_t idx);
+  std::shared_ptr<OOColor> reticleColorForIndex(std::size_t idx);
   bool setReticleColorForIndex(std::size_t idx, OOColor* newColor);
 
   bool checkPlayerInFlight();
@@ -430,13 +430,13 @@ class HeadUpDisplay : public oo::RefCounted {
   GLfloat _lastOverallAlpha = {};
   bool _lastWeaponsOnline = {};
   oo::PList _crosshairOverrides;  // null for none
-  oo::Ref<OOColor> _crosshairColor;
+  std::shared_ptr<OOColor> _crosshairColor;
   GLfloat _crosshairScale = {};
   GLfloat _crosshairWidth = {};
   std::optional<std::string> crosshairDefinition;
   bool _compassActive = {};
 
-  std::vector<oo::Ref<OOColor>> _reticleColors;
+  std::vector<std::shared_ptr<OOColor>> _reticleColors;
 
   // essentially scanner without gridlines
   bool minimalistic_scanner = {};

@@ -42,8 +42,8 @@ oo::PList ValueFor(const oo::PList& configuration, std::string_view key) {
   return value != nullptr ? *value : oo::PList();
 }
 
-oo::Ref<OOColor> ColorFor(const oo::PList& configuration,
-                          std::string_view key) {
+std::shared_ptr<OOColor> ColorFor(const oo::PList& configuration,
+                                  std::string_view key) {
   return OOColor::colorWithDescription(ValueFor(configuration, key));
 }
 
@@ -74,8 +74,9 @@ int RawSpecularExponentValue(const oo::PList& configuration) {
 
 }  // namespace
 
-oo::Ref<OOColor> cxx_OOMaterialDiffuseColor(const oo::PList& configuration) {
-  oo::Ref<OOColor> result =
+std::shared_ptr<OOColor> cxx_OOMaterialDiffuseColor(
+    const oo::PList& configuration) {
+  std::shared_ptr<OOColor> result =
       ColorFor(configuration, cxx_kOOMaterialDiffuseColorName);
   if (result == nullptr)
     result = ColorFor(configuration, cxx_kOOMaterialDiffuseColorLegacyName);
@@ -85,16 +86,18 @@ oo::Ref<OOColor> cxx_OOMaterialDiffuseColor(const oo::PList& configuration) {
   return result;
 }
 
-oo::Ref<OOColor> cxx_OOMaterialAmbientColor(const oo::PList& configuration) {
-  oo::Ref<OOColor> result =
+std::shared_ptr<OOColor> cxx_OOMaterialAmbientColor(
+    const oo::PList& configuration) {
+  std::shared_ptr<OOColor> result =
       ColorFor(configuration, cxx_kOOMaterialAmbientColorName);
   if (result == nullptr)
     result = ColorFor(configuration, cxx_kOOMaterialAmbientColorLegacyName);
   return result;
 }
 
-oo::Ref<OOColor> cxx_OOMaterialSpecularColor(const oo::PList& configuration) {
-  oo::Ref<OOColor> result =
+std::shared_ptr<OOColor> cxx_OOMaterialSpecularColor(
+    const oo::PList& configuration) {
+  std::shared_ptr<OOColor> result =
       ColorFor(configuration, cxx_kOOMaterialSpecularColorName);
   if (result == nullptr)
     result = ColorFor(configuration, cxx_kOOMaterialSpecularColorLegacyName);
@@ -104,17 +107,18 @@ oo::Ref<OOColor> cxx_OOMaterialSpecularColor(const oo::PList& configuration) {
   return result;
 }
 
-oo::Ref<OOColor> cxx_OOMaterialSpecularModulateColor(
+std::shared_ptr<OOColor> cxx_OOMaterialSpecularModulateColor(
     const oo::PList& configuration) {
-  oo::Ref<OOColor> result =
+  std::shared_ptr<OOColor> result =
       ColorFor(configuration, cxx_kOOMaterialSpecularModulateColorName);
   if (result == nullptr) result = OOColor::whiteColor();
 
   return result;
 }
 
-oo::Ref<OOColor> cxx_OOMaterialEmissionColor(const oo::PList& configuration) {
-  oo::Ref<OOColor> result =
+std::shared_ptr<OOColor> cxx_OOMaterialEmissionColor(
+    const oo::PList& configuration) {
+  std::shared_ptr<OOColor> result =
       ColorFor(configuration, cxx_kOOMaterialEmissionColorName);
   if (result == nullptr)
     result = ColorFor(configuration, cxx_kOOMaterialEmissionColorLegacyName);
@@ -124,9 +128,9 @@ oo::Ref<OOColor> cxx_OOMaterialEmissionColor(const oo::PList& configuration) {
   return result;
 }
 
-oo::Ref<OOColor> cxx_OOMaterialEmissionModulateColor(
+std::shared_ptr<OOColor> cxx_OOMaterialEmissionModulateColor(
     const oo::PList& configuration) {
-  oo::Ref<OOColor> result =
+  std::shared_ptr<OOColor> result =
       ColorFor(configuration, cxx_kOOMaterialEmissionModulateColorName);
 
   if (result != nullptr && result->isWhite())
@@ -134,9 +138,9 @@ oo::Ref<OOColor> cxx_OOMaterialEmissionModulateColor(
   return result;
 }
 
-oo::Ref<OOColor> cxx_OOMaterialIlluminationModulateColor(
+std::shared_ptr<OOColor> cxx_OOMaterialIlluminationModulateColor(
     const oo::PList& configuration) {
-  oo::Ref<OOColor> result =
+  std::shared_ptr<OOColor> result =
       ColorFor(configuration, cxx_kOOMaterialIlluminationModulateColorName);
 
   if (result != nullptr && result->isWhite())

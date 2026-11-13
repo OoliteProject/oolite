@@ -1431,7 +1431,7 @@ static JSValue ShipSetProperty(OOJS_SETTER_ARGS) {
   Quaternion qValue;
   HPVector hpvValue;
   OOShipGroup* group = nullptr;
-  oo::Ref<OOColor> colorForScript;
+  std::shared_ptr<OOColor> colorForScript;
   bool exists;  // JSValueToEquipmentKeyRelaxed()'s out parameter
 
   if (EXPECT_NOT(!JSShipGetShipEntity(context, thisObj, &entity)))

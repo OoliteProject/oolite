@@ -4925,7 +4925,8 @@ std::string PlayerEntity::dialCustomString(const std::string& dialKey) {
       found != customDialSettings.end() ? &found->second : nullptr, "");
 }
 
-oo::Ref<OOColor> PlayerEntity::dialCustomColor(const std::string& dialKey) {
+std::shared_ptr<OOColor> PlayerEntity::dialCustomColor(
+    const std::string& dialKey) {
   const auto found = customDialSettings.find(dialKey);
   return OOColor::colorWithDescription(
       (found != customDialSettings.end() ? found->second : oo::PList()));
@@ -9988,9 +9989,9 @@ void PlayerEntity::setGuiToEquipShipScreen(
                 .value_or("(null)"));
         double price;
 
-        oo::Ref<OOColor> dispCol((eqInfo != nullptr
-                                      ? eqInfo->displayColor().get()
-                                      : static_cast<OOColor*>(nullptr)));
+        std::shared_ptr<OOColor> dispCol = eqInfo != nullptr
+                                               ? eqInfo->displayColor()
+                                               : std::shared_ptr<OOColor>();
         if (dispCol == nullptr)
           dispCol =
               gui->colorFromSetting(cxx_kGuiEquipmentOptionColor, nullptr);
@@ -10213,7 +10214,7 @@ void PlayerEntity::showInformationForSelectedUpgradeWithFormatString(
   const std::optional<std::string> eqKey = gui->selectedRowKey();
   int i;
 
-  oo::Ref<OOColor> descColor = gui->colorFromSetting(
+  std::shared_ptr<OOColor> descColor = gui->colorFromSetting(
       cxx_kGuiEquipmentDescriptionColor, OOColor::greenColor().get());
   for (i = GUI_ROW_EQUIPMENT_DETAIL; i < GUI_MAX_ROWS; i++) {
     gui->setText(std::string(), i);

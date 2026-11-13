@@ -1198,7 +1198,8 @@ OXZInstallableState OOOXZManager::installableState(const oo::PList& manifest) {
   return OXZInstallableState::kInstallableOkay;
 }
 
-oo::Ref<OOColor> OOOXZManager::colorForManifest(const oo::PList& manifest) {
+std::shared_ptr<OOColor> OOOXZManager::colorForManifest(
+    const oo::PList& manifest) {
   switch (installableState(manifest)) {
     case OXZInstallableState::kInstallableOkay:
       return OOColor::yellowColor();

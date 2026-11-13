@@ -29,7 +29,7 @@ SOFTWARE.
 
 #pragma once
 
-#include "OOColor.h"  // the colour readers answer oo::Ref<OOColor>
+#include "OOColor.h"  // the colour readers answer std::shared_ptr<OOColor>
 #include "OOFoundation.h"
 #include "oofnd/PList.hpp"
 
@@ -39,15 +39,19 @@ SOFTWARE.
    configuration, and every function then answers as a message to nil did.
    Specifiers are oo::PList dictionaries (null = nil).
 */
-oo::Ref<OOColor> cxx_OOMaterialDiffuseColor(const oo::PList& configuration);
-oo::Ref<OOColor> cxx_OOMaterialAmbientColor(const oo::PList& configuration);
-oo::Ref<OOColor> cxx_OOMaterialSpecularColor(const oo::PList& configuration);
-oo::Ref<OOColor> cxx_OOMaterialSpecularModulateColor(
+std::shared_ptr<OOColor> cxx_OOMaterialDiffuseColor(
     const oo::PList& configuration);
-oo::Ref<OOColor> cxx_OOMaterialEmissionColor(const oo::PList& configuration);
-oo::Ref<OOColor> cxx_OOMaterialEmissionModulateColor(
+std::shared_ptr<OOColor> cxx_OOMaterialAmbientColor(
     const oo::PList& configuration);
-oo::Ref<OOColor> cxx_OOMaterialIlluminationModulateColor(
+std::shared_ptr<OOColor> cxx_OOMaterialSpecularColor(
+    const oo::PList& configuration);
+std::shared_ptr<OOColor> cxx_OOMaterialSpecularModulateColor(
+    const oo::PList& configuration);
+std::shared_ptr<OOColor> cxx_OOMaterialEmissionColor(
+    const oo::PList& configuration);
+std::shared_ptr<OOColor> cxx_OOMaterialEmissionModulateColor(
+    const oo::PList& configuration);
+std::shared_ptr<OOColor> cxx_OOMaterialIlluminationModulateColor(
     const oo::PList& configuration);
 
 oo::PList cxx_OOMaterialDiffuseMapSpecifier(

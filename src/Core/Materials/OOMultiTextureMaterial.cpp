@@ -59,9 +59,9 @@ bool OOMultiTextureMaterial::initWithName(
       cxx_OOMaterialIlluminationMapSpecifier(config);
   const oo::PList emissionAndIlluminationSpec =
       cxx_OOMaterialEmissionAndIlluminationMapSpecifier(config);
-  oo::Ref<OOColor> diffuseColor = cxx_OOMaterialDiffuseColor(config);
-  oo::Ref<OOColor> emissionColor;
-  oo::Ref<OOColor> illuminationColor =
+  std::shared_ptr<OOColor> diffuseColor = cxx_OOMaterialDiffuseColor(config);
+  std::shared_ptr<OOColor> emissionColor;
+  std::shared_ptr<OOColor> illuminationColor =
       cxx_OOMaterialIlluminationModulateColor(config);
 
   // A copy of the configuration (an empty one for nil, as

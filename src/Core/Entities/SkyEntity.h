@@ -73,9 +73,11 @@ class SkyEntity : public OOEntityWithDrawable {
 #endif
 
  private:
-  bool readColor1(oo::Ref<OOColor>* ioColor1, oo::Ref<OOColor>* ioColor2,
-                  oo::Ref<OOColor>* ioColor3, oo::Ref<OOColor>* ioColor4,
+  bool readColor1(std::shared_ptr<OOColor>* ioColor1,
+                  std::shared_ptr<OOColor>* ioColor2,
+                  std::shared_ptr<OOColor>* ioColor3,
+                  std::shared_ptr<OOColor>* ioColor4,
                   const oo::PList& dictionary);
 
-  oo::Ref<OOColor> skyColor;
+  std::shared_ptr<OOColor> skyColor;
 };

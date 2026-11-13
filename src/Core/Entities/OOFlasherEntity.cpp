@@ -56,7 +56,7 @@ void OOFlasherEntity::initWithDictionary(const oo::PList& dictionary) {
 }
 
 void OOFlasherEntity::setUpColors(const oo::PList* colorSpecifiers) {
-  std::vector<oo::Ref<OOColor>> colors;
+  std::vector<std::shared_ptr<OOColor>> colors;
   if (colorSpecifiers != nullptr) {
     for (const oo::PList& specifier :
          *colorSpecifiers->getIf<oo::PList::Array>()) {
@@ -80,7 +80,7 @@ bool OOFlasherEntity::isActive() { return _active; }
 
 void OOFlasherEntity::setActive(bool active) { _active = !!active; }
 
-oo::Ref<OOColor> OOFlasherEntity::color() {
+std::shared_ptr<OOColor> OOFlasherEntity::color() {
   return OOColor::colorWithRed(_colorComponents[0], _colorComponents[1],
                                _colorComponents[2], _colorComponents[3]);
 }

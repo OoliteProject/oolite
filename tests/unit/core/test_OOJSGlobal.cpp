@@ -216,7 +216,7 @@ oo::PList GuiDisplayGen::textureDescriptorFromJSValue(JSValue value, JSContext *
 bool GuiDisplayGen::setBackgroundTextureDescriptor(const oo::PList &descriptor)  { sGuiBackground = descriptor; return !descriptor.isNull(); }
 bool GuiDisplayGen::setForegroundTextureDescriptor(const oo::PList &descriptor)  { sGuiForeground = descriptor; return !descriptor.isNull(); }
 
-oo::Ref<OOColor> GuiDisplayGen::colorFromSetting(const std::optional<std::string> &setting, OOColor *def)
+std::shared_ptr<OOColor> GuiDisplayGen::colorFromSetting(const std::optional<std::string> &setting, OOColor *def)
 {
 	auto found = sGuiColors.find(setting.value_or(""));
 	return found != sGuiColors.end() ? found->second : oo::Ref<OOColor>(def);

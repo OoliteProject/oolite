@@ -97,7 +97,7 @@ class OOEquipmentType : public oo::PListForeign, public ::OOJSPrivateObject {
   bool canBeDamaged();
   bool isVisible();  // Visible in UI?
   bool hideValues();
-  oo::Ref<OOColor> displayColor();
+  std::shared_ptr<OOColor> displayColor();
   void setDisplayColor(OOColor* newColor);
 
   bool isAvailableToPlayer();
@@ -144,7 +144,7 @@ class OOEquipmentType : public oo::PListForeign, public ::OOJSPrivateObject {
   GLfloat weaponRechargeRate();
   GLfloat weaponShotTemperature();
   GLfloat weaponThreatAssessment();
-  oo::Ref<OOColor> weaponColor();
+  std::shared_ptr<OOColor> weaponColor();
   std::optional<std::string> fxShotMissName();
   std::optional<std::string> fxShotHitName();
   std::optional<std::string> fxShieldHitName();
@@ -193,7 +193,7 @@ class OOEquipmentType : public oo::PListForeign, public ::OOJSPrivateObject {
         _isAvailableToPlayer : 1 = 0, _isAvailableToNPCs : 1 = 0,
         _fastAffinityA : 1 = 0, _fastAffinityB : 1 = 0,
         _canCarryMultiple : 1 = 0, _hideValues : 1 = 0;
-  oo::Ref<OOColor> _displayColor;
+  std::shared_ptr<OOColor> _displayColor;
   std::size_t _installTime = {};
   std::size_t _repairTime = {};
   GLfloat _damageProbability = {};

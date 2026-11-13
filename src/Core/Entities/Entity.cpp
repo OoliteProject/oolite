@@ -883,10 +883,10 @@ GLfloat Entity::timeElapsedSinceSpawn() {
 }
 
 void Entity::setAtmosphereFogging(OOColor* fogging) {
-  atmosphereFogging = oo::Ref<OOColor>(fogging);
+  atmosphereFogging = oo::share(fogging);
 }
 
-oo::Ref<OOColor> Entity::fogUniform() { return atmosphereFogging; }
+std::shared_ptr<OOColor> Entity::fogUniform() { return atmosphereFogging; }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 std::optional<std::string> Entity::descriptionForObjDumpBasic() {

@@ -662,7 +662,7 @@ void OOVisualEffectEntity::setScannerDisplayColor1(OOColor* color) {
     scanner_display_color1 = OOColor::colorWithDescription(
         ValueForKey(effectinfoDictionary, "scanner_display_color1"));
   else
-    scanner_display_color1 = oo::Ref<OOColor>(color);
+    scanner_display_color1 = oo::share(color);
 }
 
 void OOVisualEffectEntity::setScannerDisplayColor2(OOColor* color) {
@@ -672,7 +672,7 @@ void OOVisualEffectEntity::setScannerDisplayColor2(OOColor* color) {
     scanner_display_color2 = OOColor::colorWithDescription(
         ValueForKey(effectinfoDictionary, "scanner_display_color2"));
   else
-    scanner_display_color2 = oo::Ref<OOColor>(color);
+    scanner_display_color2 = oo::share(color);
 }
 
 static GLfloat default_color[4] = {0.0, 0.0, 0.0, 0.0};

@@ -537,7 +537,7 @@ static JSValue EquipmentInfoSetProperty(OOJS_SETTER_ARGS) {
   OOJS_NATIVE_ENTER(context)
 
   int32_t iValue;
-  oo::Ref<OOColor> colorForScript;
+  std::shared_ptr<OOColor> colorForScript;
 
   OOEquipmentType* type = nullptr;  // null for the prototype: see Ask()
   if (EXPECT_NOT(!JSEquipmentInfoGetEquipmentType(context, thisObj, &type)))
