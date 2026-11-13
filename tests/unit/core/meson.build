@@ -78,6 +78,7 @@ core_tests = {
     'test_OOOpenGLOnly': [],	# src/Core/OOOpenGLOnly.h (upstream #748)
     'test_OOOpenGLExtensionManager': ['Core/OOOpenGLExtensionManager.cpp', 'Core/OOOpenGL.cpp', 'Core/OOOpenGLStateManager.cpp'],
     'test_OOOpenGLStateManager': ['Core/OOOpenGLStateManager.cpp', 'Core/OOOpenGL.cpp', 'Core/OOOpenGLExtensionManager.cpp'],
+    'test_OOOpenGLStateVerifier': ['Core/OOOpenGLStateManager.cpp', 'Core/OOOpenGL.cpp', 'Core/OOOpenGLExtensionManager.cpp'],
     'test_OOTextureSprite': ['Core/OOTextureSprite.cpp', 'Core/OOOpenGLStateManager.cpp', 'Core/OOOpenGL.cpp', 'Core/OOOpenGLExtensionManager.cpp'],
     'test_OOTexture': ['*'],
     'test_OONullTexture': ['*'],
