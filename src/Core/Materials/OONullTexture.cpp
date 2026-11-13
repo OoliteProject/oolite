@@ -39,9 +39,11 @@ OONullTexture* sSingleton = nullptr;
 OONullTexture* OONullTexture::sharedNullTexture() {
   // NOTE: assumes single-threaded access.
   if (sSingleton == nullptr) {
-    sSingleton =
-        (*new std::shared_ptr<OONullTexture>(oo::makeShared<OONullTexture>()))
-            .get();
+    static std::shared_ptr<OONullTexture>* sSingletonHolder =
+        nullptr;  // never deleted
+    sSingletonHolder =
+        new std::shared_ptr<OONullTexture>(oo::makeShared<OONullTexture>());
+    sSingleton = sSingletonHolder->get();
   }
 
   return sSingleton;

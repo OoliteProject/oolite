@@ -418,9 +418,11 @@ OOOpenGLExtensionManager* OOOpenGLExtensionManager::sharedManager() {
   if (sSingleton == nullptr) {
     // The singleton category's +allocWithZone: recorded the instance before
     // -init ran -reset, so it is recorded here before reset() runs too.
-    sSingleton = (*new std::shared_ptr<OOOpenGLExtensionManager>(
-                      oo::makeShared<OOOpenGLExtensionManager>()))
-                     .get();
+    static std::shared_ptr<OOOpenGLExtensionManager>* sSingletonHolder =
+        nullptr;  // never deleted
+    sSingletonHolder = new std::shared_ptr<OOOpenGLExtensionManager>(
+        oo::makeShared<OOOpenGLExtensionManager>());
+    sSingleton = sSingletonHolder->get();
     sSingleton->reset();
   }
   return sSingleton;

@@ -449,8 +449,10 @@ PlayerEntity::~PlayerEntity() = default;
 PlayerEntity* PlayerEntity::sharedPlayer() {
   if (EXPECT_NOT(gOOPlayer == nullptr)) {
     // kept for the process: a heap std::shared_ptr that is never deleted
-    gOOPlayer = static_cast<PlayerEntity*>(
-        (*new std::shared_ptr<::ShipEntity>(newPlayerObject())).get());
+    static std::shared_ptr<::ShipEntity>* gOOPlayerHolder =
+        nullptr;  // never deleted
+    gOOPlayerHolder = new std::shared_ptr<::ShipEntity>(newPlayerObject());
+    gOOPlayer = static_cast<PlayerEntity*>(gOOPlayerHolder->get());
   }
   return gOOPlayer;
 }

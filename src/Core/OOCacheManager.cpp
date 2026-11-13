@@ -119,9 +119,11 @@ OOCacheManager* OOCacheManager::sharedCache() {
   // NOTE: assumes single-threaded access.
   if (sSingleton == nullptr) {
     // Recorded before -init's work ran, as +allocWithZone: recorded it.
-    sSingleton =
-        (*new std::shared_ptr<OOCacheManager>(oo::makeShared<OOCacheManager>()))
-            .get();
+    static std::shared_ptr<OOCacheManager>* sSingletonHolder =
+        nullptr;  // never deleted
+    sSingletonHolder =
+        new std::shared_ptr<OOCacheManager>(oo::makeShared<OOCacheManager>());
+    sSingleton = sSingletonHolder->get();
     sSingleton->init();
   }
 

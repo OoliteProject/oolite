@@ -44,10 +44,13 @@ OOOpenALController* OOOpenALController::sharedController() {
     std::shared_ptr<OOOpenALController> controller =
         oo::makeShared<OOOpenALController>();
     // Never destroyed: a heap std::shared_ptr that is never deleted.
-    if (controller->init())
-      sSingleton =
-          (*new std::shared_ptr<OOOpenALController>(std::move(controller)))
-              .get();
+    if (controller->init()) {
+      static std::shared_ptr<OOOpenALController>* sSingletonHolder =
+          nullptr;  // never deleted
+      sSingletonHolder =
+          new std::shared_ptr<OOOpenALController>(std::move(controller));
+      sSingleton = sSingletonHolder->get();
+    }
   }
 
   return sSingleton;

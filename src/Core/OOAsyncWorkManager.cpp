@@ -236,15 +236,19 @@ static OOAsyncWorkManager* MakeAsyncWorkManager() {
   OOAsyncWorkManager* manager = nullptr;
   std::string_view className;
   if (OOOperationQueueAsyncWorkManager::canBeUsed()) {
-    manager = (*new std::shared_ptr<OOOperationQueueAsyncWorkManager>(
-                   oo::makeShared<OOOperationQueueAsyncWorkManager>()))
-                  .get();
+    static std::shared_ptr<OOOperationQueueAsyncWorkManager>* managerHolder =
+        nullptr;  // never deleted
+    managerHolder = new std::shared_ptr<OOOperationQueueAsyncWorkManager>(
+        oo::makeShared<OOOperationQueueAsyncWorkManager>());
+    manager = managerHolder->get();
     className = "OOOperationQueueAsyncWorkManager";
   }
   if (manager == nullptr) {
-    manager = (*new std::shared_ptr<OOManualDispatchAsyncWorkManager>(
-                   oo::makeShared<OOManualDispatchAsyncWorkManager>()))
-                  .get();
+    static std::shared_ptr<OOManualDispatchAsyncWorkManager>* managerHolder =
+        nullptr;  // never deleted
+    managerHolder = new std::shared_ptr<OOManualDispatchAsyncWorkManager>(
+        oo::makeShared<OOManualDispatchAsyncWorkManager>());
+    manager = managerHolder->get();
     className = "OOManualDispatchAsyncWorkManager";
   }
 

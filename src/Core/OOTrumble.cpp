@@ -896,16 +896,22 @@ static OOSound* sTrumbleSqealSound;
 
 static void InitTrumbleSounds() {
   if (sTrumbleSoundSource == nullptr) {
-    sTrumbleSoundSource =
-        (*new std::shared_ptr<OOSoundSource>(oo::makeShared<OOSoundSource>()))
-            .get();
+    static std::shared_ptr<OOSoundSource>* sTrumbleSoundSourceHolder =
+        nullptr;  // never deleted
+    sTrumbleSoundSourceHolder =
+        new std::shared_ptr<OOSoundSource>(oo::makeShared<OOSoundSource>());
+    sTrumbleSoundSource = sTrumbleSoundSourceHolder->get();
     // Never released: heap std::shared_ptrs that are never deleted.
-    sTrumbleIdleSound = (*new std::shared_ptr<OOSound>(oo::share(
-                             OOSoundWithCustomSoundKey("[trumble-idle]"))))
-                            .get();
-    sTrumbleSqealSound = (*new std::shared_ptr<OOSound>(oo::share(
-                              OOSoundWithCustomSoundKey("[trumble-squeal]"))))
-                             .get();
+    static std::shared_ptr<OOSound>* sTrumbleIdleSoundHolder =
+        nullptr;  // never deleted
+    sTrumbleIdleSoundHolder = new std::shared_ptr<OOSound>(
+        oo::share(OOSoundWithCustomSoundKey("[trumble-idle]")));
+    sTrumbleIdleSound = sTrumbleIdleSoundHolder->get();
+    static std::shared_ptr<OOSound>* sTrumbleSqealSoundHolder =
+        nullptr;  // never deleted
+    sTrumbleSqealSoundHolder = new std::shared_ptr<OOSound>(
+        oo::share(OOSoundWithCustomSoundKey("[trumble-squeal]")));
+    sTrumbleSqealSound = sTrumbleSqealSoundHolder->get();
   }
 }
 
