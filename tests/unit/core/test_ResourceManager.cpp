@@ -65,7 +65,7 @@ struct ScratchGameFolder {
     const std::string info = "{ CFBundleVersion = \"9.9.9\"; }";
     if (!oo::fs::writeFile(root / "work" / "Resources" / "Info-gnustep.plist",
                            oo::Data(info.data(), info.size()),
-                           oo::fs::WriteMode::direct)) {
+                           oo::fs::WriteMode::kDirect)) {
       std::fprintf(stderr,
                    "  could not write the scratch Info-gnustep.plist\n");
     }
@@ -201,7 +201,7 @@ namespace {
 void WriteText(const std::filesystem::path& path, const std::string& text) {
   std::filesystem::create_directories(path.parent_path());
   OO_CHECK(oo::fs::writeFile(path, oo::Data(text.data(), text.size()),
-                             oo::fs::WriteMode::direct)
+                             oo::fs::WriteMode::kDirect)
                .has_value());
 }
 

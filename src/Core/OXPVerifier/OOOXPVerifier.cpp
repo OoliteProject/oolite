@@ -197,8 +197,8 @@ bool OOOXPVerifier::runVerificationIfRequested() {
   // We got a path; does it point to a directory?
   oo::fs::FileType foundType =
       oo::fs::fileType(oo::fs::pathFromUTF8(*foundPath));
-  exists = (foundType != oo::fs::FileType::none);
-  isDirectory = (foundType == oo::fs::FileType::directory);
+  exists = (foundType != oo::fs::FileType::kNone);
+  isDirectory = (foundType == oo::fs::FileType::kDirectory);
   if (!exists) {
     OO_LOG("verifyOXP.badPath",
            "***** ERROR: no OXP exists at path \"{}\"; nothing to verify.",

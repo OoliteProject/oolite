@@ -253,12 +253,12 @@ namespace {
 bool DirectoryExistCreatingIfNecessary(const std::string& path) {
   const oo::fs::FileType type = oo::fs::fileType(oo::fs::pathFromUTF8(path));
 
-  if (type != oo::fs::FileType::none && type != oo::fs::FileType::directory) {
+  if (type != oo::fs::FileType::kNone && type != oo::fs::FileType::kDirectory) {
     OO_LOG("unclassified",
            "Log setup: expected {} to be a folder, but it is a file.", path);
     return false;
   }
-  if (type == oo::fs::FileType::none) {
+  if (type == oo::fs::FileType::kNone) {
     if (!oo::fs::createDirectories(oo::fs::pathFromUTF8(path))) {
       OO_LOG("unclassified", "Log setup: could not create folder {}.", path);
       return false;

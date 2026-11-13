@@ -177,18 +177,18 @@ enum class ConsoleProperty : std::int16_t {
                                       // integer, read-only
 
   // Symbolic constants for debug flags:
-  kDEBUG_LINKED_LISTS,
-  kDEBUG_COLLISIONS,
-  kDEBUG_DOCKING,
-  kDEBUG_OCTREE_LOGGING,
-  kDEBUG_BOUNDING_BOXES,
-  kDEBUG_OCTREE_DRAW,
-  kDEBUG_DRAW_NORMALS,
-  kDEBUG_NO_DUST,
-  kDEBUG_NO_SHADER_FALLBACK,
-  kDEBUG_SHADER_VALIDATION,
+  kDebugLinkedLists,
+  kDebugCollisions,
+  kDebugDocking,
+  kDebugOctreeLogging,
+  kDebugBoundingBoxes,
+  kDebugOctreeDraw,
+  kDebugDrawNormals,
+  kDebugNoDust,
+  kDebugNoShaderFallback,
+  kDebugShaderValidation,
 
-  kDEBUG_MISC
+  kDebugMisc
 };
 
 }  // namespace
@@ -244,20 +244,18 @@ static const JSCFunctionListEntry sConsoleProperties[] = {
 #define DEBUG_FLAG_DECL(flag, magic)                          \
   OOJS_PROPERTY_RO(DebugFlagPropertyName(OODebugFlags::flag), \
                    ConsoleGetProperty, magic)
-    DEBUG_FLAG_DECL(kLinkedLists, ConsoleProperty::kDEBUG_LINKED_LISTS),
-    DEBUG_FLAG_DECL(kCollisions, ConsoleProperty::kDEBUG_COLLISIONS),
-    DEBUG_FLAG_DECL(kDocking, ConsoleProperty::kDEBUG_DOCKING),
-    DEBUG_FLAG_DECL(kOctreeLogging, ConsoleProperty::kDEBUG_OCTREE_LOGGING),
-    DEBUG_FLAG_DECL(kBoundingBoxes, ConsoleProperty::kDEBUG_BOUNDING_BOXES),
-    DEBUG_FLAG_DECL(kOctreeDraw, ConsoleProperty::kDEBUG_OCTREE_DRAW),
-    DEBUG_FLAG_DECL(kDrawNormals, ConsoleProperty::kDEBUG_DRAW_NORMALS),
-    DEBUG_FLAG_DECL(kNoDust, ConsoleProperty::kDEBUG_NO_DUST),
-    DEBUG_FLAG_DECL(kNoShaderFallback,
-                    ConsoleProperty::kDEBUG_NO_SHADER_FALLBACK),
-    DEBUG_FLAG_DECL(kShaderValidation,
-                    ConsoleProperty::kDEBUG_SHADER_VALIDATION),
+    DEBUG_FLAG_DECL(kLinkedLists, ConsoleProperty::kDebugLinkedLists),
+    DEBUG_FLAG_DECL(kCollisions, ConsoleProperty::kDebugCollisions),
+    DEBUG_FLAG_DECL(kDocking, ConsoleProperty::kDebugDocking),
+    DEBUG_FLAG_DECL(kOctreeLogging, ConsoleProperty::kDebugOctreeLogging),
+    DEBUG_FLAG_DECL(kBoundingBoxes, ConsoleProperty::kDebugBoundingBoxes),
+    DEBUG_FLAG_DECL(kOctreeDraw, ConsoleProperty::kDebugOctreeDraw),
+    DEBUG_FLAG_DECL(kDrawNormals, ConsoleProperty::kDebugDrawNormals),
+    DEBUG_FLAG_DECL(kNoDust, ConsoleProperty::kDebugNoDust),
+    DEBUG_FLAG_DECL(kNoShaderFallback, ConsoleProperty::kDebugNoShaderFallback),
+    DEBUG_FLAG_DECL(kShaderValidation, ConsoleProperty::kDebugShaderValidation),
 
-    DEBUG_FLAG_DECL(kMisc, ConsoleProperty::kDEBUG_MISC),
+    DEBUG_FLAG_DECL(kMisc, ConsoleProperty::kDebugMisc),
 #undef DEBUG_FLAG_DECL
 };
 
@@ -489,18 +487,18 @@ static JSValue ConsoleGetProperty(OOJS_GETTER_ARGS) {
   case magic:                        \
     return JS_NewInt32(              \
         context, static_cast<int32_t>(oo::ToUnderlying(OODebugFlags::flag)));
-      DEBUG_FLAG_CASE(kLinkedLists, kDEBUG_LINKED_LISTS);
-      DEBUG_FLAG_CASE(kCollisions, kDEBUG_COLLISIONS);
-      DEBUG_FLAG_CASE(kDocking, kDEBUG_DOCKING);
-      DEBUG_FLAG_CASE(kOctreeLogging, kDEBUG_OCTREE_LOGGING);
-      DEBUG_FLAG_CASE(kBoundingBoxes, kDEBUG_BOUNDING_BOXES);
-      DEBUG_FLAG_CASE(kOctreeDraw, kDEBUG_OCTREE_DRAW);
-      DEBUG_FLAG_CASE(kDrawNormals, kDEBUG_DRAW_NORMALS);
-      DEBUG_FLAG_CASE(kNoDust, kDEBUG_NO_DUST);
-      DEBUG_FLAG_CASE(kNoShaderFallback, kDEBUG_NO_SHADER_FALLBACK);
-      DEBUG_FLAG_CASE(kShaderValidation, kDEBUG_SHADER_VALIDATION);
+      DEBUG_FLAG_CASE(kLinkedLists, kDebugLinkedLists);
+      DEBUG_FLAG_CASE(kCollisions, kDebugCollisions);
+      DEBUG_FLAG_CASE(kDocking, kDebugDocking);
+      DEBUG_FLAG_CASE(kOctreeLogging, kDebugOctreeLogging);
+      DEBUG_FLAG_CASE(kBoundingBoxes, kDebugBoundingBoxes);
+      DEBUG_FLAG_CASE(kOctreeDraw, kDebugOctreeDraw);
+      DEBUG_FLAG_CASE(kDrawNormals, kDebugDrawNormals);
+      DEBUG_FLAG_CASE(kNoDust, kDebugNoDust);
+      DEBUG_FLAG_CASE(kNoShaderFallback, kDebugNoShaderFallback);
+      DEBUG_FLAG_CASE(kShaderValidation, kDebugShaderValidation);
 
-      DEBUG_FLAG_CASE(kMisc, kDEBUG_MISC);
+      DEBUG_FLAG_CASE(kMisc, kDebugMisc);
 #undef DEBUG_FLAG_CASE
 
     default:
@@ -853,15 +851,15 @@ namespace {
    without arguments, and the two that take the joined string argument. Each row
    calls the C++ member of that name. A scalar row keeps the type encoding of
    the member's return type, which decides its result (or the "cannot be called"
-   error), and a row that cannot be called from JavaScript (NotCallable) answers
-   that error. Every other name answers "does not respond".
+   error), and a row that cannot be called from JavaScript (kNotCallable)
+   answers that error. Every other name answers "does not respond".
 */
 enum class MonitorMethodForm {
-  VoidVoid,
-  VoidString,
-  PListString,
-  Scalar,
-  NotCallable
+  kVoidVoid,
+  kVoidString,
+  kPListString,
+  kScalar,
+  kNotCallable
 };
 
 struct MonitorMethod {
@@ -871,51 +869,51 @@ struct MonitorMethod {
   void (*voidString)(OODebugMonitor*, const std::string&);
   oo::PList (*pListString)(OODebugMonitor*, const std::string&);
   long long (*scalar)(OODebugMonitor*);
-  const char* encoding;  // a Scalar row: the type encoding of the return type
+  const char* encoding;  // a kScalar row: the type encoding of the return type
 };
 
 const MonitorMethod kMonitorMethods[] = {
-    {"performJSConsoleCommand:", MonitorMethodForm::VoidString, nullptr,
+    {"performJSConsoleCommand:", MonitorMethodForm::kVoidString, nullptr,
      [](OODebugMonitor* m, const std::string& s) {
        m->performJSConsoleCommand(s);
      },
      nullptr, nullptr, nullptr},
-    {"configurationValueForKey:", MonitorMethodForm::PListString, nullptr,
+    {"configurationValueForKey:", MonitorMethodForm::kPListString, nullptr,
      nullptr,
      [](OODebugMonitor* m, const std::string& s) {
        return m->configurationValueForKey(s);
      },
      nullptr, nullptr},
-    {"clearJSConsole", MonitorMethodForm::VoidVoid,
+    {"clearJSConsole", MonitorMethodForm::kVoidVoid,
      [](OODebugMonitor* m) { m->clearJSConsole(); }, nullptr, nullptr, nullptr,
      nullptr},
-    {"showJSConsole", MonitorMethodForm::VoidVoid,
+    {"showJSConsole", MonitorMethodForm::kVoidVoid,
      [](OODebugMonitor* m) { m->showJSConsole(); }, nullptr, nullptr, nullptr,
      nullptr},
-    {"dumpMemoryStatistics", MonitorMethodForm::VoidVoid,
+    {"dumpMemoryStatistics", MonitorMethodForm::kVoidVoid,
      [](OODebugMonitor* m) { m->dumpMemoryStatistics(); }, nullptr, nullptr,
      nullptr, nullptr},
 #if OOLITE_SDL
-    {"applicationWillTerminate", MonitorMethodForm::VoidVoid,
+    {"applicationWillTerminate", MonitorMethodForm::kVoidVoid,
      [](OODebugMonitor* m) { m->applicationWillTerminate(); }, nullptr, nullptr,
      nullptr, nullptr},
 #endif
-    {"debuggerConnected", MonitorMethodForm::Scalar, nullptr, nullptr, nullptr,
+    {"debuggerConnected", MonitorMethodForm::kScalar, nullptr, nullptr, nullptr,
      [](OODebugMonitor* m) -> long long { return m->debuggerConnected(); },
      kOOTypeEncoding<bool>},
-    {"TCPIgnoresDroppedPackets", MonitorMethodForm::Scalar, nullptr, nullptr,
+    {"TCPIgnoresDroppedPackets", MonitorMethodForm::kScalar, nullptr, nullptr,
      nullptr,
      [](OODebugMonitor* m) -> long long {
        return m->TCPIgnoresDroppedPackets();
      },
      kOOTypeEncoding<bool>},
-    {"usingPlugInController", MonitorMethodForm::Scalar, nullptr, nullptr,
+    {"usingPlugInController", MonitorMethodForm::kScalar, nullptr, nullptr,
      nullptr,
      [](OODebugMonitor* m) -> long long { return m->usingPlugInController(); },
      kOOTypeEncoding<bool>},
-    {"configurationKeys", MonitorMethodForm::NotCallable, nullptr, nullptr,
+    {"configurationKeys", MonitorMethodForm::kNotCallable, nullptr, nullptr,
      nullptr, nullptr, nullptr},  // a std::vector result
-    {"dumpJSMemoryStatistics", MonitorMethodForm::Scalar, nullptr, nullptr,
+    {"dumpJSMemoryStatistics", MonitorMethodForm::kScalar, nullptr, nullptr,
      nullptr,
      [](OODebugMonitor* m) -> long long {
        return static_cast<long long>(m->dumpJSMemoryStatistics());
@@ -965,25 +963,25 @@ bool CallMonitorMethod(JSContext* context, OODebugMonitor* monitor, int argc,
 
   oo::PList result;
   switch (method->form) {
-    case MonitorMethodForm::VoidString:
-    case MonitorMethodForm::PListString:
+    case MonitorMethodForm::kVoidString:
+    case MonitorMethodForm::kPListString:
       if (!parameter.has_value()) {
         cxx_OOJSReportError(context,
                             "%s.callObjC(): method %s requires a parameter.",
                             className.c_str(), nameString);
         return false;
       }
-      if (method->form == MonitorMethodForm::VoidString)
+      if (method->form == MonitorMethodForm::kVoidString)
         method->voidString(monitor, *parameter);
       else
         result = method->pListString(monitor, *parameter);
       break;
 
-    case MonitorMethodForm::VoidVoid:
+    case MonitorMethodForm::kVoidVoid:
       method->voidVoid(monitor);
       break;
 
-    case MonitorMethodForm::Scalar:
+    case MonitorMethodForm::kScalar:
       switch (OOShaderUniformTypeFromEncoding(method->encoding)) {
         case kOOShaderUniformTypeChar:
         case kOOShaderUniformTypeUnsignedChar:
@@ -1010,7 +1008,7 @@ bool CallMonitorMethod(JSContext* context, OODebugMonitor* monitor, int argc,
       }
       break;
 
-    case MonitorMethodForm::NotCallable:
+    case MonitorMethodForm::kNotCallable:
       cxx_OOJSReportError(
           context, "%s.callObjC(): method %s cannot be called from JavaScript.",
           className.c_str(), nameString);

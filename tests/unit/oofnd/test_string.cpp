@@ -416,14 +416,14 @@ OO_TEST(literalSearchPrefixAndSuffixMatchGNUstep) {
     if (c.next() % 3 == 0) key += keys[c.next() % 6];
     const std::string h = oo::utf16ToUtf8(hay), k = oo::utf16ToUtf8(key);
     f.add("L " + units(h) + ": " + units(k) + ": " +
-          units(replaceOccurrences(h, k, "<>", Search::literal)) + ": " +
+          units(replaceOccurrences(h, k, "<>", Search::kLiteral)) + ": " +
           (hasPrefix(h, k) ? "1" : "0") + " " + (hasSuffix(h, k) ? "1" : "0") +
           "\n");
   }
   OO_CHECK_EQ(f.h, 0xD8CC5CDB623FF7ECULL);
 
   OO_CHECK_EQ(
-      replaceOccurrences(U({0x2605, 0x301}), U({0x2605}), "X", Search::literal),
+      replaceOccurrences(U({0x2605, 0x301}), U({0x2605}), "X", Search::kLiteral),
       U({0x58, 0x301}));
   OO_CHECK(
       hasPrefix(U({0x62, 0x301}), "b"));  // literal: ends inside the sequence

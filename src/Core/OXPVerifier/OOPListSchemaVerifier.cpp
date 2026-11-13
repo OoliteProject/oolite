@@ -1657,30 +1657,30 @@ OOPListSchemaVerifierError ErrorTypeMismatch(const char* expectedClassName,
   dict[kExpectedClassNameErrorKey] = oo::PList(expectedClassName);
 
   switch (actual.type()) {
-    case oo::PList::Type::Null:
+    case oo::PList::Type::kNull:
       className = "nothing";
       break;
-    case oo::PList::Type::String:
+    case oo::PList::Type::kString:
       className = "string";
       break;
-    case oo::PList::Type::Bool:
-    case oo::PList::Type::Integer:
-    case oo::PList::Type::Real:
+    case oo::PList::Type::kBool:
+    case oo::PList::Type::kInteger:
+    case oo::PList::Type::kReal:
       className = "number";
       break;
-    case oo::PList::Type::Array:
+    case oo::PList::Type::kArray:
       className = "array";
       break;
-    case oo::PList::Type::Dict:
+    case oo::PList::Type::kDict:
       className = "dictionary";
       break;
-    case oo::PList::Type::Data:
+    case oo::PList::Type::kData:
       className = "data";
       break;
-    case oo::PList::Type::Date:
+    case oo::PList::Type::kDate:
       className = "date";
       break;
-    case oo::PList::Type::Object:
+    case oo::PList::Type::kObject:
       className = "(null)";
       break;  // any other object
   }

@@ -174,11 +174,11 @@ class FileWriter {
     if (saturated_.load()) return;
     std::optional<std::string> bytes = logFileBytes(line, crlf_);
     if (!bytes.has_value()) return;
-    post(Kind::data, std::move(*bytes));
+    post(Kind::kData, std::move(*bytes));
   }
 
   // -flushLog: have the thread synchronise the file.
-  void flush() { post(Kind::flush, std::string()); }
+  void flush() { post(Kind::kFlush, std::string()); }
 
   // -endLogging: queue <postamble> as a line, stop the thread after everything
   // queued, close.
@@ -193,9 +193,9 @@ class FileWriter {
 
  private:
   enum class Kind {
-    data,
-    flush,
-    die,
+    kData,
+    kFlush,
+    kDie,
   };
 
   void post(Kind kind, std::string bytes) {
@@ -212,7 +212,7 @@ class FileWriter {
     {
       std::lock_guard<std::mutex> lock(mutex_);
       accepting_ = false;
-      queue_.emplace_back(Kind::die, std::string());
+      queue_.emplace_back(Kind::kDie, std::string());
     }
     ready_.notify_one();
     thread_.join();
@@ -231,9 +231,9 @@ class FileWriter {
         message = std::move(queue_.front());
         queue_.pop_front();
       }
-      if (message.first == Kind::die) return;
+      if (message.first == Kind::kDie) return;
       if (failed_) continue;
-      if (message.first == Kind::data) {
+      if (message.first == Kind::kData) {
         if (saturated_.load()) continue;
         std::string& bytes = message.second;
         written_ += bytes.size();

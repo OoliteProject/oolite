@@ -431,30 +431,30 @@ F nonNegativeRealFrom(const PList* v, F fallback) noexcept {
 // collection. keys name the components in out's order (x y z; w x y z for a
 // quaternion).
 enum class TupleSource {
-  none,        // keep the default
-  components,  // out holds the N components
-  string,      // the caller scans the string
-  object       // the caller looks at the object (the game's native vector)
+  kNone,        // keep the default
+  kComponents,  // out holds the N components
+  kString,      // the caller scans the string
+  kObject       // the caller looks at the object (the game's native vector)
 };
 
 template <class F, std::size_t N>
 TupleSource tupleFrom(const PList* v,
                       const std::array<std::string_view, N>& keys,
                       std::array<F, N>& out) noexcept {
-  if (v == nullptr) return TupleSource::none;
-  if (v->isString()) return TupleSource::string;
-  if (v->isObject()) return TupleSource::object;
+  if (v == nullptr) return TupleSource::kNone;
+  if (v->isString()) return TupleSource::kString;
+  if (v->isObject()) return TupleSource::kObject;
   if (const PList::Array* array = v->getIf<PList::Array>()) {
     std::array<const PList*, N> elements{};
     std::size_t count = 0;
     for (const PList& element : *array) {
       if (element.isNull()) continue;
-      if (count == N) return TupleSource::none;  // more than N: -count != N
+      if (count == N) return TupleSource::kNone;  // more than N: -count != N
       elements[count++] = &element;
     }
-    if (count != N) return TupleSource::none;
+    if (count != N) return TupleSource::kNone;
     for (std::size_t i = 0; i < N; ++i) out[i] = realFrom<F>(elements[i], F(0));
-    return TupleSource::components;
+    return TupleSource::kComponents;
   }
   if (v->getIf<PList::Dict>() != nullptr) {
     std::array<const PList*, N> values{};
@@ -465,11 +465,11 @@ TupleSource tupleFrom(const PList* v,
       values[i] = value;
       any = any || value != nullptr;
     }
-    if (!any) return TupleSource::none;
+    if (!any) return TupleSource::kNone;
     for (std::size_t i = 0; i < N; ++i) out[i] = realFrom<F>(values[i], F(0));
-    return TupleSource::components;
+    return TupleSource::kComponents;
   }
-  return TupleSource::none;
+  return TupleSource::kNone;
 }
 
 // OOPropertyListFromVector / HPVector / Quaternion: a dictionary of the

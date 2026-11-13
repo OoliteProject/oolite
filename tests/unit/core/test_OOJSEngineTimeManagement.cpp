@@ -150,7 +150,7 @@ OO_TEST(profiling)
 			OO_CHECK(plist.isDict() && plist.count() == 9);
 			OO_CHECK(Key(plist, "name") != nullptr && *Key(plist, "name")->getIf<std::string>() == "inner");
 			OO_CHECK(Key(plist, "hitCount") != nullptr && Key(plist, "hitCount")->doubleValue() == 2);
-			OO_CHECK(Key(plist, "isJavaScriptFrame") != nullptr && Key(plist, "isJavaScriptFrame")->type() == oo::PList::Type::Bool && !Key(plist, "isJavaScriptFrame")->boolValue());
+			OO_CHECK(Key(plist, "isJavaScriptFrame") != nullptr && Key(plist, "isJavaScriptFrame")->type() == oo::PList::Type::kBool && !Key(plist, "isJavaScriptFrame")->boolValue());
 		}
 		sConverted.clear();
 		EntryNamed(profile, "<none>")->oo_jsValueInContext(NULL);
@@ -163,7 +163,7 @@ OO_TEST(profiling)
 		{
 			const oo::PList &plist = sConverted[0];
 			OO_CHECK(plist.isDict() && plist.count() == 7);
-			for (const char *key : { "totalTime", "javaScriptTime", "nativeTime", "extensionTime", "nonExtensionTime", "profilerOverhead" })  OO_CHECK(Key(plist, key) != nullptr && Key(plist, key)->type() == oo::PList::Type::Real);
+			for (const char *key : { "totalTime", "javaScriptTime", "nativeTime", "extensionTime", "nonExtensionTime", "profilerOverhead" })  OO_CHECK(Key(plist, key) != nullptr && Key(plist, key)->type() == oo::PList::Type::kReal);
 			const oo::PList *profiles = Key(plist, "profiles");
 			OO_CHECK(profiles != nullptr && profiles->isArray() && profiles->count() == 3);
 			if (profiles != nullptr && profiles->isArray())

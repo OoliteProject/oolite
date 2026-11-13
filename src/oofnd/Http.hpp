@@ -11,7 +11,7 @@
             NSURLConnection -initWithRequest:delegate:               Download(url, userAgent)
             delegate callbacks, delivered by the run loop            Download::nextEvent() (main thread)
             -connection:didReceiveResponse: (expectedContentLength)  Event::Kind::response (expectedLength)
-            -connection:didReceiveData:                              Event::Kind::data (bytes)
+            -connection:didReceiveData:                              Event::Kind::kData (bytes)
             -connectionDidFinishLoading:                             Event::Kind::finished
             -connection:didFailWithError:                            Event::Kind::failed (error)
             -[NSURLConnection cancel]                                Download::cancel()
@@ -78,8 +78,8 @@ namespace oo::http {
 // dropped, as NSURLConnection dropped them. For a file: URL, `path` is the
 // file.
 struct Url {
-  enum class Scheme { http, https, file };
-  Scheme scheme = Scheme::http;
+  enum class Scheme { kHttp, kHttps, kFile };
+  Scheme scheme = Scheme::kHttp;
   std::string host;
   std::uint16_t port = 0;
   std::string target;
@@ -163,11 +163,11 @@ inline std::optional<Url> parseUrl(std::string_view text) {
   const std::string_view scheme = text.substr(0, colon);
   Url url;
   if (detail::equalsIgnoringCase(scheme, "http"))
-    url.scheme = Url::Scheme::http;
+    url.scheme = Url::Scheme::kHttp;
   else if (detail::equalsIgnoringCase(scheme, "https"))
-    url.scheme = Url::Scheme::https;
+    url.scheme = Url::Scheme::kHttps;
   else if (detail::equalsIgnoringCase(scheme, "file"))
-    url.scheme = Url::Scheme::file;
+    url.scheme = Url::Scheme::kFile;
   else
     return std::nullopt;
 
@@ -182,7 +182,7 @@ inline std::optional<Url> parseUrl(std::string_view text) {
   std::string_view target =
       slash == std::string_view::npos ? std::string_view() : rest.substr(slash);
 
-  if (url.scheme == Url::Scheme::file) {
+  if (url.scheme == Url::Scheme::kFile) {
     if (!authority.empty() &&
         !detail::equalsIgnoringCase(authority, "localhost"))
       return std::nullopt;
@@ -218,7 +218,7 @@ inline std::optional<Url> parseUrl(std::string_view text) {
   }
   if (host.empty()) return std::nullopt;
   url.host = std::string(host);
-  url.port = url.scheme == Url::Scheme::https ? 443 : 80;
+  url.port = url.scheme == Url::Scheme::kHttps ? 443 : 80;
   if (!port.empty()) {
     unsigned value = 0;
     for (const char c : port) {
@@ -238,8 +238,8 @@ inline std::optional<Url> parseUrl(std::string_view text) {
 
 // One delegate callback.
 struct Event {
-  enum class Kind { response, data, finished, failed };
-  Kind kind = Kind::failed;
+  enum class Kind { kResponse, kData, kFinished, kFailed };
+  Kind kind = Kind::kFailed;
   int status = 0;  // response: the HTTP status (0 for file:)
   std::int64_t expectedLength =
       -1;             // response: Content-Length, or -1 without one
@@ -300,7 +300,7 @@ class Download {
 
   static Event failure(std::string text) {
     Event event;
-    event.kind = Event::Kind::failed;
+    event.kind = Event::Kind::kFailed;
     event.error = std::move(text);
     return event;
   }
@@ -311,7 +311,7 @@ class Download {
       push(failure("unsupported URL \"" + text + "\""));
       return;
     }
-    if (url->scheme == Url::Scheme::file) {
+    if (url->scheme == Url::Scheme::kFile) {
       runFile(url->path);
       return;
     }
@@ -325,18 +325,18 @@ class Download {
       return;
     }
     Event response;
-    response.kind = Event::Kind::response;
+    response.kind = Event::Kind::kResponse;
     response.expectedLength = static_cast<std::int64_t>(data->length());
     push(std::move(response));
     const std::string_view bytes = data->stringView();
     for (std::size_t offset = 0; offset < bytes.size(); offset += kChunkSize) {
       Event chunk;
-      chunk.kind = Event::Kind::data;
+      chunk.kind = Event::Kind::kData;
       chunk.bytes = std::string(bytes.substr(offset, kChunkSize));
       push(std::move(chunk));
     }
     Event done;
-    done.kind = Event::Kind::finished;
+    done.kind = Event::Kind::kFinished;
     push(std::move(done));
   }
 
@@ -352,7 +352,7 @@ class Download {
   // The request URL as the contract sends it: no fragment, no user:password@.
   static std::string curlUrl(const Url& url) {
     std::string text =
-        url.scheme == Url::Scheme::https ? "https://" : "http://";
+        url.scheme == Url::Scheme::kHttps ? "https://" : "http://";
     text += url.host.find(':') != std::string::npos ? "[" + url.host + "]"
                                                     : url.host;
     return text + ":" + std::to_string(url.port) + url.target;
@@ -369,7 +369,7 @@ class Download {
 
   void respond(Transfer& transfer) {
     Event response;
-    response.kind = Event::Kind::response;
+    response.kind = Event::Kind::kResponse;
     response.status = transfer.status;
     response.expectedLength = transfer.length;
     push(std::move(response));
@@ -445,7 +445,7 @@ class Download {
     if (!transfer.responded) download.respond(transfer);  // no headers seen
     for (std::size_t offset = 0; offset < total; offset += kChunkSize) {
       Event chunk;
-      chunk.kind = Event::Kind::data;
+      chunk.kind = Event::Kind::kData;
       chunk.bytes.assign(data + offset, std::min(kChunkSize, total - offset));
       download.push(std::move(chunk));
     }
@@ -518,7 +518,7 @@ class Download {
       return;
     }
     Event done;
-    done.kind = Event::Kind::finished;
+    done.kind = Event::Kind::kFinished;
     push(std::move(done));
   }
 

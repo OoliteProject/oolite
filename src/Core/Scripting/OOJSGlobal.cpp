@@ -866,12 +866,12 @@ static JSValue GlobalTakeSnapShot(OOJS_NATIVE_ARGS) {
   const oo::fs::Path savedir = resourcePaths.saveDirectory();
   const oo::fs::FileType saveType = oo::fs::fileType(savedir);
   std::string playerFileDirectory;
-  if (saveType == oo::fs::FileType::none) {
+  if (saveType == oo::fs::FileType::kNone) {
     if (oo::fs::createDirectories(savedir))
       playerFileDirectory = oo::fs::utf8String(savedir);
     else
       playerFileDirectory = oo::fs::utf8String(resourcePaths.homeDirectory());
-  } else if (saveType != oo::fs::FileType::directory) {
+  } else if (saveType != oo::fs::FileType::kDirectory) {
     playerFileDirectory = oo::fs::utf8String(resourcePaths.homeDirectory());
   } else {
     playerFileDirectory = oo::fs::utf8String(savedir);

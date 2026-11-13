@@ -511,8 +511,8 @@ std::vector<std::string> ResourceManager::pathsWithAddOns() {
         const std::string path =
             oo::str::appendingPathComponent(root, *subPath);
         const oo::fs::FileType type = dirEnum.entryType();
-        if (type != oo::fs::FileType::none) {
-          if (type == oo::fs::FileType::directory) {
+        if (type != oo::fs::FileType::kNone) {
+          if (type == oo::fs::FileType::kDirectory) {
             // If it is, is it an OXP?.
             if (oo::str::lowercase(oo::str::pathExtension(path)) == "oxp") {
               checkPotentialPath(path, searchPaths);
@@ -691,7 +691,8 @@ std::vector<std::string> ResourceManager::maskUserNameInPathArray(
 
 std::optional<std::string> ResourceManager::maskUserName(
     const std::string& name, const std::string& path) {
-  return oo::str::replaceOccurrences(path, name, "*", oo::str::Search::literal);
+  return oo::str::replaceOccurrences(path, name, "*",
+                                     oo::str::Search::kLiteral);
 }
 
 std::optional<std::string> ResourceManager::useAddOns() { return sUseAddOns; }
@@ -2332,7 +2333,7 @@ bool ResourceManager::writeDiagnosticData(const oo::Data& data,
 
   return oo::fs::writeFile(oo::fs::pathFromUTF8(oo::str::appendingPathComponent(
                                *directory, fileName)),
-                           data, oo::fs::WriteMode::atomic)
+                           data, oo::fs::WriteMode::kAtomic)
       .has_value();
 }
 
@@ -2360,8 +2361,8 @@ oo::PList ResourceManager::materialDefaults() {
 bool ResourceManager::directoryExists(const std::string& inPath,
                                       bool inCreate) {
   const oo::fs::FileType type = oo::fs::fileType(oo::fs::pathFromUTF8(inPath));
-  const bool exists = type != oo::fs::FileType::none;
-  const bool directory = type == oo::fs::FileType::directory;
+  const bool exists = type != oo::fs::FileType::kNone;
+  const bool directory = type == oo::fs::FileType::kDirectory;
 
   if (exists && !directory) {
     OO_LOG("resourceManager.write.buildPath.failed",

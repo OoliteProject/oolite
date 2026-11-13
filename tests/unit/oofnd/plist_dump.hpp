@@ -48,16 +48,16 @@ inline void dumpString(const std::string& s, std::string& out) {
 inline void dump(const oo::PList& p, std::string& out) {
   char buf[64];
   switch (p.type()) {
-    case oo::PList::Type::Null:
+    case oo::PList::Type::kNull:
       out += "nil";
       break;
-    case oo::PList::Type::Object:  // no parser produces one
+    case oo::PList::Type::kObject:  // no parser produces one
       out += "object";
       break;
-    case oo::PList::Type::Bool:
+    case oo::PList::Type::kBool:
       out += *p.getIf<bool>() ? "B1" : "B0";
       break;
-    case oo::PList::Type::Integer: {
+    case oo::PList::Type::kInteger: {
       const oo::PList::Integer& i = *p.getIf<oo::PList::Integer>();
       if (i.isUnsigned && i.value < 0)
         std::snprintf(buf, sizeof buf, "U%" PRIu64, i.unsignedValue());
@@ -66,15 +66,15 @@ inline void dump(const oo::PList& p, std::string& out) {
       out += buf;
       break;
     }
-    case oo::PList::Type::Real:
+    case oo::PList::Type::kReal:
       std::snprintf(buf, sizeof buf, "R%.17g", *p.getIf<double>());
       out += buf;
       break;
-    case oo::PList::Type::String:
+    case oo::PList::Type::kString:
       out += 'S';
       dumpString(*p.getIf<std::string>(), out);
       break;
-    case oo::PList::Type::Data:
+    case oo::PList::Type::kData:
       out += "D<";
       for (std::uint8_t b : p.getIf<oo::PList::Data>()->span()) {
         std::snprintf(buf, sizeof buf, "%02x", b);
@@ -82,12 +82,12 @@ inline void dump(const oo::PList& p, std::string& out) {
       }
       out += '>';
       break;
-    case oo::PList::Type::Date:
+    case oo::PList::Type::kDate:
       std::snprintf(buf, sizeof buf, "T%.3f",
                     p.getIf<oo::PList::Date>()->sinceReferenceDate);
       out += buf;
       break;
-    case oo::PList::Type::Array: {
+    case oo::PList::Type::kArray: {
       out += '[';
       bool first = true;
       for (const oo::PList& e : *p.getIf<oo::PList::Array>()) {
@@ -98,7 +98,7 @@ inline void dump(const oo::PList& p, std::string& out) {
       out += ']';
       break;
     }
-    case oo::PList::Type::Dict: {
+    case oo::PList::Type::kDict: {
       std::vector<std::pair<std::u16string,
                             const std::pair<const std::string, oo::PList>*>>
           keys;

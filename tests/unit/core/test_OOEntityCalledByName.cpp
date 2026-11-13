@@ -229,7 +229,7 @@ OO_TEST(typedCallAnswersAsTheMethod) {
   {
     for (const OOEntityByNameRow& row : oo::EntityByNameRows()) {
       OO_CHECK((row.typed != nullptr) ==
-               (row.argument == OOEntityByNameArgument::None));
+               (row.argument == OOEntityByNameArgument::kNone));
     }
 
     // Each result is compared with the ship's C++ member the method's body

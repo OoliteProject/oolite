@@ -372,17 +372,17 @@ OO_TEST(defaultsDirectoryIsHomeGNUstepDefaults) {
   using P = oo::PathEnvironment::Platform;
   OO_CHECK_EQ(
       fs::utf8String(oo::userDefaultsDirectory(
-          make(P::windows, {{"HOMEPATH", "C:\\Games\\Oolite\\oolite.app"}}))),
+          make(P::kWindows, {{"HOMEPATH", "C:\\Games\\Oolite\\oolite.app"}}))),
       std::string("C:/Games/Oolite/oolite.app/GNUstep/Defaults"));
   OO_CHECK_EQ(fs::utf8String(oo::userDefaultsDirectory(
-                  make(P::windows, {{"HOMEPATH", "C:\\g"},
+                  make(P::kWindows, {{"HOMEPATH", "C:\\g"},
                                     {"OO_GNUSTEPDEFAULTSDIR", "C:\\x"}}))),
               std::string("C:/g/GNUstep/Defaults"));
   OO_CHECK_EQ(fs::utf8String(oo::userDefaultsDirectory(
-                  make(P::posix, {{"HOME", "/home/u"}}))),
+                  make(P::kPosix, {{"HOME", "/home/u"}}))),
               std::string("/home/u/GNUstep/Defaults"));
   OO_CHECK_EQ(fs::utf8String(oo::userDefaultsDirectory(make(
-                  P::posix,
+                  P::kPosix,
                   {{"HOME", "/home/u"}, {"OO_GNUSTEPDEFAULTSDIR", "/data"}}))),
               std::string("/data"));
 }

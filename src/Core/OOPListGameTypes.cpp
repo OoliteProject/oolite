@@ -49,19 +49,19 @@ Vector OOVectorFromPList(const oo::PList* value, Vector defaultValue) {
   std::array<float, 3> components{};
 
   switch (oo::plist_get::tupleFrom(value, kXYZ, components)) {
-    case oo::plist_get::TupleSource::components:
+    case oo::plist_get::TupleSource::kComponents:
       result.x = components[0];
       result.y = components[1];
       result.z = components[2];
       break;
 
-    case oo::plist_get::TupleSource::string:
+    case oo::plist_get::TupleSource::kString:
       // Writes result only if a valid vector is found, and logs an error
       // otherwise.
       cxx_ScanVectorFromString(*value->getIf<std::string>(), &result);
       break;
 
-    case oo::plist_get::TupleSource::object: {
+    case oo::plist_get::TupleSource::kObject: {
       const oo::PList::Object* node = value->getIf<oo::PList::Object>();
       if (OONativeVector* box = (node != nullptr)
                                     ? dynamic_cast<OONativeVector*>(node->get())
@@ -70,7 +70,7 @@ Vector OOVectorFromPList(const oo::PList* value, Vector defaultValue) {
       break;
     }
 
-    case oo::plist_get::TupleSource::none:
+    case oo::plist_get::TupleSource::kNone:
       break;
   }
 
@@ -82,19 +82,19 @@ HPVector OOHPVectorFromPList(const oo::PList* value, HPVector defaultValue) {
   std::array<double, 3> components{};
 
   switch (oo::plist_get::tupleFrom(value, kXYZ, components)) {
-    case oo::plist_get::TupleSource::components:
+    case oo::plist_get::TupleSource::kComponents:
       result.x = components[0];
       result.y = components[1];
       result.z = components[2];
       break;
 
-    case oo::plist_get::TupleSource::string:
+    case oo::plist_get::TupleSource::kString:
       cxx_ScanHPVectorFromString(*value->getIf<std::string>(), &result);
       break;
 
-    case oo::plist_get::TupleSource::object:  // (no native HPVector object: the
-                                              // default)
-    case oo::plist_get::TupleSource::none:
+    case oo::plist_get::TupleSource::kObject:  // (no native HPVector object:
+                                               // the default)
+    case oo::plist_get::TupleSource::kNone:
       break;
   }
 
@@ -107,19 +107,19 @@ Quaternion OOQuaternionFromPList(const oo::PList* value,
   std::array<float, 4> components{};
 
   switch (oo::plist_get::tupleFrom(value, kWXYZ, components)) {
-    case oo::plist_get::TupleSource::components:
+    case oo::plist_get::TupleSource::kComponents:
       result.w = components[0];
       result.x = components[1];
       result.y = components[2];
       result.z = components[3];
       break;
 
-    case oo::plist_get::TupleSource::string:
+    case oo::plist_get::TupleSource::kString:
       cxx_ScanQuaternionFromString(*value->getIf<std::string>(), &result);
       break;
 
-    case oo::plist_get::TupleSource::object:
-    case oo::plist_get::TupleSource::none:
+    case oo::plist_get::TupleSource::kObject:
+    case oo::plist_get::TupleSource::kNone:
       break;
   }
 

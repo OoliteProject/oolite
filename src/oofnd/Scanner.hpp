@@ -229,27 +229,29 @@ class CharacterSet {
   // +whitespaceCharacterSet: tab, space and the Unicode spaces, U+2028/U+2029
   // but no newlines.
   static CharacterSet whitespace() noexcept {
-    return CharacterSet(Kind::whitespace);
+    return CharacterSet(Kind::kWhitespace);
   }
   // +whitespaceAndNewlineCharacterSet: what NSScanner skips (String.hpp's
   // isWhitespaceOrNewline).
   static CharacterSet whitespaceAndNewline() noexcept {
-    return CharacterSet(Kind::whitespaceAndNewline);
+    return CharacterSet(Kind::kWhitespaceAndNewline);
   }
   // +newlineCharacterSet: U+000A-U+000D and U+0085.
-  static CharacterSet newline() noexcept { return CharacterSet(Kind::newline); }
+  static CharacterSet newline() noexcept {
+    return CharacterSet(Kind::kNewline);
+  }
   static CharacterSet decimalDigit() noexcept {
-    return CharacterSet(Kind::decimalDigit);
+    return CharacterSet(Kind::kDecimalDigit);
   }
   static CharacterSet alphanumeric() noexcept {
-    return CharacterSet(Kind::alphanumeric);
+    return CharacterSet(Kind::kAlphanumeric);
   }
 
   // +characterSetWithCharactersInString:: the string's units. A surrogate pair
   // adds a supplementary character, which no single unit is a member of; a lone
   // surrogate is a member.
   static CharacterSet fromCharacters(std::string_view characters) {
-    CharacterSet set(Kind::custom);
+    CharacterSet set(Kind::kCustom);
     const std::u16string u = utf8ToUtf16(characters);
     for (std::size_t i = 0; i < u.size(); ++i) {
       if (u[i] >= 0xD800 && u[i] <= 0xDBFF && i + 1 < u.size() &&
@@ -275,31 +277,31 @@ class CharacterSet {
 
  private:
   enum class Kind {
-    whitespace,
-    whitespaceAndNewline,
-    newline,
-    decimalDigit,
-    alphanumeric,
-    custom,
+    kWhitespace,
+    kWhitespaceAndNewline,
+    kNewline,
+    kDecimalDigit,
+    kAlphanumeric,
+    kCustom,
   };
 
   explicit CharacterSet(Kind kind) noexcept : kind_(kind) {}
 
   bool member(char16_t c) const noexcept {
     switch (kind_) {
-      case Kind::whitespace:
+      case Kind::kWhitespace:
         return c == 0x09 || c == 0x20 || c == 0xA0 || c == 0x1680 ||
                (c >= 0x2000 && c <= 0x200B) || c == 0x2028 || c == 0x2029 ||
                c == 0x202F || c == 0x205F || c == 0x3000;
-      case Kind::whitespaceAndNewline:
+      case Kind::kWhitespaceAndNewline:
         return isWhitespaceOrNewline(c);
-      case Kind::newline:
+      case Kind::kNewline:
         return (c >= 0x0A && c <= 0x0D) || c == 0x85;
-      case Kind::decimalDigit:
+      case Kind::kDecimalDigit:
         return detail::inRanges(detail::kDecimalDigits, c);
-      case Kind::alphanumeric:
+      case Kind::kAlphanumeric:
         return detail::inRanges(detail::kAlphanumerics, c);
-      case Kind::custom:
+      case Kind::kCustom:
         return std::binary_search(custom_.begin(), custom_.end(), c);
     }
     return false;

@@ -183,11 +183,11 @@ JSValue OOJSValueFromPList(JSContext *context, const oo::PList &plist)
 	std::string text;
 	switch (plist.type())
 	{
-		case oo::PList::Type::Bool:  return JS_NewBool(context, plist.boolValue());
-		case oo::PList::Type::Integer:
-		case oo::PList::Type::Real:  return JS_NewNumber(context, plist.doubleValue());
-		case oo::PList::Type::String:  text = *plist.getIf<std::string>();  break;
-		case oo::PList::Type::Object:
+		case oo::PList::Type::kBool:  return JS_NewBool(context, plist.boolValue());
+		case oo::PList::Type::kInteger:
+		case oo::PList::Type::kReal:  return JS_NewNumber(context, plist.doubleValue());
+		case oo::PList::Type::kString:  text = *plist.getIf<std::string>();  break;
+		case oo::PList::Type::kObject:
 		{
 			Entity *entity = oo::EntityIn(plist);	// an entity's node: its object
 			::TestEntityObject *object = (entity != nullptr) ? TestObjectOf(entity) : nullptr;

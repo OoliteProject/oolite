@@ -68,7 +68,7 @@ enum class ClockProperty : std::int16_t {
   kIsAdjusting,       // clock is adjusting, boolean, read-only
   kAdjustedSeconds,   // game clock time, including adjustments, double,
                       // read-only
-  kLegacy_scriptTimer  // legacy scriptTimer_number, double, read-only
+  kLegacyScriptTimer  // legacy scriptTimer_number, double, read-only
 };
 
 }  // namespace
@@ -96,7 +96,7 @@ static const JSCFunctionListEntry sClockProperties[] = {
     OOJS_PROPERTY_RO("adjustedSeconds", ClockGetProperty,
                      ClockProperty::kAdjustedSeconds),
     OOJS_PROPERTY_RO("legacy_scriptTimer", ClockGetProperty,
-                     ClockProperty::kLegacy_scriptTimer),
+                     ClockProperty::kLegacyScriptTimer),
 };
 
 static const JSCFunctionListEntry sClockMethods[] = {
@@ -177,7 +177,7 @@ static JSValue ClockGetProperty(OOJS_GETTER_ARGS) {
                              : 0.0));  // qualified: the final overrider, so the
                                        // binding test stands in for it
 
-    case kLegacy_scriptTimer:
+    case kLegacyScriptTimer:
       cxx_OOStandardsDeprecated(
           "The legacy_scriptTimer property is deprecated");
       return JS_NewNumber(

@@ -932,19 +932,19 @@ OO_TEST(roundTrips) {
 }
 
 OO_TEST(parsePropertyListDispatch) {
-  oo::PListFormat f = oo::PListFormat::Binary;
+  oo::PListFormat f = oo::PListFormat::kBinary;
   OO_CHECK_EQ(oo_test::dump(oo::parsePropertyList("{ a = b; }", &f).value()),
               "{\"a\"=S\"b\";}");
-  OO_CHECK(f == oo::PListFormat::OpenStep);
+  OO_CHECK(f == oo::PListFormat::kOpenStep);
   OO_CHECK_EQ(oo_test::dump(oo::parsePropertyList(" \n<*I5>", &f).value()),
               "I5");
-  OO_CHECK(f == oo::PListFormat::GNUstep);
+  OO_CHECK(f == oo::PListFormat::kGNUstep);
   OO_CHECK_EQ(
       oo_test::dump(oo::parsePropertyList(
                         "<?xml version=\"1.0\"?><plist><true/></plist>", &f)
                         .value()),
       "B1");
-  OO_CHECK(f == oo::PListFormat::XML);
+  OO_CHECK(f == oo::PListFormat::kXML);
   // Whitespace before "<?" still selects XML, whose scanner then rejects it
   // (captured).
   OO_CHECK_EQ(oo::parsePropertyList(
@@ -952,7 +952,7 @@ OO_TEST(parsePropertyListDispatch) {
                   .error()
                   .message,
               "failed to parse as XML property list");
-  OO_CHECK(f == oo::PListFormat::XML);
+  OO_CHECK(f == oo::PListFormat::kXML);
   OO_CHECK_EQ(oo::parsePropertyList("").error().message,
               "empty data argument passed to method");
   OO_CHECK_EQ(oo::parsePropertyList("{ a = b ").error().message,
@@ -962,9 +962,9 @@ OO_TEST(parsePropertyListDispatch) {
               "at line 1 (char 9) - reached end of string\"");
   // Binary plists are not read.
   OO_CHECK(!oo::parsePropertyList("bplist00\x01\x02"sv, &f).has_value());
-  OO_CHECK(f == oo::PListFormat::Binary);
+  OO_CHECK(f == oo::PListFormat::kBinary);
   OO_CHECK(!oo::parsePropertyList("\x00\x01"sv, &f).has_value());
-  OO_CHECK(f == oo::PListFormat::GNUstepBinary);
+  OO_CHECK(f == oo::PListFormat::kGNUstepBinary);
   // The DTD change is applied first (OOPropertyListFromData), and is
   // transparent.
   OO_CHECK(oo::parsePropertyList(kW01In).value() ==

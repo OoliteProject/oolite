@@ -32,7 +32,7 @@
    pathHasExtensionInArray:a]                 oo::str::pathHasExtensionIn(s, a)
             [m replaceOccurrencesOfString:t withString:r
    oo::str::replaceOccurrences(m, t, r) options:0 range:<all>] (NSLiteralSearch:
-   ..., Search::literal) [s componentsSeparatedByString:sep] oo::str::split(s,
+   ..., Search::kLiteral) [s componentsSeparatedByString:sep] oo::str::split(s,
    sep) ScanTokensFromString(s)                       oo::str::tokens(s) [s
    intValue] / longLongValue / doubleValue    oo::str::intValue(s) /
    longLongValue / doubleValue [s hasPrefix:p] / hasSuffix:
@@ -675,20 +675,20 @@ bool pathHasExtensionIn(std::string_view path, const Range& extensions) {
 // -[NSMutableString replaceOccurrencesOfString:t withString:r options:0
 // range:<all>] (t non-empty): left to right, non-overlapping, case-sensitive;
 // an occurrence that a combining unit follows is inside a longer composed
-// sequence and is left alone. With Search::literal (NSLiteralSearch) every
+// sequence and is left alone. With Search::kLiteral (NSLiteralSearch) every
 // occurrence is replaced. No canonical equivalence: "e"
 // + U+0301 does not match U+00E9 (captured). GNUstep raises NSRangeException
 // for a <target> that starts with a combining unit; this does not.
 enum class Search {
-  composed,  // options:0 - an occurrence must end on a composed-sequence
-             // boundary
-  literal,   // NSLiteralSearch - unit-for-unit
+  kComposed,  // options:0 - an occurrence must end on a composed-sequence
+              // boundary
+  kLiteral,   // NSLiteralSearch - unit-for-unit
 };
 
 inline std::string replaceOccurrences(std::string_view s,
                                       std::string_view target,
                                       std::string_view replacement,
-                                      Search search = Search::composed) {
+                                      Search search = Search::kComposed) {
   const std::u16string u = utf8ToUtf16(s), t = utf8ToUtf16(target),
                        r = utf8ToUtf16(replacement);
   if (t.empty() || t.size() > u.size()) return std::string(s);
@@ -698,7 +698,7 @@ inline std::string replaceOccurrences(std::string_view s,
   while (i < u.size()) {
     const std::size_t end = i + t.size();
     if (end <= u.size() && std::u16string_view(u).substr(i, t.size()) == t &&
-        (search == Search::literal ||
+        (search == Search::kLiteral ||
          !(end < u.size() && detail::extendsSequence(u[end])))) {
       out += r;
       i = end;
@@ -782,10 +782,17 @@ inline std::vector<std::string> tokens(std::string_view s) {
 // appendingPathComponent takes ONE component (no separators in it).
 namespace detail {
 
-enum class PathRoot { none, separator, drive, driveSeparator, tilde, unc };
+enum class PathRoot {
+  kNone,
+  kSeparator,
+  kDrive,
+  kDriveSeparator,
+  kTilde,
+  kUnc
+};
 
 struct PathParts {
-  PathRoot rootKind = PathRoot::none;
+  PathRoot rootKind = PathRoot::kNone;
   std::size_t rootLength = 0;
   std::vector<std::pair<std::size_t, std::size_t>>
       spans;                       // [begin, end) of each non-root component
@@ -809,24 +816,24 @@ inline PathParts splitPath(std::string_view p) {
       std::size_t s = h + 1;
       while (s < n && !isPathSep(p[s])) ++s;
       if (s > h + 1 && s < n) {
-        parts.rootKind = PathRoot::unc;
+        parts.rootKind = PathRoot::kUnc;
         parts.rootLength = s + 1;
       }
     }
   }
-  if (parts.rootKind == PathRoot::none) {
+  if (parts.rootKind == PathRoot::kNone) {
     if (n >= 1 && isPathSep(p[0])) {
-      parts.rootKind = PathRoot::separator;
+      parts.rootKind = PathRoot::kSeparator;
       parts.rootLength = 1;
     } else if (n >= 2 && p[1] == ':' && isAsciiLetter(p[0])) {
       const bool sep = n >= 3 && isPathSep(p[2]);
-      parts.rootKind = sep ? PathRoot::driveSeparator : PathRoot::drive;
+      parts.rootKind = sep ? PathRoot::kDriveSeparator : PathRoot::kDrive;
       parts.rootLength = sep ? 3 : 2;
     } else if (n >= 1 && p[0] == '~') {
       std::size_t t = 1;
       while (t < n && !isPathSep(p[t])) ++t;
       if (t < n) {
-        parts.rootKind = PathRoot::tilde;
+        parts.rootKind = PathRoot::kTilde;
         parts.rootLength = t + 1;
       }
     }
@@ -845,8 +852,8 @@ inline PathParts splitPath(std::string_view p) {
 
 // Roots that survive -stringByDeletingLastPathComponent on their own.
 constexpr bool rootStandsAlone(PathRoot k) noexcept {
-  return k == PathRoot::separator || k == PathRoot::driveSeparator ||
-         k == PathRoot::unc;
+  return k == PathRoot::kSeparator || k == PathRoot::kDriveSeparator ||
+         k == PathRoot::kUnc;
 }
 
 }  // namespace detail
@@ -878,10 +885,10 @@ inline std::string pathWithComponents(
         result = "/";  // "", "/", "\\": the root
         continue;
       }
-      if (parts.rootKind == detail::PathRoot::drive ||
-          parts.rootKind == detail::PathRoot::driveSeparator) {
+      if (parts.rootKind == detail::PathRoot::kDrive ||
+          parts.rootKind == detail::PathRoot::kDriveSeparator) {
         result = std::string(s.substr(0, 2));
-        if (parts.rootKind == detail::PathRoot::driveSeparator) result += '/';
+        if (parts.rootKind == detail::PathRoot::kDriveSeparator) result += '/';
         s = s.substr(parts.rootLength);
       }
       while (!s.empty() && detail::isPathSep(s.back())) s.remove_suffix(1);
@@ -909,7 +916,7 @@ inline std::string lastPathComponent(std::string_view path) {
   }
   if (parts.rootLength > 0) {
     std::string_view root = path.substr(0, parts.rootLength);
-    if (parts.rootKind == detail::PathRoot::tilde)
+    if (parts.rootKind == detail::PathRoot::kTilde)
       root.remove_suffix(1);  // "~/" -> "~"
     return std::string(root);
   }
@@ -935,19 +942,19 @@ inline std::string appendingPathComponent(std::string_view path,
   if (path.empty()) return std::string(component);
   if (parts.spans.empty()) {
     switch (parts.rootKind) {
-      case detail::PathRoot::separator:
+      case detail::PathRoot::kSeparator:
         return "/" + std::string(component);
-      case detail::PathRoot::drive:
+      case detail::PathRoot::kDrive:
         return std::string(path.substr(0, 2)) + std::string(component);
-      case detail::PathRoot::driveSeparator:
+      case detail::PathRoot::kDriveSeparator:
         return std::string(path.substr(0, 2)) + "/" + std::string(component);
-      case detail::PathRoot::tilde:
+      case detail::PathRoot::kTilde:
         return std::string(path.substr(0, parts.rootLength - 1)) + "/" +
                std::string(component);
-      case detail::PathRoot::unc:
+      case detail::PathRoot::kUnc:
         return std::string(path.substr(0, parts.rootLength)) +
                std::string(component);
-      case detail::PathRoot::none:
+      case detail::PathRoot::kNone:
         break;
     }
     return std::string(component);
@@ -1128,22 +1135,22 @@ inline int compareVersions(const std::vector<unsigned>& a,
 // NSNumber argument may be passed as the number itself.
 class FormatArg {
  public:
-  enum class Kind { Null, Text, Signed, Unsigned, Real, Pointer };
+  enum class Kind { kNull, kText, kSigned, kUnsigned, kReal, kPointer };
 
   FormatArg() noexcept = default;
-  FormatArg(std::string_view text) : kind_(Kind::Text), text_(text) {}
-  FormatArg(const std::string& text) : kind_(Kind::Text), text_(text) {}
+  FormatArg(std::string_view text) : kind_(Kind::kText), text_(text) {}
+  FormatArg(const std::string& text) : kind_(Kind::kText), text_(text) {}
   FormatArg(const char* text)
-      : kind_(text != nullptr ? Kind::Text : Kind::Null),
+      : kind_(text != nullptr ? Kind::kText : Kind::kNull),
         text_(text != nullptr ? text : "") {}
-  FormatArg(int v) noexcept : kind_(Kind::Signed), signed_(v) {}
-  FormatArg(long v) noexcept : kind_(Kind::Signed), signed_(v) {}
-  FormatArg(long long v) noexcept : kind_(Kind::Signed), signed_(v) {}
-  FormatArg(unsigned v) noexcept : kind_(Kind::Unsigned), unsigned_(v) {}
-  FormatArg(unsigned long v) noexcept : kind_(Kind::Unsigned), unsigned_(v) {}
+  FormatArg(int v) noexcept : kind_(Kind::kSigned), signed_(v) {}
+  FormatArg(long v) noexcept : kind_(Kind::kSigned), signed_(v) {}
+  FormatArg(long long v) noexcept : kind_(Kind::kSigned), signed_(v) {}
+  FormatArg(unsigned v) noexcept : kind_(Kind::kUnsigned), unsigned_(v) {}
+  FormatArg(unsigned long v) noexcept : kind_(Kind::kUnsigned), unsigned_(v) {}
   FormatArg(unsigned long long v) noexcept
-      : kind_(Kind::Unsigned), unsigned_(v) {}
-  FormatArg(double v) noexcept : kind_(Kind::Real), real_(v) {}
+      : kind_(Kind::kUnsigned), unsigned_(v) {}
+  FormatArg(double v) noexcept : kind_(Kind::kReal), real_(v) {}
 
   static FormatArg null() noexcept { return FormatArg(); }
   static FormatArg single(float v) noexcept {
@@ -1154,7 +1161,7 @@ class FormatArg {
   static FormatArg pointer(const void* p) noexcept {
     FormatArg a;
     if (p != nullptr) {
-      a.kind_ = Kind::Pointer;
+      a.kind_ = Kind::kPointer;
       a.unsigned_ = reinterpret_cast<std::uintptr_t>(p);
     }
     return a;
@@ -1166,29 +1173,29 @@ class FormatArg {
 
   long long asSigned() const noexcept {
     switch (kind_) {
-      case Kind::Signed:
+      case Kind::kSigned:
         return signed_;
-      case Kind::Unsigned:
-      case Kind::Pointer:
+      case Kind::kUnsigned:
+      case Kind::kPointer:
         return static_cast<long long>(unsigned_);
-      case Kind::Real:
+      case Kind::kReal:
         return static_cast<long long>(real_);
       default:
         return 0;
     }
   }
   unsigned long long asUnsigned() const noexcept {
-    return kind_ == Kind::Unsigned || kind_ == Kind::Pointer
+    return kind_ == Kind::kUnsigned || kind_ == Kind::kPointer
                ? unsigned_
                : static_cast<unsigned long long>(asSigned());
   }
   double asReal() const noexcept {
     switch (kind_) {
-      case Kind::Real:
+      case Kind::kReal:
         return real_;
-      case Kind::Signed:
+      case Kind::kSigned:
         return static_cast<double>(signed_);
-      case Kind::Unsigned:
+      case Kind::kUnsigned:
         return static_cast<double>(unsigned_);
       default:
         return 0.0;
@@ -1196,7 +1203,7 @@ class FormatArg {
   }
 
  private:
-  Kind kind_ = Kind::Null;
+  Kind kind_ = Kind::kNull;
   bool single_ = false;
   std::string text_;
   long long signed_ = 0;
@@ -1232,16 +1239,16 @@ inline std::string padUnits(const std::string& text, int width, int precision,
 // NSNumber's.
 inline std::string objectText(const FormatArg& a) {
   switch (a.kind()) {
-    case FormatArg::Kind::Text:
+    case FormatArg::Kind::kText:
       return a.text();
-    case FormatArg::Kind::Signed:
+    case FormatArg::Kind::kSigned:
       return std::format("{}", a.asSigned());
-    case FormatArg::Kind::Unsigned:
+    case FormatArg::Kind::kUnsigned:
       return std::format("{}", a.asUnsigned());
-    case FormatArg::Kind::Real:
+    case FormatArg::Kind::kReal:
       return a.isSingle() ? std::format("{:0.7g}", a.asReal())
                           : std::format("{:0.16g}", a.asReal());
-    case FormatArg::Kind::Pointer:
+    case FormatArg::Kind::kPointer:
       return pointerDescription(reinterpret_cast<const void*>(
           static_cast<std::uintptr_t>(a.asUnsigned())));
     default:
@@ -1462,7 +1469,7 @@ inline std::string formatRuntime(std::string_view fmt,
         break;
       case 's': {
         const FormatArg& a = take();
-        out += detail::padUnits(a.kind() == FormatArg::Kind::Text
+        out += detail::padUnits(a.kind() == FormatArg::Kind::kText
                                     ? a.text()
                                     : std::string("(null)"),
                                 width, precision, left, false);
@@ -1472,7 +1479,7 @@ inline std::string formatRuntime(std::string_view fmt,
         const FormatArg& a = take();
         const void* ptr =
             reinterpret_cast<const void*>(static_cast<std::uintptr_t>(
-                a.kind() == FormatArg::Kind::Null ? 0u : a.asUnsigned()));
+                a.kind() == FormatArg::Kind::kNull ? 0u : a.asUnsigned()));
         out +=
             detail::padUnits(pointerDescription(ptr), width, -1, left, false);
         break;

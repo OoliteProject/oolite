@@ -94,15 +94,15 @@ const OOJSCallEntityMethodRow* EntityMethodNamed(
 // generated from.
 MethodType MethodTypeOfRow(const OOJSCallEntityMethodRow& row) {
   switch (row.form) {
-    case OOJSCallEntityMethodForm::VoidVoid:
+    case OOJSCallEntityMethodForm::kVoidVoid:
       return kMethodTypeVoidVoid;
-    case OOJSCallEntityMethodForm::VoidString:
+    case OOJSCallEntityMethodForm::kVoidString:
       return kMethodTypeVoidObject;
-    case OOJSCallEntityMethodForm::PListString:
+    case OOJSCallEntityMethodForm::kPListString:
       return kMethodTypeObjectObject;
-    case OOJSCallEntityMethodForm::PListVoid:
+    case OOJSCallEntityMethodForm::kPListVoid:
       return kMethodTypePListVoid;
-    case OOJSCallEntityMethodForm::Typed:
+    case OOJSCallEntityMethodForm::kTyped:
       return static_cast<MethodType>(
           OOShaderUniformTypeFromEncoding(row.encoding));
   }
@@ -231,7 +231,7 @@ bool CallMethod(JSContext* context, const std::string& oo_jsClassName, int argc,
             // oo::plist_get::boolFrom does; an entity's node answers neither
             // -boolValue nor -intValue.
             bool boolResult = false;
-            if (result.type() != oo::PList::Type::Object)
+            if (result.type() != oo::PList::Type::kObject)
               boolResult = oo::plist_get::boolFrom(
                   !result.isNull() ? &result : nullptr, false);
             result = oo::PList(boolResult);

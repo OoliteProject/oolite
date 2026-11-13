@@ -190,7 +190,7 @@ void SetUp() {
   OO_CHECK(
       oo::fs::writeFile(sRoot / "Resources" / "Info-gnustep.plist",
                         oo::Data("{ CFBundleVersion = \"9.9.9-test\"; }", 35),
-                        oo::fs::WriteMode::direct)
+                        oo::fs::WriteMode::kDirect)
           .has_value());
   (void)OOJavaScriptEngine::sharedEngine();
   sPlayer = NewTestPlayer<TestPlayer>();  // never released

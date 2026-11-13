@@ -879,7 +879,7 @@ std::optional<std::string> PlayerEntity::replaceVariablesInString(
   auto replace = [&resultString](const std::string& target,
                                  const std::string& replacement) {
     resultString = oo::str::replaceOccurrences(
-        resultString, target, replacement, oo::str::Search::literal);
+        resultString, target, replacement, oo::str::Search::kLiteral);
   };
 
   for (const std::string& valueString : oo::str::tokens(args)) {

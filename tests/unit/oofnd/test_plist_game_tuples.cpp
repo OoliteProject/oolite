@@ -46,13 +46,13 @@ TupleSource Read(const PList* v, const std::array<std::string_view, N>& keys,
 // No value, and values of other kinds, leave the default untouched.
 OO_TEST(noneKeepsDefault) {
   std::array<float, 3> out{7.5f, 7.5f, 7.5f};
-  OO_CHECK(Read(nullptr, kXYZ, out) == TupleSource::none);
+  OO_CHECK(Read(nullptr, kXYZ, out) == TupleSource::kNone);
   const PList number(3.0);
-  OO_CHECK(Read(&number, kXYZ, out) == TupleSource::none);
+  OO_CHECK(Read(&number, kXYZ, out) == TupleSource::kNone);
   const PList null;
-  OO_CHECK(Read(&null, kXYZ, out) == TupleSource::none);
+  OO_CHECK(Read(&null, kXYZ, out) == TupleSource::kNone);
   const PList data(PList::Data{});
-  OO_CHECK(Read(&data, kXYZ, out) == TupleSource::none);
+  OO_CHECK(Read(&data, kXYZ, out) == TupleSource::kNone);
   OO_CHECK(out[0] == 7.5f && out[1] == 7.5f && out[2] == 7.5f);
 }
 
@@ -60,31 +60,31 @@ OO_TEST(noneKeepsDefault) {
 OO_TEST(stringAndObjectAreReported) {
   std::array<double, 3> out{};
   const PList string("1 2 3");
-  OO_CHECK(Read(&string, kXYZ, out) == TupleSource::string);
+  OO_CHECK(Read(&string, kXYZ, out) == TupleSource::kString);
   const PList object{PList::Object{}};
-  OO_CHECK(Read(&object, kXYZ, out) == TupleSource::object);
+  OO_CHECK(Read(&object, kXYZ, out) == TupleSource::kObject);
 }
 
 // An array of exactly N: element i converts as -oo_floatAtIndex:i (fallback 0).
 OO_TEST(arrayOfExactlyN) {
   std::array<float, 3> out{7.5f, 7.5f, 7.5f};
   const PList a(PList::Array{PList(1.5), PList("2.25"), PList("junk")});
-  OO_CHECK(Read(&a, kXYZ, out) == TupleSource::components);
+  OO_CHECK(Read(&a, kXYZ, out) == TupleSource::kComponents);
   OO_CHECK_EQ(out[0], 1.5f);
   OO_CHECK_EQ(out[1], 2.25f);
   OO_CHECK_EQ(out[2], 0.0f);  // not a number: the element's fallback, 0
 
   std::array<float, 3> keep{7.5f, 7.5f, 7.5f};
   const PList two(PList::Array{PList(1.0), PList(2.0)});
-  OO_CHECK(Read(&two, kXYZ, keep) == TupleSource::none);
+  OO_CHECK(Read(&two, kXYZ, keep) == TupleSource::kNone);
   const PList four(
       PList::Array{PList(1.0), PList(2.0), PList(3.0), PList(4.0)});
-  OO_CHECK(Read(&four, kXYZ, keep) == TupleSource::none);
+  OO_CHECK(Read(&four, kXYZ, keep) == TupleSource::kNone);
   OO_CHECK(keep[0] == 7.5f);
 
   // Four for a quaternion, w first.
   std::array<float, 4> q{};
-  OO_CHECK(Read(&four, kWXYZ, q) == TupleSource::components);
+  OO_CHECK(Read(&four, kWXYZ, q) == TupleSource::kComponents);
   OO_CHECK(q[0] == 1.0f && q[1] == 2.0f && q[2] == 3.0f && q[3] == 4.0f);
 }
 
@@ -93,7 +93,7 @@ OO_TEST(arrayOfExactlyN) {
 OO_TEST(arrayNullsDropped) {
   std::array<double, 3> out{};
   const PList a(PList::Array{PList(1.0), PList(), PList(2.0), PList(3.0)});
-  OO_CHECK(Read(&a, kXYZ, out) == TupleSource::components);
+  OO_CHECK(Read(&a, kXYZ, out) == TupleSource::kComponents);
   OO_CHECK(out[0] == 1.0 && out[1] == 2.0 && out[2] == 3.0);
 }
 
@@ -103,18 +103,18 @@ OO_TEST(dictionaryComponents) {
   std::array<double, 3> out{7.25, 7.25, 7.25};
   const PList d(PList::Dict{{"y", PList(PList::signedInteger(4))},
                             {"other", PList(9.0)}});
-  OO_CHECK(Read(&d, kXYZ, out) == TupleSource::components);
+  OO_CHECK(Read(&d, kXYZ, out) == TupleSource::kComponents);
   OO_CHECK(out[0] == 0.0 && out[1] == 4.0 && out[2] == 0.0);
 
   std::array<double, 3> keep{7.25, 7.25, 7.25};
   const PList none(PList::Dict{{"other", PList(9.0)},
                                {"x", PList()}});  // a null value is absent
-  OO_CHECK(Read(&none, kXYZ, keep) == TupleSource::none);
+  OO_CHECK(Read(&none, kXYZ, keep) == TupleSource::kNone);
   OO_CHECK(keep[0] == 7.25);
 
   std::array<float, 4> q{};
   const PList qd(PList::Dict{{"w", PList("0.5")}, {"z", PList(true)}});
-  OO_CHECK(Read(&qd, kWXYZ, q) == TupleSource::components);
+  OO_CHECK(Read(&qd, kWXYZ, q) == TupleSource::kComponents);
   OO_CHECK(q[0] == 0.5f && q[1] == 0.0f && q[2] == 0.0f && q[3] == 1.0f);
 }
 
@@ -140,7 +140,7 @@ OO_TEST(writers) {
 
   // Round trip through the reader.
   std::array<float, 3> out{};
-  OO_CHECK(Read(&v, kXYZ, out) == TupleSource::components);
+  OO_CHECK(Read(&v, kXYZ, out) == TupleSource::kComponents);
   OO_CHECK(out[0] == 0.1f && out[1] == -2.0f && out[2] == 3.5f);
 }
 

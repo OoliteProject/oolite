@@ -94,7 +94,7 @@ void SetUp()
 		stdfs::create_directories(root / "Resources");
 		OO_CHECK(::_putenv_s("HOMEPATH", root.string().c_str()) == 0);
 		stdfs::current_path(root);
-		OO_CHECK(oo::fs::writeFile(root / "Resources" / "Info-gnustep.plist", oo::Data("{ CFBundleVersion = \"9.9.9-test\"; }", 35), oo::fs::WriteMode::direct).has_value());
+		OO_CHECK(oo::fs::writeFile(root / "Resources" / "Info-gnustep.plist", oo::Data("{ CFBundleVersion = \"9.9.9-test\"; }", 35), oo::fs::WriteMode::kDirect).has_value());
 		{
 			(void)OOJavaScriptEngine::sharedEngine();
 		}

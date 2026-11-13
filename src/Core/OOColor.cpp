@@ -165,7 +165,7 @@ std::shared_ptr<OOColor> OOColor::colorWithDescription(
 
   if (description.isNull()) return nullptr;
 
-  if (description.type() == oo::PList::Type::Object) {
+  if (description.type() == oo::PList::Type::kObject) {
     // The colour in an Object node is the node's foreign object.
     if (OOColor* color = OOColorInObjectNode(description))
       result = oo::share(color);

@@ -56,9 +56,9 @@ enum class OOByName : unsigned {
 constexpr std::true_type OOEnableFlagOperators(OOByName);
 
 enum class OOEntityByNameArgument : std::uint8_t {
-  None,    // T name()
-  String,  // T name(const std::string &)
-  PList    // T name(const oo::PList &)
+  kNone,    // T name()
+  kString,  // T name(const std::string &)
+  kPList    // T name(const oo::PList &)
 };
 
 // A typed call's result, kept by its type: an integer, enum or BOOL result

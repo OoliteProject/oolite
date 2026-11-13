@@ -86,14 +86,14 @@ namespace oo {
 
 struct PathEnvironment {
   enum class Platform {
-    windows,
-    posix,  // Linux and the other SDL POSIX builds
+    kWindows,
+    kPosix,  // Linux and the other SDL POSIX builds
   };
 
   using Getenv =
       std::function<std::optional<std::string>(const std::string& name)>;
 
-  Platform platform = Platform::posix;
+  Platform platform = Platform::kPosix;
   Getenv getenv;  // UTF-8 value of a variable, or nullopt when unset
   fs::Path currentDirectory;
   bool gameDataToUserFolder =
@@ -104,9 +104,9 @@ struct PathEnvironment {
   static PathEnvironment process() {
     PathEnvironment env;
 #if defined(_WIN32)
-    env.platform = Platform::windows;
+    env.platform = Platform::kWindows;
 #else
-    env.platform = Platform::posix;
+    env.platform = Platform::kPosix;
 #endif
     env.getenv = &processGetenv;
     env.currentDirectory = fs::currentDirectory().value_or(fs::Path());
@@ -258,7 +258,7 @@ class ResourcePaths {
 
  private:
   bool windows() const noexcept {
-    return env_.platform == PathEnvironment::Platform::windows;
+    return env_.platform == PathEnvironment::Platform::kWindows;
   }
 
   std::optional<std::string> get(const std::string& name) const {

@@ -22,7 +22,7 @@ OO_TEST(headersIncludedUnderTheMacrosWork) {
   OO_CHECK_EQ(oo::fs::utf8String(oo::fs::pathFromUTF8("a/b")),
               std::string("a/b"));
   oo::PathEnvironment env;
-  env.platform = oo::PathEnvironment::Platform::posix;
+  env.platform = oo::PathEnvironment::Platform::kPosix;
   env.getenv = [](const std::string&) -> std::optional<std::string> {
     return std::string("/home/x");
   };

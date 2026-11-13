@@ -60,22 +60,22 @@ namespace oo::log {
 // would).
 struct RawSetting {
   enum class Kind {
-    string,
-    boolean,
-    other,
+    kString,
+    kBoolean,
+    kOther,
   };
-  Kind kind = Kind::other;
+  Kind kind = Kind::kOther;
   std::string text;   // the string, or the description of an `other`
   bool flag = false;  // the -boolValue of a `boolean`
 
   static RawSetting string(std::string s) {
-    return {Kind::string, std::move(s), false};
+    return {Kind::kString, std::move(s), false};
   }
   static RawSetting boolean(bool b) {
-    return {Kind::boolean, std::string(), b};
+    return {Kind::kBoolean, std::string(), b};
   }
   static RawSetting other(std::string description) {
-    return {Kind::other, std::move(description), false};
+    return {Kind::kOther, std::move(description), false};
   }
 };
 
@@ -267,7 +267,7 @@ class Logger {
       explicit_.clear();
       for (const auto& [key, raw] : entries) {
         std::optional<Value> value;
-        if (raw.kind == RawSetting::Kind::string) {
+        if (raw.kind == RawSetting::Kind::kString) {
           const std::string& s = raw.text;
           if (detail::isWord(s, "yes") || detail::isWord(s, "true") ||
               detail::isWord(s, "on"))
@@ -283,7 +283,7 @@ class Logger {
           else
             diagnostics.emplace_back("LoadExplicitSettingsFromDictionary",
                                      badValue(s));
-        } else if (raw.kind == RawSetting::Kind::boolean) {
+        } else if (raw.kind == RawSetting::Kind::kBoolean) {
           value = raw.flag ? Value::on() : Value::off();
         } else {
           diagnostics.emplace_back("LoadExplicitSettingsFromDictionary",
@@ -321,7 +321,8 @@ class Logger {
     const std::string key(messageClass);
     auto it = explicit_.find(key);
     if (it == explicit_.end() ||
-        !(it->second.kind == (display ? Value::Kind::on : Value::Kind::off))) {
+        !(it->second.kind ==
+          (display ? Value::Kind::kOn : Value::Kind::kOff))) {
       explicit_[key] = display ? Value::on() : Value::off();
       cache_.clear();
     }
@@ -377,15 +378,15 @@ class Logger {
  private:
   struct Value {
     enum class Kind {
-      on,
-      off,
-      meta,
+      kOn,
+      kOff,
+      kMeta,
     };
-    Kind kind = Kind::off;
+    Kind kind = Kind::kOff;
     std::string metaclass;
-    static Value on() { return {Kind::on, {}}; }
-    static Value off() { return {Kind::off, {}}; }
-    static Value meta(std::string m) { return {Kind::meta, std::move(m)}; }
+    static Value on() { return {Kind::kOn, {}}; }
+    static Value off() { return {Kind::kOff, {}}; }
+    static Value meta(std::string m) { return {Kind::kMeta, std::move(m)}; }
   };
 
   static void stderrSink(std::string_view line) {
@@ -405,10 +406,10 @@ class Logger {
                   F apply) {
     auto it = explicit_.find(key);
     if (it == explicit_.end()) return;
-    if (it->second.kind == Value::Kind::meta)
+    if (it->second.kind == Value::Kind::kMeta)
       diagnostics.emplace_back("LoadExplicitSettings", metaMessage);
     else
-      apply(it->second.kind == Value::Kind::on);
+      apply(it->second.kind == Value::Kind::kOn);
     explicit_.erase(it);
   }
 
@@ -425,8 +426,8 @@ class Logger {
         cls = std::move(*parent);
         continue;
       }
-      if (it->second.kind != Value::Kind::meta)
-        return it->second.kind == Value::Kind::on;
+      if (it->second.kind != Value::Kind::kMeta)
+        return it->second.kind == Value::Kind::kOn;
       return resolveMeta(it->second.metaclass, diagnostics);
     }
   }
@@ -453,8 +454,8 @@ class Logger {
             meta));
         return defaultDisplay_;
       }
-      if (it->second.kind != Value::Kind::meta)
-        return it->second.kind == Value::Kind::on;
+      if (it->second.kind != Value::Kind::kMeta)
+        return it->second.kind == Value::Kind::kOn;
       meta = it->second.metaclass;
     }
   }

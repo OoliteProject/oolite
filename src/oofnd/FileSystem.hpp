@@ -25,14 +25,15 @@
             +[NSData oo_dataWithOXZFile:] (path may OODataFromOXZFile(path)
    (declared below; defined in pass through a .oxz zip component)
    Core/OODataFromOXZFile.cpp) [data writeToFile:p atomically:YES / NO]
-   oo::fs::writeFile(p, data, WriteMode::atomic / direct) [fm createFileAtPath:p
-   contents:nil ...] + [NSFileHandle fileHandleForWritingAtPath:p]
-   oo::fs::createFileForWriting(p)  (a FILE *) [handle synchronizeFile]
-   oo::fs::synchronizeFile(file) [fm displayNameAtPath:p] (GNUstep returns [p
-   lastPathComponent]; a string op) [fm enumeratorAtPath:p] + -skipDescendents
-   oo::fs::RecursiveDirectoryEnumerator [attrs fileModificationDate]
-   timeInterval...  oo::fs::modificationTimeSince1970(p) [fm
-   oo_oxzFileExistsAtPath:p]                 OOOxzFileExistsAtPath(path)
+   oo::fs::writeFile(p, data, WriteMode::kAtomic / direct) [fm
+   createFileAtPath:p contents:nil ...] + [NSFileHandle
+   fileHandleForWritingAtPath:p] oo::fs::createFileForWriting(p)  (a FILE *)
+   [handle synchronizeFile] oo::fs::synchronizeFile(file) [fm
+   displayNameAtPath:p] (GNUstep returns [p lastPathComponent]; a string op) [fm
+   enumeratorAtPath:p] + -skipDescendents oo::fs::RecursiveDirectoryEnumerator
+   [attrs fileModificationDate] timeInterval...
+   oo::fs::modificationTimeSince1970(p) [fm oo_oxzFileExistsAtPath:p]
+   OOOxzFileExistsAtPath(path)
 
         SEMANTICS, each matching what GNUstep does today:
 
@@ -43,7 +44,7 @@
    strings built from oofnd paths match today's byte for byte.
           * fileExists / fileType follow symbolic links, as fileExistsAtPath:
    does; a dangling link does not exist. They never fail: an unreadable path is
-   FileType::none.
+   FileType::kNone.
           * directoryContents lists names (not paths), without "." and "..", in
    the order the OS enumerates them (NTFS: sorted; others: unspecified), as
    directoryContentsAtPath: does.
@@ -56,7 +57,7 @@
           * moveItem never overwrites: an existing destination is
    std::errc::file_exists, as movePath:toPath:handler: refuses it.
    (std::filesystem::rename would replace a file.)
-          * writeFile(..., WriteMode::atomic) writes a sibling temporary file
+          * writeFile(..., WriteMode::kAtomic) writes a sibling temporary file
    and renames it over the destination, so readers see the old or the new
    contents, never a torn file.
 
@@ -122,36 +123,36 @@ inline std::string nativeUTF8String(const Path& path) {
 // ------------------------------------------------------------------------------
 
 enum class FileType {
-  none,  // does not exist (or cannot be examined)
-  regular,
-  directory,
-  symbolic_link,  // only from RecursiveDirectoryEnumerator::entryType
+  kNone,  // does not exist (or cannot be examined)
+  kRegular,
+  kDirectory,
+  kSymbolicLink,  // only from RecursiveDirectoryEnumerator::entryType
                   // (symlink_status)
-  other,          // a device, socket, fifo...
+  kOther,         // a device, socket, fifo...
 };
 
 inline FileType fileType(const Path& path) noexcept {
   std::error_code ec;
   const std::filesystem::file_status st = std::filesystem::status(path, ec);
-  if (ec) return FileType::none;
+  if (ec) return FileType::kNone;
   switch (st.type()) {
     case std::filesystem::file_type::regular:
-      return FileType::regular;
+      return FileType::kRegular;
     case std::filesystem::file_type::directory:
-      return FileType::directory;
+      return FileType::kDirectory;
     case std::filesystem::file_type::not_found:
     case std::filesystem::file_type::none:
-      return FileType::none;
+      return FileType::kNone;
     default:
-      return FileType::other;
+      return FileType::kOther;
   }
 }
 
 inline bool fileExists(const Path& path) noexcept {
-  return fileType(path) != FileType::none;
+  return fileType(path) != FileType::kNone;
 }
 inline bool isDirectory(const Path& path) noexcept {
-  return fileType(path) == FileType::directory;
+  return fileType(path) == FileType::kDirectory;
 }
 
 inline Result<std::uintmax_t> fileSize(const Path& path) {
@@ -187,7 +188,7 @@ inline Result<double> modificationTimeSince1970(const Path& path) {
 }
 
 // NSDirectoryEnumerator: relative paths under root, with skipDescendents().
-// entryType() uses symlink_status so a symlink is FileType::symbolic_link (as
+// entryType() uses symlink_status so a symlink is FileType::kSymbolicLink (as
 // -[fileAttributes] fileType does).
 class RecursiveDirectoryEnumerator {
  public:
@@ -232,18 +233,18 @@ class RecursiveDirectoryEnumerator {
     std::error_code ec;
     const std::filesystem::file_status st =
         std::filesystem::symlink_status(path, ec);
-    if (ec) return FileType::none;
-    if (std::filesystem::is_symlink(st)) return FileType::symbolic_link;
+    if (ec) return FileType::kNone;
+    if (std::filesystem::is_symlink(st)) return FileType::kSymbolicLink;
     switch (st.type()) {
       case std::filesystem::file_type::regular:
-        return FileType::regular;
+        return FileType::kRegular;
       case std::filesystem::file_type::directory:
-        return FileType::directory;
+        return FileType::kDirectory;
       case std::filesystem::file_type::not_found:
       case std::filesystem::file_type::none:
-        return FileType::none;
+        return FileType::kNone;
       default:
-        return FileType::other;
+        return FileType::kOther;
     }
   }
 
@@ -252,7 +253,7 @@ class RecursiveDirectoryEnumerator {
   std::filesystem::recursive_directory_iterator end_{};
   bool ok_ = false;
   bool advanced_ = false;
-  FileType type_ = FileType::none;
+  FileType type_ = FileType::kNone;
   Path entryPath_;
   std::string relative_;
 };
@@ -349,10 +350,10 @@ inline Error lastError(int fallback) noexcept {
 
 inline Result<Data> readFile(const Path& path) {
   switch (fileType(path)) {
-    case FileType::none:
+    case FileType::kNone:
       return std::unexpected(
           std::make_error_code(std::errc::no_such_file_or_directory));
-    case FileType::directory:
+    case FileType::kDirectory:
       return std::unexpected(std::make_error_code(std::errc::is_a_directory));
     default:
       break;
@@ -376,15 +377,15 @@ inline Result<Data> readFile(const Path& path) {
 }
 
 enum class WriteMode {
-  direct,  // truncate and write in place (writeToFile:atomically:NO)
-  atomic,  // write a sibling temporary, then rename it over the file
-           // (atomically:YES)
+  kDirect,  // truncate and write in place (writeToFile:atomically:NO)
+  kAtomic,  // write a sibling temporary, then rename it over the file
+            // (atomically:YES)
 };
 
 inline Result<void> writeFile(const Path& path, const Data& data,
-                              WriteMode mode = WriteMode::atomic) {
+                              WriteMode mode = WriteMode::kAtomic) {
   Path target = path;
-  if (mode == WriteMode::atomic) {
+  if (mode == WriteMode::kAtomic) {
     target += ".oofnd-tmp";
   }
 
@@ -396,11 +397,11 @@ inline Result<void> writeFile(const Path& path, const Data& data,
   const bool closed = std::fclose(f) == 0;
   std::error_code ec;
   if (!wrote || !closed) {
-    if (mode == WriteMode::atomic) std::filesystem::remove(target, ec);
+    if (mode == WriteMode::kAtomic) std::filesystem::remove(target, ec);
     return std::unexpected(std::make_error_code(std::errc::io_error));
   }
 
-  if (mode == WriteMode::atomic) {
+  if (mode == WriteMode::kAtomic) {
     std::filesystem::rename(target, path, ec);  // replaces an existing file
     if (ec) {
       std::error_code ignored;

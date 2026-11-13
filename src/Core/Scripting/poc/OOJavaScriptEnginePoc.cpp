@@ -735,13 +735,13 @@ static JSValue JSObjectValueFromPList(JSContext* context,
 
 JSValue OOJSValueFromPList(JSContext* context, const oo::PList& plist) {
   switch (plist.type()) {
-    case oo::PList::Type::Null:
+    case oo::PList::Type::kNull:
       return JS_NULL;
 
-    case oo::PList::Type::Bool:
+    case oo::PList::Type::kBool:
       return JS_NewInt32(context, *plist.getIf<bool>() ? 1 : 0);
 
-    case oo::PList::Type::Integer: {
+    case oo::PList::Type::kInteger: {
       const oo::PList::Integer& integer = *plist.getIf<oo::PList::Integer>();
       if (integer.isUnsigned) {
         const unsigned long long u = integer.unsignedValue();
@@ -756,29 +756,29 @@ JSValue OOJSValueFromPList(JSContext* context, const oo::PList& plist) {
       return JS_NewNumber(context, static_cast<double>(v));
     }
 
-    case oo::PList::Type::Real: {
+    case oo::PList::Type::kReal: {
       double d = *plist.getIf<double>();
       if (plist.isSinglePrecision())
         d = static_cast<double>(static_cast<float>(d));
       return JS_NewFloat64(context, d);
     }
 
-    case oo::PList::Type::String: {
+    case oo::PList::Type::kString: {
       const std::string& string = *plist.getIf<std::string>();
       return JS_NewStringLen(context, string.data(), string.size());
     }
 
-    case oo::PList::Type::Data:
-    case oo::PList::Type::Date:
+    case oo::PList::Type::kData:
+    case oo::PList::Type::kDate:
       return JS_UNDEFINED;
 
-    case oo::PList::Type::Array:
+    case oo::PList::Type::kArray:
       return JSArrayValueFromPList(context, *plist.getIf<oo::PList::Array>());
 
-    case oo::PList::Type::Dict:
+    case oo::PList::Type::kDict:
       return JSObjectValueFromPList(context, *plist.getIf<oo::PList::Dict>());
 
-    case oo::PList::Type::Object:
+    case oo::PList::Type::kObject:
       // The harness has no native-object glue: an object is undefined, as its
       // NSObject glue gave.
       return JS_UNDEFINED;

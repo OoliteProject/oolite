@@ -240,7 +240,7 @@ void SetUp() {
   const std::string info = "{ CFBundleVersion = \"9.9.9-test\"; }";
   OO_CHECK(oo::fs::writeFile(sRoot / "Resources" / "Info-gnustep.plist",
                              oo::Data(info.data(), info.size()),
-                             oo::fs::WriteMode::direct)
+                             oo::fs::WriteMode::kDirect)
                .has_value());
   ResourceManager::setUseAddOns(std::string(
       SCENARIO_OXP_DEFINITION_NONE));  // strict: the built-in Resources alone

@@ -46,19 +46,19 @@ inline std::expected<PList, PListError> parsePropertyListData(
     return std::unexpected(PListError{"empty data argument passed to method"});
   const auto* b = reinterpret_cast<const unsigned char*>(bytes.data());
   if (bytes.size() >= 8 && bytes.substr(0, 8) == "bplist00") {
-    if (format != nullptr) *format = PListFormat::Binary;
+    if (format != nullptr) *format = PListFormat::kBinary;
     return std::unexpected(
         PListError{"binary property lists are not supported by oofnd"});
   }
   if (b[0] == 0 || b[0] == 1) {
-    if (format != nullptr) *format = PListFormat::GNUstepBinary;
+    if (format != nullptr) *format = PListFormat::kGNUstepBinary;
     return std::unexpected(
         PListError{"binary property lists are not supported by oofnd"});
   }
   std::size_t index = 0;
   while (index < bytes.size() && plist_detail::isPListSpace(b[index])) index++;
   if (bytes.size() - index > 2 && b[index] == '<' && b[index + 1] == '?') {
-    if (format != nullptr) *format = PListFormat::XML;
+    if (format != nullptr) *format = PListFormat::kXML;
     return parseXMLPList(bytes);
   }
   return parseOldStylePList(bytes, format);

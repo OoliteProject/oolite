@@ -970,6 +970,6 @@ void OOCache::writeGraphVizToPath(const std::string& path) {
   const std::string graphViz = generateGraphViz();
   (void)oo::fs::writeFile(oo::fs::pathFromUTF8(path),
                           oo::Data(graphViz.data(), graphViz.size()),
-                          oo::fs::WriteMode::atomic);
+                          oo::fs::WriteMode::kAtomic);
 }
 #endif

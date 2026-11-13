@@ -171,9 +171,9 @@ inline void appendValue(std::string& out, const PList& v,
 inline void appendElement(std::string& out, const PList& v,
                           std::optional<int> utcOffsetMinutes) {
   switch (v.type()) {
-    case PList::Type::Data:
-    case PList::Type::Array:
-    case PList::Type::Dict:
+    case PList::Type::kData:
+    case PList::Type::kArray:
+    case PList::Type::kDict:
       appendValue(out, v, utcOffsetMinutes);
       break;
     default: {
@@ -187,29 +187,29 @@ inline void appendElement(std::string& out, const PList& v,
 inline void appendValue(std::string& out, const PList& v,
                         std::optional<int> utcOffsetMinutes) {
   switch (v.type()) {
-    case PList::Type::Null:
+    case PList::Type::kNull:
       out += "(null)";
       return;
-    case PList::Type::Bool:
-    case PList::Type::Integer:
-    case PList::Type::Real:
+    case PList::Type::kBool:
+    case PList::Type::kInteger:
+    case PList::Type::kReal:
       out += numberText(v);
       return;
-    case PList::Type::String:
+    case PList::Type::kString:
       out += *v.getIf<std::string>();
       return;
-    case PList::Type::Data:
+    case PList::Type::kData:
       out += dataText(*v.getIf<PList::Data>());
       return;
-    case PList::Type::Date:
+    case PList::Type::kDate:
       out += dateText(*v.getIf<PList::Date>(), utcOffsetMinutes);
       return;
-    case PList::Type::Object: {
+    case PList::Type::kObject: {
       const PList::Object& object = *v.getIf<PList::Object>();
       out += object ? object->description() : std::string("(null)");
       return;
     }
-    case PList::Type::Array: {
+    case PList::Type::kArray: {
       out += '(';
       bool first = true;
       for (const PList& element : *v.getIf<PList::Array>()) {
@@ -221,7 +221,7 @@ inline void appendValue(std::string& out, const PList& v,
       out += ')';
       return;
     }
-    case PList::Type::Dict: {
+    case PList::Type::kDict: {
       std::vector<std::pair<std::u16string, const PList::Dict::value_type*>>
           keys;
       for (const auto& kv : *v.getIf<PList::Dict>()) {

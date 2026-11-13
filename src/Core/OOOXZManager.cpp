@@ -694,16 +694,16 @@ void OOOXZManager::processDownloadEvents() {
     {
       oo::AutoreleaseScope pool;  // was @autoreleasepool
       switch (event->kind) {
-        case oo::http::Event::Kind::response:
+        case oo::http::Event::Kind::kResponse:
           downloadDidReceiveResponse(event->expectedLength);
           break;
-        case oo::http::Event::Kind::data:
+        case oo::http::Event::Kind::kData:
           downloadDidReceiveData(event->bytes);
           break;
-        case oo::http::Event::Kind::finished:
+        case oo::http::Event::Kind::kFinished:
           downloadDidFinishLoading();
           break;
-        case oo::http::Event::Kind::failed:
+        case oo::http::Event::Kind::kFailed:
           downloadDidFailWithError(event->error);
           break;
       }
@@ -2459,7 +2459,7 @@ std::string OOOXZManager::extractOXZ(std::size_t item) {
           break;
         } else {
           if (!oo::fs::writeFile(oo::fs::pathFromUTF8(fullComponent), *tmp,
-                                 oo::fs::WriteMode::atomic)) {
+                                 oo::fs::WriteMode::kAtomic)) {
             OO_LOG("oxz.manager.error", "Sub file {} could not be created",
                    componentName);
             extractionLog +=
