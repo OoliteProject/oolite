@@ -118,10 +118,32 @@ jobs:
       - name: Build Oolite
         run: |
           ./mk.sh build deployment --setup-flags="-Ddocs=enabled" --github-repository="$GITHUB_REPOSITORY"
+      - name: Restore test OXPs
+        id: oxz
+        if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
+        uses: actions/cache/restore@v4
+        with:
+          path: build/test-oxz-cache
+          key: test-oxps-${{ hashFiles('tests/test-oxps.txt') }}
       - name: Test Oolite
+        id: test
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
           ./mk.sh test deployment
+      - name: Save test OXPs
+        # Only a complete set, so that a run while the OXPs' host is down does not cache an empty directory.
+        if: always() && steps.test.outputs.test-oxps-complete == 'true' && steps.oxz.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build/test-oxz-cache
+          key: test-oxps-${{ hashFiles('tests/test-oxps.txt') }}
+      - name: Upload test output
+        if: failure() && steps.test.conclusion == 'failure'
+        uses: actions/upload-artifact@v6
+        with:
+          name: test-output-arch
+          path: build/meson_deployment/test_output
+          if-no-files-found: ignore
       - name: Package Oolite
         run: |
           ./mk.sh pkg-appimage deployment
@@ -171,10 +193,32 @@ jobs:
       - name: Build Oolite
         run: |
           ./mk.sh build dev --setup-flags="-Ddocs=enabled"
+      - name: Restore test OXPs
+        id: oxz
+        if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
+        uses: actions/cache/restore@v4
+        with:
+          path: build/test-oxz-cache
+          key: test-oxps-${{ hashFiles('tests/test-oxps.txt') }}
       - name: Test Oolite
+        id: test
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
           ./mk.sh test dev
+      - name: Save test OXPs
+        # Only a complete set, so that a run while the OXPs' host is down does not cache an empty directory.
+        if: always() && steps.test.outputs.test-oxps-complete == 'true' && steps.oxz.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build/test-oxz-cache
+          key: test-oxps-${{ hashFiles('tests/test-oxps.txt') }}
+      - name: Upload test output
+        if: failure() && steps.test.conclusion == 'failure'
+        uses: actions/upload-artifact@v6
+        with:
+          name: test-output-ubuntu
+          path: build/meson_dev/test_output
+          if-no-files-found: ignore
       - name: Build AppImage
         run: |
           ./mk.sh pkg-appimage dev
@@ -217,10 +261,32 @@ jobs:
       - name: Build Oolite
         run: |
           ./mk.sh build test --setup-flags="-Ddocs=enabled"
+      - name: Restore test OXPs
+        id: oxz
+        if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
+        uses: actions/cache/restore@v4
+        with:
+          path: build/test-oxz-cache
+          key: test-oxps-${{ hashFiles('tests/test-oxps.txt') }}
       - name: Test Oolite
+        id: test
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
           ./mk.sh test test
+      - name: Save test OXPs
+        # Only a complete set, so that a run while the OXPs' host is down does not cache an empty directory.
+        if: always() && steps.test.outputs.test-oxps-complete == 'true' && steps.oxz.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build/test-oxz-cache
+          key: test-oxps-${{ hashFiles('tests/test-oxps.txt') }}
+      - name: Upload test output
+        if: failure() && steps.test.conclusion == 'failure'
+        uses: actions/upload-artifact@v6
+        with:
+          name: test-output-fedora
+          path: build/meson_test/test_output
+          if-no-files-found: ignore
 
   build-flatpak:
     needs: clang-format-check
@@ -297,7 +363,15 @@ jobs:
           PYTHONUTF8: "1"
         run: |
           ./mk.sh build deployment --setup-flags="-Ddocs=enabled" --github-repository="$GITHUB_REPOSITORY"
+      - name: Restore test OXPs
+        id: oxz
+        if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
+        uses: actions/cache/restore@v4
+        with:
+          path: build/test-oxz-cache
+          key: test-oxps-${{ hashFiles('tests/test-oxps.txt') }}
       - name: Test Oolite
+        id: test
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         shell: msys2 {0}
         env:
@@ -312,6 +386,20 @@ jobs:
             ntldd -R oolite.exe
             exit 1
           fi
+      - name: Save test OXPs
+        # Only a complete set, so that a run while the OXPs' host is down does not cache an empty directory.
+        if: always() && steps.test.outputs.test-oxps-complete == 'true' && steps.oxz.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build/test-oxz-cache
+          key: test-oxps-${{ hashFiles('tests/test-oxps.txt') }}
+      - name: Upload test output
+        if: failure() && steps.test.conclusion == 'failure'
+        uses: actions/upload-artifact@v6
+        with:
+          name: test-output-windows
+          path: build/meson_deployment/test_output
+          if-no-files-found: ignore
       - name: Package Oolite
         shell: msys2 {0}
         env:
@@ -344,14 +432,41 @@ jobs:
       - name: Build Oolite
         run: |
           ./mk.sh build deployment --setup-flags="-Ddocs=enabled" --github-repository="$GITHUB_REPOSITORY"
-      - name: Test Oolite
+      - name: Restore test OXPs
+        id: oxz
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
+        uses: actions/cache/restore@v4
+        with:
+          path: build/test-oxz-cache
+          key: test-oxps-${{ hashFiles('tests/test-oxps.txt') }}
+      - name: Test Oolite
+        id: test
+        if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
+        env:
+          # The runner renders OpenGL in software ("Apple Software Renderer"), slowly: a smaller window
+          # draws faster, and the docking computer still needs longer than elsewhere.
+          OOLITE_TEST_WINDOW: 640x360
+          OOLITE_TEST_TIMEOUT_SCALE: 2
         run: |
           ./mk.sh test deployment
       # The app is only ad-hoc signed, so Gatekeeper blocks the downloaded DMG's app until the
       # user allows it in System Settings (issue #779). Fixing that needs Developer ID signing
       # and notarisation, i.e. signing keys and Apple credentials added as repository secrets.
       # See sign_app_bundle in ShellScripts/macOS/create_app_bundle_fn.sh.
+      - name: Save test OXPs
+        # Only a complete set, so that a run while the OXPs' host is down does not cache an empty directory.
+        if: always() && steps.test.outputs.test-oxps-complete == 'true' && steps.oxz.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build/test-oxz-cache
+          key: test-oxps-${{ hashFiles('tests/test-oxps.txt') }}
+      - name: Upload test output
+        if: failure() && steps.test.conclusion == 'failure'
+        uses: actions/upload-artifact@v6
+        with:
+          name: test-output-macos
+          path: build/meson_deployment/test_output
+          if-no-files-found: ignore
       - name: Package Oolite
         run: |
           ./mk.sh pkg-dmg deployment
