@@ -77,9 +77,8 @@ class WeakSet {
   bool contains(const T* object) const {
     if (object == nullptr) return false;
     compact();
-    const std::shared_ptr<const void> token =
-        detail::WeakAccess::existingToken(object);
-    return token != nullptr && index_.contains(Key(token));
+    const Key identity = detail::WeakAccess::identity(object);
+    return !detail::isEmpty(identity) && index_.contains(identity);
   }
 
   void add(T* object) {
@@ -93,11 +92,10 @@ class WeakSet {
 
   void remove(const T* object) {
     if (object == nullptr) return;
-    const std::shared_ptr<const void> token =
-        detail::WeakAccess::existingToken(object);
-    if (token == nullptr || index_.erase(Key(token)) == 0) return;
-    std::erase_if(entries_, [&token](const WeakRef<T>& w) {
-      return detail::sameOwner(w.token_, token);
+    const Key identity = detail::WeakAccess::identity(object);
+    if (detail::isEmpty(identity) || index_.erase(identity) == 0) return;
+    std::erase_if(entries_, [&identity](const WeakRef<T>& w) {
+      return detail::sameOwner(w.token_, identity);
     });
   }
 
