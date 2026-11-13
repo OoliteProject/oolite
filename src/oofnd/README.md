@@ -19,7 +19,9 @@ Rules that hold for every component:
 
 | Path | What |
 |---|---|
-| `src/oofnd/Ref.hpp` | `oo::Object`, `std::shared_ptr<T>`, `std::weak_ptr<T>`, `oo::AutoreleaseScope`: ObjC retain/release/autorelease and `OOWeakReference` 1:1; the banner maps each ObjC idiom |
+| `src/oofnd/Object.hpp` | `oo::Object`, the base of every shared-owned game object (`std::enable_shared_from_this`), with `oo::makeShared`, `oo::share` and the `oo::Dispose` deleter that runs `willDispose()`: ownership is `std::shared_ptr<T>`, observation `std::weak_ptr<T>` |
+| `src/oofnd/AutoreleaseScope.hpp` | `oo::AutoreleaseScope`: the per-thread, nested autorelease pool over shared ownership, with libobjc2's draining rules |
+| `src/oofnd/Ref.hpp` | `oo::RefCounted`, `oo::Ref<T>`, `oo::WeakRef<T>`: the reference-counted bridge over `oo::Object`, not used by the game; only `test_ref` and `test_weakset` still name it |
 | `src/oofnd/WeakSet.hpp` | `oo::WeakSet<T>`: `OOWeakSet` |
 | `src/oofnd/PList.hpp` | `oo::PList`: the property-list value (null/bool/integer/real/string/data/date/array/dict) replacing the Foundation plist object graph; UTF-16 <-> UTF-8 helpers |
 | `src/oofnd/PListOldStyle.hpp` | `oo::parseOldStylePList`: GNUstep's old-style (OpenStep) scanner, `parsePlItem`, ported quirk-for-quirk |
@@ -82,6 +84,9 @@ facility that reads better at the call site (spec 009 decision 11).
 | `PList` (and its parsers, writers and description) | GNUstep's property lists, byte for byte | `test_plist`, `test_plist_*` |
 | `OOAssert` | gnustep-base's assertion semantics | `test_objc_assert` |
 | `Thread` (`oo::thread`) | thread naming and priority, which `std::thread` cannot do, and `isMainThread()`, a helper over the standard id | `test_thread` |
+| `Object` | the deleter that calls `willDispose()` before the destructor, and `oo::share` (a `shared_from_this` that names the type); ownership itself is `std::shared_ptr` | `test_ref` |
+| `AutoreleaseScope` | the autorelease pool's rules (nesting, newest-first draining), which the standard library has no form of | `test_ref` |
+| `WeakSet` | a set of zeroing weak references uniqued by identity; `std::set<std::weak_ptr>` would need `owner_less` and does not drop dead members | `test_weakset` |
 
 ## Conventions
 
