@@ -42,13 +42,13 @@ void OOJSReportCurrentException(JSContext* context) {
     throw;
   } catch (const oo::Exception& exception) {
     if (!JS_HasException(context))
-      cxx_OOJSReportError(context, "Native exception: %s", exception.reason());
+      OOJSReportError(context, "Native exception: %s", exception.reason());
     // Else, let the pending exception propagate.
   } catch (const std::exception& exception) {
     if (!JS_HasException(context))
-      cxx_OOJSReportError(context, "Native exception: %s", exception.what());
+      OOJSReportError(context, "Native exception: %s", exception.what());
   } catch (...) {
     if (!JS_HasException(context))
-      cxx_OOJSReportError(context, "Unidentified native exception");
+      OOJSReportError(context, "Unidentified native exception");
   }
 }

@@ -183,30 +183,29 @@ extern const char* const kOOJavaScriptEngineDidResetNotificationName;
    with oo::DescriptionOf), formatted by oo::str::vformat. A nullopt function
    means no caller prefix; a nullopt scriptClass prefixes "function: ".
 */
-void cxx_OOJSReportError(JSContext* context, const char* format, ...)
+void OOJSReportError(JSContext* context, const char* format, ...)
     OO_PRINTF_FORMAT(2, 3);
-void cxx_OOJSReportErrorWithArguments(JSContext* context, const char* format,
-                                      va_list args) OO_PRINTF_FORMAT(2, 0);
-void cxx_OOJSReportErrorForCaller(JSContext* context,
-                                  const std::optional<std::string>& scriptClass,
-                                  const std::optional<std::string>& function,
-                                  const char* format, ...)
-    OO_PRINTF_FORMAT(4, 5);
+void OOJSReportErrorWithArguments(JSContext* context, const char* format,
+                                  va_list args) OO_PRINTF_FORMAT(2, 0);
+void OOJSReportErrorForCaller(JSContext* context,
+                              const std::optional<std::string>& scriptClass,
+                              const std::optional<std::string>& function,
+                              const char* format, ...) OO_PRINTF_FORMAT(4, 5);
 
-void cxx_OOJSReportWarning(JSContext* context, const char* format, ...)
+void OOJSReportWarning(JSContext* context, const char* format, ...)
     OO_PRINTF_FORMAT(2, 3);
-void cxx_OOJSReportWarningWithArguments(JSContext* context, const char* format,
-                                        va_list args) OO_PRINTF_FORMAT(2, 0);
-void cxx_OOJSReportWarningForCaller(
-    JSContext* context, const std::optional<std::string>& scriptClass,
-    const std::optional<std::string>& function, const char* format, ...)
-    OO_PRINTF_FORMAT(4, 5);
+void OOJSReportWarningWithArguments(JSContext* context, const char* format,
+                                    va_list args) OO_PRINTF_FORMAT(2, 0);
+void OOJSReportWarningForCaller(JSContext* context,
+                                const std::optional<std::string>& scriptClass,
+                                const std::optional<std::string>& function,
+                                const char* format, ...) OO_PRINTF_FORMAT(4, 5);
 
 // Name of the property with the given magic (tinyid) in a property table, for
 // error messages.
-std::string cxx_OOStringFromJSPropertyMagic(int magic,
-                                            const JSCFunctionListEntry* list,
-                                            size_t count);
+std::string OOStringFromJSPropertyMagic(int magic,
+                                        const JSCFunctionListEntry* list,
+                                        size_t count);
 
 void OOJSReportBadPropertySelector(JSContext* context, JSValueConst thisObj,
                                    int magic, const JSCFunctionListEntry* list,
@@ -216,7 +215,7 @@ void OOJSReportBadPropertyValue(JSContext* context, JSValueConst thisObj,
                                 size_t count, JSValueConst value);
 // A nullopt message is "Invalid arguments"; a nullopt expectedArgsDescription
 // adds no " -- expected ..." suffix.
-void cxx_OOJSReportBadArguments(
+void OOJSReportBadArguments(
     JSContext* context, const std::optional<std::string>& scriptClass,
     const std::optional<std::string>& function, int argc, JSValueConst* argv,
     const std::optional<std::string>& message,
@@ -231,7 +230,7 @@ void cxx_OOJSReportBadArguments(
                 return OOJSNativeFailure(context);
         which returns the pending exception if there is one, and otherwise
         throws an uncatchable error that is not logged, stopping the script as
-        before. (Directly after cxx_OOJSReportError(), return JS_EXCEPTION is
+        before. (Directly after OOJSReportError(), return JS_EXCEPTION is
    fine.)
 */
 JSValue OOJSNativeFailure(JSContext* context);
@@ -246,10 +245,11 @@ void OOJSSetWarningOrErrorStackSkip(unsigned skip);
 /*	Get a number from an argument list. NaN is treated as failure, as
    before. The NoError variant leaves no pending exception.
 */
-bool cxx_OOJSArgumentListGetNumber(
-    JSContext* context, const std::optional<std::string>& scriptClass,
-    const std::optional<std::string>& function, int argc, JSValueConst* argv,
-    double* outNumber, int* outConsumed);
+bool OOJSArgumentListGetNumber(JSContext* context,
+                               const std::optional<std::string>& scriptClass,
+                               const std::optional<std::string>& function,
+                               int argc, JSValueConst* argv, double* outNumber,
+                               int* outConsumed);
 bool OOJSArgumentListGetNumberNoError(JSContext* context, int argc,
                                       JSValueConst* argv, double* outNumber,
                                       int* outConsumed);
@@ -282,14 +282,14 @@ JSValue OOJSValueFromPList(JSContext* context, const oo::PList& plist);
         Foundation form it replaces returned nil.
 
         Convert an arbitrary JS value to a UTF-8 string, calling its toString
-   method if needed. cxx_OOStringFromJSValue() returns nullopt if value is null
-   or undefined, cxx_OOStringFromJSValueEvenIfNull() returns "null" or
+   method if needed. OOStringFromJSValue() returns nullopt if value is null
+   or undefined, OOStringFromJSValueEvenIfNull() returns "null" or
    "undefined".
 */
-std::optional<std::string> cxx_OOStringFromJSValue(JSContext* context,
-                                                   JSValueConst value);
-std::optional<std::string> cxx_OOStringFromJSValueEvenIfNull(
-    JSContext* context, JSValueConst value);
+std::optional<std::string> OOStringFromJSValue(JSContext* context,
+                                               JSValueConst value);
+std::optional<std::string> OOStringFromJSValueEvenIfNull(JSContext* context,
+                                                         JSValueConst value);
 
 /*	Describe a value for debugging or error reporting. Strings are quoted,
         escaped and limited in length. Functions are described as "function foo"
@@ -299,18 +299,18 @@ std::optional<std::string> cxx_OOStringFromJSValueEvenIfNull(
         "{...}", which may or may not be clearer depending on context. Never
    empty of meaning: the last fallback is "?".
 */
-std::string cxx_OOJSDescribeValue(JSContext* context, JSValueConst value,
-                                  bool abbreviateObjects);
+std::string OOJSDescribeValue(JSContext* context, JSValueConst value,
+                              bool abbreviateObjects);
 
 // Name of the value's JS class, e.g. "Vector3D", for error messages.
 std::string OOJSClassNameOfValue(JSContext* context, JSValueConst value);
 
 // Convert a property ID to a UTF-8 string (nullopt if it has no string value).
-std::optional<std::string> cxx_OOStringFromJSID(JSAtom propID);
+std::optional<std::string> OOStringFromJSID(JSAtom propID);
 
 // Convert a UTF-8 string to a property ID (interned for the life of the
 // process).
-JSAtom cxx_OOJSIDFromString(const std::string& string);
+JSAtom OOJSIDFromString(const std::string& string);
 
 /*	The string helpers of the retired string category
    (OOJavaScriptExtensions). Each std::optional result is
@@ -319,38 +319,38 @@ JSAtom cxx_OOJSIDFromString(const std::string& string);
 
 // For diagnostic messages; produces things like "(42, true, "a string", an
 // object description)". nullopt if params is NULL and count is not zero.
-std::optional<std::string> cxx_OOJSStringWithJavaScriptParameters(
+std::optional<std::string> OOJSStringWithJavaScriptParameters(
     JSValueConst* params, int count, JSContext* context);
 
 // Concatenate sequence of arbitrary JS objects into string (nullopt if count <
 // 1 or values is NULL).
-std::optional<std::string> cxx_OOJSConcatenationOfStringsFromJavaScriptValues(
+std::optional<std::string> OOJSConcatenationOfStringsFromJavaScriptValues(
     JSValueConst* values, size_t count, const std::string& separator,
     JSContext* context);
 
 // Add escape codes for string so that it's a valid JavaScript literal (if you
 // put "" or '' around it).
-std::string cxx_OOJSEscapedForJavaScriptLiteral(std::string_view string);
+std::string OOJSEscapedForJavaScriptLiteral(std::string_view string);
 
 // Class IDs of the standard classes, looked up when the engine starts.
 extern JSClassID gOOJSObjectClassID, gOOJSStringClassID, gOOJSArrayClassID,
     gOOJSNumberClassID, gOOJSBooleanClassID;
 
-/*	cxx_OOJSPListFromJSValue(context, value) /
-   cxx_OOJSPListFromJSObject(context, object) The oo::PList form of the
+/*	OOJSPListFromJSValue(context, value) /
+   OOJSPListFromJSObject(context, object) The oo::PList form of the
    native-object family: exactly what oo::PListFrom() made of
    OOJSNativeObjectFromJSValue()'s result: null for null,
    undefined or an unconvertible value; int32 -> signed integer, double
         -> real, boolean -> bool, string -> string; a JS Array -> array (a null
    or undefined element -> a PList::Object holding [OONull null]); a plain
    Object
-        -> dictionary (see cxx_OOJSDictionaryFromJSObject()); an object of a
+        -> dictionary (see OOJSDictionaryFromJSObject()); an object of a
    class with a registered converter -> oo::PListFrom() of what the converter
         returns (a private object -> a PList::Object node holding it). No slot
         holds an Objective-C object.
 */
-oo::PList cxx_OOJSPListFromJSValue(JSContext* context, JSValueConst value);
-oo::PList cxx_OOJSPListFromJSObject(JSContext* context, JSValueConst object);
+oo::PList OOJSPListFromJSValue(JSContext* context, JSValueConst value);
+oo::PList OOJSPListFromJSObject(JSContext* context, JSValueConst object);
 
 OOINLINE bool OOJSValueIsFunction(JSContext* context, JSValueConst value) {
   return JS_IsFunction(context, value);
@@ -361,10 +361,10 @@ OOINLINE bool OOJSValueIsArray(JSContext* context, JSValueConst value) {
 }
 
 /*	OOJSDictionaryFromJSValue(context, value)
-        cxx_OOJSDictionaryFromJSObject(context, object)
+        OOJSDictionaryFromJSObject(context, object)
 
         Converts a JavaScript value to a dictionary by calling
-        cxx_OOJSPListFromJSValue() on each of its values (a live object such as
+        OOJSPListFromJSValue() on each of its values (a live object such as
         an entity or OONull stays a PList::Object node); a value that converts
    to null is left out.
 
@@ -375,8 +375,7 @@ OOINLINE bool OOJSValueIsArray(JSContext* context, JSValueConst value) {
         plain JS Object.
 */
 oo::PList OOJSDictionaryFromJSValue(JSContext* context, JSValueConst value);
-oo::PList cxx_OOJSDictionaryFromJSObject(JSContext* context,
-                                         JSValueConst object);
+oo::PList OOJSDictionaryFromJSObject(JSContext* context, JSValueConst object);
 
 /*	OOJSDictionaryFromStringTable(context, value)
 

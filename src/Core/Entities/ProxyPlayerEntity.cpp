@@ -34,8 +34,8 @@ std::shared_ptr<::ShipEntity> ProxyPlayerEntity::newProxyObject(
   return ship;
 }
 
-/*	-cxx_initWithKey:definition:'s body after [super
-   cxx_initWithKey:definition:], which newProxyObject() runs (the ship set-up
+/*	-initWithKey:definition:'s body after [super
+   initWithKey:definition:], which newProxyObject() runs (the ship set-up
    may release the object and answer nil).
 */
 void ProxyPlayerEntity::initProxyDefaults() {

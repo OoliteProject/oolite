@@ -229,7 +229,7 @@ void OOParticleSystem::drawImmediate(bool /*immediate*/, bool translucent) {
   OOGL(glPopAttrib());
 
   OOVerifyOpenGLState();
-  cxx_OOCheckOpenGLErrors([&]() -> std::string {
+  OOCheckOpenGLErrors([&]() -> std::string {
     return "OOParticleSystem after drawing " + oo::EntityDescription(this);
   });
 }

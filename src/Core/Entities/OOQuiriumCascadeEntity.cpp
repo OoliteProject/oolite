@@ -143,7 +143,7 @@ void OOQuiriumCascadeEntity::drawImmediate(bool /*immediate*/,
   OOGL(glPopAttrib());
 
   OOVerifyOpenGLState();
-  cxx_OOCheckOpenGLErrors([&]() -> std::string {
+  OOCheckOpenGLErrors([&]() -> std::string {
     return "OOQuiriumCascadeEntity after drawing " +
            oo::EntityDescription(this);
   });

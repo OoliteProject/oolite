@@ -40,7 +40,7 @@ void OOVerifyOpenGLState_(const char*, unsigned) { std::abort(); }
 void OOGLPushModelView(void) { std::abort(); }
 OOMatrix OOGLPopModelView(void) { std::abort(); }
 void OOGLTranslateModelView(Vector) { std::abort(); }
-bool cxx_OOCheckOpenGLErrors(const char*, ...) { std::abort(); }
+bool OOCheckOpenGLErrors(const char*, ...) { std::abort(); }
 #if OO_CHECK_GL_HEAVY && OO_GL_STATE_VERIFICATION
 void OOGLNoteCurrentFunction(const char*, unsigned) {
   std::abort();

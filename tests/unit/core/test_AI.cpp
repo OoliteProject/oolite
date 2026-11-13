@@ -57,7 +57,7 @@ std::optional<std::string> ResourceManager::pathForFileNamed(
 
 oo::PList ResourceManager::whitelistDictionary() { return gWhitelist; }
 
-oo::PList cxx_OOPropertyListFromFile(const std::string& path) {
+oo::PList OOPropertyListFromFile(const std::string& path) {
   const std::string name = path.substr(path.find('/') + 1);
   const auto found = gAIFiles.find(name);
   return found != gAIFiles.end() ? found->second : oo::PList();
@@ -114,7 +114,7 @@ void GenerateGraphVizForAIStateMachine(const oo::PList&, const std::string&) {
   std::abort();
 }
 
-const char* const cxx_kOOLogException = "exception";
+const char* const kOOLogException = "exception";
 void OOLogPushIndent(void) { oo::log::pushIndent(); }
 void OOLogPopIndent(void) { oo::log::popIndent(); }
 void OOLogIndent(void) { oo::log::indent(); }
@@ -193,7 +193,7 @@ class TestShip final : public TestEntityObject {
   AI* _ai = nullptr;                // not retained
   std::vector<std::string> _calls;  // "selector argument", in order
   std::vector<std::string>
-      _runningAIs;  // +cxx_currentlyRunningAIDescription during each action
+      _runningAIs;  // +currentlyRunningAIDescription during each action
   std::optional<std::string> _script;
 };
 

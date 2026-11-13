@@ -8,5 +8,5 @@ typedef struct JSContext JSContext;
 JSContext* OOJSAcquireContext(void);
 void OOJSRelinquishContext(JSContext* context);
 // The C++ form the expander calls (printf format).
-void cxx_OOJSReportWarningWithArguments(JSContext* context, const char* format,
+void OOJSReportWarningWithArguments(JSContext* context, const char* format,
                                         va_list args);

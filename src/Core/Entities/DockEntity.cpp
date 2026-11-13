@@ -77,9 +77,9 @@ oo::PList DockingInstructions(StationEntity* station, HPVector coords,
                               float speed, float range,
                               std::string_view ai_message, bool match_rotation,
                               int docking_stage) {
-  return cxx_OOMakeDockingInstructions(station, coords, speed, range,
-                                       std::string(ai_message), std::nullopt,
-                                       match_rotation, docking_stage);
+  return OOMakeDockingInstructions(station, coords, speed, range,
+                                   std::string(ai_message), std::nullopt,
+                                   match_rotation, docking_stage);
 }
 
 // -oo_stringForKey:'s value: a string, a number's -stringValue, anything else
@@ -99,7 +99,7 @@ std::shared_ptr<::ShipEntity> DockEntity::newDockObject(const std::string& key,
                                                         const oo::PList& dict) {
   std::shared_ptr<::ShipEntity> object =
       (oo::NewShipObject(oo::makeShared<DockEntity>(), key,
-                         dict));  // [super cxx_initWithKey:key definition:dict]
+                         dict));  // [super initWithKey:key definition:dict]
   if (object != nullptr)
     static_cast<DockEntity*>(object.get())->initDockDefaults();
   return object;
@@ -389,7 +389,7 @@ void DockEntity::abortAllDockings() {
       playerExtraTime = 10;  // when very close to the port, give the player a
                              // few seconds to react on the abort message.
       int seconds = round(playerExtraTime);
-      const std::optional<std::string> message = cxx_OOExpandKey(
+      const std::optional<std::string> message = OOExpandKey(
           "station-docking-clearance-abort-cancelled-in-time", seconds);
       if (message.has_value()) {
         if (station != nullptr) station->sendExpandedMessage(*message, player);
@@ -876,7 +876,7 @@ void DockEntity::abortDockingForShip(::ShipEntity* ship) {
       } else {
         int seconds = 10;  // when very close to the port, give the player a few
                            // seconds to react on the abort message.
-        const std::optional<std::string> message = cxx_OOExpandKey(
+        const std::optional<std::string> message = OOExpandKey(
             "station-docking-clearance-abort-cancelled-in-time", seconds);
         if (message.has_value()) {
           if (oo::ToShip(parentEntity()) != nullptr)

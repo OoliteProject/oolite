@@ -258,34 +258,34 @@ inline OOTexture* OOTextureInObjectNode(
    default name), or null. A dictionary without a string "name" gets
    defaultName, if given.
 */
-oo::PList cxx_OOTextureSpecFromObject(
+oo::PList OOTextureSpecFromObject(
     const oo::PList& object, const std::optional<std::string>& defaultName);
 
 uint8_t OOTextureComponentsForFormat(OOTextureDataFormat format);
 
 bool OOCubeMapsAvailable(void);
 
-/*	cxx_OOInterpretTextureSpecifier()
+/*	OOInterpretTextureSpecifier()
 
         Interpret a texture specifier (string or dictionary). All out parameters
         may be NULL.
 */
-bool cxx_OOInterpretTextureSpecifier(const oo::PList& specifier,
-                                     std::string* outName,
-                                     OOTextureFlags* outOptions,
-                                     float* outAnisotropy, float* outLODBias,
-                                     bool ignoreExtract);
+bool OOInterpretTextureSpecifier(const oo::PList& specifier,
+                                 std::string* outName,
+                                 OOTextureFlags* outOptions,
+                                 float* outAnisotropy, float* outLODBias,
+                                 bool ignoreExtract);
 
-/*	cxx_OOMakeTextureSpecifier()
+/*	OOMakeTextureSpecifier()
 
         Create a texture specifier (a dictionary).
 
         If internal is used, an optimized form unsuitable for serialization may
    be used.
 */
-oo::PList cxx_OOMakeTextureSpecifier(const std::string& name,
-                                     OOTextureFlags options, float anisotropy,
-                                     float lodBias, bool internal);
+oo::PList OOMakeTextureSpecifier(const std::string& name,
+                                 OOTextureFlags options, float anisotropy,
+                                 float lodBias, bool internal);
 
 /*	OOApplyTextureOptionDefaults()
 
@@ -294,28 +294,23 @@ oo::PList cxx_OOMakeTextureSpecifier(const std::string& name,
 OOTextureFlags OOApplyTextureOptionDefaults(OOTextureFlags options);
 
 // Texture specifier keys.
-inline constexpr const char* cxx_kOOTextureSpecifierNameKey = "name";
-inline constexpr const char* cxx_kOOTextureSpecifierSwizzleKey =
-    "extract_channel";
-inline constexpr const char* cxx_kOOTextureSpecifierMinFilterKey = "min_filter";
-inline constexpr const char* cxx_kOOTextureSpecifierMagFilterKey = "mag_filter";
-inline constexpr const char* cxx_kOOTextureSpecifierNoShrinkKey = "no_shrink";
-inline constexpr const char* cxx_kOOTextureSpecifierExtraShrinkKey =
-    "extra_shrink";
-inline constexpr const char* cxx_kOOTextureSpecifierRepeatSKey = "repeat_s";
-inline constexpr const char* cxx_kOOTextureSpecifierRepeatTKey = "repeat_t";
-inline constexpr const char* cxx_kOOTextureSpecifierCubeMapKey = "cube_map";
-inline constexpr const char* cxx_kOOTextureSpecifierAnisotropyKey =
-    "anisotropy";
-inline constexpr const char* cxx_kOOTextureSpecifierLODBiasKey =
-    "texture_LOD_bias";
+inline constexpr const char* kOOTextureSpecifierNameKey = "name";
+inline constexpr const char* kOOTextureSpecifierSwizzleKey = "extract_channel";
+inline constexpr const char* kOOTextureSpecifierMinFilterKey = "min_filter";
+inline constexpr const char* kOOTextureSpecifierMagFilterKey = "mag_filter";
+inline constexpr const char* kOOTextureSpecifierNoShrinkKey = "no_shrink";
+inline constexpr const char* kOOTextureSpecifierExtraShrinkKey = "extra_shrink";
+inline constexpr const char* kOOTextureSpecifierRepeatSKey = "repeat_s";
+inline constexpr const char* kOOTextureSpecifierRepeatTKey = "repeat_t";
+inline constexpr const char* kOOTextureSpecifierCubeMapKey = "cube_map";
+inline constexpr const char* kOOTextureSpecifierAnisotropyKey = "anisotropy";
+inline constexpr const char* kOOTextureSpecifierLODBiasKey = "texture_LOD_bias";
 
 // Keys not used in texture setup, but put in specific texture specifiers to
 // simplify plists.
-inline constexpr const char* cxx_kOOTextureSpecifierModulateColorKey = "color";
-inline constexpr const char* cxx_kOOTextureSpecifierIlluminationModeKey =
+inline constexpr const char* kOOTextureSpecifierModulateColorKey = "color";
+inline constexpr const char* kOOTextureSpecifierIlluminationModeKey =
     "illumination_mode";
-inline constexpr const char* cxx_kOOTextureSpecifierSelfColorKey = "self_color";
-inline constexpr const char* cxx_kOOTextureSpecifierScaleFactorKey =
-    "scale_factor";
-inline constexpr const char* cxx_kOOTextureSpecifierBindingKey = "binding";
+inline constexpr const char* kOOTextureSpecifierSelfColorKey = "self_color";
+inline constexpr const char* kOOTextureSpecifierScaleFactorKey = "scale_factor";
+inline constexpr const char* kOOTextureSpecifierBindingKey = "binding";

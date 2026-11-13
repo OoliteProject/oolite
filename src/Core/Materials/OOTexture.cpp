@@ -62,7 +62,7 @@
 
 namespace {
 
-// Used only by "internal" specifiers from cxx_OOMakeTextureSpecifier.
+// Used only by "internal" specifiers from OOMakeTextureSpecifier.
 constexpr std::string_view kOOTextureSpecifierFlagValueInternalKey =
     "_oo_internal_flags";
 
@@ -165,8 +165,8 @@ std::shared_ptr<OOTexture> OOTexture::loadTextureWithName(
     path = ResourceManager::pathForFileNamed(*name, directory);
     if (!path.has_value()) {
       if (!noFNF)
-        OO_LOG_WARN(cxx_kOOLogFileNotFound,
-                    "Could not find texture file \"{}\".", *name);
+        OO_LOG_WARN(kOOLogFileNotFound, "Could not find texture file \"{}\".",
+                    *name);
       return nullptr;
     }
 
@@ -203,8 +203,8 @@ std::shared_ptr<OOTexture> OOTexture::textureWithConfiguration(
   GLfloat anisotropy = 0.0f;
   GLfloat lodBias = 0.0f;
 
-  if (!cxx_OOInterpretTextureSpecifier(configuration, &name, &options,
-                                       &anisotropy, &lodBias, false))
+  if (!OOInterpretTextureSpecifier(configuration, &name, &options, &anisotropy,
+                                   &lodBias, false))
     return nullptr;
 
   return loadTextureWithName(name, "Textures", options | extraOptions,
@@ -562,7 +562,7 @@ void OOTexture::checkExtensions() {
 #endif
 }
 
-oo::PList cxx_OOTextureSpecFromObject(
+oo::PList OOTextureSpecFromObject(
     const oo::PList& object, const std::optional<std::string>& defaultName) {
   oo::PList value = object;
   if (value.isNull()) {
@@ -609,11 +609,11 @@ uint8_t OOTextureComponentsForFormat(OOTextureDataFormat format) {
 
 bool OOCubeMapsAvailable() { return gOOTextureInfo.cubeMapAvailable; }
 
-bool cxx_OOInterpretTextureSpecifier(const oo::PList& specifier,
-                                     std::string* outName,
-                                     OOTextureFlags* outOptions,
-                                     float* outAnisotropy, float* outLODBias,
-                                     bool ignoreExtract) {
+bool OOInterpretTextureSpecifier(const oo::PList& specifier,
+                                 std::string* outName,
+                                 OOTextureFlags* outOptions,
+                                 float* outAnisotropy, float* outLODBias,
+                                 bool ignoreExtract) {
   std::string name;
   OOTextureFlags options = OOTextureFlags::kDefaultOptions;
   float anisotropy = kOOTextureDefaultAnisotropy;
@@ -624,7 +624,7 @@ bool cxx_OOInterpretTextureSpecifier(const oo::PList& specifier,
   } else if (specifier.isDict()) {
     // The old string extractor gave nil unless the value was a string or a
     // number.
-    const oo::PList* nameValue = specifier.find(cxx_kOOTextureSpecifierNameKey);
+    const oo::PList* nameValue = specifier.find(kOOTextureSpecifierNameKey);
     if (nameValue == nullptr ||
         !(nameValue->isString() || nameValue->isNumber())) {
       OO_LOG(
@@ -633,7 +633,7 @@ bool cxx_OOInterpretTextureSpecifier(const oo::PList& specifier,
           oo::DescriptionOf(specifier));
       return false;
     }
-    name = specifier.get<std::string>(cxx_kOOTextureSpecifierNameKey);
+    name = specifier.get<std::string>(kOOTextureSpecifierNameKey);
 
     int quickFlags =
         specifier.get<int>(kOOTextureSpecifierFlagValueInternalKey, -1);
@@ -641,7 +641,7 @@ bool cxx_OOInterpretTextureSpecifier(const oo::PList& specifier,
       options = static_cast<OOTextureFlags>(quickFlags);
     } else {
       std::string filterString = specifier.get<std::string>(
-          cxx_kOOTextureSpecifierMinFilterKey, "default");
+          kOOTextureSpecifierMinFilterKey, "default");
       if (filterString == "nearest")
         options |= OOTextureFlags::kMinFilterNearest;
       else if (filterString == "linear")
@@ -651,23 +651,23 @@ bool cxx_OOInterpretTextureSpecifier(const oo::PList& specifier,
       else
         options |= OOTextureFlags::kMinFilterDefault;  // Covers "default"
 
-      filterString = specifier.get<std::string>(
-          cxx_kOOTextureSpecifierMagFilterKey, "default");
+      filterString = specifier.get<std::string>(kOOTextureSpecifierMagFilterKey,
+                                                "default");
       if (filterString == "nearest")
         options |= OOTextureFlags::kMagFilterNearest;
       else
         options |=
             OOTextureFlags::kMagFilterLinear;  // Covers "default" and "linear"
 
-      if (specifier.get<bool>(cxx_kOOTextureSpecifierNoShrinkKey, false))
+      if (specifier.get<bool>(kOOTextureSpecifierNoShrinkKey, false))
         options |= OOTextureFlags::kNoShrink;
-      if (specifier.get<bool>(cxx_kOOTextureSpecifierExtraShrinkKey, false))
+      if (specifier.get<bool>(kOOTextureSpecifierExtraShrinkKey, false))
         options |= OOTextureFlags::kExtraShrink;
-      if (specifier.get<bool>(cxx_kOOTextureSpecifierRepeatSKey, false))
+      if (specifier.get<bool>(kOOTextureSpecifierRepeatSKey, false))
         options |= OOTextureFlags::kRepeatS;
-      if (specifier.get<bool>(cxx_kOOTextureSpecifierRepeatTKey, false))
+      if (specifier.get<bool>(kOOTextureSpecifierRepeatTKey, false))
         options |= OOTextureFlags::kRepeatT;
-      if (specifier.get<bool>(cxx_kOOTextureSpecifierCubeMapKey, false))
+      if (specifier.get<bool>(kOOTextureSpecifierCubeMapKey, false))
         options |= OOTextureFlags::kAllowCubeMap;
 
       if (!ignoreExtract) {
@@ -702,8 +702,8 @@ bool cxx_OOInterpretTextureSpecifier(const oo::PList& specifier,
     // "got" names an object's class, or the property-list type; an Object node
     // is "(null)".
     if (!specifier.isNull())
-      OO_LOG(cxx_kOOLogParameterError,
-             "{}: expected string or dictionary, got {}.", __PRETTY_FUNCTION__,
+      OO_LOG(kOOLogParameterError, "{}: expected string or dictionary, got {}.",
+             __PRETTY_FUNCTION__,
              (specifier.type() == oo::PList::Type::kObject)
                  ? std::string("(null)")
                  : std::string(oo::typeName(specifier.type())));
@@ -720,20 +720,20 @@ bool cxx_OOInterpretTextureSpecifier(const oo::PList& specifier,
   return true;
 }
 
-oo::PList cxx_OOMakeTextureSpecifier(const std::string& name,
-                                     OOTextureFlags options, float anisotropy,
-                                     float lodBias, bool internal) {
+oo::PList OOMakeTextureSpecifier(const std::string& name,
+                                 OOTextureFlags options, float anisotropy,
+                                 float lodBias, bool internal) {
   oo::PList::Dict result;
 
-  result[cxx_kOOTextureSpecifierNameKey] = oo::PList(name);
+  result[kOOTextureSpecifierNameKey] = oo::PList(name);
 
   // -oo_setFloat:forKey: stored +numberWithFloat:, -oo_setUnsignedInteger:
   // +numberWithUnsignedInteger:.
   if (anisotropy != kOOTextureDefaultAnisotropy)
-    result[cxx_kOOTextureSpecifierAnisotropyKey] =
+    result[kOOTextureSpecifierAnisotropyKey] =
         oo::PList::singleReal(anisotropy);
   if (lodBias != kOOTextureDefaultLODBias)
-    result[cxx_kOOTextureSpecifierLODBiasKey] = oo::PList::singleReal(lodBias);
+    result[kOOTextureSpecifierLODBiasKey] = oo::PList::singleReal(lodBias);
 
   if (internal) {
     result[std::string(kOOTextureSpecifierFlagValueInternalKey)] =
@@ -760,7 +760,7 @@ oo::PList cxx_OOMakeTextureSpecifier(const std::string& name,
         break;
     }
     if (value.has_value())
-      result[cxx_kOOTextureSpecifierNoShrinkKey] = oo::PList(*value);
+      result[kOOTextureSpecifierNoShrinkKey] = oo::PList(*value);
 
     value.reset();
     switch (options & OOTextureFlags::kMagFilterMask) {
@@ -775,7 +775,7 @@ oo::PList cxx_OOMakeTextureSpecifier(const std::string& name,
         break;
     }
     if (value.has_value())
-      result[cxx_kOOTextureSpecifierMagFilterKey] = oo::PList(*value);
+      result[kOOTextureSpecifierMagFilterKey] = oo::PList(*value);
 
     value.reset();
     switch (options & OOTextureFlags::kExtractChannelMask) {
@@ -802,16 +802,16 @@ oo::PList cxx_OOMakeTextureSpecifier(const std::string& name,
         break;
     }
     if (value.has_value())
-      result[cxx_kOOTextureSpecifierSwizzleKey] = oo::PList(*value);
+      result[kOOTextureSpecifierSwizzleKey] = oo::PList(*value);
 
     if (oo::Any(options & OOTextureFlags::kNoShrink))
-      result[cxx_kOOTextureSpecifierNoShrinkKey] = oo::PList(true);
+      result[kOOTextureSpecifierNoShrinkKey] = oo::PList(true);
     if (oo::Any(options & OOTextureFlags::kRepeatS))
-      result[cxx_kOOTextureSpecifierRepeatSKey] = oo::PList(true);
+      result[kOOTextureSpecifierRepeatSKey] = oo::PList(true);
     if (oo::Any(options & OOTextureFlags::kRepeatT))
-      result[cxx_kOOTextureSpecifierRepeatTKey] = oo::PList(true);
+      result[kOOTextureSpecifierRepeatTKey] = oo::PList(true);
     if (oo::Any(options & OOTextureFlags::kAllowCubeMap))
-      result[cxx_kOOTextureSpecifierCubeMapKey] = oo::PList(true);
+      result[kOOTextureSpecifierCubeMapKey] = oo::PList(true);
   }
 
   return oo::PList(std::move(result));
@@ -888,7 +888,7 @@ std::string OOGenerateTextureCacheKey(
                      oo::ToUnderlying(options), anisotropy, lodBias);
 }
 
-std::string cxx_OOTextureCacheKeyForSpecifier(const oo::PList& specifier) {
+std::string OOTextureCacheKeyForSpecifier(const oo::PList& specifier) {
   // Left as initialised when the specifier is not understood (they were
   // uninitialised).
   std::string name;
@@ -896,8 +896,8 @@ std::string cxx_OOTextureCacheKeyForSpecifier(const oo::PList& specifier) {
   float anisotropy = 0.0f;
   float lodBias = 0.0f;
 
-  cxx_OOInterpretTextureSpecifier(specifier, &name, &options, &anisotropy,
-                                  &lodBias, false);
+  OOInterpretTextureSpecifier(specifier, &name, &options, &anisotropy, &lodBias,
+                              false);
   return OOGenerateTextureCacheKey("Textures", name, options, anisotropy,
                                    lodBias);
 }

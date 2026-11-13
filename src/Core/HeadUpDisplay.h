@@ -274,7 +274,7 @@ class HeadUpDisplay : public oo::Object {
   HeadUpDisplay();
   ~HeadUpDisplay() override;
 
-  // -cxx_initWithDictionary:inFile: (callers make the HUD, then run this).
+  // -initWithDictionary:inFile: (callers make the HUD, then run this).
   void initWithDictionary(const oo::PList& hudinfo,
                           const std::optional<std::string>& hudFileName);
 
@@ -504,43 +504,43 @@ class OOHUDBeaconCodeIcon : public OOHUDBeaconIcon {
 void OOPolygonSpriteDrawHUDBeaconIcon(OOPolygonSprite* sprite, NSPoint where,
                                       NSSize size, GLfloat alpha, GLfloat z);
 
-void cxx_OODrawString(const std::string& text, GLfloat x, GLfloat y, GLfloat z,
-                      NSSize siz);
-void cxx_OODrawStringAligned(const std::string& text, GLfloat x, GLfloat y,
-                             GLfloat z, NSSize siz, bool rightAlign);
+void OODrawString(const std::string& text, GLfloat x, GLfloat y, GLfloat z,
+                  NSSize siz);
+void OODrawStringAligned(const std::string& text, GLfloat x, GLfloat y,
+                         GLfloat z, NSSize siz, bool rightAlign);
 
-/* cxx_OODrawString(Aligned) handles all the string drawing, but because
+/* OODrawString(Aligned) handles all the string drawing, but because
  * it does texture application and GL_QUADS beginning once per string
  * it's quite slow.
  *
  * Where efficiency is needed, call OOStartDrawingStrings(), then
- * cxx_OODrawStringQuadsAligned for each bit of text, then
+ * OODrawStringQuadsAligned for each bit of text, then
  * OOStopDrawingStrings().
  *
  * Trying to draw anything else between OOStartDrawingStrings() and
  * OOStopDrawingStrings() will have messy results. You can safely call
  * Stop, draw the other thing you want, then call Start again - it's
  * just a little inefficient. Similarly calling
- * cxx_OODrawStringQuadsAligned() without calling OOStartDrawingStrings()
+ * OODrawStringQuadsAligned() without calling OOStartDrawingStrings()
  * won't work very well.
  *
  * - CIM
  */
 void OOStartDrawingStrings(void);
-void cxx_OODrawStringQuadsAligned(const std::string& text, GLfloat x, GLfloat y,
-                                  GLfloat z, NSSize siz, bool rightAlign);
+void OODrawStringQuadsAligned(const std::string& text, GLfloat x, GLfloat y,
+                              GLfloat z, NSSize siz, bool rightAlign);
 void OOStopDrawingStrings(void);
 
-void cxx_OODrawHilightedString(const std::string& text, GLfloat x, GLfloat y,
-                               GLfloat z, NSSize siz);
+void OODrawHilightedString(const std::string& text, GLfloat x, GLfloat y,
+                           GLfloat z, NSSize siz);
 void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y,
                       GLfloat z, NSSize siz);
 void OODrawHilightedPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y,
                                GLfloat z, NSSize siz);
-NSRect cxx_OORectFromString(const std::string& text, GLfloat x, GLfloat y,
-                            NSSize siz);
+NSRect OORectFromString(const std::string& text, GLfloat x, GLfloat y,
+                        NSSize siz);
 
-#include "OOStringWidth.h"  // cxx_OOStringWidthInEm()
+#include "OOStringWidth.h"  // OOStringWidthInEm()
 
 void OOHUDResetTextEngine(void);
 

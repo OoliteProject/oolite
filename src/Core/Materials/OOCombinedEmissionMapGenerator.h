@@ -62,9 +62,9 @@ class OOCombinedEmissionMapGenerator : public OOTextureGenerator {
   ~OOCombinedEmissionMapGenerator() override;  // was -dealloc
 
   /*	Were
-     -cxx_initWithEmissionMapSpec:emissionColor:diffuseMap:diffuseColor:illuminationMapSpec:
+     -initWithEmissionMapSpec:emissionColor:diffuseMap:diffuseColor:illuminationMapSpec:
           illuminationColor:optionsSpecifier: and
-     -cxx_initWithEmissionAndIlluminationMapSpec:
+     -initWithEmissionAndIlluminationMapSpec:
           diffuseMap:diffuseColor:emissionColor:illuminationColor:optionsSpecifier:;
      null where they answered nil.
   */

@@ -49,32 +49,32 @@ OOConstToString.cpp are declared in the header with the appropriate type
 declaration, each with its C++ (cxx_) form beside it, in particular:
 
         Entity.h:
-        cxx_OOStringFromEntityStatus()
-        cxx_OOEntityStatusFromString()
-        cxx_OOStringFromScanClass()
-        cxx_OOScanClassFromString()
+        OOStringFromEntityStatus()
+        OOEntityStatusFromString()
+        OOStringFromScanClass()
+        OOScanClassFromString()
 
         ShipEntity.h:
-        cxx_OOStringFromBehaviour()
-        cxx_OOEquipmentIdentifierFromWeaponType()
-        cxx_OOWeaponTypeFromEquipmentIdentifierSloppy()
-        cxx_OOWeaponTypeFromEquipmentIdentifierStrict()
-        cxx_OOStringFromWeaponType()
-        cxx_OOWeaponTypeFromString()
-        cxx_OODisplayStringFromAlertCondition()
+        OOStringFromBehaviour()
+        OOEquipmentIdentifierFromWeaponType()
+        OOWeaponTypeFromEquipmentIdentifierSloppy()
+        OOWeaponTypeFromEquipmentIdentifierStrict()
+        OOStringFromWeaponType()
+        OOWeaponTypeFromString()
+        OODisplayStringFromAlertCondition()
 
         PlayerEntity.h:
-        cxx_OODisplayRatingStringFromKillCount()
-        cxx_KillCountToRatingAndKillString()
-        cxx_OODisplayStringFromLegalStatus()
-        cxx_OOStringFromGUIScreenID()
-        cxx_OOGUIScreenIDFromString()
-        cxx_OOGalacticHyperspaceBehaviourFromString()
-        cxx_OOStringFromGalacticHyperspaceBehaviour()
+        OODisplayRatingStringFromKillCount()
+        KillCountToRatingAndKillString()
+        OODisplayStringFromLegalStatus()
+        OOStringFromGUIScreenID()
+        OOGUIScreenIDFromString()
+        OOGalacticHyperspaceBehaviourFromString()
+        OOStringFromGalacticHyperspaceBehaviour()
 
         Universe.h:
-        cxx_OODisplayStringFromGovernmentID()
-        cxx_OODisplayStringFromEconomyID()
+        OODisplayStringFromGovernmentID()
+        OODisplayStringFromEconomyID()
 
 */
 
@@ -101,46 +101,45 @@ declaration, each with its C++ (cxx_) form beside it, in particular:
 // C++ forms: std::string results (never nil)
 // and const std::string & parameters (the old nil arrived as "" and matched
 // nothing: the same defaults).
-std::string cxx_CargoTypeToString(OOCargoType cargo);
-OOCargoType cxx_StringToCargoType(const std::string& string);
-std::string cxx_EnergyUnitTypeToString(OOEnergyUnitType unit);
-OOEnergyUnitType cxx_StringToEnergyUnitType(const std::string& string);
-std::string cxx_RouteTypeToString(OORouteType routeType);
-OORouteType cxx_StringToRouteType(const std::string& string);
-std::string cxx_DockingClearanceStatusToString(
+std::string CargoTypeToString(OOCargoType cargo);
+OOCargoType StringToCargoType(const std::string& string);
+std::string EnergyUnitTypeToString(OOEnergyUnitType unit);
+OOEnergyUnitType StringToEnergyUnitType(const std::string& string);
+std::string RouteTypeToString(OORouteType routeType);
+OORouteType StringToRouteType(const std::string& string);
+std::string DockingClearanceStatusToString(
     OODockingClearanceStatus dockingClearanceStatus);
-std::string cxx_OOStringFromGraphicsDetail(OOGraphicsDetail detail);
-OOGraphicsDetail cxx_OOGraphicsDetailFromString(const std::string& string);
-std::string cxx_OOStringFromHDRToneMapper(OOHDRToneMapper toneMapper);
-OOHDRToneMapper cxx_OOHDRToneMapperFromString(const std::string& string);
-std::string cxx_OOStringFromSDRToneMapper(OOSDRToneMapper toneMapper);
-OOSDRToneMapper cxx_OOSDRToneMapperFromString(const std::string& string);
+std::string OOStringFromGraphicsDetail(OOGraphicsDetail detail);
+OOGraphicsDetail OOGraphicsDetailFromString(const std::string& string);
+std::string OOStringFromHDRToneMapper(OOHDRToneMapper toneMapper);
+OOHDRToneMapper OOHDRToneMapperFromString(const std::string& string);
+std::string OOStringFromSDRToneMapper(OOSDRToneMapper toneMapper);
+OOSDRToneMapper OOSDRToneMapperFromString(const std::string& string);
 
 // The .tbl families whose types come from OOTypes.h; the
 // others are declared beside their enums in Entity.h, ShipEntity.h and
 // PlayerEntity.h.
-std::string cxx_OOStringFromCompassMode(OOCompassMode mode);
-OOCompassMode cxx_OOCompassModeFromString(const std::string& string);
-std::string cxx_OOStringFromLongRangeChartMode(OOLongRangeChartMode chartMode);
-OOLongRangeChartMode cxx_OOLongRangeChartModeFromString(
-    const std::string& string);
-std::string cxx_OOStringFromLegalStatusReason(OOLegalStatusReason reason);
+std::string OOStringFromCompassMode(OOCompassMode mode);
+OOCompassMode OOCompassModeFromString(const std::string& string);
+std::string OOStringFromLongRangeChartMode(OOLongRangeChartMode chartMode);
+OOLongRangeChartMode OOLongRangeChartModeFromString(const std::string& string);
+std::string OOStringFromLegalStatusReason(OOLegalStatusReason reason);
 
 // Commodity display strings. A commodity is named by its
 // identifier string.
-std::string cxx_CommodityDisplayNameForSymbolicName(
+std::string CommodityDisplayNameForSymbolicName(
     const std::string& symbolicName);
-std::string cxx_CommodityDisplayNameForCommodityArray(
+std::string CommodityDisplayNameForCommodityArray(
     const oo::PList& commodityDefinition);  // an array
-std::optional<std::string> cxx_DisplayStringForMassUnit(
+std::optional<std::string> DisplayStringForMassUnit(
     OOMassUnit unit);  // nullopt: no description (was nil)
-std::optional<std::string> cxx_DisplayStringForMassUnitForCommodity(
+std::optional<std::string> DisplayStringForMassUnitForCommodity(
     const std::string& commodity);
 
 // Shader settings (OOShaderSetting is OOOpenGL.h's).
 // Programmer-readable shader mode strings.
-OOShaderSetting cxx_OOShaderSettingFromString(const std::string& string);
-std::string cxx_OOStringFromShaderSetting(OOShaderSetting setting);
+OOShaderSetting OOShaderSettingFromString(const std::string& string);
+std::string OOStringFromShaderSetting(OOShaderSetting setting);
 // Localized shader mode strings; nullopt: no description (was nil).
-std::optional<std::string> cxx_OODisplayStringFromShaderSetting(
+std::optional<std::string> OODisplayStringFromShaderSetting(
     OOShaderSetting setting);

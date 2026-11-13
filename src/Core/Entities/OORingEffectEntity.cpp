@@ -151,7 +151,7 @@ void OORingEffectEntity::drawImmediate(bool /*immediate*/, bool translucent) {
   OOGLEND();
 
   OOVerifyOpenGLState();
-  cxx_OOCheckOpenGLErrors([&]() -> std::string {
+  OOCheckOpenGLErrors([&]() -> std::string {
     return "OOQuiriumCascadeEntity after drawing " +
            oo::EntityDescription(this);
   });

@@ -436,7 +436,7 @@ OO_TEST(manifestDownload) {
     // The cache holds the new list, the temporary file is gone, and the managed
     // list is rebuilt.
     const oo::PList cached =
-        cxx_OOPropertyListFromFile(oo::str::appendingPathComponent(
+        OOPropertyListFromFile(oo::str::appendingPathComponent(
             cacheDirectory, "Oolite-manifests.plist"));
     OO_CHECK_TEXT(Titles(cached), "Alpha 3.0, Beta 1.0");
     OO_CHECK(!stdfs::exists(stdfs::path(oo::str::appendingPathComponent(

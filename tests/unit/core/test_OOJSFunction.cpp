@@ -45,7 +45,7 @@ extern const char * const kOOJavaScriptEngineWillResetNotificationName;
 const char * const kOOJavaScriptEngineWillResetNotificationName = "org.aegidian.oolite OOJavaScriptEngine will reset";
 
 
-std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueConst value)
+std::optional<std::string> OOStringFromJSValue(JSContext *context, JSValueConst value)
 {
 	if (JS_IsNull(value) || JS_IsUndefined(value))  return std::nullopt;
 	std::size_t length = 0;
@@ -139,7 +139,7 @@ std::string String(JSValue value)
 {
 	std::string result;
 	if (JS_IsNull(value) || JS_IsUndefined(value))  result = JS_IsNull(value) ? "null" : "undefined";
-	else  result = cxx_OOStringFromJSValue(Context(), value).value_or("<none>");
+	else  result = OOStringFromJSValue(Context(), value).value_or("<none>");
 	JS_FreeValue(Context(), value);
 	return result;
 }

@@ -320,11 +320,11 @@ void MyOpenGLView::createWindowWithSize(NSSize size) {
   _hdrPaperWhiteBrightness = oo::PListGet<float>::from(
       hdrPaperWhiteBrightness.isNull() ? nullptr : &hdrPaperWhiteBrightness,
       200.0f);
-  _hdrToneMapper = cxx_OOHDRToneMapperFromString(
+  _hdrToneMapper = OOHDRToneMapperFromString(
       DefaultsString("hdr-tone-mapper", "OOHDR_TONEMAPPER_ACES_APPROX"));
 #endif
 
-  _sdrToneMapper = cxx_OOSDRToneMapperFromString(
+  _sdrToneMapper = OOSDRToneMapperFromString(
       DefaultsString("sdr-tone-mapper", "OOSDR_TONEMAPPER_ACES"));
 
 #if OOLITE_MACOS

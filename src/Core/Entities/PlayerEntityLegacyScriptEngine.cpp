@@ -349,7 +349,7 @@ void PerformActionStatment(const oo::PList& statement, Entity* target) {
         (cxxPlayer != nullptr)
             ? cxxPlayer->localVariablesForMission(sCurrentMissionKey)
             : oo::PList();
-    const std::optional<std::string> expanded = cxx_OOExpandDescriptionString(
+    const std::optional<std::string> expanded = OOExpandDescriptionString(
         OOStringExpanderDefaultRandomSeed(), *argumentString, oo::PList(),
         locals, std::nullopt, OOExpandOptions::kNone);
     if (expanded.has_value())
@@ -471,9 +471,8 @@ void PlayerEntity::checkScript() {
   } catch (...) {
     const auto exception = oo::CurrentOOException();
     if (!exception) throw;  // not an OOException: it goes on up, as before
-    OO_LOG(cxx_kOOLogException,
-           "***** Exception running world scripts: {} : {}", exception->name(),
-           exception->reason());
+    OO_LOG(kOOLogException, "***** Exception running world scripts: {} : {}",
+           exception->name(), exception->reason());
   }
 
   // Restore anti-recursion measures.
@@ -671,7 +670,7 @@ bool PlayerEntity::scriptTestCondition(const oo::PList& scriptCondition) {
                  "***** SCRIPT ERROR: in {}, operator {} is not valid for "
                  "numbers, evaluating to false.",
                  CurrentScriptDescription(),
-                 cxx_OOComparisonTypeToString(comparator));
+                 OOComparisonTypeToString(comparator));
           return false;
       }
     }
@@ -696,7 +695,7 @@ bool PlayerEntity::scriptTestCondition(const oo::PList& scriptCondition) {
                "***** SCRIPT ERROR: in {}, operator {} is not valid for "
                "booleans, evaluating to false.",
                CurrentScriptDescription(),
-               cxx_OOComparisonTypeToString(comparator));
+               OOComparisonTypeToString(comparator));
         return false;
     }
   }
@@ -907,7 +906,7 @@ std::optional<std::string> PlayerEntity::replaceVariablesInString(
       }
     } else if (oo::str::hasPrefix(valueString, "[") &&
                oo::str::hasSuffix(valueString, "]")) {
-      replace(valueString, cxx_OOExpand(valueString).value_or(std::string()));
+      replace(valueString, OOExpand(valueString).value_or(std::string()));
     }
   }
 
@@ -953,7 +952,7 @@ void PlayerEntity::setMissionInstructions(
     return;
   }
 
-  const std::string expanded = cxx_OOExpand(text).value_or(std::string());
+  const std::string expanded = OOExpand(text).value_or(std::string());
   setMissionVariable(
       oo::PList(replaceVariablesInString(expanded).value_or(std::string())),
       *key);
@@ -972,7 +971,7 @@ void PlayerEntity::setMissionInstructionsList(
   for (i = 0; i < ct; i++) {
     const std::optional<std::string> text = StringAtIndex(list, i);
     if (text.has_value()) {
-      const std::string expanded = cxx_OOExpand(*text).value_or(std::string());
+      const std::string expanded = OOExpand(*text).value_or(std::string());
       expandedList.push_back(oo::PList(
           replaceVariablesInString(expanded).value_or(std::string())));
     }
@@ -1005,12 +1004,12 @@ oo::PList PlayerEntity::mission_string() {
 
 oo::PList PlayerEntity::status_string()  // called by name
 {
-  return oo::PList(cxx_OOStringFromEntityStatus(status()));
+  return oo::PList(OOStringFromEntityStatus(status()));
 }
 
 oo::PList PlayerEntity::gui_screen_string()  // called by name
 {
-  return oo::PList(cxx_OOStringFromGUIScreenID(gui_screen));
+  return oo::PList(OOStringFromGUIScreenID(gui_screen));
 }
 
 oo::PList PlayerEntity::getGalaxy_number()  // called by name
@@ -1057,7 +1056,7 @@ void PlayerEntity::setLegalStatus(
 
 oo::PList PlayerEntity::commanderLegalStatus_string()  // called by name
 {
-  return StringOrNull(cxx_OODisplayStringFromLegalStatus(legalStatusValue));
+  return StringOrNull(OODisplayStringFromLegalStatus(legalStatusValue));
 }
 
 oo::PList PlayerEntity::d100_number()  // called by name
@@ -1195,7 +1194,7 @@ oo::PList PlayerEntity::systemGovernment_string()  // called by name
   int government = IntValueOf(
       systemGovernment_number());  // 0 .. 7 (0 anarchic .. 7 most stable)
   return oo::PList(
-      cxx_OODisplayStringFromGovernmentID(government).value_or("UNKNOWN"));
+      OODisplayStringFromGovernmentID(government).value_or("UNKNOWN"));
 }
 
 oo::PList PlayerEntity::systemGovernment_number()  // called by name
@@ -1208,8 +1207,7 @@ oo::PList PlayerEntity::systemEconomy_string()  // called by name
   int economy =
       IntValueOf(systemEconomy_number());  // 0 .. 7 (0 rich industrial .. 7
                                            // poor agricultural)
-  return oo::PList(
-      cxx_OODisplayStringFromEconomyID(economy).value_or("UNKNOWN"));
+  return oo::PList(OODisplayStringFromEconomyID(economy).value_or("UNKNOWN"));
 }
 
 oo::PList PlayerEntity::systemEconomy_number()  // called by name
@@ -1239,7 +1237,7 @@ oo::PList PlayerEntity::commanderName_string()  // called by name
 
 oo::PList PlayerEntity::commanderRank_string()  // called by name
 {
-  return StringOrNull(cxx_OODisplayRatingStringFromKillCount(score()));
+  return StringOrNull(OODisplayRatingStringFromKillCount(score()));
 }
 
 oo::PList PlayerEntity::commanderShip_string()  // called by name
@@ -1265,7 +1263,7 @@ std::optional<std::string> PlayerEntity::expandMessage(
   very_random_seed.f = rand() & 255;
   seed_RNG_only_for_planet_description(very_random_seed);
   return replaceVariablesInString(
-      cxx_OOExpand(valueString).value_or(std::string()));
+      OOExpand(valueString).value_or(std::string()));
 }
 
 void PlayerEntity::commsMessage(
@@ -1541,7 +1539,7 @@ void PlayerEntity::useSpecialCargo(
   removeAllCargo(true);
   OO_LOG(kOOLogNoteUseSpecialCargo, "Going to useSpecialCargo:'{}'",
          description);
-  specialCargo = cxx_OOExpand(description);
+  specialCargo = OOExpand(description);
 }
 
 void PlayerEntity::testForEquipment(
@@ -2061,8 +2059,8 @@ void PlayerEntity::addMissionText(const std::string& textKey)  // called by name
       MissionTextForKey(key.value_or(std::string()));
   if (!key.has_value() || !text.has_value()) return;
   const std::string expanded =
-      cxx_OOExpandWithOptions(OOStringExpanderDefaultRandomSeed(),
-                              OOExpandOptions::kBackslashN, *text)
+      OOExpandWithOptions(OOStringExpanderDefaultRandomSeed(),
+                          OOExpandOptions::kBackslashN, *text)
           .value_or(std::string());
 
   const std::optional<std::string> literal = replaceVariablesInString(expanded);
@@ -2136,7 +2134,7 @@ void PlayerEntity::setMissionChoicesDictionary(const oo::PList& choicesDict) {
 
   std::ptrdiff_t keysCount = choiceKeys.size();
   if ((end_row + 1) < choiceKeys.size()) {
-    OO_LOG_ERR(cxx_kOOLogException,
+    OO_LOG_ERR(kOOLogException,
                "in mission.runScreen choices: number of choices defined ({}) "
                "is greater than available lines ({}). Check HUD settings for "
                "allowBigGui.",
@@ -2197,7 +2195,7 @@ void PlayerEntity::setMissionChoicesDictionary(const oo::PList& choicesDict) {
     } else {
       continue;  // invalid type
     }
-    choiceText = cxx_OOExpand(choiceText).value_or(std::string());
+    choiceText = OOExpand(choiceText).value_or(std::string());
     choiceText = replaceVariablesInString(choiceText).value_or(std::string());
     // allow blank rows
     if (choiceText != "  ") {
@@ -2473,7 +2471,7 @@ void PlayerEntity::addPlanet(const std::string& planetKey)  // called by name
 
   Quaternion planetOrientation;
   const oo::PList* orientationValue = dict.find("orientation");
-  if (cxx_ScanQuaternionFromString(
+  if (ScanQuaternionFromString(
           (orientationValue != nullptr && orientationValue->isString())
               ? std::optional<std::string>(
                     *orientationValue->getIf<std::string>())
@@ -2512,7 +2510,7 @@ void PlayerEntity::addPlanet(const std::string& planetKey)  // called by name
            "planet position ({:.2f} {:.2f} {:.2f}) derived from {}", posn.x,
            posn.y, posn.z, positionString);
   } else {
-    cxx_ScanHPVectorFromString(positionString, &posn);
+    ScanHPVectorFromString(positionString, &posn);
     OO_LOG(kOOLogDebugAddPlanet,
            "planet position ({:.2f} {:.2f} {:.2f}) derived from {}", posn.x,
            posn.y, posn.z, positionString);
@@ -2566,7 +2564,7 @@ void PlayerEntity::addMoon(const std::string& moonKey)  // called by name
 
   Quaternion planetOrientation;
   const oo::PList* orientationValue = dict.find("orientation");
-  if (cxx_ScanQuaternionFromString(
+  if (ScanQuaternionFromString(
           (orientationValue != nullptr && orientationValue->isString())
               ? std::optional<std::string>(
                     *orientationValue->getIf<std::string>())
@@ -2605,7 +2603,7 @@ void PlayerEntity::addMoon(const std::string& moonKey)  // called by name
            "moon position ({:.2f} {:.2f} {:.2f}) derived from {}", posn.x,
            posn.y, posn.z, positionString);
   } else {
-    cxx_ScanHPVectorFromString(positionString, &posn);
+    ScanHPVectorFromString(positionString, &posn);
     OO_LOG(kOOLogDebugAddPlanet,
            "moon position ({:.2f} {:.2f} {:.2f}) derived from {}", posn.x,
            posn.y, posn.z, positionString);
@@ -2846,7 +2844,7 @@ bool PlayerEntity::processSceneString(const std::string& item, Vector off) {
       return false;          //		   0.... 1.. 2 3 4
     const std::string& scene_key = i_info[1];
     Vector scene_offset = {};
-    cxx_ScanVectorFromString(joined(2, 3), &scene_offset);
+    ScanVectorFromString(joined(2, 3), &scene_offset);
     scene_offset.x += off.x;
     scene_offset.y += off.y;
     scene_offset.z += off.z;
@@ -2882,9 +2880,9 @@ bool PlayerEntity::processSceneString(const std::string& item, Vector off) {
     }
     if (!ship) return false;
 
-    cxx_ScanVectorAndQuaternionFromString(joined(2, 7), &model_p0, &model_q);
+    ScanVectorAndQuaternionFromString(joined(2, 7), &model_p0, &model_q);
 
-    Vector model_offset = cxx_positionOffsetForShipInRotationToAlignment(
+    Vector model_offset = positionOffsetForShipInRotationToAlignment(
         ship.get(), model_q, i_info[9]);
     model_p0 = vector_add(model_p0, vector_subtract(off, model_offset));
 
@@ -2923,9 +2921,9 @@ bool PlayerEntity::processSceneString(const std::string& item, Vector off) {
              : nullptr);  // retain count = 1
     if (!doppelganger) return false;
 
-    cxx_ScanVectorAndQuaternionFromString(joined(1, 7), &model_p0, &model_q);
+    ScanVectorAndQuaternionFromString(joined(1, 7), &model_p0, &model_q);
 
-    Vector model_offset = cxx_positionOffsetForShipInRotationToAlignment(
+    Vector model_offset = positionOffsetForShipInRotationToAlignment(
         doppelganger.get(), model_q, i_info[8]);
     model_p0.x += off.x - model_offset.x;
     model_p0.y += off.y - model_offset.y;
@@ -2998,7 +2996,7 @@ bool PlayerEntity::processSceneString(const std::string& item, Vector off) {
     }
     if (doppelganger == nullptr) return false;
 
-    cxx_ScanVectorFromString(joined(1, 3), &model_p0);
+    ScanVectorFromString(joined(1, 3), &model_p0);
 
     // miniature radii are roughly between 60 and 120. Place miniatures with a
     // radius bigger than 60 a bit futher away.
@@ -3137,7 +3135,7 @@ void PlayerEntity::setGalacticHyperspaceBehaviourTo(
     const std::string& galacticHyperspaceBehaviourString)  // called by name
 {
   OOGalacticHyperspaceBehaviour ghBehaviour =
-      cxx_OOGalacticHyperspaceBehaviourFromString(
+      OOGalacticHyperspaceBehaviourFromString(
           galacticHyperspaceBehaviourString);
   if (ghBehaviour == OOGalacticHyperspaceBehaviour::kUnknown) {
     OO_LOG(
@@ -3165,7 +3163,7 @@ void PlayerEntity::setGalacticHyperspaceFixedCoordsTo(
                                     coord_vals.at<unsigned char>(1));
 }
 
-std::string cxx_OOComparisonTypeToString(OOComparisonType type) {
+std::string OOComparisonTypeToString(OOComparisonType type) {
   switch (type) {
     case OOComparisonType::kEqual:
       return "equal";

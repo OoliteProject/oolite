@@ -83,7 +83,7 @@ oo::PList Definition() {
   return oo::PList(oo::PList::Dict{{"unpiloted", oo::PList(true)}});
 }
 
-// [[[DockEntity alloc] cxx_initWithKey:definition:] autorelease]: the dock
+// [[[DockEntity alloc] initWithKey:definition:] autorelease]: the dock
 // oo::RetainedEntity(DockEntity::newDockObject()) makes, its object (the ship's facade)
 // autoreleased.
 DockEntity* MakeDock(const std::string& key) {
@@ -94,7 +94,7 @@ DockEntity* MakeDock(const std::string& key) {
 
 // A dock that is a subentity of a station, so its parent is the station.
 DockEntity* MakeDockOfStation(TestDockStation** outStation) {
-  // [[[TestDockStation alloc] cxx_initWithKey:definition:] autorelease]: made
+  // [[[TestDockStation alloc] initWithKey:definition:] autorelease]: made
   // as oo::RetainedEntity(StationEntity::newStationObject()) makes a station, its object (the
   // ship's facade) autoreleased.
   ::ShipEntity* object = oo::ToShip(oo::autorelease(oo::NewShipObject(

@@ -89,7 +89,7 @@ class OOProbabilitySet : public oo::Object {
       const oo::PList& object) = 0;  // Returns -1 for unknown objects.
   virtual float sumOfWeights() = 0;
   virtual std::vector<oo::PList>
-  allElements() = 0;  // the elements, in the same order (-cxx_allObjects is
+  allElements() = 0;  // the elements, in the same order (-allObjects is
                       // OOWeakSet's family)
 
   // (OOExtendedProbabilitySet)

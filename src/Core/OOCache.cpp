@@ -893,7 +893,7 @@ void OOCache::appendNodesFromSubTree(OOCacheNode* subTree,
                                      std::string& ioString) {
   ioString += std::format("\tn{} [label=\"<f0> | <f1> {} | <f2>\"];\n",
                           oo::str::pointerDescription(subTree),
-                          cxx_EscapedGraphVizString(subTree->key));
+                          EscapedGraphVizString(subTree->key));
 
   if (subTree->leftChild != nullptr) {
     appendNodesFromSubTree(subTree->leftChild, ioString);
@@ -918,7 +918,7 @@ std::optional<std::string> OOCache::generateGraphVizBodyWithRootNamed(
       "\t{} [label=\"Cache \\\"{}\\\"\" shape=box];\n\tnode "
       "[shape=record];\n\t\n",
       rootName,
-      name().has_value() ? cxx_EscapedGraphVizString(*name())
+      name().has_value() ? EscapedGraphVizString(*name())
                          : std::string("(null)"));
 
   if (cache == nullptr) return result;

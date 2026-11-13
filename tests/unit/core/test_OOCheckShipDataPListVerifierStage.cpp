@@ -41,7 +41,7 @@ void OOLogGenericSubclassResponsibilityForFunction(const char* inFunction) {
 
 // OOPListParsing.mm reaches the universe; the AI stage reads AIs with this one
 // function of it.
-oo::PList cxx_OOPropertyListFromFile(const std::string& path) {
+oo::PList OOPropertyListFromFile(const std::string& path) {
   (void)path;
   return oo::PList();
 }

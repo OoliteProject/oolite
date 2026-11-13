@@ -190,7 +190,7 @@ static JSValue ShipGroupSetProperty(OOJS_SETTER_ARGS) {
 
     case kName: {
       const std::optional<std::string> name =
-          cxx_OOStringFromJSValueEvenIfNull(context, value);
+          OOStringFromJSValueEvenIfNull(context, value);
       if (cxxGroup != nullptr) cxxGroup->setName(name);
     }
       return JS_UNDEFINED;
@@ -219,9 +219,9 @@ static JSValue ShipGroupConstruct(OOJS_NATIVE_ARGS) {
           called as a function, this is the caller's this.
   */
   if (EXPECT_NOT(!OOJS_IS_CONSTRUCTING)) {
-    cxx_OOJSReportError(context,
-                        "ShipGroup() cannot be called as a function, it must "
-                        "be used as a constructor (as in new ShipGroup(...)).");
+    OOJSReportError(context,
+                    "ShipGroup() cannot be called as a function, it must "
+                    "be used as a constructor (as in new ShipGroup(...)).");
     return JS_EXCEPTION;
   }
 
@@ -230,20 +230,19 @@ static JSValue ShipGroupConstruct(OOJS_NATIVE_ARGS) {
 
   if (argc >= 1) {
     if (!JS_IsString(OOJS_ARGV[0])) {
-      cxx_OOJSReportBadArguments(context, std::nullopt, "ShipGroup()", 1,
-                                 OOJS_ARGV, "Could not create ShipGroup",
-                                 "group name");
+      OOJSReportBadArguments(context, std::nullopt, "ShipGroup()", 1, OOJS_ARGV,
+                             "Could not create ShipGroup", "group name");
       return OOJSNativeFailure(context);
     }
-    name = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
+    name = OOStringFromJSValue(context, OOJS_ARGV[0]);
   }
 
   if (argc >= 2) {
     leader = oo::ToShip(OOJSEntityFromJSValue(context, OOJS_ARGV[1]));
     if (leader == nullptr && !JS_IsNull(OOJS_ARGV[1])) {
-      cxx_OOJSReportBadArguments(context, std::nullopt, "ShipGroup()", 1,
-                                 OOJS_ARGV + 1, "Could not create ShipGroup",
-                                 "ship");
+      OOJSReportBadArguments(context, std::nullopt, "ShipGroup()", 1,
+                             OOJS_ARGV + 1, "Could not create ShipGroup",
+                             "ship");
       return OOJSNativeFailure(context);
     }
   }
@@ -287,7 +286,7 @@ void OOShipGroup::clearJSSelf(JSValueConst selfVal) {
     _jsSelf = JS_UNDEFINED;
 }
 
-// What the façade's -cxx_oo_jsDescription answered (OOObject
+// What the façade's -oo_jsDescription answered (OOObject
 // (OOJavaScriptConversion)): the class name (the façade had no jsClassName) and
 // the components.
 std::optional<std::string> OOShipGroup::jsDescription() {
@@ -321,8 +320,8 @@ static JSValue ShipGroupAddShip(OOJS_NATIVE_ARGS) {
     if (argc > 0 && JS_IsNull(OOJS_ARGV[0]))
       OOJS_RETURN_VOID;  // OK, do nothing for null ship.
 
-    cxx_OOJSReportBadArguments(context, "ShipGroup", "addShip", MIN(argc, 1),
-                               OOJS_ARGV, std::nullopt, "ship");
+    OOJSReportBadArguments(context, "ShipGroup", "addShip", MIN(argc, 1),
+                           OOJS_ARGV, std::nullopt, "ship");
     return OOJSNativeFailure(context);
   }
 
@@ -357,7 +356,7 @@ static JSValue ShipGroupAddShip(OOJS_NATIVE_ARGS) {
                  : static_cast<OOShipGroup*>(nullptr)) ==
                 thatGroup)  // new escort already escorting!
         {
-          cxx_OOJSReportWarningForCaller(
+          OOJSReportWarningForCaller(
               context, "ShipGroup", "addShip",
               "Ship %s cannot be assigned to two escort groups, ignoring.",
               oo::EntityDescription(ship).c_str());
@@ -380,7 +379,7 @@ static JSValue ShipGroupAddShip(OOJS_NATIVE_ARGS) {
                 (*new std::shared_ptr<OOShipGroup>(
                      OOShipGroup::groupWithName(std::string("ship group"))))
                     .get());  // +1 kept (a holder that is never deleted), as
-                              // [[OOShipGroup alloc] cxx_initWithName:] was
+                              // [[OOShipGroup alloc] initWithName:] was
           thisGroup =
               (thisGroupLeader != nullptr ? thisGroupLeader->group()
                                           : static_cast<OOShipGroup*>(nullptr));
@@ -420,8 +419,8 @@ static JSValue ShipGroupRemoveShip(OOJS_NATIVE_ARGS) {
     if (argc > 0 && JS_IsNull(OOJS_ARGV[0]))
       OOJS_RETURN_VOID;  // OK, do nothing for null ship.
 
-    cxx_OOJSReportBadArguments(context, "ShipGroup", "removeShip", MIN(argc, 1),
-                               OOJS_ARGV, std::nullopt, "ship");
+    OOJSReportBadArguments(context, "ShipGroup", "removeShip", MIN(argc, 1),
+                           OOJS_ARGV, std::nullopt, "ship");
     return OOJSNativeFailure(context);
   }
 
@@ -447,8 +446,8 @@ static JSValue ShipGroupContainsShip(OOJS_NATIVE_ARGS) {
     if (argc > 0 && JS_IsNull(OOJS_ARGV[0]))
       OOJS_RETURN_BOOL(false);  // OK, return false for null ship.
 
-    cxx_OOJSReportBadArguments(context, "ShipGroup", "containsShip",
-                               MIN(argc, 1), OOJS_ARGV, std::nullopt, "ship");
+    OOJSReportBadArguments(context, "ShipGroup", "containsShip", MIN(argc, 1),
+                           OOJS_ARGV, std::nullopt, "ship");
     return OOJSNativeFailure(context);
   }
 

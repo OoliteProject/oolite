@@ -36,7 +36,7 @@
    not linked. The one function of it that the cache names (in its
    DEBUG_GRAPHVIZ dump, which no test calls) is defined here instead.
 */
-std::string cxx_EscapedGraphVizString(const std::string& string) {
+std::string EscapedGraphVizString(const std::string& string) {
   return string;
 }
 

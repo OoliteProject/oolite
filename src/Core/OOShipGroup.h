@@ -65,7 +65,7 @@ class OOShipGroupMembers;  // OOShipGroup.cpp's range-for over the members
 
 class OOShipGroup : public oo::PListForeign, public ::OOJSPrivateObject {
  public:
-  // Null if the member array cannot be allocated (-cxx_initWithName: returned
+  // Null if the member array cannot be allocated (-initWithName: returned
   // nil).
   static std::shared_ptr<OOShipGroup> groupWithName(
       const std::optional<std::string>& name);
@@ -111,7 +111,7 @@ class OOShipGroup : public oo::PListForeign, public ::OOJSPrivateObject {
   friend class ::OOShipGroupCursor;
   friend class ::OOShipGroupMembers;
 
-  // -cxx_initWithName:, which could fail.
+  // -initWithName:, which could fail.
   bool initWithName(const std::optional<std::string>& name);
 
   bool resizeTo(std::size_t newCapacity);

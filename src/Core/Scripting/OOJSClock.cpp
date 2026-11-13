@@ -178,8 +178,7 @@ static JSValue ClockGetProperty(OOJS_GETTER_ARGS) {
                                        // binding test stands in for it
 
     case kLegacyScriptTimer:
-      cxx_OOStandardsDeprecated(
-          "The legacy_scriptTimer property is deprecated");
+      OOStandardsDeprecated("The legacy_scriptTimer property is deprecated");
       return JS_NewNumber(
           context, (player != nullptr ? player->scriptTimer() : OOTimeDelta{}));
 
@@ -216,13 +215,13 @@ static JSValue ClockClockStringForTime(OOJS_NATIVE_ARGS) {
       JS_FreeValue(context, JS_GetException(context));
     JSValueConst arg = JS_UNDEFINED;
     if (argc > 0) arg = OOJS_ARGV[0];
-    cxx_OOJSReportBadArguments(context, "Clock", "clockStringForTime", 1, &arg,
-                               std::nullopt, "number");
+    OOJSReportBadArguments(context, "Clock", "clockStringForTime", 1, &arg,
+                           std::nullopt, "number");
     return JS_EXCEPTION;
   }
 
   OOJS_RETURN(
-      OOJSValueFromPList(context, oo::PList(cxx_ClockToString(time, false))));
+      OOJSValueFromPList(context, oo::PList(ClockToString(time, false))));
 
   OOJS_NATIVE_EXIT
 }
@@ -239,8 +238,8 @@ static JSValue ClockAddSeconds(OOJS_NATIVE_ARGS) {
       JS_FreeValue(context, JS_GetException(context));
     JSValueConst arg = JS_UNDEFINED;
     if (argc > 0) arg = OOJS_ARGV[0];
-    cxx_OOJSReportBadArguments(context, "Clock", "addSeconds", 1, &arg,
-                               std::nullopt, "number");
+    OOJSReportBadArguments(context, "Clock", "addSeconds", 1, &arg,
+                           std::nullopt, "number");
     return JS_EXCEPTION;
   }
 

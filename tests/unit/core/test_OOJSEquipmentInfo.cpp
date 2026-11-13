@@ -237,7 +237,7 @@ void PlayerEntity::setMissionVariable(const oo::PList &value, const std::string 
 PlayerEntity *gOOPlayer = nullptr;
 
 
-void cxx_OOStandardsDeprecated(const std::string &message)
+void OOStandardsDeprecated(const std::string &message)
 {
 	(void)message;
 	gDeprecations++;
@@ -264,18 +264,18 @@ JSContext *gOOJSMainThreadContext = nullptr;
 const char *OOJSClassName(JSClassID classID);
 
 
-void cxx_OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
+void OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
 {
 	std::string msg = oo::str::vformat(format, args);
 	JS_ThrowPlainError(context, "%s", msg.c_str());
 }
 
 
-void cxx_OOJSReportError(JSContext *context, const char *format, ...)
+void OOJSReportError(JSContext *context, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
-	cxx_OOJSReportErrorWithArguments(context, format, args);
+	OOJSReportErrorWithArguments(context, format, args);
 	va_end(args);
 }
 
@@ -298,13 +298,13 @@ void OOJSReportPendingException(JSContext *context)
 
 
 // Property IDs, which OOJSClasses.mm records: interned for the life of the process, as the engine's.
-JSAtom cxx_OOJSIDFromString(const std::string &string)
+JSAtom OOJSIDFromString(const std::string &string)
 {
 	return JS_NewAtomLen(gOOJSMainThreadContext, string.data(), string.size());
 }
 
 
-std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueConst value);
+std::optional<std::string> OOStringFromJSValue(JSContext *context, JSValueConst value);
 
 // The engine's: rounded to nearest; NaN or out of range is an error.
 bool OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
@@ -314,7 +314,7 @@ bool OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
 	number = std::floor(number + 0.5);
 	if (std::isnan(number) || number < INT32_MIN || number > INT32_MAX)
 	{
-		cxx_OOJSReportError(context, "can't convert %s to an integer", cxx_OOStringFromJSValue(context, value).value_or("(null)").c_str());
+		OOJSReportError(context, "can't convert %s to an integer", OOStringFromJSValue(context, value).value_or("(null)").c_str());
 		return false;
 	}
 	*outValue = static_cast<int32_t>(number);
@@ -326,7 +326,7 @@ namespace {
 std::string sLastWarning;
 }
 
-void cxx_OOJSReportWarning(JSContext *, const char *format, ...)
+void OOJSReportWarning(JSContext *, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
@@ -335,13 +335,13 @@ void cxx_OOJSReportWarning(JSContext *, const char *format, ...)
 }
 
 
-void cxx_OOJSReportBadArguments(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, int argc, JSValueConst *, const std::optional<std::string> &message, const std::optional<std::string> &expectedArgsDescription)
+void OOJSReportBadArguments(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, int argc, JSValueConst *, const std::optional<std::string> &message, const std::optional<std::string> &expectedArgsDescription)
 {
-	cxx_OOJSReportError(context, "bad arguments: %s.%s(%d) %s / %s", scriptClass.value_or("-").c_str(), function.value_or("-").c_str(), argc, message.value_or("-").c_str(), expectedArgsDescription.value_or("-").c_str());
+	OOJSReportError(context, "bad arguments: %s.%s(%d) %s / %s", scriptClass.value_or("-").c_str(), function.value_or("-").c_str(), argc, message.value_or("-").c_str(), expectedArgsDescription.value_or("-").c_str());
 }
 
 
-std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueConst value)
+std::optional<std::string> OOStringFromJSValue(JSContext *context, JSValueConst value)
 {
 	if (JS_IsNull(value) || JS_IsUndefined(value))  return std::nullopt;
 	std::size_t length = 0;
@@ -359,10 +359,10 @@ std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueCo
 
 // A JS value as a property list, as far as the binding hands one over: null, a string, a number,
 // an array of those, or an EquipmentInfo (its equipment type, as an object).
-oo::PList cxx_OOJSPListFromJSValue(JSContext *context, JSValueConst value)
+oo::PList OOJSPListFromJSValue(JSContext *context, JSValueConst value)
 {
 	if (JS_IsNull(value) || JS_IsUndefined(value))  return oo::PList();
-	if (JS_IsString(value))  return oo::PList(cxx_OOStringFromJSValue(context, value).value_or(std::string()));
+	if (JS_IsString(value))  return oo::PList(OOStringFromJSValue(context, value).value_or(std::string()));
 	if (JS_IsBool(value))  return oo::PList(JS_VALUE_GET_BOOL(value) != 0);
 	if (JS_IsNumber(value))
 	{
@@ -378,7 +378,7 @@ oo::PList cxx_OOJSPListFromJSValue(JSContext *context, JSValueConst value)
 		for (std::int64_t i = 0; i < length; i++)
 		{
 			JSValue element = JS_GetPropertyUint32(context, value, static_cast<std::uint32_t>(i));
-			array.push_back(cxx_OOJSPListFromJSValue(context, element));
+			array.push_back(OOJSPListFromJSValue(context, element));
 			JS_FreeValue(context, element);
 		}
 		return oo::PList(std::move(array));
@@ -431,13 +431,13 @@ PlayerEntity *OOPlayerForScripting(void)
 
 void OOJSReportBadPropertySelector(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t)
 {
-	cxx_OOJSReportError(context, "bad property selector");
+	OOJSReportError(context, "bad property selector");
 }
 
 
 void OOJSReportBadPropertyValue(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t, JSValueConst)
 {
-	cxx_OOJSReportError(context, "bad property value");
+	OOJSReportError(context, "bad property value");
 }
 
 
@@ -466,7 +466,7 @@ JSValue OOJSObjectWrapperToString(JSContext *context, JSValueConst, int, JSValue
 
 JSValue OOJSUnconstructableConstruct(JSContext *context, JSValueConst, int, JSValueConst *)
 {
-	cxx_OOJSReportError(context, "unconstructable");
+	OOJSReportError(context, "unconstructable");
 	return JS_EXCEPTION;
 }
 
@@ -547,7 +547,7 @@ std::string Eval(const char *src)
 		JS_FreeValue(sContext, JS_GetException(sContext));
 		return "<evaluation failed>";
 	}
-	std::string text = cxx_OOStringFromJSValue(sContext, result).value_or("<not a string>");
+	std::string text = OOStringFromJSValue(sContext, result).value_or("<not a string>");
 	JS_FreeValue(sContext, result);
 	return text;
 }

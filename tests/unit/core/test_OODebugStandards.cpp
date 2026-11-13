@@ -52,11 +52,11 @@ OO_TEST(quitModeFromAClampedSetting) {
   OO_CHECK(OOEnforceStandards());
   OO_CHECK(sExitContexts.empty());
 
-  cxx_OOStandardsDeprecated("a deprecated thing");
+  OOStandardsDeprecated("a deprecated thing");
   OO_CHECK(sExitContexts.size() == 1 &&
            sExitContexts[0] == "oxp-standards.deprecated");
 
-  cxx_OOStandardsError("an OXP error");
+  OOStandardsError("an OXP error");
   OO_CHECK(sExitContexts.size() == 2 &&
            sExitContexts[1] == "oxp-standards.error");
 }
@@ -66,7 +66,7 @@ OO_TEST(quitModeFromAClampedSetting) {
 OO_TEST(theSettingIsReadOnEveryCheck) {
   oo::Defaults::standard().setObject("enforce-oxp-standards", oo::PList(0));
   OO_CHECK(!OOEnforceStandards());
-  cxx_OOStandardsError("off: nothing happens");
+  OOStandardsError("off: nothing happens");
   OO_CHECK(sExitContexts.size() == 2);
 
   oo::Defaults::standard().setObject("enforce-oxp-standards", oo::PList(-3));
@@ -74,17 +74,17 @@ OO_TEST(theSettingIsReadOnEveryCheck) {
 
   oo::Defaults::standard().setObject("enforce-oxp-standards", oo::PList(1));
   OO_CHECK(!OOEnforceStandards());
-  cxx_OOStandardsDeprecated("warn: only logged");
+  OOStandardsDeprecated("warn: only logged");
   OO_CHECK(sExitContexts.size() == 2);
 
   oo::Defaults::standard().setObject("enforce-oxp-standards", oo::PList(2));
   OO_CHECK(OOEnforceStandards());
-  cxx_OOStandardsError("enforce: only logged");
+  OOStandardsError("enforce: only logged");
   OO_CHECK(sExitContexts.size() == 2);
 
   oo::Defaults::standard().setObject("enforce-oxp-standards", oo::PList(3));
   OO_CHECK(OOEnforceStandards());
-  cxx_OOStandardsError("quit again");
+  OOStandardsError("quit again");
   OO_CHECK(sExitContexts.size() == 3 &&
            sExitContexts[2] == "oxp-standards.error");
 }
@@ -95,8 +95,8 @@ OO_TEST(verifierModeWarns) {
   OO_CHECK(!OOEnforceStandards());
 
   const size_t before = sExitContexts.size();
-  cxx_OOStandardsDeprecated("only logged");
-  cxx_OOStandardsError("only logged");
+  OOStandardsDeprecated("only logged");
+  OOStandardsError("only logged");
   OO_CHECK(sExitContexts.size() == before);
 
   // The verifier mode marks the setting read: the defaults stay ignored.

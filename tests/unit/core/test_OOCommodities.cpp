@@ -151,7 +151,7 @@ bool StationEntity::getMarketMonitored()						{ return monitored; }
 
 
 // The expander: "<string>".
-std::optional<std::string> cxx_OOExpandDescriptionString(Random_Seed /*seed*/, const std::string &string, const oo::PList &/*overrides*/, const oo::PList &/*legacyLocals*/, const std::optional<std::string> &/*systemName*/, OOExpandOptions /*options*/)
+std::optional<std::string> OOExpandDescriptionString(Random_Seed /*seed*/, const std::string &string, const oo::PList &/*overrides*/, const oo::PList &/*legacyLocals*/, const std::optional<std::string> &/*systemName*/, OOExpandOptions /*options*/)
 {
 	return "<" + string + ">";
 }
@@ -166,7 +166,7 @@ Random_Seed OOStringExpanderDefaultRandomSeed(void)
 JSContext *gOOJSMainThreadContext = nullptr;
 JSAtom OOJSInternAtomPRIVATE(const char *)							{ std::abort(); }
 JSValue OOJSValueFromPList(JSContext *, const oo::PList &)				{ std::abort(); }
-oo::PList cxx_OOJSPListFromJSObject(JSContext *, JSValueConst)			{ std::abort(); }
+oo::PList OOJSPListFromJSObject(JSContext *, JSValueConst)			{ std::abort(); }
 
 
 namespace {

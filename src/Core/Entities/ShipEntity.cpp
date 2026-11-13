@@ -204,7 +204,7 @@ std::string RepeatString(std::string_view str, std::size_t times) {
   return result;
 }
 
-/*	cxx_OOExpandKey(key, <argument>): the expansion of a description key
+/*	OOExpandKey(key, <argument>): the expansion of a description key
    with the one-entry argument dictionary the macro builds from the variable's
    name (OOShipLibraryDescriptions.cpp's pattern). A nil argument (which the
    macro could not have put in a dictionary) is left out.
@@ -214,10 +214,10 @@ std::optional<std::string> ExpandKeyWithArgument(
     const std::optional<std::string>& argument) {
   oo::PList::Dict arguments;
   if (argument.has_value()) arguments[std::string(argumentName)] = *argument;
-  return cxx_OOExpandDescriptionString(
-      OOStringExpanderDefaultRandomSeed(), std::string(key),
-      oo::PList(std::move(arguments)), oo::PList(), std::nullopt,
-      OOExpandOptions::kKey);
+  return OOExpandDescriptionString(OOStringExpanderDefaultRandomSeed(),
+                                   std::string(key),
+                                   oo::PList(std::move(arguments)), oo::PList(),
+                                   std::nullopt, OOExpandOptions::kKey);
 }
 
 // [key intValue] for a close-contact key (the "%d" text of a universal ID).
@@ -229,10 +229,10 @@ int IntValueOfKey(std::string_view key) {
   return value;
 }
 
-// cxx_OOExpand(text): the text expanded with no arguments; nothing expanded is
+// OOExpand(text): the text expanded with no arguments; nothing expanded is
 // "".
 std::string ExpandedText(const std::string& text) {
-  return cxx_OOExpand(text).value_or(std::string());
+  return OOExpand(text).value_or(std::string());
 }
 
 // get<oo::FuzzyBoolean>(key, fallback): YES with the probability the value
@@ -257,7 +257,7 @@ oo::PList DictionaryForKey(const oo::PList& dict, std::string_view key) {
 }
 
 // -objectForKey: as plist data (a null PList when absent), for
-// +cxx_colorWithDescription: & co.
+// +colorWithDescription: & co.
 oo::PList ValueForKey(const oo::PList& dict, std::string_view key) {
   const oo::PList* value = dict.find(key);
   return value != nullptr ? *value : oo::PList();
@@ -385,7 +385,7 @@ void ShipEntity::shipWillDealloc() {
   _beaconDrawable = nullptr;
 }
 
-/*	-cxx_initWithKey:definition:'s body between [super init] and the set-up
+/*	-initWithKey:definition:'s body between [super init] and the set-up
    from the dictionary (initShipSetUp() runs both).
 */
 void ShipEntity::initWithKey(const std::string& key) {
@@ -486,8 +486,9 @@ OOComparisonResult ComparePlanetsBySurfaceDistance(
 }
 }  // namespace
 
-Vector cxx_positionOffsetForShipInRotationToAlignment(
-    ShipEntity* ship, Quaternion q, const std::string& align) {
+Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship,
+                                                  Quaternion q,
+                                                  const std::string& align) {
   // indexed in UTF-16 units, as -characterAtIndex: was
   const std::u16string padAlign = oo::utf8ToUtf16(std::format("{}---", align));
   Vector i = vector_right_from_quaternion(q);
@@ -597,7 +598,7 @@ bool ShipEntity::isShipWithSubEntityShip(Entity* other) {
   return true;
 }
 
-// Set-up from the ship dictionary (cxx_setUpFromDictionary:). Members of the
+// Set-up from the ship dictionary (setUpFromDictionary:). Members of the
 // C++ ship.
 
 bool ShipEntity::setUpFromDictionary(const oo::PList& inShipDict) {
@@ -677,16 +678,16 @@ bool ShipEntity::setUpFromDictionary(const oo::PList& inShipDict) {
   weapon_facings = shipDict.get<int>("weapon_facings", kOOValidWeaponFacings) &
                    kOOValidWeaponFacings;
   if (OOWeaponFacingIsIn(weapon_facings, OOWeaponFacing::kForward))
-    forward_weapon_type = cxx_OOWeaponTypeFromString(
+    forward_weapon_type = OOWeaponTypeFromString(
         shipDict.get<std::string>("forward_weapon_type", "EQ_WEAPON_NONE"));
   if (OOWeaponFacingIsIn(weapon_facings, OOWeaponFacing::kAft))
-    aft_weapon_type = cxx_OOWeaponTypeFromString(
+    aft_weapon_type = OOWeaponTypeFromString(
         shipDict.get<std::string>("aft_weapon_type", "EQ_WEAPON_NONE"));
   if (OOWeaponFacingIsIn(weapon_facings, OOWeaponFacing::kPort))
-    port_weapon_type = cxx_OOWeaponTypeFromString(
+    port_weapon_type = OOWeaponTypeFromString(
         shipDict.get<std::string>("port_weapon_type", "EQ_WEAPON_NONE"));
   if (OOWeaponFacingIsIn(weapon_facings, OOWeaponFacing::kStarboard))
-    starboard_weapon_type = cxx_OOWeaponTypeFromString(
+    starboard_weapon_type = OOWeaponTypeFromString(
         shipDict.get<std::string>("starboard_weapon_type", "EQ_WEAPON_NONE"));
 
   cloaking_device_active = false;
@@ -922,13 +923,13 @@ bool ShipEntity::setUpShipFromDictionary(const oo::PList& shipDict) {
   // scan class settings. 'scanClass' is in common usage, but we could also have
   // a more standard 'scan_class' key with higher precedence. Kaks 20090810
   // let's see if scan_class is set...
-  scanClass = cxx_OOScanClassFromString(
+  scanClass = OOScanClassFromString(
       shipDict.get<std::string>("scan_class", "CLASS_NOT_SET"));
 
   // if not, try 'scanClass'. NOTE: non-standard capitalization is documented
   // and entrenched.
   if (scanClass == OOScanClass::kNotSet) {
-    scanClass = cxx_OOScanClassFromString(
+    scanClass = OOScanClassFromString(
         shipDict.get<std::string>("scanClass", "CLASS_NOT_SET"));
   }
 
@@ -1407,7 +1408,7 @@ bool ShipEntity::isTemplateCargoPod() {
 }
 
 void ShipEntity::setUpCargoType(const std::string& cargoString) {
-  cargo_type = cxx_StringToCargoType(cargoString);
+  cargo_type = StringToCargoType(cargoString);
 
   switch (cargo_type) {
     case OOCargoType::kSlaves:
@@ -1634,7 +1635,7 @@ std::optional<std::string> ShipEntity::descriptionComponents() const {
   ShipEntity* self =
       const_cast<ShipEntity*>(this);  // the getters it called are not const
   if (!self->getIsSubEntity()) {
-    // [super cxx_descriptionComponents]: the entity's own components.
+    // [super descriptionComponents]: the entity's own components.
     return std::format(
         "\"{}\" {}", self->getName().value_or("(null)"),
         OOEntityWithDrawable::descriptionComponents().value_or("(null)"));
@@ -1646,7 +1647,7 @@ std::optional<std::string> ShipEntity::descriptionComponents() const {
 
     return std::format("\"{}\" position: {} {}",
                        self->getName().value_or("(null)"),
-                       cxx_HPVectorDescription(self->getPosition()), subtype);
+                       HPVectorDescription(self->getPosition()), subtype);
   }
 }
 
@@ -1802,7 +1803,7 @@ void ShipEntity::setBeaconLabel(const std::optional<std::string>& blabel) {
   if (label.has_value() && label->empty()) label.reset();
 
   if (label.has_value() || _beaconLabel.has_value()) {
-    _beaconLabel = label.has_value() ? cxx_OOExpand(*label) : std::nullopt;
+    _beaconLabel = label.has_value() ? OOExpand(*label) : std::nullopt;
   }
 }
 
@@ -2646,7 +2647,7 @@ void ShipEntity::update(OOTimeDelta delta_t) {
                             dot_product(dpos, v_forward));
             Vector pos0 = {0, 0, 0};
             const auto contact = closeContactsInfo.find(other_key);
-            cxx_ScanVectorFromString(
+            ScanVectorFromString(
                 contact != closeContactsInfo.end()
                     ? std::optional<std::string>(contact->second)
                     : std::nullopt,
@@ -2693,7 +2694,7 @@ void ShipEntity::update(OOTimeDelta delta_t) {
   // DEBUGGING
   if (reportAIMessages && (debugLastBehaviour != behaviour)) {
     OO_LOG("entity.behaviour.changed", "{} behaviour is now {}",
-           oo::EntityDescription(this), cxx_OOStringFromBehaviour(behaviour));
+           oo::EntityDescription(this), OOStringFromBehaviour(behaviour));
     debugLastBehaviour = behaviour;
   }
 #endif
@@ -3258,7 +3259,7 @@ bool ShipEntity::hasOneEquipmentItem(const std::string& itemKey,
   if (includeWeapons) {
     // Check for primary weapon
     OOWeaponType weaponType =
-        cxx_OOWeaponTypeFromEquipmentIdentifierStrict(itemKey);
+        OOWeaponTypeFromEquipmentIdentifierStrict(itemKey);
     if (!isWeaponNone(weaponType)) {
       if (hasPrimaryWeapon(weaponType)) return true;
     }
@@ -3760,7 +3761,7 @@ bool ShipEntity::setWeaponMount(OOWeaponFacing facing,
   // sets WEAPON_NONE if not recognised
   if (OOWeaponFacingIsIn(weapon_facings, facing)) {
     OOWeaponType chosen_weapon =
-        cxx_OOWeaponTypeFromEquipmentIdentifierStrict(eqKey);
+        OOWeaponTypeFromEquipmentIdentifierStrict(eqKey);
     switch (facing) {
       case OOWeaponFacing::kForward:
         forward_weapon_type = chosen_weapon;
@@ -4692,8 +4693,8 @@ void ShipEntity::behaviour_attack_target(double /*delta_t*/) {
     }
     if (isWeaponNone(forward_weapon_real_type) &&
         hasTurrets) {  // safety for ships only equipped with turrets
-      forward_weapon_real_type = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(
-          "EQ_WEAPON_PULSE_LASER");
+      forward_weapon_real_type =
+          OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_WEAPON_PULSE_LASER");
       forward_weapon_real_temp = COMBAT_AI_WEAPON_TEMP_USABLE * 0.9;
     }
   }
@@ -6133,7 +6134,7 @@ void ShipEntity::behaviour_scripted_ai(double delta_t) {
     return;
   }
 
-  result = cxx_OOJSPListFromJSObject(context, rval);
+  result = OOJSPListFromJSObject(context, rval);
   OOJSFreeValue(context, rval);
   OOJSRelinquishContext(context);
 
@@ -7648,7 +7649,7 @@ void ShipEntity::setShipScript(const std::optional<std::string>& script_name) {
   if (script == nullptr) {
     actions = ArrayForKey(shipinfoDictionary, "launch_actions");
     if (actions) {
-      cxx_OOStandardsDeprecated(
+      OOStandardsDeprecated(
           std::format("The launch_actions ship key is deprecated on {}.",
                       getDisplayName().value_or("(null)")));
       if (!OOEnforceStandards()) {
@@ -7658,7 +7659,7 @@ void ShipEntity::setShipScript(const std::optional<std::string>& script_name) {
 
     actions = ArrayForKey(shipinfoDictionary, "script_actions");
     if (actions) {
-      cxx_OOStandardsDeprecated(
+      OOStandardsDeprecated(
           std::format("The script_actions ship key is deprecated on {}.",
                       getDisplayName().value_or("(null)")));
       if (!OOEnforceStandards()) {
@@ -7668,7 +7669,7 @@ void ShipEntity::setShipScript(const std::optional<std::string>& script_name) {
 
     actions = ArrayForKey(shipinfoDictionary, "death_actions");
     if (actions) {
-      cxx_OOStandardsDeprecated(
+      OOStandardsDeprecated(
           std::format("The death_actions ship key is deprecated on {}.",
                       getDisplayName().value_or("(null)")));
       if (!OOEnforceStandards()) {
@@ -7678,7 +7679,7 @@ void ShipEntity::setShipScript(const std::optional<std::string>& script_name) {
 
     actions = ArrayForKey(shipinfoDictionary, "setup_actions");
     if (actions) {
-      cxx_OOStandardsDeprecated(
+      OOStandardsDeprecated(
           std::format("The setup_actions ship key is deprecated on {}.",
                       getDisplayName().value_or("(null)")));
       if (!OOEnforceStandards()) {
@@ -7809,7 +7810,7 @@ void ShipEntity::setBounty(OOCreditsQuantity amount,
     if (scanClass == OOScanClass::kPolice && amount != 0) {
       return;  // police never have bounties
     }
-    setBounty(amount, cxx_OOStringFromLegalStatusReason(reason));
+    setBounty(amount, OOStringFromLegalStatusReason(reason));
   }
 }
 
@@ -7958,7 +7959,7 @@ oo::PList ShipEntity::cargoListForScripting() {
           market->nameForGood(good);  // (a good: the market is not null)
       if (goodName.has_value()) commodity["displayName"] = *goodName;
       commodity["unit"] =
-          cxx_DisplayStringForMassUnitForCommodity(good).value_or("");
+          DisplayStringForMassUnitForCommodity(good).value_or("");
       list.emplace_back(std::move(commodity));
     }
   }
@@ -8318,7 +8319,7 @@ void ShipEntity::dealEnergyDamage(GLfloat baseDamage, GLfloat range,
 // dealEnergyDamage preferred
 // Exposed to AI
 void ShipEntity::dealEnergyDamageWithinDesiredRange() {
-  cxx_OOStandardsDeprecated(
+  OOStandardsDeprecated(
       std::format("dealEnergyDamageWithinDesiredRange is deprecated for {}",
                   oo::EntityDescription(this)));
   // not over scannerRange
@@ -11766,7 +11767,7 @@ bool ShipEntity::launchCascadeMine() {
 
 // This is a documented AI method; do not change semantics. (Note: AIs don't
 // have access to the return value, and no caller read it: PlayerEntity reads
-// the commodity from -cxx_dumpCargoItem: itself.)
+// the commodity from -dumpCargoItem: itself.)
 void ShipEntity::dumpCargo() { dumpCargoItem(std::nullopt); }
 
 ::ShipEntity* ShipEntity::dumpCargoItem(
@@ -13455,11 +13456,10 @@ void ShipEntity::sendExpandedMessage(const std::string& message_text,
                                : std::optional<std::string>());
     if (targetName.has_value()) specials["[target:name]"] = *targetName;
   }
-  const std::optional<std::string> expandedMessage =
-      cxx_OOExpandDescriptionString(OOStringExpanderDefaultRandomSeed(),
-                                    message_text,
-                                    oo::PList(std::move(specials)), oo::PList(),
-                                    std::nullopt, OOExpandOptions::kNone);
+  const std::optional<std::string> expandedMessage = OOExpandDescriptionString(
+      OOStringExpanderDefaultRandomSeed(), message_text,
+      oo::PList(std::move(specials)), oo::PList(), std::nullopt,
+      OOExpandOptions::kNone);
 
   if (expandedMessage.has_value())
     sendMessage(*expandedMessage, other_ship, false);  // nil was not sent
@@ -13712,15 +13712,15 @@ void ShipEntity::dumpSelfState() {
          (script != nullptr) ? script->description() : std::string("(null)"));
   OO_LOG("dumpState.shipEntity", "Subentity count: {}", subEntityCount());
   OO_LOG("dumpState.shipEntity", "Behaviour: {}",
-         cxx_OOStringFromBehaviour(behaviour));
+         OOStringFromBehaviour(behaviour));
   Entity* target = primaryTarget();
   OO_LOG("dumpState.shipEntity", "Target: {}",
          target != nullptr ? oo::EntityDescription(target)
                            : std::string("<none>"));
   OO_LOG("dumpState.shipEntity", "Destination: {}",
-         cxx_HPVectorDescription(_destination));
+         HPVectorDescription(_destination));
   OO_LOG("dumpState.shipEntity", "Other destination: {}",
-         cxx_HPVectorDescription(coordinates));
+         HPVectorDescription(coordinates));
   OO_LOG("dumpState.shipEntity", "Waypoint count: {}", number_of_navpoints);
   OO_LOG("dumpState.shipEntity", "Desired speed: {:g}", desired_speed);
   OO_LOG("dumpState.shipEntity", "Thrust: {:g}", thrust);

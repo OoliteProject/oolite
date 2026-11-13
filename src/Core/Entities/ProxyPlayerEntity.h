@@ -47,8 +47,8 @@ class ProxyPlayerEntity : public ShipEntity {
   static std::shared_ptr<::ShipEntity> newProxyObject(const std::string& key,
                                                       const oo::PList& dict);
 
-  // -cxx_initWithKey:definition:'s body after [super
-  // cxx_initWithKey:definition:].
+  // -initWithKey:definition:'s body after [super
+  // initWithKey:definition:].
   void initProxyDefaults();
 
   void copyValuesFromPlayer(::PlayerEntity* player);

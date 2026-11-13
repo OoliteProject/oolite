@@ -36,7 +36,7 @@ SOFTWARE.
 // SubclassResponsibilities and SubclassOptional) is OOTexture's own members.
 
 /*	OOGenerateTextureCacheKey()
-        cxx_OOTextureCacheKeyForSpecifier()
+        OOTextureCacheKeyForSpecifier()
 
         Generate texture cache keys of the form used by normal file-based
    textures.
@@ -44,7 +44,7 @@ SOFTWARE.
 std::string OOGenerateTextureCacheKey(
     const std::optional<std::string>& directory, const std::string& name,
     OOTextureFlags options, float anisotropy, float lodBias);
-std::string cxx_OOTextureCacheKeyForSpecifier(const oo::PList& specifier);
+std::string OOTextureCacheKeyForSpecifier(const oo::PList& specifier);
 
 typedef struct OOTextureInfo {
   GLfloat anisotropyScale;

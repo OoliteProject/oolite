@@ -294,7 +294,7 @@ OO_TEST(crossing) {
     JSContext* context = OOJSAcquireContext();
     JSValue value = script->jsValueInContext(context);  // owned: kept alive
     OO_CHECK(!JS_IsUndefined(value));
-    OO_CHECK(OOScriptInObjectNode(cxx_OOJSPListFromJSValue(context, value)) ==
+    OO_CHECK(OOScriptInObjectNode(OOJSPListFromJSValue(context, value)) ==
              script.get());
     OO_CHECK(script->jsClassName() == std::optional<std::string>("Script"));
     OO_CHECK(
@@ -309,7 +309,7 @@ OO_TEST(crossing) {
     // nothing, and a weak push answers no script.
     script = nullptr;
     OO_CHECK(weak.lock().get() == nullptr);
-    OO_CHECK(cxx_OOJSPListFromJSValue(context, value).isNull());
+    OO_CHECK(OOJSPListFromJSValue(context, value).isNull());
     OOJSScript::pushScript(weak);
     OO_CHECK(OOJSScript::currentlyRunningScript() == nullptr);
     OO_CHECK(OOJSScript::scriptStack().size() == 1 &&

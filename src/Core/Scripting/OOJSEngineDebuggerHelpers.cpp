@@ -111,7 +111,7 @@ static const char* DebuggerCString(std::string text) {
 const char* JSValueToStrDbg(JSValue val) {
   JSContext* context = OOJSAcquireContext();
   const std::optional<std::string> text =
-      cxx_OOStringFromJSValueEvenIfNull(context, val);
+      OOStringFromJSValueEvenIfNull(context, val);
   const char* result = text.has_value() ? DebuggerCString(*text) : nullptr;
   OOJSRelinquishContext(context);
 

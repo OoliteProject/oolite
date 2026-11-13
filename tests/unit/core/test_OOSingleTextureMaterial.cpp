@@ -37,7 +37,7 @@ void OOLogOutdent(void) {}
 
 /*	OOTexture (OOTexture.mm links the texture loaders and the game) is a
    stand-in that records what the material asks of it.
-   +cxx_textureWithConfiguration: answers nil for a null specifier, or for the
+   +textureWithConfiguration: answers nil for a null specifier, or for the
    name "missing", as a texture that fails to load does.
 */
 static int gTextureApplyNones = 0;
@@ -111,7 +111,7 @@ void OOTexture::forceRebind() {}
    recorded: a dictionary naming what it was given (the game's own is pinned by
    the texture's tests).
 */
-oo::PList cxx_OOTextureSpecFromObject(
+oo::PList OOTextureSpecFromObject(
     const oo::PList& object, const std::optional<std::string>& defaultName) {
   return oo::PList(oo::PList::Dict{
       {"object", object.isNull() ? oo::PList("(null)") : object},

@@ -114,7 +114,7 @@ class OOCache : public oo::Object {
 
  private:
   bool initWithPList(
-      const oo::PList& pList);  // false where -cxx_initWithPList: returned nil
+      const oo::PList& pList);  // false where -initWithPList: returned nil
 
   void loadFromArray(const oo::PList& inArray);
 

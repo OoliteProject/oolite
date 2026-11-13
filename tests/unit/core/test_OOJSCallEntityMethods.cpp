@@ -10,7 +10,7 @@
    Entity, with every category; not its superclasses) is the selectors it
    matched with no argument or with one of the two string templates, less the
    lifetime and root-protocol names and the compiler's
-   .cxx_construct/.cxx_destruct. The table must list exactly that set, and each
+   C++ construction and destruction methods. The table must list exactly that set, and each
    row must classify its method as the matcher did. The facade is the real one,
    so the test links the whole game but main (['*']). The facade's five by-name
    categories are the C++ by-name table

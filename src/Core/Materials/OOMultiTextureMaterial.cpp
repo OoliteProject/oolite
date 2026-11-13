@@ -54,16 +54,15 @@ bool OOMultiTextureMaterial::initWithName(
   // The configuration mixes plist data with live objects (colours): an
   // oo::PList carries both exactly.
   const oo::PList& config = configuration;
-  const oo::PList diffuseSpec = cxx_OOMaterialDiffuseMapSpecifier(config, name);
-  const oo::PList emissionSpec = cxx_OOMaterialEmissionMapSpecifier(config);
-  const oo::PList illuminationSpec =
-      cxx_OOMaterialIlluminationMapSpecifier(config);
+  const oo::PList diffuseSpec = OOMaterialDiffuseMapSpecifier(config, name);
+  const oo::PList emissionSpec = OOMaterialEmissionMapSpecifier(config);
+  const oo::PList illuminationSpec = OOMaterialIlluminationMapSpecifier(config);
   const oo::PList emissionAndIlluminationSpec =
-      cxx_OOMaterialEmissionAndIlluminationMapSpecifier(config);
-  std::shared_ptr<OOColor> diffuseColor = cxx_OOMaterialDiffuseColor(config);
+      OOMaterialEmissionAndIlluminationMapSpecifier(config);
+  std::shared_ptr<OOColor> diffuseColor = OOMaterialDiffuseColor(config);
   std::shared_ptr<OOColor> emissionColor;
   std::shared_ptr<OOColor> illuminationColor =
-      cxx_OOMaterialIlluminationModulateColor(config);
+      OOMaterialIlluminationModulateColor(config);
 
   // A copy of the configuration (an empty one for nil, as
   // +dictionaryWithDictionary: gave).
@@ -71,15 +70,15 @@ bool OOMultiTextureMaterial::initWithName(
       config.isDict() ? config : oo::PList(oo::PList::Dict{});
 
   if (!emissionSpec.isNull() || !emissionAndIlluminationSpec.isNull()) {
-    emissionColor = cxx_OOMaterialEmissionModulateColor(config);
+    emissionColor = OOMaterialEmissionModulateColor(config);
 
     /*	If an emission map and an emission colour are both specified, stop
             the superclass (OOBasicMaterial) from applying the emission colour.
     */
     mutableConfiguration.getIf<oo::PList::Dict>()->erase(
-        cxx_kOOMaterialEmissionColorName);
+        kOOMaterialEmissionColorName);
     mutableConfiguration.getIf<oo::PList::Dict>()->erase(
-        cxx_kOOMaterialEmissionColorLegacyName);
+        kOOMaterialEmissionColorLegacyName);
   }
 
   OOBasicMaterial::initWithName(name, mutableConfiguration);

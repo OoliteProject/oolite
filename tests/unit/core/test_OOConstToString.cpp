@@ -28,16 +28,16 @@
 
 // ShipEntity.h's declarations (it imports the whole game).
 typedef OOEquipmentType* OOWeaponType;
-std::optional<std::string> cxx_OOEquipmentIdentifierFromWeaponType(
+std::optional<std::string> OOEquipmentIdentifierFromWeaponType(
     OOWeaponType weapon);
-OOWeaponType cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(
+OOWeaponType OOWeaponTypeFromEquipmentIdentifierSloppy(
     const std::string& string);
-OOWeaponType cxx_OOWeaponTypeFromEquipmentIdentifierStrict(
+OOWeaponType OOWeaponTypeFromEquipmentIdentifierStrict(
     const std::string& string);
-OOWeaponType cxx_OOWeaponTypeFromEquipmentIdentifierLegacy(
+OOWeaponType OOWeaponTypeFromEquipmentIdentifierLegacy(
     const std::string& string);
-std::optional<std::string> cxx_OOStringFromWeaponType(OOWeaponType weapon);
-OOWeaponType cxx_OOWeaponTypeFromString(const std::string& string);
+std::optional<std::string> OOStringFromWeaponType(OOWeaponType weapon);
+OOWeaponType OOWeaponTypeFromString(const std::string& string);
 
 // --- The game around the functions
 // -----------------------------------------------------------
@@ -104,7 +104,7 @@ oo::PList Universe::getEquipmentDataOutfitting() { return EquipmentData(); }
 Universe* gSharedUniverse = nullptr;
 
 // The mass-unit symbols, as descriptions.plist spells them.
-std::string cxx_OOLookUpDescriptionPRIV(const std::string& key) {
+std::string OOLookUpDescriptionPRIV(const std::string& key) {
   if (key == "cargo-tons-symbol") return "t";
   if (key == "cargo-kilograms-symbol") return "kg";
   if (key == "cargo-grams-symbol") return "g";
@@ -112,7 +112,7 @@ std::string cxx_OOLookUpDescriptionPRIV(const std::string& key) {
 }
 
 // The expander (a whole-game unit); the functions pinned here never expand.
-std::optional<std::string> cxx_OOExpandDescriptionString(
+std::optional<std::string> OOExpandDescriptionString(
     Random_Seed /*seed*/, const std::string& string,
     const oo::PList& /*overrides*/, const oo::PList& /*legacyLocals*/,
     const std::optional<std::string>& /*systemName*/,
@@ -190,7 +190,7 @@ oo::PList PlayerEntity::missionVariableForKey(const std::string& /*key*/) {
 
 PlayerEntity* gOOPlayer = nullptr;
 
-void cxx_OOStandardsDeprecated(const std::string& /*message*/) {}
+void OOStandardsDeprecated(const std::string& /*message*/) {}
 
 bool OOEnforceStandards(void) { return false; }
 
@@ -225,15 +225,15 @@ OO_TEST(weaponTypeIdentifiers) {
             .get();
     OO_CHECK(pulse != nullptr);
 
-    OO_CHECK(cxx_OOStringFromWeaponType(pulse) ==
+    OO_CHECK(OOStringFromWeaponType(pulse) ==
              std::optional<std::string>("EQ_WEAPON_PULSE_LASER"));
-    OO_CHECK(cxx_OOStringFromWeaponType(nullptr) ==
+    OO_CHECK(OOStringFromWeaponType(nullptr) ==
              std::optional<std::string>("EQ_WEAPON_NONE"));
 
-    OO_CHECK(cxx_OOEquipmentIdentifierFromWeaponType(pulse) ==
+    OO_CHECK(OOEquipmentIdentifierFromWeaponType(pulse) ==
              std::optional<std::string>("EQ_WEAPON_PULSE_LASER"));
     // A message to nil answered a zeroed std::optional: no identifier.
-    OO_CHECK(cxx_OOEquipmentIdentifierFromWeaponType(nullptr) == std::nullopt);
+    OO_CHECK(OOEquipmentIdentifierFromWeaponType(nullptr) == std::nullopt);
   }
 }
 
@@ -248,37 +248,37 @@ OO_TEST(sloppyLookUp) {
     OO_CHECK(pulse != nullptr && none != nullptr && pulse != none);
 
     // The identifier itself, then with "EQ_" put in front, then EQ_WEAPON_NONE.
-    OO_CHECK(cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(
+    OO_CHECK(OOWeaponTypeFromEquipmentIdentifierSloppy(
                  "EQ_WEAPON_PULSE_LASER") == pulse);
-    OO_CHECK(cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(
+    OO_CHECK(OOWeaponTypeFromEquipmentIdentifierSloppy(
                  "WEAPON_PULSE_LASER") == pulse);
     OO_CHECK(
-        cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("LASER_WITHOUT_PREFIX") ==
+        OOWeaponTypeFromEquipmentIdentifierSloppy("LASER_WITHOUT_PREFIX") ==
         OOEquipmentType::equipmentTypeWithIdentifier("LASER_WITHOUT_PREFIX")
             .get());
-    OO_CHECK(cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_FUEL") ==
+    OO_CHECK(OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_FUEL") ==
              OOEquipmentType::equipmentTypeWithIdentifier("EQ_FUEL").get());
-    OO_CHECK(cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("PULSE_LASER") ==
+    OO_CHECK(OOWeaponTypeFromEquipmentIdentifierSloppy("PULSE_LASER") ==
              none);
-    OO_CHECK(cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(
+    OO_CHECK(OOWeaponTypeFromEquipmentIdentifierSloppy(
                  "EQ_NO_SUCH_THING") == none);
-    OO_CHECK(cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("") == none);
+    OO_CHECK(OOWeaponTypeFromEquipmentIdentifierSloppy("") == none);
 
     // The other spellings are the same look-up.
     OO_CHECK(
-        cxx_OOWeaponTypeFromEquipmentIdentifierStrict("WEAPON_BEAM_LASER") ==
+        OOWeaponTypeFromEquipmentIdentifierStrict("WEAPON_BEAM_LASER") ==
         OOEquipmentType::equipmentTypeWithIdentifier("EQ_WEAPON_BEAM_LASER")
             .get());
-    OO_CHECK(cxx_OOWeaponTypeFromString("WEAPON_PULSE_LASER") == pulse);
-    OO_CHECK(cxx_OOWeaponTypeFromString("nonsense") == none);
+    OO_CHECK(OOWeaponTypeFromString("WEAPON_PULSE_LASER") == pulse);
+    OO_CHECK(OOWeaponTypeFromString("nonsense") == none);
 
     // Save games stored weapons as numbers.
-    OO_CHECK(cxx_OOWeaponTypeFromEquipmentIdentifierLegacy("2") == pulse);
-    OO_CHECK(IdentifierOf(cxx_OOWeaponTypeFromEquipmentIdentifierLegacy("3")) ==
+    OO_CHECK(OOWeaponTypeFromEquipmentIdentifierLegacy("2") == pulse);
+    OO_CHECK(IdentifierOf(OOWeaponTypeFromEquipmentIdentifierLegacy("3")) ==
              "EQ_WEAPON_BEAM_LASER");
-    OO_CHECK(cxx_OOWeaponTypeFromEquipmentIdentifierLegacy("4") ==
+    OO_CHECK(OOWeaponTypeFromEquipmentIdentifierLegacy("4") ==
              none);  // no mining laser here
-    OO_CHECK(cxx_OOWeaponTypeFromEquipmentIdentifierLegacy("EQ_FUEL") ==
+    OO_CHECK(OOWeaponTypeFromEquipmentIdentifierLegacy("EQ_FUEL") ==
              OOEquipmentType::equipmentTypeWithIdentifier("EQ_FUEL").get());
   }
 }
@@ -292,7 +292,7 @@ OO_TEST(massUnitOfACommodity) {
 
     // No market: a message to nil answered 0, OOMassUnit::kTons.
     gSharedUniverse->market = nullptr;
-    OO_CHECK(cxx_DisplayStringForMassUnitForCommodity("gold") ==
+    OO_CHECK(DisplayStringForMassUnitForCommodity("gold") ==
              std::optional<std::string>("t"));
 
     std::shared_ptr<OOCommodityMarket> market = oo::makeShared<OOCommodityMarket>();
@@ -306,16 +306,16 @@ OO_TEST(massUnitOfACommodity) {
                                     {"quantity_unit", oo::PList(7)}}));
     gSharedUniverse->market = market;
 
-    OO_CHECK(cxx_DisplayStringForMassUnitForCommodity("gold") ==
+    OO_CHECK(DisplayStringForMassUnitForCommodity("gold") ==
              std::optional<std::string>("kg"));
-    OO_CHECK(cxx_DisplayStringForMassUnitForCommodity("gems") ==
+    OO_CHECK(DisplayStringForMassUnitForCommodity("gems") ==
              std::optional<std::string>("g"));
-    OO_CHECK(cxx_DisplayStringForMassUnitForCommodity("food") ==
+    OO_CHECK(DisplayStringForMassUnitForCommodity("food") ==
              std::optional<std::string>("t"));
-    OO_CHECK(cxx_DisplayStringForMassUnitForCommodity("unobtainium") ==
+    OO_CHECK(DisplayStringForMassUnitForCommodity("unobtainium") ==
              std::optional<std::string>("t"));
-    OO_CHECK(cxx_DisplayStringForMassUnitForCommodity("alloys") ==
-             cxx_DisplayStringForMassUnit(OOMassUnit::kUnknown));
+    OO_CHECK(DisplayStringForMassUnitForCommodity("alloys") ==
+             DisplayStringForMassUnit(OOMassUnit::kUnknown));
 
     gSharedUniverse->market = nullptr;
   }

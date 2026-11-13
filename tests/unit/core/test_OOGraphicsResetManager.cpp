@@ -61,13 +61,13 @@ OORegExpMatcher::~OORegExpMatcher() {}
 void OOLogIndent(void) {}
 void OOLogOutdent(void) {}
 
-OOShaderSetting cxx_OOShaderSettingFromString(const std::string& string) {
+OOShaderSetting OOShaderSettingFromString(const std::string& string) {
   return string == "SHADERS_FULL" ? OOShaderSetting::kFull : OOShaderSetting::kNotSupported;
 }
 
 // OOLogging.mm's (it would bring the resource manager into the link).
-extern const char* const cxx_kOOLogException;
-const char* const cxx_kOOLogException = "exception";
+extern const char* const kOOLogException;
+const char* const kOOLogException = "exception";
 
 // The C++ OOTexture's static member.
 void OOTexture::rebindAllTextures() {

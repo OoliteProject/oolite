@@ -93,14 +93,14 @@ void OOLogIndent() { oo::log::indent(); }
 void OOLogOutdent() { oo::log::outdent(); }
 
 void OOLogGenericParameterErrorForFunction(const char* inFunction) {
-  OO_LOG(cxx_kOOLogParameterError,
+  OO_LOG(kOOLogParameterError,
          "***** {}: bad parameters. (This is an internal programming error, "
          "please report it.)",
          inFunction != nullptr ? inFunction : "(null)");
 }
 
 void OOLogGenericSubclassResponsibilityForFunction(const char* inFunction) {
-  OO_LOG(cxx_kOOLogSubclassResponsibility,
+  OO_LOG(kOOLogSubclassResponsibility,
          "***** {} is a subclass responsibility. (This is an internal "
          "programming error, please report it.)",
          inFunction != nullptr ? inFunction : "(null)");
@@ -195,19 +195,17 @@ void OOLoggingReloadSettings() { LoadExplicitSettings(); }
 
 void OOLogInsertMarker() { oo::log::logger().insertMarker(); }
 
-const char* const cxx_kOOLogSubclassResponsibility =
+const char* const kOOLogSubclassResponsibility =
     "general.error.subclassResponsibility";
-const char* const cxx_kOOLogParameterError = "general.error.parameterError";
-const char* const cxx_kOOLogDeprecatedMethod = "general.error.deprecatedMethod";
-const char* const cxx_kOOLogAllocationFailure =
-    "general.error.allocationFailure";
-const char* const cxx_kOOLogInconsistentState =
-    "general.error.inconsistentState";
-const char* const cxx_kOOLogException = "exception";
-const char* const cxx_kOOLogFileNotFound = "files.notFound";
-const char* const cxx_kOOLogFileNotLoaded = "files.notLoaded";
-const char* const cxx_kOOLogOpenGLError = "rendering.opengl.error";
-const char* const cxx_kOOLogUnconvertedNSLog = "unclassified";
+const char* const kOOLogParameterError = "general.error.parameterError";
+const char* const kOOLogDeprecatedMethod = "general.error.deprecatedMethod";
+const char* const kOOLogAllocationFailure = "general.error.allocationFailure";
+const char* const kOOLogInconsistentState = "general.error.inconsistentState";
+const char* const kOOLogException = "exception";
+const char* const kOOLogFileNotFound = "files.notFound";
+const char* const kOOLogFileNotLoaded = "files.notLoaded";
+const char* const kOOLogOpenGLError = "rendering.opengl.error";
+const char* const kOOLogUnconvertedNSLog = "unclassified";
 
 /*	LoadExplicitSettings()
         Read settings from logcontrol.plists, merge in settings from
@@ -258,7 +256,7 @@ static void LoadExplicitSettings() {
     const std::string path = oo::str::appendingPathComponent(
         oo::str::appendingPathComponent(*builtInPath, "Config"),
         "logcontrol.plist");
-    builtInSettings = cxx_OOPropertyListFromFile(path);
+    builtInSettings = OOPropertyListFromFile(path);
     if (!builtInSettings.isDict())
       builtInSettings =
           oo::PList();  // a dictionary or nothing, as OODictionaryFromFile

@@ -71,23 +71,23 @@ const char *OOJSClassName(JSClassID classID);
 bool OOJSIsSubclass(JSClassID putativeSubclass, JSClassID superclass);
 
 
-void cxx_OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
+void OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
 {
 	std::string msg = oo::str::vformat(format, args);
 	JS_ThrowPlainError(context, "%s", msg.c_str());
 }
 
 
-void cxx_OOJSReportError(JSContext *context, const char *format, ...)
+void OOJSReportError(JSContext *context, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
-	cxx_OOJSReportErrorWithArguments(context, format, args);
+	OOJSReportErrorWithArguments(context, format, args);
 	va_end(args);
 }
 
 
-void cxx_OOJSReportWarning(JSContext *context, const char *format, ...)
+void OOJSReportWarning(JSContext *context, const char *format, ...)
 {
 	(void)context;
 	va_list args;
@@ -97,21 +97,21 @@ void cxx_OOJSReportWarning(JSContext *context, const char *format, ...)
 }
 
 
-void cxx_OOJSReportBadArguments(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, int argc, JSValueConst *, const std::optional<std::string> &message, const std::optional<std::string> &expectedArgsDescription)
+void OOJSReportBadArguments(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, int argc, JSValueConst *, const std::optional<std::string> &message, const std::optional<std::string> &expectedArgsDescription)
 {
-	cxx_OOJSReportError(context, "bad arguments: %s.%s (%d): %s; expected %s", scriptClass.value_or("").c_str(), function.value_or("").c_str(), argc, message.value_or("").c_str(), expectedArgsDescription.value_or("").c_str());
+	OOJSReportError(context, "bad arguments: %s.%s (%d): %s; expected %s", scriptClass.value_or("").c_str(), function.value_or("").c_str(), argc, message.value_or("").c_str(), expectedArgsDescription.value_or("").c_str());
 }
 
 
 void OOJSReportBadPropertySelector(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t)
 {
-	cxx_OOJSReportError(context, "bad property selector");
+	OOJSReportError(context, "bad property selector");
 }
 
 
 void OOJSReportBadPropertyValue(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t, JSValueConst)
 {
-	cxx_OOJSReportError(context, "bad property value");
+	OOJSReportError(context, "bad property value");
 }
 
 
@@ -126,7 +126,7 @@ JSValue OOJSNativeFailure(JSContext *context)
 
 
 // The atom cache and the pending-exception reporter, which the class registry calls.
-JSAtom cxx_OOJSIDFromString(const std::string &string)
+JSAtom OOJSIDFromString(const std::string &string)
 {
 	return JS_NewAtomLen(gOOJSMainThreadContext, string.data(), string.size());
 }
@@ -138,7 +138,7 @@ void OOJSReportPendingException(JSContext *context)
 }
 
 
-std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueConst value)
+std::optional<std::string> OOStringFromJSValue(JSContext *context, JSValueConst value)
 {
 	if (JS_IsNull(value) || JS_IsUndefined(value))  return std::nullopt;
 	std::size_t length = 0;
@@ -156,7 +156,7 @@ std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueCo
 
 // A JS object as a property list: the test's `this` objects are plain, so any object is a
 // non-null value and no object (null) is null (what the engine's conversion gives them).
-oo::PList cxx_OOJSPListFromJSObject(JSContext *, JSValueConst object)
+oo::PList OOJSPListFromJSObject(JSContext *, JSValueConst object)
 {
 	if (!JS_IsObject(object))  return oo::PList();
 	return oo::PList(std::string("object"));
@@ -283,8 +283,8 @@ class Universe;
 Universe *gSharedUniverse = nullptr;
 
 
-extern const char *const cxx_kOOLogException;
-const char *const cxx_kOOLogException = "exception";
+extern const char *const kOOLogException;
+const char *const kOOLogException = "exception";
 
 void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction)
 {
@@ -334,7 +334,7 @@ std::string Eval(const char *src)
 		JS_FreeValue(gOOJSMainThreadContext, JS_GetException(gOOJSMainThreadContext));
 		return "<evaluation failed>";
 	}
-	std::string text = cxx_OOStringFromJSValue(gOOJSMainThreadContext, result).value_or("<not a string>");
+	std::string text = OOStringFromJSValue(gOOJSMainThreadContext, result).value_or("<not a string>");
 	JS_FreeValue(gOOJSMainThreadContext, result);
 	return text;
 }

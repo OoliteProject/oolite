@@ -55,7 +55,7 @@ OORegExpMatcher::~OORegExpMatcher() {}
 void OOLogIndent(void) {}
 void OOLogOutdent(void) {}
 
-OOShaderSetting cxx_OOShaderSettingFromString(const std::string& string) {
+OOShaderSetting OOShaderSettingFromString(const std::string& string) {
   return string == "SHADERS_FULL" ? OOShaderSetting::kFull : OOShaderSetting::kNotSupported;
 }
 

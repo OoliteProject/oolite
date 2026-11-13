@@ -49,10 +49,10 @@ SOFTWARE.
 #include "OOFoundation.h"
 
 // Warn/exit if deprecated functionality used
-void cxx_OOStandardsDeprecated(const std::string& message);
+void OOStandardsDeprecated(const std::string& message);
 
 // Warn/exit if an OXP error is detected
-void cxx_OOStandardsError(const std::string& message);
+void OOStandardsError(const std::string& message);
 
 // Return true if in standard enforcing mode
 // Always false in release builds

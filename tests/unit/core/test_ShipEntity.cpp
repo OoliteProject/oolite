@@ -6,7 +6,7 @@
 	(['*']) and uses a Universe that was never initialised, a plain entity as PLAYER, and an empty
 	JavaScript context for the events the ship sends its scripts. The ship is a subclass whose
 	-setUpShipFromDictionary: only counts (the set-up from shipdata needs the game's data), so the
-	cases test the class's own units: the initialisers (what -cxx_initWithKey:definition: sets
+	cases test the class's own units: the initialisers (what -initWithKey:definition: sets
 	before the set-up, the set-up failing, the top-speed sanity check, -initBypassForPlayer, and
 	-init sent again as PlayerEntity's -deferredInit does), -dealloc (it leaves the ship's groups),
 	and the two SubEntityRelationship categories. Ivars the game reads directly go through
@@ -104,7 +104,7 @@ T *MakeShip(const std::string &key, const oo::PList &dict)
 	return static_cast<T *>(oo::ToShip(oo::autorelease(oo::NewShipObject(oo::makeShared<T>(), key, dict))));
 }
 
-// [[T alloc] cxx_initWithKey:key definition:dict]: the same with its object retained (+1).
+// [[T alloc] initWithKey:key definition:dict]: the same with its object retained (+1).
 template <class T>
 T *NewShip(const std::string &key, const oo::PList &dict)
 {
@@ -317,7 +317,7 @@ OO_TEST(subEntityRelationship)
 }
 
 
-// --- -cxx_setUpFromDictionary:, the set-up players and NPCs share -------
+// --- -setUpFromDictionary:, the set-up players and NPCs share -------
 
 namespace {
 

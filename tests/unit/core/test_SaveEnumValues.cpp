@@ -122,8 +122,8 @@ OO_TEST(savedChartAndSpeechNumbers)
 			OO_CHECK(static_cast<OOSpeechSettings>(Saved(save, "speech_on")) == PlayerEntityTestAccess::isSpeechOn(player));
 		}
 		// The route and speech numbers name what they did.
-		OO_CHECK(cxx_RouteTypeToString(static_cast<OORouteType>(2)) == "OPTIMIZED_BY_TIME");
-		OO_CHECK(cxx_RouteTypeToString(static_cast<OORouteType>(1)) == "OPTIMIZED_BY_JUMPS");
+		OO_CHECK(RouteTypeToString(static_cast<OORouteType>(2)) == "OPTIMIZED_BY_TIME");
+		OO_CHECK(RouteTypeToString(static_cast<OORouteType>(1)) == "OPTIMIZED_BY_JUMPS");
 		gOOPlayer = nullptr;
 		oo::ReleaseEntity(player);
 	}
@@ -135,8 +135,8 @@ OO_TEST(longRangeChartModeOrdinals)
 	const char *const kModes[] = { "OOLRC_MODE_UNKNOWN", "OOLRC_MODE_SUNCOLOR", "OOLRC_MODE_ECONOMY", "OOLRC_MODE_GOVERNMENT", "OOLRC_MODE_TECHLEVEL" };
 	for (int i = 0; i < 5; i++)
 	{
-		OO_CHECK(static_cast<int>(cxx_OOLongRangeChartModeFromString(kModes[i])) == i);
-		OO_CHECK(cxx_OOStringFromLongRangeChartMode(static_cast<OOLongRangeChartMode>(i)) == kModes[i]);
+		OO_CHECK(static_cast<int>(OOLongRangeChartModeFromString(kModes[i])) == i);
+		OO_CHECK(OOStringFromLongRangeChartMode(static_cast<OOLongRangeChartMode>(i)) == kModes[i]);
 	}
 }
 
@@ -152,8 +152,8 @@ OO_TEST(legacyEnergyUnitNumbers)
 	OO_CHECK(static_cast<int>(OOEnergyUnitType::kNormalDamaged) == 1);
 	OO_CHECK(static_cast<int>(OOEnergyUnitType::kNavalDamaged) == 2);
 	OO_CHECK(static_cast<int>(OOEnergyUnitType::kNone) == 0);
-	OO_CHECK(cxx_EnergyUnitTypeToString(static_cast<OOEnergyUnitType>(8)) == "ENERGY_UNIT_NORMAL");
-	OO_CHECK(cxx_EnergyUnitTypeToString(static_cast<OOEnergyUnitType>(16)) == "ENERGY_UNIT_NAVAL");
+	OO_CHECK(EnergyUnitTypeToString(static_cast<OOEnergyUnitType>(8)) == "ENERGY_UNIT_NORMAL");
+	OO_CHECK(EnergyUnitTypeToString(static_cast<OOEnergyUnitType>(16)) == "ENERGY_UNIT_NAVAL");
 }
 
 OO_TEST(shipBehaviourNumbersByName)
@@ -170,7 +170,7 @@ OO_TEST(shipBehaviourNumbersByName)
 			ship->setBehaviour(static_cast<OOBehaviour>(b.number));
 			OOEntityByNameValue value;
 			OO_CHECK(oo::CallEntityByNameTyped(ship, "behaviour", value) && value.integer == b.number);
-			OO_CHECK(cxx_OOStringFromBehaviour(static_cast<OOBehaviour>(b.number)) == b.name);
+			OO_CHECK(OOStringFromBehaviour(static_cast<OOBehaviour>(b.number)) == b.name);
 		}
 		oo::ReleaseEntity(ship);
 	}

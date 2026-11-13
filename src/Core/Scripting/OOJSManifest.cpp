@@ -145,7 +145,7 @@ static std::optional<std::string> NameForPropertyID(JSContext* context,
   std::optional<std::string> result;
   JSValue idValue = JS_AtomToValue(context, propID);
   if (JS_IsString(idValue)) {
-    result = cxx_OOStringFromJSValue(context, idValue);
+    result = OOStringFromJSValue(context, idValue);
   }
   JS_FreeValue(context, idValue);
   return result;
@@ -234,9 +234,9 @@ static bool ManifestSetProperty(JSContext* context, JSValueConst thisObj,
           .has_value())  // qualified: the final overrider, so the binding test
                          // stands in for it
   {
-    cxx_OOJSReportWarning(context,
-                          "PlayerShip.manifest['foo'] - cannot modify cargo "
-                          "tonnage when Special Cargo is in use.");
+    OOJSReportWarning(context,
+                      "PlayerShip.manifest['foo'] - cannot modify cargo "
+                      "tonnage when Special Cargo is in use.");
     return true;
   }
 
@@ -248,11 +248,11 @@ static bool ManifestSetProperty(JSContext* context, JSValueConst thisObj,
     // a named property.
     if (JS_HasException(context))
       JS_FreeValue(context, JS_GetException(context));
-    cxx_OOJSReportError(
+    OOJSReportError(
         context,
         "Cannot set property %s of instance of %s to invalid value %s.",
         key.c_str(), OOJSClassNameOfValue(context, thisObj).c_str(),
-        cxx_OOJSDescribeValue(context, value, true).c_str());
+        OOJSDescribeValue(context, value, true).c_str());
     return false;
   }
   return true;
@@ -288,7 +288,7 @@ static int ManifestSetPropertyExotic(JSContext* context, JSValueConst object,
       JS_FreeValue(context, protoDesc.setter);
       if (readOnly) {
         if (flags & JS_PROP_THROW) {
-          cxx_OOJSReportError(
+          OOJSReportError(
               context, "Cannot set read-only property %s of instance of %s.",
               key->c_str(), OOJSClassNameOfValue(context, receiver).c_str());
           return -1;
@@ -338,11 +338,11 @@ static JSValue ManifestComment(OOJS_NATIVE_ARGS) {
   std::optional<std::string> information;
 
   if (argc > 0) {
-    good = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
+    good = OOStringFromJSValue(context, OOJS_ARGV[0]);
   }
   if (!good.has_value()) {
-    cxx_OOJSReportBadArguments(context, "Manifest", "comment", MIN(argc, 1),
-                               OOJS_ARGV, std::nullopt, "good");
+    OOJSReportBadArguments(context, "Manifest", "comment", MIN(argc, 1),
+                           OOJS_ARGV, std::nullopt, "good");
     return JS_EXCEPTION;
   }
 
@@ -366,13 +366,13 @@ static JSValue ManifestSetComment(OOJS_NATIVE_ARGS) {
   std::optional<std::string> information;
 
   if (argc > 1) {
-    good = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
-    information = cxx_OOStringFromJSValue(context, OOJS_ARGV[1]);
+    good = OOStringFromJSValue(context, OOJS_ARGV[0]);
+    information = OOStringFromJSValue(context, OOJS_ARGV[1]);
   }
   if (!good.has_value() || !information.has_value()) {
-    cxx_OOJSReportBadArguments(context, "Manifest", "setComment", MIN(argc, 2),
-                               OOJS_ARGV, std::nullopt,
-                               "good and information text");
+    OOJSReportBadArguments(context, "Manifest", "setComment", MIN(argc, 2),
+                           OOJS_ARGV, std::nullopt,
+                           "good and information text");
     return JS_EXCEPTION;
   }
 
@@ -394,11 +394,11 @@ static JSValue ManifestShortComment(OOJS_NATIVE_ARGS) {
   std::optional<std::string> information;
 
   if (argc > 0) {
-    good = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
+    good = OOStringFromJSValue(context, OOJS_ARGV[0]);
   }
   if (!good.has_value()) {
-    cxx_OOJSReportBadArguments(context, "Manifest", "shortComment",
-                               MIN(argc, 1), OOJS_ARGV, std::nullopt, "good");
+    OOJSReportBadArguments(context, "Manifest", "shortComment", MIN(argc, 1),
+                           OOJS_ARGV, std::nullopt, "good");
     return JS_EXCEPTION;
   }
 
@@ -422,13 +422,13 @@ static JSValue ManifestSetShortComment(OOJS_NATIVE_ARGS) {
   std::optional<std::string> information;
 
   if (argc > 1) {
-    good = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
-    information = cxx_OOStringFromJSValue(context, OOJS_ARGV[1]);
+    good = OOStringFromJSValue(context, OOJS_ARGV[0]);
+    information = OOStringFromJSValue(context, OOJS_ARGV[1]);
   }
   if (!good.has_value() || !information.has_value()) {
-    cxx_OOJSReportBadArguments(context, "Manifest", "setShortComment",
-                               MIN(argc, 2), OOJS_ARGV, std::nullopt,
-                               "good and information text");
+    OOJSReportBadArguments(context, "Manifest", "setShortComment", MIN(argc, 2),
+                           OOJS_ARGV, std::nullopt,
+                           "good and information text");
     return JS_EXCEPTION;
   }
 

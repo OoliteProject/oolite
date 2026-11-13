@@ -201,7 +201,7 @@ void OOSkyDrawable::renderOpaqueParts() {
   // Resetting fog is draw loop's responsibility.
 
   OOVerifyOpenGLState();
-  cxx_OOCheckOpenGLErrors("OOSkyDrawable after rendering");
+  OOCheckOpenGLErrors("OOSkyDrawable after rendering");
 }
 
 bool OOSkyDrawable::hasOpaqueParts() { return true; }

@@ -32,7 +32,7 @@ void OOLogGenericSubclassResponsibilityForFunction(const char* inFunction) {
   gSubclassResponsibilities++;
 }
 
-const char* const cxx_kOOLogException = "exception";
+const char* const kOOLogException = "exception";
 
 /*	The universe, as far as OOScriptTimer sees it: the game clock
  * (-getTime), which the test sets.

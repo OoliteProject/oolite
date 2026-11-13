@@ -38,11 +38,11 @@ const HPVector2D kZeroHPVector2D = {0.0, 0.0};
 const HPVector2D kBasisXHPVector2D = {1.0, 0.0};
 const HPVector2D kBasisYHPVector2D = {0.0, 1.0};
 
-std::string cxx_HPVectorDescription(HPVector vector) {
+std::string HPVectorDescription(HPVector vector) {
   return std::format("({:g}, {:g}, {:g})", vector.x, vector.y, vector.z);
 }
 
-std::vector<double> cxx_ArrayFromHPVector(HPVector vec) {
+std::vector<double> ArrayFromHPVector(HPVector vec) {
   return {vec.x, vec.y, vec.z};
 }
 

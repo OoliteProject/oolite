@@ -66,7 +66,7 @@ class AI : public oo::Object {
   AI();            // -init
   ~AI() override;  // -dealloc
 
-  // [[AI alloc] cxx_initWithStateMachine:andState:]: a new AI running the state
+  // [[AI alloc] initWithStateMachine:andState:]: a new AI running the state
   // machine (nullopt: none) in the state (nullopt: none).
   static std::shared_ptr<AI> newWithStateMachine(
       const std::optional<std::string>& smName,
@@ -81,7 +81,7 @@ class AI : public oo::Object {
   currentlyRunningAI();  // borrowed; null: none (+currentlyRunningAI)
   static std::optional<std::string> currentlyRunningAIDescription();
 
-  // -cxx_initWithStateMachine:andState:'s body after its [self init]
+  // -initWithStateMachine:andState:'s body after its [self init]
   // (std::nullopt where the Foundation version took nil); newWithStateMachine()
   // runs it.
   void initWithStateMachine(const std::optional<std::string>& smName,
@@ -96,7 +96,7 @@ class AI : public oo::Object {
 
   void setStateMachine(
       const std::string& smName,
-      const std::string& script);  // -cxx_setStateMachine:withJSScript:
+      const std::string& script);  // -setStateMachine:withJSScript:
   void setState(const std::string& stateName);
 
   void setStateMachine(const std::string& smName, double delay);

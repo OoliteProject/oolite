@@ -639,7 +639,7 @@ std::optional<std::string> WormholeEntity::descriptionComponents() const {
                                       : std::optional<std::string>())
                      .value_or("(null)")
                      .c_str(),
-      expiry_time - now, cxx_ClockToString(arrival_time, false));
+      expiry_time - now, ClockToString(arrival_time, false));
 }
 
 std::optional<std::string> WormholeEntity::identFromShip(::ShipEntity* ship) {
@@ -656,7 +656,7 @@ std::optional<std::string> WormholeEntity::identFromShip(::ShipEntity* ship) {
       return OO_DESC("wormhole-desc");
     }
   } else {
-    OO_LOG_ERR(cxx_kOOLogInconsistentState, "{}",
+    OO_LOG_ERR(kOOLogInconsistentState, "{}",
                "Wormhole identified when ship has no EQ_WORMHOLE_SCANNER.");
     /*
             This was previously an assertion, but a player reported hitting it.
@@ -758,7 +758,7 @@ void WormholeEntity::drawImmediate(bool /*immediate*/, bool translucent) {
   }
 
   OOVerifyOpenGLState();
-  cxx_OOCheckOpenGLErrors([&]() -> std::string {
+  OOCheckOpenGLErrors([&]() -> std::string {
     return "WormholeEntity after drawing " + oo::EntityDescription(this);
   });
 }
@@ -836,8 +836,8 @@ oo::PList WormholeEntity::getDict() {
   // -oo_setBool: a boolean
   myDict["origin_id"] = oo::PList::signedInteger(origin);
   myDict["dest_id"] = oo::PList::signedInteger(destination);
-  myDict["origin_coords"] = oo::PList(cxx_StringFromPoint(originCoords));
-  myDict["dest_coords"] = oo::PList(cxx_StringFromPoint(destinationCoords));
+  myDict["origin_coords"] = oo::PList(StringFromPoint(originCoords));
+  myDict["dest_coords"] = oo::PList(StringFromPoint(destinationCoords));
   // Anything converting a wormhole to a dictionary should already have
   // modified its time to shipClock time
   myDict["expiry_time"] = oo::PList(expiry_time);
@@ -880,13 +880,13 @@ void WormholeEntity::dumpSelfState() {
                               : std::optional<std::string>())
              .value_or("(null)"));
   OO_LOG("dumpState.wormholeEntity", "Expiry Time            : {}",
-         cxx_ClockToString(expiry_time, false));
+         ClockToString(expiry_time, false));
   OO_LOG("dumpState.wormholeEntity", "Arrival Time           : {}",
-         cxx_ClockToString(arrival_time, false));
+         ClockToString(arrival_time, false));
   OO_LOG("dumpState.wormholeEntity", "Projected Arrival Time : {}",
-         cxx_ClockToString(estimated_arrival_time, false));
+         ClockToString(estimated_arrival_time, false));
   OO_LOG("dumpState.wormholeEntity", "Scanned Time           : {}",
-         cxx_ClockToString(scan_time, false));
+         ClockToString(scan_time, false));
   OO_LOG("dumpState.wormholeEntity", "Scanned State          : {}",
          scanInfoString());
 
@@ -902,7 +902,7 @@ void WormholeEntity::dumpSelfState() {
            "Ship {}: {}  mass {:.2f}  arrival time {}", i + 1,
            oo::EntityDescription(ship),
            (ship != nullptr ? ship->getMass() : 0.0f),
-           cxx_ClockToString(ship_arrival_time, false));
+           ClockToString(ship_arrival_time, false));
   }
 }
 

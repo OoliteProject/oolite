@@ -54,10 +54,9 @@ MA 02110-1301, USA.
 // (nullopt reads as
 // "<data in memory>"). No data (nullopt) parses nothing. The result is null
 // where there was no property list.
-oo::PList cxx_OOPropertyListFromData(
-    const std::optional<oo::Data>& data,
-    const std::optional<std::string>& whereFrom);
-oo::PList cxx_OOPropertyListFromFile(const std::string& path);
+oo::PList OOPropertyListFromData(const std::optional<oo::Data>& data,
+                                 const std::optional<std::string>& whereFrom);
+oo::PList OOPropertyListFromFile(const std::string& path);
 
 // The typed wrappers have no twins: test the result's kind
 // (getIf<oo::PList::Dict> / getIf<oo::PList::Array>).

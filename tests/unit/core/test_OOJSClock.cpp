@@ -34,25 +34,25 @@
 
 JSContext* gOOJSMainThreadContext = NULL;  // the engine's
 
-void cxx_OOJSReportErrorWithArguments(JSContext* context, const char* format,
+void OOJSReportErrorWithArguments(JSContext* context, const char* format,
                                       va_list args) {
   std::string msg = oo::str::vformat(format, args);
   JS_ThrowPlainError(context, "%s", msg.c_str());
 }
 
-void cxx_OOJSReportError(JSContext* context, const char* format, ...) {
+void OOJSReportError(JSContext* context, const char* format, ...) {
   va_list args;
   va_start(args, format);
-  cxx_OOJSReportErrorWithArguments(context, format, args);
+  OOJSReportErrorWithArguments(context, format, args);
   va_end(args);
 }
 
-void cxx_OOJSReportBadArguments(
+void OOJSReportBadArguments(
     JSContext* context, const std::optional<std::string>& scriptClass,
     const std::optional<std::string>& function, int argc, JSValueConst*,
     const std::optional<std::string>& message,
     const std::optional<std::string>& expectedArgsDescription) {
-  cxx_OOJSReportError(context, "bad arguments: %s.%s (%d): %s; expected %s",
+  OOJSReportError(context, "bad arguments: %s.%s (%d): %s; expected %s",
                       scriptClass.value_or("").c_str(),
                       function.value_or("").c_str(), argc,
                       message.value_or("").c_str(),
@@ -61,10 +61,10 @@ void cxx_OOJSReportBadArguments(
 
 void OOJSReportBadPropertySelector(JSContext* context, JSValueConst, int,
                                    const JSCFunctionListEntry*, size_t) {
-  cxx_OOJSReportError(context, "bad property selector");
+  OOJSReportError(context, "bad property selector");
 }
 
-std::optional<std::string> cxx_OOStringFromJSValue(JSContext* context,
+std::optional<std::string> OOStringFromJSValue(JSContext* context,
                                                    JSValueConst value) {
   if (JS_IsNull(value) || JS_IsUndefined(value)) return std::nullopt;
   std::size_t length = 0;
@@ -86,7 +86,7 @@ JSValue OOJSValueFromPList(JSContext* context, const oo::PList& plist) {
 
 JSValue OOJSUnconstructableConstruct(JSContext* context, JSValueConst, int,
                                      JSValueConst*) {
-  cxx_OOJSReportError(context, "unconstructable");
+  OOJSReportError(context, "unconstructable");
   return JS_EXCEPTION;
 }
 
@@ -95,7 +95,7 @@ void OOJSReportPendingException(JSContext* context) {
   JS_FreeValue(context, JS_GetException(context));
 }
 
-JSAtom cxx_OOJSIDFromString(const std::string& string) {
+JSAtom OOJSIDFromString(const std::string& string) {
   return JS_NewAtom(OOJSAcquireContext(), string.c_str());
 }
 
@@ -123,10 +123,10 @@ void OOJSUnreachable(const char* function, const char*, unsigned) {
 }
 #endif
 
-void cxx_OOStandardsDeprecated(const std::string&) { sDeprecations++; }
+void OOStandardsDeprecated(const std::string&) { sDeprecations++; }
 
 // The formatter, as far as the clock sees it: what it was asked for.
-std::string cxx_ClockToString(double clock, bool adjusting) {
+std::string ClockToString(double clock, bool adjusting) {
   return oo::str::format("clock(%g, %d)", clock, adjusting ? 1 : 0);
 }
 
@@ -217,7 +217,7 @@ std::string Eval(const char* src) {
     return "<evaluation failed>";
   }
   std::string text =
-      cxx_OOStringFromJSValue(sContext, result).value_or("<not a string>");
+      OOStringFromJSValue(sContext, result).value_or("<not a string>");
   JS_FreeValue(sContext, result);
   return text;
 }

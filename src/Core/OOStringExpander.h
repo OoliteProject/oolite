@@ -38,14 +38,14 @@ enum class OOExpandOptions : std::size_t {
   kNone = 0,
   kForJavaScript = 0x00000001,  ///< Report warnings through JavaScript runtime
                                 ///< system instead of normal logging.
-  kBackslashN = 0x00000002,  ///< Convert literal "\\n"s to line breaks (used
+  kBackslashN = 0x00000002,     ///< Convert literal "\\n"s to line breaks (used
                              ///< for missiontext.plist for historical reasons).
   kGoodRNG = 0x00000004,    ///< Use RANDROT for selecting from description
                             ///< arrays and for %N expansion.
   kReseedRNG = 0x00000008,  ///< Set "really random" seeds while expanding.
   kKey = 0x00000010,        ///< Treat string as a key. Expand(@"foo",
-                      ///< OOExpandOptions::kKey) == Expand(@"[foo]",
-                      ///< OOExpandOptions::kNone).
+                            ///< OOExpandOptions::kKey) == Expand(@"[foo]",
+                            ///< OOExpandOptions::kNone).
   kDisallowPercentI =
       0x00000020  ///< Disallow %I expansion (used when expanding %I itself).
 };
@@ -137,9 +137,9 @@ constexpr std::true_type OOEnableFlagOperators(OOExpandOptions);
 
 // C++ form: overrides and legacyLocals are dictionaries of
 // mixed values (oo::PList with Object nodes; null: none); nullopt where the
-// string expanded to nothing. Game code calls this or the cxx_OOExpand* macros
+// string expanded to nothing. Game code calls this or the OOExpand* macros
 // below.
-std::optional<std::string> cxx_OOExpandDescriptionString(
+std::optional<std::string> OOExpandDescriptionString(
     Random_Seed seed, const std::string& string, const oo::PList& overrides,
     const oo::PList& legacyLocals, const std::optional<std::string>& systemName,
     OOExpandOptions options);
@@ -154,7 +154,7 @@ std::optional<std::string> cxx_OOExpandDescriptionString(
         NOTE: this does not apply planetinfo overrides. To get the actual system
         description, use [UNIVERSE generateSystemData:].
 */
-std::optional<std::string> cxx_OOGenerateSystemDescription(
+std::optional<std::string> OOGenerateSystemDescription(
     Random_Seed seed, const std::optional<std::string>& name);
 
 // Equivalent to [[UNIVERSE systemManager] getRandomSeedForCurrentSystem],
@@ -330,7 +330,7 @@ Random_Seed OOStringExpanderDefaultRandomSeed(void);
 
 /*
         C++ forms of the OOExpand* macros. They take the string
-        or key as a std::string and return cxx_OOExpandDescriptionString's
+        or key as a std::string and return OOExpandDescriptionString's
    std::optional<std::string>. As with the Foundation macros, each extra
    argument reaches the expander under its own spelling
         (#ITEM: OOExpandKey("x-[count]", count) makes [count] refer to the
@@ -341,54 +341,54 @@ Random_Seed OOStringExpanderDefaultRandomSeed(void);
         is left out of the dictionary (the Foundation macro could not hold nil).
    No arguments passes the null PList, as the macro passed nil.
 */
-#define cxx_OOExpand(string, ...) \
-  cxx_OOExpandWithSeed(OOStringExpanderDefaultRandomSeed(), string, __VA_ARGS__)
+#define OOExpand(string, ...) \
+  OOExpandWithSeed(OOStringExpanderDefaultRandomSeed(), string, __VA_ARGS__)
 
-#define cxx_OOExpandKey(key, ...) \
-  cxx_OOExpandKeyWithSeed(OOStringExpanderDefaultRandomSeed(), key, __VA_ARGS__)
+#define OOExpandKey(key, ...) \
+  OOExpandKeyWithSeed(OOStringExpanderDefaultRandomSeed(), key, __VA_ARGS__)
 
-#define cxx_OOExpandKeyRandomized(key, ...)                                   \
-  cxx_OOExpandWithOptions(OOStringExpanderDefaultRandomSeed(),                \
-                          OOExpandOptions::kKey | OOExpandOptions::kGoodRNG | \
-                              OOExpandOptions::kReseedRNG,                    \
-                          key, __VA_ARGS__)
+#define OOExpandKeyRandomized(key, ...)                                   \
+  OOExpandWithOptions(OOStringExpanderDefaultRandomSeed(),                \
+                      OOExpandOptions::kKey | OOExpandOptions::kGoodRNG | \
+                          OOExpandOptions::kReseedRNG,                    \
+                      key, __VA_ARGS__)
 
-#define cxx_OOExpandWithSeed(seed, string, ...) \
-  cxx_OOExpandWithOptions(seed, OOExpandOptions::kNone, string, __VA_ARGS__)
+#define OOExpandWithSeed(seed, string, ...) \
+  OOExpandWithOptions(seed, OOExpandOptions::kNone, string, __VA_ARGS__)
 
-#define cxx_OOExpandKeyWithSeed(seed, key, ...) \
-  cxx_OOExpandWithOptions(seed, OOExpandOptions::kKey, key, __VA_ARGS__)
+#define OOExpandKeyWithSeed(seed, key, ...) \
+  OOExpandWithOptions(seed, OOExpandOptions::kKey, key, __VA_ARGS__)
 
-#define cxx_OOExpandWithOptions(seed, options, string, ...)               \
-  cxx_OOExpandDescriptionString(seed, string,                             \
-                                OOEXPAND_CXX_ARG_DICTIONARY(__VA_ARGS__), \
-                                oo::PList(), std::nullopt, options)
+#define OOExpandWithOptions(seed, options, string, ...)               \
+  OOExpandDescriptionString(seed, string,                             \
+                            OOEXPAND_CXX_ARG_DICTIONARY(__VA_ARGS__), \
+                            oo::PList(), std::nullopt, options)
 
 #define OOEXPAND_CXX_ARG_DICTIONARY(...) \
-  cxx_OOExpandArgumentDictionary(        \
+  OOExpandArgumentDictionary(            \
       {OOEXPAND_MAP(OOEXPAND_CXX_ARG_ENTRY, __VA_ARGS__)})
 #define OOEXPAND_CXX_ARG_ENTRY(ITEM) \
-  oo::PList::Dict::value_type(#ITEM, cxx_OOCastParam(ITEM))
+  oo::PList::Dict::value_type(#ITEM, OOCastParam(ITEM))
 
-// cxx_OOCastParam() is OO_CAST_PARAMETER() for the C++ macros.
-inline oo::PList cxx_OOCastParam(const std::string& value) {
+// OOCastParam() is OO_CAST_PARAMETER() for the C++ macros.
+inline oo::PList OOCastParam(const std::string& value) {
   return oo::PList(value);
 }
-inline oo::PList cxx_OOCastParam(const char* value) { return oo::PList(value); }
-inline oo::PList cxx_OOCastParam(const std::optional<std::string>& value) {
+inline oo::PList OOCastParam(const char* value) { return oo::PList(value); }
+inline oo::PList OOCastParam(const std::optional<std::string>& value) {
   return value.has_value() ? oo::PList(*value) : oo::PList();
 }
-inline oo::PList cxx_OOCastParam(float value) {
+inline oo::PList OOCastParam(float value) {
   return oo::PList::singleReal(value);
 }
-inline oo::PList cxx_OOCastParam(double value) { return oo::PList(value); }
-inline oo::PList cxx_OOCastParam(long double value) {
+inline oo::PList OOCastParam(double value) { return oo::PList(value); }
+inline oo::PList OOCastParam(long double value) {
   return oo::PList(static_cast<double>(value));
 }
 
 template <class I>
   requires std::integral<I>
-oo::PList cxx_OOCastParam(I value) {
+oo::PList OOCastParam(I value) {
   if constexpr (std::is_unsigned_v<I> && !std::same_as<I, bool>)
     return oo::PList::unsignedInteger(value);
   else
@@ -398,15 +398,15 @@ oo::PList cxx_OOCastParam(I value) {
 template <class E>
   requires(std::is_enum_v<E> &&
            std::is_convertible_v<E, std::underlying_type_t<E>>)
-oo::PList cxx_OOCastParam(E value) {
-  return cxx_OOCastParam(
+oo::PList OOCastParam(E value) {
+  return OOCastParam(
       +value);  // the integral promotion OOCastParam's overload resolution made
 }
 
 // The argument dictionary: the null PList when there are no arguments; null
 // values left out; a repeated name keeps its last value, as
 // +dictionaryWithObjects:forKeys:count: did.
-inline oo::PList cxx_OOExpandArgumentDictionary(
+inline oo::PList OOExpandArgumentDictionary(
     std::initializer_list<oo::PList::Dict::value_type> entries) {
   if (entries.size() == 0) return oo::PList();
   oo::PList::Dict dictionary;

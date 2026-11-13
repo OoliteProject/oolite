@@ -152,9 +152,9 @@ static JSValue SoundSourceConstruct(OOJS_NATIVE_ARGS) {
   OOJS_NATIVE_ENTER(context)
 
   if (EXPECT_NOT(!OOJS_IS_CONSTRUCTING)) {
-    cxx_OOJSReportError(context,
-                        "SoundSource() cannot be called as a function, it must "
-                        "be used as a constructor (as in new SoundSource()).");
+    OOJSReportError(context,
+                    "SoundSource() cannot be called as a function, it must "
+                    "be used as a constructor (as in new SoundSource()).");
     return JS_EXCEPTION;
   }
 
@@ -308,8 +308,8 @@ static JSValue SoundSourcePlay(OOJS_NATIVE_ARGS) {
     return OOJSNativeFailure(context);
   if (argc > 0 && !JS_IsUndefined(OOJS_ARGV[0]) &&
       !OOJSValueToInt32(context, OOJS_ARGV[0], &count)) {
-    cxx_OOJSReportBadArguments(context, "SoundSource", "play", 1, OOJS_ARGV,
-                               std::nullopt, "integer count or no argument");
+    OOJSReportBadArguments(context, "SoundSource", "play", 1, OOJS_ARGV,
+                           std::nullopt, "integer count or no argument");
     return OOJSNativeFailure(context);
   }
 

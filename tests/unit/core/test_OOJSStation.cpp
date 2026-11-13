@@ -109,10 +109,10 @@ class TestEntityObject final : public oo::Object
 {
 public:
 	const char *className() const  { return "Entity"; }	// the class's runtime name
-	std::optional<std::string> cxx_descriptionComponents();
+	std::optional<std::string> descriptionComponents();
 	bool answersJSClass();
 	JSClassID oo_jsClassID();
-	std::optional<std::string> cxx_oo_jsClassName();
+	std::optional<std::string> oo_jsClassName();
 	JSValue oo_jsValueInContext(JSContext *context);
 
 	std::shared_ptr<Entity> _cxxEntity;
@@ -322,12 +322,12 @@ std::map<Entity *, ::TestEntityObject *> sObjects;	// what TestObjectOf answers:
 }
 
 
-std::optional<std::string> TestEntityObject::cxx_descriptionComponents()  { return _name; }
+std::optional<std::string> TestEntityObject::descriptionComponents()  { return _name; }
 
 // As the game's Entity (OOJavaScriptExtensions) answers for an entity made in C++: its C++ part's.
 bool TestEntityObject::answersJSClass()  { return _cxxEntity != nullptr; }
 JSClassID TestEntityObject::oo_jsClassID()  { return _cxxEntity->jsClassID(); }
-std::optional<std::string> TestEntityObject::cxx_oo_jsClassName()  { return _cxxEntity->jsClassName(); }
+std::optional<std::string> TestEntityObject::oo_jsClassName()  { return _cxxEntity->jsClassName(); }
 
 // TestEntityObject::oo_jsValueInContext() makes one: the class the entity's category names (its
 // prototype is the class's), else the Ship class; the entity keeps it, and the caller owns the
@@ -571,7 +571,7 @@ void OOJSScript::popScript(OOJSScript *)  { std::abort(); }
 
 // MARK: What the rest of the game provides --------------------------------------------------------
 
-std::optional<std::string> cxx_OOExpandDescriptionString(Random_Seed, const std::string &string, const oo::PList &, const oo::PList &, const std::optional<std::string> &, OOExpandOptions)
+std::optional<std::string> OOExpandDescriptionString(Random_Seed, const std::string &string, const oo::PList &, const oo::PList &, const std::optional<std::string> &, OOExpandOptions)
 {
 	return "<" + string + ">";
 }
@@ -581,7 +581,7 @@ Random_Seed OOStringExpanderDefaultRandomSeed(void)
 	return Random_Seed{};
 }
 
-std::string cxx_OOLookUpDescriptionPRIV(const std::string &key)
+std::string OOLookUpDescriptionPRIV(const std::string &key)
 {
 	return "desc(" + key + ")";
 }
@@ -598,13 +598,13 @@ void OOCacheManager::setPList(const oo::PList &, const std::string &, const std:
 std::shared_ptr<OOScript> OOScript::jsScriptFromFileNamed(const std::string &, const oo::PList &)  { std::abort(); }
 void OOScriptAutorelease(std::shared_ptr<OOScript>)  { std::abort(); }
 
-void cxx_OOStandardsDeprecated(const std::string&) { std::abort(); }
+void OOStandardsDeprecated(const std::string&) { std::abort(); }
 bool OOEnforceStandards(void) { std::abort(); }
 oo::PList OOSanitizeLegacyScriptConditions(const oo::PList&,
                                            const std::optional<std::string>&) {
   std::abort();
 }
-OOWeaponType cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(const std::string&) {
+OOWeaponType OOWeaponTypeFromEquipmentIdentifierSloppy(const std::string&) {
   std::abort();
 }
 bool isWeaponNone(OOWeaponType) { std::abort(); }
@@ -615,18 +615,18 @@ const char * const kOOJavaScriptEngineWillResetNotificationName = "org.aegidian.
 
 // MARK: What the rest of the engine provides ------------------------------------------------------
 
-void cxx_OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
+void OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
 {
 	std::string msg = oo::str::vformat(format, args);
 	JS_ThrowPlainError(context, "%s", msg.c_str());
 }
 
 
-void cxx_OOJSReportError(JSContext *context, const char *format, ...)
+void OOJSReportError(JSContext *context, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
-	cxx_OOJSReportErrorWithArguments(context, format, args);
+	OOJSReportErrorWithArguments(context, format, args);
 	va_end(args);
 }
 
@@ -652,7 +652,7 @@ namespace {
 std::string sLastWarning;
 }
 
-void cxx_OOJSReportWarningForCaller(JSContext *, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, const char *format, ...)
+void OOJSReportWarningForCaller(JSContext *, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
@@ -661,13 +661,13 @@ void cxx_OOJSReportWarningForCaller(JSContext *, const std::optional<std::string
 }
 
 
-void cxx_OOJSReportBadArguments(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, int argc, JSValueConst *, const std::optional<std::string> &message, const std::optional<std::string> &expectedArgsDescription)
+void OOJSReportBadArguments(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, int argc, JSValueConst *, const std::optional<std::string> &message, const std::optional<std::string> &expectedArgsDescription)
 {
-	cxx_OOJSReportError(context, "bad arguments: %s.%s(%d) %s / %s", scriptClass.value_or("-").c_str(), function.value_or("-").c_str(), argc, message.value_or("-").c_str(), expectedArgsDescription.value_or("-").c_str());
+	OOJSReportError(context, "bad arguments: %s.%s(%d) %s / %s", scriptClass.value_or("-").c_str(), function.value_or("-").c_str(), argc, message.value_or("-").c_str(), expectedArgsDescription.value_or("-").c_str());
 }
 
 
-std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueConst value)
+std::optional<std::string> OOStringFromJSValue(JSContext *context, JSValueConst value)
 {
 	if (JS_IsNull(value) || JS_IsUndefined(value))  return std::nullopt;
 	std::size_t length = 0;
@@ -691,7 +691,7 @@ bool OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
 	number = std::floor(number + 0.5);
 	if (std::isnan(number) || number < INT32_MIN || number > INT32_MAX)
 	{
-		cxx_OOJSReportError(context, "can't convert %s to an integer", cxx_OOStringFromJSValue(context, value).value_or("(null)").c_str());
+		OOJSReportError(context, "can't convert %s to an integer", OOStringFromJSValue(context, value).value_or("(null)").c_str());
 		return false;
 	}
 	*outValue = static_cast<int32_t>(number);
@@ -728,13 +728,13 @@ JSValue OOJSValueFromPList(JSContext *context, const oo::PList &plist)
 
 
 // An object as a dictionary, as far as the test hands one over: its "short_description" property.
-oo::PList cxx_OOJSPListFromJSObject(JSContext *context, JSValueConst object)
+oo::PList OOJSPListFromJSObject(JSContext *context, JSValueConst object)
 {
 	if (JS_IsArray(object))  return oo::PList(oo::PList::Array{});
 	oo::PList::Dict dict;
 	JSValue value = JS_GetPropertyStr(context, object, "short_description");
 	if (JS_IsException(value))  JS_FreeValue(context, JS_GetException(context));
-	else if (!JS_IsUndefined(value))  dict["short_description"] = oo::PList(cxx_OOStringFromJSValue(context, value).value_or(""));
+	else if (!JS_IsUndefined(value))  dict["short_description"] = oo::PList(OOStringFromJSValue(context, value).value_or(""));
 	JS_FreeValue(context, value);
 	return oo::PList(std::move(dict));
 }
@@ -770,13 +770,13 @@ JSClassID JSShipClassID(void)
 
 void OOJSReportBadPropertySelector(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t)
 {
-	cxx_OOJSReportError(context, "bad property selector");
+	OOJSReportError(context, "bad property selector");
 }
 
 
 void OOJSReportBadPropertyValue(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t, JSValueConst)
 {
-	cxx_OOJSReportError(context, "bad property value");
+	OOJSReportError(context, "bad property value");
 }
 
 
@@ -801,7 +801,7 @@ JSValue OOJSObjectWrapperToString(JSContext *context, JSValueConst, int, JSValue
 
 JSValue OOJSUnconstructableConstruct(JSContext *context, JSValueConst, int, JSValueConst *)
 {
-	cxx_OOJSReportError(context, "unconstructable");
+	OOJSReportError(context, "unconstructable");
 	return JS_EXCEPTION;
 }
 
@@ -814,7 +814,7 @@ JSAtom OOJSInternAtomPRIVATE(const char *)
 
 // Property IDs, which OOJSClasses.mm records: interned for the life of the process, as the
 // engine's.
-JSAtom cxx_OOJSIDFromString(const std::string &string)
+JSAtom OOJSIDFromString(const std::string &string)
 {
 	return JS_NewAtomLen(gOOJSMainThreadContext, string.data(), string.size());
 }
@@ -933,7 +933,7 @@ std::string Eval(const char *src)
 		JS_FreeValue(sContext, JS_GetException(sContext));
 		return "<evaluation failed>";
 	}
-	std::string text = cxx_OOStringFromJSValue(sContext, result).value_or("<not a string>");
+	std::string text = OOStringFromJSValue(sContext, result).value_or("<not a string>");
 	JS_FreeValue(sContext, result);
 	return text;
 }
@@ -972,7 +972,7 @@ OO_TEST(registration)
 	JS_FreeValue(sContext, prototype);
 	OO_CHECK(OOJSIsSubclass(stationClass, sFakeShipClassID));
 	OO_CHECK_EQ(sConverters[stationClass], 1);
-	OO_CHECK(sStationObject->cxx_oo_jsClassName() == std::optional<std::string>("Station"));
+	OO_CHECK(sStationObject->oo_jsClassName() == std::optional<std::string>("Station"));
 	OO_CHECK_EVAL("typeof Station", "function");
 	OO_CHECK_EVAL("new Station()", "threw: unconstructable");
 	OO_CHECK_EVAL("Object.getPrototypeOf(Station.prototype) === Ship.prototype", "true");

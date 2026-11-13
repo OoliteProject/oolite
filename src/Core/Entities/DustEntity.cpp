@@ -397,7 +397,7 @@ void DustEntity::drawImmediate(bool /*immediate*/, bool translucent) {
   OOGL(glEnableClientState(GL_NORMAL_ARRAY));
 
   OOVerifyOpenGLState();
-  cxx_OOCheckOpenGLErrors([&]() -> std::string {
+  OOCheckOpenGLErrors([&]() -> std::string {
     return "DustEntity after drawing " + oo::EntityDescription(this);
   });
 }

@@ -449,7 +449,7 @@ std::string Eval(const std::string &src)
 		}
 		else
 		{
-			text = cxx_OOStringFromJSValue(context, result).value_or("<not a string>");
+			text = OOStringFromJSValue(context, result).value_or("<not a string>");
 		}
 		JS_FreeValue(context, result);
 		OOJSRelinquishContext(context);

@@ -132,23 +132,23 @@ int sInspections = 0;
 }	// namespace
 
 
-void cxx_OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
+void OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
 {
 	std::string msg = oo::str::vformat(format, args);
 	JS_ThrowPlainError(context, "%s", msg.c_str());
 }
 
 
-void cxx_OOJSReportError(JSContext *context, const char *format, ...)
+void OOJSReportError(JSContext *context, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
-	cxx_OOJSReportErrorWithArguments(context, format, args);
+	OOJSReportErrorWithArguments(context, format, args);
 	va_end(args);
 }
 
 
-void cxx_OOJSReportWarning(JSContext *context, const char *format, ...)
+void OOJSReportWarning(JSContext *context, const char *format, ...)
 {
 	(void)context;
 	va_list args;
@@ -158,15 +158,15 @@ void cxx_OOJSReportWarning(JSContext *context, const char *format, ...)
 }
 
 
-void cxx_OOJSReportBadArguments(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, int argc, JSValueConst *, const std::optional<std::string> &message, const std::optional<std::string> &expectedArgsDescription)
+void OOJSReportBadArguments(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, int argc, JSValueConst *, const std::optional<std::string> &message, const std::optional<std::string> &expectedArgsDescription)
 {
-	cxx_OOJSReportError(context, "bad arguments: %s.%s (%d): %s; expected %s", scriptClass.value_or("").c_str(), function.value_or("").c_str(), argc, message.value_or("").c_str(), expectedArgsDescription.value_or("").c_str());
+	OOJSReportError(context, "bad arguments: %s.%s (%d): %s; expected %s", scriptClass.value_or("").c_str(), function.value_or("").c_str(), argc, message.value_or("").c_str(), expectedArgsDescription.value_or("").c_str());
 }
 
 
 void OOJSReportBadPropertySelector(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t)
 {
-	cxx_OOJSReportError(context, "bad property selector");
+	OOJSReportError(context, "bad property selector");
 }
 
 
@@ -181,7 +181,7 @@ JSValue OOJSNativeFailure(JSContext *context)
 
 
 // The atom cache and the pending-exception reporter, which the class registry and the binding call.
-JSAtom cxx_OOJSIDFromString(const std::string &string)
+JSAtom OOJSIDFromString(const std::string &string)
 {
 	return JS_NewAtomLen(gOOJSMainThreadContext, string.data(), string.size());
 }
@@ -193,7 +193,7 @@ void OOJSReportPendingException(JSContext *context)
 }
 
 
-std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueConst value)
+std::optional<std::string> OOStringFromJSValue(JSContext *context, JSValueConst value)
 {
 	if (JS_IsNull(value) || JS_IsUndefined(value))  return std::nullopt;
 	std::size_t length = 0;
@@ -242,7 +242,7 @@ bool OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
 	number = std::floor(number + 0.5);
 	if (std::isnan(number) || number < INT32_MIN || number > INT32_MAX)
 	{
-		cxx_OOJSReportError(context, "can't convert to an integer");
+		OOJSReportError(context, "can't convert to an integer");
 		return false;
 	}
 	*outValue = static_cast<int32_t>(number);
@@ -250,9 +250,9 @@ bool OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
 }
 
 
-oo::PList cxx_OOJSPListFromJSValue(JSContext *context, JSValueConst value)
+oo::PList OOJSPListFromJSValue(JSContext *context, JSValueConst value)
 {
-	if (JS_IsString(value))  return oo::PList(cxx_OOStringFromJSValue(context, value).value_or(""));
+	if (JS_IsString(value))  return oo::PList(OOStringFromJSValue(context, value).value_or(""));
 	if (JS_IsBool(value))  return oo::PList(JS_ToBool(context, value) != 0);
 	double number = 0;
 	if (JS_IsNumber(value) && JS_ToFloat64(context, &number, value) == 0)  return oo::PList(number);
@@ -286,7 +286,7 @@ JSValue OOJSObjectWrapperToString(JSContext *, JSValueConst, int, JSValueConst *
 
 JSValue OOJSUnconstructableConstruct(JSContext *context, JSValueConst, int, JSValueConst *)
 {
-	cxx_OOJSReportError(context, "unconstructable");
+	OOJSReportError(context, "unconstructable");
 	return JS_EXCEPTION;
 }
 
@@ -322,13 +322,13 @@ std::string OOPlatformDescription(void)  { return "test platform"; }
 void OOLogInsertMarker(void)  { sLogMarkers++; }
 
 
-std::string cxx_OOStringFromGraphicsDetail(OOGraphicsDetail detail)
+std::string OOStringFromGraphicsDetail(OOGraphicsDetail detail)
 {
 	return "DETAIL_" + std::to_string(static_cast<int>(detail));
 }
 
 
-OOGraphicsDetail cxx_OOGraphicsDetailFromString(const std::string &string)
+OOGraphicsDetail OOGraphicsDetailFromString(const std::string &string)
 {
 	return (string == "DETAIL_2") ? OOGraphicsDetail::kShaders : OOGraphicsDetail::kMinimum;
 }
@@ -358,7 +358,7 @@ Entity *oo::WithObject(Entity *entity)  { if (entity != nullptr)  std::abort(); 
 
 class Entity;
 
-std::optional<std::string> cxx_OOStringFromJSValueEvenIfNull(JSContext *, JSValueConst)  { std::abort(); }
+std::optional<std::string> OOStringFromJSValueEvenIfNull(JSContext *, JSValueConst)  { std::abort(); }
 std::optional<std::string> OOJSEntityJSClassName(Entity *)  { std::abort(); }
 bool OOJSCallEntityMethod(JSContext *, Entity *, const std::string &, int, JSValueConst *, JSValue *)  { std::abort(); }
 OOShaderUniformType OOShaderUniformTypeFromEncoding(const char *)  { std::abort(); }
@@ -372,7 +372,7 @@ int gOOTestEntityCxxEntityIvarOffset = 0;
 #if DEBUG
 #include "ResourceManager.h"
 
-std::string cxx_OOJSDescribeValue(JSContext *, JSValueConst, bool)  { std::abort(); }
+std::string OOJSDescribeValue(JSContext *, JSValueConst, bool)  { std::abort(); }
 std::optional<std::string> ResourceManager::diagnosticFileLocation()  { std::abort(); }
 #endif
 
@@ -584,7 +584,7 @@ std::string Eval(const char *src)
 		JS_FreeValue(sContext, JS_GetException(sContext));
 		return "<evaluation failed>";
 	}
-	std::string text = cxx_OOStringFromJSValue(sContext, result).value_or("<not a string>");
+	std::string text = OOStringFromJSValue(sContext, result).value_or("<not a string>");
 	JS_FreeValue(sContext, result);
 	return text;
 }

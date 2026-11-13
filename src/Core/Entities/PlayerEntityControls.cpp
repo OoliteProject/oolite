@@ -191,12 +191,12 @@ static double time_last_frame;
 
 namespace {
 
-// cxx_OOExpandKey(key, ...) with its arguments as a Dict: ints as
+// OOExpandKey(key, ...) with its arguments as a Dict: ints as
 // PList::signedInteger, strings as std::string (exemplar
 // OOShipLibraryDescriptions.cpp ExpandCategoryKey); nothing expanded is "".
 std::string ExpandKeyWithArguments(std::string_view key,
                                    const oo::PList::Dict& args) {
-  return cxx_OOExpandDescriptionString(
+  return OOExpandDescriptionString(
              OOStringExpanderDefaultRandomSeed(), std::string(key),
              oo::PList(args), oo::PList(), std::nullopt, OOExpandOptions::kKey)
       .value_or(std::string());
@@ -750,9 +750,8 @@ void PlayerEntity::getPollControls(double delta_t) {
   } catch (...) {
     const auto exception = oo::CurrentOOException();
     if (!exception) throw;  // not an OOException: it goes on up, as before
-    OO_LOG(cxx_kOOLogException,
-           "***** Exception checking controls [{}]: {} : {}", exceptionContext,
-           exception->name(), exception->reason());
+    OO_LOG(kOOLogException, "***** Exception checking controls [{}]: {} : {}",
+           exceptionContext, exception->name(), exception->reason());
   }
 }
 
@@ -1182,7 +1181,7 @@ void PlayerEntity::pollApplicationControls() {
   } catch (...) {
     const auto exception = oo::CurrentOOException();
     if (!exception) throw;  // not an OOException: it goes on up, as before
-    OO_LOG(cxx_kOOLogException,
+    OO_LOG(kOOLogException,
            "***** Exception in pollApplicationControls [{}]: {} : {}",
            exceptionContext, exception->name(), exception->reason());
   }
@@ -2153,7 +2152,7 @@ void PlayerEntity::pollFlightControls(double delta_t) {
   } catch (...) {
     const auto exception = oo::CurrentOOException();
     if (!exception) throw;  // not an OOException: it goes on up, as before
-    OO_LOG(cxx_kOOLogException,
+    OO_LOG(kOOLogException,
            "***** Exception in pollFlightControls [{}]: {} : {}",
            exceptionContext, exception->name(), exception->reason());
   }
@@ -2261,7 +2260,7 @@ void PlayerEntity::pollGuiArrowKeyControls(double delta_t) {
             setLongRangeChartMode(OOLongRangeChartMode::kSunColor);
           }
           doScriptEvent(OOJSID("chartHighlightModeChanged"),
-                        {oo::PList(cxx_OOStringFromLongRangeChartMode(
+                        {oo::PList(OOStringFromLongRangeChartMode(
                             getLongRangeChartMode()))});
         }
         queryPressed = true;
@@ -2741,13 +2740,13 @@ void PlayerEntity::pollGuiArrowKeyControls(double delta_t) {
             const auto exception = oo::CurrentOOException();
             if (!exception)
               throw;  // not an OOException: it goes on up, as before
-            OO_LOG(cxx_kOOLogException,
+            OO_LOG(kOOLogException,
                    "\n\n***** Handling exception: {} : {} *****\n\n",
                    exception->name(), exception->reason());
             if (std::string_view(exception->name()) ==
                 "GameNotSavedException")  // try saving game instead
             {
-              OO_LOG(cxx_kOOLogException, "{}",
+              OO_LOG(kOOLogException, "{}",
                      "\n\n***** Trying a normal save instead *****\n\n");
               if ((controller != nullptr ? controller->inFullScreenMode()
                                          : false)) {
@@ -2825,7 +2824,7 @@ void PlayerEntity::pollGuiArrowKeyControls(double delta_t) {
           weaponType = starboard_weapon_type;
 
         if (weaponType != nullptr) {
-          bool sameAs = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(
+          bool sameAs = OOWeaponTypeFromEquipmentIdentifierSloppy(
                             gui->selectedRowKey().value_or("")) == weaponType;
           // override showInformation _completely_ with itemText
           if ((weaponType != nullptr
@@ -2835,11 +2834,11 @@ void PlayerEntity::pollGuiArrowKeyControls(double delta_t) {
           else {
             const std::string weaponName =
                 (OOEquipmentType::equipmentTypeWithIdentifier(
-                     cxx_OOEquipmentIdentifierFromWeaponType(weaponType)
+                     OOEquipmentIdentifierFromWeaponType(weaponType)
                          .value_or(""))
                              .get() != nullptr
                      ? OOEquipmentType::equipmentTypeWithIdentifier(
-                           cxx_OOEquipmentIdentifierFromWeaponType(weaponType)
+                           OOEquipmentIdentifierFromWeaponType(weaponType)
                                .value_or(""))
                            .get()
                            ->name()
@@ -3707,7 +3706,7 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
         if (gameView != nullptr)
           gameView->setHDRMaxBrightness((float)brightnessValue);
         const std::string maxBrightnessString =
-            cxx_OOExpandKey("gameoptions-hdr-maxbrightness", brightnessValue)
+            OOExpandKey("gameoptions-hdr-maxbrightness", brightnessValue)
                 .value_or(std::string());
 
         gui->setText(maxBrightnessString,
@@ -4217,8 +4216,8 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
                                          : OOGraphicsDetail{});
 
       const std::string shaderEffectsOptionsString =
-          cxx_OOExpand("gameoptions-detaillevel-[detailLevel]",
-                       oo::ToUnderlying(detailLevel))
+          OOExpand("gameoptions-detaillevel-[detailLevel]",
+                   oo::ToUnderlying(detailLevel))
               .value_or(std::string());
       gui->setText(
           ExpandKeyWithArguments(shaderEffectsOptionsString.c_str(), {}),
@@ -5300,7 +5299,7 @@ void PlayerEntity::pollDockedControls(double delta_t) {
   } catch (...) {
     const auto exception = oo::CurrentOOException();
     if (!exception) throw;  // not an OOException: it goes on up, as before
-    OO_LOG(cxx_kOOLogException,
+    OO_LOG(kOOLogException,
            "***** Exception in pollDockedControls [{}]: {} : {}",
            exceptionContext, exception->name(), exception->reason());
   }
@@ -5890,7 +5889,7 @@ void PlayerEntity::switchToThisView(OOViewID viewDirection,
       currentWeaponFacing = facing;
       currentWeaponStats();
     } else {
-      OO_LOG_ERR(cxx_kOOLogParameterError,
+      OO_LOG_ERR(kOOLogParameterError,
                  "{} called with processWeaponFacing=YES for non-main view {}.",
                  std::string_view(__FUNCTION__),
                  static_cast<unsigned>(viewDirection));
@@ -5920,7 +5919,7 @@ void PlayerEntity::handleAutopilotOn(bool fastDocking) {
   // -- but only for fast docking
   if (fastDocking && (getAlertCondition() == OOAlertCondition::kRed)) {
     playAutopilotCannotDockWithTarget();
-    message = cxx_OOExpandKey("autopilot-red-alert");
+    message = OOExpandKey("autopilot-red-alert");
     goto abort;
   }
 
@@ -5949,10 +5948,10 @@ void PlayerEntity::handleAutopilotOn(bool fastDocking) {
     } else if (nStations != 1) {
       if (nStations == 0) {
         playAutopilotOutOfRange();
-        message = cxx_OOExpandKey("autopilot-out-of-range");
+        message = OOExpandKey("autopilot-out-of-range");
       } else {
         playAutopilotCannotDockWithTarget();
-        message = cxx_OOExpandKey("autopilot-multiple-targets");
+        message = OOExpandKey("autopilot-multiple-targets");
       }
       goto abort;
     }
@@ -6036,7 +6035,7 @@ void PlayerEntity::handleAutopilotOn(bool fastDocking) {
   } else {
     // Standard docking - engage autopilot
     engageAutopilotToStation(ts);
-    message = cxx_OOExpandKey("autopilot-on");
+    message = OOExpandKey("autopilot-on");
   }
 
 abort:
@@ -6055,8 +6054,7 @@ void PlayerEntity::handleButtonIdent() {
   ident_engaged = true;
   if (primaryTarget() == nullptr) {
     playIdentOn();
-    if (UNIVERSE != nullptr)
-      UNIVERSE->addMessage(cxx_OOExpandKey("ident-on"), 2.0);
+    if (UNIVERSE != nullptr) UNIVERSE->addMessage(OOExpandKey("ident-on"), 2.0);
   } else {
     playIdentLockedOn();
     printIdentLockedOnForMissile(false);

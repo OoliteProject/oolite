@@ -57,7 +57,7 @@ class OOBasicMaterial : public OOMaterial {
  public:
   /*	A new material, initialised by the initialiser of the same arguments
      (below). They were
-          [[OOBasicMaterial alloc] cxx_initWithName:] and [[OOBasicMaterial
+          [[OOBasicMaterial alloc] initWithName:] and [[OOBasicMaterial
      alloc] initWithName:configuration:].
   */
   static std::shared_ptr<OOBasicMaterial> materialWithName(

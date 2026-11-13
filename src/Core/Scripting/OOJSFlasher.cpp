@@ -212,8 +212,8 @@ static JSValue FlasherSetProperty(OOJS_SETTER_ARGS) {
       break;
 
     case kColor:
-      colorForScript = OOColor::colorWithDescription(
-          cxx_OOJSPListFromJSValue(context, value));
+      colorForScript =
+          OOColor::colorWithDescription(OOJSPListFromJSValue(context, value));
       if (colorForScript != nullptr || JS_IsNull(value)) {
         entity->setColor(colorForScript.get());
         return JS_UNDEFINED;

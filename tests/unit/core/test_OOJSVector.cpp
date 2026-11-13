@@ -40,25 +40,25 @@
 
 JSContext* gOOJSMainThreadContext = nullptr;
 
-void cxx_OOJSReportErrorWithArguments(JSContext* context, const char* format,
+void OOJSReportErrorWithArguments(JSContext* context, const char* format,
                                       va_list args) {
   std::string msg = oo::str::vformat(format, args);
   JS_ThrowPlainError(context, "%s", msg.c_str());
 }
 
-void cxx_OOJSReportError(JSContext* context, const char* format, ...) {
+void OOJSReportError(JSContext* context, const char* format, ...) {
   va_list args;
   va_start(args, format);
-  cxx_OOJSReportErrorWithArguments(context, format, args);
+  OOJSReportErrorWithArguments(context, format, args);
   va_end(args);
 }
 
-void cxx_OOJSReportBadArguments(
+void OOJSReportBadArguments(
     JSContext* context, const std::optional<std::string>& scriptClass,
     const std::optional<std::string>& function, int argc, JSValueConst*,
     const std::optional<std::string>& message,
     const std::optional<std::string>& expectedArgsDescription) {
-  cxx_OOJSReportError(context, "bad arguments: %s.%s (%d): %s; expected %s",
+  OOJSReportError(context, "bad arguments: %s.%s (%d): %s; expected %s",
                       scriptClass.value_or("").c_str(),
                       function.value_or("").c_str(), argc,
                       message.value_or("").c_str(),
@@ -67,13 +67,13 @@ void cxx_OOJSReportBadArguments(
 
 void OOJSReportBadPropertySelector(JSContext* context, JSValueConst, int,
                                    const JSCFunctionListEntry*, size_t) {
-  cxx_OOJSReportError(context, "bad property selector");
+  OOJSReportError(context, "bad property selector");
 }
 
 void OOJSReportBadPropertyValue(JSContext* context, JSValueConst, int,
                                 const JSCFunctionListEntry*, size_t,
                                 JSValueConst) {
-  cxx_OOJSReportError(context, "bad property value");
+  OOJSReportError(context, "bad property value");
 }
 
 // As the engine's: the pending exception, else an uncatchable error that stops
@@ -92,11 +92,11 @@ void OOJSReportPendingException(JSContext* context) {
 }
 
 // Property IDs are interned for the life of the process (never freed).
-JSAtom cxx_OOJSIDFromString(const std::string& string) {
+JSAtom OOJSIDFromString(const std::string& string) {
   return JS_NewAtomLen(OOJSAcquireContext(), string.data(), string.size());
 }
 
-std::optional<std::string> cxx_OOStringFromJSValue(JSContext* context,
+std::optional<std::string> OOStringFromJSValue(JSContext* context,
                                                    JSValueConst value) {
   if (JS_IsNull(value) || JS_IsUndefined(value)) return std::nullopt;
   std::size_t length = 0;
@@ -123,14 +123,14 @@ bool OOJSArgumentListGetNumberNoError(JSContext* context, int argc,
   return true;
 }
 
-bool cxx_OOJSArgumentListGetNumber(
+bool OOJSArgumentListGetNumber(
     JSContext* context, const std::optional<std::string>& scriptClass,
     const std::optional<std::string>& function, int argc, JSValueConst* argv,
     double* outNumber, int* outConsumed) {
   if (OOJSArgumentListGetNumberNoError(context, argc, argv, outNumber,
                                        outConsumed))
     return true;
-  cxx_OOJSReportBadArguments(context, scriptClass, function, argc, argv,
+  OOJSReportBadArguments(context, scriptClass, function, argc, argv,
                              "Expected number, got", std::nullopt);
   return false;
 }
@@ -191,7 +191,7 @@ bool QuaternionFromArgumentList(JSContext* context,
       return true;
     }
   }
-  cxx_OOJSReportBadArguments(context, scriptClass, function, argc, argv,
+  OOJSReportBadArguments(context, scriptClass, function, argc, argv,
                              "Could not construct quaternion from parameters",
                              "Quaternion");
   return false;
@@ -280,7 +280,7 @@ std::string Eval(const char* src) {
     return "<evaluation failed>";
   }
   std::string text =
-      cxx_OOStringFromJSValue(sContext, result).value_or("<not a string>");
+      OOStringFromJSValue(sContext, result).value_or("<not a string>");
   JS_FreeValue(sContext, result);
   return text;
 }

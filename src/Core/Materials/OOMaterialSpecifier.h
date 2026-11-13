@@ -39,91 +39,82 @@ SOFTWARE.
    configuration, and every function then answers as a message to nil did.
    Specifiers are oo::PList dictionaries (null = nil).
 */
-std::shared_ptr<OOColor> cxx_OOMaterialDiffuseColor(
+std::shared_ptr<OOColor> OOMaterialDiffuseColor(const oo::PList& configuration);
+std::shared_ptr<OOColor> OOMaterialAmbientColor(const oo::PList& configuration);
+std::shared_ptr<OOColor> OOMaterialSpecularColor(
     const oo::PList& configuration);
-std::shared_ptr<OOColor> cxx_OOMaterialAmbientColor(
+std::shared_ptr<OOColor> OOMaterialSpecularModulateColor(
     const oo::PList& configuration);
-std::shared_ptr<OOColor> cxx_OOMaterialSpecularColor(
+std::shared_ptr<OOColor> OOMaterialEmissionColor(
     const oo::PList& configuration);
-std::shared_ptr<OOColor> cxx_OOMaterialSpecularModulateColor(
+std::shared_ptr<OOColor> OOMaterialEmissionModulateColor(
     const oo::PList& configuration);
-std::shared_ptr<OOColor> cxx_OOMaterialEmissionColor(
-    const oo::PList& configuration);
-std::shared_ptr<OOColor> cxx_OOMaterialEmissionModulateColor(
-    const oo::PList& configuration);
-std::shared_ptr<OOColor> cxx_OOMaterialIlluminationModulateColor(
+std::shared_ptr<OOColor> OOMaterialIlluminationModulateColor(
     const oo::PList& configuration);
 
-oo::PList cxx_OOMaterialDiffuseMapSpecifier(
+oo::PList OOMaterialDiffuseMapSpecifier(
     const oo::PList& configuration,
     const std::optional<std::string>& defaultName);
-oo::PList cxx_OOMaterialCombinedSpecularMapSpecifier(
+oo::PList OOMaterialCombinedSpecularMapSpecifier(
     const oo::PList& configuration);
-oo::PList cxx_OOMaterialSpecularColorMapSpecifier(
+oo::PList OOMaterialSpecularColorMapSpecifier(const oo::PList& configuration);
+oo::PList OOMaterialSpecularExponentMapSpecifier(
     const oo::PList& configuration);
-oo::PList cxx_OOMaterialSpecularExponentMapSpecifier(
+oo::PList OOMaterialNormalMapSpecifier(const oo::PList& configuration);
+oo::PList OOMaterialParallaxMapSpecifier(const oo::PList& configuration);
+oo::PList OOMaterialNormalAndParallaxMapSpecifier(
     const oo::PList& configuration);
-oo::PList cxx_OOMaterialNormalMapSpecifier(const oo::PList& configuration);
-oo::PList cxx_OOMaterialParallaxMapSpecifier(const oo::PList& configuration);
-oo::PList cxx_OOMaterialNormalAndParallaxMapSpecifier(
-    const oo::PList& configuration);
-oo::PList cxx_OOMaterialEmissionMapSpecifier(const oo::PList& configuration);
-oo::PList cxx_OOMaterialIlluminationMapSpecifier(
-    const oo::PList& configuration);
-oo::PList cxx_OOMaterialEmissionAndIlluminationMapSpecifier(
+oo::PList OOMaterialEmissionMapSpecifier(const oo::PList& configuration);
+oo::PList OOMaterialIlluminationMapSpecifier(const oo::PList& configuration);
+oo::PList OOMaterialEmissionAndIlluminationMapSpecifier(
     const oo::PList& configuration);
 
-float cxx_OOMaterialParallaxScale(const oo::PList& configuration);
-float cxx_OOMaterialParallaxBias(const oo::PList& configuration);
-bool cxx_OOMaterialGammaCorrect(const oo::PList& configuration);
-float cxx_OOMaterialGloss(const oo::PList& configuration);
-int cxx_OOMaterialSpecularExponent(const oo::PList& configuration);
+float OOMaterialParallaxScale(const oo::PList& configuration);
+float OOMaterialParallaxBias(const oo::PList& configuration);
+bool OOMaterialGammaCorrect(const oo::PList& configuration);
+float OOMaterialGloss(const oo::PList& configuration);
+int OOMaterialSpecularExponent(const oo::PList& configuration);
 
 // Configuration keys.
-inline constexpr const char* cxx_kOOMaterialDiffuseColorName = "diffuse_color";
-inline constexpr const char* cxx_kOOMaterialDiffuseColorLegacyName = "diffuse";
-inline constexpr const char* cxx_kOOMaterialAmbientColorName = "ambient_color";
-inline constexpr const char* cxx_kOOMaterialAmbientColorLegacyName = "ambient";
-inline constexpr const char* cxx_kOOMaterialSpecularColorName =
-    "specular_color";
-inline constexpr const char* cxx_kOOMaterialSpecularColorLegacyName =
-    "specular";
-inline constexpr const char* cxx_kOOMaterialSpecularModulateColorName =
+inline constexpr const char* kOOMaterialDiffuseColorName = "diffuse_color";
+inline constexpr const char* kOOMaterialDiffuseColorLegacyName = "diffuse";
+inline constexpr const char* kOOMaterialAmbientColorName = "ambient_color";
+inline constexpr const char* kOOMaterialAmbientColorLegacyName = "ambient";
+inline constexpr const char* kOOMaterialSpecularColorName = "specular_color";
+inline constexpr const char* kOOMaterialSpecularColorLegacyName = "specular";
+inline constexpr const char* kOOMaterialSpecularModulateColorName =
     "specular_modulate_color";
-inline constexpr const char* cxx_kOOMaterialEmissionColorName =
-    "emission_color";
-inline constexpr const char* cxx_kOOMaterialEmissionColorLegacyName =
-    "emission";
-inline constexpr const char* cxx_kOOMaterialEmissionModulateColorName =
+inline constexpr const char* kOOMaterialEmissionColorName = "emission_color";
+inline constexpr const char* kOOMaterialEmissionColorLegacyName = "emission";
+inline constexpr const char* kOOMaterialEmissionModulateColorName =
     "emission_modulate_color";
-inline constexpr const char* cxx_kOOMaterialIlluminationModulateColorName =
+inline constexpr const char* kOOMaterialIlluminationModulateColorName =
     "illumination_modulate_color";
-inline constexpr const char* cxx_kOOMaterialDiffuseMapName = "diffuse_map";
-inline constexpr const char* cxx_kOOMaterialSpecularColorMapName =
+inline constexpr const char* kOOMaterialDiffuseMapName = "diffuse_map";
+inline constexpr const char* kOOMaterialSpecularColorMapName =
     "specular_color_map";
-inline constexpr const char* cxx_kOOMaterialSpecularExponentMapName =
+inline constexpr const char* kOOMaterialSpecularExponentMapName =
     "specular_exponent_map";
-inline constexpr const char* cxx_kOOMaterialCombinedSpecularMapName =
+inline constexpr const char* kOOMaterialCombinedSpecularMapName =
     "specular_map";  // Combined specular_color_map and specular_exponent_map
                      // (unfortunate name required for backwards-compatibility).
-inline constexpr const char* cxx_kOOMaterialNormalMapName = "normal_map";
-inline constexpr const char* cxx_kOOMaterialParallaxMapName = "parallax_map";
-inline constexpr const char* cxx_kOOMaterialNormalAndParallaxMapName =
+inline constexpr const char* kOOMaterialNormalMapName = "normal_map";
+inline constexpr const char* kOOMaterialParallaxMapName = "parallax_map";
+inline constexpr const char* kOOMaterialNormalAndParallaxMapName =
     "normal_and_parallax_map";
-inline constexpr const char* cxx_kOOMaterialEmissionMapName = "emission_map";
-inline constexpr const char* cxx_kOOMaterialIlluminationMapName =
+inline constexpr const char* kOOMaterialEmissionMapName = "emission_map";
+inline constexpr const char* kOOMaterialIlluminationMapName =
     "illumination_map";
-inline constexpr const char* cxx_kOOMaterialEmissionAndIlluminationMapName =
+inline constexpr const char* kOOMaterialEmissionAndIlluminationMapName =
     "emission_and_illumination_map";
-inline constexpr const char* cxx_kOOMaterialParallaxScaleName =
-    "parallax_scale";
-inline constexpr const char* cxx_kOOMaterialParallaxBiasName = "parallax_bias";
-inline constexpr const char* cxx_kOOMaterialGammaCorrectName = "gamma_correct";
-inline constexpr const char* cxx_kOOMaterialGlossName = "gloss";
-inline constexpr const char* cxx_kOOMaterialSpecularExponentName =
+inline constexpr const char* kOOMaterialParallaxScaleName = "parallax_scale";
+inline constexpr const char* kOOMaterialParallaxBiasName = "parallax_bias";
+inline constexpr const char* kOOMaterialGammaCorrectName = "gamma_correct";
+inline constexpr const char* kOOMaterialGlossName = "gloss";
+inline constexpr const char* kOOMaterialSpecularExponentName =
     "specular_exponent";
-inline constexpr const char* cxx_kOOMaterialSpecularExponentLegacyName =
+inline constexpr const char* kOOMaterialSpecularExponentLegacyName =
     "shininess";
-inline constexpr const char* cxx_kOOMaterialLightMapsName = "light_map";
+inline constexpr const char* kOOMaterialLightMapsName = "light_map";
 
 #define kOOMaterialDefaultParallaxScale (0.01f)

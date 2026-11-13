@@ -407,7 +407,7 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS) {
   switch (static_cast<VisualEffectProperty>(magic)) {
     using enum VisualEffectProperty;
     case kBeaconCode:
-      sValue = cxx_OOStringFromJSValue(context, value);
+      sValue = OOStringFromJSValue(context, value);
       if (!sValue.has_value() || sValue->empty()) {
         if ((entity != nullptr ? entity->isBeacon() : false)) {
           if (UNIVERSE != nullptr) UNIVERSE->clearBeacon(entity);
@@ -434,7 +434,7 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS) {
       break;
 
     case kBeaconLabel:
-      sValue = cxx_OOStringFromJSValue(context, value);
+      sValue = OOStringFromJSValue(context, value);
       if (sValue.has_value()) {
         if (entity != nullptr) entity->setBeaconLabel(sValue);
         return JS_UNDEFINED;
@@ -449,8 +449,8 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS) {
       break;
 
     case kScannerDisplayColor1:
-      colorForScript = OOColor::colorWithDescription(
-          cxx_OOJSPListFromJSValue(context, value));
+      colorForScript =
+          OOColor::colorWithDescription(OOJSPListFromJSValue(context, value));
       if (colorForScript != nullptr || JS_IsNull(value)) {
         if (entity != nullptr)
           entity->setScannerDisplayColor1(colorForScript.get());
@@ -459,8 +459,8 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS) {
       break;
 
     case kScannerDisplayColor2:
-      colorForScript = OOColor::colorWithDescription(
-          cxx_OOJSPListFromJSValue(context, value));
+      colorForScript =
+          OOColor::colorWithDescription(OOJSPListFromJSValue(context, value));
       if (colorForScript != nullptr || JS_IsNull(value)) {
         if (entity != nullptr)
           entity->setScannerDisplayColor2(colorForScript.get());
@@ -644,8 +644,8 @@ static JSValue VisualEffectSetMaterials(OOJS_NATIVE_ARGS) {
   OOVisualEffectEntity* thisEnt = nullptr;
 
   if (argc < 1) {
-    cxx_OOJSReportBadArguments(context, "VisualEffect", "setMaterials", 0,
-                               OOJS_ARGV, std::nullopt, "parameter object");
+    OOJSReportBadArguments(context, "VisualEffect", "setMaterials", 0,
+                           OOJS_ARGV, std::nullopt, "parameter object");
     return OOJSNativeFailure(context);
   }
 
@@ -666,20 +666,19 @@ static JSValue VisualEffectSetShaders(OOJS_NATIVE_ARGS) {
   GET_THIS_EFFECT(thisEnt);
 
   if (argc < 1) {
-    cxx_OOJSReportBadArguments(context, "VisualEffect", "setShaders", 0,
-                               OOJS_ARGV, std::nullopt, "parameter object");
+    OOJSReportBadArguments(context, "VisualEffect", "setShaders", 0, OOJS_ARGV,
+                           std::nullopt, "parameter object");
     return OOJSNativeFailure(context);
   }
 
   if (JS_IsNull(OOJS_ARGV[0]) ||
       (!JS_IsNull(OOJS_ARGV[0]) && !JS_IsObject(OOJS_ARGV[0]))) {
     // EMMSTRAN: JS_ValueToObject() and normal error handling here.
-    cxx_OOJSReportWarning(
-        context, "VisualEffect.%s: expected %s instead of '%s'.", "setShaders",
-        "object",
-        cxx_OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[0])
-            .value_or("(null)")
-            .c_str());
+    OOJSReportWarning(context, "VisualEffect.%s: expected %s instead of '%s'.",
+                      "setShaders", "object",
+                      OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[0])
+                          .value_or("(null)")
+                          .c_str());
     OOJS_RETURN_BOOL(false);
   }
 
@@ -711,12 +710,11 @@ static JSValue VisualEffectSetMaterialsInternal(OOJS_NATIVE_ARGS,
 
   if (JS_IsNull(OOJS_ARGV[0]) ||
       (!JS_IsNull(OOJS_ARGV[0]) && !JS_IsObject(OOJS_ARGV[0]))) {
-    cxx_OOJSReportWarning(
-        context, "VisualEffect.%s: expected %s instead of '%s'.",
-        "setMaterials", "object",
-        cxx_OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[0])
-            .value_or("(null)")
-            .c_str());
+    OOJSReportWarning(context, "VisualEffect.%s: expected %s instead of '%s'.",
+                      "setMaterials", "object",
+                      OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[0])
+                          .value_or("(null)")
+                          .c_str());
     OOJS_RETURN_BOOL(false);
   }
 
@@ -724,12 +722,12 @@ static JSValue VisualEffectSetMaterialsInternal(OOJS_NATIVE_ARGS,
     withShaders = true;
     if (JS_IsNull(OOJS_ARGV[1]) ||
         (!JS_IsNull(OOJS_ARGV[1]) && !JS_IsObject(OOJS_ARGV[1]))) {
-      cxx_OOJSReportWarning(
-          context, "VisualEffect.%s: expected %s instead of '%s'.",
-          "setMaterials", "object as second parameter",
-          cxx_OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[1])
-              .value_or("(null)")
-              .c_str());
+      OOJSReportWarning(context,
+                        "VisualEffect.%s: expected %s instead of '%s'.",
+                        "setMaterials", "object as second parameter",
+                        OOStringFromJSValueEvenIfNull(context, OOJS_ARGV[1])
+                            .value_or("(null)")
+                            .c_str());
       withShaders = false;
     }
   }
@@ -737,13 +735,13 @@ static JSValue VisualEffectSetMaterialsInternal(OOJS_NATIVE_ARGS,
   if (fromShaders) {
     materials = MeshMaterials(thisEnt);
     params = OOJS_ARGV[0];
-    shaders = cxx_OOJSPListFromJSObject(context, params);
+    shaders = OOJSPListFromJSObject(context, params);
   } else {
     params = OOJS_ARGV[0];
-    materials = cxx_OOJSPListFromJSObject(context, params);
+    materials = OOJSPListFromJSObject(context, params);
     if (withShaders) {
       params = OOJS_ARGV[1];
-      shaders = cxx_OOJSPListFromJSObject(context, params);
+      shaders = OOJSPListFromJSObject(context, params);
     } else {
       shaders = MeshShaders(thisEnt);
     }
@@ -790,16 +788,15 @@ static JSValue VisualEffectScale(OOJS_NATIVE_ARGS) {
   bool gotScale;
 
   if (argc < 1) {
-    cxx_OOJSReportBadArguments(context, "VisualEffect", "scale", argc,
-                               OOJS_ARGV, std::nullopt, "scale factor needed");
+    OOJSReportBadArguments(context, "VisualEffect", "scale", argc, OOJS_ARGV,
+                           std::nullopt, "scale factor needed");
     return OOJSNativeFailure(context);
   }
 
   gotScale = JS_ToFloat64(context, &scale, OOJS_ARGV[0]) == 0;
   if (EXPECT_NOT(scale <= 0.0 || !gotScale)) {
-    cxx_OOJSReportBadArguments(context, "VisualEffect", "scale", argc,
-                               OOJS_ARGV, std::nullopt,
-                               "scale factor must be positive");
+    OOJSReportBadArguments(context, "VisualEffect", "scale", argc, OOJS_ARGV,
+                           std::nullopt, "scale factor must be positive");
     return OOJSNativeFailure(context);
   }
 

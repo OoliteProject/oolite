@@ -772,7 +772,7 @@ void SwitchLogFile(const std::string& name) {
   const std::string logName = oo::str::appendingPathExtension(name, "log");
   OO_LOG("verifyOXP.switchingLog", "Switching log files -- logging to \"{}\".",
          logName);
-  cxx_OOLogOutputHandlerChangeLogFile(logName);
+  OOLogOutputHandlerChangeLogFile(logName);
   // #else
   //	OO_LOG("verifyOXP.switchingLog", "Switching logging to <stdout>.");
   //	OOLogOutputHandlerStartLoggingToStdout();
@@ -795,7 +795,7 @@ void OpenLogFile() {
 #if OOLITE_WINDOWS
       // ShellExecute will automatically use the app associated with .log files
       // A nil path's -UTF8String was NULL.
-      const std::optional<std::string> logPath = cxx_OOLogHandlerGetLogPath();
+      const std::optional<std::string> logPath = OOLogHandlerGetLogPath();
       ShellExecute(NULL, NULL, logPath.has_value() ? logPath->c_str() : NULL,
                    NULL, NULL, SW_SHOWNORMAL);
 #elif OOLITE_LINUX
@@ -806,9 +806,9 @@ void OpenLogFile() {
       // value to void seems to keep it quiet for now
       // Nothing to do here, since we dump to stdout instead of to a file.
       // OOLogOutputHandlerStopLoggingToStdout();
-      (void)system(std::format("cat \"{}\"",
-                               cxx_OOLogHandlerGetLogPath().value_or("(null)"))
-                       .c_str());
+      (void)system(
+          std::format("cat \"{}\"", OOLogHandlerGetLogPath().value_or("(null)"))
+              .c_str());
 #else
       do {
       } while (0);

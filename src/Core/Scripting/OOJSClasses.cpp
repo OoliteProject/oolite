@@ -123,7 +123,7 @@ static void RecordSharedProperties(JSContext* context, JSClassID classID,
   for (size_t i = 0; i < count; i++) {
     if (properties[i].def_type == JS_DEF_CGETSET ||
         properties[i].def_type == JS_DEF_CGETSET_MAGIC) {
-      JSAtom atom = cxx_OOJSIDFromString(properties[i].name);
+      JSAtom atom = OOJSIDFromString(properties[i].name);
 
       // Some tables define a property twice (e.g. Ship's homeSystem); like
       // SpiderMonkey, keep the first.

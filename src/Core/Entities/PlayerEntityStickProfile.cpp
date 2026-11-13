@@ -489,11 +489,11 @@ void StickProfileScreen::graphProfile(GLfloat alpha, Vector at, NSSize size) {
     }
   }
   OOGL(glColor4f(0.9, 0.9, 0.0, alpha));
-  cxx_OODrawStringAligned(OO_DESC("oolite-stickprofile-movement"),
-                          at.x + size.width - 5, at.y, at.z, NSMakeSize(8, 10),
-                          true);
-  cxx_OODrawString(OO_DESC("oolite-stickprofile-response"), at.x,
-                   at.y + size.height - 10, at.z, NSMakeSize(8, 10));
+  OODrawStringAligned(OO_DESC("oolite-stickprofile-movement"),
+                      at.x + size.width - 5, at.y, at.z, NSMakeSize(8, 10),
+                      true);
+  OODrawString(OO_DESC("oolite-stickprofile-response"), at.x,
+               at.y + size.height - 10, at.z, NSMakeSize(8, 10));
   return;
 }
 

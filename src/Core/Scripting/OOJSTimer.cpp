@@ -109,8 +109,7 @@ bool OOJSTimer::initWithDelay(OOTimeAbsolute delay, OOTimeDelta interval,
     if (JS_IsException(nameValue)) {
       JS_FreeValue(context, JS_GetException(context));
     } else {
-      std::optional<std::string> name =
-          cxx_OOStringFromJSValue(context, nameValue);
+      std::optional<std::string> name = OOStringFromJSValue(context, nameValue);
       if (name.has_value() && !name->empty()) _functionName = std::move(name);
     }
     JS_FreeValue(context, nameValue);
@@ -204,7 +203,7 @@ void OOJSTimer::timerFired() {
 
   // stop and remove the timer if _jsThis (the first parameter in the
   // constructor) dies.
-  const oo::PList thisValue = cxx_OOJSPListFromJSObject(context, _jsThis);
+  const oo::PList thisValue = OOJSPListFromJSObject(context, _jsThis);
   if (oo::EntityIn(thisValue) != nullptr)
     described = true;  // an entity's object described itself
   else {
@@ -394,7 +393,7 @@ static JSValue TimerSetProperty(OOJS_SETTER_ARGS) {
     case kNextTime:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (!(timer != nullptr && timer->setNextTime(fValue))) {
-          cxx_OOJSReportWarning(
+          OOJSReportWarning(
               context,
               "Ignoring attempt to change next fire time for running timer %s.",
               (timer != nullptr ? timer->description() : std::string("(null)"))
@@ -438,16 +437,16 @@ static JSValue TimerConstruct(OOJS_NATIVE_ARGS) {
   JSValue callbackThis = JS_NULL;
 
   if (EXPECT_NOT(!OOJS_IS_CONSTRUCTING)) {
-    cxx_OOJSReportError(context,
-                        "Timer() cannot be called as a function, it must be "
-                        "used as a constructor (as in new Timer(...)).");
+    OOJSReportError(context,
+                    "Timer() cannot be called as a function, it must be "
+                    "used as a constructor (as in new Timer(...)).");
     return JS_EXCEPTION;
   }
 
   if (argc < 3) {
-    cxx_OOJSReportBadArguments(context, std::nullopt, "Timer", argc, OOJS_ARGV,
-                               "Invalid arguments in constructor",
-                               "(object, function, number [, number])");
+    OOJSReportBadArguments(context, std::nullopt, "Timer", argc, OOJS_ARGV,
+                           "Invalid arguments in constructor",
+                           "(object, function, number [, number])");
     return JS_EXCEPTION;
   }
 
@@ -455,8 +454,8 @@ static JSValue TimerConstruct(OOJS_NATIVE_ARGS) {
     callbackThis = JS_ToObject(context, OOJS_ARGV[0]);
     if (JS_IsException(callbackThis)) {
       JS_FreeValue(context, JS_GetException(context));
-      cxx_OOJSReportBadArguments(context, std::nullopt, "Timer", 1, OOJS_ARGV,
-                                 "Invalid argument in constructor", "object");
+      OOJSReportBadArguments(context, std::nullopt, "Timer", 1, OOJS_ARGV,
+                             "Invalid argument in constructor", "object");
       return JS_EXCEPTION;
     }
   }
@@ -464,8 +463,8 @@ static JSValue TimerConstruct(OOJS_NATIVE_ARGS) {
   function = OOJS_ARGV[1];
   if (!JS_IsFunction(context, function)) {
     JS_FreeValue(context, callbackThis);
-    cxx_OOJSReportBadArguments(context, std::nullopt, "Timer", 1, OOJS_ARGV + 1,
-                               "Invalid argument in constructor", "function");
+    OOJSReportBadArguments(context, std::nullopt, "Timer", 1, OOJS_ARGV + 1,
+                           "Invalid argument in constructor", "function");
     return JS_EXCEPTION;
   }
 
@@ -473,8 +472,8 @@ static JSValue TimerConstruct(OOJS_NATIVE_ARGS) {
     if (JS_HasException(context))
       JS_FreeValue(context, JS_GetException(context));
     JS_FreeValue(context, callbackThis);
-    cxx_OOJSReportBadArguments(context, std::nullopt, "Timer", 1, OOJS_ARGV + 2,
-                               "Invalid argument in constructor", "number");
+    OOJSReportBadArguments(context, std::nullopt, "Timer", 1, OOJS_ARGV + 2,
+                           "Invalid argument in constructor", "number");
     return JS_EXCEPTION;
   }
 

@@ -309,7 +309,7 @@ int main(int argc, char* argv[]) {
   } catch (...) {
     const auto exception = oo::CurrentOOException();
     if (!exception) throw;  // not an OOException: it goes on up, as before
-    OO_LOG_ERR(cxx_kOOLogException,
+    OO_LOG_ERR(kOOLogException,
                "Root exception handler hit - terminating. This is an internal "
                "error, please report it. Exception name: {}, reason: {}",
                exception->name(), exception->reason());

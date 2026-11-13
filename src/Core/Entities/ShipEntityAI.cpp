@@ -2133,7 +2133,7 @@ void ShipEntity::markTargetForOffence(
       return;
     }
     const std::string finalValue =
-        cxx_OOExpand(valueString).value_or(std::string());  // expand values
+        OOExpand(valueString).value_or(std::string());  // expand values
     if (ship != nullptr)
       ship->markAsOffender(oo::str::intValue(finalValue),
                            OOLegalStatusReason::kSeenByPolice);
@@ -2323,7 +2323,7 @@ void ShipEntity::scanForNearestShipHavingAnyRole(
 void ShipEntity::scanForNearestShipWithScanClass(
     const std::string& scanScanClass)  // called by name
 {
-  OOScanClass wantedClass = cxx_OOScanClassFromString(
+  OOScanClass wantedClass = OOScanClassFromString(
       scanScanClass);  // the predicate reads an OOScanClass
   scanForNearestShipWithPredicate(HasScanClassPredicate, &wantedClass);
 }
@@ -2364,7 +2364,7 @@ void ShipEntity::scanForNearestShipNotHavingAnyRole(
 void ShipEntity::scanForNearestShipWithoutScanClass(
     const std::string& scanScanClass)  // called by name
 {
-  OOScanClass wantedClass = cxx_OOScanClassFromString(
+  OOScanClass wantedClass = OOScanClassFromString(
       scanScanClass);  // the predicate reads an OOScanClass
   scanForNearestShipWithNegatedPredicate(HasScanClassPredicate, &wantedClass);
 }
@@ -2664,7 +2664,7 @@ void ShipEntity::sendScriptMessage(
   const std::vector<std::string> components = oo::str::tokens(message);
 
   if (components.size() == 1) {
-    doScriptEvent(cxx_OOJSIDFromString(message));
+    doScriptEvent(OOJSIDFromString(message));
   } else if (!components
                   .empty())  // (an empty message raised at -objectAtIndex:0)
   {
@@ -2674,7 +2674,7 @@ void ShipEntity::sendScriptMessage(
     for (auto component = components.begin() + 1; component != components.end();
          ++component)
       arguments.emplace_back(*component);
-    doScriptEvent(cxx_OOJSIDFromString(function),
+    doScriptEvent(OOJSIDFromString(function),
                   {oo::PList(std::move(arguments))});
   }
 }

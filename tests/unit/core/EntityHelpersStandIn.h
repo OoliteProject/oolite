@@ -17,8 +17,8 @@
    Objective-C class's name. The helpers answer the same: the hold retains and
    releases the object, and both descriptions are what the Objective-C object
    printed: <ClassName 0x...>, then {components} where its class answered
-        -cxx_descriptionComponents (the full one) or
-   -cxx_shortDescriptionComponents (the short one), members of those names here.
+        -descriptionComponents (the full one) or
+   -shortDescriptionComponents (the short one), members of those names here.
 */
 #pragma once
 
@@ -70,11 +70,11 @@ template <class Object>
 std::string TestEntityObjectDescription(Object* object, bool full = false) {
   if (object == nullptr) return "(null)";
   std::optional<std::string> components;
-  if constexpr (requires { object->cxx_descriptionComponents(); }) {
-    if (full) components = object->cxx_descriptionComponents();
+  if constexpr (requires { object->descriptionComponents(); }) {
+    if (full) components = object->descriptionComponents();
   }
-  if constexpr (requires { object->cxx_shortDescriptionComponents(); }) {
-    if (!full) components = object->cxx_shortDescriptionComponents();
+  if constexpr (requires { object->shortDescriptionComponents(); }) {
+    if (!full) components = object->shortDescriptionComponents();
   }
   std::string result =
       oo::str::format("<%s %s>", object->className(),

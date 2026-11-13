@@ -894,7 +894,7 @@ public:
 
 	void markAsOffender(int offence_value, OOLegalStatusReason reason) override
 	{
-		sSent.count++; sSent.number = offence_value; sSent.text = cxx_OOStringFromLegalStatusReason(reason);
+		sSent.count++; sSent.number = offence_value; sSent.text = OOStringFromLegalStatusReason(reason);
 	}
 
 
@@ -991,7 +991,7 @@ OO_TEST(slice14BountyAndRotateCargo)
 		RecordingPlayer *player = MakeRecordingPlayer();
 		player->setBounty(25);
 		OO_CHECK(sSent.count == 1 && sSent.amount == 25);
-		OO_CHECK(sSent.text == cxx_OOStringFromLegalStatusReason(OOLegalStatusReason::kUnknown));
+		OO_CHECK(sSent.text == OOStringFromLegalStatusReason(OOLegalStatusReason::kUnknown));
 		player->setBounty(30, OOLegalStatusReason::kUnknown);
 		OO_CHECK(sSent.count == 2 && sSent.amount == 30);
 		player->rotateCargo();
@@ -1015,7 +1015,7 @@ OO_TEST(slice15LegalStatusOffenceAndScenario)
 		OO_CHECK(player->getBounty() == 64 && player->getLegalStatus() == 64);
 		player->markAsOffender(8);
 		OO_CHECK(sSent.count == 1 && sSent.number == 8);
-		OO_CHECK(sSent.text == cxx_OOStringFromLegalStatusReason(OOLegalStatusReason::kUnknown));
+		OO_CHECK(sSent.text == OOStringFromLegalStatusReason(OOLegalStatusReason::kUnknown));
 		OO_CHECK(!player->endScenario("some-scenario"));
 		PlayerEntityTestAccess::scenarioKey(player) = std::string("other-scenario");
 		OO_CHECK(!player->endScenario("some-scenario"));

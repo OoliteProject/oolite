@@ -1,7 +1,7 @@
 /*	test_string_expander.cpp
 	Differential regression test for src/Core/OOStringExpander.mm.
 
-	The engine of cxx_OOExpandDescriptionString() moved from Foundation strings onto UTF-16 units and oo::str.
+	The engine of OOExpandDescriptionString() moved from Foundation strings onto UTF-16 units and oo::str.
 	Before that, this program was built against the ORIGINAL OOStringExpander.mm (gnustep-base
 	1.31.1) with the stubs in this directory standing in for Universe, PlayerEntity,
 	ResourceManager, the JavaScript engine and the credit formatter, and it recorded one line per
@@ -21,7 +21,7 @@
 	from run to run) keeps only its low byte, and an exception is recorded by name only (its
 	reason quotes a source line number and a C++ signature).
 
-	The harness drives cxx_OOExpandDescriptionString and cxx_OOGenerateSystemDescription directly
+	The harness drives OOExpandDescriptionString and OOGenerateSystemDescription directly
 	with the same inputs, reads the plists with oofnd's parser (the game's), and builds every
 	recorded line from the same UTF-16 units, so the recorded digests are unchanged.
 
@@ -119,7 +119,7 @@ void OOLogPopIndent(void) {}
 JSContext *OOJSAcquireContext(void) { return nullptr; }
 void OOJSRelinquishContext(JSContext *context) { (void)context; }
 // The C++ form (printf format) the expander calls.
-void cxx_OOJSReportWarningWithArguments(JSContext *context, const char *format, va_list args)
+void OOJSReportWarningWithArguments(JSContext *context, const char *format, va_list args)
 {
 	(void)context;
 	sLog.push_back(u"JS warning: " + MaskPercentLc(U(oo::str::vformat(format, args))));
@@ -231,7 +231,7 @@ std::optional<Units> Expand(Random_Seed seed, const Units &string, const std::op
 {
 	try
 	{
-		return UnitsOf(cxx_OOExpandDescriptionString(seed, oo::utf16ToUtf8(string), Overrides(), Locals(), systemName, options));
+		return UnitsOf(OOExpandDescriptionString(seed, oo::utf16ToUtf8(string), Overrides(), Locals(), systemName, options));
 	}
 	catch (const oo::Exception &e)
 	{
@@ -374,7 +374,7 @@ int main(int argc, char **argv)
 			}
 		}
 		ranrot_srand(77 + s);
-		Record(u"system description", UnitsOf(cxx_OOGenerateSystemDescription(seed, std::string("Riedquat"))));
+		Record(u"system description", UnitsOf(OOGenerateSystemDescription(seed, std::string("Riedquat"))));
 	}
 	const uint64_t keysHash = sHash;
 	const unsigned keysLines = sLines;
@@ -417,7 +417,7 @@ int main(int argc, char **argv)
 			std::optional<Units> r;
 			try
 			{
-				r = UnitsOf(cxx_OOExpandDescriptionString(seed, oo::utf16ToUtf8(c[0]), del, oo::PList(), std::nullopt, OOExpandOptions::kNone));
+				r = UnitsOf(OOExpandDescriptionString(seed, oo::utf16ToUtf8(c[0]), del, oo::PList(), std::nullopt, OOExpandOptions::kNone));
 			}
 			catch (const oo::Exception &e)
 			{

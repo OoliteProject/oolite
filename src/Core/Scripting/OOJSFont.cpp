@@ -56,15 +56,15 @@ static JSValue FontMeasureString(OOJS_NATIVE_ARGS) {
 
   if (EXPECT_NOT(argc < 1) || JS_IsUndefined(OOJS_ARGV[0])) {
     JSValueConst undefined = JS_UNDEFINED;
-    cxx_OOJSReportBadArguments(context, std::nullopt,
-                               "defaultFont.measureString", std::min(argc, 1),
-                               &undefined, std::nullopt, "string");
+    OOJSReportBadArguments(context, std::nullopt, "defaultFont.measureString",
+                           std::min(argc, 1), &undefined, std::nullopt,
+                           "string");
     return OOJSNativeFailure(context);
   }
 
-  OOJS_RETURN_DOUBLE(cxx_OOStringWidthInEm(
-      cxx_OOStringFromJSValue(context, OOJS_ARGV[0])
-          .value_or(std::string())));  // nil measured as ""
+  OOJS_RETURN_DOUBLE(
+      OOStringWidthInEm(OOStringFromJSValue(context, OOJS_ARGV[0])
+                            .value_or(std::string())));  // nil measured as ""
 
   OOJS_NATIVE_EXIT
 }

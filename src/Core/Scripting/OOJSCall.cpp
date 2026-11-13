@@ -128,8 +128,8 @@ bool CallMethod(JSContext* context, const std::string& oo_jsClassName, int argc,
   oo::PList result;  // null for none
 
   if (argc == 0) {
-    cxx_OOJSReportError(context, "%s.callObjC(): no selector specified.",
-                        oo_jsClassName.c_str());
+    OOJSReportError(context, "%s.callObjC(): no selector specified.",
+                    oo_jsClassName.c_str());
     return false;
   }
 
@@ -144,7 +144,7 @@ bool CallMethod(JSContext* context, const std::string& oo_jsClassName, int argc,
                   // in for it
   }
 
-  selectorString = cxx_OOStringFromJSValue(context, argv[0]);
+  selectorString = OOStringFromJSValue(context, argv[0]);
 
   // Join all parameters together with spaces.
   if (1 < argc && selectorString.has_value() &&
@@ -155,7 +155,7 @@ bool CallMethod(JSContext* context, const std::string& oo_jsClassName, int argc,
     std::string joined;
     for (int i = 1; i < argc; i++) {
       if (i > 1) joined += " ";
-      joined += cxx_OOStringFromJSValueEvenIfNull(context, argv[i])
+      joined += OOStringFromJSValueEvenIfNull(context, argv[i])
                     .value_or(std::string());
     }
     paramString = joined;
@@ -168,10 +168,9 @@ bool CallMethod(JSContext* context, const std::string& oo_jsClassName, int argc,
     type = MethodTypeOfRow(*row);
 
     if (MethodExpectsParameter(type) && !haveParameter) {
-      cxx_OOJSReportError(
-          context, "%s.callObjC(): method %s requires a parameter.",
-          oo_jsClassName.c_str(),
-          (selectorString ? selectorString->c_str() : "(null)"));
+      OOJSReportError(context, "%s.callObjC(): method %s requires a parameter.",
+                      oo_jsClassName.c_str(),
+                      (selectorString ? selectorString->c_str() : "(null)"));
       error = true;
     } else {
       // An entity's method with a numeric, vector, quaternion, colour or object
@@ -286,7 +285,7 @@ bool CallMethod(JSContext* context, const std::string& oo_jsClassName, int argc,
         case kMethodTypeMatrixVoid:
         case kMethodTypePointVoid:
         case kMethodTypeInvalid:
-          cxx_OOJSReportError(
+          OOJSReportError(
               context,
               "%s.callObjC(): method %s cannot be called from JavaScript.",
               oo_jsClassName.c_str(),
@@ -306,10 +305,9 @@ bool CallMethod(JSContext* context, const std::string& oo_jsClassName, int argc,
     std::string described = (entity != nullptr)
                                 ? oo::EntityShortDescription(entity)
                                 : std::string("(null)");
-    cxx_OOJSReportError(context,
-                        "%s.callObjC(): %s does not respond to method %s.",
-                        oo_jsClassName.c_str(), described.c_str(),
-                        (selectorString ? selectorString->c_str() : "(null)"));
+    OOJSReportError(context, "%s.callObjC(): %s does not respond to method %s.",
+                    oo_jsClassName.c_str(), described.c_str(),
+                    (selectorString ? selectorString->c_str() : "(null)"));
     error = true;
   }
 

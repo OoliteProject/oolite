@@ -87,8 +87,8 @@ class StationEntity : public ShipEntity {
   static std::shared_ptr<::ShipEntity> newStationObject(const std::string& key,
                                                         const oo::PList& dict);
 
-  // -cxx_initWithKey:definition:'s body after [super
-  // cxx_initWithKey:definition:].
+  // -initWithKey:definition:'s body after [super
+  // initWithKey:definition:].
   void initStationDefaults();
 
   // Run first when a station is destroyed, before the ship's own teardown.
@@ -300,7 +300,7 @@ inline ::StationEntity* ToStation(Entity* entity) {
 // A mixed configuration: "station" is an Object
 // node holding the station's weak reference; ai_message / comms_message absent
 // when nullopt.
-oo::PList cxx_OOMakeDockingInstructions(
+oo::PList OOMakeDockingInstructions(
     StationEntity* station, HPVector coords, float speed, float range,
     const std::optional<std::string>& ai_message,
     const std::optional<std::string>& comms_message, bool match_rotation,

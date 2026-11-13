@@ -224,14 +224,14 @@ class ShipEntity : public OOEntityWithDrawable,
                    public cxx::OOSubEntityInterface  // <OOSubEntity>
 {
  public:
-  /*	-cxx_initWithKey:definition:'s body between [super init] and the set-up
+  /*	-initWithKey:definition:'s body between [super init] and the set-up
      from the dictionary. initShipSetUp() runs it, and then the set-up. Run
      again when an initialised ship is set up again
      (PlayerEntity::deferredInit()).
   */
   void initWithKey(const std::string& key);
 
-  /*	-cxx_initWithKey:definition:'s body after [super init]: initWithKey(),
+  /*	-initWithKey:definition:'s body after [super init]: initWithKey(),
      then the set-up from the dictionary; false where the initialiser released
      the object and answered nil. oo::NewShipObject() and
      PlayerEntity::deferredInit() run it.
@@ -246,7 +246,7 @@ class ShipEntity : public OOEntityWithDrawable,
   // this ship, and this ship agrees.
   bool isShipWithSubEntityShip(Entity* other);
 
-  // set-up from the ship dictionary (cxx_setUpFromDictionary:).
+  // set-up from the ship dictionary (setUpFromDictionary:).
   bool setUpFromDictionary(const oo::PList& inShipDict);
 
   // setUpShipFromDictionary:, subentity serialisation and set-up.
@@ -1415,7 +1415,7 @@ class ShipEntity : public OOEntityWithDrawable,
 
   std::vector<oo::EntityHold>
       cargo;  // cargo containers go in here (index 0 is the eject position);
-              // edited in place through -cxx_cargo
+              // edited in place through -cargo
 
   std::optional<std::string>
       commodity_type;  // type of commodity in a container; nullopt: not a pod
@@ -1606,15 +1606,15 @@ class ShipEntity : public OOEntityWithDrawable,
     OOJSRelinquishContext(oojsEventContext);                       \
   } while (0)
 
-Vector cxx_positionOffsetForShipInRotationToAlignment(ShipEntity* ship,
-                                                      Quaternion q,
-                                                      const std::string& align);
+Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship,
+                                                  Quaternion q,
+                                                  const std::string& align);
 
 namespace oo {
 
 /*	A ship made in C++: made as its object was (oo::MadeEntityRetained(): it
    has its object and is counted), set up from the definition as
-   -cxx_initWithKey:definition: set up a ship; retained (+1), as +alloc/-init's
+   -initWithKey:definition: set up a ship; retained (+1), as +alloc/-init's
    object was, or null when the set-up fails (the failing initialiser released
    it).
 */
@@ -1637,21 +1637,21 @@ GLfloat getWeaponRangeFromType(OOWeaponType weapon_type);
 bool isWeaponNone(OOWeaponType weapon);
 
 // C++ forms, defined in OOConstToString.cpp.
-std::string cxx_OOStringFromBehaviour(OOBehaviour behaviour);
-std::string cxx_OOStringFromShipDamageType(OOShipDamageType type);
+std::string OOStringFromBehaviour(OOBehaviour behaviour);
+std::string OOStringFromShipDamageType(OOShipDamageType type);
 
 // Weapon identifiers and alert-condition names; nullopt where the old form gave
 // nil.
-std::optional<std::string> cxx_OOEquipmentIdentifierFromWeaponType(
+std::optional<std::string> OOEquipmentIdentifierFromWeaponType(
     OOWeaponType weapon);  // nullopt: no weapon
-OOWeaponType cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(
+OOWeaponType OOWeaponTypeFromEquipmentIdentifierSloppy(
     const std::string&
         string);  // Uses suffix match for backwards compatibility.
-OOWeaponType cxx_OOWeaponTypeFromEquipmentIdentifierStrict(
+OOWeaponType OOWeaponTypeFromEquipmentIdentifierStrict(
     const std::string& string);
-OOWeaponType cxx_OOWeaponTypeFromEquipmentIdentifierLegacy(
+OOWeaponType OOWeaponTypeFromEquipmentIdentifierLegacy(
     const std::string& string);
-std::optional<std::string> cxx_OOStringFromWeaponType(OOWeaponType weapon);
-OOWeaponType cxx_OOWeaponTypeFromString(const std::string& string);
-std::optional<std::string> cxx_OODisplayStringFromAlertCondition(
+std::optional<std::string> OOStringFromWeaponType(OOWeaponType weapon);
+OOWeaponType OOWeaponTypeFromString(const std::string& string);
+std::optional<std::string> OODisplayStringFromAlertCondition(
     OOAlertCondition alertCondition);

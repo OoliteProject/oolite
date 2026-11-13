@@ -622,7 +622,7 @@ static bool DecodeFormat(OOTextureDataFormat format, OOTextureFlags options,
       return true;
 
     default:
-      OO_LOG(cxx_kOOLogParameterError, "Unexpected texture format {}.",
+      OO_LOG(kOOLogParameterError, "Unexpected texture format {}.",
              static_cast<unsigned>(format));
       return false;
   }

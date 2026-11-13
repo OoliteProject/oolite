@@ -311,7 +311,7 @@ oo::PList OOCommodities::modifyGood(const oo::PList& good, ::OOScript* script,
     return good;
   }
 
-  oo::PList result = cxx_OOJSPListFromJSObject(context, rval);
+  oo::PList result = OOJSPListFromJSObject(context, rval);
   OOJSFreeValue(context, rval);
   OOJSRelinquishContext(context);
   if (result.getIf<oo::PList::Dict>() == nullptr) {
@@ -457,7 +457,7 @@ std::optional<std::string> OOCommodities::goodNamed(const std::string& name) {
     const std::optional<std::string> commodityName =
         StringFor(info, kOOCommodityName);
     const std::optional<std::string> expanded =
-        commodityName.has_value() ? cxx_OOExpand(*commodityName) : std::nullopt;
+        commodityName.has_value() ? OOExpand(*commodityName) : std::nullopt;
     if (expanded == name) {
       return key;
     }

@@ -335,7 +335,7 @@ OO_TEST(slice2DisplayModesAndSavedSettings) {
 }
 
 // --- Snapshots and the debug image dumps ---
-// -cxx_snapShot: reads the game window's surface, which a unit test may not
+// -snapShot: reads the game window's surface, which a unit test may not
 // open (the GUI tests' screenshots run it). The dumps write PNGs under
 // <home>/oolite-saves/snapshots.
 

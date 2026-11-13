@@ -360,7 +360,7 @@ bool OOGenerateMipMaps(void* textureBytes, OOPixMapDimension width,
                        OOPixMapDimension height, OOPixMapFormat format) {
   if (EXPECT_NOT(width != OORoundUpToPowerOf2_PixMap(width) ||
                  height != OORoundUpToPowerOf2_PixMap(height))) {
-    OO_LOG(cxx_kOOLogParameterError,
+    OO_LOG(kOOLogParameterError,
            "Non-power-of-two dimensions ({}x{}) passed to {}() - ignoring, "
            "data will be junk.",
            static_cast<unsigned>(width), static_cast<unsigned>(height),
@@ -368,7 +368,7 @@ bool OOGenerateMipMaps(void* textureBytes, OOPixMapDimension width,
     return false;
   }
   if (EXPECT_NOT(textureBytes == nullptr)) {
-    OO_LOG(cxx_kOOLogParameterError, "{}",
+    OO_LOG(kOOLogParameterError, "{}",
            "NULL texture pointer passed to GenerateMipMaps().");
     return false;
   }
@@ -387,7 +387,7 @@ bool OOGenerateMipMaps(void* textureBytes, OOPixMapDimension width,
       break;
   }
 
-  OO_LOG(cxx_kOOLogParameterError,
+  OO_LOG(kOOLogParameterError,
          "{}(): bad pixmap format ({}) - ignoring, data will be junk.",
          __PRETTY_FUNCTION__, OOPixMapFormatName(format));
   return false;

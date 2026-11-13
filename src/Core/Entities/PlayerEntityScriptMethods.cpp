@@ -329,7 +329,7 @@ oo::PList PlayerEntity::validatedMarker(const oo::PList& marker) {
 // Implements string expansion code [credits_number].
 std::optional<std::string> PlayerEntity::creditsFormattedForSubstitution() {
   return std::optional<std::string>(
-      cxx_OOStringFromDeciCredits(deciCredits(), true, false));
+      OOStringFromDeciCredits(deciCredits(), true, false));
 }
 
 /*	Implements string expansion code [_oo_legacy_credits_number].

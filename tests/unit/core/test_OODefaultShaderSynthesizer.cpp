@@ -1079,7 +1079,7 @@ OO_TEST(emissionAndIlluminationMaps) {
 
 // Light maps: a colour only, a texture in illumination mode, one tinted black.
 // The colour-only map is read as a texture specifier with no name
-// (cxx_OOTextureSpecFromObject keeps a dictionary when there is no default
+// (OOTextureSpecFromObject keeps a dictionary when there is no default
 // name), which is invalid, so nothing is synthesized (but YES).
 OO_TEST(lightMapColourOnlyFails) {
   oo::PList::Array lightMaps{

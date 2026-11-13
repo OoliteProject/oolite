@@ -63,18 +63,18 @@ oo::PList OOSanitizeLegacyScriptConditions(const oo::PList&,
                                            const std::optional<std::string>&) {
   std::abort();
 }
-bool cxx_ScanVectorFromString(const std::optional<std::string>&, Vector*) {
+bool ScanVectorFromString(const std::optional<std::string>&, Vector*) {
   std::abort();
 }
-bool cxx_ScanHPVectorFromString(const std::optional<std::string>&, HPVector*) {
+bool ScanHPVectorFromString(const std::optional<std::string>&, HPVector*) {
   std::abort();
 }
-bool cxx_ScanQuaternionFromString(const std::optional<std::string>&,
+bool ScanQuaternionFromString(const std::optional<std::string>&,
                                   Quaternion*) {
   std::abort();
 }
-void cxx_OOStandardsDeprecated(const std::string&) { std::abort(); }
-void cxx_OOStandardsError(const std::string&) { std::abort(); }
+void OOStandardsDeprecated(const std::string&) { std::abort(); }
+void OOStandardsError(const std::string&) { std::abort(); }
 
 // Fakes the registry does call: standards are not enforced (the default), and
 // the ship library's category names are a fixed table (the real one expands

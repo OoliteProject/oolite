@@ -45,7 +45,7 @@ std::string sLastError;
 } // namespace
 
 
-void cxx_OOJSReportError(JSContext *context, const char *format, ...)
+void OOJSReportError(JSContext *context, const char *format, ...)
 {
 	(void)context;
 	va_list args;
@@ -55,7 +55,7 @@ void cxx_OOJSReportError(JSContext *context, const char *format, ...)
 }
 
 
-std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueConst value)
+std::optional<std::string> OOStringFromJSValue(JSContext *context, JSValueConst value)
 {
 	if (JS_IsNull(value) || JS_IsUndefined(value))  return std::nullopt;
 	std::size_t length = 0;
@@ -71,11 +71,11 @@ std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueCo
 }
 
 
-std::optional<std::string> cxx_OOStringFromJSValueEvenIfNull(JSContext *context, JSValueConst value)
+std::optional<std::string> OOStringFromJSValueEvenIfNull(JSContext *context, JSValueConst value)
 {
 	if (JS_IsNull(value))  return std::string("null");
 	if (JS_IsUndefined(value))  return std::string("undefined");
-	return cxx_OOStringFromJSValue(context, value);
+	return OOStringFromJSValue(context, value);
 }
 
 
@@ -208,7 +208,7 @@ JSValue OOJSValueFromPList(JSContext *context, const oo::PList &plist)
 namespace {
 
 std::vector<std::string> sEntityCalls;
-oo::PList sShipInfo;	// what cxx_shipInfoDictionary answers (null: a null result)
+oo::PList sShipInfo;	// what shipInfoDictionary answers (null: a null result)
 Entity *sOwner = nullptr;	// what owner answers
 
 }	// namespace
@@ -216,7 +216,7 @@ Entity *sOwner = nullptr;	// what owner answers
 bool oo::EntityRespondsToName(Entity *entity, const std::string &name)
 {
 	if (TestObjectOf(entity) == nullptr)  return false;
-	static const char *const kNames[] = { "isPlayer", "speed", "thrust", "velocity", "orientation", "rotationMatrix", "owner", "removeScript", "addRole:", "cxx_shipInfoDictionary", "retain", "hash" };
+	static const char *const kNames[] = { "isPlayer", "speed", "thrust", "velocity", "orientation", "rotationMatrix", "owner", "removeScript", "addRole:", "shipInfoDictionary", "retain", "hash" };
 	for (const char *known : kNames)
 	{
 		if (name == known)  return true;
@@ -229,7 +229,7 @@ oo::PList oo::CallEntityByName(Entity *entity, const std::string &name)
 {
 	if (entity == nullptr)  return oo::PList();
 	sEntityCalls.push_back(name);
-	if (name == "cxx_shipInfoDictionary")  return sShipInfo;
+	if (name == "shipInfoDictionary")  return sShipInfo;
 	return oo::PList();
 }
 
@@ -294,7 +294,7 @@ std::string CallEntity(Entity *entity, std::vector<JSValue> argv)
 	const JSValue marker = StringValue("<unchanged>");	// a marker no call writes
 	JSValue result = marker;
 	bool OK = OOJSCallEntityMethod(Context(), entity, "Test", static_cast<int>(argv.size()), argv.data(), &result);
-	std::string text = OK ? cxx_OOStringFromJSValueEvenIfNull(Context(), result).value_or("<none>") : "error: " + sLastError;
+	std::string text = OK ? OOStringFromJSValueEvenIfNull(Context(), result).value_or("<none>") : "error: " + sLastError;
 	// A result the call set is owned here, besides the marker.
 	if (JS_VALUE_GET_TAG(result) != JS_VALUE_GET_TAG(marker) || JS_VALUE_GET_PTR(result) != JS_VALUE_GET_PTR(marker))  JS_FreeValue(Context(), result);
 	JS_FreeValue(Context(), marker);
@@ -354,9 +354,9 @@ OO_TEST(entityResultsByTable)
 			OO_CHECK_EQ(sEntityCalls[1], "addRole:hello 3 null");	// the parameters joined with spaces
 		}
 		sShipInfo = oo::PList(12.5);
-		OO_CHECK_EQ(CallEntity(gOOPlayer, "cxx_shipInfoDictionary"), "12.5");
+		OO_CHECK_EQ(CallEntity(gOOPlayer, "shipInfoDictionary"), "12.5");
 		sShipInfo = oo::PList();
-		OO_CHECK_EQ(CallEntity(gOOPlayer, "cxx_shipInfoDictionary"), "<unchanged>");	// a null result leaves it
+		OO_CHECK_EQ(CallEntity(gOOPlayer, "shipInfoDictionary"), "<unchanged>");	// a null result leaves it
 
 		OO_CHECK_EQ(CallEntity(gOOPlayer, "isPlayer"), "1");
 		OO_CHECK_EQ(CallEntity(gOOPlayer, "thrust"), "0.5");

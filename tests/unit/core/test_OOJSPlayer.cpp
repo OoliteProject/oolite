@@ -374,18 +374,18 @@ oo::PList Universe::nearbyDestinationsWithinRange(double range)	{ _range = range
 
 
 // The display strings, as PlayerEntity.m and OOConstToString.mm make them, for what the test uses.
-std::optional<std::string> cxx_OODisplayRatingStringFromKillCount(unsigned kills)
+std::optional<std::string> OODisplayRatingStringFromKillCount(unsigned kills)
 {
 	return kills >= 8 ? std::optional<std::string>("Poor") : std::optional<std::string>("Harmless");
 }
 
-std::optional<std::string> cxx_OODisplayStringFromLegalStatus(int legalStatus)
+std::optional<std::string> OODisplayStringFromLegalStatus(int legalStatus)
 {
 	if (legalStatus < 0)  return std::nullopt;
 	return legalStatus == 0 ? "Clean" : (legalStatus <= 50 ? "Offender" : "Fugitive");
 }
 
-std::string cxx_DockingClearanceStatusToString(OODockingClearanceStatus dockingClearanceStatus)
+std::string DockingClearanceStatusToString(OODockingClearanceStatus dockingClearanceStatus)
 {
 	return dockingClearanceStatus == OODockingClearanceStatus::kGranted ? "DOCKING_CLEARANCE_STATUS_GRANTED" : "DOCKING_CLEARANCE_STATUS_NONE";
 }
@@ -396,29 +396,29 @@ std::string cxx_DockingClearanceStatusToString(OODockingClearanceStatus dockingC
 JSContext *gOOJSMainThreadContext = nullptr;
 
 
-void cxx_OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
+void OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
 {
 	std::string msg = oo::str::vformat(format, args);
 	JS_ThrowPlainError(context, "%s", msg.c_str());
 }
 
 
-void cxx_OOJSReportError(JSContext *context, const char *format, ...)
+void OOJSReportError(JSContext *context, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
-	cxx_OOJSReportErrorWithArguments(context, format, args);
+	OOJSReportErrorWithArguments(context, format, args);
 	va_end(args);
 }
 
 
-void cxx_OOJSReportBadArguments(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, int argc, JSValueConst *, const std::optional<std::string> &message, const std::optional<std::string> &expectedArgsDescription)
+void OOJSReportBadArguments(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, int argc, JSValueConst *, const std::optional<std::string> &message, const std::optional<std::string> &expectedArgsDescription)
 {
-	cxx_OOJSReportError(context, "bad arguments: %s.%s(%d) %s / %s", scriptClass.value_or("-").c_str(), function.value_or("-").c_str(), argc, message.value_or("-").c_str(), expectedArgsDescription.value_or("-").c_str());
+	OOJSReportError(context, "bad arguments: %s.%s(%d) %s / %s", scriptClass.value_or("-").c_str(), function.value_or("-").c_str(), argc, message.value_or("-").c_str(), expectedArgsDescription.value_or("-").c_str());
 }
 
 
-std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueConst value)
+std::optional<std::string> OOStringFromJSValue(JSContext *context, JSValueConst value)
 {
 	if (JS_IsNull(value) || JS_IsUndefined(value))  return std::nullopt;
 	std::size_t length = 0;
@@ -442,7 +442,7 @@ bool OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
 	number = std::floor(number + 0.5);
 	if (std::isnan(number) || number < INT32_MIN || number > INT32_MAX)
 	{
-		cxx_OOJSReportError(context, "can't convert to an integer");
+		OOJSReportError(context, "can't convert to an integer");
 		return false;
 	}
 	*outValue = static_cast<int32_t>(number);
@@ -458,10 +458,10 @@ JSClassID sFakeStationClassID = 0;
 
 // A JS value as a property list, as far as setEscapePodDestination() hands one over: null, a
 // string, a number, a boolean, or a station (its object).
-oo::PList cxx_OOJSPListFromJSValue(JSContext *context, JSValueConst value)
+oo::PList OOJSPListFromJSValue(JSContext *context, JSValueConst value)
 {
 	if (JS_IsNull(value) || JS_IsUndefined(value))  return oo::PList();
-	if (JS_IsString(value))  return oo::PList(cxx_OOStringFromJSValue(context, value).value_or(std::string()));
+	if (JS_IsString(value))  return oo::PList(OOStringFromJSValue(context, value).value_or(std::string()));
 	if (JS_IsBool(value))  return oo::PList(JS_ToBool(context, value) != 0);
 	if (JS_IsNumber(value))
 	{
@@ -507,13 +507,13 @@ Entity *gOOJSPlayerIfStale = nullptr;	// the player's C++ entity
 
 void OOJSReportBadPropertySelector(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t)
 {
-	cxx_OOJSReportError(context, "bad property selector");
+	OOJSReportError(context, "bad property selector");
 }
 
 
 void OOJSReportBadPropertyValue(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t, JSValueConst)
 {
-	cxx_OOJSReportError(context, "bad property value");
+	OOJSReportError(context, "bad property value");
 }
 
 
@@ -535,7 +535,7 @@ JSAtom OOJSInternAtomPRIVATE(const char *name)
 
 // The atom cache and the pending-exception reporter, which the class registry (OOJSClasses.mm,
 // linked) calls.
-JSAtom cxx_OOJSIDFromString(const std::string &string)
+JSAtom OOJSIDFromString(const std::string &string)
 {
 	return JS_NewAtomLen(gOOJSMainThreadContext, string.data(), string.size());
 }
@@ -559,7 +559,7 @@ JSValue OOJSNativeFailure(JSContext *context)
 
 JSValue OOJSUnconstructableConstruct(JSContext *context, JSValueConst, int, JSValueConst *)
 {
-	cxx_OOJSReportError(context, "unconstructable");
+	OOJSReportError(context, "unconstructable");
 	return JS_EXCEPTION;
 }
 
@@ -664,7 +664,7 @@ std::string Eval(const char *src)
 		JS_FreeValue(sContext, JS_GetException(sContext));
 		return "<evaluation failed>";
 	}
-	std::string text = cxx_OOStringFromJSValue(sContext, result).value_or("<not a string>");
+	std::string text = OOStringFromJSValue(sContext, result).value_or("<not a string>");
 	JS_FreeValue(sContext, result);
 	return text;
 }

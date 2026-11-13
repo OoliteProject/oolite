@@ -67,7 +67,7 @@ std::optional<std::string> CallForString(OOJSScript* script,
   std::optional<std::string> string;
 
   if (script->callMethodNamed(method, NULL, 0, &result)) {
-    string = cxx_OOStringFromJSValueEvenIfNull(context, result);
+    string = OOStringFromJSValueEvenIfNull(context, result);
     JS_FreeValue(context, result);
   }
   return string;

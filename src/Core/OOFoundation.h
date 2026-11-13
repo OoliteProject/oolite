@@ -150,7 +150,7 @@ MA 02110-1301, USA.
 #include "OOLogging.h"
 #include "oofnd/objc/OOObject.h"
 
-/*	The description family (-cxx_descriptionComponents & co.,
+/*	The description family (-descriptionComponents & co.,
  * oo::DescriptionOf), Foundation-free.
  */
 #include "OODescription.h"

@@ -47,7 +47,7 @@ oo::PList SpecWithExtraShrink(const oo::PList& spec) {
   if (spec.isNull()) return oo::PList();
   oo::PList copy = spec;
   if (oo::PList::Dict* dict = copy.getIf<oo::PList::Dict>()) {
-    (*dict)[cxx_kOOTextureSpecifierExtraShrinkKey] = oo::PList(true);
+    (*dict)[kOOTextureSpecifierExtraShrinkKey] = oo::PList(true);
   }
   return copy;
 }
@@ -129,8 +129,8 @@ bool OOCombinedEmissionMapGenerator::initWithEmissionMapSpec(
   OOTextureFlags options;
   GLfloat anisotropy;
   GLfloat lodBias;
-  cxx_OOInterpretTextureSpecifier(spec, nullptr, &options, &anisotropy,
-                                  &lodBias, true);
+  OOInterpretTextureSpecifier(spec, nullptr, &options, &anisotropy, &lodBias,
+                              true);
   options = OOApplyTextureOptionDefaults(options);
 
   if (initWithPath(std::string("<generated emission map>"), options)) {
@@ -231,7 +231,7 @@ std::string OOCombinedEmissionMapGenerator::constructCacheKey() {
 
   std::string emissionDesc;
   if (!_emissionSpec.isNull()) {
-    emissionDesc = cxx_OOTextureCacheKeyForSpecifier(_emissionSpec);
+    emissionDesc = OOTextureCacheKeyForSpecifier(_emissionSpec);
     cacheKey += std::format("emission:{{{}}}", emissionDesc);
     if (_emissionColor) {
       const std::optional<std::string> rgba = _emissionColor->rgbaDescription();
@@ -244,7 +244,7 @@ std::string OOCombinedEmissionMapGenerator::constructCacheKey() {
   if (_isCombinedMap) {
     illuminationDesc = emissionDesc + ":a";
   } else if (!_illuminationSpec.isNull()) {
-    illuminationDesc = cxx_OOTextureCacheKeyForSpecifier(_illuminationSpec);
+    illuminationDesc = OOTextureCacheKeyForSpecifier(_illuminationSpec);
   }
 
   if (!illuminationDesc.empty()) {

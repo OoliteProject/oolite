@@ -227,18 +227,18 @@ void ShipEntity::forceAegisCheck()  { _aegisChecks++; }
 JSContext *gOOJSMainThreadContext = nullptr;
 
 
-void cxx_OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
+void OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
 {
 	std::string msg = oo::str::vformat(format, args);
 	JS_ThrowPlainError(context, "%s", msg.c_str());
 }
 
 
-void cxx_OOJSReportError(JSContext *context, const char *format, ...)
+void OOJSReportError(JSContext *context, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
-	cxx_OOJSReportErrorWithArguments(context, format, args);
+	OOJSReportErrorWithArguments(context, format, args);
 	va_end(args);
 }
 
@@ -248,7 +248,7 @@ std::string sLastWarning;
 int sParameterErrors = 0;
 }
 
-void cxx_OOJSReportWarning(JSContext *, const char *format, ...)
+void OOJSReportWarning(JSContext *, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
@@ -276,13 +276,13 @@ JSValue OOJSNativeFailure(JSContext *context)
 
 // Property IDs are interned for the life of the process (never freed), as the class registry
 // (OOJSClasses.mm, linked) interns the class's property names.
-JSAtom cxx_OOJSIDFromString(const std::string &string)
+JSAtom OOJSIDFromString(const std::string &string)
 {
 	return JS_NewAtomLen(OOJSAcquireContext(), string.data(), string.size());
 }
 
 
-std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueConst value)
+std::optional<std::string> OOStringFromJSValue(JSContext *context, JSValueConst value)
 {
 	if (JS_IsNull(value) || JS_IsUndefined(value))  return std::nullopt;
 	std::size_t length = 0;
@@ -298,9 +298,9 @@ std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueCo
 }
 
 
-std::string cxx_OOJSDescribeValue(JSContext *context, JSValueConst value, bool abbreviateObjects)
+std::string OOJSDescribeValue(JSContext *context, JSValueConst value, bool abbreviateObjects)
 {
-	return std::string(abbreviateObjects ? "abbr:" : "full:") + cxx_OOStringFromJSValue(context, value).value_or("null");
+	return std::string(abbreviateObjects ? "abbr:" : "full:") + OOStringFromJSValue(context, value).value_or("null");
 }
 
 
@@ -481,13 +481,13 @@ bool JSValueToQuaternion(JSContext *context, JSValueConst value, Quaternion *out
 
 void OOJSReportBadPropertySelector(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t)
 {
-	cxx_OOJSReportError(context, "bad property selector");
+	OOJSReportError(context, "bad property selector");
 }
 
 
 void OOJSReportBadPropertyValue(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t, JSValueConst)
 {
-	cxx_OOJSReportError(context, "bad property value");
+	OOJSReportError(context, "bad property value");
 }
 
 
@@ -501,7 +501,7 @@ void OOJSRegisterObjectConverter(JSClassID classID, OOJSClassConverterCallback)
 
 JSValue OOJSUnconstructableConstruct(JSContext *context, JSValueConst, int, JSValueConst *)
 {
-	cxx_OOJSReportError(context, "unconstructable");
+	OOJSReportError(context, "unconstructable");
 	return JS_EXCEPTION;
 }
 
@@ -526,7 +526,7 @@ bool OOJSGetCxxPrivateImpl(JSContext *context, JSValueConst object, JSClassID re
 	if (!OOJSIsSubclass(JS_GetClassID(object), requiredClassID))
 	{
 		const char *className = OOJSClassName(requiredClassID);
-		cxx_OOJSReportError(context, "Native method expected %s, got %s.", className != nullptr ? className : "(null)", cxx_OOStringFromJSValue(context, object).value_or("(null)").c_str());
+		OOJSReportError(context, "Native method expected %s, got %s.", className != nullptr ? className : "(null)", OOStringFromJSValue(context, object).value_or("(null)").c_str());
 		return false;
 	}
 	JSClassID ignored;
@@ -650,7 +650,7 @@ std::string Eval(const char *src)
 		JS_FreeValue(sContext, JS_GetException(sContext));
 		return "<evaluation failed>";
 	}
-	std::string text = cxx_OOStringFromJSValue(sContext, result).value_or("<not a string>");
+	std::string text = OOStringFromJSValue(sContext, result).value_or("<not a string>");
 	JS_FreeValue(sContext, result);
 	return text;
 }

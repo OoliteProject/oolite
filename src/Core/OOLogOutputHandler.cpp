@@ -170,9 +170,9 @@ void OOLogOutputHandlerPrintLine(std::string_view line) {
   }
 }
 
-std::optional<std::string> cxx_OOLogHandlerGetLogPath() { return LogPath(); }
+std::optional<std::string> OOLogHandlerGetLogPath() { return LogPath(); }
 
-void cxx_OOLogOutputHandlerChangeLogFile(const std::string& name) {
+void OOLogOutputHandlerChangeLogFile(const std::string& name) {
   if (LogFileName() != name) {
     sLogFileName = name;
     if (sLogger != nullptr) {
@@ -331,7 +331,7 @@ const std::optional<std::string>& LogBasePath() {
 
 }  // namespace
 
-std::optional<std::string> cxx_OOLogHandlerGetLogBasePath() {
+std::optional<std::string> OOLogHandlerGetLogBasePath() {
   return LogBasePath();
 }
 

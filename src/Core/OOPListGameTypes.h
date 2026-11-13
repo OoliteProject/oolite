@@ -7,7 +7,7 @@ objects - Vector, HPVector, Quaternion and the fuzzy boolean - over oo::PList
 instead.
 The routing and conversions are oofnd's (oo::plist_get::tupleFrom / tuplePList /
 fuzzyProbabilityFrom, pinned by tests/unit/oofnd/test_plist_game_tuples.cpp);
-this header adds the game's parts: a string is scanned by cxx_Scan*FromString
+this header adds the game's parts: a string is scanned by Scan*FromString
 (which logs a malformed one), a native JS vector object is read, and the fuzzy
 boolean draws randf(). OOCollectionExtractors' OO*FromObject forward here.
 

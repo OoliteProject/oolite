@@ -62,7 +62,7 @@ SOFTWARE.
 
 class OOALSoundDecoder : public oo::Object {
  public:
-  /*	Was -cxx_initWithPath:, a class cluster's initialiser: it answered, in
+  /*	Was -initWithPath:, a class cluster's initialiser: it answered, in
      place of the receiver, the Vorbis codec for a path whose extension is
      "ogg", else nil. Null where it answered nil (also when the codec could not
      open the file).

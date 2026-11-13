@@ -95,21 +95,21 @@ void OOLogGenericSubclassResponsibilityForFunction(const char* inFunction);
 */
 
 extern const char* const
-    cxx_kOOLogSubclassResponsibility;  // "general.error.subclassResponsibility"
+    kOOLogSubclassResponsibility;  // "general.error.subclassResponsibility"
 extern const char* const
-    cxx_kOOLogParameterError;  // "general.error.parameterError"
+    kOOLogParameterError;  // "general.error.parameterError"
 extern const char* const
-    cxx_kOOLogDeprecatedMethod;  // "general.error.deprecatedMethod"
+    kOOLogDeprecatedMethod;  // "general.error.deprecatedMethod"
 extern const char* const
-    cxx_kOOLogAllocationFailure;  // "general.error.allocationFailure"
+    kOOLogAllocationFailure;  // "general.error.allocationFailure"
 extern const char* const
-    cxx_kOOLogInconsistentState;  // "general.error.inconsistentState"
-extern const char* const cxx_kOOLogException;  // "exception"
+    kOOLogInconsistentState;               // "general.error.inconsistentState"
+extern const char* const kOOLogException;  // "exception"
 
-extern const char* const cxx_kOOLogFileNotFound;   // "files.notFound"
-extern const char* const cxx_kOOLogFileNotLoaded;  // "files.notLoaded"
+extern const char* const kOOLogFileNotFound;   // "files.notFound"
+extern const char* const kOOLogFileNotLoaded;  // "files.notLoaded"
 
-extern const char* const cxx_kOOLogOpenGLError;  // "rendering.opengl.error"
+extern const char* const kOOLogOpenGLError;  // "rendering.opengl.error"
 
 // Don't use.
-extern const char* const cxx_kOOLogUnconvertedNSLog;  // "unclassified"
+extern const char* const kOOLogUnconvertedNSLog;  // "unclassified"

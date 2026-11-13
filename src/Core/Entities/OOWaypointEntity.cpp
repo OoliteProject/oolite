@@ -212,7 +212,7 @@ void OOWaypointEntity::setBeaconLabel(
   if (label.has_value() && label->empty()) label.reset();
 
   if (label.has_value() || _beaconLabel.has_value()) {
-    _beaconLabel = label.has_value() ? cxx_OOExpand(*label) : std::nullopt;
+    _beaconLabel = label.has_value() ? OOExpand(*label) : std::nullopt;
   }
 }
 

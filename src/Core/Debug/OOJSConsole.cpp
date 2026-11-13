@@ -336,14 +336,14 @@ OODebugMonitor* MonitorFromJSObject(JSValueConst object) {
 */
 void ReportNotTheMonitor(JSContext* context, JSValueConst object,
                          const char* function) {
-  const oo::PList node = cxx_OOJSPListFromJSValue(context, object);
+  const oo::PList node = OOJSPListFromJSValue(context, object);
   // An entity's node is described as "Entity"; any other node as "(null)".
   const std::string className = (oo::EntityIn(node) != nullptr)
                                     ? std::string("Entity")
                                     : std::string("(null)");
-  cxx_OOJSReportError(context, "Expected OODebugMonitor, got %s in %s. %s",
-                      className.c_str(), function,
-                      "This is an internal error, please report it.");
+  OOJSReportError(context, "Expected OODebugMonitor, got %s in %s. %s",
+                  className.c_str(), function,
+                  "This is an internal error, please report it.");
 }
 
 // The monitor the private slot holds; null, with the internal error reported,
@@ -431,12 +431,12 @@ static JSValue ConsoleGetProperty(OOJS_GETTER_ARGS) {
 #endif
 
     case kDetailLevel:
-      OOJS_RETURN_PLIST(oo::PList(cxx_OOStringFromGraphicsDetail(
+      OOJS_RETURN_PLIST(oo::PList(OOStringFromGraphicsDetail(
           (UNIVERSE != nullptr ? UNIVERSE->getDetailLevel()
                                : OOGraphicsDetail{}))));
 
     case kMaximumDetailLevel:
-      OOJS_RETURN_PLIST(oo::PList(cxx_OOStringFromGraphicsDetail(
+      OOJS_RETURN_PLIST(oo::PList(OOStringFromGraphicsDetail(
           OOOpenGLExtensionManager::sharedManager()->maximumDetailLevel())));
 
     case kDisplayFPS:
@@ -526,11 +526,11 @@ static JSValue ConsoleSetProperty(OOJS_SETTER_ARGS) {
       break;
 #endif
     case kDetailLevel:
-      sValue = cxx_OOStringFromJSValue(context, value);
+      sValue = OOStringFromJSValue(context, value);
       OOJS_BEGIN_FULL_NATIVE(context)
       if (UNIVERSE != nullptr)
         UNIVERSE->setDetailLevel(
-            cxx_OOGraphicsDetailFromString(sValue.value_or("")));
+            OOGraphicsDetailFromString(sValue.value_or("")));
       OOJS_END_FULL_NATIVE
       break;
 
@@ -626,7 +626,7 @@ static std::optional<std::string> SettingKeyForPropertyID(JSContext* context,
   std::optional<std::string> result;
   JSValue idValue = JS_AtomToValue(context, propID);
   if (JS_IsString(idValue)) {
-    result = cxx_OOStringFromJSValue(context, idValue);
+    result = OOStringFromJSValue(context, idValue);
   }
   JS_FreeValue(context, idValue);
   return result;
@@ -682,14 +682,14 @@ static int SetSetting(JSContext* context, JSValueConst object, JSAtom propID,
   if (JS_IsNull(value) || JS_IsUndefined(value)) {
     monitor->setConfigurationValue(oo::PList(), *key);
   } else {
-    const oo::PList settingValue = cxx_OOJSPListFromJSValue(context, value);
+    const oo::PList settingValue = OOJSPListFromJSValue(context, value);
     if (!settingValue.isNull()) {
       monitor->setConfigurationValue(settingValue, *key);
     } else {
-      cxx_OOJSReportWarning(
+      OOJSReportWarning(
           context,
           "debugConsole.settings: could not convert %s to native object.",
-          cxx_OOStringFromJSValue(context, value).value_or("(null)").c_str());
+          OOStringFromJSValue(context, value).value_or("(null)").c_str());
     }
   }
   OOJSResumeTimeLimiter();
@@ -759,15 +759,15 @@ static JSValue ConsoleConsoleMessage(OOJS_NATIVE_ARGS) {
   monitor = MonitorFromJSObject(OOJS_THIS);
   if (monitor == nullptr) {
     // Whatever `this` was, it is described as "(null)".
-    cxx_OOJSReportError(context, "Expected OODebugMonitor, got %s in %s. %s",
-                        "(null)", __PRETTY_FUNCTION__,
-                        "This is an internal error, please report it.");
+    OOJSReportError(context, "Expected OODebugMonitor, got %s in %s. %s",
+                    "(null)", __PRETTY_FUNCTION__,
+                    "This is an internal error, please report it.");
     OOJSResumeTimeLimiter();
     return OOJSNativeFailure(context);
   }
 
-  if (argc > 0) colorKey = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
-  if (argc > 1) message = cxx_OOStringFromJSValue(context, OOJS_ARGV[1]);
+  if (argc > 0) colorKey = OOStringFromJSValue(context, OOJS_ARGV[0]);
+  if (argc > 1) message = OOStringFromJSValue(context, OOJS_ARGV[1]);
 
   if (argc > 3) {
     // Attempt to get two numbers, specifying an emphasis range.
@@ -780,8 +780,8 @@ static JSValue ConsoleConsoleMessage(OOJS_NATIVE_ARGS) {
 
   if (!message.has_value()) {
     if (!colorKey.has_value()) {
-      cxx_OOJSReportWarning(
-          context, "Console.consoleMessage() called with no parameters.");
+      OOJSReportWarning(context,
+                        "Console.consoleMessage() called with no parameters.");
     } else {
       message = colorKey;
       colorKey = "command-result";
@@ -929,19 +929,18 @@ bool CallMonitorMethod(JSContext* context, OODebugMonitor* monitor, int argc,
                        JSValueConst* argv, JSValue* outResult) {
   const std::string className;  // none
   if (argc == 0) {
-    cxx_OOJSReportError(context, "%s.callObjC(): no selector specified.",
-                        className.c_str());
+    OOJSReportError(context, "%s.callObjC(): no selector specified.",
+                    className.c_str());
     return false;
   }
 
-  const std::optional<std::string> name =
-      cxx_OOStringFromJSValue(context, argv[0]);
+  const std::optional<std::string> name = OOStringFromJSValue(context, argv[0]);
   std::optional<std::string> parameter;
   if (1 < argc && name.has_value() && oo::str::hasSuffix(*name, ":")) {
     std::string joined;
     for (int i = 1; i < argc; i++) {
       if (i > 1) joined += " ";
-      joined += cxx_OOStringFromJSValueEvenIfNull(context, argv[i])
+      joined += OOStringFromJSValueEvenIfNull(context, argv[i])
                     .value_or(std::string());
     }
     parameter = joined;
@@ -955,9 +954,9 @@ bool CallMonitorMethod(JSContext* context, OODebugMonitor* monitor, int argc,
   }
   const char* nameString = name.has_value() ? name->c_str() : "(null)";
   if (method == nullptr) {
-    cxx_OOJSReportError(
-        context, "%s.callObjC(): %s does not respond to method %s.",
-        className.c_str(), monitor->description().c_str(), nameString);
+    OOJSReportError(context, "%s.callObjC(): %s does not respond to method %s.",
+                    className.c_str(), monitor->description().c_str(),
+                    nameString);
     return false;
   }
 
@@ -966,9 +965,9 @@ bool CallMonitorMethod(JSContext* context, OODebugMonitor* monitor, int argc,
     case MonitorMethodForm::kVoidString:
     case MonitorMethodForm::kPListString:
       if (!parameter.has_value()) {
-        cxx_OOJSReportError(context,
-                            "%s.callObjC(): method %s requires a parameter.",
-                            className.c_str(), nameString);
+        OOJSReportError(context,
+                        "%s.callObjC(): method %s requires a parameter.",
+                        className.c_str(), nameString);
         return false;
       }
       if (method->form == MonitorMethodForm::kVoidString)
@@ -1000,7 +999,7 @@ bool CallMonitorMethod(JSContext* context, OODebugMonitor* monitor, int argc,
 
         default:
           // size_t on Windows (unsigned long long) matched no template.
-          cxx_OOJSReportError(
+          OOJSReportError(
               context,
               "%s.callObjC(): method %s cannot be called from JavaScript.",
               className.c_str(), nameString);
@@ -1009,7 +1008,7 @@ bool CallMonitorMethod(JSContext* context, OODebugMonitor* monitor, int argc,
       break;
 
     case MonitorMethodForm::kNotCallable:
-      cxx_OOJSReportError(
+      OOJSReportError(
           context, "%s.callObjC(): method %s cannot be called from JavaScript.",
           className.c_str(), nameString);
       return false;
@@ -1043,13 +1042,13 @@ static JSValue ConsoleCallObjCMethod(OOJS_NATIVE_ARGS) {
   // An entity's `this` converts to its entity node, whose C++ entity this takes
   // and calls by its name table. Any other `this` gets the error below, as a
   // plain JS object does.
-  const oo::PList thisNode = cxx_OOJSPListFromJSValue(context, OOJS_THIS);
+  const oo::PList thisNode = OOJSPListFromJSValue(context, OOJS_THIS);
   Entity* entity = oo::EntityIn(thisNode);
   if (entity == nullptr) {
-    cxx_OOJSReportError(
+    OOJSReportError(
         context,
         "Attempt to call __callObjCMethod() for non-Objective-C object %s.",
-        cxx_OOStringFromJSValueEvenIfNull(context, OOJS_THIS)
+        OOStringFromJSValueEvenIfNull(context, OOJS_THIS)
             .value_or("(null)")
             .c_str());
     return OOJSNativeFailure(context);
@@ -1057,7 +1056,7 @@ static JSValue ConsoleCallObjCMethod(OOJS_NATIVE_ARGS) {
 
   OOJSPauseTimeLimiter();
   // The class name of the error texts: an entity's is its C++ part's, the
-  // answer its object's -cxx_oo_jsClassName forwarded to.
+  // answer its object's -oo_jsClassName forwarded to.
   std::optional<std::string> className = OOJSEntityJSClassName(entity);
   OK = OOJSCallEntityMethod(context, entity, className.value_or(std::string()),
                             argc, OOJS_ARGV, &result);
@@ -1077,8 +1076,8 @@ static JSValue ConsoleSetUpCallObjC(OOJS_NATIVE_ARGS) {
   OOJS_NATIVE_ENTER(context)
 
   if (EXPECT_NOT(argc < 1 || !JS_IsObject(OOJS_ARGV[0]))) {
-    cxx_OOJSReportBadArguments(context, "Console", "__setUpCallObjC", argc,
-                               OOJS_ARGV, std::nullopt, "Object.prototype");
+    OOJSReportBadArguments(context, "Console", "__setUpCallObjC", argc,
+                           OOJS_ARGV, std::nullopt, "Object.prototype");
     return OOJSNativeFailure(context);
   }
 
@@ -1105,14 +1104,13 @@ static bool IsIncompleteSyntaxError(JSContext* context, JSValueConst exception,
   if (!JS_IsError(exception)) return false;
 
   JSValue nameVal = JS_GetPropertyStr(context, exception, "name");
-  const std::optional<std::string> name =
-      cxx_OOStringFromJSValue(context, nameVal);
+  const std::optional<std::string> name = OOStringFromJSValue(context, nameVal);
   JS_FreeValue(context, nameVal);
   if (name != "SyntaxError") return false;
 
   JSValue messageVal = JS_GetPropertyStr(context, exception, "message");
   const std::string message =
-      cxx_OOStringFromJSValue(context, messageVal).value_or(std::string());
+      OOStringFromJSValue(context, messageVal).value_or(std::string());
   JS_FreeValue(context, messageVal);
 
   if (oo::str::lowercase(message).find("end of ") != std::string::npos)
@@ -1122,7 +1120,7 @@ static bool IsIncompleteSyntaxError(JSContext* context, JSValueConst exception,
   // Otherwise, incomplete if the error is at the very end of the code.
   JSValue stackVal = JS_GetPropertyStr(context, exception, "stack");
   const std::string stack =
-      cxx_OOStringFromJSValue(context, stackVal).value_or(std::string());
+      OOStringFromJSValue(context, stackVal).value_or(std::string());
   JS_FreeValue(context, stackVal);
 
   // Lines and columns as the NSString form counted them (lengths in UTF-16
@@ -1155,7 +1153,7 @@ static JSValue ConsoleIsExecutableJavaScript(OOJS_NATIVE_ARGS) {
   // Its UTF-8 bytes; JS_Eval() requires a terminating NUL, which std::string
   // has.
   const std::string string =
-      cxx_OOStringFromJSValue(context, OOJS_ARGV[1]).value_or(std::string());
+      OOStringFromJSValue(context, OOJS_ARGV[1]).value_or(std::string());
 
   JSValue compiled =
       JS_Eval(context, string.c_str(), string.size(), "<console input>",
@@ -1181,7 +1179,7 @@ static JSValue ConsoleDisplayMessagesInClass(OOJS_NATIVE_ARGS) {
 
   std::optional<std::string> messageClass;
 
-  if (argc > 0) messageClass = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
+  if (argc > 0) messageClass = OOStringFromJSValue(context, OOJS_ARGV[0]);
   OOJS_RETURN_BOOL(messageClass.has_value() &&
                    oo::log::willDisplay(*messageClass));
 
@@ -1194,7 +1192,7 @@ static JSValue ConsoleSetDisplayMessagesInClass(OOJS_NATIVE_ARGS) {
 
   std::optional<std::string> messageClass;
 
-  if (argc > 0) messageClass = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
+  if (argc > 0) messageClass = OOStringFromJSValue(context, OOJS_ARGV[0]);
   if (messageClass.has_value() && argc > 1) {
     oo::log::logger().setDisplay(*messageClass,
                                  OOJSValueToBOOL(context, OOJS_ARGV[1]));
@@ -1296,7 +1294,7 @@ static JSValue ConsoleProfile(OOJS_NATIVE_ARGS) {
   OOJS_NATIVE_ENTER(context)
 
   if (EXPECT_NOT(OOJSIsProfiling())) {
-    cxx_OOJSReportError(
+    OOJSReportError(
         context,
         "Profiling functions may not be called while already profiling.");
     return OOJSNativeFailure(context);
@@ -1329,7 +1327,7 @@ static JSValue ConsoleGetProfile(OOJS_NATIVE_ARGS) {
   OOJS_NATIVE_ENTER(context)
 
   if (EXPECT_NOT(OOJSIsProfiling())) {
-    cxx_OOJSReportError(
+    OOJSReportError(
         context,
         "Profiling functions may not be called while already profiling.");
     return OOJSNativeFailure(context);
@@ -1359,7 +1357,7 @@ static JSValue ConsoleTrace(OOJS_NATIVE_ARGS) {
   OOJS_NATIVE_ENTER(context)
 
   if (EXPECT_NOT(OOJSIsProfiling())) {
-    cxx_OOJSReportError(
+    OOJSReportError(
         context,
         "Profiling functions may not be called while already profiling.");
     return OOJSNativeFailure(context);
@@ -1393,8 +1391,8 @@ bool PerformProfiling(JSContext* context, const char* nominalFunction, int argc,
                       std::shared_ptr<OOTimeProfile>* outProfile) {
   // Get function.
   if (argc < 1 || !OOJSValueIsFunction(context, argv[0])) {
-    cxx_OOJSReportBadArguments(context, "Console", nominalFunction,
-                               MIN(argc, 1), argv, std::nullopt, "function");
+    OOJSReportBadArguments(context, "Console", nominalFunction, MIN(argc, 1),
+                           argv, std::nullopt, "function");
     return false;
   }
   JSValueConst function = argv[0];

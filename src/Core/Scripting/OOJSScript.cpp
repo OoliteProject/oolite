@@ -379,7 +379,7 @@ bool OOJSScript::callMethod(JSAtom methodID, JSContext* context,
 
     OO_LOG("script.javaScript.call", "Calling [{}].{}()",
            name().value_or("(null)"),
-           (cxx_OOStringFromJSID(methodID)).value_or("(null)"));
+           (OOStringFromJSID(methodID)).value_or("(null)"));
     oo::log::indentIf("script.javaScript.call");
 #endif
 
@@ -427,7 +427,7 @@ oo::PList OOJSScript::propertyWithID(JSAtom propID, JSContext* context) {
     return oo::PList();
   }
 
-  oo::PList result = cxx_OOJSPListFromJSValue(context, jsValue);
+  oo::PList result = OOJSPListFromJSValue(context, jsValue);
   JS_FreeValue(context, jsValue);
   return result;
 }
@@ -457,7 +457,7 @@ oo::PList OOJSScript::propertyNamed(const std::string& propName) {
   if (!JS_IsObject(_jsSelf)) return oo::PList();
 
   JSContext* context = OOJSAcquireContext();
-  oo::PList result = propertyWithID(cxx_OOJSIDFromString(propName), context);
+  oo::PList result = propertyWithID(OOJSIDFromString(propName), context);
   OOJSRelinquishContext(context);
 
   return result;
@@ -469,7 +469,7 @@ bool OOJSScript::setProperty(const oo::PList& value,
   if (!JS_IsObject(_jsSelf)) return false;
 
   JSContext* context = OOJSAcquireContext();
-  bool result = setProperty(value, cxx_OOJSIDFromString(propName), context);
+  bool result = setProperty(value, OOJSIDFromString(propName), context);
   OOJSRelinquishContext(context);
 
   return result;
@@ -481,7 +481,7 @@ bool OOJSScript::defineProperty(const oo::PList& value,
   if (!JS_IsObject(_jsSelf)) return false;
 
   JSContext* context = OOJSAcquireContext();
-  bool result = defineProperty(value, cxx_OOJSIDFromString(propName), context);
+  bool result = defineProperty(value, OOJSIDFromString(propName), context);
   OOJSRelinquishContext(context);
 
   return result;
@@ -492,7 +492,7 @@ JSValue OOJSScript::jsValueInContext(JSContext* context) {
   return JS_DupValue(context, _jsSelf);
 }
 
-// -cxx_oo_jsDescription (OOObjectJSDescription), which toString() answered:
+// -oo_jsDescription (OOObjectJSDescription), which toString() answered:
 // "[Script <components>]".
 std::optional<std::string> OOJSScript::jsDescription() {
   const std::string className = jsClassName().value_or("Script");
@@ -588,12 +588,11 @@ oo::PList::Dict OOJSScript::defaultPropertiesFromPath(
   // remove file name, remove OXP subfolder, add manifest.plist (a nil path
   // messaged nil: no manifest)
   oo::PList manifest =
-      path.has_value()
-          ? cxx_OOPropertyListFromFile(oo::str::appendingPathComponent(
-                oo::str::deletingLastPathComponent(
-                    oo::str::deletingLastPathComponent(*path)),
-                "manifest.plist"))
-          : oo::PList();
+      path.has_value() ? OOPropertyListFromFile(oo::str::appendingPathComponent(
+                             oo::str::deletingLastPathComponent(
+                                 oo::str::deletingLastPathComponent(*path)),
+                             "manifest.plist"))
+                       : oo::PList();
   if (!manifest.isDict())
     manifest = oo::PList();  // a dictionary or nothing, as OODictionaryFromFile
                              // answered (its plist.wrongType line, which named
@@ -637,10 +636,10 @@ void OOJSScript::checkForTickle(JSContext* context) {
   if (JS_IsException(tickle)) {
     JS_FreeValue(context, JS_GetException(context));
   } else if (!JS_IsUndefined(tickle)) {
-    cxx_OOJSReportWarning(context,
-                          "Script %s appears to use the tickle() event "
-                          "handler, which is no longer supported.",
-                          name().value_or("(null)").c_str());
+    OOJSReportWarning(context,
+                      "Script %s appears to use the tickle() event "
+                      "handler, which is no longer supported.",
+                      name().value_or("(null)").c_str());
   }
   JS_FreeValue(context, tickle);
 }
@@ -728,8 +727,8 @@ static bool RunScriptWithName(JSContext* context,
    * that here. */
   if (utf8Contents->find("\"use strict\";") == std::string::npos &&
       utf8Contents->find("'use strict';") == std::string::npos) {
-    cxx_OOStandardsDeprecated("Script " + path.value_or("(null)") +
-                              " does not \"use strict\";");  // "%@" of the path
+    OOStandardsDeprecated("Script " + path.value_or("(null)") +
+                          " does not \"use strict\";");  // "%@" of the path
     if (OOEnforceStandards()) {
       // prepend it anyway (before wrapping: see OOJSWrapScriptSource())
       // TODO: some time after 1.82, make this required
@@ -1033,7 +1032,7 @@ static std::string RewriteLegacyConst(JSContext* context,
     if (JS_IsException(rewritten)) {
       OOJSReportPendingException(context);
     } else {
-      result = cxx_OOStringFromJSValue(context, rewritten).value_or(source);
+      result = OOStringFromJSValue(context, rewritten).value_or(source);
       sRewritten.emplace(source, result);
     }
     JS_FreeValue(context, rewritten);
@@ -1059,7 +1058,7 @@ static std::optional<std::string> DescriptionOrNil(const oo::PList& value) {
   if (value.isNull()) return std::nullopt;
   if (const std::string* string = value.getIf<std::string>())
     return *string;  // a string's -description is itself
-  // Anything else prints as the object form did (cxx_OOJSPListFromJSValue() is
+  // Anything else prints as the object form did (OOJSPListFromJSValue() is
   // oo::PListFrom() of it).
   return oo::DescriptionOf(value);
 }

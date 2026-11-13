@@ -207,7 +207,7 @@ void OOPlanetEntity::initFromDictionary(const oo::PList& dictionary,
   // Load random seed override.
   const std::optional<std::string> seedStr = OptionalStringForKey(dict, "seed");
   if (seedStr.has_value()) {
-    Random_Seed overrideSeed = cxx_RandomSeedFromString(seedStr);
+    Random_Seed overrideSeed = RandomSeedFromString(seedStr);
     if (!is_nil_seed(overrideSeed))
       seed = overrideSeed;
     else
@@ -230,7 +230,7 @@ void OOPlanetEntity::initFromDictionary(const oo::PList& dictionary,
           ? std::optional<std::string>(
                 dict.get<std::string>(std::string(KEY_PLANETNAME), *infoName))
           : OptionalStringForKey(dict, std::string(KEY_PLANETNAME));
-  setName(planetName.has_value() ? cxx_OOExpand(*planetName) : std::nullopt);
+  setName(planetName.has_value() ? OOExpand(*planetName) : std::nullopt);
 
   int radius_km = dict.get<int>(std::string(KEY_RADIUS),
                                 planetInfo.get<int>(std::string(KEY_RADIUS)));
@@ -498,15 +498,15 @@ void OOPlanetEntity::setUpColorParametersWithSourceInfo(
     if (color != nullptr)
       landHSB = HSBColorWithColor(color.get());
     else
-      cxx_ScanVectorFromString(
-          OptionalStringForKey(sourceInfo, "land_hsb_color"), &landHSB);
+      ScanVectorFromString(OptionalStringForKey(sourceInfo, "land_hsb_color"),
+                           &landHSB);
 
     color = OOColor::colorWithDescription(ValueForKey(sourceInfo, "sea_color"));
     if (color != nullptr)
       seaHSB = HSBColorWithColor(color.get());
     else
-      cxx_ScanVectorFromString(
-          OptionalStringForKey(sourceInfo, "sea_hsb_color"), &seaHSB);
+      ScanVectorFromString(OptionalStringForKey(sourceInfo, "sea_hsb_color"),
+                           &seaHSB);
 
     color = OOColor::colorWithDescription(
         ValueForKey(sourceInfo, "illumination_color"));
@@ -516,7 +516,7 @@ void OOPlanetEntity::setUpColorParametersWithSourceInfo(
       const std::optional<std::string> illumHSBColorString =
           OptionalStringForKey(sourceInfo, "illumination_hsb_color");
       if (illumHSBColorString.has_value())
-        cxx_ScanVectorFromString(illumHSBColorString, &illumHSB);
+        ScanVectorFromString(illumHSBColorString, &illumHSB);
       else
         illumHSB = HSBColorWithColor(
             OOColor::colorWithRed(0.8f, 0.8f, 0.4f, 1.0f).get());
@@ -654,7 +654,7 @@ OOPlanetEntity::~OOPlanetEntity() {
 // -position and -radius read these members.
 std::optional<std::string> OOPlanetEntity::descriptionComponents() const {
   return std::format("position: {} radius: {:g} m",
-                     cxx_HPVectorDescription(position),
+                     HPVectorDescription(position),
                      static_cast<double>(collision_radius));
 }
 

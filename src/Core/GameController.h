@@ -183,11 +183,11 @@ class GameController : public oo::Object {
 
   std::optional<std::string>
       _playerFileDirectory;  // nullopt: not looked up yet, or none (was nil);
-                             // named so -cxx_playerFileDirectory's member can
+                             // named so -playerFileDirectory's member can
                              // be playerFileDirectory()
   std::optional<std::string>
       _playerFileToLoad;  // nullopt: none (was nil); named so
-                          // -cxx_playerFileToLoad's member can be
+                          // -playerFileToLoad's member can be
                           // playerFileToLoad()
   std::vector<std::string>
       expansionPathsToInclude;  // expansion folders opened with the application

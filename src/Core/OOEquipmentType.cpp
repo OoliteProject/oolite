@@ -341,7 +341,7 @@ bool OOEquipmentType::initWithInfo(const oo::PList& info) {
                "conditions", _identifier);
       }
       if (legacyConditions) {
-        cxx_OOStandardsDeprecated(std::format(
+        OOStandardsDeprecated(std::format(
             "The conditions key is deprecated for equipment {}", _name));
         if (!OOEnforceStandards()) {
           _conditions = OOSanitizeLegacyScriptConditions(
@@ -660,7 +660,7 @@ OOTechLevelID OOEquipmentType::effectiveTechLevel() {
 
   tl = techLevel();
   if (tl == kOOVariableTechLevel) {
-    cxx_OOStandardsDeprecated(
+    OOStandardsDeprecated(
         std::format("TL99 is deprecated for {}", _identifier));
     if (!OOEnforceStandards()) {
       const oo::PList missionValue =

@@ -255,7 +255,7 @@ Owned Eval(JSContext *context, const std::string &source)
 
 std::string Describe(JSContext *context, const std::string &source, bool abbreviate)
 {
-	return cxx_OOJSDescribeValue(context, Eval(context, source), abbreviate);
+	return OOJSDescribeValue(context, Eval(context, source), abbreviate);
 }
 
 
@@ -272,7 +272,7 @@ std::string CallToString(JSContext *context, JSValueConst object)
 	Owned function(JS_GetPropertyStr(context, object, "toString"));
 	Owned result(JS_Call(context, function, object, 0, nullptr));
 	OO_CHECK(!JS_IsException(result));
-	return cxx_OOStringFromJSValue(context, result).value_or("<none>");
+	return OOStringFromJSValue(context, result).value_or("<none>");
 }
 
 
@@ -295,7 +295,7 @@ int sVaultDels = 0;
 
 bool AtomIs(JSAtom atom, const char *name)
 {
-	return cxx_OOStringFromJSID(atom).value_or("") == name;
+	return OOStringFromJSID(atom).value_or("") == name;
 }
 
 
@@ -454,7 +454,7 @@ OO_TEST(gcRoots)
 		engine->garbageCollectionOpportunity(true);
 		engine->garbageCollectionOpportunity(false);
 		context = OOJSAcquireContext();
-		OO_CHECK(cxx_OOStringFromJSValue(context, Eval(context, "1, 'ok'")).value_or("") == "ok");
+		OO_CHECK(OOStringFromJSValue(context, Eval(context, "1, 'ok'")).value_or("") == "ok");
 		OOJSRelinquishContext(context);
 
 		JS_FreeValue(context, value);
@@ -482,7 +482,7 @@ OO_TEST(errorReporting)
 		StartLog();
 		engine->setShowErrorLocations(false);
 		JSContext *context = OOJSAcquireContext();
-		cxx_OOJSReportErrorForCaller(context, std::string("TestClass"), std::string("doThing"), "bad %s %d", "input", 7);
+		OOJSReportErrorForCaller(context, std::string("TestClass"), std::string("doThing"), "bad %s %d", "input", 7);
 		OOJSReportPendingException(context);
 		OOJSRelinquishContext(context);
 		OO_CHECK(LogLinesContaining("***** JavaScript ") == 1);
@@ -501,7 +501,7 @@ OO_TEST(errorReporting)
 		{
 			Owned three = Eval(context, "'three'");
 			JSValueConst args[2] = { JS_NewInt32(context, 3), three };
-			cxx_OOJSReportBadArguments(context, std::string("Ship"), std::string("fly"), 2, args, std::nullopt, std::string("number"));
+			OOJSReportBadArguments(context, std::string("Ship"), std::string("fly"), 2, args, std::nullopt, std::string("number"));
 		}
 		OOJSReportPendingException(context);
 		OOJSRelinquishContext(context);
@@ -538,7 +538,7 @@ OO_TEST(errorReporting)
 		StartLog();
 		engine->setShowErrorLocations(false);
 		context = OOJSAcquireContext();
-		cxx_OOJSReportWarningForCaller(context, std::nullopt, std::string("warnFunc"), "careful %s", "now");
+		OOJSReportWarningForCaller(context, std::nullopt, std::string("warnFunc"), "careful %s", "now");
 		OO_CHECK(!JS_HasException(context));
 		OOJSRelinquishContext(context);
 		OO_CHECK(LogLinesContaining("----- JavaScript warning") == 1);
@@ -646,7 +646,7 @@ OO_TEST(describeValue)
 
 		Owned p = Eval(context, "'p'");
 		JSValueConst params[2] = { JS_NewInt32(context, 1), p };
-		OO_CHECK_EQ(cxx_OOJSStringWithJavaScriptParameters(params, 2, context).value_or("<none>"), "(1, \"p\")");
+		OO_CHECK_EQ(OOJSStringWithJavaScriptParameters(params, 2, context).value_or("<none>"), "(1, \"p\")");
 		OOJSRelinquishContext(context);
 	}
 }
@@ -690,13 +690,13 @@ OO_TEST(idAndStringCaches)
 	SetUp();
 	{
 		JSAtom identifier = OOJSID("testIdentifier");
-		OO_CHECK_EQ(cxx_OOStringFromJSID(identifier).value_or("<none>"), "testIdentifier");
+		OO_CHECK_EQ(OOStringFromJSID(identifier).value_or("<none>"), "testIdentifier");
 		OO_CHECK(OOJSID("testIdentifier") == identifier);
 
 		JSContext *context = OOJSAcquireContext();
 		Owned literal(OOJSSTR("test literal"));
 		OO_CHECK(JS_IsString(literal));
-		OO_CHECK_EQ(cxx_OOStringFromJSValue(context, literal).value_or("<none>"), "test literal");
+		OO_CHECK_EQ(OOStringFromJSValue(context, literal).value_or("<none>"), "test literal");
 		OOJSRelinquishContext(context);
 	}
 }
@@ -724,7 +724,7 @@ OO_TEST(nativeObjectValues)
 		OO_CHECK(JS_IsObject(vectorValue));
 		const char *className = OOJSClassName(JS_GetClassID(vectorValue));
 		OO_CHECK(className != nullptr && std::strcmp(className, "Vector3D") == 0);
-		OO_CHECK_EQ(cxx_OOStringFromJSValue(context, vectorValue).value_or("<none>"), "(1, 2, 3)");
+		OO_CHECK_EQ(OOStringFromJSValue(context, vectorValue).value_or("<none>"), "(1, 2, 3)");
 
 		OOJSRelinquishContext(context);
 	}
@@ -754,7 +754,7 @@ OO_TEST(jsValueHolder)
 
 		OOJavaScriptEngine::sharedEngine()->garbageCollectionOpportunity(true);	// the held object survives
 		context = OOJSAcquireContext();
-		OO_CHECK_EQ(cxx_OOStringFromJSValue(context, Owned(holder->jsValueInContext(context))).value_or("<none>"), "[object Object]");
+		OO_CHECK_EQ(OOStringFromJSValue(context, Owned(holder->jsValueInContext(context))).value_or("<none>"), "[object Object]");
 		OOJSRelinquishContext(context);
 	}
 }
@@ -782,7 +782,7 @@ OO_TEST(cxxObjectWrapper)
 		// With the basic private-object converter the wrapper is an Object node of the C++ object,
 		// and toString still names the JS class.
 		OOJSRegisterObjectConverter(sTestWrapperClassID, OOJSBasicPrivateObjectConverter);
-		const oo::PList node = cxx_OOJSPListFromJSObject(context, wrapper);
+		const oo::PList node = OOJSPListFromJSObject(context, wrapper);
 		OO_CHECK(node.getIf<oo::PList::Object>() != nullptr && node.getIf<oo::PList::Object>()->get() == native.get());
 		OO_CHECK_EQ(CallToString(context, wrapper), "[object TestWrapper]");
 
@@ -791,7 +791,7 @@ OO_TEST(cxxObjectWrapper)
 		OO_CHECK(native->_clears == 1);
 		JSClassID ignored;
 		OO_CHECK(JS_GetAnyOpaque(wrapper, &ignored) == NULL);
-		OO_CHECK(cxx_OOJSPListFromJSObject(context, wrapper).isNull());
+		OO_CHECK(OOJSPListFromJSObject(context, wrapper).isNull());
 		OOJSObjectWrapperFinalize(JS_GetRuntime(context), wrapper);	// nothing left: does nothing
 		OO_CHECK(native->_clears == 1);
 
@@ -818,9 +818,9 @@ OO_TEST(deleteReachesTheClassHookWithNoOwnProperty)
 		Owned global(JS_GetGlobalObject(context));
 		OO_CHECK(JS_SetPropertyStr(context, global, "vault", JS_NewObjectClass(context, static_cast<int>(sVaultClassID))) >= 0);
 		Owned result = Eval(context, "[vault.a, delete vault.a, vault.a === undefined].join('|')");
-		OO_CHECK_EQ(cxx_OOStringFromJSValue(context, result).value_or("<none>"), "11|true|true");
+		OO_CHECK_EQ(OOStringFromJSValue(context, result).value_or("<none>"), "11|true|true");
 		OO_CHECK(sVaultDels == 1 && !sVaultHasA);
-		OO_CHECK_EQ(cxx_OOStringFromJSValue(context, Eval(context, "delete global.vault")).value_or("<none>"), "true");
+		OO_CHECK_EQ(OOStringFromJSValue(context, Eval(context, "delete global.vault")).value_or("<none>"), "true");
 		OOJSRelinquishContext(context);
 	}
 }
@@ -886,7 +886,7 @@ OO_TEST(propertyListsFromJS)
 	SetUp();
 	{
 		JSContext *context = OOJSAcquireContext();
-		oo::PList array = cxx_OOJSPListFromJSValue(context, Eval(context, "[1, null, 'a', [true]]"));
+		oo::PList array = OOJSPListFromJSValue(context, Eval(context, "[1, null, 'a', [true]]"));
 		OO_CHECK(array.isArray());
 		const oo::PList::Array *elements = array.getIf<oo::PList::Array>();
 		OO_CHECK(elements != nullptr && elements->size() == 4);
@@ -897,16 +897,16 @@ OO_TEST(propertyListsFromJS)
 			OO_CHECK((*elements)[2] == oo::PList(std::string("a")));
 			OO_CHECK((*elements)[3].isArray());
 		}
-		OO_CHECK(cxx_OOJSPListFromJSValue(context, Eval(context, "[]")).isArray());
+		OO_CHECK(OOJSPListFromJSValue(context, Eval(context, "[]")).isArray());
 
-		oo::PList dict = cxx_OOJSPListFromJSValue(context, Eval(context, "({ s: new String('x'), n: new Number(2.5), b: new Boolean(false) })"));
+		oo::PList dict = OOJSPListFromJSValue(context, Eval(context, "({ s: new String('x'), n: new Number(2.5), b: new Boolean(false) })"));
 		OO_CHECK(dict.isDict());
 		OO_CHECK(dict.find("s") != nullptr && *dict.find("s") == oo::PList(std::string("x")));
 		OO_CHECK(dict.find("n") != nullptr && *dict.find("n") == oo::PList(2.5));
 		OO_CHECK(dict.find("b") != nullptr && *dict.find("b") == oo::PList(static_cast<bool>(false)));	// OOCocoa.h defines false as 0
 
     // Round trip through OOJSValueFromPList.
-		oo::PList back = cxx_OOJSPListFromJSValue(context, Owned(OOJSValueFromPList(context, oo::PList(oo::PList::Array{oo::PList(std::string("q")), oo::PList::signedInteger(5)}))));
+		oo::PList back = OOJSPListFromJSValue(context, Owned(OOJSValueFromPList(context, oo::PList(oo::PList::Array{oo::PList(std::string("q")), oo::PList::signedInteger(5)}))));
 		OO_CHECK(back == oo::PList(oo::PList::Array{oo::PList(std::string("q")), oo::PList::signedInteger(5)}));
 		OOJSRelinquishContext(context);
 	}
@@ -943,11 +943,11 @@ OO_TEST(reset)
 		OO_CHECK(gOOJSArrayClassID != 0);
 
 		context = OOJSAcquireContext();
-		OO_CHECK_EQ(cxx_OOStringFromJSValue(context, Eval(context, "typeof survivesReset")).value_or("<none>"), "undefined");
+		OO_CHECK_EQ(OOStringFromJSValue(context, Eval(context, "typeof survivesReset")).value_or("<none>"), "undefined");
 		OO_CHECK(JS_IsObject(Eval(context, "Vector3D")));
 		OO_CHECK(JS_GetClassID(Eval(context, "[1]")) == gOOJSArrayClassID);
 		// The standard converters are registered again.
-		OO_CHECK(cxx_OOJSPListFromJSValue(context, Eval(context, "[1]")).isArray());
+		OO_CHECK(OOJSPListFromJSValue(context, Eval(context, "[1]")).isArray());
 		OOJSRelinquishContext(context);
 
 		oo::NotificationCenter::defaultCenter().removeObserver(&marker);

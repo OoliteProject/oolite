@@ -71,12 +71,12 @@ namespace {
 // otherwise (their plist.wrongType log line, which named the Foundation class,
 // is not kept).
 oo::PList PListDictionaryFromFile(const std::string& path) {
-  oo::PList result = cxx_OOPropertyListFromFile(path);
+  oo::PList result = OOPropertyListFromFile(path);
   return result.isDict() ? result : oo::PList();
 }
 
 oo::PList PListArrayFromFile(const std::string& path) {
-  oo::PList result = cxx_OOPropertyListFromFile(path);
+  oo::PList result = OOPropertyListFromFile(path);
   return result.isArray() ? result : oo::PList();
 }
 
@@ -833,7 +833,7 @@ void ResourceManager::checkPotentialPath(
       return;
     } else {
       if (extension == "oxp") {
-        cxx_OOStandardsError(std::format("OXP {} has no manifest.plist", path));
+        OOStandardsError(std::format("OXP {} has no manifest.plist", path));
         if (OOEnforceStandards()) {
           addErrorWithKey("oxp-lacks-manifest",
                           oo::str::lastPathComponent(path), "");
@@ -1495,7 +1495,7 @@ oo::PList ResourceManager::dictionaryFromFilesNamed(
       break;
   }
   if (!mergeType.has_value()) {
-    OO_LOG(cxx_kOOLogParameterError,
+    OO_LOG(kOOLogParameterError,
            "Unknown dictionary merge mode {} for {}. (This is an internal "
            "programming error, please report it.)",
            static_cast<unsigned>(mergeMode), fileName);
@@ -1940,7 +1940,7 @@ oo::PList ResourceManager::roleCategoriesDictionary() {
   const oo::PList pirateVictims = arrayFromFilesNamed(
       "pirate-victim-roles.plist", std::string("Config"), true);
   if (OOEnforceStandards() && pirateVictims.count() > 0) {
-    cxx_OOStandardsDeprecated("pirate-victim-roles.plist is still being used.");
+    OOStandardsDeprecated("pirate-victim-roles.plist is still being used.");
   }
   if (pirateVictims.isNull()) {
     // +dictionaryWithObject:forKey: with a nil object raised
@@ -2150,7 +2150,7 @@ std::optional<std::string> ResourceManager::pathForFileNamed(
     if (cached != ioCache->end()) return cached->second.get();
   }
 
-  // [[[OOSound alloc] cxx_initWithContentsOfFile:path] autorelease]: the C++
+  // [[[OOSound alloc] initWithContentsOfFile:path] autorelease]: the C++
   // factory. With no cache
   // the caller is the only user, as the autoreleased sound lived until the pool
   // drained: oo::autorelease keeps that. Its one caller, ooSoundNamed(), always
@@ -2382,5 +2382,5 @@ bool ResourceManager::directoryExists(const std::string& inPath,
 }
 
 std::optional<std::string> ResourceManager::diagnosticFileLocation() {
-  return cxx_OOLogHandlerGetLogBasePath();
+  return OOLogHandlerGetLogBasePath();
 }

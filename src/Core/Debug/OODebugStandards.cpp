@@ -36,8 +36,8 @@ SOFTWARE.
 
 #ifndef OO_DEBUG_MONITOR_ENABLED
 // in release mode, stubs
-void cxx_OOStandardsDeprecated(const std::string& message) {}
-void cxx_OOStandardsError(const std::string& message) {}
+void OOStandardsDeprecated(const std::string& message) {}
+void OOStandardsError(const std::string& message) {}
 bool OOEnforceStandards() { return false; }
 void OOSetStandardsForOXPVerifierMode() {}
 
@@ -112,11 +112,11 @@ void OOStandardsInternal(const std::string& type, const std::string& message) {
 
 }  // namespace
 
-void cxx_OOStandardsDeprecated(const std::string& message) {
+void OOStandardsDeprecated(const std::string& message) {
   OOStandardsInternal("oxp-standards.deprecated", message);
 }
 
-void cxx_OOStandardsError(const std::string& message) {
+void OOStandardsError(const std::string& message) {
   OOStandardsInternal("oxp-standards.error", message);
 }
 

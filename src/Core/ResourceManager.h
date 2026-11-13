@@ -169,7 +169,7 @@ class ResourceManager {
   static std::optional<std::string> diagnosticFileLocation();
 
   static bool corePlist(const std::string& fileName,
-                        const std::string& path);  // -cxx_corePlist:excludedAt:
+                        const std::string& path);  // -corePlist:excludedAt:
   // A null PList when no file was found; folderName nullopt where nil was
   // passed.
   static oo::PList dictionaryFromFilesNamed(
@@ -207,7 +207,7 @@ class ResourceManager {
                                              bool logErrors);
   static bool manifest(
       const oo::PList& manifest, const oo::PList& required,
-      bool logErrors);  // -cxx_manifest:HasUnmetDependency:logErrors:
+      bool logErrors);  // -manifest:HasUnmetDependency:logErrors:
   static bool matchVersions(const oo::PList& rangeDict,
                             const std::string& version);
 

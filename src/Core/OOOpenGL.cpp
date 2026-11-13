@@ -41,27 +41,26 @@ static const char* const kOOLogOpenGLStateDump = "rendering.opengl.stateDump";
 
 static GLfloat sDisplayScaleFactor = 1.0f;
 
-bool cxx_OOCheckOpenGLErrors(const char* format, ...) {
+bool OOCheckOpenGLErrors(const char* format, ...) {
   va_list args;
 
   va_start(args, format);
   // formatted only when an error is found (a copy of the arguments each time it
   // is)
-  bool errorOccurred =
-      cxx_OOCheckOpenGLErrors([format, &args]() -> std::string {
-        if (format == nullptr) return "<unknown>";
-        va_list copy;
-        va_copy(copy, args);
-        std::string context = oo::str::vformat(format, copy);
-        va_end(copy);
-        return context;
-      });
+  bool errorOccurred = OOCheckOpenGLErrors([format, &args]() -> std::string {
+    if (format == nullptr) return "<unknown>";
+    va_list copy;
+    va_copy(copy, args);
+    std::string context = oo::str::vformat(format, copy);
+    va_end(copy);
+    return context;
+  });
   va_end(args);
 
   return errorOccurred;
 }
 
-bool cxx_OOCheckOpenGLErrors(const std::function<std::string()>& context) {
+bool OOCheckOpenGLErrors(const std::function<std::string()>& context) {
   GLenum errCode;
   const GLubyte* errString = nullptr;
   bool errorOccurred = false;
@@ -270,7 +269,7 @@ void LogOpenGLState() {
   GLDumpFogState();
   GLDumpStateFlags();
 
-  cxx_OOCheckOpenGLErrors("After state dump");
+  OOCheckOpenGLErrors("After state dump");
 
   OOLogOutdent();
 }
