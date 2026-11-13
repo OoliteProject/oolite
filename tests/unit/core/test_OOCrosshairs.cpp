@@ -51,9 +51,9 @@ void OOGLNoteCurrentFunction(const char*, unsigned) {
 // segment.
 struct OOCrosshairsTestAccess {
   static std::vector<float> Buffer(OOCrosshairs* crosshairs) {
-    if (crosshairs->_data == nullptr) return {};
-    return std::vector<float>(crosshairs->_data,
-                              crosshairs->_data + 12 * crosshairs->_count);
+    if (crosshairs->_data.empty()) return {};
+    return std::vector<float>(crosshairs->_data.begin(),
+                              crosshairs->_data.begin() + 12 * crosshairs->_count);
   }
 };
 

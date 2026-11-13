@@ -27,6 +27,7 @@ SOFTWARE.
 #include "OOSkyDrawable.h"
 
 #include <format>
+#include <vector>
 
 #include "GameController.h"
 #include "OOColor.h"
@@ -58,7 +59,7 @@ bool sInited = false;
 /*	Struct used to describe quads initially. This form is optimized for
         reasoning about.
         The colour is owned (it was autoreleased into the initialiser's pool),
-   so the quads are a std::vector, not malloc()ed.
+   so the quads are a std::vector.
 */
 struct OOSkyQuadDesc {
   Vector corners[4];
@@ -98,9 +99,9 @@ class OOSkyQuadSet : public oo::Object {
  private:
   std::shared_ptr<OOTexture> _texture;
   unsigned _count = {};
-  GLfloat* _positions = nullptr;  // 3 entries per vertex, 12 per quad
-  GLfloat* _texCoords = nullptr;  // 2 entries per vertex, 8 per quad
-  GLfloat* _colors = nullptr;     // 4 entries per vertex, 16 per quad
+  std::vector<GLfloat> _positions;  // 3 entries per vertex, 12 per quad
+  std::vector<GLfloat> _texCoords;  // 2 entries per vertex, 8 per quad
+  std::vector<GLfloat> _colors;     // 4 entries per vertex, 16 per quad
 };
 
 /*	Textures are global because there is always a sky, but the sky isn't
@@ -495,7 +496,6 @@ std::unique_ptr<OOSkyQuadSet> OOSkyQuadSet::initWithQuadsWithTexture(
   GLfloat* tc;
   GLfloat* col;
   GLfloat r, g, b, x;
-  size_t posSize, tcSize, colSize;
   unsigned count = 0;
   // -integerForKey: gives 0 wherever get<std::ptrdiff_t>(key, 0) fell back to
   // the default.
@@ -524,24 +524,13 @@ std::unique_ptr<OOSkyQuadSet> OOSkyQuadSet::initWithQuadsWithTexture(
   if (OK) {
     // Allocate arrays.
     vertexCount = self->_count * 4;
-    posSize = sizeof *self->_positions * vertexCount *
-              kSkyQuadSetPositionEntriesPerVertex;
-    tcSize = sizeof *self->_texCoords * vertexCount *
-             kSkyQuadSetTexCoordEntriesPerVertex;
-    colSize =
-        sizeof *self->_colors * vertexCount * kSkyQuadSetColorEntriesPerVertex;
+    self->_positions.resize(vertexCount * kSkyQuadSetPositionEntriesPerVertex);
+    self->_texCoords.resize(vertexCount * kSkyQuadSetTexCoordEntriesPerVertex);
+    self->_colors.resize(vertexCount * kSkyQuadSetColorEntriesPerVertex);
 
-    self->_positions = static_cast<GLfloat*>(malloc(posSize));
-    self->_texCoords = static_cast<GLfloat*>(malloc(tcSize));
-    self->_colors = static_cast<GLfloat*>(malloc(colSize));
-
-    if (self->_positions == nullptr || self->_texCoords == nullptr ||
-        self->_colors == nullptr)
-      OK = false;
-
-    pos = self->_positions;
-    tc = self->_texCoords;
-    col = self->_colors;
+    pos = self->_positions.data();
+    tc = self->_texCoords.data();
+    col = self->_colors.data();
   }
 
   if (OK) {
@@ -613,11 +602,7 @@ std::unique_ptr<OOSkyQuadSet> OOSkyQuadSet::initWithQuadsWithTexture(
 }
 
 OOSkyQuadSet::~OOSkyQuadSet() {
-  // -dealloc's [_texture release] is the member's destructor.
-
-  if (_positions != nullptr) free(_positions);
-  if (_texCoords != nullptr) free(_texCoords);
-  if (_colors != nullptr) free(_colors);
+  // -dealloc's [_texture release] and frees are the members' destructors.
 }
 
 std::optional<std::string> OOSkyQuadSet::descriptionComponents() const {
@@ -632,10 +617,11 @@ void OOSkyQuadSet::render() {
   if (_texture != nullptr) _texture->apply();  // a message to nil did nothing
 
   OOGL(glVertexPointer(kSkyQuadSetPositionEntriesPerVertex, GL_FLOAT, 0,
-                       _positions));
+                       _positions.data()));
   OOGL(glTexCoordPointer(kSkyQuadSetTexCoordEntriesPerVertex, GL_FLOAT, 0,
-                         _texCoords));
-  OOGL(glColorPointer(kSkyQuadSetColorEntriesPerVertex, GL_FLOAT, 0, _colors));
+                         _texCoords.data()));
+  OOGL(glColorPointer(kSkyQuadSetColorEntriesPerVertex, GL_FLOAT, 0,
+                      _colors.data()));
 
   OOGL(glDrawArrays(GL_QUADS, 0, 4 * _count));
 }
@@ -645,7 +631,7 @@ size_t OOSkyQuadSet::totalSize() {
   // sizeof *this is the object's own size.
   return sizeof *this +
          static_cast<size_t>(_count) * 4 *
-             (sizeof *_positions + sizeof *_texCoords + sizeof *_colors);
+             (sizeof _positions[0] + sizeof _texCoords[0] + sizeof _colors[0]);
 }
 
 OOTexture* OOSkyQuadSet::texture() { return _texture.get(); }

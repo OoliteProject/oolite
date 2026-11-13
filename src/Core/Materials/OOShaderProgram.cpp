@@ -29,6 +29,7 @@ SOFTWARE.
 
 #if OO_SHADERS
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdlib>
 #include <format>
@@ -560,8 +561,7 @@ bool IsWellFormedUTF8(std::string_view bytes) {
 // The info log as UTF-8: +stringWithUTF8String: of it, or (when that failed)
 // its bytes read as ISO Latin-1.
 std::string GetGLSLInfoLog(GLhandleARB shaderObject) {
-  GLint length;
-  GLcharARB* log = nullptr;
+  GLint length = 0;
   std::string result;
 
   OO_ENTER_OPENGL();
@@ -571,15 +571,11 @@ std::string GetGLSLInfoLog(GLhandleARB shaderObject) {
 
   OOGL(glGetObjectParameterivARB(shaderObject, GL_OBJECT_INFO_LOG_LENGTH_ARB,
                                  &length));
-  log = static_cast<GLcharARB*>(malloc(length));
-  if (log == nullptr) {
-    length = 1024;
-    log = static_cast<GLcharARB*>(malloc(length));
-    if (log == nullptr) return "<out of memory>";
-  }
-  OOGL(glGetInfoLogARB(shaderObject, length, nullptr, log));
+  length = std::max(length, 1);
+  std::vector<GLcharARB> log(static_cast<std::size_t>(length));
+  OOGL(glGetInfoLogARB(shaderObject, length, nullptr, log.data()));
 
-  result = log;
+  result = log.data();
   if (!IsWellFormedUTF8(result)) {
     result.clear();
     for (GLint i = 0; i < length - 1; ++i) {
@@ -592,7 +588,6 @@ std::string GetGLSLInfoLog(GLhandleARB shaderObject) {
       }
     }
   }
-  free(log);
 
   return result;
 }
