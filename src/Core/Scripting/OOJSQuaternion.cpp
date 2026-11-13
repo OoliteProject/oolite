@@ -163,7 +163,6 @@ bool QuaternionToJSValue(JSContext* context, Quaternion quaternion,
                          JSValue* outValue) {
   OOJS_PROFILE_ENTER
 
-  assert(outValue != nullptr);
 
   JSValue object = JSQuaternionWithQuaternion(context, quaternion);
   if (EXPECT_NOT(JS_IsException(object))) {
@@ -197,7 +196,6 @@ bool JSObjectGetQuaternion(JSContext* context, JSValueConst quaternionObj,
                            Quaternion* outQuaternion) {
   OOJS_PROFILE_ENTER
 
-  assert(outQuaternion != nullptr);
 
   Quaternion* priv = nullptr;
   int64_t arrayLength;
