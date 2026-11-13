@@ -196,8 +196,8 @@ std::string ExpandKeyWith(const std::string& key, std::string_view name,
 // Adds to a set of held entities (compared by identity): once each, in the
 // order added, the entity retained once.
 void AddIfAbsent(std::vector<oo::EntityHold>& entities, Entity* entity) {
-  if (std::find(entities.begin(), entities.end(), entity) == entities.end())
-    entities.emplace_back(entity);
+  if (oo::FindHold(entities, entity) == entities.end())
+    entities.emplace_back(oo::Hold(entity));
 }
 
 // An autoreleased list of held entities: each hold's
@@ -1730,9 +1730,9 @@ void Universe::setUpWitchspaceBetweenSystem(OOSystemID s1, OOSystemID s2) {
   {
     Entity* tmp = allPlanets[0].get();
     addEntity(a_planet);
-    std::erase(allPlanets, static_cast<Entity*>(a_planet));
+    oo::EraseHold(allPlanets, a_planet);
     cachedPlanet = a_planet;
-    allPlanets[0] = oo::EntityHold(a_planet);
+    allPlanets[0] = oo::Hold(a_planet);
     removeEntity(tmp);
   } else {
     addEntity(a_planet);
@@ -3439,7 +3439,7 @@ std::vector<oo::EntityHold> Universe::addShipsAt(HPVector pos,
       if (isGroup) {
         if (ship != nullptr) ship->setGroup(group.get());
       }
-      ships.push_back(oo::EntityHold(ship));
+      ships.push_back(oo::Hold(ship));
     }
   }
 
@@ -3517,7 +3517,7 @@ std::vector<oo::EntityHold> Universe::addShipsToRoute(const std::string& route,
     while (count--) {
       ship = addShipAt(pos, role, 0);  // no radius because pos is already
                                        // randomised with SCANNER_MAX_RANGE.
-      if (ship != nullptr) ships.push_back(oo::EntityHold(ship));
+      if (ship != nullptr) ships.push_back(oo::Hold(ship));
       if (count > 0)
         pos = fractionalPositionFrom(point0, point1, routeFraction);
     }
@@ -4290,7 +4290,7 @@ void Universe::defineWaypoint(const oo::PList& definition,
         oo::MadeEntity(::OOWaypointEntity::waypointWithDictionary(definition));
     if (waypoint != nullptr) {
       addEntity(waypoint);
-      waypoints[key] = oo::EntityHold(waypoint);
+      waypoints[key] = oo::Hold(waypoint);
       if (preserveCompass) {
         if (PLAYER != nullptr) PLAYER->setCompassTargetEntity(waypoint);
         if (PLAYER != nullptr) PLAYER->setNextBeacon(waypoint);
@@ -4791,7 +4791,7 @@ std::vector<oo::EntityHold> Universe::getContainersOfGoods(
     }
 
     if (container != nullptr) {
-      accumulator.push_back(oo::EntityHold(container));
+      accumulator.push_back(oo::Hold(container));
     } else {
       OO_LOG("universe.createContainer.failed",
              "***** ERROR: failed to find a container to fill with {} ({}).",
@@ -4815,7 +4815,7 @@ std::vector<oo::EntityHold> Universe::getContainersOfCommodity(
   if (pod != cargoPods.end()) container = oo::ToShip(pod->second.get());
   while (how_much > 0) {
     if (container) {
-      accumulator.push_back(oo::EntityHold(container));
+      accumulator.push_back(oo::Hold(container));
     } else {
       OO_LOG("universe.createContainer.failed",
              "***** ERROR: failed to find a container to fill with {}",
@@ -5861,8 +5861,7 @@ bool Universe::addEntity(Entity* entity) {
     if (!entity->validForAddToUniverse()) return false;
 
     // don't add things twice!
-    if (std::find(entities.begin(), entities.end(), entity) != entities.end())
-      return true;
+    if (oo::FindHold(entities, entity) != entities.end()) return true;
 
     if (n_entities >= UNIVERSE_MAX_ENTITIES - 1) {
       // throw an exception here...
@@ -5956,7 +5955,7 @@ bool Universe::addEntity(Entity* entity) {
     entity->shadingEntityID = NO_TARGET;
 
     // add it to the universe
-    entities.emplace_back(entity);
+    entities.emplace_back(oo::Hold(entity));
     entity->wasAddedToUniverse();
 
     // maintain sorted list (and for the scanner relative position)
@@ -5990,9 +5989,9 @@ bool Universe::addEntity(Entity* entity) {
     }
 
     if (entity->getIsWormhole()) {
-      activeWormholes.emplace_back(entity);
+      activeWormholes.emplace_back(oo::Hold(entity));
     } else if (oo::EntityIsPlanet(entity)) {
-      allPlanets.emplace_back(entity);
+      allPlanets.emplace_back(oo::Hold(entity));
     } else if (oo::EntityIsShip(entity)) {
       if (se != nullptr && se->getAI() != nullptr) se->getAI()->setOwner(se);
       if (se != nullptr && se->getAI() != nullptr)
@@ -6015,7 +6014,7 @@ bool Universe::removeEntity(Entity* entity) {
     */
     AddIfAbsent(entitiesDeadThisUpdate, entity);
     if (entity->getIsStation()) {
-      std::erase(allStations, entity);
+      oo::EraseHold(allStations, entity);
       if ((PLAYER != nullptr
                ? PLAYER->getTargetDockStation()
                : static_cast<::StationEntity*>(nullptr)) == entity) {
@@ -6855,7 +6854,7 @@ std::vector<oo::EntityHold> Universe::findEntitiesMatchingPredicate(
     Entity* e2 = sortedEntities[i];
 
     if (e1 != e2 && EntityInRange(p1, e2, range) && predicate(e2, parameter)) {
-      result.emplace_back(e2);
+      result.emplace_back(oo::Hold(e2));
     }
   }
 
@@ -7584,9 +7583,8 @@ void Universe::update(OOTimeDelta inDeltaT) {
         // Game Over code depends on regular delta_t updates to the dead player
         // entity. Ignore the player entity, even when dead.
         if (EXPECT_NOT(oo::EntityStatus(thing) == OOEntityStatus::kDead &&
-                       std::find(entitiesDeadThisUpdate.begin(),
-                                 entitiesDeadThisUpdate.end(),
-                                 thing) == entitiesDeadThisUpdate.end() &&
+                       oo::FindHold(entitiesDeadThisUpdate, thing) ==
+                           entitiesDeadThisUpdate.end() &&
                        !oo::EntityIsPlayer(thing))) {
           AddIfAbsent(zombies, thing);
           continue;
@@ -10307,7 +10305,7 @@ std::vector<oo::EntityHold> Universe::listBeaconsWithCode(
   while (beacon != nullptr) {
     const std::optional<std::string> beaconCode = oo::BeaconCode(beacon);
     if (BeaconCodeMatches(beaconCode, code)) {
-      result.emplace_back(beacon);
+      result.emplace_back(oo::Hold(beacon));
     }
     beacon = oo::NextBeacon(beacon);
   }
@@ -10676,7 +10674,7 @@ void Universe::setUpCargoPods() {
     if (container != nullptr) container->setScanClass(OOScanClass::kCargo);
     if (container != nullptr) container->setCommodity(type, 1);
     if (container != nullptr) {
-      tmp[type] = oo::EntityHold(container);
+      tmp[type] = oo::Hold(container);
       oo::ReleaseEntity(container);
     }  // the +1 handed to the list; a nil container was an exception before
   }
@@ -10698,7 +10696,7 @@ void Universe::verifyEntitySessionIDs() {
           oo::EntityShortDescription(entity),
           static_cast<size_t>(entity->sessionID()),
           static_cast<size_t>(_sessionID));
-      badEntities.emplace_back(entity);
+      badEntities.emplace_back(oo::Hold(entity));
     }
   }
 
@@ -10970,7 +10968,7 @@ bool Universe::doRemoveEntity(Entity* entity) {
   }
 
   // remove from the definitive list
-  if (std::find(entities.begin(), entities.end(), entity) != entities.end()) {
+  if (oo::FindHold(entities, entity) != entities.end()) {
     // FIXME: better approach needed for core break patterns - CIM
     if (dynamic_cast<OOBreakPatternEntity*>(entity) != nullptr) {
       breakPatternCounter--;
@@ -10988,12 +10986,12 @@ bool Universe::doRemoveEntity(Entity* entity) {
     }
 
     if (entity->getIsWormhole()) {
-      std::erase(activeWormholes, entity);
+      oo::EraseHold(activeWormholes, entity);
     } else if (oo::EntityIsPlanet(entity)) {
-      std::erase(allPlanets, entity);
+      oo::EraseHold(allPlanets, entity);
     }
 
-    std::erase(entities, entity);
+    oo::EraseHold(entities, entity);
     return true;
   }
 

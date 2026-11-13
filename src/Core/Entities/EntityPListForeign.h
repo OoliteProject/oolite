@@ -54,7 +54,7 @@ std::string EntityDescription(Entity* entity);  // EntityHelpers.cpp
 
 class EntityPListForeign final : public PListForeign {
  public:
-  explicit EntityPListForeign(Entity* entity) : _entity(entity) {}
+  explicit EntityPListForeign(Entity* entity) : _entity(oo::Hold(entity)) {}
   Entity* entity() const noexcept { return _entity.get(); }
   std::string className() const override { return "Entity"; }
   std::string description() const override {

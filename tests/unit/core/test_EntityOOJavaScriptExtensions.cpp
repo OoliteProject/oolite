@@ -212,7 +212,7 @@ OO_TEST(subEntitiesForScript) {
 
     TestShip* turret = Ship("turret");
     TestShip* hull = Ship("hull");
-    ship->subEntities = {oo::EntityHold(turret), oo::EntityHold(hull)};
+    ship->subEntities = {oo::Hold(turret), oo::Hold(hull)};
     std::vector<oo::EntityHold> subs = ShipEntityJSSubEntitiesForScript(ship);
     OO_CHECK(subs.size() == 2);
     OO_CHECK(subs.size() == 2 && subs[0].get() == turret &&
@@ -359,8 +359,8 @@ OO_TEST(entityObjectNodeHoldsTheEntity) {
     OO_CHECK(oo::EntityObjectNode(static_cast<Entity*>(nullptr)).isNull());
 
     // Arrays: one node per entity, in order.
-    const std::vector<oo::EntityHold> refs{oo::EntityHold(entity),
-                                           oo::EntityHold(entity)};
+    const std::vector<oo::EntityHold> refs{oo::Hold(entity),
+                                           oo::Hold(entity)};
     const std::vector<Entity*> parts =
         oo::EntitiesIn(oo::EntityNodesFrom(refs));
     OO_CHECK(parts.size() == 2 && parts[0] == part && parts[1] == part);

@@ -410,7 +410,7 @@ void OOVisualEffectEntity::clearSubEntities()
 bool OOVisualEffectEntity::setUpSubEntities()
 {
 	std::vector<oo::EntityHold> subs;
-	for (int i = 0; i < _subsAfterSetUp; i++)  subs.emplace_back(NewEffectObject()->_cxxEntity.get());
+	for (int i = 0; i < _subsAfterSetUp; i++)  subs.emplace_back(oo::Hold(NewEffectObject()->_cxxEntity.get()));
 	if (!subs.empty())  _subs = subs;
 	return true;
 }
@@ -868,7 +868,7 @@ OO_TEST(subEntitiesForScript)
 	// None before the first subentity, then the visual-effect subentities, in
   // order.
 	OO_CHECK(OOJSVisualEffectSubEntitiesForScript(sEffectPart).empty());
-	sEffectPart->_subs = std::vector<oo::EntityHold>{ oo::EntityHold(sSub->_cxxEntity.get()) };
+	sEffectPart->_subs = std::vector<oo::EntityHold>{ oo::Hold(sSub->_cxxEntity.get()) };
 	std::vector<oo::EntityHold> subs = OOJSVisualEffectSubEntitiesForScript(sEffectPart);
 	OO_CHECK_EQ(subs.size(), 1u);
 	OO_CHECK(subs.size() == 1 && subs[0].get() == sSub->_cxxEntity.get());

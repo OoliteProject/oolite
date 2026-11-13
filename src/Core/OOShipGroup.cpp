@@ -195,7 +195,7 @@ std::vector<oo::EntityHold> OOShipGroup::memberArray() {
 
   result.reserve(_count);
   for (::ShipEntity* ship : OOShipGroupMembers(this)) {
-    result.emplace_back(ship);
+    result.emplace_back(oo::Hold(ship));
   }
 
   return result;
@@ -211,7 +211,7 @@ std::vector<oo::EntityHold> OOShipGroup::memberArrayExcludingLeader() {
   result.reserve(_count);
   for (::ShipEntity* ship : OOShipGroupMembers(this)) {
     if (ship != leader) {
-      result.emplace_back(ship);
+      result.emplace_back(oo::Hold(ship));
     }
   }
 
@@ -392,8 +392,8 @@ std::size_t OOShipGroupMembers::FillBatch(OOShipGroup* group,
     item = oo::ToShip(group->_members[srcIndex].lock().get());
     if (item != nullptr) {
       buffer[dstIndex++] =
-          oo::EntityHold(item);  // its object retained (and autoreleased by
-                                 // oo::ToObjC), as before
+          oo::Hold(item);  // its object retained (and autoreleased by
+                           // oo::ToObjC), as before
       srcIndex++;
     } else {
       group->_members[srcIndex] = group->_members[--group->_count];

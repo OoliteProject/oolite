@@ -656,7 +656,7 @@ OO_TEST(feedingPopAndSpawn) {
     Reset();
     PlayerEntity* p = Player();
     for (const char* good : {"gems", "furs", "food"}) {
-      p->cargo.push_back(oo::EntityHold(NewPod(good)->_cxxEntity.get()));
+      p->cargo.push_back(oo::Hold(NewPod(good)->_cxxEntity.get()));
     }
     Entity* food = p->cargo[2].get();
     p->appetite = 9.5f;

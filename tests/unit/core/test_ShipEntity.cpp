@@ -1846,11 +1846,11 @@ OO_TEST(commoditiesAndCargo)
 		if (food != nullptr)  food->setCommodity("food", 1);
 		TestShip *gold = FlyingShip("gold pod");
 		if (gold != nullptr)  gold->setCommodity("gold", 1);
-		if (ship != nullptr)  ship->setCargo({ oo::EntityHold(food), oo::EntityHold(gold) });
+		if (ship != nullptr)  ship->setCargo({ oo::Hold(food), oo::Hold(gold) });
 		OO_CHECK((ship != nullptr ? ship->cargoCount() : 0) == 2 && (ship != nullptr ? ship->cargoQuantityOnBoard() : 0) == 2 && (ship != nullptr ? ship->availableCargoSpace() : 0) == 1);
 		OO_CHECK((ship != nullptr ? ship->getCargo() : (std::vector<oo::EntityHold> *)nullptr)->size() == 2 && (*(ship != nullptr ? ship->getCargo() : (std::vector<oo::EntityHold> *)nullptr))[1].get() == gold);
-		OO_CHECK((!(ship != nullptr ? ship->addCargo({ oo::EntityHold(food), oo::EntityHold(food) }) : false)));	// no room
-		OO_CHECK((ship != nullptr ? ship->addCargo({ oo::EntityHold(food) }) : false) && (ship != nullptr ? ship->cargoCount() : 0) == 3);
+		OO_CHECK((!(ship != nullptr ? ship->addCargo({ oo::Hold(food), oo::Hold(food) }) : false)));	// no room
+		OO_CHECK((ship != nullptr ? ship->addCargo({ oo::Hold(food) }) : false) && (ship != nullptr ? ship->cargoCount() : 0) == 3);
 		OO_CHECK(!(ship != nullptr ? ship->removeCargo("gold", 2) : false));		// not that many: nothing removed
 		OO_CHECK((ship != nullptr ? ship->cargoCount() : 0) == 3);
 		OO_CHECK((ship != nullptr ? ship->removeCargo("food", 2) : false) && (ship != nullptr ? ship->cargoCount() : 0) == 1 && (*(ship != nullptr ? ship->getCargo() : (std::vector<oo::EntityHold> *)nullptr))[0].get() == gold);

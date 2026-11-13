@@ -345,7 +345,7 @@ void OOVisualEffectEntity::addSubEntity(Entity* sub) {
   if (!_subEntities.has_value()) _subEntities.emplace();
   sub->isSubEntity = true;
   // Order matters - need consistent state in setOwner:. -- Ahruman 2008-04-20
-  _subEntities->emplace_back(sub);
+  _subEntities->emplace_back(oo::Hold(sub));
   sub->setOwner(this);
 
   double distance =

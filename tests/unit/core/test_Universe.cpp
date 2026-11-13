@@ -913,7 +913,7 @@ OO_TEST(slice17UpdateOff) {
     {
       oo::AutoreleaseScope scope;  // the making's autoreleases drain here
       dead = oo::RetainEntity(oo::MadeEntity(oo::makeRef<Entity>()));
-      u->entitiesDeadThisUpdate.emplace_back(dead);
+      u->entitiesDeadThisUpdate.emplace_back(oo::Hold(dead));
     }
     oo::ReleaseEntity(dead);
 
@@ -1332,8 +1332,8 @@ OO_TEST(slice25DoRemoveEntity) {
     SetSortedEntities(u, {a, b});
     a->zero_index = 0;
     b->zero_index = 1;
-    u->entities.emplace_back(a);
-    u->entities.emplace_back(b);
+    u->entities.emplace_back(oo::Hold(a));
+    u->entities.emplace_back(oo::Hold(b));
 
     OO_CHECK(u->doRemoveEntity(a));
     OO_CHECK(u->n_entities == 1 && SortedEntity(u, 0) == b &&

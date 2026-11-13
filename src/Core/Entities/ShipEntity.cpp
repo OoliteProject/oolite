@@ -1549,9 +1549,8 @@ std::size_t ShipEntity::subEntityCount() { return subEntities.size(); }
 
 bool ShipEntity::hasSubEntity(Entity* sub) {
   // Identity: a subentity's -isEqual: is NSObject's.
-  return sub != nullptr &&
-         std::find(subEntities.begin(), subEntities.end(), sub) !=
-             subEntities.end();  // the list holds no null
+  return sub != nullptr && oo::FindHold(subEntities, sub) !=
+                               subEntities.end();  // the list holds no null
 }
 
 std::vector<oo::EntityHold> ShipEntity::subEntityEnumerator() {
@@ -6618,7 +6617,7 @@ void ShipEntity::addSubEntity(Entity* sub) {
 
   sub->isSubEntity = true;
   // Order matters - need consistent state in setOwner:. -- Ahruman 2008-04-20
-  subEntities.emplace_back(sub);
+  subEntities.emplace_back(oo::Hold(sub));
   sub->setOwner(this);  // [subObject setOwner:self]
 
   addSubentityToCollisionRadius(sub);
@@ -6847,7 +6846,7 @@ std::vector<oo::EntityHold> ShipEntity::escorts() {
   for (const oo::EntityHold& memberRef : _escortGroup->memberArray()) {
     ::ShipEntity* member = oo::ToShip(memberRef.get());
     if (member == this) continue;
-    escorts.emplace_back(member);
+    escorts.emplace_back(oo::Hold(member));
   }
   return escorts;
 }
@@ -8957,7 +8956,7 @@ void ShipEntity::broadcastEnergyBlastImminent() {
 }
 
 void ShipEntity::removeExhaust(OOExhaustPlumeEntity* exhaust) {
-  std::erase(subEntities, static_cast<Entity*>(exhaust));
+  oo::EraseHold(subEntities, exhaust);
   if (exhaust != nullptr)
     exhaust->setOwner(nullptr);  // [exhaustObject setOwner:nil]
 }
@@ -8966,7 +8965,7 @@ void ShipEntity::removeExhaust(OOExhaustPlumeEntity* exhaust) {
 // scanner, remembered ships. Members of the C++ ship.
 
 void ShipEntity::removeFlasher(OOFlasherEntity* flasher) {
-  std::erase(subEntities, static_cast<Entity*>(flasher));
+  oo::EraseHold(subEntities, flasher);
   if (flasher != nullptr)
     flasher->setOwner(nullptr);  // [flasherObject setOwner:nil]
 }
@@ -8981,7 +8980,7 @@ void ShipEntity::subEntityDied(::ShipEntity* sub) {
   mass -= (sub != nullptr
                ? sub->getMass()
                : 0.0f);  // missing subents affect fuel charge rate, etc..
-  std::erase(subEntities, static_cast<Entity*>(sub));
+  oo::EraseHold(subEntities, sub);
 }
 
 void ShipEntity::subEntityReallyDied(::ShipEntity* sub) {
@@ -10431,7 +10430,7 @@ std::vector<oo::EntityHold> ShipEntity::collisionExceptions() {
   // The live ones, in the weak set's order (empty when there are none).
   std::vector<oo::EntityHold> result;
   for (const auto& exception : _collisionExceptions.allObjects())
-    result.emplace_back(exception.get());
+    result.emplace_back(oo::Hold(exception.get()));
   return result;
 }
 
@@ -10453,7 +10452,7 @@ std::size_t ShipEntity::defenseTargetCount() { return _defenseTargets.count(); }
 std::vector<oo::EntityHold> ShipEntity::allDefenseTargets() {
   std::vector<oo::EntityHold> result;
   for (const auto& target : _defenseTargets.allObjects())
-    result.emplace_back(target.get());
+    result.emplace_back(oo::Hold(target.get()));
   return result;
 }
 
@@ -10461,7 +10460,7 @@ std::vector<oo::EntityHold> ShipEntity::defenseTargets() {
   // What the weak set's enumerator gave: the live targets, in its order.
   std::vector<oo::EntityHold> targets;
   for (const auto& target : _defenseTargets.allObjects())
-    targets.emplace_back(target.get());
+    targets.emplace_back(oo::Hold(target.get()));
   return targets;
 }
 
@@ -11763,7 +11762,7 @@ bool ShipEntity::launchCascadeMine() {
     ::ShipEntity* passenger = nullptr;
     passenger = launchPodWithCrew(std::vector<std::shared_ptr<OOCharacter>>{
         OOCharacter::randomCharacterWithRole("passenger", gen_rnd_number())});
-    if (passengers.has_value()) passengers->emplace_back(passenger);
+    if (passengers.has_value()) passengers->emplace_back(oo::Hold(passenger));
   }
 
   // the passengers' pods as an array, or null (nil) with a single pod
@@ -12351,7 +12350,7 @@ void ShipEntity::scoopUpProcess(::ShipEntity* other, bool procEvents,
     }
     cargo.insert(
         cargo.begin(),
-        oo::EntityHold(
+        oo::Hold(
             other));  // places most recently scooped object at eject position
     if (other != nullptr) other->setStatus(OOEntityStatus::kInHold);
     if (other != nullptr) other->performTumble();
@@ -12369,10 +12368,10 @@ void ShipEntity::scoopUpProcess(::ShipEntity* other, bool procEvents,
   // then remove it from the hold, or it will be over-retained
   if ((other != nullptr ? other->status() : OOEntityStatus{}) !=
       OOEntityStatus::kInHold) {
-    if (other != nullptr && (std::find(cargo.begin(), cargo.end(), other) !=
-                             cargo.end()))  // the list holds no null
+    if (other != nullptr &&
+        (oo::FindHold(cargo, other) != cargo.end()))  // the list holds no null
     {
-      std::erase(cargo, other);
+      oo::EraseHold(cargo, other);
     }
   }
 

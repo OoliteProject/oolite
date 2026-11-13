@@ -250,7 +250,7 @@ std::vector<oo::EntityHold> OOJSVisualEffectSubEntitiesForScript(
   std::vector<oo::EntityHold> result;
   result.reserve(subs->size());
   for (const auto& sub : *subs) {
-    result.emplace_back(sub.get());
+    result.emplace_back(oo::Hold(sub.get()));
   }
   return result;
 }

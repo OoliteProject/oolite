@@ -1152,9 +1152,9 @@ void DockEntity::addShipToLaunchQueue(::ShipEntity* ship, bool priority) {
 
   if (ship != nullptr) ship->setStatus(OOEntityStatus::kDocked);
   if (priority) {
-    launchQueue.insert(launchQueue.begin(), oo::EntityHold(ship));
+    launchQueue.insert(launchQueue.begin(), oo::Hold(ship));
   } else {
-    launchQueue.push_back(oo::EntityHold(ship));
+    launchQueue.push_back(oo::Hold(ship));
   }
 }
 

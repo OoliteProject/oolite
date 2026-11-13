@@ -155,7 +155,7 @@ void WormholeEntity::initWithDict(const oo::PList& dict) {
             // time_delta as stored; it was only ever read with
             // -oo_doubleForKey: (0 when absent)
             shipsInTransit.push_back(OOWormholeTransit{
-                oo::EntityHold(ship), currShipDict.get<double>("time_delta"),
+                oo::Hold(ship), currShipDict.get<double>("time_delta"),
                 std::nullopt});
           } else {
             const oo::PList* shipKey = shipInfo->find("ship_key");
@@ -356,7 +356,7 @@ bool WormholeEntity::suckInShip(::ShipEntity* ship) {
   }
 
   shipsInTransit.push_back(OOWormholeTransit{
-      oo::EntityHold(ship), now + travel_time - arrival_time,
+      oo::Hold(ship), now + travel_time - arrival_time,
       (ship != nullptr
            ? ship->beaconCode()
            : std::optional<std::string>())});  // in case a beacon code has been

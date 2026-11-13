@@ -576,8 +576,7 @@ void OOTrumble::updateTrumble(double delta_t) {
                  .value_or("(null)")});
 
         if (UNIVERSE != nullptr) UNIVERSE->addMessage(ms, 4.5);
-        if (cargopods != nullptr)
-          std::erase(*cargopods, static_cast<Entity*>(selectedCargopod));
+        if (cargopods != nullptr) oo::EraseHold(*cargopods, selectedCargopod);
         trumbleAppetiteAccumulator -= 10.0;
 
         // consider breeding - must be full grown and happy
