@@ -260,7 +260,7 @@ void OOSmallFragmentBurstEntity::initFragmentBurstFrom(HPVector fragPosition,
   // Select base colour
   // yellow/orange (0.12) through yellow (0.1667) to yellow/slightly green
   // (0.20)
-  oo::Ref<OOColor> hsvColor =
+  std::shared_ptr<OOColor> hsvColor =
       OOColor::colorWithHue(0.12f + 0.08f * randf(), 1.0f, 1.0f, 1.0f);
   GLfloat baseColor[4];
   hsvColor->getRed(&baseColor[0], &baseColor[1], &baseColor[2], &baseColor[3]);

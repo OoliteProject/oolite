@@ -2163,7 +2163,7 @@ void PlayerEntity::setMissionChoicesDictionary(const oo::PList& choicesDict) {
   for (const std::string& choiceKey : choiceKeys) {
     const oo::PList& choiceValue = *choicesDict.find(choiceKey);
     OOGUIAlignment alignment = OOGUIAlignment::kCenter;
-    oo::Ref<OOColor> rowColor = OOColor::yellowColor();
+    std::shared_ptr<OOColor> rowColor = OOColor::yellowColor();
     bool selectable = true;
     if (const std::string* text = choiceValue.getIf<std::string>()) {
       choiceText = " " + *text + " ";

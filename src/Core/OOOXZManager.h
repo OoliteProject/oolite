@@ -191,7 +191,7 @@ class OOOXZManager : public oo::RefCounted {
   oo::PList installedManifestForIdentifier(
       const std::string& identifier);  // null: not installed
   OXZInstallableState installableState(const oo::PList& manifest);
-  oo::Ref<OOColor> colorForManifest(const oo::PList& manifest);
+  std::shared_ptr<OOColor> colorForManifest(const oo::PList& manifest);
   std::optional<std::string> installStatusForManifest(
       const oo::PList& manifest);  // nullopt: its description is missing
 

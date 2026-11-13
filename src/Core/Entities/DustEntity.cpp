@@ -132,7 +132,7 @@ void DustEntity::init() {
 // release the colour, texture, shader and uniforms.
 
 void DustEntity::setDustColor(OOColor* color) {
-  dust_color = oo::Ref<OOColor>(color);
+  dust_color = oo::share(color);
   // A message to a nil colour did nothing.
   if (dust_color != nullptr)
     dust_color->getRed(&color_fv[0], &color_fv[1], &color_fv[2], &color_fv[3]);

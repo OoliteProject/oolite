@@ -657,7 +657,8 @@ void OODefaultShaderSynthesizer::writeTextureCoordRead() {
 void OODefaultShaderSynthesizer::writeDiffuseColorTermIfNeeded() {
   oo::PList diffuseMap =
       cxx_OOMaterialDiffuseMapSpecifier(_configuration, materialKey());
-  oo::Ref<OOColor> diffuseColor(cxx_OOMaterialDiffuseColor(_configuration));
+  std::shared_ptr<OOColor> diffuseColor(
+      cxx_OOMaterialDiffuseColor(_configuration));
   if (diffuseColor == nullptr) diffuseColor = OOColor::whiteColor();
 
   if (diffuseColor->isBlack()) return;
@@ -812,14 +813,12 @@ void OODefaultShaderSynthesizer::writeSpecularLighting() {
         cxx_kOOTextureSpecifierScaleFactorKey, 1.0f);
   }
 
-  oo::Ref<OOColor> specularColor;  // never null: both functions below answer a
-                                   // default colour
+  std::shared_ptr<OOColor> specularColor;  // never null: both functions below
+                                           // answer a default colour
   if (specularColorMap.isNull()) {
-    specularColor =
-        oo::Ref<OOColor>(cxx_OOMaterialSpecularColor(_configuration));
+    specularColor = cxx_OOMaterialSpecularColor(_configuration);
   } else {
-    specularColor =
-        oo::Ref<OOColor>(cxx_OOMaterialSpecularModulateColor(_configuration));
+    specularColor = cxx_OOMaterialSpecularModulateColor(_configuration);
   }
 
   if (specularColor->isBlack()) return;
@@ -1111,7 +1110,7 @@ oo::PList AddingValue(oo::PList specifier, std::string_view key,
 }
 
 // OOColor::colorWithDescription() of the value for key (null if there is none).
-oo::Ref<OOColor> ColorIn(const oo::PList& spec, std::string_view key) {
+std::shared_ptr<OOColor> ColorIn(const oo::PList& spec, std::string_view key) {
   const oo::PList* value = spec.find(key);
   return OOColor::colorWithDescription((value != nullptr) ? *value
                                                           : oo::PList());
@@ -1136,7 +1135,7 @@ oo::PList NormalizedArray(OOColor* color) {
 oo::PList CanonicalizeMaterialSpecifier(
     const oo::PList& spec, const std::optional<std::string>& materialKey) {
   oo::PList::Dict result;
-  oo::Ref<OOColor> col;
+  std::shared_ptr<OOColor> col;
   oo::PList texSpec;
 
   // Colours.

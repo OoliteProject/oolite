@@ -76,7 +76,7 @@ void OOBasicMaterial::initWithName(const std::optional<std::string>& name) {
 
 void OOBasicMaterial::initWithName(const std::optional<std::string>& name,
                                    const oo::PList& configuration) {
-  oo::Ref<OOColor> colorDesc;
+  std::shared_ptr<OOColor> colorDesc;
   int specularExponent;
 
   initWithName(name);
@@ -135,7 +135,7 @@ void OOBasicMaterial::unapplyWithNext(OOMaterial* next) {
   }
 }
 
-oo::Ref<OOColor> OOBasicMaterial::diffuseColor() {
+std::shared_ptr<OOColor> OOBasicMaterial::diffuseColor() {
   return OOColor::colorWithRed(diffuse[0], diffuse[1], diffuse[2], diffuse[3]);
 }
 
@@ -151,7 +151,7 @@ void OOBasicMaterial::setAmbientAndDiffuseColor(OOColor* color) {
   setDiffuseColor(color);
 }
 
-oo::Ref<OOColor> OOBasicMaterial::specularColor() {
+std::shared_ptr<OOColor> OOBasicMaterial::specularColor() {
   return OOColor::colorWithRed(specular[0], specular[1], specular[2],
                                specular[3]);
 }
@@ -163,7 +163,7 @@ void OOBasicMaterial::setSpecularColor(OOColor* color) {
   }
 }
 
-oo::Ref<OOColor> OOBasicMaterial::ambientColor() {
+std::shared_ptr<OOColor> OOBasicMaterial::ambientColor() {
   return OOColor::colorWithRed(ambient[0], ambient[1], ambient[2], ambient[3]);
 }
 
@@ -174,7 +174,7 @@ void OOBasicMaterial::setAmbientColor(OOColor* color) {
   }
 }
 
-oo::Ref<OOColor> OOBasicMaterial::emmisionColor() {
+std::shared_ptr<OOColor> OOBasicMaterial::emmisionColor() {
   return OOColor::colorWithRed(emission[0], emission[1], emission[2],
                                emission[3]);
 }

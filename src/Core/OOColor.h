@@ -61,14 +61,15 @@ typedef struct {
 
 class OOColor : public oo::PListForeign {
  public:
-  static oo::Ref<OOColor> colorWithHue(float hue, float saturation,
-                                       float brightness,
-                                       float alpha);  // Note: hue in 0..1
-  static oo::Ref<OOColor> colorWithRed(float red, float green, float blue,
-                                       float alpha);
-  static oo::Ref<OOColor> colorWithWhite(float white, float alpha);
-  static oo::Ref<OOColor> colorWithRGBAComponents(OORGBAComponents components);
-  static oo::Ref<OOColor> colorWithHSBAComponents(
+  static std::shared_ptr<OOColor> colorWithHue(
+      float hue, float saturation, float brightness,
+      float alpha);  // Note: hue in 0..1
+  static std::shared_ptr<OOColor> colorWithRed(float red, float green,
+                                               float blue, float alpha);
+  static std::shared_ptr<OOColor> colorWithWhite(float white, float alpha);
+  static std::shared_ptr<OOColor> colorWithRGBAComponents(
+      OORGBAComponents components);
+  static std::shared_ptr<OOColor> colorWithHSBAComponents(
       OOHSBAComponents components);  // Note: hue in 0..360
 
   /*	Flexible color creator: <description> is
@@ -83,40 +84,43 @@ class OOColor : public oo::PListForeign {
      object), which is returned as is. Anything else, or a null PList, gives
      null.
   */
-  static oo::Ref<OOColor> colorWithDescription(const oo::PList& description);
+  static std::shared_ptr<OOColor> colorWithDescription(
+      const oo::PList& description);
 
   /*	Like colorWithDescription(), but multiplies saturation by provided
      factor. If the colour is an HSV dictionary, it may specify a saturation
      greater than 1.0 to override the scaling.
   */
-  static oo::Ref<OOColor> colorWithDescription(const oo::PList& description,
-                                               float factor);
+  static std::shared_ptr<OOColor> colorWithDescription(
+      const oo::PList& description, float factor);
 
   // Like colorWithDescription(), but forces brightness of at least 0.5.
-  static oo::Ref<OOColor> brightColorWithDescription(
+  static std::shared_ptr<OOColor> brightColorWithDescription(
       const oo::PList& description);
 
   // Creates a colour given a string with components.
-  static oo::Ref<OOColor> colorFromString(const std::string& colorFloatString);
+  static std::shared_ptr<OOColor> colorFromString(
+      const std::string& colorFloatString);
 
-  static oo::Ref<OOColor> blackColor();      // 0.0 white
-  static oo::Ref<OOColor> darkGrayColor();   // 0.333 white
-  static oo::Ref<OOColor> lightGrayColor();  // 0.667 white
-  static oo::Ref<OOColor> whiteColor();      // 1.0 white
-  static oo::Ref<OOColor> grayColor();       // 0.5 white
-  static oo::Ref<OOColor> redColor();        // 1.0, 0.0, 0.0 RGB
-  static oo::Ref<OOColor> greenColor();      // 0.0, 1.0, 0.0 RGB
-  static oo::Ref<OOColor> blueColor();       // 0.0, 0.0, 1.0 RGB
-  static oo::Ref<OOColor> cyanColor();       // 0.0, 1.0, 1.0 RGB
-  static oo::Ref<OOColor> yellowColor();     // 1.0, 1.0, 0.0 RGB
-  static oo::Ref<OOColor> magentaColor();    // 1.0, 0.0, 1.0 RGB
-  static oo::Ref<OOColor> orangeColor();     // 1.0, 0.5, 0.0 RGB
-  static oo::Ref<OOColor> purpleColor();     // 0.5, 0.0, 0.5 RGB
-  static oo::Ref<OOColor> brownColor();      // 0.6, 0.4, 0.2 RGB
-  static oo::Ref<OOColor> clearColor();      // 0.0 white, 0.0 alpha
+  static std::shared_ptr<OOColor> blackColor();      // 0.0 white
+  static std::shared_ptr<OOColor> darkGrayColor();   // 0.333 white
+  static std::shared_ptr<OOColor> lightGrayColor();  // 0.667 white
+  static std::shared_ptr<OOColor> whiteColor();      // 1.0 white
+  static std::shared_ptr<OOColor> grayColor();       // 0.5 white
+  static std::shared_ptr<OOColor> redColor();        // 1.0, 0.0, 0.0 RGB
+  static std::shared_ptr<OOColor> greenColor();      // 0.0, 1.0, 0.0 RGB
+  static std::shared_ptr<OOColor> blueColor();       // 0.0, 0.0, 1.0 RGB
+  static std::shared_ptr<OOColor> cyanColor();       // 0.0, 1.0, 1.0 RGB
+  static std::shared_ptr<OOColor> yellowColor();     // 1.0, 1.0, 0.0 RGB
+  static std::shared_ptr<OOColor> magentaColor();    // 1.0, 0.0, 1.0 RGB
+  static std::shared_ptr<OOColor> orangeColor();     // 1.0, 0.5, 0.0 RGB
+  static std::shared_ptr<OOColor> purpleColor();     // 0.5, 0.0, 0.5 RGB
+  static std::shared_ptr<OOColor> brownColor();      // 0.6, 0.4, 0.2 RGB
+  static std::shared_ptr<OOColor> clearColor();      // 0.0 white, 0.0 alpha
 
   //	Linear blend in working colour space (no attempt at gamma correction).
-  oo::Ref<OOColor> blendedColorWithFraction(float fraction, OOColor* color);
+  std::shared_ptr<OOColor> blendedColorWithFraction(float fraction,
+                                                    OOColor* color);
 
   //	Get the red, green, or blue components.
   float redComponent();
@@ -148,11 +152,11 @@ class OOColor : public oo::PListForeign {
   /*	Returns the colour, premultiplied by its alpha channel, and with an
      alpha of 1.0. If the reciever's alpha is 1.0, it will return itself.
   */
-  oo::Ref<OOColor> premultipliedColor();
+  std::shared_ptr<OOColor> premultipliedColor();
 
   // Multiply r, g and b components of a colour by specified factor, clamped to
   // [0..1].
-  oo::Ref<OOColor> colorWithBrightnessFactor(float factor);
+  std::shared_ptr<OOColor> colorWithBrightnessFactor(float factor);
 
   // r,g,b,a array in 0..1 range.
   std::vector<float> normalizedArray();

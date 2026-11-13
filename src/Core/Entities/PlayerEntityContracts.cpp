@@ -1233,13 +1233,13 @@ void PlayerEntity::setGuiToManifestScreen() {
   // GUI stuff
   {
     std::ptrdiff_t current, max;
-    oo::Ref<OOColor> subheadColor = gui->colorFromSetting(
+    std::shared_ptr<OOColor> subheadColor = gui->colorFromSetting(
         cxx_kGuiManifestSubheadColor, OOColor::greenColor().get());
-    oo::Ref<OOColor> entryColor =
+    std::shared_ptr<OOColor> entryColor =
         gui->colorFromSetting(cxx_kGuiManifestEntryColor, nullptr);
-    oo::Ref<OOColor> scrollColor = gui->colorFromSetting(
+    std::shared_ptr<OOColor> scrollColor = gui->colorFromSetting(
         cxx_kGuiManifestScrollColor, OOColor::greenColor().get());
-    oo::Ref<OOColor> noScrollColor = gui->colorFromSetting(
+    std::shared_ptr<OOColor> noScrollColor = gui->colorFromSetting(
         cxx_kGuiManifestNoScrollColor, OOColor::darkGrayColor().get());
 
     const std::vector<std::string> cargoManifest = cargoList();

@@ -100,14 +100,14 @@ class OOBasicMaterial : public OOMaterial {
   std::vector<oo::Ref<OOTexture>> allTextures() override;
 #endif
 
-  oo::Ref<OOColor> diffuseColor();
+  std::shared_ptr<OOColor> diffuseColor();
   void setDiffuseColor(OOColor* color);
   void setAmbientAndDiffuseColor(OOColor* color);
-  oo::Ref<OOColor> specularColor();
+  std::shared_ptr<OOColor> specularColor();
   void setSpecularColor(OOColor* color);
-  oo::Ref<OOColor> ambientColor();
+  std::shared_ptr<OOColor> ambientColor();
   void setAmbientColor(OOColor* color);
-  oo::Ref<OOColor> emmisionColor();
+  std::shared_ptr<OOColor> emmisionColor();
   void setEmissionColor(OOColor* color);
 
   void getDiffuseComponents(GLfloat outComponents[4]);

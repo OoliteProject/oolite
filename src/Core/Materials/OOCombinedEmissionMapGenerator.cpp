@@ -52,9 +52,9 @@ oo::PList SpecWithExtraShrink(const oo::PList& spec) {
   return copy;
 }
 
-oo::Ref<OOColor> ModulateColor(OOColor* a, OOColor* b) {
-  if (a == nullptr) return oo::Ref<OOColor>(b);
-  if (b == nullptr) return oo::Ref<OOColor>(a);
+std::shared_ptr<OOColor> ModulateColor(OOColor* a, OOColor* b) {
+  if (a == nullptr) return oo::share(b);
+  if (b == nullptr) return oo::share(a);
 
   OORGBAComponents ac, bc;
   ac = a->rgbaComponents();
@@ -139,7 +139,7 @@ bool OOCombinedEmissionMapGenerator::initWithEmissionMapSpec(
             Since illuminationColor and diffuseColor aren't used otherwise,
             we may as well combine them up front.
     */
-    const oo::Ref<OOColor> modulatedIlluminationColor =
+    const std::shared_ptr<OOColor> modulatedIlluminationColor =
         ModulateColor(diffuseColor, illuminationColor);
     illuminationColor = modulatedIlluminationColor.get();
 
@@ -157,8 +157,8 @@ bool OOCombinedEmissionMapGenerator::initWithEmissionMapSpec(
 
     _diffuseMap = oo::Ref<OOTexture>(diffuseMap);
 
-    _emissionColor = oo::Ref<OOColor>(emissionColor);
-    _illuminationColor = oo::Ref<OOColor>(illuminationColor);
+    _emissionColor = oo::share(emissionColor);
+    _illuminationColor = oo::share(illuminationColor);
     _isCombinedMap = isCombinedMap;
 
     _textureOptions = options;

@@ -69,7 +69,7 @@ SOFTWARE.
 #include "oofnd/Ref.hpp"
 
 class OOJavaScriptEngine;
-#include "OOColor.h"   // the colour maps hold oo::Ref<OOColor>
+#include "OOColor.h"   // the colour maps hold std::shared_ptr<OOColor>
 #include "OOScript.h"  // the console script, oo::Ref<OOScript>
 
 /*	The one debug monitor (sharedDebugMonitor(), made on first use and never
@@ -194,7 +194,8 @@ class OODebugMonitor : public oo::PListForeign,
                                // JS (a Dict; values may be Object nodes).
 
   // Caches
-  std::map<std::string, oo::Ref<OOColor>, std::less<>> _fgColors, _bgColors;
+  std::map<std::string, std::shared_ptr<OOColor>, std::less<>> _fgColors,
+      _bgColors;
   std::map<std::string, std::vector<std::string>, std::less<>>
       _sourceFiles;  // lines of each source file shown so far
   // TCP options

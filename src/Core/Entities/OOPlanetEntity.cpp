@@ -275,8 +275,7 @@ void OOPlanetEntity::initFromDictionary(const oo::PList& dictionary,
   _airColorMixRatio = 0.5f;
   _airDensity = 0.75f;
 
-  _illuminationColor =
-      oo::Ref<OOColor>(ColorForKey(planetInfo, "illumination_color"));
+  _illuminationColor = oo::share(ColorForKey(planetInfo, "illumination_color"));
 
 #if NEW_ATMOSPHERE
   if (atmosphere) {
@@ -306,7 +305,7 @@ void OOPlanetEntity::initFromDictionary(const oo::PList& dictionary,
             oo::PList::singleReal(0.01 * percent_land));
     setUpAtmosphereParametersWithSourceInfo(dict, planetInfo);
     // planetInfo now contains a valid air_color
-    _airColor = oo::Ref<OOColor>(ColorForKey(planetInfo, "air_color"));
+    _airColor = oo::share(ColorForKey(planetInfo, "air_color"));
     _airColorMixRatio = planetInfo.get<float>("air_color_mix_ratio");
 
     _airDensity = OOClamp_0_1_f(planetInfo.get<float>("air_density"));
@@ -478,7 +477,7 @@ void OOPlanetEntity::setUpColorParametersWithSourceInfo(
 
   Vector landHSB, seaHSB, landPolarHSB, seaPolarHSB, illumHSB;
   Vector terminatorThreshold;
-  oo::Ref<OOColor> color;
+  std::shared_ptr<OOColor> color;
 
   landHSB = RandomHSBColor();
 
@@ -711,7 +710,7 @@ void OOPlanetEntity::update(OOTimeDelta delta_t) {
 
         // night sky, reddish flash on entering the atmosphere, low light
         // pollution otherwhise
-        oo::Ref<OOColor> mixColor = OOColor::colorWithRed(
+        std::shared_ptr<OOColor> mixColor = OOColor::colorWithRed(
             (EXPECT_NOT(alt > 0.98) ? 30.0f : 0.1f), 0.1f, 0.1f, aleph);
 
         // occlusion rate: .9 is 18 degrees after the terminus, where twilight
@@ -1024,7 +1023,7 @@ OOColor* OOPlanetEntity::airColor() { return _airColor.get(); }
 
 void OOPlanetEntity::setAirColor(OOColor* newColor) {
   if (newColor) {
-    _airColor = oo::Ref<OOColor>(newColor);
+    _airColor = oo::share(newColor);
   }
 }
 
@@ -1041,7 +1040,7 @@ OOColor* OOPlanetEntity::illuminationColor() {
 
 void OOPlanetEntity::setIlluminationColor(OOColor* newColor) {
   if (newColor) {
-    _illuminationColor = oo::Ref<OOColor>(newColor);
+    _illuminationColor = oo::share(newColor);
   }
 }
 

@@ -1414,7 +1414,8 @@ oo::PList OOShipRegistry::validateNewStyleFlasherDeclaration(
   // Validate colours. (Their components are single reals.)
   oo::PList::Array validColors;
   for (std::size_t i = 0; i != colors.count(); ++i) {
-    oo::Ref<OOColor> color = OOColor::colorWithDescription(*colors.at(i));
+    std::shared_ptr<OOColor> color =
+        OOColor::colorWithDescription(*colors.at(i));
     if (color != nullptr) {
       oo::PList::Array components;
       for (float component : color->normalizedArray())

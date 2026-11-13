@@ -777,8 +777,8 @@ OO_TEST(memoryStatistics)
 
 		gLiveEntityCount = 3;
 		gLog.clear();
-		static PlayerEntity* const sStandInPlayer = oo::makeRef<PlayerEntity>().leakRef();	// the debug build asserts that PLAYER is set (OOGetPlayer()): one with no wormholes, never released
-		gOOPlayer = sStandInPlayer;
+		static PlayerEntity sStandInPlayer;	// the debug build asserts that PLAYER is set (OOGetPlayer()): one with no wormholes
+		gOOPlayer = &sStandInPlayer;
 		monitor->dumpMemoryStatistics();
 		gOOPlayer = nullptr;
 		OO_CHECK(LogLinesContaining("Memory statistics:") == 1);

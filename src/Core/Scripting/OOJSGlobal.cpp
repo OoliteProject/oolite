@@ -772,7 +772,7 @@ static JSValue GlobalGetGuiColorSettingForKey(OOJS_NATIVE_ARGS) {
   }
 
   GuiDisplayGen* gui = (UNIVERSE != nullptr ? UNIVERSE->getGui() : nullptr);
-  oo::Ref<OOColor> col = gui->colorFromSetting(key, nullptr);
+  std::shared_ptr<OOColor> col = gui->colorFromSetting(key, nullptr);
 
   // The components as the colour's -normalizedArray gave them: floats, nil for
   // no colour.
@@ -790,7 +790,7 @@ static JSValue GlobalSetGuiColorSettingForKey(OOJS_NATIVE_ARGS) {
   OOJS_NATIVE_ENTER(context)
 
   bool result = false;
-  oo::Ref<OOColor> col;
+  std::shared_ptr<OOColor> col;
 
   if (EXPECT_NOT(argc != 2)) {
     cxx_OOJSReportBadArguments(context, std::nullopt, "setGuiColorForKey", 0,

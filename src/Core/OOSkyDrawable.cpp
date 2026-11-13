@@ -62,7 +62,7 @@ bool sInited = false;
 */
 struct OOSkyQuadDesc {
   Vector corners[4];
-  oo::Ref<OOColor> color;
+  std::shared_ptr<OOColor> color;
   OOTexture* texture;
 };
 
@@ -113,8 +113,8 @@ namespace {
 OOProbabilisticTextureManager* sStarTextures;
 OOProbabilisticTextureManager* sNebulaTextures;
 
-oo::Ref<OOColor> SaturatedColorInRange(OOColor* color1, OOColor* color2,
-                                       bool hueFix);
+std::shared_ptr<OOColor> SaturatedColorInRange(OOColor* color1, OOColor* color2,
+                                               bool hueFix);
 
 }  // namespace
 
@@ -233,7 +233,7 @@ size_t OOSkyDrawable::totalSize() {
 #if DEBUG_COLORS
 namespace {
 
-oo::Ref<OOColor> DebugColor(Vector orientation) {
+std::shared_ptr<OOColor> DebugColor(Vector orientation) {
   Vector color =
       vector_add(make_vector(0.55, 0.55, 0.55),
                  vector_multiply_scalar(vector_normal(orientation), 0.45));
@@ -311,7 +311,7 @@ void OOSkyDrawable::setUpNebulae(OOColor* color1, OOColor* color2,
   std::vector<OOSkyQuadDesc> quads;
   OOSkyQuadDesc* currQuad = nullptr;
   unsigned i, actualCount = 0;
-  oo::Ref<OOColor> color;
+  std::shared_ptr<OOColor> color;
   Quaternion q;
   Vector vi, vj, vk;
   double size, r2;
@@ -643,9 +643,9 @@ OOTexture* OOSkyQuadSet::texture() { return _texture.get(); }
 
 namespace {
 
-oo::Ref<OOColor> SaturatedColorInRange(OOColor* color1, OOColor* color2,
-                                       bool hueFix) {
-  oo::Ref<OOColor> color;
+std::shared_ptr<OOColor> SaturatedColorInRange(OOColor* color1, OOColor* color2,
+                                               bool hueFix) {
+  std::shared_ptr<OOColor> color;
   float hue = 0, saturation = 0, brightness = 0,
         alpha = 0;  // left 0 by a nil colour
 

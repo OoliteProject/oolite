@@ -40,7 +40,7 @@ OOINLINE void ApplyColor(OOColor* color) {
 
   OO_ENTER_OPENGL();
 
-  oo::Ref<OOColor> applied(color);
+  std::shared_ptr<OOColor> applied = oo::share(color);
   if (EXPECT_NOT(applied == nullptr)) applied = OOColor::lightGrayColor();
   applied->getRed(&r, &g, &b, &a);
   OOGL(glColor4f(r, g, b, a));

@@ -207,8 +207,8 @@ class OOVisualEffectEntity
 
   GLfloat _profileRadius = {};  // for frustum culling
 
-  oo::Ref<OOColor> scanner_display_color1;
-  oo::Ref<OOColor> scanner_display_color2;
+  std::shared_ptr<OOColor> scanner_display_color1;
+  std::shared_ptr<OOColor> scanner_display_color2;
 
   GLfloat _hullHeatLevel = {};
   GLfloat _shaderFloat1 = {};

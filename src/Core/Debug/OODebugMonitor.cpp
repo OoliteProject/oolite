@@ -769,7 +769,7 @@ oo::PList OODebugMonitor::normalizeConfigDictionary(
 
 oo::PList OODebugMonitor::normalizeConfigValue(const oo::PList& value,
                                                const std::string& key) {
-  oo::Ref<OOColor> color;
+  std::shared_ptr<OOColor> color;
   bool boolValue;
 
   if (value) {

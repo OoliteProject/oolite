@@ -620,7 +620,7 @@ class PlayerEntity : public ShipEntity {
   virtual bool switchHudTo(const std::string& hudFileName);
   float dialCustomFloat(const std::string& dialKey);
   std::string dialCustomString(const std::string& dialKey);
-  oo::Ref<OOColor> dialCustomColor(const std::string& dialKey);
+  std::shared_ptr<OOColor> dialCustomColor(const std::string& dialKey);
   virtual void setDialCustom(const oo::PList& value,
                              const std::string& dialKey);
   void setShowDemoShips(bool value);

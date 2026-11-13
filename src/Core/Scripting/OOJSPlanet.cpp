@@ -249,7 +249,7 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS) {
   Quaternion qValue;
   Vector vValue;
   double dValue;
-  oo::Ref<OOColor> colorForScript;
+  std::shared_ptr<OOColor> colorForScript;
 
   if (!JSPlanetGetPlanetEntity(context, thisObj, &planet))
     return OOJSNativeFailure(context);

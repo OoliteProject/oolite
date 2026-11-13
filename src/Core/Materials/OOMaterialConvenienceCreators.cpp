@@ -592,7 +592,7 @@ void SynthSpecular(OOMaterialSynthContext* context) {
       cxx_OOMaterialGammaCorrect(context->inConfig) ? true : false;
 
   oo::PList specularMapSpec;
-  oo::Ref<OOColor> specularColor;
+  std::shared_ptr<OOColor> specularColor;
 
   if (context->texturesUsed < context->maxTextures) {
     specularMapSpec =

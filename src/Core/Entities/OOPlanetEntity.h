@@ -161,8 +161,8 @@ class OOPlanetEntity : public Entity, public ::OOGraphicsResetClient {
   oo::Ref<OOPlanetDrawable> _atmosphereShaderDrawable;
 
   bool _miniature = false;
-  oo::Ref<OOColor> _airColor;
-  oo::Ref<OOColor> _illuminationColor;
+  std::shared_ptr<OOColor> _airColor;
+  std::shared_ptr<OOColor> _illuminationColor;
   float _airColorMixRatio = {};
   float _airDensity = {};
   double _mesopause2 = {};

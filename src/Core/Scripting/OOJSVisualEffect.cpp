@@ -394,7 +394,7 @@ static JSValue VisualEffectSetProperty(OOJS_SETTER_ARGS) {
 
   OOVisualEffectEntity* entity = nullptr;
   int bValue;
-  oo::Ref<OOColor> colorForScript;
+  std::shared_ptr<OOColor> colorForScript;
   int32_t iValue;
   double fValue;
   Vector vValue;

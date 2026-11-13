@@ -298,6 +298,24 @@ class Ref {
     requires std::is_convertible_v<U*, T*>
   Ref(Ref<U>&& other) noexcept : sp_(std::move(other).takeShared()) {}
 
+  // The standard type and the bridge's convert both ways, so that callers
+  // can move one at a time.
+  template <class U>
+    requires std::is_convertible_v<U*, T*>
+  Ref(std::shared_ptr<U> shared) noexcept : sp_(std::move(shared)) {}
+
+  template <class U>
+    requires std::is_convertible_v<T*, U*>
+  operator std::shared_ptr<U>() const& noexcept {
+    return sp_;
+  }
+
+  template <class U>
+    requires std::is_convertible_v<T*, U*>
+  operator std::shared_ptr<U>() && noexcept {
+    return std::move(sp_);
+  }
+
   ~Ref() = default;
 
   // Assignment installs the new object before releasing the old one, like a
@@ -379,6 +397,10 @@ bool operator==(const Ref<T>& a, const Ref<U>& b) noexcept {
 template <class T, class U>
 bool operator==(const Ref<T>& a, const U* b) noexcept {
   return a.get() == b;
+}
+template <class T, class U>
+bool operator==(const Ref<T>& a, const std::shared_ptr<U>& b) noexcept {
+  return a.get() == b.get();
 }
 template <class T>
 bool operator==(const Ref<T>& a, std::nullptr_t) noexcept {
