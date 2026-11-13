@@ -33,7 +33,6 @@ MA 02110-1301, USA.
 #include "Universe.h"
 #endif
 
-#include <cstring>
 #include <format>
 #include <memory>
 #include <new>

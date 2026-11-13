@@ -29,9 +29,7 @@ SOFTWARE.
   1  // a plain C++ unit: the shared headers' game-unit parts stay out of it
 #include "OOPixMapChannelOperations.h"
 
-#include <cstddef>
 #include <cstdint>
-#include <cstdlib>
 
 #include "OOCPUInfoEndian.h"
 #include "OOFunctionAttributes.h"

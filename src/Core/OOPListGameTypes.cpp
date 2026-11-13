@@ -26,7 +26,6 @@ MA 02110-1301, USA.
 
 #include "OOPListGameTypes.h"
 
-#include <cstddef>
 #include <optional>
 #include <string>
 #include <string_view>

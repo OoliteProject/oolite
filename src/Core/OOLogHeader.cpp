@@ -33,7 +33,7 @@ SOFTWARE.
 #include "OOVersion.h"
 #include "oofnd/Date.hpp"
 #include "oofnd/Log.hpp"
-#include "oofnd/Process.hpp"
+#include "oofnd/Process.hpp"  // IWYU pragma: keep (off Windows)
 #include "oofnd/String.hpp"
 
 namespace {

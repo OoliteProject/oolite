@@ -86,7 +86,7 @@ MA 02110-1301, USA.
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"
 #if OOLITE_WINDOWS
-#include <windows.h>
+#include <windows.h>  // IWYU pragma: keep (QueryPerformanceCounter)
 #endif
 
 #define OOJS_RUNTIME_SIZE_MiB 256
@@ -525,7 +525,7 @@ static void RemoveNonSpiderMonkeyGlobals(JSContext* context,
     for (size_t j = 0; !keep && j < sizeof kSpiderMonkeyGlobals /
                                         sizeof *kSpiderMonkeyGlobals;
          j++) {
-      keep = (strcmp(name, kSpiderMonkeyGlobals[j]) == 0);
+      keep = (std::string_view(name) == kSpiderMonkeyGlobals[j]);
     }
     JS_FreeCString(context, name);
     if (!keep) JS_DeleteProperty(context, global, properties[i].atom, 0);
@@ -639,7 +639,8 @@ static double MonotonicTime() {
   LARGE_INTEGER counter;
   if (frequency.QuadPart == 0) QueryPerformanceFrequency(&frequency);
   QueryPerformanceCounter(&counter);
-  return (double)counter.QuadPart / (double)frequency.QuadPart;
+  return static_cast<double>(counter.QuadPart) /
+         static_cast<double>(frequency.QuadPart);
 #else
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);

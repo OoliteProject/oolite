@@ -44,7 +44,9 @@ SOFTWARE.
 #undef interface
 #define interface struct
 
-#include <shlwapi.h>
+#include <windows.h>  // IWYU pragma: keep
+// shellapi.h (ShellExecute) needs windows.h before it.
+#include <shellapi.h>
 
 #pragma pop_macro("interface")
 

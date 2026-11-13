@@ -273,8 +273,8 @@ void MyOpenGLView::createWindowWithSize(NSSize size) {
   // capture the window handle for later (only needed for ugly hack later when
   // transitioning between full screen and window). Don't use anywhere else.
   SDL_PropertiesID windowPropertiesId = SDL_GetWindowProperties(window);
-  windowHandle = (HWND)SDL_GetPointerProperty(
-      windowPropertiesId, SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
+  windowHandle = static_cast<HWND>(SDL_GetPointerProperty(
+      windowPropertiesId, SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL));
   if (!windowHandle) {
     OO_LOG("sdl.window_handle", "{}", "Failed to retrieve window handle");
     exit(1);
@@ -991,7 +991,7 @@ void MyOpenGLView::setHDRPaperWhiteBrightness(float newPaperWhiteBrightness) {
 }
 
 OOHDRToneMapper MyOpenGLView::hdrToneMapper() {
-  return (OOHDRToneMapper)_hdrToneMapper;
+  return _hdrToneMapper;
 }
 
 void MyOpenGLView::setHDRToneMapper(OOHDRToneMapper newToneMapper) {

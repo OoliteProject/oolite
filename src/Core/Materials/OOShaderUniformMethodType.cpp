@@ -42,7 +42,6 @@ SOFTWARE.
 
 #if OO_SHADERS || defined(OO_DEBUG_MONITOR_ENABLED)
 
-#include <cstring>
 #include <string_view>
 
 #include "OOColor.h"

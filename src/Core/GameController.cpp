@@ -51,7 +51,7 @@ MA 02110-1301, USA.
 #include <optional>
 #include <string>
 #include <string_view>
-#include <thread>
+#include <thread>  // IWYU pragma: keep (std::this_thread, off Windows)
 #include <utility>
 #include <vector>
 
@@ -509,7 +509,7 @@ void GameController::runFrameLoop() {
                                        .count();
           if (remaining > 0.0) {
 #if OOLITE_WINDOWS
-            Sleep((DWORD)ceil(remaining * 1000.0));
+            Sleep(static_cast<DWORD>(ceil(remaining * 1000.0)));
 #else
             std::this_thread::sleep_for(std::chrono::milliseconds(
                 static_cast<long long>(ceil(remaining * 1000.0))));

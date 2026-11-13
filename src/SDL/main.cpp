@@ -41,7 +41,6 @@ MA 02110-1301, USA.
 #include <SDL3/SDL_stdinc.h>
 #include <locale.h>
 
-#include <array>
 #include <cstring>
 #include <format>
 #include <optional>
@@ -53,9 +52,13 @@ __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 #elif OOLITE_LINUX
 #include <unistd.h>
+
+#include <array>
 #elif OOLITE_MACOS
 #include <mach-o/dyld.h>
 #include <unistd.h>
+
+#include <array>
 #endif
 
 namespace {
