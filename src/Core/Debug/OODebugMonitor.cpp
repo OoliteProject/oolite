@@ -380,7 +380,7 @@ struct OODebugMonitor::EntityDumpState {
 void OODebugMonitor::dumpEntity(Entity* entity, EntityDumpState* state,
                                 bool parentVisible) {
   if (entity == nullptr || state->seenEntities.count(entity) != 0) return;
-  state->seenEntities.emplace(entity, oo::EntityHold(entity));
+  state->seenEntities.emplace(entity, oo::Hold(entity));
 
   state->seenCount++;
 

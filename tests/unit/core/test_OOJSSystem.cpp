@@ -77,7 +77,7 @@ public:
 std::vector<oo::EntityHold> Held(const std::vector<oo::EntityHold> &objects)
 {
 	std::vector<oo::EntityHold> result;
-	for (const auto &object : objects)  result.emplace_back(object.get());
+	for (const auto &object : objects)  result.emplace_back(oo::Hold(object.get()));
 	return result;
 }
 
@@ -85,7 +85,7 @@ std::vector<oo::EntityHold> Held(const std::vector<oo::EntityHold> &objects)
 std::map<std::string, oo::EntityHold, std::less<>> Held(const std::map<std::string, oo::EntityHold, std::less<>> &objects)
 {
 	std::map<std::string, oo::EntityHold, std::less<>> result;
-	for (const auto &[key, object] : objects)  result[key] = oo::EntityHold(object.get());
+	for (const auto &[key, object] : objects)  result[key] = oo::Hold(object.get());
 	return result;
 }
 
@@ -201,7 +201,7 @@ public:
 	std::vector<oo::EntityHold> stations() override
 	{
 		std::vector<oo::EntityHold> result;
-		for (const auto &e : _stations)  result.push_back(oo::EntityHold(e.get()));
+		for (const auto &e : _stations)  result.push_back(oo::Hold(e.get()));
 		return Held(result);
 	}
 	std::vector<oo::EntityHold> wormholes() override	{ return Held(_wormholes); }
@@ -373,11 +373,11 @@ void SetUp()
 	sUniverse->_station = MakeEntity(10, true);
 	sUniverse->_planet = MakeEntity(20, true);
 	sUniverse->_sun = MakeEntity(30, true);
-	sUniverse->_planets = { oo::EntityHold(sUniverse->_planet), oo::EntityHold(MakeEntity(21, false)), oo::EntityHold(MakeEntity(22, true)) };
-	sUniverse->_stations = { oo::EntityHold(sUniverse->_station), oo::EntityHold(MakeEntity(1000, true)) };
-	sUniverse->_wormholes = { oo::EntityHold(MakeEntity(40, true)) };
-	sUniverse->_waypoints["nav-a"] = oo::EntityHold(MakeEntity(50, true));
-	sUniverse->_waypoints["nav-b"] = oo::EntityHold(MakeEntity(51, true));
+	sUniverse->_planets = { oo::Hold(sUniverse->_planet), oo::Hold(MakeEntity(21, false)), oo::Hold(MakeEntity(22, true)) };
+	sUniverse->_stations = { oo::Hold(sUniverse->_station), oo::Hold(MakeEntity(1000, true)) };
+	sUniverse->_wormholes = { oo::Hold(MakeEntity(40, true)) };
+	sUniverse->_waypoints["nav-a"] = oo::Hold(MakeEntity(50, true));
+	sUniverse->_waypoints["nav-b"] = oo::Hold(MakeEntity(51, true));
 
 	// The searchable entities, out of distance order; one is invisible.
 	Entity *farthest = MakeEntity(300, true);
@@ -388,7 +388,7 @@ void SetUp()
 	hidden->setScanClass(OOScanClass::kNeutral);
 	Entity *middle = MakeEntity(200, true);
 	middle->setScanClass(OOScanClass::kNeutral);
-	sUniverse->_entities = { oo::EntityHold(farthest), oo::EntityHold(nearest), oo::EntityHold(hidden), oo::EntityHold(middle) };
+	sUniverse->_entities = { oo::Hold(farthest), oo::Hold(nearest), oo::Hold(hidden), oo::Hold(middle) };
 
 	sUniverse->_ambient = 0.5f;
 	sUniverse->_populatorSettings = Dict({ { "pirates", Dict({ { "priority", oo::PList(10) } }) } });
@@ -798,7 +798,7 @@ OO_TEST(shipCreators)
 	::ShipEntity *first = MakeShip(60);
 	::ShipEntity *second = MakeShip(61);
 	ShipEntityTestAccess::Group(first) = OOShipGroup::groupWithName(std::string("convoy"));
-	sUniverse->_shipsToAdd = { oo::EntityHold(first), oo::EntityHold(second) };
+	sUniverse->_shipsToAdd = { oo::Hold(first), oo::Hold(second) };
 
 	OO_CHECK_EVAL("system.addShips('trader', 2).map(function (s) { return s.position.x; }).join()", "60,61");
 	OO_CHECK_EVAL("system.addShips('trader', 1, [1, 2, 3], 500).length", "2");
@@ -818,7 +818,7 @@ OO_TEST(shipCreators)
 	OO_CHECK(Eval("system.addShips()").rfind("threw: ", 0) == 0);
 	OO_CHECK(Eval("system.addShips('trader', 0)").rfind("threw: ", 0) == 0);
 	OO_CHECK(Eval("system.addShips('trader', 2, 'here')").rfind("threw: ", 0) == 0);
-	sUniverse->_shipsToAdd = { oo::EntityHold(first) };
+	sUniverse->_shipsToAdd = { oo::Hold(first) };
 	OO_CHECK_EVAL("system.addShips('trader', 2, [1, 2, 3], 'far').length", "1");	// a radius that is not a number is NaN
 	OO_CHECK_LOG(sUniverse->_log, "addShipsAt 1 2 3 trader 2 nan 0");
 	sUniverse->_shipsToAdd.clear();

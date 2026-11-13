@@ -376,22 +376,22 @@ void CollisionRegion::findCollisions() {
               if (e1->collider) {
                 if (std::vector<oo::EntityHold>* colliding =
                         e1->getCollidingEntities())
-                  colliding->emplace_back(e1->collider);
+                  colliding->emplace_back(oo::Hold(e1->collider));
               } else {
                 if (std::vector<oo::EntityHold>* colliding =
                         e1->getCollidingEntities())
-                  colliding->emplace_back(e2);
+                  colliding->emplace_back(oo::Hold(e2));
               }
               e1->hasCollided = true;
 
               if (e2->collider) {
                 if (std::vector<oo::EntityHold>* colliding =
                         e2->getCollidingEntities())
-                  colliding->emplace_back(e2->collider);
+                  colliding->emplace_back(oo::Hold(e2->collider));
               } else {
                 if (std::vector<oo::EntityHold>* colliding =
                         e2->getCollidingEntities())
-                  colliding->emplace_back(e1);
+                  colliding->emplace_back(oo::Hold(e1));
               }
               e2->hasCollided = true;
             }

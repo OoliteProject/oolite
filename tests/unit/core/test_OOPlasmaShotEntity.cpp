@@ -146,7 +146,7 @@ const GLfloat* ColorComponents(Entity* shot) {
   return Particle(shot)->_colorComponents;
 }
 void SetColliding(Entity* shot, Entity* other) {
-  shot->collidingEntities.emplace_back(other);
+  shot->collidingEntities.emplace_back(oo::Hold(other));
 }
 void SetIsShip(Entity* e) { e->isShip = true; }
 

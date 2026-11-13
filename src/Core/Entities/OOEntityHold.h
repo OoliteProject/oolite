@@ -33,8 +33,11 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#include <algorithm>
 #include <cstddef>
+#include <memory>
 #include <utility>
+#include <vector>
 
 #include "oofnd/Ref.hpp"
 
@@ -53,62 +56,6 @@ void EntityRelease(Entity* entity) noexcept;
 
 }  // namespace detail
 
-/*	An owning reference to an entity (std::shared_ptr<Entity>, with a rule
-   for an entity without its object: held as null). Copying retains, destroying
-   releases, moving steals.
-*/
-class EntityHold {
- public:
-  EntityHold() noexcept = default;
-  EntityHold(std::nullptr_t) noexcept {}
-  explicit EntityHold(Entity* entity) noexcept
-      : _entity(detail::EntityHasObject(entity) ? entity : nullptr) {
-    detail::EntityRetain(_entity);
-  }
-  EntityHold(const EntityHold& other) noexcept : _entity(other._entity) {
-    detail::EntityRetain(_entity);
-  }
-  EntityHold(EntityHold&& other) noexcept
-      : _entity(std::exchange(other._entity, nullptr)) {}
-  ~EntityHold() { detail::EntityRelease(_entity); }
-
-  EntityHold& operator=(const EntityHold& other) noexcept {
-    EntityHold(other).swap(*this);
-    return *this;
-  }
-  EntityHold& operator=(EntityHold&& other) noexcept {
-    EntityHold(std::move(other)).swap(*this);
-    return *this;
-  }
-  void swap(EntityHold& other) noexcept { std::swap(_entity, other._entity); }
-
-  // Takes over a +1 reference to the entity (oo::RetainEntity()'s). Null, and
-  // nothing taken, for an entity without its object.
-  static EntityHold adopt(Entity* entity) noexcept {
-    EntityHold result;
-    if (detail::EntityHasObject(entity)) result._entity = entity;
-    return result;
-  }
-
-  // Drops the reference without a release (the deliberate leaks). Null
-  // afterwards.
-  void leak() noexcept { _entity = nullptr; }
-
-  Entity* get() const noexcept { return _entity; }
-  Entity* operator->() const noexcept { return _entity; }
-  explicit operator bool() const noexcept { return _entity != nullptr; }
-
-  friend bool operator==(const EntityHold& a, const EntityHold& b) noexcept {
-    return a._entity == b._entity;
-  }
-  friend bool operator==(const EntityHold& a, const Entity* b) noexcept {
-    return a._entity == b;
-  }
-
- private:
-  Entity* _entity = nullptr;
-};
-
 /*	The universe's +1 creators and the references the universe and the
    entities keep by hand (EntityHelpers.cpp): what -retain, -release and
    -autorelease of the entity's object did, on the entity's own count
@@ -120,6 +67,50 @@ class EntityHold {
 Entity* RetainEntity(Entity* entity);
 void ReleaseEntity(Entity* entity);
 Entity* AutoreleaseEntity(Entity* entity);
+
+// An owning reference to an entity; an entity without its object is held as
+// null.
+using EntityHold = std::shared_ptr<Entity>;
+
+// An owning reference to e if it has its object (Entity::hasObject()), else
+// null: what EntityHold(raw) did. (A template so that it is instantiated where
+// the entity's class is complete.)
+template <class E>
+std::shared_ptr<E> Hold(E* e) {
+  return (e != nullptr && detail::EntityHasObject(e)) ? oo::share(e) : nullptr;
+}
+
+// Takes over a +1 reference to the entity (oo::RetainEntity()'s): its owning
+// reference, the +1 given back. Null, and nothing taken, for an entity without
+// its object. (The manual references leave with the bridge, T095.)
+template <class E>
+EntityHold AdoptHold(E* e) {
+  EntityHold hold = Hold(e);
+  if (hold != nullptr) ReleaseEntity(e);
+  return hold;
+}
+
+// The first hold of entity in holds (by the entity; holds.end() for none), and
+// every hold of it removed (the count): what finding and removing the object
+// in the array did.
+inline std::vector<EntityHold>::iterator FindHold(
+    std::vector<EntityHold>& holds, const Entity* entity) noexcept {
+  return std::ranges::find(holds, entity,
+                           [](const EntityHold& hold) { return hold.get(); });
+}
+
+inline std::size_t EraseHold(std::vector<EntityHold>& holds,
+                             const Entity* entity) {
+  return std::erase_if(
+      holds, [entity](const EntityHold& hold) { return hold.get() == entity; });
+}
+
+// Drops the reference without a release (the deliberate leaks): the entity
+// keeps a +1 that is never given back. Null afterwards.
+inline void LeakHold(EntityHold& hold) {
+  (void)RetainEntity(hold.get());
+  hold.reset();
+}
 
 /*	A C++ entity just made, given its object, as the creators make it (+1
    and autoreleased): from here it has its object, it is counted as a live

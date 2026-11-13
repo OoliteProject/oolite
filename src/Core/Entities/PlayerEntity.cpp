@@ -683,7 +683,7 @@ void PlayerEntity::createCargoPodWithType(const std::string& type,
     if (container != nullptr) container->setScanClass(OOScanClass::kCargo);
     if (container != nullptr) container->setStatus(OOEntityStatus::kInHold);
     if (container != nullptr) container->setCommodity(type, amount);
-    cargo.emplace_back(container);
+    cargo.emplace_back(oo::Hold(container));
     if (container != nullptr) oo::ReleaseEntity(container);
   } else {
     OO_LOG_ERR("player.loadCargoPods.noContainer", "{}",
@@ -781,7 +781,7 @@ void PlayerEntity::loadCargoPodsForType(const std::string& type,
               container->setScanClass(OOScanClass::kCargo);
             if (container != nullptr)
               container->setCommodity(type, smaller_quantity);
-            cargo.emplace_back(container);
+            cargo.emplace_back(oo::Hold(container));
             if (container != nullptr) oo::ReleaseEntity(container);
           }
         } else {
@@ -816,7 +816,7 @@ void PlayerEntity::loadCargoPodsForType(const std::string& type,
             if (container != nullptr)
               container->setStatus(OOEntityStatus::kInHold);
             if (container != nullptr) container->setCommodity(type, 1);
-            cargo.emplace_back(container);
+            cargo.emplace_back(oo::Hold(container));
             if (container != nullptr) oo::ReleaseEntity(container);
           }
         }
@@ -1181,8 +1181,8 @@ void PlayerEntity::setWormhole(::WormholeEntity* newWormhole) {
   // The wormhole is held through wormholeObject; the pool drains here so that
   // its retain count is its holders' alone afterwards.
   {
-    oo::AutoreleaseScope pool;                     // was @autoreleasepool
-    wormholeObject = oo::EntityHold(newWormhole);  // null for null
+    oo::AutoreleaseScope pool;               // was @autoreleasepool
+    wormholeObject = oo::Hold(newWormhole);  // null for null
     wormhole = newWormhole;
   }
 }
@@ -2232,7 +2232,7 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
           missile_list[missileCount] =
               OOEquipmentType::equipmentTypeWithIdentifier(*missile_desc).get();
           missile_entity[missileCount] =
-              oo::EntityHold::adopt(amiss);  // retain count = 1
+              oo::AdoptHold(amiss);  // retain count = 1
           missileCount++;
         } else {
           OO_LOG_WARN(
@@ -2249,7 +2249,7 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
     for (std::size_t i = 0; i < missiles; i++) {
       missile_list[i] =
           OOEquipmentType::equipmentTypeWithIdentifier("EQ_MISSILE").get();
-      missile_entity[i] = oo::EntityHold::adopt(
+      missile_entity[i] = oo::AdoptHold(
           (UNIVERSE != nullptr
                ? UNIVERSE->newShipWithRole("EQ_MISSILE")
                : static_cast<::ShipEntity*>(
@@ -2307,7 +2307,7 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
         oo::MadeEntity(whRef));  // its object (the +1 of the old +alloc is
                                  // still never released, as before)
     whRef->initWithDict(whCurrDict);
-    scannedWormholes.push_back(oo::EntityHold(wh));
+    scannedWormholes.push_back(oo::Hold(wh));
     /* TODO - add to Universe if the wormhole hasn't expired yet; but in this
     case
      * we need to save/load position and mass as well, which we currently
@@ -2731,8 +2731,8 @@ bool PlayerEntity::setUpAndConfirmOK(bool stopOnError, bool saveGame) {
 
   cloaking_device_active = false;
 
-  demoShip.leak();  // dropped without a release, as assigning nil to the raw
-                    // pointer did
+  oo::LeakHold(demoShip);  // dropped without a release, as assigning nil to the
+                           // raw pointer did
 
   OOMusicController::sharedController()->justStop();
   stickProfileScreen = oo::makeShared<StickProfileScreen>();
@@ -2820,7 +2820,7 @@ bool PlayerEntity::setUpShipFromDictionary(const oo::PList& shipDict) {
   for (i = 0; i < missiles; i++) {
     missile_list[i] =
         OOEquipmentType::equipmentTypeWithIdentifier("EQ_MISSILE").get();
-    missile_entity[i] = oo::EntityHold::adopt(
+    missile_entity[i] = oo::AdoptHold(
         (UNIVERSE != nullptr
              ? UNIVERSE->newShipWithRole("EQ_MISSILE")
              : static_cast<::ShipEntity*>(nullptr)));  // retain count = 1
@@ -4487,7 +4487,7 @@ void PlayerEntity::showShipModelWithKey(
   }
   if (UNIVERSE != nullptr) UNIVERSE->addEntity(ship);
   // MKW - save demo ship for its rotation
-  demoShip = oo::EntityHold(ship);
+  demoShip = oo::Hold(ship);
 
   if (ship != nullptr) ship->setStatus(OOEntityStatus::kCockpitDisplay);
 
@@ -5993,7 +5993,7 @@ bool PlayerEntity::mountMissile(::ShipEntity* missile) {
   unsigned i;
   for (i = 0; i < max_missiles; i++) {
     if (!missile_entity[i]) {
-      missile_entity[i] = oo::EntityHold(missile);
+      missile_entity[i] = oo::Hold(missile);
       const std::optional<std::string> missileRole =
           (missile != nullptr ? missile->getPrimaryRole()
                               : std::optional<std::string>());
@@ -6121,7 +6121,7 @@ bool PlayerEntity::assignToActivePylon(const std::string& equipmentKey) {
   if (!amiss) return false;
 
   // replace the missile now.
-  missile_entity[activeMissile] = oo::EntityHold::adopt(amiss);
+  missile_entity[activeMissile] = oo::AdoptHold(amiss);
   missile_list[activeMissile] = eqType;
 
   // make sure the new missile is properly activated.
@@ -6804,8 +6804,8 @@ void PlayerEntity::rotateCargo() {
   std::ptrdiff_t rotates = 0;
 
   do {
-    cargo.erase(cargo.begin());  // take it from the eject position
-    cargo.emplace_back(pod);     // move it to the last position
+    cargo.erase(cargo.begin());         // take it from the eject position
+    cargo.emplace_back(oo::Hold(pod));  // move it to the last position
     if (pod != nullptr) oo::ReleaseEntity(pod);
     pod = oo::ToShip(oo::RetainEntity(cargo[0].get()));
     contents =
@@ -6835,7 +6835,7 @@ void PlayerEntity::rotateCargo() {
                                      : std::optional<std::string>()))) {
       if (pod != nullptr) oo::ToShip(oo::RetainEntity(pod));
       cargo.erase(cargo.begin() + i--);
-      cargo.emplace_back(pod);
+      cargo.emplace_back(oo::Hold(pod));
       if (pod != nullptr) oo::ReleaseEntity(pod);
       rotates++;
     }
@@ -6989,7 +6989,7 @@ bool PlayerEntity::takeInternalDamage() {
     if (UNIVERSE != nullptr)
       UNIVERSE->addMessage(
           oo::str::formatRuntime(OO_DESC("@-destroyed"), {*cargo_desc}), 4.5);
-    std::erase(cargo, static_cast<Entity*>(pod));
+    oo::EraseHold(cargo, pod);
     return true;
   } else {
     damage_to = n_considered - (damage_to + 1);  // reverse the die-roll
@@ -7734,9 +7734,9 @@ void PlayerEntity::enterWormhole(::WormholeEntity* w_hole) {
   bool misjump = scriptedMisjump() ||
                  (w_hole != nullptr ? w_hole->withMisjump() : false) ||
                  flightPitch == max_flight_pitch || randf() > 0.995;
-  wormholeObject
-      .leak();  // a wormhole held here was dropped without a release, as before
-  wormholeObject = oo::EntityHold(w_hole);  // held
+  oo::LeakHold(wormholeObject);  // a wormhole held here was dropped without a
+                                 // release, as before
+  wormholeObject = oo::Hold(w_hole);  // held
   wormhole = w_hole;
   addScannedWormhole(wormhole);
   setStatus(OOEntityStatus::kEnteringWitchspace);
@@ -7813,9 +7813,9 @@ void PlayerEntity::enterWitchspace() {
   {
     // A new C++ wormhole, +1.
     std::shared_ptr<WormholeEntity> whRef = oo::makeShared<WormholeEntity>();
-    wormholeObject.leak();  // a wormhole held here was dropped without a
-                            // release, as before
-    wormholeObject = oo::EntityHold(oo::MadeEntity(whRef));
+    oo::LeakHold(wormholeObject);  // a wormhole held here was dropped without a
+                                   // release, as before
+    wormholeObject = oo::Hold(oo::MadeEntity(whRef));
     whRef->initWormholeTo(jumpTarget, this);
     wormhole = whRef.get();
   }
@@ -13780,7 +13780,7 @@ void PlayerEntity::addScannedWormhole(::WormholeEntity* whole) {
     if (wh.get() == whole) return;
   }
   if (whole != nullptr) whole->setScannedAt(clockTimeAdjusted());
-  scannedWormholes.push_back(oo::EntityHold(whole));
+  scannedWormholes.push_back(oo::Hold(whole));
 }
 
 // Checks through our array of wormholes for any which have expired

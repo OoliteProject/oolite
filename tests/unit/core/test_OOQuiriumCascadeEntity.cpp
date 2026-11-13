@@ -154,7 +154,7 @@ OO_TEST(update)
 		ship->setOwner(shipOwner);
 		Entity *cascade = MakeCascade(oo::ToShip(ship));
 		TestVictim *victim = static_cast<TestVictim *>(oo::MadeEntity(oo::makeRef<TestVictim>()));
-		cascade->getCollidingEntities()->emplace_back(victim);
+		cascade->getCollidingEntities()->emplace_back(oo::Hold(victim));
 
 		// A tenth of a second: past the collision delay, expanding, and dealing energy.
 		cascade->update(0.1);

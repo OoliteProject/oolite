@@ -92,7 +92,7 @@ std::vector<oo::EntityHold> ShipEntity::spawnShipsWithRole(
       if ((spawned != nullptr ? spawned->isMine() : false)) {
         if (spawned != nullptr) spawned->setOwner(this);
       }
-      result.emplace_back(spawned);
+      result.emplace_back(oo::Hold(spawned));
     }
   } while (--count);
 

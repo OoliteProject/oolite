@@ -149,7 +149,7 @@ void PlayerEntity::awardCommodityType(const std::string& type,
                   container->setStatus(OOEntityStatus::kInHold);
                 if (container != nullptr)
                   container->setCommodity(type, smaller_quantity);
-                cargo.emplace_back(container);
+                cargo.emplace_back(oo::Hold(container));
                 if (container != nullptr) oo::ReleaseEntity(container);
               }
             }
@@ -174,7 +174,7 @@ void PlayerEntity::awardCommodityType(const std::string& type,
               if (container != nullptr)
                 container->setStatus(OOEntityStatus::kInHold);
               if (container != nullptr) container->setCommodity(type, 1);
-              cargo.emplace_back(container);
+              cargo.emplace_back(oo::Hold(container));
               if (container != nullptr) oo::ReleaseEntity(container);
             }
           }

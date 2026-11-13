@@ -157,7 +157,7 @@ std::vector<oo::EntityHold> ShipEntityJSSubEntitiesForScript(ShipEntity* ship) {
   std::vector<oo::EntityHold> result;
   for (const auto& sub : (ship != nullptr ? ship->shipSubEntities()
                                           : std::vector<oo::EntityHold>())) {
-    result.emplace_back(sub.get());
+    result.emplace_back(oo::Hold(sub.get()));
   }
   return result;
 }

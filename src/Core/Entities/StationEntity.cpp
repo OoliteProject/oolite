@@ -273,7 +273,7 @@ oo::PList StationEntity::launchPolice()  // called by name
         police_ship->switchAITo("oolite-defenseShipAI.js");
       addShipToLaunchQueue(police_ship, true);
       defenders_launched++;
-      result.push_back(oo::EntityHold(police_ship));
+      result.push_back(oo::Hold(police_ship));
     }
     if (police_ship != nullptr) oo::ToShip(oo::AutoreleaseEntity(police_ship));
   }
