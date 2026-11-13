@@ -151,7 +151,7 @@ void OOScriptAutorelease(std::shared_ptr<OOScript>)					{}
 std::shared_ptr<OOScript> OOScript::jsScriptFromFileNamed(const std::string &fileName, const oo::PList &properties)
 {
 	(void)properties;
-	return (fileName == "good.js") ? oo::makeRef<OOScript>() : nullptr;
+	return (fileName == "good.js") ? oo::makeShared<OOScript>() : nullptr;
 }
 
 

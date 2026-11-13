@@ -60,7 +60,7 @@ class TestDecoder final : public OOALSoundDecoder {
 std::shared_ptr<OOALSoundDecoder> OOALSoundDecoder::initWithPath(
     const std::optional<std::string>& inPath) {
   if (!inPath.has_value() || *inPath == "missing.ogg") return nullptr;
-  return oo::makeRef<TestDecoder>(*inPath);
+  return oo::makeShared<TestDecoder>(*inPath);
 }
 
 bool OOALSoundDecoder::readCreatingBuffer(char**, size_t*) { return false; }
@@ -80,7 +80,7 @@ static int gLiveSounds = 0;
 // call). Counts the live ones.
 std::shared_ptr<OOALBufferedSound> OOALBufferedSound::initWithDecoder(
     OOALSoundDecoder* inDecoder) {
-  std::shared_ptr<OOALBufferedSound> sound = oo::adopt(new OOALBufferedSound);
+  std::shared_ptr<OOALBufferedSound> sound = std::shared_ptr<OOALBufferedSound>(new OOALBufferedSound(), oo::Dispose{});
   sound->_name = inDecoder->name();
   gLiveSounds++;
   return sound;

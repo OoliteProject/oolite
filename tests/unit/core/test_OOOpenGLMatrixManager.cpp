@@ -43,7 +43,7 @@ oo::PList ResourceManager::dictionaryFromFilesNamed(
 
 // OORegExpMatcher: the stub answers no match.
 std::shared_ptr<OORegExpMatcher> OORegExpMatcher::regExpMatcher() {
-  return oo::makeRef<OORegExpMatcher>();
+  return oo::makeShared<OORegExpMatcher>();
 }
 bool OORegExpMatcher::string(const std::string&, const std::string&) {
   return false;
@@ -95,7 +95,7 @@ NSSize MyOpenGLView::getViewSize() { std::abort(); }
 // The universe as the code under test sees it: a stand-in for the C++ class,
 // with the header's names and signatures. It answers virtual members, so it has
 // the game's vtable (UniverseStandIn.h) and OOTestUniverse overrides them.
-class Universe : public oo::RefCounted {
+class Universe : public oo::Object {
  public:
   OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
 
@@ -141,7 +141,7 @@ GLuint Shader(GLenum type, const char* source) {
 
 OO_TEST(stack) {
   {
-    std::shared_ptr<OOOpenGLMatrixStack> stack = oo::makeRef<OOOpenGLMatrixStack>();
+    std::shared_ptr<OOOpenGLMatrixStack> stack = oo::makeShared<OOOpenGLMatrixStack>();
     OO_CHECK(stack->stackCount() == 0);
     OO_CHECK(Same(stack->pop(),
                   kIdentityMatrix));  // empty: identity, and still empty
@@ -157,7 +157,7 @@ OO_TEST(stack) {
 
 OO_TEST(modelView) {
   {
-    std::shared_ptr<OOOpenGLMatrixManager> m = oo::makeRef<OOOpenGLMatrixManager>();
+    std::shared_ptr<OOOpenGLMatrixManager> m = oo::makeShared<OOOpenGLMatrixManager>();
     OO_CHECK(Same(m->getModelView(), kIdentityMatrix));
     OO_CHECK(Same(m->getProjection(), kIdentityMatrix));
     OO_CHECK(m->countModelView() == 0);
@@ -205,7 +205,7 @@ OO_TEST(modelView) {
 
 OO_TEST(projection) {
   {
-    std::shared_ptr<OOOpenGLMatrixManager> m = oo::makeRef<OOOpenGLMatrixManager>();
+    std::shared_ptr<OOOpenGLMatrixManager> m = oo::makeShared<OOOpenGLMatrixManager>();
 
     m->loadProjection(kSample);
     OO_CHECK(Same(m->getProjection(), kSample));
@@ -268,7 +268,7 @@ OO_TEST(projection) {
 
 OO_TEST(derivedMatrices) {
   {
-    std::shared_ptr<OOOpenGLMatrixManager> m = oo::makeRef<OOOpenGLMatrixManager>();
+    std::shared_ptr<OOOpenGLMatrixManager> m = oo::makeShared<OOOpenGLMatrixManager>();
     for (int i = 0; i < OOLITE_GL_MATRIX_END; i++)
       OO_CHECK(Same(m->getMatrix(i), kIdentityMatrix));
     OO_CHECK(Same(m->getMatrix(-1), kIdentityMatrix));
@@ -343,7 +343,7 @@ OO_TEST(derivedMatrices) {
 OO_TEST(syncLoadsOpenGL) {
   OO_CHECK(OOTestGLContext());
   {
-    std::shared_ptr<OOOpenGLMatrixManager> m = oo::makeRef<OOOpenGLMatrixManager>();
+    std::shared_ptr<OOOpenGLMatrixManager> m = oo::makeShared<OOOpenGLMatrixManager>();
     m->loadModelView(kSample);
     m->loadProjection(OOMatrixForScale(2, 3, 4));
 
@@ -369,7 +369,7 @@ OO_TEST(standardUniformLocations) {
   OO_CHECK(OOOpenGLExtensionManager::sharedManager()
                ->shadersSupported());  // loads the ARB entry points
   {
-    std::shared_ptr<OOOpenGLMatrixManager> m = oo::makeRef<OOOpenGLMatrixManager>();
+    std::shared_ptr<OOOpenGLMatrixManager> m = oo::makeShared<OOOpenGLMatrixManager>();
 
     const char* vertex =
         "uniform mat4 ooliteModelViewProjection;\n"
@@ -435,9 +435,9 @@ OO_TEST(openGLFunctionsUseTheGameViewsManager) {
   OO_CHECK(OOTestGLContext());
   {
     std::shared_ptr<OOOpenGLMatrixManager> manager =
-        oo::makeRef<OOOpenGLMatrixManager>();
+        oo::makeShared<OOOpenGLMatrixManager>();
     OOOpenGLMatrixManager* m = manager.get();
-    sView = oo::makeRef<MyOpenGLView>();
+    sView = oo::makeShared<MyOpenGLView>();
     MyOpenGLViewTestAccess::matrixManager(sView.get()) = manager;
     OOTestUniverse* universe = new OOTestUniverse();
     universe->view = sView.get();

@@ -60,7 +60,7 @@ oo::PList ResourceManager::dictionaryFromFilesNamed(
 
 // OORegExpMatcher: the stub answers no match.
 std::shared_ptr<OORegExpMatcher> OORegExpMatcher::regExpMatcher() {
-  return oo::makeRef<OORegExpMatcher>();
+  return oo::makeShared<OORegExpMatcher>();
 }
 bool OORegExpMatcher::string(const std::string&, const std::string&) {
   return false;
@@ -118,7 +118,7 @@ std::shared_ptr<OOTexture> OOTexture::textureWithConfiguration(
     const oo::PList& configuration, OOTextureFlags extraOptions) {
   gTextureConfigurations.emplace_back(configuration, oo::ToUnderlying(extraOptions));
   if (configuration.isNull()) return nullptr;
-  std::shared_ptr<TestTexture> texture = oo::makeRef<TestTexture>();
+  std::shared_ptr<TestTexture> texture = oo::makeShared<TestTexture>();
   texture->_configuration = configuration;
   return texture;
 }
@@ -126,7 +126,7 @@ std::shared_ptr<OOTexture> OOTexture::textureWithConfiguration(
 std::shared_ptr<OOTexture> OOTexture::textureWithGenerator(
     ::OOTextureGenerator* generator) {
   if (generator == nullptr) return nullptr;
-  std::shared_ptr<TestTexture> texture = oo::makeRef<TestTexture>();
+  std::shared_ptr<TestTexture> texture = oo::makeShared<TestTexture>();
   texture->_configuration = oo::PList("generated");
   return texture;
 }
@@ -213,7 +213,7 @@ OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(
       " illumination:" + Str(illuminationMapSpec) + " illuminationColor:" +
       (illuminationColor != nullptr ? "yes" : "no") + " options:" + Str(spec));
   if (emissionMapSpec.isNull() && illuminationMapSpec.isNull()) return {};
-  return oo::makeRef<OOCombinedEmissionMapGenerator>();
+  return oo::makeShared<OOCombinedEmissionMapGenerator>();
 }
 
 std::shared_ptr<OOCombinedEmissionMapGenerator>
@@ -224,7 +224,7 @@ OOCombinedEmissionMapGenerator::generatorWithEmissionAndIlluminationMapSpec(
       "emissionAndIllumination:" + Str(emissionAndIlluminationMapSpec) +
       " diffuseMap:" + (diffuseMap != nullptr ? "yes" : "no") +
       " options:" + Str(spec));
-  return oo::makeRef<OOCombinedEmissionMapGenerator>();
+  return oo::makeShared<OOCombinedEmissionMapGenerator>();
 }
 
 OOCombinedEmissionMapGenerator::~OOCombinedEmissionMapGenerator() {}

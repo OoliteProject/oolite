@@ -192,7 +192,7 @@ void OOScriptAutorelease(std::shared_ptr<OOScript>) {}
 std::shared_ptr<OOScript> OOScript::jsScriptFromFileNamed(const std::string& fileName,
                                                   const oo::PList&) {
   gLog.push_back("script " + fileName);
-  return (fileName == "good.js") ? oo::makeRef<OOScript>() : nullptr;
+  return (fileName == "good.js") ? oo::makeShared<OOScript>() : nullptr;
 }
 
 // Keys come back as given; "taken" is in use by "compass";

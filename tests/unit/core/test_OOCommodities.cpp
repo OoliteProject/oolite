@@ -182,7 +182,7 @@ void Reset()
 
 std::shared_ptr<OOCommodities> Commodities()
 {
-	return oo::makeRef<OOCommodities>();
+	return oo::makeShared<OOCommodities>();
 }
 
 
@@ -368,7 +368,7 @@ OO_TEST(cxxClass)
 {
 	{
 		Reset();
-		std::shared_ptr<OOCommodities> c = oo::makeRef<OOCommodities>();
+		std::shared_ptr<OOCommodities> c = oo::makeShared<OOCommodities>();
 		OO_CHECK(c->count() == 4 && c->goods() == std::vector<std::string>({ "food", "furs", "gems", "junk" }));
 		OO_CHECK(c->goodDefined("furs") && !c->goodDefined("junk"));
 		OO_CHECK(c->goodNamed("<Gem-stones>") == std::optional<std::string>("gems"));

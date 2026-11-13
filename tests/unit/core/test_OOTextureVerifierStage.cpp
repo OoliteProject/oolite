@@ -123,7 +123,7 @@ std::shared_ptr<OOTextureLoader> OOTextureLoader::loaderWithPath(
   std::stringstream bytes;
   bytes << file.rdbuf();
   if (bytes.str() == "unreadable") return nullptr;
-  return oo::makeRef<StandInLoader>(bytes.str());
+  return oo::makeShared<StandInLoader>(bytes.str());
 }
 
 // A texture-handling stage, as the ship data and model stages are.
@@ -213,7 +213,7 @@ OO_TEST(nameAndNeighbours) {
                  verifier) == "Testing textures and images");
 
     const std::shared_ptr<OOTextureVerifierStage> stage =
-        oo::makeRef<OOTextureVerifierStage>();
+        oo::makeShared<OOTextureVerifierStage>();
     stage->setVerifier(verifier);
     OO_CHECK(stage->name() ==
              std::optional<std::string>("Testing textures and images"));
@@ -232,7 +232,7 @@ OO_TEST(nameAndNeighbours) {
 OO_TEST(stagesNameTextures) {
   {
     const std::shared_ptr<OOTextureVerifierStage> stage =
-        oo::makeRef<OOTextureVerifierStage>();
+        oo::makeShared<OOTextureVerifierStage>();
     stage->setVerifier(MakeVerifier({{"Textures/hull.png", "8x8"}}));
 
     stage->textureNamed("", "nowhere");
@@ -256,7 +256,7 @@ OO_TEST(stagesNameTextures) {
 OO_TEST(runLoadsTexturesAndImages) {
   {
     const std::shared_ptr<OOTextureVerifierStage> stage =
-        oo::makeRef<OOTextureVerifierStage>();
+        oo::makeShared<OOTextureVerifierStage>();
     stage->setVerifier(MakeVerifier({
         {"Textures/pot.png", "64x32"},
         {"Textures/npot.png", "100x30"},
@@ -318,7 +318,7 @@ OO_TEST(runLoadsTexturesAndImages) {
 OO_TEST(textureHandlingStage) {
   {
     OOOXPVerifier* verifier = MakeVerifier({});
-    const std::shared_ptr<TestTextureUser> user = oo::makeRef<TestTextureUser>();
+    const std::shared_ptr<TestTextureUser> user = oo::makeShared<TestTextureUser>();
     user->setVerifier(verifier);
     OO_CHECK(user->name() == std::optional<std::string>("Using textures"));
     OO_CHECK(user->dependencies() == kScannerName);
@@ -327,7 +327,7 @@ OO_TEST(textureHandlingStage) {
              kTextureUserDependents);  // asked again: no duplicate
 
     const std::shared_ptr<TestSuperCallingTextureUser> superCalling =
-        oo::makeRef<TestSuperCallingTextureUser>();
+        oo::makeShared<TestSuperCallingTextureUser>();
     superCalling->setVerifier(verifier);
     OO_CHECK(superCalling->dependents() ==
              (std::vector<std::string>{"Checking for unused files",
@@ -350,7 +350,7 @@ class TestCxxTextureUser : public OOTextureHandlingStage {
 OO_TEST(cxxTextureUserBehindTheFacade) {
   {
     OOOXPVerifier* verifier = MakeVerifier({});
-    const std::shared_ptr<TestCxxTextureUser> user = oo::makeRef<TestCxxTextureUser>();
+    const std::shared_ptr<TestCxxTextureUser> user = oo::makeShared<TestCxxTextureUser>();
     user->setVerifier(verifier);
     OO_CHECK(user->dependents() == kTextureUserDependents);
 
@@ -367,7 +367,7 @@ OO_TEST(textureStageFacade) {
   {
     OOOXPVerifier* verifier = MakeVerifier({{"Images/a.png", "8x8"}});
     const std::shared_ptr<OOTextureVerifierStage> stage =
-        oo::makeRef<OOTextureVerifierStage>();
+        oo::makeShared<OOTextureVerifierStage>();
     OO_CHECK(stage->description().starts_with("<OOTextureVerifierStage 0x"));
 
     OO_CHECK(verifier->stageWithName(

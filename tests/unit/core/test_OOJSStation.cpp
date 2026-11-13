@@ -5,7 +5,7 @@
 	As test_OOJSWormhole.mm does, it runs the JS class in a real QuickJS-ng context, links the
 	game's own objects for the binding, the engine's class registry (OOJSClasses.mm), its exception
 	translator (OOJSEngineNativeWrappers.mm) and the converted classes it uses (OOCommodities and
-	OOCommodityMarket (held as oo::Ref), OOEquipmentType and OOJSInterfaceDefinition), and stands in
+	OOCommodityMarket (held as a std::shared_ptr), OOEquipmentType and OOJSInterfaceDefinition), and stands in
 	for the classes the binding messages (Entity, ShipEntity and StationEntity, the player, the
 	universe, the game controller and the ship registry answer only the selectors the binding
 	sends), for the resource manager and string expander the commodities call, the script engine and
@@ -31,6 +31,7 @@
 #include "OODescription.h"
 #include "oofnd/StdLib.hpp"
 #include "EntityPListForeign.h"	// an entity's node
+#include "EntityManualRefs.h"  // the tests' manual references (T097)
 
 #include <quickjs.h>
 
@@ -88,7 +89,7 @@ public:
 // asks it the JS questions. Its selectors are members of the same names, and
 // what its -respondsToSelector: answered for the category's two is
 // answersJSClass().
-class TestEntityObject final : public oo::RefCounted
+class TestEntityObject final : public oo::Object
 {
 public:
 	const char *className() const  { return "Entity"; }	// the class's runtime name
@@ -221,7 +222,7 @@ public:
 
 // The game controller: a stand-in for the C++ class, with the header's names
 // and signatures, defined out of line below with the stand-in's answers.
-class GameController : public oo::RefCounted
+class GameController : public oo::Object
 {
 public:
 	bool _paused = false;
@@ -235,7 +236,7 @@ public:
 // The universe as the code under test sees it: a stand-in for the C++ class
 // with the header's names and signatures. It answers virtual members, so it has
 // the game's vtable (UniverseStandIn.h) and StandInUniverse overrides them.
-class Universe : public oo::RefCounted
+class Universe : public oo::Object
 {
 public:
 	OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
@@ -327,7 +328,7 @@ JSValue TestEntityObject::oo_jsValueInContext(JSContext *context)
 			JS_FreeValue(context, JS_GetException(context));
 			return JS_NULL;
 		}
-		if (_cxxEntity == nullptr)  _cxxEntity = oo::makeRef<Entity>();	// a plain entity's C++ part
+		if (_cxxEntity == nullptr)  _cxxEntity = oo::makeShared<Entity>();	// a plain entity's C++ part
 		sObjects[_cxxEntity.get()] = this;
 		OOJSSetCxxPrivate(_jsSelf, oo::makeShared<OOJSEntityHolder>(_cxxEntity.get()));	// the slot holds the C++ entity
 	}
@@ -345,7 +346,7 @@ namespace {
 // test.
 ::TestEntityObject *NewShipObject(const char *name, std::shared_ptr<Entity> ship)
 {
-	::TestEntityObject *object = oo::makeRef<::TestEntityObject>().leakRef();
+	::TestEntityObject *object = oo::test::NewRetained<::TestEntityObject>();
 	object->_cxxEntity = ship;
 	object->_name = name;
 	sObjects[ship.get()] = object;
@@ -873,12 +874,12 @@ void SetUpContext()
 	sUniverse = new StandInUniverse();	// kept for the life of the test
 	gSharedUniverse = sUniverse;
 	sUniverse->_controller = new GameController();	// kept for the life of the test
-	sUniverse->_commodities = oo::makeRef<OOCommodities>();
+	sUniverse->_commodities = oo::makeShared<OOCommodities>();
 	sPlayer = new PlayerEntity;
 	sPlayer->_name = "player";
 	sPlayer->_screen = OOGUIScreenID::kStatus;
 	gOOPlayer = sPlayer;
-	sStationObject = NewShipObject("Coriolis", oo::makeRef<StationEntity>());	// kept for the life of the
+	sStationObject = NewShipObject("Coriolis", oo::makeShared<StationEntity>());	// kept for the life of the
                                                     // test; a station's object
 	sStation = static_cast<StationEntity *>(sStationObject->_cxxEntity.get());
 	sStation->_name = "Coriolis";
@@ -894,10 +895,10 @@ void SetUpContext()
 	sStation->_priceFactor = 1.5f;
 	sStation->_market = sUniverse->_commodities->generateBlankMarket();
 	sUniverse->_station = sStation;
-	sOtherObject = NewShipObject("Rock Hermit", oo::makeRef<StationEntity>());
+	sOtherObject = NewShipObject("Rock Hermit", oo::makeShared<StationEntity>());
 	sOther = static_cast<StationEntity *>(sOtherObject->_cxxEntity.get());
 	sOther->_name = "Rock Hermit";
-	sShip = NewShipObject("Cobra", oo::makeRef<::ShipEntity>());
+	sShip = NewShipObject("Cobra", oo::makeShared<::ShipEntity>());
 	sShipPart = static_cast<::ShipEntity *>(sShip->_cxxEntity.get());
 	Define("station", sStationObject->oo_jsValueInContext(sContext));
 	Define("other", sOtherObject->oo_jsValueInContext(sContext));

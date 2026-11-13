@@ -54,7 +54,7 @@ static unsigned sMatchersMade = 0;
 
 std::shared_ptr<OORegExpMatcher> OORegExpMatcher::regExpMatcher() {
   sMatchersMade++;
-  return oo::makeRef<OORegExpMatcher>();
+  return oo::makeShared<OORegExpMatcher>();
 }
 
 bool OORegExpMatcher::string(const std::string& string,

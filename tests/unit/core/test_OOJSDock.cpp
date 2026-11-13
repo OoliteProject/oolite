@@ -16,6 +16,7 @@
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
+#include "EntityManualRefs.h"  // the tests' manual references (T097)
 
 #include <quickjs.h>
 
@@ -23,7 +24,7 @@
 // MARK: The entity classes, as far as the binding sees them ---------------------------------------
 
 // The C++ root, as far as the binding and the root's JS category reach it.
-class Entity : public oo::RefCounted
+class Entity : public oo::Object
 {
 public:
 	virtual ~Entity();
@@ -42,7 +43,7 @@ class ShipEntity : public Entity
 
 
 // Its category's two selectors are members of the same names.
-class TestEntityObject final : public oo::RefCounted
+class TestEntityObject final : public oo::Object
 {
 public:
 	JSClassID oo_jsClassID();
@@ -307,7 +308,7 @@ ShipEntity *sShipPart = nullptr;
 // A ship's object holding its C++ part, kept for the life of the test.
 TestEntityObject *NewShipObject(std::shared_ptr<Entity> part)
 {
-	TestEntityObject *object = oo::makeRef<TestEntityObject>().leakRef();
+	TestEntityObject *object = oo::test::NewRetained<TestEntityObject>();
 	object->_cxxEntity = part;
 	return object;
 }
@@ -318,7 +319,7 @@ TestEntityObject *NewShipObject(std::shared_ptr<Entity> part)
 JSValue JSValueForObject(JSClassID classID, TestEntityObject *entity)
 {
 	JSValue object = JS_NewObjectClass(sContext, static_cast<int>(classID));
-	if (entity->_cxxEntity == nullptr)  entity->_cxxEntity = oo::makeRef<Entity>();	// a plain entity's C++ part
+	if (entity->_cxxEntity == nullptr)  entity->_cxxEntity = oo::makeShared<Entity>();	// a plain entity's C++ part
 	if (JS_IsException(object) || !OOJSSetCxxPrivate(object, oo::makeShared<OOJSEntityHolder>(entity->_cxxEntity.get())))	// the slot holds the C++ entity
 	{
 		JS_FreeValue(sContext, object);
@@ -359,19 +360,19 @@ void SetUpContext()
 	OOJSRegisterSubclass(sFakeShipClassID, sFakeEntityClassID);
 	InitOOJSDock(sContext, sGlobal);
 
-	sDockObject = NewShipObject(oo::makeRef<DockEntity>());	// a dock's object is a ship's
+	sDockObject = NewShipObject(oo::makeShared<DockEntity>());	// a dock's object is a ship's
 	sDock = static_cast<DockEntity *>(sDockObject->_cxxEntity.get());
 	sDock->_allowsDocking = true;
 	sDock->_disallowedDockingCollides = false;
 	sDock->_allowsLaunching = true;
 	sDock->_dockingQueue = 3;
 	sDock->_launchQueue = 2;
-	sShip = NewShipObject(oo::makeRef<ShipEntity>());
+	sShip = NewShipObject(oo::makeShared<ShipEntity>());
 	sShipPart = static_cast<ShipEntity *>(sShip->_cxxEntity.get());
 	Define("dock", JSValueForEntity(sDockObject));
 	Define("ship", JSValueForObject(sFakeShipClassID, sShip));
-	Define("otherShip", JSValueForObject(sFakeShipClassID, NewShipObject(oo::makeRef<ShipEntity>())));
-	Define("plainEntity", JSValueForObject(sFakeEntityClassID, oo::makeRef<TestEntityObject>().leakRef()));
+	Define("otherShip", JSValueForObject(sFakeShipClassID, NewShipObject(oo::makeShared<ShipEntity>())));
+	Define("plainEntity", JSValueForObject(sFakeEntityClassID, oo::test::NewRetained<TestEntityObject>()));
 }
 
 

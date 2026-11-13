@@ -79,7 +79,7 @@ void SetUp() {
 std::shared_ptr<HeadUpDisplay> NewHUD(
     const oo::PList& info,
     const std::optional<std::string>& name = std::string("test-hud.plist")) {
-  std::shared_ptr<HeadUpDisplay> hud = oo::makeRef<HeadUpDisplay>();
+  std::shared_ptr<HeadUpDisplay> hud = oo::makeShared<HeadUpDisplay>();
   hud->initWithDictionary(info, name);
   return hud;
 }
@@ -351,7 +351,7 @@ OO_TEST(beaconCodeIcon) {
   SetUp();
   {
     // The entities hold the code icon by the C++ OOHUDBeaconIcon interface.
-    std::shared_ptr<OOHUDBeaconCodeIcon> icon = oo::makeRef<OOHUDBeaconCodeIcon>("A");
+    std::shared_ptr<OOHUDBeaconCodeIcon> icon = oo::makeShared<OOHUDBeaconCodeIcon>("A");
     OO_CHECK(icon != nullptr);
     OO_CHECK(dynamic_cast<OOHUDBeaconIcon*>(icon.get()) != nullptr);
   }
@@ -363,7 +363,7 @@ OO_TEST(beaconCodeIcon) {
 OO_TEST(cxxAPI) {
   SetUp();
   {
-    std::shared_ptr<HeadUpDisplay> hud = oo::makeRef<HeadUpDisplay>();
+    std::shared_ptr<HeadUpDisplay> hud = oo::makeShared<HeadUpDisplay>();
     hud->initWithDictionary(
         oo::PList(oo::PList::Dict{
             {"dials", oo::PList(oo::PList::Array{Dial("drawCompass:")})},

@@ -55,7 +55,7 @@ std::shared_ptr<OOTexture> OOTexture::textureWithName(
       "texture " + name.value_or("-") + " in " + directory.value_or("-") +
       " options " + std::to_string(oo::ToUnderlying(options)) + " anisotropy " +
       std::to_string(anisotropy) + " lodBias " + std::to_string(lodBias));
-  return oo::makeRef<OOTexture>();
+  return oo::makeShared<OOTexture>();
 }
 OOTexture::OOTexture() {}
 OOTexture::~OOTexture() {}
@@ -112,7 +112,7 @@ class TestSound final : public OOSound {
 ::OOSound* OOSoundWithCustomSoundKey(const std::string& aKey) {
   static std::vector<std::shared_ptr<OOSound>> sKept;
   gLog.push_back("sound " + aKey);
-  sKept.push_back(oo::makeRef<TestSound>(aKey));
+  sKept.push_back(oo::makeShared<TestSound>(aKey));
   return sKept.back().get();
 }
 
@@ -136,12 +136,12 @@ void OOSoundSource::playOOSound(OOSound* s) {
 // C++ part, oo::ToCxx reads it, and which oo::ToObjC answers for it), declared
 // as Entity.h and ShipEntity.h declare them (the test imports neither) with the
 // stand-in's answers. The object is C++, rooted on oo::RefCounted.
-class Entity : public oo::RefCounted {
+class Entity : public oo::Object {
  public:
   virtual ~Entity();
 };
 
-class TestEntityObject final : public oo::RefCounted {
+class TestEntityObject final : public oo::Object {
  public:
   const char* className() const {
     return "Entity";
@@ -207,7 +207,7 @@ void PlayerEntity::removeTrumble(OOTrumble* t) { removed.push_back(t); }
 // with the header's names and signatures. It answers virtual
 // members, so it has the game's vtable (UniverseStandIn.h) and StandInUniverse
 // overrides them.
-class Universe : public oo::RefCounted {
+class Universe : public oo::Object {
  public:
   OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
 
@@ -306,9 +306,9 @@ namespace {
 std::map<Entity*, ::TestEntityObject*> sObjects;  // what TestObjectOf answers
 
 ::TestEntityObject* NewPod(const char* good) {
-  std::shared_ptr<ShipEntity> ship = oo::makeRef<ShipEntity>();
+  std::shared_ptr<ShipEntity> ship = oo::makeShared<ShipEntity>();
   ship->commodity = good;
-  ::TestEntityObject* pod = oo::autorelease(oo::makeRef<::TestEntityObject>());
+  ::TestEntityObject* pod = oo::autorelease(oo::makeShared<::TestEntityObject>());
   pod->_cxxEntity = ship;
   sObjects[ship.get()] = pod;
   return pod;
@@ -322,7 +322,7 @@ PlayerEntity* Player() {
 void Reset() {
   if (gSharedUniverse == nullptr) {
     gSharedUniverse = new StandInUniverse();
-    gSharedUniverse->market = oo::makeRef<OOCommodityMarket>();
+    gSharedUniverse->market = oo::makeShared<OOCommodityMarket>();
   }
   gSharedUniverse->view = OOViewID::kForward;
   PlayerEntity* p = Player();
@@ -357,7 +357,7 @@ std::string Dictionary(const oo::PList& dict) {
 }
 
 std::shared_ptr<OOTrumble> Trumble(const char* digram) {
-  return oo::makeRef<OOTrumble>(Player(), digram);
+  return oo::makeShared<OOTrumble>(Player(), digram);
 }
 
 void Run(const std::shared_ptr<OOTrumble>& t, int ticks, double dt = 0.1) {
@@ -439,15 +439,15 @@ OO_TEST(setUp) {
   {
     oo::AutoreleaseScope pool;
     Reset();
-    std::shared_ptr<OOTrumble> t = oo::makeRef<OOTrumble>(Player());
+    std::shared_ptr<OOTrumble> t = oo::makeShared<OOTrumble>(Player());
     OO_CHECK(expect(State(t)));
     OO_CHECK(expect(Log()));
     for (const char* digram : {"Zq", "@G", "8", ""}) {
       Reset();
-      OO_CHECK(expect(State(oo::makeRef<OOTrumble>(Player(), digram))));
+      OO_CHECK(expect(State(oo::makeShared<OOTrumble>(Player(), digram))));
       OO_CHECK(expect(Log()));
     }
-    OO_CHECK(expect(State(oo::makeRef<OOTrumble>())));
+    OO_CHECK(expect(State(oo::makeShared<OOTrumble>())));
   }
 }
 
@@ -702,7 +702,7 @@ OO_TEST(feedingPopAndSpawn) {
 OO_TEST(cxxClass) {
   // The C++ API: a trumble and its growth.
   Reset();
-  std::shared_ptr<OOTrumble> t = oo::makeRef<OOTrumble>(Player(), "Zq");
+  std::shared_ptr<OOTrumble> t = oo::makeShared<OOTrumble>(Player(), "Zq");
   OO_CHECK(t->getDigram()[0] == 'Z' && t->getDigram()[1] == 'q');
   OO_CHECK(std::fabs(t->getSize() - 0.91782f) < 1e-5f &&
            t->getHunger() == 0.0f && t->getDiscomfort() == 0.0f);
@@ -712,13 +712,13 @@ OO_TEST(cxxClass) {
   Reset();
   OO_CHECK(State(Trumble("Zq")) == State(t));
 
-  std::shared_ptr<OOTrumble> child = oo::makeRef<OOTrumble>(Player());
+  std::shared_ptr<OOTrumble> child = oo::makeShared<OOTrumble>(Player());
   child->spawnFrom(t.get());
   OO_CHECK(child->getSize() == 0.5f && child->getHunger() == 0.25f);
   child->spawnFrom(nullptr);
   OO_CHECK(child->getSize() == 0.5f);
 
-  std::shared_ptr<OOTrumble> blank = oo::makeRef<OOTrumble>();
+  std::shared_ptr<OOTrumble> blank = oo::makeShared<OOTrumble>();
   OO_CHECK(blank->getSize() == 0.0f && blank->getDigram()[0] == 0);
   OO_CHECK(blank->dictionary().count() == 9);
 }

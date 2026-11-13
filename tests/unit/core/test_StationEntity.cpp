@@ -56,7 +56,7 @@ public:
 template <class T>
 T *NewTestPlayer()
 {
-	std::shared_ptr<T> player = oo::makeRef<T>();
+	std::shared_ptr<T> player = oo::makeShared<T>();
 	{
 		oo::RetainEntity(oo::MadeEntity(player));
 	}
@@ -126,7 +126,7 @@ oo::PList Definition(oo::PList::Dict extra = {})
 // autoreleased.
 TestStation *MakeStation(const std::string &key, oo::PList::Dict extra = {})
 {
-	::ShipEntity *ship = oo::ToShip(oo::RetainedEntity(oo::NewShipObject(oo::makeRef<TestStation>(), key, Definition(std::move(extra)))));
+	::ShipEntity *ship = oo::ToShip(oo::RetainedEntity(oo::NewShipObject(oo::makeShared<TestStation>(), key, Definition(std::move(extra)))));
 	if (ship == nullptr)  return nullptr;
 	TestStation *station = static_cast<TestStation *>(ship);
 	station->initStationDefaults();
@@ -421,7 +421,7 @@ TestVisitor *MakeVisitor(const std::string &key, oo::PList::Dict extra = {})
 {
 	oo::PList::Dict dict{ { "unpiloted", oo::PList(true) } };
 	for (auto &entry : extra)  dict[entry.first] = entry.second;
-	return static_cast<TestVisitor *>(oo::ToShip(oo::autorelease(oo::NewShipObject(oo::makeRef<TestVisitor>(), key, oo::PList(std::move(dict))))));
+	return static_cast<TestVisitor *>(oo::ToShip(oo::autorelease(oo::NewShipObject(oo::makeShared<TestVisitor>(), key, oo::PList(std::move(dict))))));
 }
 
 oo::WeakSet<Entity> *ShipsOnHold2(StationEntity *s)	{ return &s->_shipsOnHold; }

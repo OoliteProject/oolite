@@ -94,7 +94,7 @@ std::optional<std::string> ResourceManager::stringFromFilesNamed(
 
 // OORegExpMatcher: the stub answers no match.
 std::shared_ptr<OORegExpMatcher> OORegExpMatcher::regExpMatcher() {
-  return oo::makeRef<OORegExpMatcher>();
+  return oo::makeShared<OORegExpMatcher>();
 }
 bool OORegExpMatcher::string(const std::string&, const std::string&) {
   return false;
@@ -149,7 +149,7 @@ std::shared_ptr<OOTexture> OOTexture::textureWithConfiguration(
     const oo::PList& configuration, OOTextureFlags) {
   if (configuration.isNull() || configuration == oo::PList("missing"))
     return nullptr;
-  std::shared_ptr<TestTexture> texture = oo::makeRef<TestTexture>();
+  std::shared_ptr<TestTexture> texture = oo::makeShared<TestTexture>();
   texture->_configuration = configuration;
   return texture;
 }
@@ -234,13 +234,13 @@ OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(
     const oo::PList& emissionMapSpec, OOColor*, OOTexture*, OOColor*,
     const oo::PList& illuminationMapSpec, OOColor*, const oo::PList&) {
   if (emissionMapSpec.isNull() && illuminationMapSpec.isNull()) return {};
-  return oo::makeRef<OOCombinedEmissionMapGenerator>();
+  return oo::makeShared<OOCombinedEmissionMapGenerator>();
 }
 std::shared_ptr<OOCombinedEmissionMapGenerator>
 OOCombinedEmissionMapGenerator::generatorWithEmissionAndIlluminationMapSpec(
     const oo::PList&, OOTexture*, OOColor*, OOColor*, OOColor*,
     const oo::PList&) {
-  return oo::makeRef<OOCombinedEmissionMapGenerator>();
+  return oo::makeShared<OOCombinedEmissionMapGenerator>();
 }
 OOCombinedEmissionMapGenerator::~OOCombinedEmissionMapGenerator() {}
 #ifndef NDEBUG
@@ -281,7 +281,7 @@ OOOpenGLMatrixManager* MyOpenGLView::getOpenGLMatrixManager() {
 // The universe as the code under test sees it: a stand-in for the C++ class,
 // with the header's names and signatures. It answers virtual members, so it has
 // the game's vtable (UniverseStandIn.h) and TestUniverse overrides them.
-class Universe : public oo::RefCounted {
+class Universe : public oo::Object {
  public:
   OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
 

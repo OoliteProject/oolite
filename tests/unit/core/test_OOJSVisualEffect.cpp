@@ -44,7 +44,7 @@ class TestEntityObject;	// the test's stand-in root object, below
 // The C++ root, as far as the binding and the root's JS category reach it (the
 // members the binding calls, declared as Entity.h declares them), and the C++
 // part's object (TestObjectOf).
-class Entity : public oo::RefCounted
+class Entity : public oo::Object
 {
 public:
 	virtual ~Entity();
@@ -64,7 +64,7 @@ public:
 
 
 // Its category's selectors are members of the same names.
-class TestEntityObject final : public oo::RefCounted
+class TestEntityObject final : public oo::Object
 {
 public:
 	const char *className() const  { return "Entity"; }	// the class's runtime name
@@ -79,7 +79,7 @@ public:
 // with. The members of OOMesh (OOMesh.h) the binding calls, with their
 // signatures.
 
-class OOMesh : public oo::RefCounted
+class OOMesh : public oo::Object
 {
 public:
 	static std::shared_ptr<OOMesh> meshWithName(const std::string &name,
@@ -189,7 +189,7 @@ public:
 // answers virtual members, so it has the game's vtable (UniverseStandIn.h) and
 // FakeGame overrides them; FakeGame also answers the player's compass (the
 // player stand-in calls it).
-class Universe : public oo::RefCounted
+class Universe : public oo::Object
 {
 public:
 	OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
@@ -292,8 +292,8 @@ namespace {
 // An effect's object and its C++ part, as oo::NewVisualEffectObject() makes them (autoreleased).
 TestEntityObject *NewEffectObject()
 {
-	TestEntityObject *object = oo::autorelease(oo::makeRef<TestEntityObject>());
-	object->_cxxEntity = oo::makeRef<OOVisualEffectEntity>();
+	TestEntityObject *object = oo::autorelease(oo::makeShared<TestEntityObject>());
+	object->_cxxEntity = oo::makeShared<OOVisualEffectEntity>();
 	object->_cxxEntity->_object = object;
 	return object;
 }
@@ -329,7 +329,7 @@ std::shared_ptr<OOMesh> OOMesh::meshWithName(const std::string &name,
 	sMeshTarget = TestObjectOf(object);	// its object
 	sMeshesMade++;
 	if (name == "nomesh.dat")  return nullptr;
-	std::shared_ptr<OOMesh> mesh = oo::makeRef<OOMesh>();
+	std::shared_ptr<OOMesh> mesh = oo::makeShared<OOMesh>();
 	mesh->_materials = materialDict;
 	mesh->_shaders = shadersDict;
 	return mesh;
@@ -743,7 +743,7 @@ FakeGame *sGame = nullptr;
 JSValue JSValueForObject(JSClassID jsClass, TestEntityObject *entity)
 {
 	JSValue object = JS_NewObjectClass(sContext, static_cast<int>(jsClass));
-	if (entity->_cxxEntity == nullptr)  entity->_cxxEntity = oo::makeRef<Entity>();	// a plain entity's C++ part
+	if (entity->_cxxEntity == nullptr)  entity->_cxxEntity = oo::makeShared<Entity>();	// a plain entity's C++ part
 	if (JS_IsException(object) || !OOJSSetCxxPrivate(object, oo::makeShared<OOJSEntityHolder>(entity->_cxxEntity.get())))	// the slot holds the C++ entity
 	{
 		JS_FreeValue(sContext, object);
@@ -783,7 +783,7 @@ void SetUpContext()
 	gOOPlayer = new PlayerEntity;	// never deleted
 	gOOPlayer->_game = sGame;
 	sEffect = NewEffectObject();
-	sEffect->retain();
+	oo::test::Retain(sEffect);
 	sEffectPart = static_cast<OOVisualEffectEntity *>(sEffect->_cxxEntity.get());
 	sEffectPart->_beaconLabel = "Label";
 	sEffectPart->_effectKey = "test-effect";
@@ -803,7 +803,7 @@ void SetUpContext()
 	effectInfo["smooth"] = oo::PList(true);
 	sEffectPart->_effectInfo = oo::PList(std::move(effectInfo));
 	sSub = NewEffectObject();
-	sSub->retain();
+	oo::test::Retain(sSub);
 	sSubPart = static_cast<OOVisualEffectEntity *>(sSub->_cxxEntity.get());
 	sSubPart->_isSubEntity = true;
 	sSubPart->_owner = sEffect;

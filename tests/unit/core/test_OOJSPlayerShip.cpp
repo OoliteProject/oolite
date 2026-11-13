@@ -438,7 +438,7 @@ class FakePlayer : public PlayerEntity {
 // object was.
 template <class T>
 T* NewTestPlayer() {
-  std::shared_ptr<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeShared<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -480,21 +480,21 @@ void SetUp() {
 
   sUniverse = new FakeUniverse();
   sUniverse->_viewDirection = OOViewID::kAft;
-  sUniverse->_gui = oo::makeRef<FakeGui>();
+  sUniverse->_gui = oo::makeShared<FakeGui>();
   sUniverse->_gui->_textColor = OOColor::colorWithRed(1.0f, 0.5f, 0.25f, 1.0f);
   sUniverse->_gui->_textCommsColor =
       OOColor::colorWithRed(0.0f, 1.0f, 0.0f, 0.5f);
   gSharedUniverse = sUniverse;
 
   sPlayer = NewTestPlayer<FakePlayer>();
-  sPlayer->_hud = oo::makeRef<HeadUpDisplay>();
+  sPlayer->_hud = oo::makeShared<HeadUpDisplay>();
   sPlayer->_hud->initWithDictionary(oo::PList(oo::PList::Dict{}),
                                     std::string("test-hud.plist"));
   {
     sPlayer->_dockedStation = oo::RetainEntity(
-        oo::MadeEntity(oo::makeRef<TestEntity>()));  // +1, as +alloc's was
+        oo::MadeEntity(oo::makeShared<TestEntity>()));  // +1, as +alloc's was
     sPlayer->_other =
-        oo::RetainEntity(oo::MadeEntity(oo::makeRef<TestEntity>()));
+        oo::RetainEntity(oo::MadeEntity(oo::makeShared<TestEntity>()));
   }
   sPlayer->_dockedStation->setPosition(make_HPvector(5, 0, 0));
   sPlayer->_docked = true;

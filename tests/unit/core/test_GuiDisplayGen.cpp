@@ -72,7 +72,7 @@ double MiddleOfRow(int row)
 OO_TEST(everyRowUnderItsOwnMiddle)
 {
 	{
-		std::shared_ptr<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>();
+		std::shared_ptr<GuiDisplayGen> gui = oo::makeShared<GuiDisplayGen>();
 		OO_CHECK(gui->rowHeight() == MAIN_GUI_ROW_HEIGHT && gui->rowStart() == MAIN_GUI_PIXEL_ROW_START);
 		// Rows 0..28 are on screen: row 29's middle (cursor_y -256) is below the GUI's bottom edge
 		// (-240), where the pointer is clamped into row 28 (pointerOffTheScreenIsClampedToItsEdge).
@@ -90,7 +90,7 @@ OO_TEST(everyRowUnderItsOwnMiddle)
 OO_TEST(rowBorders)
 {
 	{
-		std::shared_ptr<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>();
+		std::shared_ptr<GuiDisplayGen> gui = oo::makeShared<GuiDisplayGen>();
 		// Row 26 spans cursor_y in (-216, -200]; half a pixel inside and outside each border.
 		OO_CHECK_EQ(gui->rowAtVirtualJoystickPosition(NSMakePoint(0.0, 200.5 / 480.0)), 26);
 		OO_CHECK_EQ(gui->rowAtVirtualJoystickPosition(NSMakePoint(0.0, 215.5 / 480.0)), 26);
@@ -103,7 +103,7 @@ OO_TEST(rowBorders)
 OO_TEST(pointerOffTheScreenIsClampedToItsEdge)
 {
 	{
-		std::shared_ptr<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>();
+		std::shared_ptr<GuiDisplayGen> gui = oo::makeShared<GuiDisplayGen>();
 		// cursor_y is clamped to +-240 (half the GUI's height), as the render clamps the pointer.
 		OO_CHECK_EQ(gui->rowAtVirtualJoystickPosition(NSMakePoint(0.0, 10.0)), 28);	// 1 + floor(440 / 16)
 		OO_CHECK_EQ(gui->rowAtVirtualJoystickPosition(NSMakePoint(0.0, 0.5)), 28);
@@ -118,7 +118,7 @@ OO_TEST(answersForThePointerNowWithoutARender)
 	{
 		// The G5 failure: the pointer tweened from row 20 through 22 to 26 and the click came before
 		// any render. Nothing is drawn here; the row follows the pointer alone.
-		std::shared_ptr<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>();
+		std::shared_ptr<GuiDisplayGen> gui = oo::makeShared<GuiDisplayGen>();
 		OO_CHECK_EQ(gui->rowAtVirtualJoystickPosition(NSMakePoint(0.0, MiddleOfRow(20))), 20);
 		OO_CHECK_EQ(gui->rowAtVirtualJoystickPosition(NSMakePoint(0.0, MiddleOfRow(22))), 22);
 		OO_CHECK_EQ(gui->rowAtVirtualJoystickPosition(NSMakePoint(0.0, MiddleOfRow(26))), 26);
@@ -171,7 +171,7 @@ void StartJavaScript()
 // A small GUI made by the second initialiser: 5 rows, no user settings.
 std::shared_ptr<GuiDisplayGen> SmallGUI(const std::optional<std::string> &title)
 {
-	return oo::makeRef<GuiDisplayGen>(NSMakeSize(200, 100), 4, 5, 12, 8, title);
+	return oo::makeShared<GuiDisplayGen>(NSMakeSize(200, 100), 4, 5, 12, 8, title);
 }
 
 }	// namespace
@@ -180,7 +180,7 @@ std::shared_ptr<GuiDisplayGen> SmallGUI(const std::optional<std::string> &title)
 OO_TEST(initDefaults)
 {
 	{
-		std::shared_ptr<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>();
+		std::shared_ptr<GuiDisplayGen> gui = oo::makeShared<GuiDisplayGen>();
 		OO_CHECK(gui->size().width == 480 && gui->size().height == 480);
 		OO_CHECK_EQ(gui->columns(), 6u);
 		OO_CHECK_EQ(gui->rows(), 30u);
@@ -293,7 +293,7 @@ OO_TEST(selectionSkipsSkipRows)
 {
 	{
 		StartJavaScript();
-		std::shared_ptr<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>();
+		std::shared_ptr<GuiDisplayGen> gui = oo::makeShared<GuiDisplayGen>();
 		gui->clear();	// every key is SKIP-ROW
 		OO_CHECK(gui->keyForRow(0) == std::optional<std::string>(GUI_KEY_SKIP));
 		for (OOGUIRow row = 2; row <= 6; row++)
@@ -412,7 +412,7 @@ OO_TEST(coloursAndColourSettings)
 		OO_CHECK(gui->userSettings().isNull());
 
 		// With settings (gui-settings.plist, when the test finds it), a set colour is read back.
-		std::shared_ptr<GuiDisplayGen> main = oo::makeRef<GuiDisplayGen>();
+		std::shared_ptr<GuiDisplayGen> main = oo::makeShared<GuiDisplayGen>();
 		if (main->userSettings().isDict())
 		{
 			main->setGuiColorSettingFromKey("oo_test_colour", red.get());
@@ -493,7 +493,7 @@ OO_TEST(clearAndResize)
 OO_TEST(cxxAPIAnswersTheSame)
 {
 	{
-		std::shared_ptr<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>(NSMakeSize(200, 100), 4, 5, 12, 8, std::optional<std::string>("T"));
+		std::shared_ptr<GuiDisplayGen> gui = oo::makeShared<GuiDisplayGen>(NSMakeSize(200, 100), 4, 5, 12, 8, std::optional<std::string>("T"));
 		OO_CHECK_EQ(gui->columns(), 4u);
 		OO_CHECK_EQ(gui->rows(), 5u);
 		OO_CHECK_EQ(gui->rowHeight(), 12u);
@@ -518,7 +518,7 @@ OO_TEST(cxxAPIAnswersTheSame)
 		gui->clearAndKeepBackground(true);
 		OO_CHECK(gui->keyForRow(1) == std::optional<std::string>(GUI_KEY_SKIP));
 
-		std::shared_ptr<GuiDisplayGen> main = oo::makeRef<GuiDisplayGen>();
+		std::shared_ptr<GuiDisplayGen> main = oo::makeShared<GuiDisplayGen>();
 		OO_CHECK_EQ(main->rows(), 30u);
 		OO_CHECK(main->objectForRow(0) == oo::PList("."));
 	}
@@ -687,7 +687,7 @@ OO_TEST(cxxSlice2API)
 {
 	{
 		StartJavaScript();
-		std::shared_ptr<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>(NSMakeSize(200, 100), 4, 5, 12, 8, std::optional<std::string>("T"));
+		std::shared_ptr<GuiDisplayGen> gui = oo::makeShared<GuiDisplayGen>(NSMakeSize(200, 100), 4, 5, 12, 8, std::optional<std::string>("T"));
 		OO_CHECK_EQ(gui->addLongText("a\nb", 0, OOGUIAlignment::kLeft), 2);
 		OO_CHECK(gui->objectForRow(1) == oo::PList("b"));
 		OO_CHECK(gui->reflowTextForMFD("x y") == std::optional<std::string>("x y\n"));
@@ -750,7 +750,7 @@ OO_TEST(cxxSlice3API)
 {
 	{
 		StartJavaScript();
-		std::shared_ptr<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>(NSMakeSize(200, 100), 4, 5, 12, 8, std::optional<std::string>("T"));
+		std::shared_ptr<GuiDisplayGen> gui = oo::makeShared<GuiDisplayGen>(NSMakeSize(200, 100), 4, 5, 12, 8, std::optional<std::string>("T"));
 		OO_CHECK_EQ(gui->drawGUI(0.0f, false), 0);
 		gui->drawGUIBackground();
 		gui->refreshStarChart();

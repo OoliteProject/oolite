@@ -199,14 +199,14 @@ oo::PList Node(const std::shared_ptr<TestForeign>& object) {
 OO_TEST(objectElements) {
   {
     oo::AutoreleaseScope pool;
-    std::shared_ptr<TestForeign> object = oo::makeRef<TestForeign>();
+    std::shared_ptr<TestForeign> object = oo::makeShared<TestForeign>();
     const oo::PList elements[] = {Node(object), Str("s")};
     const float weights[] = {1.0f, 1.0f};
     std::shared_ptr<OOProbabilitySet> set =
         OOProbabilitySet::probabilitySetWithObjects(elements, weights, 2);
     OO_CHECK(set->weightForObject(Node(object)) ==
              1.0f);  // the same object in another node
-    OO_CHECK(set->weightForObject(Node(oo::makeRef<TestForeign>())) == -1.0f);
+    OO_CHECK(set->weightForObject(Node(oo::makeShared<TestForeign>())) == -1.0f);
     const oo::PList::Object* node =
         set->allElements()[0].getIf<oo::PList::Object>();
     OO_CHECK(node != nullptr && node->get() == object.get());

@@ -59,7 +59,7 @@ public:
 template <class T>
 T *NewTestPlayer()
 {
-	std::shared_ptr<T> player = oo::makeRef<T>();
+	std::shared_ptr<T> player = oo::makeShared<T>();
 	{
 		oo::RetainEntity(oo::MadeEntity(player));
 	}
@@ -101,14 +101,14 @@ namespace {
 template <class T>
 T *MakeShip(const std::string &key, const oo::PList &dict)
 {
-	return static_cast<T *>(oo::ToShip(oo::autorelease(oo::NewShipObject(oo::makeRef<T>(), key, dict))));
+	return static_cast<T *>(oo::ToShip(oo::autorelease(oo::NewShipObject(oo::makeShared<T>(), key, dict))));
 }
 
 // [[T alloc] cxx_initWithKey:key definition:dict]: the same with its object retained (+1).
 template <class T>
 T *NewShip(const std::string &key, const oo::PList &dict)
 {
-	return static_cast<T *>(oo::ToShip(oo::RetainedEntity(oo::NewShipObject(oo::makeRef<T>(), key, dict))));
+	return static_cast<T *>(oo::ToShip(oo::RetainedEntity(oo::NewShipObject(oo::makeShared<T>(), key, dict))));
 }
 
 }	// namespace
@@ -289,7 +289,7 @@ OO_TEST(subEntityRelationship)
 {
 	{
 		SetUp();
-		Entity *plain = oo::MadeEntity(oo::makeRef<Entity>());
+		Entity *plain = oo::MadeEntity(oo::makeShared<Entity>());
 		TestShip *ship = MakeShip<TestShip>("mother", Definition());
 		TestShip *sub = MakeShip<TestShip>("turret", Definition());
 		TestShip *other = MakeShip<TestShip>("other", Definition());
@@ -764,7 +764,7 @@ OO_TEST(closeCollisionAndFrame)
 		SetUp();
 		TestShip *ship = MakeShip<TestShip>("hull", Definition());
 		TestShip *other = MakeShip<TestShip>("other", Definition());
-		Entity *plain = oo::MadeEntity(oo::makeRef<Entity>());
+		Entity *plain = oo::MadeEntity(oo::makeShared<Entity>());
 		OO_CHECK(!(ship != nullptr ? ship->checkCloseCollisionWith(nullptr) : false));
 		OO_CHECK((ship != nullptr ? ship->checkCloseCollisionWith(plain) : false) && Part(ship)->collider == plain);
 		MutablePart(ship)->collider = nullptr;
@@ -836,7 +836,7 @@ OO_TEST(updateReachesNonShipSubentities)
 	{
 		SetUp();
 		TestShip *ship = MakeShip<TestShip>("demo", Definition());
-		CountingFlasher *flasher = static_cast<CountingFlasher *>(oo::MadeEntity(oo::makeRef<CountingFlasher>()));
+		CountingFlasher *flasher = static_cast<CountingFlasher *>(oo::MadeEntity(oo::makeShared<CountingFlasher>()));
 		OO_CHECK((ship != nullptr ? ship->setUpFromDictionary(oo::PList()) : false));
 		if (ship != nullptr)  ship->addSubEntity(flasher);
 		ShipEntityTestAccess::IsDemoShip(MutablePart(ship)) = true;
@@ -848,7 +848,7 @@ OO_TEST(updateReachesNonShipSubentities)
 	{
 		SetUp();
 		TestShip *ship = MakeShip<TestShip>("launching", Definition());
-		CountingFlasher *flasher = static_cast<CountingFlasher *>(oo::MadeEntity(oo::makeRef<CountingFlasher>()));
+		CountingFlasher *flasher = static_cast<CountingFlasher *>(oo::MadeEntity(oo::makeShared<CountingFlasher>()));
 		OO_CHECK((ship != nullptr ? ship->setUpFromDictionary(oo::PList()) : false));
 		if (ship != nullptr)  ship->addSubEntity(flasher);
 		if (ship != nullptr)  ship->setStatus(OOEntityStatus::kLaunching);
@@ -1740,7 +1740,7 @@ OO_TEST(crewAndAI)
 		OO_CHECK(!(ship != nullptr ? ship->getCrew() : std::optional<std::vector<std::shared_ptr<OOCharacter>>>()).has_value());
 
 		OO_CHECK((ship != nullptr ? ship->getAI() : (::AI *)nullptr) == nullptr && !(ship != nullptr ? ship->hasNewAI() : false));
-		std::shared_ptr<AI> heldAI = oo::makeRef<AI>();
+		std::shared_ptr<AI> heldAI = oo::makeShared<AI>();
 		AI *ai = heldAI.get();
 		if (ship != nullptr)  ship->setAI(ai);
 		OO_CHECK((ship != nullptr ? ship->getAI() : (::AI *)nullptr) == ai);
@@ -2093,7 +2093,7 @@ OO_TEST(slice24IsValidTarget)
 		SetUp();
 		TestShip *ship = MakeLateSliceShip("judge");
 		TestShip *other = MakeLateSliceShip("target");
-		Entity *plain = oo::MadeEntity(oo::makeRef<Entity>());
+		Entity *plain = oo::MadeEntity(oo::makeShared<Entity>());
 		OO_CHECK(!(ship != nullptr ? ship->isValidTarget(nullptr) : false));
 		OO_CHECK((ship != nullptr ? ship->isValidTarget(other) : false));
 		OO_CHECK(!(ship != nullptr ? ship->isValidTarget(plain) : false));		// neither a ship nor a wormhole
@@ -2462,7 +2462,7 @@ OO_TEST(slice26DefenseTargets)
 		TestShip *ship = MakeLateSliceShip("defender");
 		TestShip *a = MakeLateSliceShip("attacker-a");
 		TestShip *b = MakeLateSliceShip("attacker-b");
-		Entity *plain = oo::MadeEntity(oo::makeRef<Entity>());
+		Entity *plain = oo::MadeEntity(oo::makeShared<Entity>());
 		OO_CHECK((ship != nullptr ? ship->defenseTargetCount() : 0) == 0 && (ship != nullptr ? ship->allDefenseTargets() : std::vector<oo::EntityHold>()).empty() && (ship != nullptr ? ship->defenseTargets() : std::vector<oo::EntityHold>()).empty());
 		if (ship != nullptr)  ship->validateDefenseTargets();		// none yet: fine
 

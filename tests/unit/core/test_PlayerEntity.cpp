@@ -11,7 +11,7 @@
 	the class's own units: sharedPlayer(), the player made (the ship made the player's way, and the
 	only player), deferredInit() (the ship's initialiser sent again over the same object, and the
 	player's own defaults), and the object's -dealloc (it releases what the player held). The player
-	is C++, made as the game makes it (oo::makeRef), and the stand-ins are C++ subclasses
+	is C++, made as the game makes it (oo::makeShared), and the stand-ins are C++ subclasses
 	overriding the members; the test
 	reads and sets the members directly. The case after those pins the crossing: the player's object
 	is a ship whose C++ part is the player, and it answers the player's selectors called by name.
@@ -232,7 +232,7 @@ void UncountSecondInit(Entity *entity)
 template <class T>
 T *NewTestPlayer()
 {
-	std::shared_ptr<T> player = oo::makeRef<T>();
+	std::shared_ptr<T> player = oo::makeShared<T>();
 	{
 		oo::AutoreleaseScope scope;
 		oo::RetainEntity(oo::MadeEntity(player));
@@ -337,7 +337,7 @@ OO_TEST(deallocReleasesWhatThePlayerHeld)
 	{
 		oo::AutoreleaseScope scope;
 		SetUp();
-		missile = oo::RetainedEntity(oo::NewShipObject(oo::makeRef<TestMissile>(), "missile", oo::PList()));
+		missile = oo::RetainedEntity(oo::NewShipObject(oo::makeShared<TestMissile>(), "missile", oo::PList()));
 		TestPlayer *player = NewTestPlayer<TestPlayer>();
 		PlayerEntityTestAccess::missile_entity(player)[2] = oo::AdoptHold(oo::RetainEntity(missile));	// held by oo::EntityHold
 		OO_CHECK(missile->weak_from_this().use_count() == 2);
@@ -365,7 +365,7 @@ OO_TEST(playerObjectIsAShipWhosePartIsThePlayer)
 		OO_CHECK(oo::EntityRespondsToName(player, "credits_number"));
 		OO_CHECK(!oo::EntityRespondsToName(player, "noSuchPlayerSelector"));
 
-		::ShipEntity *ship = static_cast<TestMissile *>(oo::ToShip(oo::RetainedEntity(oo::NewShipObject(oo::makeRef<TestMissile>(), "missile", oo::PList()))));
+		::ShipEntity *ship = static_cast<TestMissile *>(oo::ToShip(oo::RetainedEntity(oo::NewShipObject(oo::makeShared<TestMissile>(), "missile", oo::PList()))));
 		OO_CHECK(ship != nullptr && !oo::EntityRespondsToName(ship, "commanderName_string"));
 		oo::ReleaseEntity(ship);
 		Release(player);
@@ -540,7 +540,7 @@ OO_TEST(slice3Wormhole)
 		TestPlayer *player = MakePlayer();
 		OO_CHECK(player->getWormhole() == nullptr);
 		// A C++ wormhole: the player retains it.
-		std::shared_ptr<WormholeEntity> holeRef = oo::makeRef<WormholeEntity>();
+		std::shared_ptr<WormholeEntity> holeRef = oo::makeShared<WormholeEntity>();
 		Entity *object = oo::RetainEntity(oo::MadeEntity(holeRef));
 		WormholeEntity *hole = holeRef.get();
 		const long count = object->weak_from_this().use_count();
@@ -790,7 +790,7 @@ OO_TEST(slice11CountMissiles)
 	{
 		oo::AutoreleaseScope scope;
 		SetUp();
-		missile = static_cast<TestMissile *>(oo::ToShip(oo::RetainedEntity(oo::NewShipObject(oo::makeRef<TestMissile>(), "missile", oo::PList()))));
+		missile = static_cast<TestMissile *>(oo::ToShip(oo::RetainedEntity(oo::NewShipObject(oo::makeShared<TestMissile>(), "missile", oo::PList()))));
 		TestPlayer *player = MakePlayer();
 		player->max_missiles = 4;
 		OO_CHECK(player->countMissiles() == 0);

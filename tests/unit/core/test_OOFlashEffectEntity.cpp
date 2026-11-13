@@ -52,7 +52,7 @@ class TestPlayer : public PlayerEntity {
 // object was.
 template <class T>
 T* NewTestPlayer() {
-  std::shared_ptr<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeShared<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -126,7 +126,7 @@ OOFlashEffectEntity* Part(Entity* flash) {
 }
 
 Entity* Exploding() {
-  Entity* e = oo::MadeEntity(oo::makeRef<Entity>());
+  Entity* e = oo::MadeEntity(oo::makeShared<Entity>());
   e->setPosition(make_HPvector(10, 20, 30));
   e->setVelocity(make_vector(1, 2, 3));
   e->setCollisionRadius(2.0f);

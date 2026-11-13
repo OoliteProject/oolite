@@ -447,7 +447,7 @@ OO_TEST(facadeContract) {
                  .get() == nullptr);
 
     // A C++ mesh made bare is the old -init's: no model yet.
-    const std::shared_ptr<OOMesh> bare = oo::makeRef<OOMesh>();
+    const std::shared_ptr<OOMesh> bare = oo::makeShared<OOMesh>();
     OO_CHECK_EQ(bare->modelName().value_or("<none>"), "No Model");
     OO_CHECK_EQ(bare->getVertexCount(), 0u);
   }

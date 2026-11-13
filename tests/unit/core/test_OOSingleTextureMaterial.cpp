@@ -71,7 +71,7 @@ std::shared_ptr<OOTexture> OOTexture::textureWithConfiguration(
   gTextureConfigurations.push_back(configuration);
   if (configuration.isNull() || configuration == oo::PList("missing"))
     return nullptr;
-  std::shared_ptr<TestTexture> texture = oo::makeRef<TestTexture>();
+  std::shared_ptr<TestTexture> texture = oo::makeShared<TestTexture>();
   texture->_configuration = configuration;
   return texture;
 }

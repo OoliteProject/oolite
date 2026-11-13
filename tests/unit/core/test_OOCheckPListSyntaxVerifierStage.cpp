@@ -119,7 +119,7 @@ OOOXPVerifier* MakeVerifier(
 OO_TEST(nameAndNeighbours) {
   {
     const std::shared_ptr<OOCheckPListSyntaxVerifierStage> stage =
-        oo::makeRef<OOCheckPListSyntaxVerifierStage>();
+        oo::makeShared<OOCheckPListSyntaxVerifierStage>();
     stage->setVerifier(MakeVerifier({}));
     OO_CHECK(stage->name() ==
              std::optional<std::string>("Checking plist well-formedness"));
@@ -135,7 +135,7 @@ OO_TEST(nameAndNeighbours) {
 OO_TEST(checksEachKnownPList) {
   {
     const std::shared_ptr<OOCheckPListSyntaxVerifierStage> stage =
-        oo::makeRef<OOCheckPListSyntaxVerifierStage>();
+        oo::makeShared<OOCheckPListSyntaxVerifierStage>();
     stage->setVerifier(MakeVerifier({
         {"array.plist", "( 1, 2 )"},
         {"dict.plist", "{ a = 1; }"},
@@ -194,7 +194,7 @@ OO_TEST(facade) {
   {
     OOOXPVerifier* verifier = MakeVerifier({});
     const std::shared_ptr<OOCheckPListSyntaxVerifierStage> stage =
-        oo::makeRef<OOCheckPListSyntaxVerifierStage>();
+        oo::makeShared<OOCheckPListSyntaxVerifierStage>();
     OO_CHECK(stage->description().starts_with(
         "<OOCheckPListSyntaxVerifierStage 0x"));
 

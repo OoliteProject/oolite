@@ -93,7 +93,7 @@ Universe *gSharedUniverse = nullptr;
 // holds its C++ part, which oo::ToCxx reads), declared as Entity.h and
 // ShipEntity.h declare them (the test imports neither). The test dumps no
 // entity, so none is reached.
-class Entity : public oo::RefCounted
+class Entity : public oo::Object
 {
 public:
 	virtual ~Entity();
@@ -102,7 +102,7 @@ public:
 	bool getIsWormhole();
 };
 
-class TestEntityObject final : public oo::RefCounted
+class TestEntityObject final : public oo::Object
 {
 public:
 	const char *className() const  { return "Entity"; }
@@ -263,7 +263,7 @@ std::shared_ptr<OOJSScript> OOJSScript::scriptWithPath(const std::optional<std::
 	(void)path;
 	sConsoleScriptsMade++;
 	sConsoleScriptProperties = properties;
-	return oo::makeRef<OOJSScript>();
+	return oo::makeShared<OOJSScript>();
 }
 OOJSScript *OOJSScript::currentlyRunningScript()
 {
@@ -515,7 +515,7 @@ TestDebugger *NewDebugger()
 {
 	// Kept for the rest of the run (the Objective-C debugger lived until its test's pool drained).
 	static std::vector<std::shared_ptr<TestDebugger>> debuggers;
-	debuggers.push_back(oo::makeRef<TestDebugger>());
+	debuggers.push_back(oo::makeShared<TestDebugger>());
 	return debuggers.back().get();
 }
 

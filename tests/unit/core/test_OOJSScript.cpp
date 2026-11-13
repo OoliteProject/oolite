@@ -215,7 +215,7 @@ OO_TEST(callMethod) {
     JS_FreeValue(context, self);
 
     // A script that is not JavaScript answers NO (OOScript (JavaScriptEvents)).
-    const std::shared_ptr<OOScript> plain = oo::makeRef<OOScript>();
+    const std::shared_ptr<OOScript> plain = oo::makeShared<OOScript>();
     OO_CHECK(!plain->callMethod(OOJSID("bump"), context, argv, 1, NULL));
     OOJSRelinquishContext(context);
 
@@ -300,7 +300,7 @@ OO_TEST(crossing) {
     OO_CHECK(
         script->jsDescription() ==
         std::optional<std::string>("[Script \"test-script\" version 1.0]"));
-    const std::shared_ptr<OOScript> plain = oo::makeRef<OOScript>();
+    const std::shared_ptr<OOScript> plain = oo::makeShared<OOScript>();
     JSValue plainValue = plain->jsValueInContext(context);
     OO_CHECK(JS_IsUndefined(plainValue));
     JS_FreeValue(context, plainValue);

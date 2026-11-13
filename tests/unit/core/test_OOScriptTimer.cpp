@@ -60,7 +60,7 @@ class TestTimer final : public OOScriptTimer {
  public:
   static std::shared_ptr<TestTimer> timerWithNextTime(OOTimeAbsolute nextTime,
                                               OOTimeDelta interval) {
-    std::shared_ptr<TestTimer> timer = oo::adopt(new TestTimer);
+    std::shared_ptr<TestTimer> timer = std::shared_ptr<TestTimer>(new TestTimer(), oo::Dispose{});
     if (!timer->initWithNextTime(nextTime, interval)) return nullptr;
     return timer;
   }

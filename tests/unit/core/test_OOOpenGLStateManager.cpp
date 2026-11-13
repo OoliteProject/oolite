@@ -41,7 +41,7 @@ oo::PList ResourceManager::dictionaryFromFilesNamed(
 
 // OORegExpMatcher: the stub answers no match.
 std::shared_ptr<OORegExpMatcher> OORegExpMatcher::regExpMatcher() {
-  return oo::makeRef<OORegExpMatcher>();
+  return oo::makeShared<OORegExpMatcher>();
 }
 bool OORegExpMatcher::string(const std::string&, const std::string&) {
   return false;

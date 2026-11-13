@@ -48,7 +48,7 @@ OO_TEST(newStopwatchIsRunning) {
 }
 
 OO_TEST(stopFreezesTheTime) {
-  std::shared_ptr<OOProfilingStopwatch> watch = oo::makeRef<OOProfilingStopwatch>();
+  std::shared_ptr<OOProfilingStopwatch> watch = oo::makeShared<OOProfilingStopwatch>();
   Sleep(20);
   watch->stop();
   OOTimeDelta stopped = watch->currentTime();

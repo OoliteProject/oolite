@@ -36,7 +36,7 @@ void OOLogGenericSubclassResponsibilityForFunction(const char* inFunction) {
 */
 struct OOOXPVerifierTestAccess {
   static std::shared_ptr<OOOXPVerifier> Make() {
-    return oo::adopt(new OOOXPVerifier());
+    return std::shared_ptr<OOOXPVerifier>(new OOOXPVerifier(), oo::Dispose{});
   }
 };
 
@@ -96,7 +96,7 @@ class TestCxxStage : public OOOXPVerifierStage {
 namespace {
 
 std::shared_ptr<TestObjCStage> MakeStage(const char* name) {
-  std::shared_ptr<TestObjCStage> stage = oo::makeRef<TestObjCStage>();
+  std::shared_ptr<TestObjCStage> stage = oo::makeShared<TestObjCStage>();
   stage->_testName = name;
   return stage;
 }
@@ -115,7 +115,7 @@ bool Holds(const std::vector<std::shared_ptr<OOOXPVerifierStage>>& stages,
 
 OO_TEST(baseDefaults) {
   {
-    const std::shared_ptr<OOOXPVerifierStage> stage = oo::makeRef<OOOXPVerifierStage>();
+    const std::shared_ptr<OOOXPVerifierStage> stage = oo::makeShared<OOOXPVerifierStage>();
     const int before = gSubclassResponsibilities;
     OO_CHECK(!stage->name()
                   .has_value());  // subclass responsibility: logs, answers nil
@@ -202,7 +202,7 @@ OO_TEST(exceptionInRunIsCaught) {
 OO_TEST(superCallsReachTheBase) {
   {
     const std::shared_ptr<TestSuperCallingStage> stage =
-        oo::makeRef<TestSuperCallingStage>();
+        oo::makeShared<TestSuperCallingStage>();
     const std::optional<std::vector<std::string>> dependents =
         stage->dependents();
     OO_CHECK(dependents == std::vector<std::string>{"Listing unused files"});
@@ -214,14 +214,14 @@ OO_TEST(description) {
     const std::string text = MakeStage("Checking things")->description();
     OO_CHECK(text.starts_with("<TestObjCStage 0x"));
     OO_CHECK(text.ends_with(">{\"Checking things\"}"));
-    OO_CHECK(oo::makeRef<OOOXPVerifierStage>()->description().ends_with(
+    OO_CHECK(oo::makeShared<OOOXPVerifierStage>()->description().ends_with(
         ">{\"(null)\"}"));
   }
 }
 
 OO_TEST(cxxStageBehindTheFacade) {
   {
-    const std::shared_ptr<TestCxxStage> stage = oo::makeRef<TestCxxStage>("Cxx");
+    const std::shared_ptr<TestCxxStage> stage = oo::makeShared<TestCxxStage>("Cxx");
 
     // The verifier's calls reach the C++ overrides, and the base's defaults.
     OO_CHECK(stage->name() == std::optional<std::string>("Cxx"));
@@ -257,7 +257,7 @@ OO_TEST(objCStageBehindACxxPointer) {
     // The subclass's base call still reaches the base, not back to the
     // subclass.
     const std::shared_ptr<TestSuperCallingStage> superCalling =
-        oo::makeRef<TestSuperCallingStage>();
+        oo::makeShared<TestSuperCallingStage>();
     OO_CHECK(
         static_cast<OOOXPVerifierStage*>(superCalling.get())->dependents() ==
         std::vector<std::string>{"Listing unused files"});
@@ -266,7 +266,7 @@ OO_TEST(objCStageBehindACxxPointer) {
 
 OO_TEST(mixedDependencyGraph) {
   {
-    const std::shared_ptr<TestCxxStage> cxxStage = oo::makeRef<TestCxxStage>("Cxx");
+    const std::shared_ptr<TestCxxStage> cxxStage = oo::makeShared<TestCxxStage>("Cxx");
     cxxStage->_shouldRun = true;
     const std::shared_ptr<TestObjCStage> objCStage = MakeStage("ObjC");
 

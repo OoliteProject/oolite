@@ -20,6 +20,7 @@
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
+#include "EntityManualRefs.h"  // the tests' manual references (T097)
 
 #include <quickjs.h>
 
@@ -27,7 +28,7 @@
 // MARK: The entity classes, as far as the binding sees them ---------------------------------------
 
 // The C++ root, as far as the binding and the root's JS category reach it.
-class Entity : public oo::RefCounted
+class Entity : public oo::Object
 {
 public:
 	virtual ~Entity();
@@ -64,7 +65,7 @@ public:
 
 
 // Its category's selectors are members of the same names.
-class TestEntityObject final : public oo::RefCounted
+class TestEntityObject final : public oo::Object
 {
 public:
 	JSClassID oo_jsClassID();
@@ -289,16 +290,16 @@ void SetUpContext()
 	OOJSInitClass(sContext, sGlobal, sFakeEntityClassID, JS_UNDEFINED, OOJSUnconstructableConstruct, 0, nullptr, 0, nullptr, 0, nullptr, 0);
 	InitOOJSWormhole(sContext, sGlobal);
 
-	sWormhole = oo::makeRef<TestEntityObject>().leakRef();	// kept for the life of the test
-	sWormhole->_cxxEntity = oo::makeRef<WormholeEntity>();
+	sWormhole = oo::test::NewRetained<TestEntityObject>();	// kept for the life of the test
+	sWormhole->_cxxEntity = oo::makeShared<WormholeEntity>();
 	sWormholePart = static_cast<WormholeEntity *>(sWormhole->_cxxEntity.get());
 	sWormholePart->_arrivalTime = 1000.5;
 	sWormholePart->_expiryTime = 900.25;
 	sWormholePart->_origin = 7;
 	sWormholePart->_destination = 129;
 	JS_SetPropertyStr(sContext, sGlobal, "wormhole", JSValueForEntity(sWormhole->oo_jsClassID(), sWormhole));
-	TestEntityObject *plainEntity = oo::makeRef<TestEntityObject>().leakRef();	// kept for the life of the test
-	plainEntity->_cxxEntity = oo::makeRef<Entity>();	// an entity that is not a wormhole
+	TestEntityObject *plainEntity = oo::test::NewRetained<TestEntityObject>();	// kept for the life of the test
+	plainEntity->_cxxEntity = oo::makeShared<Entity>();	// an entity that is not a wormhole
 	JS_SetPropertyStr(sContext, sGlobal, "plainEntity", JSValueForEntity(sFakeEntityClassID, plainEntity));
 }
 

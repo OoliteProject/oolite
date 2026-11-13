@@ -43,7 +43,7 @@ class TestPlayer : public PlayerEntity {
 // object was.
 template <class T>
 T* NewTestPlayer() {
-  std::shared_ptr<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeShared<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -147,7 +147,7 @@ OO_TEST(flagsAndColors) {
     OO_CHECK(ring->status() == OOEntityStatus::kEffect &&
              ring->scanClass == OOScanClass::kNoDraw);
     OO_CHECK(ring->isImmuneToBreakPatternHide && !ring->canCollide());
-    std::shared_ptr<Entity> other = oo::makeRef<Entity>();
+    std::shared_ptr<Entity> other = oo::makeShared<Entity>();
     OO_CHECK(dynamic_cast<OOBreakPatternEntity*>(ring.get()) != nullptr &&
              dynamic_cast<OOBreakPatternEntity*>(other.get()) == nullptr);
 

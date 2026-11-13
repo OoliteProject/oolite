@@ -18,8 +18,9 @@
 
 #include "OOJSPrivateObject.h"
 #include "OOJSEngineCore.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 #include "oofnd/String.hpp"
+#include "EntityManualRefs.h"  // the tests' manual references (T097)
 
 #include "oo_test.hpp"
 
@@ -56,7 +57,7 @@ int sDestroyed = 0;
 	(a weak reference: the caller gets the only one), and counts what the engine tells it. A Thing
 	named "boom" throws from jsDescription().
 */
-class Thing : public oo::RefCounted, public OOJSPrivateObject
+class Thing : public oo::Object, public OOJSPrivateObject
 {
 public:
 	Thing(std::string name, std::optional<std::string> description, JSClassID *jsClassID = &sThingClassID)
@@ -107,7 +108,7 @@ public:
 
 
 // A slot object that does not implement OOJSPrivateObject: the finalizer only releases it.
-class PlainThing : public oo::RefCounted
+class PlainThing : public oo::Object
 {
 public:
 	~PlainThing() override  { sDestroyed++; }
@@ -284,8 +285,8 @@ OO_TEST(jsValue)
 	SetUpContext();
 	// -oo_jsValueInContext: of nil was null; of an object, its own JS object, made once.
 	OO_CHECK(JS_IsNull(OOJSValueFromCxxObject(sContext, nullptr)));
-	std::shared_ptr<Thing> thing = oo::adopt(new Thing("alpha", std::nullopt));
-	OO_CHECK_EQ(thing->retainCount(), 1u);
+	std::shared_ptr<Thing> thing = std::shared_ptr<Thing>(new Thing("alpha", std::nullopt), oo::Dispose{});
+	OO_CHECK_EQ(thing->weak_from_this().use_count(), 1u);
 	JSValue first = OOJSValueFromCxxObject(sContext, thing.get());
 	OO_CHECK(JS_IsObject(first));
 	JSValue again = OOJSValueFromCxxObject(sContext, thing.get());
@@ -293,7 +294,7 @@ OO_TEST(jsValue)
 	JS_FreeValue(sContext, again);
 	// The slot holds the object as an oo::RefCounted *, with one retain.
 	OO_CHECK(OOJSCxxPrivateFromOpaque(JS_GetOpaque(first, sThingClassID)) == static_cast<oo::Object *>(thing.get()));
-	OO_CHECK_EQ(thing->retainCount(), 2u);
+	OO_CHECK_EQ(thing->weak_from_this().use_count(), 2u);
 	Define("alpha", first);
 	OO_CHECK_EVAL("alpha.name()", "alpha");
 	OO_CHECK_EVAL("Object.getPrototypeOf(alpha) === thingPrototype", "true");
@@ -303,7 +304,7 @@ OO_TEST(jsValue)
 OO_TEST(getter)
 {
 	SetUpContext();
-	std::shared_ptr<Thing> sub = oo::adopt(new Thing("beta", std::nullopt, &sSubThingClassID));
+	std::shared_ptr<Thing> sub = std::shared_ptr<Thing>(new Thing("beta", std::nullopt, &sSubThingClassID), oo::Dispose{});
 	Define("beta", OOJSValueFromCxxObject(sContext, sub.get()));
 	// A registered subclass passes the class check; the prototype has no object.
 	OO_CHECK_EVAL("beta.name()", "beta");
@@ -321,22 +322,22 @@ OO_TEST(finalize)
 	// The engine's finalizer sends clearJSSelf() with the dying wrapper, then releases the slot.
 	// (QuickJS finalizes an object when its last reference goes, so the test drops its own before
 	// collecting.)
-	Thing *thing = new Thing("gamma", std::nullopt);	// the test's reference, released below
+	Thing *thing = oo::test::NewRetained<Thing>("gamma", std::nullopt);	// the test's reference, released below
 	JSValue wrapperValue = OOJSValueFromCxxObject(sContext, thing);
 	void *wrapper = JS_VALUE_GET_PTR(wrapperValue);
 	OO_CHECK(JS_IsObject(wrapperValue));
-	OO_CHECK_EQ(thing->retainCount(), 2u);
+	OO_CHECK_EQ(thing->weak_from_this().use_count(), 2u);
 	JS_FreeValue(sContext, wrapperValue);
 	JS_RunGC(sRuntime);
 	OO_CHECK_EQ(thing->_clearCalls, 1);
 	OO_CHECK(thing->_lastCleared == wrapper);
 	OO_CHECK(!JS_IsObject(thing->_jsSelf));
-	OO_CHECK_EQ(thing->retainCount(), 1u);
+	OO_CHECK_EQ(thing->weak_from_this().use_count(), 1u);
 	// A new wrapper is made on the next use, and its finalizer's release is the last one.
 	JSValue second = OOJSValueFromCxxObject(sContext, thing);
 	OO_CHECK(JS_IsObject(second));
 	const int destroyed = sDestroyed;
-	thing->release();
+	oo::test::Release(thing);
 	OO_CHECK_EQ(sDestroyed, destroyed);
 	JS_FreeValue(sContext, second);
 	JS_RunGC(sRuntime);
@@ -344,10 +345,10 @@ OO_TEST(finalize)
 
 	// A slot object without the JS glue is released all the same.
 	JSValue plainWrapper = JS_NewObjectClass(sContext, static_cast<int>(sThingClassID));
-	PlainThing *plain = new PlainThing;
+	PlainThing *plain = oo::test::NewRetained<PlainThing>();
 	OO_CHECK(OOJSSetCxxPrivate(plainWrapper, oo::share(plain)));
-	OO_CHECK_EQ(plain->retainCount(), 2u);
-	plain->release();
+	OO_CHECK_EQ(plain->weak_from_this().use_count(), 2u);
+	oo::test::Release(plain);
 	JS_FreeValue(sContext, plainWrapper);
 	JS_RunGC(sRuntime);
 	OO_CHECK_EQ(sDestroyed, destroyed + 2);
@@ -357,9 +358,9 @@ OO_TEST(finalize)
 OO_TEST(toString)
 {
 	SetUpContext();
-	std::shared_ptr<Thing> described = oo::adopt(new Thing("delta", std::string("[Thing delta, caf\xC3\xA9]")));
-	std::shared_ptr<Thing> plain = oo::adopt(new Thing("epsilon", std::nullopt));
-	std::shared_ptr<Thing> sub = oo::adopt(new Thing("zeta", std::nullopt, &sSubThingClassID));
+	std::shared_ptr<Thing> described = std::shared_ptr<Thing>(new Thing("delta", std::string("[Thing delta, caf\xC3\xA9]")), oo::Dispose{});
+	std::shared_ptr<Thing> plain = std::shared_ptr<Thing>(new Thing("epsilon", std::nullopt), oo::Dispose{});
+	std::shared_ptr<Thing> sub = std::shared_ptr<Thing>(new Thing("zeta", std::nullopt, &sSubThingClassID), oo::Dispose{});
 	Define("delta", OOJSValueFromCxxObject(sContext, described.get()));
 	Define("epsilon", OOJSValueFromCxxObject(sContext, plain.get()));
 	Define("zeta", OOJSValueFromCxxObject(sContext, sub.get()));
@@ -373,7 +374,7 @@ OO_TEST(toString)
 	OO_CHECK_EVAL("thingPrototype.toString.call({})", "foreign");
 	OO_CHECK_EQ(sForeignToStrings, 1);
 	// An exception under jsDescription() becomes a JS error, as under any native.
-	std::shared_ptr<Thing> boom = oo::adopt(new Thing("boom", std::nullopt));
+	std::shared_ptr<Thing> boom = std::shared_ptr<Thing>(new Thing("boom", std::nullopt), oo::Dispose{});
 	Define("boom", OOJSValueFromCxxObject(sContext, boom.get()));
 	OO_CHECK_EVAL("String(boom)", "threw: Native exception: description boom");
 }

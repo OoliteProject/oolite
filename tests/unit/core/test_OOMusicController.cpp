@@ -58,7 +58,7 @@ std::optional<std::string> OOSound::descriptionComponents() const {
 // not linked).
 std::shared_ptr<OOMusic> OOMusic::initWithContentsOfFile(
     const std::optional<std::string>& inPath) {
-  std::shared_ptr<OOMusic> self = oo::adopt(new OOMusic);
+  std::shared_ptr<OOMusic> self = std::shared_ptr<OOMusic>(new OOMusic(), oo::Dispose{});
   gLiveMusics++;
   gMusics[self.get()]._name = inPath.value_or(std::string());
   return self;

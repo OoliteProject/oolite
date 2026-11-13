@@ -43,7 +43,7 @@ class TestPlayer : public PlayerEntity {
 void SetUpTestPlayer() {
   static TestPlayer* player = nullptr;
   if (player == nullptr) {
-    std::shared_ptr<TestPlayer> made = oo::makeRef<TestPlayer>();
+    std::shared_ptr<TestPlayer> made = oo::makeShared<TestPlayer>();
     {
       oo::RetainEntity(oo::MadeEntity(
           made));  // +1, as PlayerEntity::sharedPlayer() makes the game's
@@ -55,7 +55,7 @@ void SetUpTestPlayer() {
 
 Entity* MakeEntity(HPVector position, GLfloat radius) {
   SetUpTestPlayer();
-  Entity* entity = oo::MadeEntity(oo::makeRef<Entity>());
+  Entity* entity = oo::MadeEntity(oo::makeShared<Entity>());
   entity->setPosition(position);
   entity->setCollisionRadius(radius);
   return entity;
@@ -67,7 +67,7 @@ bool EndsWith(const std::string& text, const std::string& tail) {
 }
 
 std::shared_ptr<CollisionRegion> MakeUniverse() {
-  return oo::makeRef<CollisionRegion>(CollisionRegion::AsUniverse{});
+  return oo::makeShared<CollisionRegion>(CollisionRegion::AsUniverse{});
 }
 
 // The region an entity is filed in (the entity's C++ part holds it).
@@ -170,7 +170,7 @@ OO_TEST(shadowGeometry) {
   {
     // The function reads only Entity members of the sun, which is C++: a C++
     // sun with the same position and radius.
-    std::shared_ptr<OOSunEntity> sunRef = oo::makeRef<OOSunEntity>();
+    std::shared_ptr<OOSunEntity> sunRef = oo::makeShared<OOSunEntity>();
     sunRef->position = make_HPvector(0, 0, 10000);
     sunRef->collision_radius = 10;
     OOSunEntity* sun = sunRef.get();

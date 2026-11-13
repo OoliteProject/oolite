@@ -152,7 +152,7 @@ OOOXPVerifier* MakeVerifier(std::initializer_list<const char*> files) {
 OO_TEST(nameAndNeighbours) {
   {
     const std::shared_ptr<OOCheckJSSyntaxVerifierStage> stage =
-        oo::makeRef<OOCheckJSSyntaxVerifierStage>();
+        oo::makeShared<OOCheckJSSyntaxVerifierStage>();
     stage->setVerifier(MakeVerifier({}));
     OO_CHECK(stage->name() ==
              std::optional<std::string>("Checking JS Script file syntax"));
@@ -164,7 +164,7 @@ OO_TEST(nameAndNeighbours) {
 OO_TEST(runsWhenThereAreScripts) {
   {
     const std::shared_ptr<OOCheckJSSyntaxVerifierStage> stage =
-        oo::makeRef<OOCheckJSSyntaxVerifierStage>();
+        oo::makeShared<OOCheckJSSyntaxVerifierStage>();
     stage->setVerifier(MakeVerifier({"Config/shipdata.plist"}));
     OO_CHECK(!stage->shouldRun());
     stage->run();
@@ -186,7 +186,7 @@ OO_TEST(runsWhenThereAreScripts) {
 OO_TEST(compilesEachScript) {
   {
     const std::shared_ptr<OOCheckJSSyntaxVerifierStage> stage =
-        oo::makeRef<OOCheckJSSyntaxVerifierStage>();
+        oo::makeShared<OOCheckJSSyntaxVerifierStage>();
     stage->setVerifier(MakeVerifier({"Scripts/b.js", "Scripts/A.JS",
                                      "Scripts/c.es", "Scripts/notes.txt",
                                      "Scripts/noext", "Config/script.js"}));
@@ -218,7 +218,7 @@ OO_TEST(facade) {
   {
     OOOXPVerifier* verifier = MakeVerifier({"Config/script.js"});
     const std::shared_ptr<OOCheckJSSyntaxVerifierStage> stage =
-        oo::makeRef<OOCheckJSSyntaxVerifierStage>();
+        oo::makeShared<OOCheckJSSyntaxVerifierStage>();
     OO_CHECK(
         stage->description().starts_with("<OOCheckJSSyntaxVerifierStage 0x"));
 

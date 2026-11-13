@@ -12,7 +12,7 @@
    position (the viewpoint wrapped to the dust cube), the two vectors the dust
    shader binds by selector (-warpVector, -offsetPlayerPosition), and that the
    universe can still find the dust. The universe makes it with
-   oo::makeRef<DustEntity>() and init() and hands it over
+   oo::makeShared<DustEntity>() and init() and hands it over
    to the universe, so the test does the same and asks the C++ class.
    Run: bash tools/check-core-tests.sh
 */
@@ -50,7 +50,7 @@ class TestPlayer : public PlayerEntity {
 // the game's, retained (+1) as +alloc's object was.
 template <class T>
 T* NewTestPlayer() {
-  std::shared_ptr<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeShared<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -76,7 +76,7 @@ TestPlayer* SetUp() {
 
 // What the universe does: a dust entity, and its root facade.
 Entity* MakeDust(DustEntity** outDust) {
-  std::shared_ptr<DustEntity> dust = oo::makeRef<DustEntity>();
+  std::shared_ptr<DustEntity> dust = oo::makeShared<DustEntity>();
   dust->init();
   *outDust = dust.get();
   return oo::MadeEntity(dust);

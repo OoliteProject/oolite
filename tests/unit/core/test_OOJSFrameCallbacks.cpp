@@ -103,7 +103,7 @@ void OOJSReportPendingException(JSContext *context)
 // add calls, defined here with the stand-in's answers. It owns a reference.
 std::shared_ptr<OOJSValue> OOJSValue::valueWithJSValue(JSValueConst value, JSContext *context)
 {
-	std::shared_ptr<OOJSValue> result = oo::makeRef<OOJSValue>();
+	std::shared_ptr<OOJSValue> result = oo::makeShared<OOJSValue>();
 	result->_val = JS_DupValue(context, value);
 	return result;
 }

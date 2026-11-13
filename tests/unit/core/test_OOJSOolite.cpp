@@ -18,7 +18,7 @@
 #include "oofnd/objc/OOException.h"
 #include "oofnd/objc/OOFoundationTypes.h"	// BOOL
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 #include "oofnd/String.hpp"
 
 
@@ -46,7 +46,7 @@ enum class OOSDRToneMapper : std::int32_t {
 
 // The game view: a stand-in for the C++ class, with the header's names and
 // signatures, defined out of line below with the stand-in's answers.
-class MyOpenGLView : public oo::RefCounted
+class MyOpenGLView : public oo::Object
 {
 public:
 	float _colorSaturation = {};
@@ -75,7 +75,7 @@ public:
 // with the header's names and signatures. It answers virtual members, so it
 // has the game's vtable (UniverseStandIn.h) and StandInUniverse
 // overrides them.
-class Universe : public oo::RefCounted
+class Universe : public oo::Object
 {
 public:
 	OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS

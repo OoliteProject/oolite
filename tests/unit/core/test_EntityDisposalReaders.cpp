@@ -47,7 +47,7 @@ namespace {
 // A C++ player, as PlayerEntity::sharedPlayer() makes the game's, retained
 // (+1).
 TestPlayer* NewTestPlayer() {
-  std::shared_ptr<TestPlayer> player = oo::makeRef<TestPlayer>();
+  std::shared_ptr<TestPlayer> player = oo::makeShared<TestPlayer>();
   {
     oo::AutoreleaseScope scope;
     oo::RetainEntity(oo::MadeEntity(player));

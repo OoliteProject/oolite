@@ -96,7 +96,7 @@ std::optional<std::string> ResourceManager::stringFromFilesNamed(
 
 // OORegExpMatcher stub: answers no match.
 std::shared_ptr<OORegExpMatcher> OORegExpMatcher::regExpMatcher() {
-  return oo::makeRef<OORegExpMatcher>();
+  return oo::makeShared<OORegExpMatcher>();
 }
 bool OORegExpMatcher::string(const std::string&, const std::string&) {
   return false;
@@ -153,7 +153,7 @@ std::shared_ptr<OOShaderProgram> OOShaderProgram::shaderProgramWithVertexShader(
       " bindings=" + oo::DescriptionOf(attributeBindings) +
       " key=" + Text(cacheKey));
   if (vertexShaderSource == std::optional<std::string>("fail")) return nullptr;
-  return oo::adopt(new OOShaderProgram());
+  return std::shared_ptr<OOShaderProgram>(new OOShaderProgram(), oo::Dispose{});
 }
 
 // The uniforms: each initialiser recorded as "name kind value"; the name "bad"
@@ -169,7 +169,7 @@ static std::vector<std::string> gUniformTargets;
   do {                                                                \
     gUniforms.push_back((uniformName) + " " + (what));                \
     if ((uniformName) == "bad") return nullptr;                       \
-    std::shared_ptr<OOShaderUniform> made = oo::adopt(new OOShaderUniform()); \
+    std::shared_ptr<OOShaderUniform> made = std::shared_ptr<OOShaderUniform>(new OOShaderUniform(), oo::Dispose{}); \
     made->name = (uniformName);                                       \
     return made;                                                      \
   } while (0)
@@ -249,7 +249,7 @@ void OOTexture::applyNone() { gTextureApplyNones++; }
 std::shared_ptr<OOTexture> OOTexture::textureWithConfiguration(
     const oo::PList& configuration) {
   if (configuration == oo::PList("missing")) return nullptr;
-  std::shared_ptr<TestTexture> texture = oo::makeRef<TestTexture>();
+  std::shared_ptr<TestTexture> texture = oo::makeShared<TestTexture>();
   texture->_name = Text(configuration);
   texture->_finished = true;
   return texture;

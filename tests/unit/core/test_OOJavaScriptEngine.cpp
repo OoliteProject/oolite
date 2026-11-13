@@ -703,7 +703,7 @@ OO_TEST(nativeObjectValues)
 		OO_CHECK(JS_IsNull(Owned(null->jsValueInContext(context))));
 
 		// A native vector is a Vector3D.
-		std::shared_ptr<OONativeVector> vector = oo::makeRef<OONativeVector>(make_vector(1.0f, 2.0f, 3.0f));
+		std::shared_ptr<OONativeVector> vector = oo::makeShared<OONativeVector>(make_vector(1.0f, 2.0f, 3.0f));
 		Owned vectorValue(OOJSValueFromPList(context, oo::PList(oo::PList::Object(vector))));
 		OO_CHECK(JS_IsObject(vectorValue));
 		const char *className = OOJSClassName(JS_GetClassID(vectorValue));
@@ -750,7 +750,7 @@ OO_TEST(jsValueHolder)
 OO_TEST(cxxObjectWrapper)
 {
 	SetUp();
-	std::shared_ptr<TestCxxNative> native = oo::makeRef<TestCxxNative>();
+	std::shared_ptr<TestCxxNative> native = oo::makeShared<TestCxxNative>();
 	const int deallocs = sCxxNativeDeallocs;
 	{
 		JSContext *context = OOJSAcquireContext();
@@ -818,7 +818,7 @@ OO_TEST(entityPredicates)
 		OO_CHECK(!JSEntityIsJavaScriptSearchablePredicate(nullptr, NULL));
 		OO_CHECK(!JSEntityIsDemoShipPredicate(nullptr, NULL));
 
-		TestScriptEntity *entity = static_cast<TestScriptEntity *>(oo::MadeEntity(oo::makeRef<TestScriptEntity>()));
+		TestScriptEntity *entity = static_cast<TestScriptEntity *>(oo::MadeEntity(oo::makeShared<TestScriptEntity>()));
 		entity->setStatus(OOEntityStatus::kInFlight);
 		OO_CHECK(!JSEntityIsJavaScriptVisiblePredicate(entity, NULL));
 		OO_CHECK(!JSEntityIsJavaScriptSearchablePredicate(entity, NULL));

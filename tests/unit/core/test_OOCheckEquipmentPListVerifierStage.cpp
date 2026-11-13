@@ -112,7 +112,7 @@ OOOXPVerifier* MakeVerifier(
 OO_TEST(nameAndNeighbours) {
   {
     const std::shared_ptr<OOCheckEquipmentPListVerifierStage> stage =
-        oo::makeRef<OOCheckEquipmentPListVerifierStage>();
+        oo::makeShared<OOCheckEquipmentPListVerifierStage>();
     stage->setVerifier(MakeVerifier({}));
     OO_CHECK(stage->name() ==
              std::optional<std::string>("Checking equipment.plist"));
@@ -135,7 +135,7 @@ OO_TEST(nameAndNeighbours) {
 OO_TEST(checksEachEntry) {
   {
     const std::shared_ptr<OOCheckEquipmentPListVerifierStage> stage =
-        oo::makeRef<OOCheckEquipmentPListVerifierStage>();
+        oo::makeShared<OOCheckEquipmentPListVerifierStage>();
     stage->setVerifier(MakeVerifier(
         {{"equipment.plist",
           "("
@@ -193,7 +193,7 @@ OO_TEST(facade) {
   {
     OOOXPVerifier* verifier = MakeVerifier({});
     const std::shared_ptr<OOCheckEquipmentPListVerifierStage> stage =
-        oo::makeRef<OOCheckEquipmentPListVerifierStage>();
+        oo::makeShared<OOCheckEquipmentPListVerifierStage>();
     OO_CHECK(stage->description().starts_with(
         "<OOCheckEquipmentPListVerifierStage 0x"));
 

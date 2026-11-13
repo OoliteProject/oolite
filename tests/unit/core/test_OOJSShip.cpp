@@ -163,7 +163,7 @@ class TestPlayerShip : public PlayerEntity {
 // PlayerEntity::sharedPlayer() makes the game's, retained (+1).
 template <class T>
 T* NewTestPlayer() {
-  std::shared_ptr<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeShared<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -260,7 +260,7 @@ void SetUp() {
   gOOPlayer = NewTestPlayer<TestPlayer>();
 
   sShip = static_cast<PlainShip*>(oo::ToShip(
-      oo::RetainedEntity(oo::NewShipObject(oo::makeRef<PlainShip>(), "jsship", ShipDefinition()))));
+      oo::RetainedEntity(oo::NewShipObject(oo::makeShared<PlainShip>(), "jsship", ShipDefinition()))));
   OO_CHECK(sShip != nullptr);
   if (sShip != nullptr) sShip->setTemperature(64.0f);
   if (sShip != nullptr) sShip->setDestination(make_HPvector(1, 2, 3));
@@ -277,7 +277,7 @@ void SetUp() {
   if (sShip != nullptr) sShip->setAIScriptWakeTime(12.5);
   if (sShip != nullptr) sShip->setBounty(25, OOLegalStatusReason::kSetup);
   sOther = static_cast<PlainShip*>(oo::ToShip(oo::RetainedEntity(oo::NewShipObject(
-      oo::makeRef<PlainShip>(), "other",
+      oo::makeShared<PlainShip>(), "other",
       oo::PList(oo::PList::Dict{{"name", oo::PList(std::string("Other"))}})))));
   OO_CHECK(sOther != nullptr);
 }
@@ -861,7 +861,7 @@ OO_TEST(methodsRemoveAndExplode) {
 
   // A ship still in a launch queue (docked) is only marked dead.
   PlainShip* queued = static_cast<PlainShip*>(oo::ToShip(oo::RetainedEntity(oo::NewShipObject(
-      oo::makeRef<PlainShip>(), "queued",
+      oo::makeShared<PlainShip>(), "queued",
       oo::PList(oo::PList::Dict{{"name", oo::PList(std::string("Queued"))}})))));
   if (queued != nullptr) queued->setStatus(OOEntityStatus::kDocked);
   JSContext* context = OOJSAcquireContext();

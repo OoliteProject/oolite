@@ -206,7 +206,7 @@ void CollectGarbage() { JS_RunGC(JS_GetRuntime(Context())); }
 OO_TEST(initialState) {
   Context();
   const std::shared_ptr<OOJSInterfaceDefinition> definition =
-      oo::makeRef<OOJSInterfaceDefinition>();
+      oo::makeShared<OOJSInterfaceDefinition>();
   OO_CHECK(definition != nullptr);
   OO_CHECK(IsUndefined(definition->callback()));
   OO_CHECK(!IsObject(definition->callbackThis()));
@@ -225,10 +225,10 @@ OO_TEST(initialState) {
 
 OO_TEST(runCallback) {
   {
-    const std::shared_ptr<OOJSScript> owner = oo::makeRef<OOJSScript>();
+    const std::shared_ptr<OOJSScript> owner = oo::makeShared<OOJSScript>();
     sRunningScript = owner.get();
     const std::shared_ptr<OOJSInterfaceDefinition> definition =
-        oo::makeRef<OOJSInterfaceDefinition>();
+        oo::makeShared<OOJSInterfaceDefinition>();
     sRunningScript = nullptr;
 
     // Neither the function nor `this` has another reference: the definition
@@ -264,7 +264,7 @@ namespace {
 std::shared_ptr<OOJSInterfaceDefinition> Interface(std::optional<std::string> category,
                                            std::optional<std::string> title) {
   const std::shared_ptr<OOJSInterfaceDefinition> definition =
-      oo::makeRef<OOJSInterfaceDefinition>();
+      oo::makeShared<OOJSInterfaceDefinition>();
   if (category.has_value()) definition->setCategory(*category);
   definition->setTitle(title);
   return definition;
@@ -311,7 +311,7 @@ OO_TEST(interfaceCompare) {
 OO_TEST(engineReset) {
   {
     const std::shared_ptr<OOJSInterfaceDefinition> definition =
-        oo::makeRef<OOJSInterfaceDefinition>();
+        oo::makeShared<OOJSInterfaceDefinition>();
     definition->setCallback(Evaluate("(function () {})"));
     definition->setCallbackThis(Evaluate("({})"));
     oo::NotificationCenter::defaultCenter().post(

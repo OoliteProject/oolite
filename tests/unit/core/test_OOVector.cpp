@@ -25,12 +25,12 @@ bool Same(Vector a, Vector b) { return a.x == b.x && a.y == b.y && a.z == b.z; }
 OO_TEST(boxHoldsItsVector) {
   {
     Vector v = make_vector(1.5f, -2.0f, 3.25f);
-    std::shared_ptr<OONativeVector> box = oo::makeRef<OONativeVector>(v);
+    std::shared_ptr<OONativeVector> box = oo::makeShared<OONativeVector>(v);
     OO_CHECK(box != nullptr);
     OO_CHECK(box->className() == "OONativeVector");
     OO_CHECK(Same(box->getVector(), v));
 
-    std::shared_ptr<OONativeVector> zero = oo::makeRef<OONativeVector>(kZeroVector);
+    std::shared_ptr<OONativeVector> zero = oo::makeShared<OONativeVector>(kZeroVector);
     OO_CHECK(Same(zero->getVector(), kZeroVector));
     OO_CHECK(zero != box);
   }
@@ -39,7 +39,7 @@ OO_TEST(boxHoldsItsVector) {
 OO_TEST(boxSurvivesAnObjectNode) {
   {
     Vector v = make_vector(4.0f, 5.0f, 6.0f);
-    std::shared_ptr<OONativeVector> box = oo::makeRef<OONativeVector>(v);
+    std::shared_ptr<OONativeVector> box = oo::makeShared<OONativeVector>(v);
     oo::PList node = oo::PList(oo::PList::Object(box));
     const oo::PList::Object* object = node.getIf<oo::PList::Object>();
     OO_CHECK(object != nullptr && object->get() == box.get());
@@ -68,7 +68,7 @@ OO_TEST(freeFunctions) {
 
 OO_TEST(cxxBox) {
   Vector v = make_vector(-1.0f, 0.25f, 8.0f);
-  std::shared_ptr<OONativeVector> box = oo::makeRef<OONativeVector>(v);
+  std::shared_ptr<OONativeVector> box = oo::makeShared<OONativeVector>(v);
   OO_CHECK(Same(box->getVector(), v));
 }
 

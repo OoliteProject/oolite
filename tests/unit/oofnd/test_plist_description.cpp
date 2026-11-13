@@ -45,7 +45,7 @@ class Foreign final : public oo::PListForeign {
 };
 
 oo::PList ForeignNode(const char* text) {
-  return oo::PList(oo::PList::Object(oo::makeRef<Foreign>(text)));
+  return oo::PList(oo::PList::Object(oo::makeShared<Foreign>(text)));
 }
 
 // The PList a row's input stands for; null (and a failed check) if the kind is

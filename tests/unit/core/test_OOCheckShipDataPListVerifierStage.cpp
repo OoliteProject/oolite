@@ -102,7 +102,7 @@ int gSchemaVerifiers = 0;
 std::shared_ptr<OOPListSchemaVerifier> OOPListSchemaVerifier::verifierWithSchema(
     const oo::PList& schema) {
   if (schema.isNull()) return nullptr;
-  return oo::adopt(new OOPListSchemaVerifier(schema));
+  return std::shared_ptr<OOPListSchemaVerifier>(new OOPListSchemaVerifier(schema), oo::Dispose{});
 }
 
 OOPListSchemaVerifier::OOPListSchemaVerifier(const oo::PList& schema) {
@@ -245,7 +245,7 @@ OO_TEST(nameAndNeighbours) {
   {
     OOOXPVerifier* verifier = MakeVerifier({});
     const std::shared_ptr<OOCheckShipDataPListVerifierStage> stage =
-        oo::makeRef<OOCheckShipDataPListVerifierStage>();
+        oo::makeShared<OOCheckShipDataPListVerifierStage>();
     stage->setVerifier(verifier);
     OO_CHECK(stage->name() ==
              std::optional<std::string>("Checking shipdata.plist"));
@@ -299,10 +299,10 @@ OO_TEST(checksEachShip) {
          "}"},
     });
     const std::shared_ptr<OOAIStateMachineVerifierStage> aiStage =
-        oo::makeRef<OOAIStateMachineVerifierStage>();
+        oo::makeShared<OOAIStateMachineVerifierStage>();
     verifier->registerStage(aiStage.get());
     const std::shared_ptr<OOCheckShipDataPListVerifierStage> stage =
-        oo::makeRef<OOCheckShipDataPListVerifierStage>();
+        oo::makeShared<OOCheckShipDataPListVerifierStage>();
     stage->setVerifier(verifier);
     stage->dependents();  // registers the model stage, as the verifier's
                           // dependency pass does
@@ -360,7 +360,7 @@ OO_TEST(facade) {
   {
     OOOXPVerifier* verifier = MakeVerifier({});
     const std::shared_ptr<OOCheckShipDataPListVerifierStage> stage =
-        oo::makeRef<OOCheckShipDataPListVerifierStage>();
+        oo::makeShared<OOCheckShipDataPListVerifierStage>();
     OO_CHECK(stage->description().starts_with(
         "<OOCheckShipDataPListVerifierStage 0x"));
 

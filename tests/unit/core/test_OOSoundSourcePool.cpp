@@ -62,7 +62,7 @@ class TestSound final : public OOSound {
 
 ::OOSound* OOSoundWithCustomSoundKey(const std::string& key) {
   if (key == "[missing]") return nullptr;
-  return oo::autorelease(oo::makeRef<TestSound>(key));
+  return oo::autorelease(oo::makeShared<TestSound>(key));
 }
 
 /*	A source records what it plays; the test says when it has stopped

@@ -36,7 +36,7 @@ std::vector<int> Nodes(const oo::PList& representation) {
 // An octree built by an OOOctreeBuilder.
 #define BUILD(radius, ...)                                             \
   ([&]() {                                                             \
-    std::shared_ptr<OOOctreeBuilder> builder = oo::makeRef<OOOctreeBuilder>(); \
+    std::shared_ptr<OOOctreeBuilder> builder = oo::makeShared<OOOctreeBuilder>(); \
     __VA_ARGS__;                                                       \
     return builder->buildOctreeWithRadius(radius);                     \
   }())
@@ -189,7 +189,7 @@ OO_TEST(octreeHits) {
 }
 
 OO_TEST(cxxOctree) {
-  std::shared_ptr<OOOctreeBuilder> builder = oo::makeRef<OOOctreeBuilder>();
+  std::shared_ptr<OOOctreeBuilder> builder = oo::makeShared<OOOctreeBuilder>();
   builder->beginInnerNode();
   builder->writeSolid();
   for (int i = 0; i < 7; i++) builder->writeEmpty();
@@ -208,7 +208,7 @@ OO_TEST(cxxOctree) {
   OO_CHECK(Octree::initWithDictionary(oo::PList(oo::PList::Dict())).get() ==
            nullptr);
 
-  std::shared_ptr<OOOctreeBuilder> small = oo::makeRef<OOOctreeBuilder>();
+  std::shared_ptr<OOOctreeBuilder> small = oo::makeShared<OOOctreeBuilder>();
   small->writeSolid();
   std::shared_ptr<Octree> b = small->buildOctreeWithRadius(1.0f);
   OO_CHECK(corner->isHitByOctree(b.get(), make_vector(-1.5f, -1.5f, -1.5f),

@@ -53,7 +53,7 @@ bool IsZero(const BoundingBox& box) {
 
 OO_TEST(rootDefaults) {
   {
-    const std::shared_ptr<OODrawable> drawable = oo::makeRef<OODrawable>();
+    const std::shared_ptr<OODrawable> drawable = oo::makeShared<OODrawable>();
     drawable->renderOpaqueParts();
     drawable->renderTranslucentParts();
     OO_CHECK(!drawable->hasOpaqueParts() && !drawable->hasTranslucentParts());
@@ -72,7 +72,7 @@ OO_TEST(rootDefaults) {
 
 OO_TEST(objCSubclass) {
   {
-    const std::shared_ptr<TestSubDrawable> drawable = oo::makeRef<TestSubDrawable>();
+    const std::shared_ptr<TestSubDrawable> drawable = oo::makeShared<TestSubDrawable>();
     drawable->radius = 12.5f;
     drawable->renderOpaqueParts();
     OO_CHECK(drawable->opaqueRenders == 1);
@@ -94,7 +94,7 @@ OO_TEST(objCSubclass) {
 
 OO_TEST(cxxDrawableBehindTheFacade) {
   {
-    const std::shared_ptr<TestCxxDrawable> drawable = oo::makeRef<TestCxxDrawable>();
+    const std::shared_ptr<TestCxxDrawable> drawable = oo::makeShared<TestCxxDrawable>();
     OODrawable* part = drawable.get();
 
     // The entities' calls reach the C++ overrides, and the root's defaults.
@@ -114,7 +114,7 @@ OO_TEST(cxxDrawableBehindTheFacade) {
 OO_TEST(autoreleaseKeepsTheDrawable) {
   // OODrawableAutorelease() (an entity's replaced drawable, as [drawable
   // autorelease]): the drawable lives until the pool drains.
-  std::shared_ptr<TestCxxDrawable> drawable = oo::makeRef<TestCxxDrawable>();
+  std::shared_ptr<TestCxxDrawable> drawable = oo::makeShared<TestCxxDrawable>();
   TestCxxDrawable* raw = drawable.get();
   {
     OODrawableAutorelease(std::shared_ptr<OODrawable>(std::move(drawable)));

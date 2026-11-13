@@ -161,7 +161,7 @@ namespace {
 // A C++ entity under its object, as the game makes one, retained (+1).
 template <class T>
 T* NewTestEntity() {
-  std::shared_ptr<T> entity = oo::makeRef<T>();
+  std::shared_ptr<T> entity = oo::makeShared<T>();
   {
     oo::AutoreleaseScope scope;
     oo::RetainEntity(oo::MadeEntity(entity));

@@ -128,7 +128,7 @@ std::shared_ptr<OODebugTCPConsoleClient> OODebugTCPConsoleClient::clientWithAddr
   sRecord.clientsMade.emplace_back(address, port);
   if (sRecord.clientFails) return std::shared_ptr<OODebugTCPConsoleClient>();
   std::shared_ptr<OODebugTCPConsoleClient> client =
-      oo::adopt(new OODebugTCPConsoleClient);
+      std::shared_ptr<OODebugTCPConsoleClient>(new OODebugTCPConsoleClient(), oo::Dispose{});
   sRecord.lastClient = client.get();
   return client;
 }

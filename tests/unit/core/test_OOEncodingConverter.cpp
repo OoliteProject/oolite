@@ -43,7 +43,7 @@ oo::PList Substitutions(
 }
 
 std::shared_ptr<OOEncodingConverter> ConverterForFont(const oo::PList& font) {
-  return oo::makeRef<OOEncodingConverter>(font);
+  return oo::makeShared<OOEncodingConverter>(font);
 }
 
 }  // namespace
@@ -102,7 +102,7 @@ OO_TEST(otherEncodings) {
     OO_CHECK(converter->descriptionComponents() ==
              std::optional<std::string>("encoding: 11"));
 
-    converter = oo::makeRef<OOEncodingConverter>(
+    converter = oo::makeShared<OOEncodingConverter>(
         oo::str::Encoding::windowsCP1253, Substitutions({{"a", "b"}}));
     OO_CHECK(converter->encoding() == std::optional<oo::str::Encoding>(
                                           oo::str::Encoding::windowsCP1253));
@@ -110,7 +110,7 @@ OO_TEST(otherEncodings) {
     OO_CHECK(converter->descriptionComponents() ==
              std::optional<std::string>("encoding: 13"));
 
-    converter = oo::makeRef<OOEncodingConverter>(
+    converter = oo::makeShared<OOEncodingConverter>(
         oo::str::Encoding::windowsCP1254, oo::PList());
     OO_CHECK_EQ(Bytes(converter->convertString("abc")), std::string("abc"));
   }
@@ -136,7 +136,7 @@ OO_TEST(noEncoding) {
     converter = ConverterForFont(FontPList(oo::PList(12), oo::PList()));
     OO_CHECK(!converter->encoding().has_value());
 
-    converter = oo::makeRef<OOEncodingConverter>(std::nullopt, oo::PList());
+    converter = oo::makeShared<OOEncodingConverter>(std::nullopt, oo::PList());
     OO_CHECK(!converter->encoding().has_value());
     OO_CHECK_EQ(Bytes(converter->convertString("abc")), std::string());
   }

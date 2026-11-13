@@ -5,7 +5,7 @@
 	As the other binding tests do, it runs the JS class in a real QuickJS-ng context, and links the
 	game's own objects for the binding, the class registration (OOJSClasses.mm), the engine's
 	exception translator (OOJSEngineNativeWrappers.mm) and the converted classes the binding asks
-	(OOSystemDescriptionManager, OOCommodities and OOCommodityMarket, held as oo::Ref, linked as
+	(OOSystemDescriptionManager, OOCommodities and OOCommodityMarket, held as a std::shared_ptr, linked as
 	their own tests link them). It stands in for the universe (its system data, coordinates and
 	routes), the player (its galaxy and position), the running script (its manifest), the resource
 	manager and string expander the converted classes call, and the engine functions the binding
@@ -50,7 +50,7 @@ class StationEntity;
 // The universe as the code under test sees it: a stand-in for the C++ class
 // with the header's names and signatures. It answers virtual members, so it has
 // the game's vtable (UniverseStandIn.h) and StandInUniverse overrides them.
-class Universe : public oo::RefCounted
+class Universe : public oo::Object
 {
 public:
 	OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
@@ -592,8 +592,8 @@ void SetUpContext()
 	gSharedUniverse = sUniverse;
 	sPlayer = new PlayerEntity;
 	gOOPlayer = sPlayer;
-	sUniverse->_systemManager = oo::makeRef<OOSystemDescriptionManager>();
-	sUniverse->_commodities = oo::makeRef<OOCommodities>();
+	sUniverse->_systemManager = oo::makeShared<OOSystemDescriptionManager>();
+	sUniverse->_commodities = oo::makeShared<OOCommodities>();
 	sUniverse->_data[Key(0, 7, "economy")] = oo::PList(2.0);
 	sUniverse->_data[Key(0, 7, "government")] = oo::PList(std::string("4"));
 	sUniverse->_data[Key(0, 7, "name")] = oo::PList(std::string("Lave"));

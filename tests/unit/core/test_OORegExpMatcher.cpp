@@ -86,7 +86,7 @@ std::shared_ptr<OOJSFunction> OOJSFunction::initWithName(
     JS_FreeValue(context, JS_GetException(context));
     return nullptr;
   }
-  std::shared_ptr<OOJSFunction> result = oo::adopt(new OOJSFunction(function, context));
+  std::shared_ptr<OOJSFunction> result = std::shared_ptr<OOJSFunction>(new OOJSFunction(function, context), oo::Dispose{});
   JS_FreeValue(context, function);
   return result;
 }
@@ -117,7 +117,7 @@ bool OOJSFunction::evaluateWithContext(JSContext* context, JSValueConst jsThis,
 // calls, defined here with the stand-in's answers.
 std::shared_ptr<OOJSValue> OOJSValue::valueWithJSValue(JSValueConst value,
                                                JSContext* context) {
-  std::shared_ptr<OOJSValue> result = oo::makeRef<OOJSValue>();
+  std::shared_ptr<OOJSValue> result = oo::makeShared<OOJSValue>();
   sRegExpsMade++;
   result->_val = JS_DupValue(context, value);  // owned
   return result;

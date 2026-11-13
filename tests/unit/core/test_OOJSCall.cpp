@@ -129,7 +129,7 @@ void OOJSProfileExit(OOJSProfileStackFrame *)  {}
 
 // The ship and player classes, as far as the call sees them: a ship becomes the player's script
 // target. Declared as Entity.h and ShipEntity.h declare them (the test includes neither).
-class Entity : public oo::RefCounted
+class Entity : public oo::Object
 {
 public:
 	virtual ~Entity();
@@ -137,7 +137,7 @@ public:
 
 // An entity's object: its class's runtime name, and the names it answers by
 // selector, which the by-name stand-ins below answer from the test's own table.
-class TestEntityObject : public oo::RefCounted
+class TestEntityObject : public oo::Object
 {
 public:
 	virtual const char *className() const  { return "Entity"; }
@@ -268,7 +268,7 @@ JSContext *Context()
 		JSRuntime *runtime = JS_NewRuntime();
 		JS_SetMemoryLimit(runtime, 8u * 1024u * 1024u);
 		sContext = JS_NewContext(runtime);
-		std::shared_ptr<PlayerEntity> player = oo::makeRef<PlayerEntity>();
+		std::shared_ptr<PlayerEntity> player = oo::makeShared<PlayerEntity>();
 		gOOPlayer = player.get();	// never deleted: its object holds it
 		sPlayerObject = new TestPlayerObject();	// never released, as the Objective-C object was not
 		sPlayerObject->_cxxEntity = player;

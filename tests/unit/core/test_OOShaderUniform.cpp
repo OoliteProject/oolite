@@ -49,7 +49,7 @@ oo::PList ResourceManager::dictionaryFromFilesNamed(
 
 // OORegExpMatcher stub: answers no match.
 std::shared_ptr<OORegExpMatcher> OORegExpMatcher::regExpMatcher() {
-  return oo::makeRef<OORegExpMatcher>();
+  return oo::makeShared<OORegExpMatcher>();
 }
 bool OORegExpMatcher::string(const std::string&, const std::string&) {
   return false;
@@ -70,7 +70,7 @@ GLhandleARB OOShaderProgram::program() { return _program; }
 std::shared_ptr<OOShaderProgram> OOShaderProgram::shaderProgramWithVertexShaderName(
     const std::string&, const std::string&, const std::optional<std::string>&,
     const oo::PList&) {
-  std::shared_ptr<OOShaderProgram> made = oo::adopt(new OOShaderProgram());
+  std::shared_ptr<OOShaderProgram> made = std::shared_ptr<OOShaderProgram>(new OOShaderProgram(), oo::Dispose{});
   made->_program = gStandInProgram;
   return made;
 }
@@ -276,7 +276,7 @@ OO_TEST(description) {
 // nothing.
 namespace {
 
-class CxxTarget : public oo::RefCounted {
+class CxxTarget : public oo::Object {
  public:
   Vector vector = kZeroVector;
 };
@@ -307,7 +307,7 @@ OO_TEST(cxxTargetBindings) {
                  kOOShaderUniformTypeInvalid, CxxTargetVector, OOUniformConvertOptions::kNone) == nullptr);
 
     Reset();
-    std::shared_ptr<CxxTarget> target = oo::makeRef<CxxTarget>();
+    std::shared_ptr<CxxTarget> target = oo::makeShared<CxxTarget>();
     target->vector = make_vector(3, 0, 4);
     std::shared_ptr<OOShaderUniform> u = OOShaderUniform::initWithName(
         "uVector", gShaderProgram, target.get(), "vector",
@@ -349,7 +349,7 @@ OO_TEST(cxxTargetBindings) {
 // method answered.
 namespace {
 
-class ConvertTarget : public oo::RefCounted {
+class ConvertTarget : public oo::Object {
  public:
   int _int = 0;
   float _float = 0;
@@ -407,7 +407,7 @@ OO_TEST(cxxTargetConvertOptions) {
   }
   {
     oo::AutoreleaseScope pool;
-    std::shared_ptr<ConvertTarget> held = oo::makeRef<ConvertTarget>();
+    std::shared_ptr<ConvertTarget> held = oo::makeShared<ConvertTarget>();
     ConvertTarget* target = held.get();
     target->_int = 5;
     target->_float = 1.75f;

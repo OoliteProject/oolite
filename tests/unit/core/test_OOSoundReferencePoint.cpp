@@ -13,7 +13,7 @@
 #include "oo_test.hpp"
 
 OO_TEST(settersAreNoOps) {
-  std::shared_ptr<OOSoundReferencePoint> point = oo::makeRef<OOSoundReferencePoint>();
+  std::shared_ptr<OOSoundReferencePoint> point = oo::makeShared<OOSoundReferencePoint>();
   OO_CHECK(point != nullptr);
   point->setPosition(make_vector(1.0f, 2.0f, 3.0f));
   point->setVelocity(make_vector(-1.0f, 0.0f, 0.5f));

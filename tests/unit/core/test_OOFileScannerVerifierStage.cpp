@@ -130,7 +130,7 @@ OOFileScannerVerifierStage* ScannerOf(OOOXPVerifier* verifier) {
 OO_TEST(fileHandlingStageNamesAndRegistersItsNeighbours) {
   {
     OOOXPVerifier* verifier = MakeVerifier("");
-    const std::shared_ptr<TestFileStage> stage = oo::makeRef<TestFileStage>();
+    const std::shared_ptr<TestFileStage> stage = oo::makeShared<TestFileStage>();
     stage->setVerifier(verifier);
     const int before = OOOXPVerifierTestAccess::Registrations();
 
@@ -154,7 +154,7 @@ OO_TEST(fileHandlingStageNamesAndRegistersItsNeighbours) {
 OO_TEST(superDependentsReachTheIntermediateClass) {
   {
     const std::shared_ptr<TestSuperCallingFileStage> stage =
-        oo::makeRef<TestSuperCallingFileStage>();
+        oo::makeShared<TestSuperCallingFileStage>();
     stage->setVerifier(MakeVerifier(""));
     OO_CHECK(stage->dependents() ==
              (std::vector<std::string>{"Checking for unused files",
@@ -248,7 +248,7 @@ OO_TEST(scannerFindsFiles) {
 OO_TEST(cxxFileStageBehindTheFacade) {
   {
     OOOXPVerifier* verifier = MakeVerifier("");
-    const std::shared_ptr<TestCxxFileStage> stage = oo::makeRef<TestCxxFileStage>();
+    const std::shared_ptr<TestCxxFileStage> stage = oo::makeShared<TestCxxFileStage>();
     stage->setVerifier(verifier);
     OO_CHECK(stage->dependencies() == kScannerName);
     OO_CHECK(stage->dependents() == kUnusedName);
