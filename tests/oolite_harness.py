@@ -42,6 +42,9 @@ OOLITE_VERSION_KEY = "Oolite version"
 IS_WINDOWS = sys.platform == "win32" or (os.name == "nt")
 PORT = 8563
 HOST = "127.0.0.1"
+# The macOS CI runner renders with Apple's software renderer and can take
+# 20 seconds or more after startup before the game services the console
+READY_TIMEOUT = 90
 
 # Log lines that fail a test. Script errors are logged under
 # script.javaScript.exception.* and script.javaScript.error.*.
@@ -312,11 +315,23 @@ class OoliteGame:
         try:
             self.console.accept(connect_timeout, self.proc)
         except HarnessError:
-            if sys.platform == "darwin" and self.proc.poll() is None:
-                # Show where a hung process is stuck
-                subprocess.run(["sample", str(self.proc.pid), "3"], stdout=sys.stdout, stderr=sys.stderr)
+            self.sample()
             raise
+        # The game only reads console commands from its main loop, so an
+        # answer means it is running.
+        ready_start = time.time()
+        try:
+            self.console.evaluate("true", timeout=READY_TIMEOUT)
+        except HarnessError:
+            self.sample()
+            raise HarnessError(f"Oolite did not answer the console within {scaled(READY_TIMEOUT):.0f}s.")
+        print(f"[*] Oolite ready after {time.time() - ready_start:.1f}s.", flush=True)
         return self.console
+
+    def sample(self):
+        """Shows where a hung process is stuck (macOS only)."""
+        if sys.platform == "darwin" and self.proc.poll() is None:
+            subprocess.run(["sample", str(self.proc.pid), "3"], stdout=sys.stdout, stderr=sys.stderr)
 
     def wait_for_log(self, text, timeout):
         """Waits until text appears in the game's log; returns False if the game exits or time runs out."""
@@ -344,6 +359,7 @@ class OoliteGame:
         try:
             self.proc.wait(timeout=scaled(timeout))
         except subprocess.TimeoutExpired:
+            self.sample()
             raise HarnessError("Oolite ignored the quit command.")
         print(f"[*] Oolite exited with status {self.proc.returncode}")
 
