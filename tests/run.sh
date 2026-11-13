@@ -1,7 +1,7 @@
 #!/bin/bash
 # Run Oolite's test tiers from this directory, inside a private virtualenv.
 #
-#     tests/run.sh unit        meson suites: oofnd, core, headers (needs ./mk.sh build test)
+#     tests/run.sh unit        meson suites: oofnd, core, headers (needs ./mk.sh build dev)
 #     tests/run.sh component   Gherkin scenarios over the debug console
 #     tests/run.sh gui         PyAutoGUI tier (real window; do not touch the mouse)
 #     tests/run.sh smoke       launch_snapshot.py via mk.sh
@@ -11,7 +11,8 @@
 # Extra arguments after the tier go to pytest (component, gui):
 #     tests/run.sh component -k s1
 #
-# Environment: BUILD_TYPE (default test), OO_VENV (default build/.venv-tests), OO_APP_DIR.
+# Environment: BUILD_TYPE (default dev), OO_VENV (default build/.venv-tests), OO_APP_DIR.
+# dev, not test: test links with LTO, and every core unit test re-runs LTO over the game's objects.
 # The venv lives under build/, which is git-ignored. Delete it to force a clean reinstall.
 
 set -euo pipefail
@@ -19,7 +20,7 @@ set -euo pipefail
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." &> /dev/null && pwd)
 cd "$ROOT"
 
-BUILD_TYPE=${BUILD_TYPE:-test}
+BUILD_TYPE=${BUILD_TYPE:-dev}
 VENV=${OO_VENV:-build/.venv-tests}
 REQ_STAMP="$VENV/.requirements-stamp"
 REQ_FILES=(tests/component/requirements.txt tests/gui/requirements.txt)
@@ -73,6 +74,12 @@ require_build() {
         echo "tests/run.sh: no build at $app. Run ./mk.sh build $BUILD_TYPE first." >&2
         exit 1
     fi
+    # The pytest tiers' own default is build/meson_test; hand them the build this run checks.
+    app=$(cd "$app" && pwd)
+    if command -v cygpath > /dev/null 2>&1; then
+        app=$(cygpath -m "$app")
+    fi
+    export OO_APP_DIR="$app"
 }
 
 run_unit() {
@@ -111,7 +118,7 @@ case "$tier" in
     smoke)     run_smoke ;;
     all)       ensure_venv; run_unit; run_component; run_smoke; run_gui ;;
     *)
-        sed -n '2,15p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+        sed -n '2,16p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
         [[ -z "$tier" ]] || exit 2
         ;;
 esac
