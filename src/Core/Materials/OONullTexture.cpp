@@ -39,7 +39,9 @@ OONullTexture* sSingleton = nullptr;
 OONullTexture* OONullTexture::sharedNullTexture() {
   // NOTE: assumes single-threaded access.
   if (sSingleton == nullptr) {
-    sSingleton = oo::makeRef<OONullTexture>().leakRef();
+    sSingleton =
+        (*new std::shared_ptr<OONullTexture>(oo::makeShared<OONullTexture>()))
+            .get();
   }
 
   return sSingleton;

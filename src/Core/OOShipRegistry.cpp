@@ -154,7 +154,9 @@ OOShipRegistry* OOShipRegistry::sharedRegistry() {
   if (sSingleton == nullptr) {
     OO_LOG("shipData.load.begin", "{}",
            "Loading ship data.");  // was +allocWithZone:'s
-    sSingleton = oo::makeRef<OOShipRegistry>().leakRef();
+    sSingleton =
+        (*new std::shared_ptr<OOShipRegistry>(oo::makeShared<OOShipRegistry>()))
+            .get();
     sSingleton->init();
   }
 

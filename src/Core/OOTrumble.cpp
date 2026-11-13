@@ -897,7 +897,9 @@ static OOSound* sTrumbleSqealSound;
 
 static void InitTrumbleSounds() {
   if (sTrumbleSoundSource == nullptr) {
-    sTrumbleSoundSource = oo::makeRef<OOSoundSource>().leakRef();
+    sTrumbleSoundSource =
+        (*new std::shared_ptr<OOSoundSource>(oo::makeShared<OOSoundSource>()))
+            .get();
     sTrumbleIdleSound = oo::retain(OOSoundWithCustomSoundKey("[trumble-idle]"));
     sTrumbleSqealSound =
         oo::retain(OOSoundWithCustomSoundKey("[trumble-squeal]"));

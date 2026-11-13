@@ -111,7 +111,7 @@ void OOSoundSourcePool::playSoundWithKey(const std::string& key, float priority,
   if (element->source != nullptr)
     element->source->stop();
   else {
-    element->source = oo::makeRef<::OOSoundSource>().leakRef();
+    element->source = new ::OOSoundSource();
     if (element->source == nullptr) return;
   }
   if (slot == _reserved)

@@ -314,7 +314,8 @@ OOOXZManager* OOOXZManager::sharedManager() {
   // NOTE: assumes single-threaded first access.
   if (sSingleton == nullptr) {
     OOOXZManager* manager =
-        oo::makeRef<OOOXZManager>().leakRef();  // the one +1, never released
+        (*new std::shared_ptr<OOOXZManager>(oo::makeShared<OOOXZManager>()))
+            .get();  // the one +1, never released
     manager->init();
     sSingleton = manager;
   }

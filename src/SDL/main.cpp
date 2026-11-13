@@ -210,7 +210,8 @@ int main(int argc, char* argv[]) {
     // dajt: allocate and set the NSApplication delegate manually because not
     // using NIB to do this
     controller =
-        oo::makeRef<GameController>().leakRef();  // never released (see above)
+        (*new std::shared_ptr<GameController>(oo::makeShared<GameController>()))
+            .get();  // never released (see above)
 
     for (i = 1; i < argc; i++) {
       if (std::string_view(argv[i]) == "-load") {

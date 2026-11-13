@@ -125,7 +125,9 @@ OODebugMonitor* OODebugMonitor::sharedDebugMonitor() {
   // whole, thread safe.
   if (sSingleton == nullptr) {
     // Recorded before init(), as +allocWithZone: recorded it before -init ran.
-    sSingleton = oo::makeRef<OODebugMonitor>().leakRef();
+    sSingleton =
+        (*new std::shared_ptr<OODebugMonitor>(oo::makeShared<OODebugMonitor>()))
+            .get();
     sSingleton->init();
   }
 

@@ -4205,7 +4205,7 @@ static void InitTextEngine() {
   sF6KernGovt = fontSpec.get<float>("f6KernGovernment", 1.0);
   sF6KernTL = fontSpec.get<float>("f6KernTechLevel", 2.0);
 
-  sEncodingCoverter = oo::makeRef<OOEncodingConverter>(fontSpec).leakRef();
+  sEncodingCoverter = new OOEncodingConverter(fontSpec);
   widths = fontSpec.find("widths");  // used only if it is an array, as before
   count = (widths != nullptr && widths->isArray()) ? widths->count() : 0;
   if (count > 256) count = 256;
