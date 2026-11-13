@@ -50,8 +50,11 @@ OOJoystickManager* OOJoystickManager::sharedStickHandler() {
                                           : oo::makeShared<OOJoystickManager>();
     handler->init();
     // Never destroyed: a heap std::shared_ptr that is never deleted.
-    sSharedStickHandler =
-        (*new std::shared_ptr<OOJoystickManager>(std::move(handler))).get();
+    static std::shared_ptr<OOJoystickManager>* sSharedStickHandlerHolder =
+        nullptr;  // never deleted
+    sSharedStickHandlerHolder =
+        new std::shared_ptr<OOJoystickManager>(std::move(handler));
+    sSharedStickHandler = sSharedStickHandlerHolder->get();
   }
   return sSharedStickHandler;
 }

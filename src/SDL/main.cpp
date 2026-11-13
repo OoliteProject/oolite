@@ -209,9 +209,11 @@ int main(int argc, char* argv[]) {
   try {
     // dajt: allocate and set the NSApplication delegate manually because not
     // using NIB to do this
-    controller =
-        (*new std::shared_ptr<GameController>(oo::makeShared<GameController>()))
-            .get();  // never released (see above)
+    static std::shared_ptr<GameController>* controllerHolder =
+        nullptr;  // never deleted
+    controllerHolder =
+        new std::shared_ptr<GameController>(oo::makeShared<GameController>());
+    controller = controllerHolder->get();  // never released (see above)
 
     for (i = 1; i < argc; i++) {
       if (std::string_view(argv[i]) == "-load") {

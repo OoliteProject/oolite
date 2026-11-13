@@ -214,9 +214,11 @@ bool NextDeferredCallDeadline(
 
 GameController* GameController::sharedController() {
   if (sSharedController == nullptr) {
-    sSharedController =
-        (*new std::shared_ptr<GameController>(oo::makeShared<GameController>()))
-            .get();
+    static std::shared_ptr<GameController>* sSharedControllerHolder =
+        nullptr;  // never deleted
+    sSharedControllerHolder =
+        new std::shared_ptr<GameController>(oo::makeShared<GameController>());
+    sSharedController = sSharedControllerHolder->get();
   }
   return sSharedController;
 }

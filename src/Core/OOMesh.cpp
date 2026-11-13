@@ -217,12 +217,13 @@ std::shared_ptr<OOMaterial> OOMesh::placeholderMaterial() {
     const oo::PList materialDefaults = ResourceManager::materialDefaults();
     const oo::PList* noTextures = materialDefaults.find("no-textures-material");
     // Never released: a heap std::shared_ptr that is never deleted.
-    placeholderMaterial =
-        (*new std::shared_ptr<OOBasicMaterial>(
-             OOBasicMaterial::materialWithName(
-                 std::string("/placeholder/"),
-                 (noTextures != nullptr ? *noTextures : oo::PList()))))
-            .get();
+    static std::shared_ptr<OOBasicMaterial>* placeholderMaterialHolder =
+        nullptr;  // never deleted
+    placeholderMaterialHolder =
+        new std::shared_ptr<OOBasicMaterial>(OOBasicMaterial::materialWithName(
+            std::string("/placeholder/"),
+            (noTextures != nullptr ? *noTextures : oo::PList())));
+    placeholderMaterial = placeholderMaterialHolder->get();
   }
 
   return oo::share(placeholderMaterial);

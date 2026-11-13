@@ -76,9 +76,11 @@ float OOMusic::musicGain() {
 void OOMusic::playLooped(bool inLoop) {
   if (sPlayingMusic != this) {
     if (nullptr == sMusicSource) {
-      sMusicSource =
-          (*new std::shared_ptr<OOSoundSource>(oo::makeShared<OOSoundSource>()))
-              .get();
+      static std::shared_ptr<OOSoundSource>* sMusicSourceHolder =
+          nullptr;  // never deleted
+      sMusicSourceHolder =
+          new std::shared_ptr<OOSoundSource>(oo::makeShared<OOSoundSource>());
+      sMusicSource = sMusicSourceHolder->get();
     }
     sMusicSource->stop();
     sMusicSource->setLoop(inLoop);

@@ -44,10 +44,13 @@ OOGraphicsResetManager::~OOGraphicsResetManager() {
 }
 
 OOGraphicsResetManager* OOGraphicsResetManager::sharedManager() {
-  if (sSingleton == nullptr)
-    sSingleton = (*new std::shared_ptr<OOGraphicsResetManager>(
-                      oo::makeShared<OOGraphicsResetManager>()))
-                     .get();
+  if (sSingleton == nullptr) {
+    static std::shared_ptr<OOGraphicsResetManager>* sSingletonHolder =
+        nullptr;  // never deleted
+    sSingletonHolder = new std::shared_ptr<OOGraphicsResetManager>(
+        oo::makeShared<OOGraphicsResetManager>());
+    sSingleton = sSingletonHolder->get();
+  }
   return sSingleton;
 }
 

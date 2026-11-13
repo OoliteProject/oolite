@@ -128,12 +128,14 @@ bool OOBasicMaterial::doApply() {
 void OOBasicMaterial::unapplyWithNext(OOMaterial* next) {
   // This class or a subclass (null is neither)
   if (dynamic_cast<OOBasicMaterial*>(next) == nullptr) {
-    if (EXPECT_NOT(sDefaultMaterial == nullptr))
+    if (EXPECT_NOT(sDefaultMaterial == nullptr)) {
       // Never released: a heap std::shared_ptr that is never deleted.
-      sDefaultMaterial =
-          (*new std::shared_ptr<OOBasicMaterial>(
-               materialWithName(std::string("<default material>"))))
-              .get();
+      static std::shared_ptr<OOBasicMaterial>* sDefaultMaterialHolder =
+          nullptr;  // never deleted
+      sDefaultMaterialHolder = new std::shared_ptr<OOBasicMaterial>(
+          materialWithName(std::string("<default material>")));
+      sDefaultMaterial = sDefaultMaterialHolder->get();
+    }
     sDefaultMaterial->doApply();
   }
 }

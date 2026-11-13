@@ -313,9 +313,11 @@ std::optional<std::string> OoliteInfoString(std::string_view key) {
 OOOXZManager* OOOXZManager::sharedManager() {
   // NOTE: assumes single-threaded first access.
   if (sSingleton == nullptr) {
-    OOOXZManager* manager =
-        (*new std::shared_ptr<OOOXZManager>(oo::makeShared<OOOXZManager>()))
-            .get();  // the one +1, never released
+    static std::shared_ptr<OOOXZManager>* managerHolder =
+        nullptr;  // never deleted
+    managerHolder =
+        new std::shared_ptr<OOOXZManager>(oo::makeShared<OOOXZManager>());
+    OOOXZManager* manager = managerHolder->get();  // the one +1, never released
     manager->init();
     sSingleton = manager;
   }

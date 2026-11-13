@@ -410,10 +410,13 @@ void OOSkyDrawable::loadStarTextures() {
             OOTextureFlags::kMinFilterMipMap |
                 OOTextureFlags::kMagFilterLinear | OOTextureFlags::kAlphaMask,
             0.0f, -0.0f);
-    if (stars != nullptr)
-      sStarTextures = (*new std::shared_ptr<OOProbabilisticTextureManager>(
-                           std::move(stars)))
-                          .get();
+    if (stars != nullptr) {
+      static std::shared_ptr<OOProbabilisticTextureManager>*
+          sStarTexturesHolder = nullptr;  // never deleted
+      sStarTexturesHolder =
+          new std::shared_ptr<OOProbabilisticTextureManager>(std::move(stars));
+      sStarTextures = sStarTexturesHolder->get();
+    }
     if (sStarTextures == nullptr) {
       OORaiseException(OOLITE_EXCEPTION_DATA_NOT_FOUND,
                        "No star textures could be loaded.");
@@ -431,10 +434,14 @@ void OOSkyDrawable::loadNebulaTextures() {
             "nebulatextures.plist",
             OOTextureFlags::kDefaultOptions | OOTextureFlags::kAlphaMask, 0.0f,
             0.0f);
-    if (nebulae != nullptr)
-      sNebulaTextures = (*new std::shared_ptr<OOProbabilisticTextureManager>(
-                             std::move(nebulae)))
-                            .get();
+    if (nebulae != nullptr) {
+      static std::shared_ptr<OOProbabilisticTextureManager>*
+          sNebulaTexturesHolder = nullptr;  // never deleted
+      sNebulaTexturesHolder =
+          new std::shared_ptr<OOProbabilisticTextureManager>(
+              std::move(nebulae));
+      sNebulaTextures = sNebulaTexturesHolder->get();
+    }
     if (sNebulaTextures == nullptr) {
       OORaiseException(OOLITE_EXCEPTION_DATA_NOT_FOUND,
                        "No nebula textures could be loaded.");
