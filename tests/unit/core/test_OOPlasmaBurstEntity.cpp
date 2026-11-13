@@ -14,9 +14,7 @@
    Run: bash tools/check-core-tests.sh
 */
 
-#include <cmath>
 
-#include "OODescription.h"
 #include "OOPlasmaBurstEntity.h"
 #include "PlayerEntity.h"  // PLAYER is C++
 #include "Universe.h"

@@ -28,7 +28,6 @@ SOFTWARE.
 #include "OONullTexture.h"
 
 #include "OOFoundation.h"
-#include "OOTextureInternal.h"
 
 namespace {
 

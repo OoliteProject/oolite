@@ -23,10 +23,8 @@ MA 02110-1301, USA.
 
 #include "OOJSWaypoint.h"
 
-#include "EntityOOJavaScriptExtensions.h"
 #include "OOJSEntity.h"
 #include "OOJSQuaternion.h"
-#include "OOJSVector.h"
 #include "OOJavaScriptEngine.h"
 #include "OOWaypointEntity.h"
 

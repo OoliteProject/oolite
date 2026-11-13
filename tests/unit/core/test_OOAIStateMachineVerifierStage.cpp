@@ -19,7 +19,6 @@
 #include <sstream>
 
 #include "OOAIStateMachineVerifierStage.h"
-#include "OODescription.h"
 #include "OOLogging.h"
 #include "OOOXPVerifierStage.h"
 #include "OOPListParsing.h"

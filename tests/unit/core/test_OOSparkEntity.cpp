@@ -15,7 +15,6 @@
 #include <cmath>
 
 #include "OOColor.h"
-#include "OODescription.h"
 #include "OOSparkEntity.h"
 #include "PlayerEntity.h"
 #include "Universe.h"

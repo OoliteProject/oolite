@@ -42,7 +42,6 @@ SOFTWARE.
 #include <vector>
 
 #include "OOConcreteTexture.h"
-#include "OODescription.h"
 #include "OODrawable.h"
 #include "OOJSConsole.h"
 #include "OOJSEngineTimeManagement.h"

@@ -30,7 +30,6 @@ MA 02110-1301, USA.
 #include "OOJSSoundSource.h"
 #include "OOJavaScriptEngine.h"
 #include "OOMusicController.h"
-#include "OOSound.h"
 #include "ResourceManager.h"
 #include "Universe.h"
 #include "oofnd/String.hpp"

@@ -16,12 +16,9 @@
 #include <filesystem>
 #include <fstream>
 
-#include "OODescription.h"
 #include "OOFileScannerVerifierStage.h"
 #include "OOLogging.h"
-#include "OOOXPVerifierStage.h"
 #include "oo_test.hpp"
-#include "oofnd/PListParsing.hpp"
 
 /*	The game's OOLogging.mm reaches the resource manager, so it is not
    linked; the base calls this one function of it (a subclass responsibility).

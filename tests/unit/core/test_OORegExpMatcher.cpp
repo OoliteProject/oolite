@@ -25,7 +25,6 @@
 #include "OORegExpMatcher.h"
 #include "oo_test.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/objc/OOObject.h"
 
 // --- Stand-ins for the engine glue (see the banner)
 // ---------------------------------------------

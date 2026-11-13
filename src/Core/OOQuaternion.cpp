@@ -27,7 +27,6 @@ MA 02110-1301, USA.
 #include <format>
 
 #include "OOMaths.h"
-#include "oofnd/String.hpp"
 
 const Quaternion kIdentityQuaternion = {1.0f, 0.0f, 0.0f, 0.0f};
 const Quaternion kZeroQuaternion = {0.0f, 0.0f, 0.0f, 0.0f};

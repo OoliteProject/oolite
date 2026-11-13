@@ -43,8 +43,6 @@ SOFTWARE.
 
 #if OO_SHADERS
 
-#include "OODebugFlags.h"
-#include "OOFunctionAttributes.h"
 #include "OOIsNumberLiteral.h"
 #include "OOLogging.h"
 #include "OOMacroOpenGL.h"
@@ -52,7 +50,6 @@ SOFTWARE.
 #include "OOPListGameTypes.h"
 #include "OOShaderProgram.h"
 #include "OOShaderUniform.h"
-#include "OOStringParsing.h"
 #include "OOTexture.h"
 #include "ResourceManager.h"
 #include "Universe.h"

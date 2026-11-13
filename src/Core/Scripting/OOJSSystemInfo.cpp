@@ -48,8 +48,6 @@ MA 02110-1301, USA.
 #include "Universe.h"
 #include "oofnd/Notification.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/String.hpp"
-#include "oofnd/objc/OOAssert.h"
 
 /*	SpiderMonkey implemented SystemInfo's dynamic per-system properties with
         class getProperty/setProperty/delProperty hooks and a

@@ -15,7 +15,6 @@
 
 #include "OOQuiriumCascadeEntity.h"
 #include "PlayerEntity.h"	// PLAYER is C++
-#include "OODescription.h"
 #include "Universe.h"
 
 #include "oo_test.hpp"

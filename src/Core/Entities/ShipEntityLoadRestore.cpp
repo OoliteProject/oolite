@@ -28,7 +28,6 @@ MA 02110-1301, USA.
 #include <array>
 
 #include "AI.h"
-#include "OOConstToString.h"
 #include "OOEquipmentType.h"
 #include "OOPListGameTypes.h"
 #include "OORoleSet.h"

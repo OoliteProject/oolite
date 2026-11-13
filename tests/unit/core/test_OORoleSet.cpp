@@ -8,7 +8,6 @@
    tests/run.sh unit
 */
 
-#include "OODescription.h"
 #include "OORoleSet.h"
 #include "oo_test.hpp"
 

@@ -41,17 +41,13 @@ SOFTWARE.
 #include <optional>
 #include <string>
 #include <string_view>
-#include <thread>
 
 #include "OOFoundation.h"
-#include "OOLogging.h"
 #include "oofnd/Date.hpp"
 #include "oofnd/Defaults.hpp"
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/Log.hpp"
 #include "oofnd/LogFile.hpp"
-#include "oofnd/PListParsing.hpp"
-#include "oofnd/ResourcePaths.hpp"
 #include "oofnd/Thread.hpp"
 
 /*	The Latest.log writer is oo::log::FileWriter (oofnd/LogFile.hpp): the

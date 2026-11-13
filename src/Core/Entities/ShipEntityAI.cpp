@@ -25,10 +25,12 @@
 #include "ShipEntityAI.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <format>
 #include <functional>
 #include <map>
+#include <memory>
 #include <optional>
 #include <set>
 #include <string>
@@ -37,33 +39,47 @@
 #include <vector>
 
 #include "AI.h"
+#include "Entity.h"
+#include "EntityHelpers.h"
 #include "EntityOOJavaScriptExtensions.h"  // OOJSEntityJSValue
+#include "EntityPListForeign.h"
 #include "GameController.h"
+#include "OOBehaviour.h"
 #include "OOCallByName.h"  // oo::ScheduleEntityCall
-#include "OOConstToJSString.h"
-#include "OOConstToString.h"
-#include "OODescription.h"
+#include "OOCharacter.h"
 #include "OOEntityFilterPredicate.h"
+#include "OOEntityHold.h"
+#include "OOEntityStatus.h"
+#include "OOFastArithmetic.h"
 #include "OOJSFunction.h"
-#include "OOJSScript.h"
+#include "OOJSPropID.h"
 #include "OOJavaScriptEngine.h"
+#include "OOLegalStatusReason.h"
 #include "OOMaths.h"
 #include "OOPListGameTypes.h"
 #include "OOPlanetEntity.h"
+#include "OOQuaternion.h"
+#include "OOScanClass.h"
+#include "OOScript.h"
+#include "OOShipDamageType.h"
 #include "OOShipGroup.h"
+#include "OOStellarBody.h"
 #include "OOStringExpander.h"
-#include "OOStringParsing.h"
-#include "OOSunEntity.h"
+#include "OOSunEntity.h"  // IWYU pragma: keep: converting OOSunEntity* to Entity* needs the complete type
+#include "OOTypes.h"
+#include "OOVector.h"
 #include "PlayerEntity.h"
 #include "PlayerEntityLegacyScriptEngine.h"
 #include "ResourceManager.h"
+#include "ShipEntity.h"
 #include "StationEntity.h"
 #include "Universe.h"
 #include "WormholeEntity.h"
 #include "oofnd/Log.hpp"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
-
+#include "oofnd/objc/OOFoundationTypes.h"
 namespace {
 
 // Whitespace without newlines: whiteSpaceAndNewline without U+000A-U+000D,

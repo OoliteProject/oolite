@@ -26,23 +26,32 @@
 
 #include "OOConcreteTexture.h"
 
+#include <cstddef>
+#include <cstdint>
 #include <format>
+#include <memory>
 #include <optional>
+#include <string>
 #include <string_view>
 
-#include "OOCPUInfo.h"
+#include "OOCPUInfoEndian.h"
+#include "OOEnumFlags.h"
+#include "OOFastArithmetic.h"
+#include "OOFunctionAttributes.h"
 #include "OOLogging.h"
 #include "OOMacroOpenGL.h"
-#include "OOOpenGLExtensionManager.h"
+#include "OOOpenGLCheck.h"
+#include "OOOpenGLExtensionPointers.h"
 #include "OOPixMap.h"
+#include "OOTexture.h"
+#include "OOTextureFlags.h"
 #include "OOTextureGenerator.h"
 #include "OOTextureInternal.h"
 #include "OOTextureLoader.h"
-#include "ResourceManager.h"
-#include "Universe.h"
 #include "oofnd/Log.hpp"
+#include "oofnd/Object.hpp"
 #include "oofnd/String.hpp"
-
+#include "oofnd/objc/OOFoundationTypes.h"
 #ifdef OO_DEBUG_MONITOR_ENABLED
 #include "OOTextureGenerator.h"
 #include "oofnd/objc/OOAssert.h"

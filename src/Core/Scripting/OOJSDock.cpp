@@ -25,9 +25,7 @@ MA 02110-1301, USA.
 
 #include "DockEntity.h"
 #include "EntityOOJavaScriptExtensions.h"
-#include "GameController.h"
 #include "OOJSEntity.h"
-#include "OOJSPlayer.h"
 #include "OOJSShip.h"
 #include "OOJavaScriptEngine.h"
 

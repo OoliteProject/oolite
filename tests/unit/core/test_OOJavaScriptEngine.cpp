@@ -14,31 +14,17 @@
 */
 
 #include "OOJavaScriptEngine.h"
-#include "OOJSScript.h"
 #include "OOJSPropID.h"
-#include "OODescription.h"
 #include "Entity.h"
-#include "EntityOOJavaScriptExtensions.h"
 #include "OOVector.h"
 #include "oofnd/PList.hpp"
-#include <algorithm>
-#include <chrono>
-#include <condition_variable>
 #include <cstddef>
 #include <cstdint>
-#include <functional>
-#include <map>
 #include <memory>
-#include <mutex>
 #include <optional>
-#include <set>
 #include <string>
 #include <string_view>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
 #include <vector>
-#include "oofnd/objc/OOException.h"
 #include "OOJSPrivateObject.h"
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/Log.hpp"

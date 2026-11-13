@@ -24,9 +24,7 @@ MA 02110-1301, USA.
 
 #include "OOTrumble.h"
 
-#include "MyOpenGLView.h"
 #include "OOMaths.h"
-#include "OOSound.h"
 #include "OOStringParsing.h"
 #include "OOTexture.h"
 #include "PlayerEntity.h"

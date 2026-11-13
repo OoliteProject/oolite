@@ -14,10 +14,8 @@
 
 #include <cmath>
 #include <cstdlib>
-#include <typeinfo>
 
 #include "OOBasicMaterial.h"
-#include "OODescription.h"
 #include "OOTexture.h"
 #include "oo_gl_test_context.hpp"
 #include "oo_test.hpp"

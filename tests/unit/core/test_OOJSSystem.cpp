@@ -18,31 +18,22 @@
 */
 
 #include "OOJavaScriptEngine.h"
-#include "OOJSSystem.h"
 #include "Universe.h"
 #include "PlayerEntity.h"
 #include "OOSunEntity.h"
 #include "StationEntity.h"
-#include "OOJSPropID.h"
 #include "OOJSPopulatorDefinition.h"
 #include "OOShipGroup.h"
 #include "OODescription.h"
 #include "oofnd/PList.hpp"
-#include <algorithm>
-#include <chrono>
-#include <condition_variable>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
 #include <map>
 #include <memory>
-#include <mutex>
 #include <optional>
-#include <set>
 #include <string>
 #include <string_view>
-#include <unordered_map>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 #include "oofnd/FileSystem.hpp"

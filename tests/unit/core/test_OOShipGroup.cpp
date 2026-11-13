@@ -18,7 +18,6 @@
 
 #include "oo_test.hpp"
 #include "oofnd/objc/OOException.h"
-#include "OODescription.h"
 
 #include <algorithm>
 #include <string>

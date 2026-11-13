@@ -30,8 +30,6 @@ MA 02110-1301, USA.
 #include "OOFileScannerVerifierStage.h"
 #include "OOJSScript.h"
 #include "OOJavaScriptEngine.h"
-#include "OOScript.h"
-#include "OOStringParsing.h"
 #include "oofnd/String.hpp"
 
 static const char* const kStageName = "Checking JS Script file syntax";

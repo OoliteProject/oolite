@@ -29,9 +29,7 @@ SOFTWARE.
 #include <format>
 
 #include "OOCache.h"
-#include "OOLogging.h"
 #include "oofnd/Encoding.hpp"
-#include "oofnd/String.hpp"
 
 /*	Using compatibility mapping - converting strings to Unicode form KC -
    would reduce potential complications in localizing Oolite. However, the

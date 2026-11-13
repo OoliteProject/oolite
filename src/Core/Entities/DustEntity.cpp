@@ -33,7 +33,6 @@ MA 02110-1301, USA.
 #include "oofnd/Process.hpp"
 
 #if OO_SHADERS
-#include "OOMaterial.h"  // For kTangentAttributeIndex
 #include "OOShaderProgram.h"
 #include "OOShaderUniform.h"
 #include "OOShaderUniformMethodType.h"
@@ -43,7 +42,6 @@ MA 02110-1301, USA.
 #include <format>
 
 #include "PlayerEntity.h"
-#include "oofnd/String.hpp"
 
 #define FAR_PLANE (DUST_SCALE * 0.50f)
 #define NEAR_PLANE (DUST_SCALE * 0.25f)

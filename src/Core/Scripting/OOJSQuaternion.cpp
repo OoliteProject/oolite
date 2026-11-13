@@ -33,7 +33,6 @@ MA 02110-1301, USA.
 #include <new>
 
 #include "OOJavaScriptEngine.h"
-#include "oofnd/String.hpp"
 
 /*
         The Quaternion class, in the design of upstream #768's OOJSQuaternion.m:

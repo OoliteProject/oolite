@@ -31,7 +31,6 @@
 
 #include "Entity.h"
 #include "OOCacheManager.h"
-#include "OODescription.h"
 #include "OOPListScript.h"
 #include "oo_test.hpp"
 #include "oofnd/FileSystem.hpp"

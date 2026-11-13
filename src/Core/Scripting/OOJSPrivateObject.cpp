@@ -35,7 +35,6 @@ MA 02110-1301, USA.
 #include <string>
 
 #include "OOJSEngineCore.h"
-#include "oofnd/String.hpp"
 
 // OOJSValueFromNativeObject(): nil is null, anything else answers
 // -oo_jsValueInContext:.

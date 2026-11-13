@@ -29,9 +29,7 @@ MA 02110-1301, USA.
 
 #include "MyOpenGLView.h"
 #include "OOConstToString.h"
-#include "OOJSPlayer.h"
 #include "OOJavaScriptEngine.h"
-#include "OOStringParsing.h"
 #include "ResourceManager.h"
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/PListParsing.hpp"

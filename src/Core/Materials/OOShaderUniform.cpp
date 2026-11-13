@@ -39,7 +39,6 @@ SOFTWARE.
 
 #include "OOFunctionAttributes.h"
 #include "OOMaths.h"
-#include "OOOpenGLExtensionManager.h"
 #include "OOShaderProgram.h"
 #include "OOShaderUniformMethodType.h"
 #include "oofnd/String.hpp"

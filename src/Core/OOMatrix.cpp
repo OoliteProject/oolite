@@ -28,10 +28,7 @@ MA 02110-1301, USA.
 #include <format>
 
 #include "OOMaths.h"
-#include "OOOpenGLCheck.h"              // OOGL()
-#include "OOOpenGLExtensionPointers.h"  // glUniformMatrix3fvARB, Windows' extension pointer
-#include "OOOpenGLOnly.h"               // GL_FALSE
-#include "oofnd/String.hpp"
+#include "OOOpenGLCheck.h"  // OOGL()
 
 const OOMatrix kIdentityMatrix = {.m = {{1.0f, 0.0f, 0.0f, 0.0f},
                                         {0.0f, 1.0f, 0.0f, 0.0f},

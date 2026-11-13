@@ -27,7 +27,6 @@ MA 02110-1301, USA.
 #include "OOMaths.h"
 #include "legacy_random.h"  // randf
 #include "oofnd/Log.hpp"
-#include "oofnd/String.hpp"
 
 const HPVector kZeroHPVector = {0.0, 0.0, 0.0};
 const HPVector kBasisXHPVector = {1.0, 0.0, 0.0};

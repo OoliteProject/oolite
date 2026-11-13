@@ -17,10 +17,8 @@
 
 #include "OOVisualEffectEntity.h"
 #include "PlayerEntity.h"	// PLAYER is C++
-#include "OOFlasherEntity.h"
 #include "OOJavaScriptEngine.h"
 #include "Universe.h"
-#include "ShipEntity.h"
 #include "OOColor.h"
 #include "OOJSPropID.h"
 #include "EntityOOJavaScriptExtensions.h"

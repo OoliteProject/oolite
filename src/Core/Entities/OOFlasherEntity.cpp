@@ -27,9 +27,6 @@ MA 02110-1301, USA.
 
 #include "OOColor.h"
 #include "OOJSFlasher.h"
-#include "PlayerEntity.h"
-#include "Universe.h"
-#include "oofnd/PListGet.hpp"
 
 std::shared_ptr<OOFlasherEntity> OOFlasherEntity::flasherWithDictionary(
     const oo::PList& dictionary) {

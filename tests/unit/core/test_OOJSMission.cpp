@@ -19,7 +19,6 @@
 #include "OOFoundation.h"
 #include "OOMaths.h"
 #include "OOTypes.h"
-#include "OOEntityEnums.h"
 #include <quickjs.h>
 #include "oofnd/objc/OOException.h"
 #include "oofnd/Log.hpp"
@@ -128,7 +127,6 @@ public:
 // The GUI: the members the binding calls are defined below (a C++ stand-in
 // with the facade stand-in's answers), recording into sGuiCalls.
 #include "GuiDisplayGen.h"
-#include "OOTextureSprite.h"	// the stand-in's destructor destroys the GUI's sprite members
 #include "OOColor.h"	// and its row colours
 
 

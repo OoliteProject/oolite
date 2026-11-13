@@ -16,7 +16,6 @@
 #include <cstdlib>
 #include <vector>
 
-#include "OODescription.h"
 #include "OOSingleTextureMaterial.h"
 #include "OOTexture.h"
 #include "oo_gl_test_context.hpp"

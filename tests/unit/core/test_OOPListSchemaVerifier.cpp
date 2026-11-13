@@ -17,7 +17,6 @@
    test_OOPListSchemaVerifier
 */
 
-#include <cstdio>
 #include <cstdlib>
 #include <string>
 #include <vector>

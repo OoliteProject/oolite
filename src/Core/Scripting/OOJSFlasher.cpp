@@ -27,7 +27,6 @@ MA 02110-1301, USA.
 #include "OOColor.h"
 #include "OOFlasherEntity.h"
 #include "OOJSEntity.h"
-#include "OOJSVector.h"
 #include "OOJavaScriptEngine.h"
 #include "OOVisualEffectEntity.h"
 #include "ShipEntity.h"

@@ -24,7 +24,6 @@
 */
 
 #include "OOFoundation.h"
-#include "OOStellarBody.h"
 
 #define DEBUG_DUMP (0 && OOLITE_DEBUG)
 #define DEBUG_DUMP_RAW (1 && DEBUG_DUMP)

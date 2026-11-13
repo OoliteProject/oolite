@@ -21,8 +21,6 @@
 #include "OOFoundation.h"
 #include "OOTCPStreamDecoderFormat.hpp"
 #include "oofnd/PListParsing.hpp"
-#include "oofnd/Ref.hpp"  // oo::AutoreleaseScope (was objc-arc.h's pool functions)
-#include "oofnd/String.hpp"
 
 struct OOALObject {
   oo::PList value;

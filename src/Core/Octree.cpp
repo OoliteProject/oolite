@@ -27,14 +27,11 @@ MA 02110-1301, USA.
 #include <algorithm>
 #include <cstring>
 
-#include "Entity.h"
 #include "OODebugFlags.h"
 #include "OODebugGLDrawing.h"
 #include "OOMacroOpenGL.h"
 #include "OOMaths.h"
-#include "OOOpenGL.h"
 #include "oofnd/objc/OOAssert.h"
-#include "oofnd/objc/OOException.h"
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 #define OctreeDebugLog(format, ...)                                \

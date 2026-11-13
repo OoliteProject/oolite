@@ -32,7 +32,6 @@ SOFTWARE.
 #include "OOColor.h"
 #include "OOMacroOpenGL.h"
 #include "Universe.h"
-#include "oofnd/PListGet.hpp"
 
 OOCrosshairs::OOCrosshairs(const oo::PList& points, GLfloat scale,
                            OOColor* color, GLfloat alpha) {

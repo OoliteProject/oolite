@@ -19,7 +19,6 @@
    truncated, as GNUstep's %F).
 */
 
-#include <type_traits>
 
 #include "oofnd/Log.hpp"
 

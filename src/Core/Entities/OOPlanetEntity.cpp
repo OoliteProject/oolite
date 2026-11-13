@@ -36,7 +36,6 @@ A leaf of Entity. The class is global.
 #include <utility>
 #include <vector>
 
-#include "OODescription.h"
 #include "OOJSPlanet.h"
 #include "oofnd/PList.hpp"
 
@@ -66,7 +65,6 @@ A leaf of Entity. The class is global.
 #include "Universe.h"
 #include "oofnd/Log.hpp"
 #include "oofnd/PListGet.hpp"
-#include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 
 #define OO_TERMINATOR_THRESHOLD_VECTOR_DEFAULT \

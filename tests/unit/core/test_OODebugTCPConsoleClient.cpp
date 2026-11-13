@@ -31,15 +31,11 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
-#include <map>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include "OODebugTCPConsoleProtocol.h"
 #include "oo_test.hpp"
-#include "oofnd/PListParsing.hpp"
-#include "oofnd/PListWriting.hpp"
 
 // MARK: The debug monitor's stand-in
 // --------------------------------------------------------------

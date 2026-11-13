@@ -34,7 +34,6 @@
 #include "OOJSPlayerShip.h"
 #include "OOJavaScriptEngine.h"
 #include "PlayerEntity.h"
-#include "PlayerEntityContracts.h"
 #include "ResourceManager.h"
 #include "StationEntity.h"
 #include "Universe.h"

@@ -41,8 +41,6 @@ MA 02110-1301, USA.
 #include "OOVisualEffectEntity.h"
 #include "OOWaypointEntity.h"
 #include "PlayerEntity.h"
-#include "PlayerEntityLegacyScriptEngine.h"
-#include "PlayerEntityScriptMethods.h"
 #include "ProxyPlayerEntity.h"
 #include "ShipEntity.h"
 

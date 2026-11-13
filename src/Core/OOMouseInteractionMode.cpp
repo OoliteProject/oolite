@@ -29,8 +29,6 @@ MA 02110-1301, USA.
 
 #include <format>
 
-#include "oofnd/String.hpp"
-
 std::string OOStringFromMouseInteractionMode(OOMouseInteractionMode mode) {
   switch (mode) {
     case OOMouseInteractionMode::kUiScreenNoInteraction:

@@ -25,7 +25,6 @@
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
 #include "EntityPListForeign.h"	// an entity's node
-#include "OODescription.h"
 #include <cstring>
 
 #include "oo_test.hpp"

@@ -30,12 +30,10 @@ MA 02110-1301, USA.
 #include "DockEntity.h"
 #include "EntityOOJavaScriptExtensions.h"
 #include "GameController.h"
-#include "OOConstToString.h"
 #include "OODebugFlags.h"
 #include "OOMaths.h"
 #include "OOPlanetEntity.h"
 #include "PlayerEntity.h"
-#include "ResourceManager.h"
 #include "StationEntity.h"  // willDispose(): the station's and the dock's parts
 #include "Universe.h"
 #include "oofnd/Log.hpp"

@@ -24,17 +24,32 @@ MA 02110-1301, USA.
 
 #include "OOCommodities.h"
 
+#include <quickjs.h>
+
+#include <cstddef>
+#include <cstdint>
+#include <cstdlib>
+#include <iterator>
+#include <memory>
+#include <optional>
+#include <string>
 #include <string_view>
+#include <utility>
+#include <vector>
 
 #include "OOCommodityMarket.h"
-#include "OOJSScript.h"
+#include "OOJSEngineCore.h"
+#include "OOJSPropID.h"
 #include "OOStringExpander.h"
+#include "OOTypes.h"
 #include "PlayerEntity.h"
 #include "ResourceManager.h"
 #include "StationEntity.h"
+#include "Universe.h"
 #include "legacy_random.h"
-#include "oofnd/PListGet.hpp"
-
+#include "oofnd/Log.hpp"
+#include "oofnd/Object.hpp"
+#include "oofnd/PListDescription.hpp"
 namespace {
 
 // keys in trade-goods.plist (sort_order, trumble_opinion, comment and

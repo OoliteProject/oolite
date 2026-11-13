@@ -21,7 +21,6 @@
 #include <cmath>
 
 #include "OOColor.h"
-#include "OODescription.h"
 #include "OOLightParticleEntity.h"
 #include "PlayerEntity.h"  // PLAYER is C++
 #include "Universe.h"

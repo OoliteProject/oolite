@@ -23,8 +23,6 @@
 
 #include "OOFoundation.h"
 #include "OOMaths.h"
-#include "OOTypes.h"
-#include "OOEntityEnums.h"
 #include <quickjs.h>
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"
@@ -169,7 +167,6 @@ public:
 #include <stdexcept>
 #include <string>
 #include <type_traits>
-#include <vector>
 
 
 // The binding's C API (OOJSEntity.h, which imports the engine and universe headers, so the test

@@ -22,7 +22,6 @@
    tools/check-core-tests.sh
 */
 
-#include <cmath>
 
 #include "EntityOOJavaScriptExtensions.h"
 #include "OOJSEntity.h"

@@ -34,14 +34,12 @@ MA 02110-1301, USA.
 #include "MyOpenGLView.h"
 #include "OOColor.h"
 #include "OODescription.h"
-#include "OOMaterial.h"
 #include "OOMaths.h"
 #include "OOSkyDrawable.h"
 #include "PlayerEntity.h"
 #include "Universe.h"
 #include "oofnd/Log.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/PListGet.hpp"
 #include "oofnd/String.hpp"
 
 #define SKY_BASIS_STARS 4800

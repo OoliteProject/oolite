@@ -12,7 +12,6 @@
 
 #include <cmath>
 
-#include "OODescription.h"
 #include "OOMeshToOctreeConverter.h"
 #include "Octree.h"
 #include "oo_test.hpp"

@@ -18,7 +18,6 @@
 
 #include "OOBreakPatternEntity.h"
 #include "OOColor.h"
-#include "OODescription.h"
 #include "PlayerEntity.h"
 #include "Universe.h"
 #include "oo_test.hpp"

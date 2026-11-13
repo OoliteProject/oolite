@@ -32,9 +32,7 @@ MA 02110-1301, USA.
 #include "OOAIStateMachineVerifierStage.h"
 #include "OOFileScannerVerifierStage.h"
 #include "OOPListSchemaVerifier.h"
-#include "OOStringParsing.h"
 #include "ResourceManager.h"
-#include "oofnd/PListGet.hpp"
 #include "oofnd/String.hpp"
 
 static const char* const kStageName = "Checking shipdata.plist";

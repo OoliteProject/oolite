@@ -19,7 +19,6 @@
 	Run: tests/run.sh unit
 */
 
-#include "OOFoundation.h"
 #include "OOColor.h"
 #include <quickjs.h>
 #include "oofnd/objc/OOException.h"
@@ -142,7 +141,6 @@ bool OOJSFlasherIsVisibleToScripts(void);
 #include <map>
 #include <stdexcept>
 #include <string>
-#include <vector>
 
 
 bool TestEntityObject::isShip()  { return _isShip; }

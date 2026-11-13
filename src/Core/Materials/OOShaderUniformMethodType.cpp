@@ -48,7 +48,6 @@ SOFTWARE.
 #include "OOColor.h"
 #include "OOMaths.h"
 #include "OOTypeEncodings.h"  // @encode()'s measured literals; OOColor * the complete class's, as the bindings' own
-#include "oofnd/String.hpp"
 
 static bool sInited = false;
 static const char* sTemplates[kOOShaderUniformTypeCount];

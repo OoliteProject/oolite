@@ -24,23 +24,29 @@ MA 02110-1301, USA.
 
 #include "OOCharacter.h"
 
-#include <cinttypes>  // PRIu64
+#include <quickjs.h>
+
 #include <cstddef>
 #include <format>
+#include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <utility>
 
-#include "OODescription.h"
-#include "OOJSScript.h"
+#include "OOJSEngineCore.h"
+#include "OOJSPropID.h"
+#include "OOScript.h"
 #include "OOStringExpander.h"
 #include "OOStringParsing.h"
+#include "OOTypes.h"
 #include "Universe.h"
+#include "legacy_random.h"
+#include "oofnd/Log.hpp"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/Scanner.hpp"
 #include "oofnd/String.hpp"
-
 namespace {
 
 // get<std::string> where the Foundation code read nil: std::nullopt when the

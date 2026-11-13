@@ -28,7 +28,6 @@ MA 02110-1301, USA.
 #include <format>
 
 #include "oofnd/Log.hpp"
-#include "oofnd/String.hpp"
 
 OOSDLJoystickManager::OOSDLJoystickManager() {
   std::map<std::string, int, std::less<>> idMap;

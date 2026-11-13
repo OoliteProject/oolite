@@ -17,8 +17,6 @@
 */
 
 #include "OOFoundation.h"
-#include "oofnd/objc/OOObject.h"
-#include "OOMaths.h"
 #include "OOJSEngineCore.h"
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"

@@ -33,17 +33,11 @@ MA 02110-1301, USA.
 
 #include "EntityOOJavaScriptExtensions.h"
 #include "OOConstToString.h"
-#include "OODescription.h"
 #include "OOFunctionAttributes.h"
 #include "OOJSEntity.h"
 #include "OOJSShip.h"
-#include "OOJSVector.h"
 #include "OOJavaScriptEngine.h"
-#include "OOStringParsing.h"
 #include "PlayerEntity.h"
-#include "PlayerEntityContracts.h"
-#include "PlayerEntityLegacyScriptEngine.h"
-#include "PlayerEntityScriptMethods.h"
 #include "oofnd/PList.hpp"
 
 /*

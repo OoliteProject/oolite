@@ -22,8 +22,6 @@
 
 #include "OOAIStateMachineVerifierStage.h"
 #include "OOCheckShipDataPListVerifierStage.h"
-#include "OODescription.h"
-#include "OOModelVerifierStage.h"
 #include "OOOXPVerifierStage.h"
 #include "OOPListSchemaVerifier.h"
 #include "OOPixMap.h"

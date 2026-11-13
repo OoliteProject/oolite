@@ -29,7 +29,6 @@ SOFTWARE.
 #include <utility>
 #include <vector>
 
-#include "OOFunctionAttributes.h"
 #include "OOLogHeader.h"
 #include "OOLogOutputHandler.h"
 #include "OOLoggingExtended.h"

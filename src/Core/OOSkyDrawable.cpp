@@ -35,10 +35,8 @@ SOFTWARE.
 #include "OOMacroOpenGL.h"
 #include "OOProbabilisticTextureManager.h"
 #include "OOTexture.h"
-#include "ResourceManager.h"
 #include "Universe.h"
 #include "oofnd/Defaults.hpp"
-#include "oofnd/String.hpp"
 #include "oofnd/objc/OOException.h"
 
 #define SKY_ELEMENT_SCALE_FACTOR (BILLBOARD_DEPTH / 500.0f)

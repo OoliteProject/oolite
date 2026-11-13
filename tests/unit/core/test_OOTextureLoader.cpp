@@ -19,7 +19,6 @@
 #include <cstdlib>
 
 #include "OOAsyncWorkManager.h"
-#include "OODescription.h"
 #include "OOTexture.h"
 #include "OOTextureLoader.h"
 #include "oo_gl_test_context.hpp"

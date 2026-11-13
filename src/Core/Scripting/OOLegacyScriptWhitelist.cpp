@@ -35,7 +35,6 @@ MA 02110-1301, USA.
 #include <vector>
 
 #include "OOFoundation.h"
-#include "OOStringParsing.h"
 #include "PlayerEntityLegacyScriptEngine.h"
 #include "ResourceManager.h"
 #include "oofnd/PList.hpp"

@@ -36,7 +36,6 @@ MA 02110-1301, USA.
 
 #include "EntityOOJavaScriptExtensions.h"
 #include "OOConstToJSString.h"
-#include "OODescription.h"
 #include "OOFoundation.h"  // OOLITE_DEBUG
 #include "OOJSClock.h"
 #include "OOJSDock.h"
@@ -74,8 +73,6 @@ MA 02110-1301, USA.
 #include "OOJSWorldScripts.h"
 #include "OOJSWormhole.h"
 #include "OOPlanetEntity.h"
-#include "OOVisualEffectEntity.h"
-#include "OOWaypointEntity.h"
 #include "ResourceManager.h"
 #include "Universe.h"
 #include "oofnd/Defaults.hpp"
@@ -85,7 +82,6 @@ MA 02110-1301, USA.
 #include "oofnd/Notification.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/PListGet.hpp"
-#include "oofnd/Scanner.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"

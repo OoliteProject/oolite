@@ -27,27 +27,48 @@ SOFTWARE.
 
 #include "OOShipRegistry.h"
 
+#include <quickjs.h>
+
+#include <algorithm>
+#include <cassert>
+#include <cstddef>
+#include <cstdio>
 #include <format>
+#include <functional>
+#include <map>
+#include <memory>
+#include <optional>
+#include <set>
+#include <string>
 #include <string_view>
+#include <utility>
+#include <vector>
 
 #include "GameController.h"
 #include "OOCacheManager.h"
 #include "OOColor.h"
 #include "OODebugStandards.h"
-#include "OOJSScript.h"
+#include "OODescription.h"
+#include "OOEntityStatus.h"
+#include "OOJSEngineCore.h"
+#include "OOJSPropID.h"
 #include "OOLegacyScriptWhitelist.h"
-#include "OOMesh.h"
 #include "OOPListGameTypes.h"
 #include "OOProbabilitySet.h"
+#include "OOQuaternion.h"
 #include "OORoleSet.h"
+#include "OOScript.h"
 #include "OOShipLibraryDescriptions.h"
-#include "OOStringExpander.h"
-#include "OOStringParsing.h"
+#include "OOVector.h"
+#include "PlayerEntity.h"
 #include "ResourceManager.h"
+#include "ShipEntity.h"
 #include "Universe.h"
+#include "oofnd/Log.hpp"
+#include "oofnd/Object.hpp"
+#include "oofnd/PListDescription.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOException.h"
-
 namespace {
 
 OOShipRegistry* sSingleton = nullptr;  // the one +1 is never released

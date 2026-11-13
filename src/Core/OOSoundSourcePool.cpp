@@ -27,7 +27,6 @@ SOFTWARE.
 
 #include "OOSoundSourcePool.h"
 
-#include "OOSound.h"
 #include "Universe.h"
 
 constexpr uint8_t kNoSlot = UINT8_MAX;

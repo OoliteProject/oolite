@@ -26,13 +26,20 @@ MA 02110-1301, USA.
 
 #include "OOColor.h"
 
+#include <cmath>
 #include <format>
+#include <memory>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <vector>
 
-#include "OOMaths.h"
+#include "OODescription.h"
+#include "OOFastArithmetic.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/Scanner.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
-
 namespace {
 
 /*	The named colours colorWithDescription() accepts: the class methods

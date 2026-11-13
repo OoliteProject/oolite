@@ -30,7 +30,6 @@ MA 02110-1301, USA.
 
 #include "OOMacroOpenGL.h"
 #include "Universe.h"
-#include "oofnd/String.hpp"
 
 #define kRingDuration (2.0f)  // seconds
 #define kRingAttack (0.4f)    // fade-up time

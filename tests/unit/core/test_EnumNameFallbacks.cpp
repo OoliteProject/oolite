@@ -13,12 +13,10 @@
 
 #include "OOConstToJSString.h"
 #include "OOConstToString.h"
-#include "OOEntityEnums.h"
 #include "OOOpenGL.h"
 #include "OOTypes.h"
 #include "PlayerEntity.h"
 #include "ShipEntity.h"
-#include "WormholeEntity.h"
 #include "oo_test.hpp"
 
 OO_TEST(OOStringFromEntityStatus) {

@@ -5,7 +5,6 @@
    round trips, NSDate -description's format, and the monotonic clock.
 */
 
-#include <type_traits>
 
 #include "oofnd/Date.hpp"
 

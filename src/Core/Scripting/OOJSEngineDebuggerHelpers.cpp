@@ -85,7 +85,6 @@ MA 02110-1301, USA.
 #include <utility>
 
 #include "OOJavaScriptEngine.h"
-#include "oofnd/String.hpp"
 
 // Exported for use from a debugger; not declared in a header.
 const char* JSValueToStrDbg(JSValue val);

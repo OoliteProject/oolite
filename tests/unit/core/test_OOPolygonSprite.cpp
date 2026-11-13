@@ -14,10 +14,8 @@
    tests/run.sh unit
 */
 
-#include <cmath>
 #include <limits>
 
-#include "OODescription.h"
 #include "OOGraphicsResetManager.h"
 #include "OOPolygonSprite.h"
 #include "oo_test.hpp"

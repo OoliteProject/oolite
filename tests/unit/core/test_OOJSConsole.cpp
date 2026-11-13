@@ -22,7 +22,6 @@
 #include "OOOpenGLExtensionManager.h"
 #include "OOJSEngineCore.h"
 #include "OODebugFlags.h"
-#include "oofnd/Log.hpp"
 #include "oofnd/String.hpp"
 #include "EntityManualRefs.h"  // the tests' manual references (T096)
 

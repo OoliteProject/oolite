@@ -31,7 +31,6 @@ MA 02110-1301, USA.
 #include <format>
 
 #include "Entity.h"
-#include "EntityOOJavaScriptExtensions.h"
 #include "OOJSEngineTimeManagement.h"
 #include "OOJavaScriptEngine.h"
 #include "oofnd/Notification.hpp"
@@ -40,11 +39,8 @@ MA 02110-1301, USA.
 #endif
 #include <unordered_map>
 
-#include "OOConstToJSString.h"
-#include "OOConstToString.h"
 #include "OODebugStandards.h"
 #include "OOJSPrivateObject.h"
-#include "OOLogging.h"
 #include "OOManifestProperties.h"
 #include "OOPListParsing.h"
 #include "oofnd/Encoding.hpp"

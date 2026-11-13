@@ -32,13 +32,11 @@ MA 02110-1301, USA.
 #include <string_view>
 #include <utility>
 
-#include "OODescription.h"
 #include "OOJSScript.h"
 #include "OOJavaScriptEngine.h"
 #include "Universe.h"
 #include "oofnd/Notification.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 
 /*

@@ -16,8 +16,6 @@
    read. Run: tests/run.sh unit
 */
 
-#include <cmath>
-#include <cstdio>
 #include <cstring>
 
 #include "Entity.h"

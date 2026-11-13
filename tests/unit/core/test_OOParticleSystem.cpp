@@ -24,7 +24,6 @@
 #include <optional>
 #include <string>
 
-#include "OODescription.h"
 #include "OOExplosionCloudEntity.h"
 #include "OOParticleSystem.h"
 #include "OOTexture.h"

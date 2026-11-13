@@ -28,7 +28,6 @@
 #include <string>
 
 #include "EntityOOJavaScriptExtensions.h"
-#include "OODescription.h"
 #include "OOJSEntity.h"
 #include "OOJSWormhole.h"
 #include "OOSystemDescriptionManager.h"
@@ -36,7 +35,6 @@
 #include "Universe.h"
 #include "WormholeEntity.h"
 #include "oo_test.hpp"
-#include "oofnd/PListGet.hpp"
 #include "EntityManualRefs.h"  // the tests' manual entity references (T095)
 
 // main.mm defines the debug flags, and the test has its own main.

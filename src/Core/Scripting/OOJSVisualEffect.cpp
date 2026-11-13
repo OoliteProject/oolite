@@ -31,9 +31,7 @@ MA 02110-1301, USA.
 #include <utility>
 #include <vector>
 
-#include "EntityOOJavaScriptExtensions.h"
 #include "OOColor.h"
-#include "OODescription.h"
 #include "OOJSEntity.h"
 #include "OOJSVector.h"
 #include "OOJavaScriptEngine.h"

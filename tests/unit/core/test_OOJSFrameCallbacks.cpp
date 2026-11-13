@@ -14,7 +14,6 @@
 	Run: tests/run.sh unit
 */
 
-#include "oofnd/objc/OOObject.h"
 #include "OOTypes.h"
 #include "OOJSEngineCore.h"	// the engine API this stage declares, and OOJSValue (not OOJavaScriptEngine.h: the test defines OOJSValue's members)
 #include "OOJSEngineNativeWrappers.h"

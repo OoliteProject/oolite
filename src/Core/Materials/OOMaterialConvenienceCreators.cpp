@@ -56,9 +56,6 @@ SOFTWARE.
 #include "OOSingleTextureMaterial.h"
 #include "OOTexture.h"
 #include "Universe.h"
-#include "oofnd/Defaults.hpp"
-#include "oofnd/PListWriting.hpp"
-#include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 
 #if !USE_NEW_SHADER_SYNTHESIZER

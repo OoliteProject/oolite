@@ -18,7 +18,6 @@
 
 #include "ShipEntity.h"
 #include "OOShipGroup.h"
-#include "OODescription.h"
 #include "Universe.h"
 #include "OOColor.h"
 #include "OORoleSet.h"
@@ -26,7 +25,6 @@
 #include "OOFlasherEntity.h"
 #include "AI.h"
 #include "PlayerEntity.h"
-#include "ShipEntityScriptMethods.h"
 #include "ShipEntityLoadRestore.h"
 #include "EntityManualRefs.h"  // the tests' manual entity references (T095)
 

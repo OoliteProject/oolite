@@ -21,8 +21,6 @@
 */
 
 #include "OOScriptTimer.h"
-#include "oofnd/objc/OOObject.h"
-#include "OODescription.h"
 #include "oofnd/Notification.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"

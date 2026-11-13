@@ -37,9 +37,7 @@ MA 02110-1301, USA.
 #include "ResourceManager.h"
 #include "Universe.h"
 #include "oofnd/FileSystem.hpp"
-#include "oofnd/Ref.hpp"  // oo::autorelease
 #include "oofnd/String.hpp"
-#include "oofnd/objc/OOObject.h"
 
 namespace {
 // The strings in the array a property-list file holds (other elements skipped);

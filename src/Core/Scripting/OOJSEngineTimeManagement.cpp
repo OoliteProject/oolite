@@ -37,10 +37,8 @@ SOFTWARE.
 #include <utility>
 #include <vector>
 
-#include "OODescription.h"
 #include "oofnd/Log.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 
 /*	The SpiderMonkey version of this file implemented the time limiter

@@ -31,8 +31,6 @@ MA 02110-1301, USA.
 
 #include "OOFileScannerVerifierStage.h"
 #include "Universe.h"
-#include "oofnd/PListGet.hpp"
-#include "oofnd/String.hpp"
 
 static const char* const kStageName = "Checking equipment.plist";
 

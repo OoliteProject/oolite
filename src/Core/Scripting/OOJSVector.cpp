@@ -38,8 +38,6 @@ MA 02110-1301, USA.
 #include <memory>
 #include <new>
 
-#include "oofnd/String.hpp"
-
 /*
         The Vector3D class, in the design of upstream #768's OOJSVector.m: the
         private slot (QuickJS's opaque pointer) holds a malloced HPVector, freed

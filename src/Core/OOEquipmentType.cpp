@@ -36,8 +36,6 @@ SOFTWARE.
 #include "OODebugStandards.h"
 #include "OOLegacyScriptWhitelist.h"
 #include "OOScript.h"
-#include "PlayerEntityControls.h"
-#include "PlayerEntityKeyMapper.h"
 #include "PlayerEntityLegacyScriptEngine.h"  // (was imported before the Conveniences category)
 #include "Universe.h"
 #include "oofnd/String.hpp"

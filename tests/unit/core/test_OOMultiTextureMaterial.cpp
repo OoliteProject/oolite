@@ -23,7 +23,6 @@
 #include <vector>
 
 #include "OOCombinedEmissionMapGenerator.h"
-#include "OODescription.h"
 #include "OOMultiTextureMaterial.h"
 #include "OOOpenGLExtensionManager.h"
 #include "OORegExpMatcher.h"

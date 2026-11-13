@@ -16,9 +16,6 @@
 	sound, which SoundFromJSValue() answers. Run: tests/run.sh unit
 */
 
-#include "OOFoundation.h"
-#include "oofnd/objc/OOObject.h"
-#include "OOTypes.h"
 #include "OOJSEngineCore.h"
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"

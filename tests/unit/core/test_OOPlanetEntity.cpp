@@ -19,13 +19,11 @@
 
 #include "OOPlanetEntity.h"
 #include "PlayerEntity.h"	// PLAYER is C++
-#include "OOPlanetDrawable.h"
 #include "EntityOOJavaScriptExtensions.h"
 #include "OOJSEntity.h"
 #include "OOJSPlanet.h"
 #include "OOColor.h"
 #include "OOTexture.h"
-#include "OODescription.h"
 #include "Universe.h"
 
 #include "oo_test.hpp"

@@ -21,7 +21,6 @@
 */
 
 #include "OOFoundation.h"
-#include "oofnd/objc/OOObject.h"
 #include "OOSystemDescriptionManager.h"
 #include "OOCommodities.h"
 #include "OOCommodityMarket.h"
@@ -33,21 +32,12 @@
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
 #include "OODescription.h"
-#include <algorithm>
-#include <chrono>
-#include <condition_variable>
 #include <cstddef>
 #include <cstdint>
-#include <functional>
 #include <map>
 #include <memory>
-#include <mutex>
 #include <optional>
-#include <set>
 #include <string>
-#include <string_view>
-#include <unordered_map>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 #include "EntityManualRefs.h"  // the tests' manual references (T096)

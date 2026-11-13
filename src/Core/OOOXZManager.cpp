@@ -45,7 +45,6 @@ MA 02110-1301, USA.
 #include "OOStringParsing.h"
 #include "OOXMLExtensions.h"
 #include "PlayerEntity.h"
-#include "PlayerEntitySound.h"
 #include "ResourceManager.h"
 #include "Universe.h"
 #include "oofnd/Date.hpp"

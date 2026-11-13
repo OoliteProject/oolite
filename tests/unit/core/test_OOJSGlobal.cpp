@@ -17,14 +17,11 @@
 */
 
 #include "OOFoundation.h"
-#include "oofnd/objc/OOObject.h"
 #include "OOColor.h"
 #include "GuiDisplayGen.h"
-#include "OOTextureSprite.h"	// the GUI stand-in's destructor destroys its sprite members
 #include "OOJSGuiScreenKeyDefinition.h"
 #include "OOStringExpander.h"
 #include "OOTypes.h"
-#include "OOEntityEnums.h"
 #include <quickjs.h>
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"

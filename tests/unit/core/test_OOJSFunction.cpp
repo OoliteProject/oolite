@@ -16,11 +16,8 @@
 */
 
 #include "OOJSFunction.h"
-#include "oofnd/objc/OOObject.h"
-#include "OODescription.h"
 #include "OOTypes.h"
 #include "oofnd/Notification.hpp"
-#include "oofnd/String.hpp"
 
 #include "oo_test.hpp"
 

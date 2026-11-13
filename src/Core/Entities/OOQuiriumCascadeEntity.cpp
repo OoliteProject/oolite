@@ -30,7 +30,6 @@ MA 02110-1301, USA.
 #include "OOMacroOpenGL.h"
 #include "PlayerEntity.h"
 #include "Universe.h"
-#include "oofnd/String.hpp"
 
 #define kQuiriumCascadeDuration (20.0)  // seconds
 #define kQuiriumCollisionDelay \

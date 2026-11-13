@@ -28,7 +28,6 @@
 
 #include "Entity.h"
 #include "OODebugFlags.h"
-#include "OODescription.h"
 #include "PlayerEntity.h"
 #include "Universe.h"
 #include "oo_test.hpp"

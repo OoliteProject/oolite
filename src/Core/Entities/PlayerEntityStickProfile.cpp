@@ -32,10 +32,6 @@ MA 02110-1301, USA.
 #include "OOMacroOpenGL.h"
 #include "OOOpenGL.h"
 #include "PlayerEntity.h"
-#include "PlayerEntityControls.h"
-#include "PlayerEntitySound.h"
-#include "PlayerEntityStickMapper.h"
-#include "oofnd/String.hpp"
 
 constexpr int GUI_ROW_STICKPROFILE_BACK = 20;
 constexpr int GUI_ROW_STICKPROFILE_AXIS = 1;
