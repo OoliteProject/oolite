@@ -158,6 +158,9 @@ struct OOPrioritizedTaskQueue {
 class OOOperationQueueAsyncWorkManager : public OOAsyncWorkManagerInternal {
  public:
   OOOperationQueueAsyncWorkManager();
+  // The workers use the queue, and they belong to the base class, whose members
+  // outlive this class's: join them before the queue goes.
+  ~OOOperationQueueAsyncWorkManager() override { shutdown(); }
 
   static bool canBeUsed();
 
@@ -167,7 +170,7 @@ class OOOperationQueueAsyncWorkManager : public OOAsyncWorkManagerInternal {
   void workThread(unsigned threadNumber, const std::stop_token& stop);
   void dispatchTask(OOAsyncWorkTask* task);
 
-  OOPrioritizedTaskQueue* _operationQueue = {};
+  OOPrioritizedTaskQueue _operationQueue;
 };
 
 }  // namespace
@@ -423,7 +426,6 @@ bool OOOperationQueueAsyncWorkManager::canBeUsed() {
 }
 
 OOOperationQueueAsyncWorkManager::OOOperationQueueAsyncWorkManager() {
-  _operationQueue = new OOPrioritizedTaskQueue;
   _workers = StartWorkThreads(
       [this](unsigned threadNumber, const std::stop_token& stop) {
         workThread(threadNumber, stop);
@@ -442,10 +444,10 @@ bool OOOperationQueueAsyncWorkManager::addTask(OOAsyncWorkTask* task,
     index = oo::ToUnderlying(OOAsyncWorkPriority::kHigh);
 
   {
-    std::lock_guard<std::mutex> lock(_operationQueue->mutex);
-    _operationQueue->tasks[index].emplace_back(oo::share(task));
+    std::lock_guard<std::mutex> lock(_operationQueue.mutex);
+    _operationQueue.tasks[index].emplace_back(oo::share(task));
   }
-  _operationQueue->available.notify_one();
+  _operationQueue.available.notify_one();
 
   noteTaskQueued(task);
   return true;
@@ -458,24 +460,24 @@ void OOOperationQueueAsyncWorkManager::workThread(unsigned threadNumber,
   while (!stop.stop_requested()) {
     std::shared_ptr<OOAsyncWorkTask> task;
     {
-      std::unique_lock<std::mutex> lock(_operationQueue->mutex);
+      std::unique_lock<std::mutex> lock(_operationQueue.mutex);
       while (task == nullptr && !stop.stop_requested()) {
         for (int index = oo::ToUnderlying(OOAsyncWorkPriority::kHigh);
              index >= oo::ToUnderlying(OOAsyncWorkPriority::kLow) &&
              task == nullptr;
              index--) {
           std::deque<std::shared_ptr<OOAsyncWorkTask>>& queue =
-              _operationQueue->tasks[index];
+              _operationQueue.tasks[index];
           if (!queue.empty()) {
             task = std::move(queue.front());
             queue.pop_front();
           }
         }
         if (task == nullptr)
-          _operationQueue->available.wait(lock, stop, [this] {
-            return !_operationQueue->tasks[0].empty() ||
-                   !_operationQueue->tasks[1].empty() ||
-                   !_operationQueue->tasks[2].empty();
+          _operationQueue.available.wait(lock, stop, [this] {
+            return !_operationQueue.tasks[0].empty() ||
+                   !_operationQueue.tasks[1].empty() ||
+                   !_operationQueue.tasks[2].empty();
           });
       }
     }
