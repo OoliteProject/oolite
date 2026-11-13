@@ -94,15 +94,14 @@ void OOMaterial::applyNone() {
 std::shared_ptr<OOMaterial> OOMaterial::current() { return ActiveMaterial(); }
 
 // OOMaterialState.h: the slot for plain C++ translation units.
-OOMaterial* OOMaterialRetainCurrent() {
-  return oo::leakRef(OOMaterial::current());
+std::shared_ptr<OOMaterial> OOMaterialRetainCurrent() {
+  return OOMaterial::current();
 }
 
 void OOMaterialApplyNone() { OOMaterial::applyNone(); }
 
-void OOMaterialApplyAndRelease(OOMaterial* material) {
+void OOMaterialApplyAndRelease(std::shared_ptr<OOMaterial> material) {
   if (material != nullptr) material->apply();  // a message to nil did nothing
-  oo::release(material);
 }
 
 void OOMaterial::ensureFinishedLoading() {}
@@ -136,8 +135,9 @@ void OOMaterial::willDealloc() {
            "***** Material deallocated while active, indicating a "
            "retain/release imbalance.");
     unapplyWithNext(nullptr);
-    (void)oo::leakRef(
-        ActiveMaterial());  // = nil: not released, it is being deallocated
+    // = nil, not released: it is being deallocated. The reference is moved
+    // into a holder that is never deleted.
+    (void)new std::shared_ptr<OOMaterial>(std::move(ActiveMaterial()));
   }
 }
 

@@ -105,7 +105,7 @@ OOOpenGLMatrixManager::OOOpenGLMatrixManager() {
   projectionStack = oo::makeShared<OOOpenGLMatrixStack>();
 }
 
-// -dealloc released the two stacks: their oo::Ref members do.
+// -dealloc released the two stacks: their std::shared_ptr members do.
 
 void OOOpenGLMatrixManager::loadModelView(OOMatrix matrix) {
   matrices[OOLITE_GL_MATRIX_MODELVIEW] = matrix;

@@ -80,7 +80,7 @@ inline constexpr int OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE_TRANSPOSE =
 inline constexpr int OOLITE_GL_MATRIX_END =
     OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE_TRANSPOSE + 1;
 
-class OOOpenGLMatrixStack : public oo::RefCounted {
+class OOOpenGLMatrixStack : public oo::Object {
  public:
   void push(OOMatrix matrix);
   OOMatrix pop();
@@ -90,7 +90,7 @@ class OOOpenGLMatrixStack : public oo::RefCounted {
   std::vector<OOMatrix> stack = {};
 };
 
-class OOOpenGLMatrixManager : public oo::RefCounted {
+class OOOpenGLMatrixManager : public oo::Object {
  public:
   OOOpenGLMatrixManager();
   void loadModelView(OOMatrix matrix);

@@ -223,7 +223,7 @@ OO_TEST(willDeallocWhileCurrent) {
   {
     const std::shared_ptr<TestObjCMaterial> material = MakeMaterial("Imbalanced");
     material->apply();
-    const unsigned retained = material->retainCount();
+    const long retained = material.use_count();
     gUnapplied.clear();
 
     // What -dealloc did first. Current: unapplied with no next, and no longer
@@ -232,8 +232,9 @@ OO_TEST(willDeallocWhileCurrent) {
     material->willDealloc();
     OO_CHECK(Unapplied({{material.get(), nullptr}}));
     OO_CHECK(OOMaterial::current() == nullptr);
-    OO_CHECK(material->retainCount() == retained);
-    material->release();  // the reference being current held
+    OO_CHECK(material.use_count() == retained);
+    // The reference being current held stays in the holder willDealloc() moved
+    // it to (never deleted; there is no manual release to give it back).
 
     material->willDealloc();  // not current: nothing
     OO_CHECK(Unapplied({}));

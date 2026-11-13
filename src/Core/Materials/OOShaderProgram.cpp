@@ -30,6 +30,7 @@ SOFTWARE.
 #if OO_SHADERS
 
 #include <cstddef>
+#include <cstdlib>
 #include <format>
 #include <map>
 #include <optional>
@@ -128,7 +129,8 @@ std::shared_ptr<OOShaderProgram> OOShaderProgram::shaderProgramWithVertexShader(
 
   if (result == nullptr) {
     // No cached program; create one...
-    result = oo::adopt(new OOShaderProgram());
+    result =
+        std::shared_ptr<OOShaderProgram>(new OOShaderProgram(), oo::Dispose{});
     if (!result->initWithVertexShaderSource(
             vertexShaderSource, fragmentShaderSource, prefixString,
             vertexShaderName, fragmentShaderName, attributeBindings, cacheKey))
@@ -192,7 +194,8 @@ OOShaderProgram::shaderProgramWithVertexShaderName(
                      prefixString->substr(version330.length());
     }
 #endif
-    result = oo::adopt(new OOShaderProgram());
+    result =
+        std::shared_ptr<OOShaderProgram>(new OOShaderProgram(), oo::Dispose{});
     if (!result->initWithVertexShaderSource(
             vertexSource, fragmentSource, prefixString, vertexShaderName,
             fragmentShaderName, bindings, cacheKey))
@@ -218,8 +221,13 @@ OOShaderProgram::~OOShaderProgram() {
     OO_LOG("shader.dealloc.imbalance", "{}",
            "***** OOShaderProgram deallocated while active, indicating a "
            "retain/release imbalance. Expect imminent crash.");
-    // applyNone(), but not released: it is being destroyed.
-    (void)oo::leakRef(ActiveProgram());
+    // applyNone(), but not released: it is being destroyed. The reference is
+    // moved into a holder that is never deleted.
+    try {
+      (void)new std::shared_ptr<OOShaderProgram>(std::move(ActiveProgram()));
+    } catch (...) {
+      std::abort();  // in a destructor: no memory for the holder
+    }
     OOGL(glUseProgramObjectARB(NULL_SHADER));
   }
 #endif

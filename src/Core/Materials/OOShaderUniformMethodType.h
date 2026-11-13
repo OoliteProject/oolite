@@ -138,16 +138,16 @@ struct OOShaderBindingValue {
    target's.
 */
 namespace oo {
-class RefCounted;
+class Object;
 }
-typedef void (*OOShaderMemberGetter)(oo::RefCounted* target,
+typedef void (*OOShaderMemberGetter)(oo::Object* target,
                                      OOShaderBindingValue& outValue);
 
 struct OOShaderMemberBinding {
   OOShaderUniformType type;
   OOShaderMemberGetter get;
-  oo::RefCounted* target;  // the C++ object get reads (the entity's part),
-                           // borrowed: the uniform holds it weakly
+  oo::Object* target;  // the C++ object get reads (the entity's part),
+                       // borrowed: the uniform holds it weakly
 };
 
 /*	A material's binding target is the C++ entity. What the uniform and the

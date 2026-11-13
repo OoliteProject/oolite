@@ -67,7 +67,7 @@ SOFTWARE.
    Attribute bindings are a property-list dictionary of attribute name ->
         location (oo::PList, null for none).
 */
-class OOShaderProgram : public oo::RefCounted {
+class OOShaderProgram : public oo::Object {
  public:
   ~OOShaderProgram() override;
 

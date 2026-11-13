@@ -33,15 +33,17 @@ SOFTWARE.
 
 #pragma once
 
+#include <memory>
+
 class OOMaterial;
 
-// OOMaterial::current().leakRef(): the current material, retained by the
-// caller; null for none.
-OOMaterial* OOMaterialRetainCurrent();
+// OOMaterial::current(): the current material, shared with the caller; null for
+// none.
+std::shared_ptr<OOMaterial> OOMaterialRetainCurrent();
 
 // OOMaterial::applyNone().
 void OOMaterialApplyNone();
 
-// Makes material current again (apply(); nothing for null) and releases the
-// caller's reference.
-void OOMaterialApplyAndRelease(OOMaterial* material);
+// Makes material current again (apply(); nothing for null); the caller's
+// reference goes with the argument.
+void OOMaterialApplyAndRelease(std::shared_ptr<OOMaterial> material);

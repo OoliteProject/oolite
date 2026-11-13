@@ -281,7 +281,7 @@ class CxxTarget : public oo::RefCounted {
   Vector vector = kZeroVector;
 };
 
-void CxxTargetVector(oo::RefCounted* target, OOShaderBindingValue& outValue) {
+void CxxTargetVector(oo::Object* target, OOShaderBindingValue& outValue) {
   outValue.v = static_cast<CxxTarget*>(target)->vector;
 }
 
@@ -355,40 +355,40 @@ class ConvertTarget : public oo::RefCounted {
   float _float = 0;
 };
 
-ConvertTarget* Target(oo::RefCounted* target) {
+ConvertTarget* Target(oo::Object* target) {
   return static_cast<ConvertTarget*>(target);
 }
 
-void IntValue(oo::RefCounted* t, OOShaderBindingValue& v) {
+void IntValue(oo::Object* t, OOShaderBindingValue& v) {
   v.i = Target(t)->_int;
 }
-void ByteValue(oo::RefCounted*, OOShaderBindingValue& v) { v.i = 7; }
-void FloatValue(oo::RefCounted* t, OOShaderBindingValue& v) {
+void ByteValue(oo::Object*, OOShaderBindingValue& v) { v.i = 7; }
+void FloatValue(oo::Object* t, OOShaderBindingValue& v) {
   v.f = Target(t)->_float;
 }
-void DoubleValue(oo::RefCounted*, OOShaderBindingValue& v) { v.f = 2.5; }
-void VectorValue(oo::RefCounted*, OOShaderBindingValue& v) {
+void DoubleValue(oo::Object*, OOShaderBindingValue& v) { v.f = 2.5; }
+void VectorValue(oo::Object*, OOShaderBindingValue& v) {
   v.v = make_vector(3, 0, 4);
 }
-void HPVectorValue(oo::RefCounted*, OOShaderBindingValue& v) {
+void HPVectorValue(oo::Object*, OOShaderBindingValue& v) {
   v.hpv = make_HPvector(0, 6, 8);
 }
-void QuaternionValue(oo::RefCounted*, OOShaderBindingValue& v) {
+void QuaternionValue(oo::Object*, OOShaderBindingValue& v) {
   Quaternion q = {0.5f, 0.5f, 0.5f, 0.5f};
   v.q = q;
 }
-void MatrixValue(oo::RefCounted*, OOShaderBindingValue& v) {
+void MatrixValue(oo::Object*, OOShaderBindingValue& v) {
   v.m = OOMatrixForScale(2, 3, 4);
 }
-void PointValue(oo::RefCounted*, OOShaderBindingValue& v) {
+void PointValue(oo::Object*, OOShaderBindingValue& v) {
   v.p = NSMakePoint(1.5, -2.5);
 }
-void ColorValue(oo::RefCounted*, OOShaderBindingValue& v) {
+void ColorValue(oo::Object*, OOShaderBindingValue& v) {
   static std::shared_ptr<OOColor> color =
       OOColor::colorWithRed(0.25f, 0.5f, 0.75f, 1.0f);
   v.color = color.get();
 }
-void NotAColor(oo::RefCounted*, OOShaderBindingValue&) {}
+void NotAColor(oo::Object*, OOShaderBindingValue&) {}
 
 std::shared_ptr<OOShaderUniform> BoundCxx(const char* uniform, ConvertTarget* target,
                                   OOShaderUniformType type,

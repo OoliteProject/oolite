@@ -129,8 +129,11 @@ void OOBasicMaterial::unapplyWithNext(OOMaterial* next) {
   // This class or a subclass (null is neither)
   if (dynamic_cast<OOBasicMaterial*>(next) == nullptr) {
     if (EXPECT_NOT(sDefaultMaterial == nullptr))
+      // Never released: a heap std::shared_ptr that is never deleted.
       sDefaultMaterial =
-          oo::leakRef(materialWithName(std::string("<default material>")));
+          (*new std::shared_ptr<OOBasicMaterial>(
+               materialWithName(std::string("<default material>"))))
+              .get();
     sDefaultMaterial->doApply();
   }
 }

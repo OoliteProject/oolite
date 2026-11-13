@@ -34,7 +34,7 @@ class OOTexture;
 #define OPEN_GL_SPRITE_MIN_WIDTH 64.0
 #define OPEN_GL_SPRITE_MIN_HEIGHT 64.0
 
-class OOTextureSprite : public oo::RefCounted {
+class OOTextureSprite : public oo::Object {
  public:
   // Null for a nil texture (-initWithTexture:... answered nil). The first is
   // the texture's original dimensions.

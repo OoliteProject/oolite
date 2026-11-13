@@ -61,7 +61,7 @@ SOFTWARE.
 // The OpenGL feature switches and the Windows extension function pointers.
 #include "OOOpenGLExtensionPointers.h"
 
-class OOOpenGLExtensionManager : public oo::RefCounted {
+class OOOpenGLExtensionManager : public oo::Object {
  public:
   /*	The shared manager, made (and reset()) on first use; borrowed, never
      released. NOTE: assumes single-threaded first access.
@@ -127,8 +127,8 @@ class OOOpenGLExtensionManager : public oo::RefCounted {
       const std::optional<std::string>& version,
       const std::optional<std::string>& extensionsStr);
 
-  // An ivar that shares its name with a member function (its own or
-  // oo::RefCounted's) has the suffix _.
+  // An ivar that shares its name with a member function (its own, or one its
+  // base class had) has the suffix _.
   std::mutex lock = {};
   // The extension names, and the vendor /
   // renderer strings (nullopt where OpenGL answered NULL, as the strings were
@@ -139,7 +139,7 @@ class OOOpenGLExtensionManager : public oo::RefCounted {
   std::optional<std::string> renderer = {};
 
   unsigned major = {}, minor = {},
-           release_ = {};  // _: oo::RefCounted has a release()
+           release_ = {};  // _: named when the base class had a release()
 
   bool usePointSmoothing_ = {};
   bool useLineSmoothing_ = {};

@@ -61,7 +61,7 @@ bool OOSynthesizeMaterialShader(const oo::PList& materialConfiguration,
 /*	The synthesizer itself, private to OODefaultShaderSynthesizer.cpp; its
    one caller is OOSynthesizeMaterialShader() above.
 */
-class OODefaultShaderSynthesizer : public oo::RefCounted {
+class OODefaultShaderSynthesizer : public oo::Object {
  public:
   OODefaultShaderSynthesizer(
       const oo::PList& configuration,
