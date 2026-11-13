@@ -124,14 +124,17 @@ oo::PList StationEntity::launchIndependentShip(
   ::ShipEntity* ship = nullptr;
 
   if ((trader && (randf() < 0.1)) || sunskimmer) {
-    ship = (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("sunskim-trader")
-                                : static_cast<::ShipEntity*>(nullptr));
+    ship =
+        (UNIVERSE != nullptr
+             ? oo::RetainedEntity(UNIVERSE->newShipWithRole("sunskim-trader"))
+             : static_cast<::ShipEntity*>(nullptr));
     sunskimmer = true;
     trader = true;
     shipRole = "trader";  // make sure also sunskimmers get trader role.
   } else {
-    ship = (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(shipRole)
-                                : static_cast<::ShipEntity*>(nullptr));
+    ship = (UNIVERSE != nullptr
+                ? oo::RetainedEntity(UNIVERSE->newShipWithRole(shipRole))
+                : static_cast<::ShipEntity*>(nullptr));
   }
 
   if (!fitsInDock(ship)) {
@@ -234,12 +237,12 @@ oo::PList StationEntity::launchPolice()  // called by name
     if ((Ranrot() & 3) + 9 < techlevel) {
       police_ship =
           (UNIVERSE != nullptr
-               ? UNIVERSE->newShipWithRole("interceptor")
+               ? oo::RetainedEntity(UNIVERSE->newShipWithRole("interceptor"))
                : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
     } else {
       police_ship =
           (UNIVERSE != nullptr
-               ? UNIVERSE->newShipWithRole("police")
+               ? oo::RetainedEntity(UNIVERSE->newShipWithRole("police"))
                : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
     }
 
@@ -326,8 +329,9 @@ oo::PList StationEntity::launchPolice()  // called by name
       shipinfoDictionary.find("defense_ship"));  // -oo_stringForKey:
   if (defense_ship_key) {
     defense_ship =
-        (UNIVERSE != nullptr ? UNIVERSE->newShipWithName(*defense_ship_key)
-                             : static_cast<::ShipEntity*>(nullptr));
+        (UNIVERSE != nullptr
+             ? oo::RetainedEntity(UNIVERSE->newShipWithName(*defense_ship_key))
+             : static_cast<::ShipEntity*>(nullptr));
   }
   // The retry below was a pointer comparison of the role with the default role
   // string: it ran exactly when shipdata supplied defense_ship_role
@@ -338,16 +342,18 @@ oo::PList StationEntity::launchPolice()  // called by name
     const std::optional<std::string> defense_ship_role =
         OptionalStringValue(shipinfoDictionary.find("defense_ship_role"));
     shipdataSuppliedRole = defense_ship_role.has_value();
-    defense_ship = (UNIVERSE != nullptr
-                        ? UNIVERSE->newShipWithRole(defense_ship_role.value_or(
-                              default_defense_ship_role))
-                        : static_cast<::ShipEntity*>(nullptr));
+    defense_ship =
+        (UNIVERSE != nullptr
+             ? oo::RetainedEntity(UNIVERSE->newShipWithRole(
+                   defense_ship_role.value_or(default_defense_ship_role)))
+             : static_cast<::ShipEntity*>(nullptr));
   }
 
   if (!defense_ship && shipdataSuppliedRole)
-    defense_ship = (UNIVERSE != nullptr
-                        ? UNIVERSE->newShipWithRole(default_defense_ship_role)
-                        : static_cast<::ShipEntity*>(nullptr));
+    defense_ship =
+        (UNIVERSE != nullptr ? oo::RetainedEntity(UNIVERSE->newShipWithRole(
+                                   default_defense_ship_role))
+                             : static_cast<::ShipEntity*>(nullptr));
 
   if (!defense_ship || !fitsInDock(defense_ship)) {
     if (defense_ship != nullptr) oo::ReleaseEntity(defense_ship);
@@ -437,7 +443,7 @@ oo::PList StationEntity::launchPolice()  // called by name
 
   scavenger_ship =
       (UNIVERSE != nullptr
-           ? UNIVERSE->newShipWithRole("scavenger")
+           ? oo::RetainedEntity(UNIVERSE->newShipWithRole("scavenger"))
            : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
 
   if (!fitsInDock(scavenger_ship)) {
@@ -498,7 +504,7 @@ oo::PList StationEntity::launchPolice()  // called by name
   if (scavengers_launched >= max_scavengers) return nullptr;
 
   miner_ship = (UNIVERSE != nullptr
-                    ? UNIVERSE->newShipWithRole("miner")
+                    ? oo::RetainedEntity(UNIVERSE->newShipWithRole("miner"))
                     : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
 
   if (!fitsInDock(miner_ship)) {
@@ -562,7 +568,7 @@ oo::PList StationEntity::launchPolice()  // called by name
   // Yep! The standard hermit defence ships, even if they're the aggressor.
   pirate_ship =
       (UNIVERSE != nullptr
-           ? UNIVERSE->newShipWithRole("pirate")
+           ? oo::RetainedEntity(UNIVERSE->newShipWithRole("pirate"))
            : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
   // Nope, use standard pirates in a generic method.
 
@@ -623,7 +629,7 @@ oo::PList StationEntity::launchPolice()  // called by name
 
   shuttle_ship =
       (UNIVERSE != nullptr
-           ? UNIVERSE->newShipWithRole("shuttle")
+           ? oo::RetainedEntity(UNIVERSE->newShipWithRole("shuttle"))
            : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
 
   if (!fitsInDock(shuttle_ship)) {
@@ -668,7 +674,7 @@ oo::PList StationEntity::launchPolice()  // called by name
 
   escort_ship =
       (UNIVERSE != nullptr
-           ? UNIVERSE->newShipWithRole("escort")
+           ? oo::RetainedEntity(UNIVERSE->newShipWithRole("escort"))
            : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
 
   if (escort_ship && fitsInDock(escort_ship)) {
@@ -708,12 +714,12 @@ oo::PList StationEntity::launchPolice()  // called by name
     if ((Ranrot() & 7) + 6 <= techlevel)
       patrol_ship =
           (UNIVERSE != nullptr
-               ? UNIVERSE->newShipWithRole("interceptor")
+               ? oo::RetainedEntity(UNIVERSE->newShipWithRole("interceptor"))
                : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
     else
       patrol_ship =
           (UNIVERSE != nullptr
-               ? UNIVERSE->newShipWithRole("police")
+               ? oo::RetainedEntity(UNIVERSE->newShipWithRole("police"))
                : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
 
     if (!fitsInDock(patrol_ship)) {
@@ -771,7 +777,7 @@ void StationEntity::launchShipWithRole(
   const std::string& shipRole = role;
   ::ShipEntity* ship =
       (UNIVERSE != nullptr
-           ? UNIVERSE->newShipWithRole(shipRole)
+           ? oo::RetainedEntity(UNIVERSE->newShipWithRole(shipRole))
            : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
   if (ship && fitsInDock(ship)) {
     if (!(ship != nullptr

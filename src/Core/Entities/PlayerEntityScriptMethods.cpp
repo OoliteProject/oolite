@@ -137,7 +137,8 @@ void PlayerEntity::awardCommodityType(const std::string& type,
             if (cargo.size() < maxAvailableCargoSpace()) {
               ::ShipEntity* container =
                   (UNIVERSE != nullptr
-                       ? UNIVERSE->newShipWithRole("1t-cargopod")
+                       ? oo::RetainedEntity(
+                             UNIVERSE->newShipWithRole("1t-cargopod"))
                        : static_cast<::ShipEntity*>(nullptr));
               if (container) {
                 // the cargopod ship is just being set up. If ejected,  will
@@ -163,8 +164,10 @@ void PlayerEntity::awardCommodityType(const std::string& type,
         while (amount) {
           if (cargo.size() < maxAvailableCargoSpace()) {
             ::ShipEntity* container =
-                (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("1t-cargopod")
-                                     : static_cast<::ShipEntity*>(nullptr));
+                (UNIVERSE != nullptr
+                     ? oo::RetainedEntity(
+                           UNIVERSE->newShipWithRole("1t-cargopod"))
+                     : static_cast<::ShipEntity*>(nullptr));
             if (container) {
               // the cargopod ship is just being set up. If ejected, will call
               // UNIVERSE addEntity [container wasAddedToUniverse]; // seems to

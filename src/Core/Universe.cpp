@@ -2019,8 +2019,9 @@ void Universe::setUpSpace() {
 #endif
 
   // a missing role (the unset default) gives no ship, as a nil role did
-  stationObject = stationDesc.has_value() ? newShipWithRole(*stationDesc)
-                                          : nullptr;  // retain count = 1
+  stationObject = stationDesc.has_value()
+                      ? oo::RetainedEntity(newShipWithRole(*stationDesc))
+                      : nullptr;  // retain count = 1
 
   /*	Sanity check: ensure that only stations are generated here. This is an
           attempt to fix exceptions of the form:
@@ -2054,8 +2055,9 @@ void Universe::setUpSpace() {
     }
     if (stationObject != nullptr) oo::ReleaseEntity(stationObject);
     stationDesc = defaultStationDesc;
-    stationObject = stationDesc.has_value() ? newShipWithRole(*stationDesc)
-                                            : nullptr;  // retain count = 1
+    stationObject = stationDesc.has_value()
+                        ? oo::RetainedEntity(newShipWithRole(*stationDesc))
+                        : nullptr;  // retain count = 1
 
     if (!(stationObject != nullptr ? stationObject->getIsStation() : false) ||
         !(stationObject != nullptr ? stationObject->validForAddToUniverse()
@@ -2077,7 +2079,7 @@ void Universe::setUpSpace() {
       }
       if (stationObject != nullptr) oo::ReleaseEntity(stationObject);
 
-      stationObject = newShipWithName("coriolis-station");
+      stationObject = oo::RetainedEntity(newShipWithName("coriolis-station"));
       if (!(stationObject != nullptr ? stationObject->getIsStation() : false) ||
           !(stationObject != nullptr ? stationObject->validForAddToUniverse()
                                      : false)) {
@@ -2612,7 +2614,8 @@ void Universe::setMainLightPosition(Vector sunPos) {
     launchPos.z += 2 * rfactor * (randf() - 0.5);
   }
 
-  ::ShipEntity* ship = newShipWithRole(desc);  // retain count = 1
+  ::ShipEntity* ship =
+      oo::RetainedEntity(newShipWithRole(desc));  // retain count = 1
 
   if (ship) {
     if (ship != nullptr)
@@ -3124,7 +3127,7 @@ bool Universe::spawnShip(const std::string& shipdesc) {
   shipdict = OOShipRegistry::sharedRegistry()->shipInfoForKey(shipdesc);
   if (shipdict.isNull()) return false;
 
-  ship = newShipWithName(shipdesc);  // retain count is 1
+  ship = oo::RetainedEntity(newShipWithName(shipdesc));  // retain count is 1
 
   if (ship == nullptr) return false;
 
@@ -3205,7 +3208,7 @@ void Universe::witchspaceShipWithPrimaryRole(const std::string& role) {
   systeminfo = currentSystemData();
   government = systeminfo.get<unsigned char>(std::string(KEY_GOVERNMENT));
 
-  ship = newShipWithRole(role);  // retain count = 1
+  ship = oo::RetainedEntity(newShipWithRole(role));  // retain count = 1
 
   // Deal with scripted cargopods and ensure they are filled with something.
   if (ship && (ship != nullptr ? ship->hasRole("cargopod") : false)) {
@@ -3328,7 +3331,8 @@ Entity* Universe::addVisualEffectAt(HPVector pos, const std::string& key) {
     pos = HPvector_add(pos, OOHPVectorRandomSpatial(radius));
   }
 
-  ::ShipEntity* ship = newShipWithRole(role);  // is retained
+  ::ShipEntity* ship =
+      oo::RetainedEntity(newShipWithRole(role));  // is retained
   bool success = false;
 
   if (ship != nullptr) {
@@ -3756,7 +3760,8 @@ void Universe::setupIntroFirstGo(bool justCobra) {
 
   if (justCobra) {
     /*- cobra - intro1 -*/
-    ship = newShipWithName(std::string(PLAYER_SHIP_DESC), true);
+    ship = oo::RetainedEntity(
+        newShipWithName(std::string(PLAYER_SHIP_DESC), true));
   } else {
     /*- demo ships - intro2 -*/
 
@@ -3792,12 +3797,12 @@ void Universe::setupIntroFirstGo(bool justCobra) {
     }
 
     if (!demo_ship)
-      ship = newShipWithName(
+      ship = oo::RetainedEntity(newShipWithName(
           OptionalStringIn(
               DemoShipEntry(demo_ships, demo_ship_index, demo_ship_subindex),
               kOODemoShipKey)
               .value_or(std::string()),
-          false);
+          false));
     // stop consistency problems on the ship library screen
     if (ship != nullptr) ship->removeEquipmentItem("EQ_SHIELD_BOOSTER");
     if (ship != nullptr) ship->removeEquipmentItem("EQ_SHIELD_ENHANCER");
@@ -4428,10 +4433,11 @@ std::optional<std::string> Universe::randomShipKeyForRoleRespectingConditions(
   OOJS_PROFILE_EXIT
 }
 
-::ShipEntity* Universe::newShipWithRole(const std::string& role) {
+std::shared_ptr<::ShipEntity> Universe::newShipWithRole(
+    const std::string& role) {
   OOJS_PROFILE_ENTER
 
-  ::ShipEntity* ship = nullptr;
+  std::shared_ptr<::ShipEntity> ship;
   std::optional<std::string> shipKey;
   oo::PList shipInfo;
   std::optional<std::string> autoAI;
@@ -4510,24 +4516,24 @@ Entity* Universe::newVisualEffectWithName(const std::string& effectKey) {
   OOJS_PROFILE_EXIT
 }
 
-::ShipEntity* Universe::newSubentityWithName(const std::string& shipKey,
-                                             float scale) {
+std::shared_ptr<::ShipEntity> Universe::newSubentityWithName(
+    const std::string& shipKey, float scale) {
   return newShipWithName(shipKey, false, true, scale);
 }
 
-::ShipEntity* Universe::newShipWithName(const std::string& shipKey,
-                                        bool usePlayerProxy) {
+std::shared_ptr<::ShipEntity> Universe::newShipWithName(
+    const std::string& shipKey, bool usePlayerProxy) {
   return newShipWithName(shipKey, usePlayerProxy, false);
 }
 
-::ShipEntity* Universe::newShipWithName(const std::string& shipKey,
-                                        bool usePlayerProxy, bool isSubentity) {
+std::shared_ptr<::ShipEntity> Universe::newShipWithName(
+    const std::string& shipKey, bool usePlayerProxy, bool isSubentity) {
   return newShipWithName(shipKey, usePlayerProxy, isSubentity, 1.0f);
 }
 
-::ShipEntity* Universe::newShipWithName(const std::string& shipKey,
-                                        bool usePlayerProxy, bool isSubentity,
-                                        float scale) {
+std::shared_ptr<::ShipEntity> Universe::newShipWithName(
+    const std::string& shipKey, bool usePlayerProxy, bool isSubentity,
+    float scale) {
   OOJS_PROFILE_ENTER
 
   oo::PList shipDict;
@@ -4578,13 +4584,13 @@ Entity* Universe::newVisualEffectWithName(const std::string& effectKey) {
     if (ship != nullptr) ship->setPrimaryRole(shipKey);
   }
 
-  return ship;
+  return oo::AdoptHold(ship);  // the +1 the object maker gave
 
   OOJS_PROFILE_EXIT
 }
 
-::ShipEntity* Universe::newDockWithName(const std::string& shipDataKey,
-                                        float scale) {
+std::shared_ptr<::ShipEntity> Universe::newDockWithName(
+    const std::string& shipDataKey, float scale) {
   OOJS_PROFILE_ENTER
 
   oo::PList shipDict;
@@ -4619,12 +4625,13 @@ Entity* Universe::newVisualEffectWithName(const std::string& effectKey) {
     if (dock != nullptr) dock->setPrimaryRole(shipDataKey);
   }
 
-  return dock;
+  return oo::AdoptHold(dock);  // the +1 newDockObject() gave
 
   OOJS_PROFILE_EXIT
 }
 
-::ShipEntity* Universe::newShipWithName(const std::string& shipKey) {
+std::shared_ptr<::ShipEntity> Universe::newShipWithName(
+    const std::string& shipKey) {
   return newShipWithName(shipKey, false);
 }
 
@@ -4708,13 +4715,15 @@ OOCreditsQuantity Universe::getEquipmentPriceForKey(const std::string& eq_key) {
   {
     container =
         co_type.has_value()
-            ? (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(*co_type)
-                                   : static_cast<::ShipEntity*>(nullptr))
+            ? (UNIVERSE != nullptr
+                   ? oo::RetainedEntity(UNIVERSE->newShipWithRole(*co_type))
+                   : static_cast<::ShipEntity*>(nullptr))
             : nullptr;  // newShipWithRole returns retained object
   }
   if (container == nullptr) {
-    container = (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("cargopod")
-                                     : static_cast<::ShipEntity*>(nullptr));
+    container = (UNIVERSE != nullptr
+                     ? oo::RetainedEntity(UNIVERSE->newShipWithRole("cargopod"))
+                     : static_cast<::ShipEntity*>(nullptr));
   }
   if (co_type.has_value()) {
     if (container != nullptr) container->setCommodity(*co_type, co_amount);
@@ -6113,7 +6122,8 @@ void Universe::removeDemoShips() {
                    static_cast<GLfloat>(M_SQRT1_2), static_cast<GLfloat>(0.0),
                    static_cast<GLfloat>(0.0)};
 
-  ::ShipEntity* ship = newShipWithRole(role);  // retain count = 1
+  ::ShipEntity* ship =
+      oo::RetainedEntity(newShipWithRole(role));  // retain count = 1
   if (ship) {
     double cr = (ship != nullptr ? ship->collisionRadius() : 0.0f);
     if (ship != nullptr) ship->setOrientation(q2);
@@ -6409,7 +6419,7 @@ HPVector Universe::getSafeVectorFromEntity(Entity* e1, double dist,
                                         GLfloat lifetime) {
   ::ShipEntity* wreck =
       (UNIVERSE != nullptr
-           ? UNIVERSE->newShipWithRole(wreckRole)
+           ? oo::RetainedEntity(UNIVERSE->newShipWithRole(wreckRole))
            : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
   Quaternion q;
   if (wreck) {
@@ -7497,10 +7507,10 @@ void Universe::update(OOTimeDelta inDeltaT) {
                 demo_ship_subindex =
                     (demo_ship_subindex + 1) %
                     DemoClassCount(demo_ships, demo_ship_index);
-                demo_ship = newShipWithName(
+                demo_ship = oo::RetainedEntity(newShipWithName(
                     OptionalStringIn(demoShipData(), kOODemoShipKey)
                         .value_or(std::string()),
-                    false);  // a missing key asked for "", as nil did
+                    false));  // a missing key asked for "", as nil did
 
                 if (demo_ship != nullptr) {
                   if (demo_ship != nullptr)
@@ -10670,7 +10680,8 @@ void Universe::setUpCargoPods() {
   for (const std::string& type :
        (commodities != nullptr ? commodities->goods()
                                : std::vector<std::string>())) {
-    ::ShipEntity* container = newShipWithRole("oolite-template-cargopod");
+    ::ShipEntity* container =
+        oo::RetainedEntity(newShipWithRole("oolite-template-cargopod"));
     if (container != nullptr) container->setScanClass(OOScanClass::kCargo);
     if (container != nullptr) container->setCommodity(type, 1);
     if (container != nullptr) {

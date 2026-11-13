@@ -256,8 +256,9 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(
     if (!fallback || !shipPrimaryRole.has_value()) return nullptr;
 
     ship = oo::ToShip(oo::AutoreleaseEntity(
-        (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(*shipPrimaryRole)
-                             : static_cast<::ShipEntity*>(nullptr))));
+        (UNIVERSE != nullptr
+             ? oo::RetainedEntity(UNIVERSE->newShipWithRole(*shipPrimaryRole))
+             : static_cast<::ShipEntity*>(nullptr))));
     if (ship == nullptr) return nullptr;
   }
 

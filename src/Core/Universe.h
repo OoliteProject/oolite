@@ -634,20 +634,23 @@ class Universe : public oo::Object {
   bool canInstantiateShip(const std::string& shipKey);
   std::optional<std::string> randomShipKeyForRoleRespectingConditions(
       const std::string& role);
-  ::ShipEntity* newShipWithRole(const std::string& role);
+  std::shared_ptr<::ShipEntity> newShipWithRole(const std::string& role);
   // newVisualEffectWithName(): virtual, in OO_UNIVERSE_VIRTUAL_MEMBERS
   // (UniverseVirtualMembers.h); the effect's object, +1
-  ::ShipEntity* newSubentityWithName(const std::string& shipKey, float scale);
-  ::ShipEntity* newShipWithName(const std::string& shipKey,
-                                bool usePlayerProxy);
-  ::ShipEntity* newShipWithName(const std::string& shipKey, bool usePlayerProxy,
-                                bool isSubentity);
-  ::ShipEntity* newShipWithName(
+  std::shared_ptr<::ShipEntity> newSubentityWithName(const std::string& shipKey,
+                                                     float scale);
+  std::shared_ptr<::ShipEntity> newShipWithName(const std::string& shipKey,
+                                                bool usePlayerProxy);
+  std::shared_ptr<::ShipEntity> newShipWithName(const std::string& shipKey,
+                                                bool usePlayerProxy,
+                                                bool isSubentity);
+  std::shared_ptr<::ShipEntity> newShipWithName(
       const std::string& shipKey, bool usePlayerProxy, bool isSubentity,
-      float scale);  // its object +1, as -newShipWithName:... was
-  ::ShipEntity* newDockWithName(const std::string& shipDataKey,
-                                float scale);  // the dock, its object +1
-  ::ShipEntity* newShipWithName(const std::string& shipKey);
+      float scale);  // owned by the caller (-newShipWithName:...'s +1)
+  std::shared_ptr<::ShipEntity> newDockWithName(
+      const std::string& shipDataKey,
+      float scale);  // the dock, owned by the caller
+  std::shared_ptr<::ShipEntity> newShipWithName(const std::string& shipKey);
   bool isStationShipDictionary(const oo::PList& dict);
   std::optional<std::string> defaultAIForRole(const std::string& role);
   OOCargoQuantity maxCargoForShip(const std::string& desc);

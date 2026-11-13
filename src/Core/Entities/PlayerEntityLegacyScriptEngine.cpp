@@ -2875,11 +2875,13 @@ bool PlayerEntity::processSceneString(const std::string& item, Vector off) {
     ::ShipEntity* ship = nullptr;
 
     if (i_key == "ship" || i_key == "model") {
-      ship = (UNIVERSE != nullptr ? UNIVERSE->newShipWithName(i_info[1])
-                                  : static_cast<::ShipEntity*>(nullptr));
+      ship = (UNIVERSE != nullptr
+                  ? oo::RetainedEntity(UNIVERSE->newShipWithName(i_info[1]))
+                  : static_cast<::ShipEntity*>(nullptr));
     } else if (i_key == "role") {
-      ship = (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(i_info[1])
-                                  : static_cast<::ShipEntity*>(nullptr));
+      ship = (UNIVERSE != nullptr
+                  ? oo::RetainedEntity(UNIVERSE->newShipWithRole(i_info[1]))
+                  : static_cast<::ShipEntity*>(nullptr));
     }
     if (!ship) return false;
 
@@ -2918,7 +2920,8 @@ bool PlayerEntity::processSceneString(const std::string& item, Vector off) {
 
     ::ShipEntity* doppelganger =
         (UNIVERSE != nullptr
-             ? UNIVERSE->newShipWithName(shipDataKey().value_or(std::string()))
+             ? oo::RetainedEntity(UNIVERSE->newShipWithName(
+                   shipDataKey().value_or(std::string())))
              : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
     if (!doppelganger) return false;
 

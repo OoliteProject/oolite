@@ -84,10 +84,19 @@ std::shared_ptr<E> Hold(E* e) {
 // reference, the +1 given back. Null, and nothing taken, for an entity without
 // its object. (The manual references leave with the bridge, T095.)
 template <class E>
-EntityHold AdoptHold(E* e) {
-  EntityHold hold = Hold(e);
+std::shared_ptr<E> AdoptHold(E* e) {
+  std::shared_ptr<E> hold = Hold(e);
   if (hold != nullptr) ReleaseEntity(e);
   return hold;
+}
+
+// The entity with a +1 its caller gives back (oo::ReleaseEntity()): what the
+// +1 creators answered before they answered a std::shared_ptr. (Leaves with
+// the manual references, T095.)
+template <class E>
+E* RetainedEntity(const std::shared_ptr<E>& entity) {
+  (void)RetainEntity(entity.get());
+  return entity.get();
 }
 
 // The first hold of entity in holds (by the entity; holds.end() for none), and
@@ -123,6 +132,6 @@ Entity* MadeEntity(const Ref<Entity>& entity);
    (oo::NewShipObject(), oo::NewVisualEffectObject(): +alloc's object). The
    caller owns the +1.
 */
-Entity* MadeEntityRetained(const Ref<Entity>& entity);
+std::shared_ptr<Entity> MadeEntityRetained(const Ref<Entity>& entity);
 
 }  // namespace oo

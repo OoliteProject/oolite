@@ -108,7 +108,7 @@ std::vector<oo::EntityHold> VisualEffectsIn(
 // A new effect held (+1), then the initialiser's body, which may fail.
 Entity* oo::NewVisualEffect(const std::string& key, const oo::PList& dict) {
   const Ref<OOVisualEffectEntity> effect = makeRef<OOVisualEffectEntity>();
-  MadeEntityRetained(effect);  // +1, as +alloc gave
+  (void)RetainEntity(MadeEntityRetained(effect).get());  // +1, as +alloc gave
   if (!effect->initWithKey(key, dict)) {
     ReleaseEntity(effect.get());
     return nullptr;

@@ -90,7 +90,7 @@ Entity* oo::AutoreleaseEntity(Entity* entity) {
   return entity;
 }
 
-Entity* oo::MadeEntityRetained(const Ref<Entity>& entity) {
+std::shared_ptr<Entity> oo::MadeEntityRetained(const Ref<Entity>& entity) {
   if (entity == nullptr) return nullptr;
   // From here the entity has its object, and it is counted.
   entity->setMadeWithObject();
@@ -98,12 +98,11 @@ Entity* oo::MadeEntityRetained(const Ref<Entity>& entity) {
   gLiveEntityCount++;
   gTotalEntityMemory += EntityObjectSize(entity.get());
 #endif
-  entity->retain();  // +alloc's object
-  return entity.get();
+  return entity;  // +alloc's object: the caller's owning reference
 }
 
 Entity* oo::MadeEntity(const Ref<Entity>& entity) {
-  return AutoreleaseEntity(
+  return oo::autorelease(
       MadeEntityRetained(entity));  // [[... alloc] init...] autorelease]
 }
 
