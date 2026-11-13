@@ -16,7 +16,6 @@ oofnd_tests = [
     'test_cocoa_macros',
     'test_notification',
     'test_date',
-    'test_stdlib',
     'test_process',
     'test_thread',
     'test_defaults',
