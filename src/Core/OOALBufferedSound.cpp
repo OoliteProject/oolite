@@ -51,7 +51,8 @@ std::shared_ptr<OOALBufferedSound> OOALBufferedSound::initWithDecoder(
   if (!isSoundOK() || nullptr == inDecoder) OK = false;
 
   if (OK) {
-    self = oo::adopt(new OOALBufferedSound);
+    self = std::shared_ptr<OOALBufferedSound>(new OOALBufferedSound(),
+                                              oo::Dispose{});
   }
 
   if (OK) {

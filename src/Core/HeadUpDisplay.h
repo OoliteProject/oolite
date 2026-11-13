@@ -425,7 +425,7 @@ class HeadUpDisplay : public oo::Object {
   std::set<std::string> _hiddenSelectors;
 
   // Crosshairs
-  std::shared_ptr<OOCrosshairs> _crosshairs;
+  std::unique_ptr<OOCrosshairs> _crosshairs;
   OOWeaponType _lastWeaponType = {};
   GLfloat _lastOverallAlpha = {};
   bool _lastWeaponsOnline = {};

@@ -77,10 +77,10 @@ constexpr std::uint8_t kSkyQuadSetColorEntriesPerVertex = 4;
 class OOSkyQuadSet : public oo::Object {
  public:
   static void addQuads(OOSkyQuadDesc* quads, unsigned count,
-                       std::vector<std::shared_ptr<OOSkyQuadSet>>& ioArray);
+                       std::vector<std::unique_ptr<OOSkyQuadSet>>& ioArray);
 
   // Null where -initWithQuadsWithTexture:inArray:count: answered nil.
-  static std::shared_ptr<OOSkyQuadSet> initWithQuadsWithTexture(
+  static std::unique_ptr<OOSkyQuadSet> initWithQuadsWithTexture(
       OOTexture* texture, OOSkyQuadDesc* array, unsigned totalCount);
 
   ~OOSkyQuadSet() override;
@@ -184,7 +184,7 @@ void OOSkyDrawable::renderOpaqueParts() {
     OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
     OOGL(glEnableClientState(GL_COLOR_ARRAY));
 
-    for (const std::shared_ptr<OOSkyQuadSet>& quadSet : _quadSets)
+    for (const std::unique_ptr<OOSkyQuadSet>& quadSet : _quadSets)
       quadSet->render();
 
     OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
@@ -212,7 +212,7 @@ std::vector<std::shared_ptr<OOTexture>> OOSkyDrawable::allTextures() {
   std::vector<std::shared_ptr<OOTexture>> result;
   result.reserve(_quadSets.size());
 
-  for (const std::shared_ptr<OOSkyQuadSet>& quadSet : _quadSets) {
+  for (const std::unique_ptr<OOSkyQuadSet>& quadSet : _quadSets) {
     result.emplace_back(oo::share(quadSet->texture()));
   }
 
@@ -222,7 +222,7 @@ std::vector<std::shared_ptr<OOTexture>> OOSkyDrawable::allTextures() {
 size_t OOSkyDrawable::totalSize() {
   size_t result = OODrawable::totalSize();
 
-  for (const std::shared_ptr<OOSkyQuadSet>& quadSet : _quadSets) {
+  for (const std::unique_ptr<OOSkyQuadSet>& quadSet : _quadSets) {
     result += quadSet->totalSize();
   }
 
@@ -461,11 +461,11 @@ void OOSkyDrawable::resetGraphicsState() {
 
 void OOSkyQuadSet::addQuads(
     OOSkyQuadDesc* quads, unsigned count,
-    std::vector<std::shared_ptr<OOSkyQuadSet>>& ioArray) {
+    std::vector<std::unique_ptr<OOSkyQuadSet>>& ioArray) {
   std::vector<std::shared_ptr<OOTexture>>
       seenTextures;  // by identity (textures do not override -isEqual:)
   OOTexture* texture = nullptr;
-  std::shared_ptr<OOSkyQuadSet> quadSet;
+  std::unique_ptr<OOSkyQuadSet> quadSet;
   unsigned i;
 
   // Iterate over all quads.
@@ -481,13 +481,13 @@ void OOSkyQuadSet::addQuads(
       // ...create a quad set for this texture.
       quadSet = initWithQuadsWithTexture(texture, quads, count);
       if (quadSet != nullptr) {
-        ioArray.push_back(quadSet);
+        ioArray.push_back(std::move(quadSet));
       }
     }
   }
 }
 
-std::shared_ptr<OOSkyQuadSet> OOSkyQuadSet::initWithQuadsWithTexture(
+std::unique_ptr<OOSkyQuadSet> OOSkyQuadSet::initWithQuadsWithTexture(
     OOTexture* texture, OOSkyQuadDesc* array, unsigned totalCount) {
   bool OK = true;
   unsigned i, j, vertexCount;
@@ -510,8 +510,8 @@ std::shared_ptr<OOSkyQuadSet> OOSkyQuadSet::initWithQuadsWithTexture(
     *col++ = (x * (6.2 * x + 0.5)) / (x * (6.2 * x + 1.7) + 0.06); \
   } while (0)
 
-  std::shared_ptr<OOSkyQuadSet> self =
-      oo::makeShared<OOSkyQuadSet>();  // [super init] could not fail
+  std::unique_ptr<OOSkyQuadSet> self =
+      std::make_unique<OOSkyQuadSet>();  // [super init] could not fail
 
   if (OK) {
     // Count the quads in the array using this texture.

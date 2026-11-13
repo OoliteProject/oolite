@@ -153,7 +153,7 @@ std::size_t GameController::indexOfCurrentDisplayMode() {
 }
 
 void GameController::pauseFullScreenModeToPerform(std::string_view selectorName,
-                                                  oo::RefCounted* target) {
+                                                  oo::Object* target) {
   pauseSelector = selectorName;
   pauseTarget = target;
   stayInFullScreenMode = false;

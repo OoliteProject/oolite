@@ -162,9 +162,8 @@ class GameController : public oo::Object {
       unsigned int d_refresh);  // a mode dictionary; null: none
   oo::PList getDisplayModes();  // an array of mode dictionaries
   std::size_t indexOfCurrentDisplayMode();
-  void pauseFullScreenModeToPerform(
-      std::string_view selectorName,
-      oo::RefCounted* target);  // by name (was a SEL)
+  void pauseFullScreenModeToPerform(std::string_view selectorName,
+                                    oo::Object* target);  // by name (was a SEL)
 #endif
 
   // tests/unit/core/test_GameController.cpp reads and sets the state below.
@@ -199,7 +198,7 @@ class GameController : public oo::Object {
   double _splashStart = {};  // oo::date::monotonicSeconds() at start-up
 
   std::string pauseSelector = {};  // the selector's name; "" none
-  oo::RefCounted* pauseTarget =
+  oo::Object* pauseTarget =
       {};  // not retained, as before; never performed on SDL
 
   bool gameIsPaused = {};

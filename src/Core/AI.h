@@ -6,7 +6,7 @@ Core NPC behaviour/artificial intelligence class.
 
 The AI is the global C++ class AI, held as std::shared_ptr<AI>, and a deferred
 call holds it. The AI sends its owner's object its actions by name; the owner is
-the C++ ShipEntity, which the AI holds by weak reference (oo::WeakRef).
+the C++ ShipEntity, which the AI holds by weak reference (std::weak_ptr).
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors

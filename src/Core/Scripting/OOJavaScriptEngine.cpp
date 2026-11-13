@@ -1875,7 +1875,7 @@ oo::PList OOJSBasicPrivateObjectConverter(JSContext* /*context*/,
   oo::Object* held =
       OOJSCxxPrivateFromOpaque(JS_GetAnyOpaque(object, &ignored));
   if (oo::PListForeign* foreign = dynamic_cast<oo::PListForeign*>(held))
-    return oo::PList(oo::PList::Object(foreign));
+    return oo::PList(oo::PList::Object(oo::share(foreign)));
   return oo::PList();
 }
 

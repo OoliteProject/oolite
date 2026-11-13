@@ -169,7 +169,7 @@ void OOShipRegistry::reload() {
      * overrides it, so this leaks memory. Needs a proper reset
      * method for reloading the ship registry data instead */
     // The singleton's -release did nothing, so the old registry is never freed
-    // (leakRef above).
+    // (the heap std::shared_ptr above is never deleted).
     sSingleton = nullptr;
 
     (void)sharedRegistry();

@@ -5,7 +5,7 @@ A weak-referencing, mutable set of ships. Not thread safe.
 
 A group is its own PList::Object payload
 (oo::PListForeign) and its own JS glue (OOJSPrivateObject); ships hold it as
-oo::Ref.
+std::shared_ptr.
 
 
 Oolite

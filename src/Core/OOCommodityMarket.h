@@ -5,7 +5,7 @@ OOCommodityMarket.h
 Commodity price and quantity list for a particular station/system
 Also used for the player ship's docked manifest
 
-The universe, the player and the stations hold markets as oo::Ref.
+The universe, the player and the stations hold markets as std::shared_ptr.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
