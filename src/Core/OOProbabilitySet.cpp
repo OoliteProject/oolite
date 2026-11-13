@@ -152,10 +152,10 @@ class OOConcreteProbabilitySet final : public OOProbabilitySet {
   oo::PList privObjectForWeight(float target);
 
   std::size_t _count = {};
-  oo::PList* _objects = {};
-  float* _cumulativeWeights =
-      {};  // Each cumulative weight is weight of object at this index + weight
-           // of all objects to left.
+  std::vector<oo::PList> _objects;
+  std::vector<float>
+      _cumulativeWeights;  // Each cumulative weight is weight of object at
+                           // this index + weight of all objects to left.
   float _sumOfWeights = {};
 };
 
@@ -397,12 +397,8 @@ bool OOConcreteProbabilitySet::initWithObjects(const oo::PList* objects,
   }
 
   // Allocate arrays
-  _objects = new oo::PList[count];
-  _cumulativeWeights =
-      static_cast<float*>(malloc(sizeof *_cumulativeWeights * count));
-  if (_cumulativeWeights == nullptr) {
-    return false;
-  }
+  _objects.resize(count);
+  _cumulativeWeights.resize(count);
 
   // Fill in arrays, copy objects, add up weights.
   for (i = 0; i != count; ++i) {
@@ -416,15 +412,7 @@ bool OOConcreteProbabilitySet::initWithObjects(const oo::PList* objects,
   return true;
 }
 
-OOConcreteProbabilitySet::~OOConcreteProbabilitySet() {
-  delete[] _objects;
-  _objects = nullptr;
-
-  if (_cumulativeWeights != nullptr) {
-    free(_cumulativeWeights);
-    _cumulativeWeights = nullptr;
-  }
-}
+OOConcreteProbabilitySet::~OOConcreteProbabilitySet() = default;
 
 oo::PList OOConcreteProbabilitySet::propertyListRepresentation() {
   std::vector<float> weights;
@@ -438,7 +426,7 @@ oo::PList OOConcreteProbabilitySet::propertyListRepresentation() {
     sum = cuWeight;
   }
 
-  return PropertyListRepresentation(_objects, weights.data(), _count);
+  return PropertyListRepresentation(_objects.data(), weights.data(), _count);
 }
 
 std::size_t OOConcreteProbabilitySet::count() { return _count; }
@@ -502,28 +490,24 @@ float OOConcreteProbabilitySet::weightForObject(const oo::PList& object) {
 float OOConcreteProbabilitySet::sumOfWeights() { return _sumOfWeights; }
 
 std::vector<oo::PList> OOConcreteProbabilitySet::allElements() {
-  return std::vector<oo::PList>(_objects, _objects + _count);
+  return _objects;
 }
 
 std::shared_ptr<OOMutableProbabilitySet>
 OOConcreteProbabilitySet::mutableCopy() {
   std::shared_ptr<OOMutableProbabilitySet> result;
-  float* weights = nullptr;
+  std::vector<float> weights(_count);
   std::size_t i = 0;
   float weight = 0.0f, sum = 0.0f;
 
   // Convert cumulative weights to "plain" weights.
-  weights = static_cast<float*>(malloc(sizeof *weights * _count));
-  if (weights == nullptr) return nullptr;
-
   for (i = 0; i < _count; ++i) {
     weight = _cumulativeWeights[i];
     weights[i] = weight - sum;
     sum += weights[i];
   }
 
-  result = MakeConcreteMutable(_objects, weights, _count);
-  free(weights);
+  result = MakeConcreteMutable(_objects.data(), weights.data(), _count);
 
   return result;
 }

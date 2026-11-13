@@ -13857,31 +13857,18 @@ void ShipEntity::doScriptEvent(OOJSPropID message, Entity* argument1,
 void ShipEntity::doScriptEvent(OOJSPropID message,
                                const std::vector<oo::PList>& arguments) {
   JSContext* context = OOJSAcquireContext();
-  int i, argc;
-  OOJSVal* argv = nullptr;
-
   // Convert arguments to JS values and make them temporarily
   // un-garbage-collectable.
-  argc = static_cast<int>(arguments.size());
-  if (argc != 0) {
-    argv = static_cast<decltype(argv)>(malloc(sizeof *argv * argc));
-    if (argv != nullptr) {
-      for (i = 0; i != argc; ++i) {
-        argv[i] = OOJSValueFromPList(context, arguments[i]);
-      }
-    } else
-      argc = 0;
+  std::vector<OOJSVal> argv;
+  argv.reserve(arguments.size());
+  for (const oo::PList& argument : arguments) {
+    argv.push_back(OOJSValueFromPList(context, argument));
   }
 
-  doScriptEvent(message, context, argv, argc);
+  doScriptEvent(message, context, argv.data(), static_cast<int>(argv.size()));
 
-  // Release the arguments and free the array.
-  if (argv != nullptr) {
-    for (i = 0; i != argc; ++i) {
-      OOJSFreeValue(context, argv[i]);
-    }
-    free(argv);
-  }
+  // Release the arguments.
+  for (OOJSVal value : argv) OOJSFreeValue(context, value);
 
   OOJSRelinquishContext(context);
 }
