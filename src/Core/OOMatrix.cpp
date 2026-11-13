@@ -29,6 +29,9 @@ MA 02110-1301, USA.
 
 #include "OOMaths.h"
 #include "OOOpenGLCheck.h"  // OOGL()
+// glUniformMatrix3fvARB is an extension pointer declared here on Windows; other
+// platforms get the prototype from the GL headers.
+#include "OOOpenGLExtensionPointers.h"  // IWYU pragma: keep
 
 const OOMatrix kIdentityMatrix = {.m = {{1.0f, 0.0f, 0.0f, 0.0f},
                                         {0.0f, 1.0f, 0.0f, 0.0f},

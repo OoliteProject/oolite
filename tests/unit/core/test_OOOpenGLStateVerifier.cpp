@@ -38,15 +38,15 @@ oo::PList ResourceManager::dictionaryFromFilesNamed(
   return oo::PList(oo::PList::Dict{});
 }
 
-oo::Ref<OORegExpMatcher> OORegExpMatcher::regExpMatcher() {
-  return oo::makeRef<OORegExpMatcher>();
+std::shared_ptr<OORegExpMatcher> OORegExpMatcher::regExpMatcher() {
+  return oo::makeShared<OORegExpMatcher>();
 }
 bool OORegExpMatcher::string(const std::string&, const std::string&) {
   return false;
 }
 OORegExpMatcher::~OORegExpMatcher() {}
 
-OOShaderSetting cxx_OOShaderSettingFromString(const std::string& string) {
+OOShaderSetting OOShaderSettingFromString(const std::string& string) {
   return string == "SHADERS_FULL" ? OOShaderSetting::kFull : OOShaderSetting::kNotSupported;
 }
 

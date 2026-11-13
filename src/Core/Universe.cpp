@@ -84,6 +84,7 @@ MA 02110-1301, USA.
 #include "OOSunEntity.h"
 #include "OOSystemDescriptionManager.h"
 #include "OOTexture.h"
+#include "OOVersion.h"  // IWYU pragma: keep; OO_VERSION_FULL in DEV_RELEASE builds
 #include "OOVisualEffectEntity.h"
 #include "OOWaypointEntity.h"
 #include "PlayerEntity.h"
