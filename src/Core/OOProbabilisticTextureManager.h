@@ -103,10 +103,10 @@ class OOProbabilisticTextureManager : public oo::Object {
                          GLfloat anisotropy, GLfloat lodBias, RANROTSeed seed);
 
   unsigned _count = {};
-  std::unique_ptr<std::shared_ptr<OOTexture>[]> _textures;
-  float* _prob = {};
-  int* _galaxy = {};
+  std::vector<std::shared_ptr<OOTexture>> _textures;  // the first _count used
+  std::vector<float> _prob;  // cumulative probability, per texture
+  std::vector<int> _galaxy;  // the texture's galaxy, or -1 for all
   float _probMax = {};
-  float* _probMaxGal = {};
+  std::vector<float> _probMaxGal;  // per galaxy: the probability total
   RANROTSeed _seed = {};
 };

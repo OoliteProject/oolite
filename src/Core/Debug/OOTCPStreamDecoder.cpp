@@ -35,6 +35,9 @@ SOFTWARE.
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <memory>
+#include <new>
+
 #include "OODebugTCPConsoleProtocol.h"
 
 #ifdef OO_LOG_DEBUG_PROTOCOL_PACKETS
@@ -65,11 +68,10 @@ OOTCPStreamDecoderRef OOTCPStreamDecoderCreate(
     OOTCPStreamDecoderPacketCallback packetCB,
     OOTCPStreamDecoderErrorCallback errorCB,
     OOTCPStreamDecoderFinalizeCallback finalizeCB, void* cbInfo) {
-  OOTCPStreamDecoderRef decoder = nullptr;
-
   if (packetCB == nullptr) return nullptr;
 
-  decoder = static_cast<OOTCPStreamDecoderRef>(malloc(sizeof *decoder));
+  // The caller owns the handle until OOTCPStreamDecoderDestroy().
+  OOTCPStreamDecoderRef decoder = new (std::nothrow) OOTCPStreamDecoder{};
   if (decoder == nullptr) return nullptr;
 
   decoder->headerSpaceUsed = 0;
@@ -85,6 +87,8 @@ OOTCPStreamDecoderRef OOTCPStreamDecoderCreate(
 
 void OOTCPStreamDecoderDestroy(OOTCPStreamDecoderRef decoder) {
   if (decoder == nullptr) return;
+  const std::unique_ptr<OOTCPStreamDecoder> owned(
+      decoder);  // deleted on return
 
   if (decoder->Finalize != nullptr) {
     decoder->Finalize(decoder->cbInfo);
@@ -94,8 +98,6 @@ void OOTCPStreamDecoderDestroy(OOTCPStreamDecoderRef decoder) {
     OOALRelease(decoder->nextPacketData);
     decoder->nextPacketData = nullptr;
   }
-
-  free(decoder);
 }
 
 void OOTCPStreamDecoderReceiveData(OOTCPStreamDecoderRef decoder,

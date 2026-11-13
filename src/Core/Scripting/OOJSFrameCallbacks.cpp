@@ -27,6 +27,10 @@ SOFTWARE.
 
 #include "OOJSFrameCallbacks.h"
 
+#include <algorithm>
+#include <new>
+#include <vector>
+
 #include "OOJSEngineTimeManagement.h"
 #include "oofnd/Date.hpp"
 #include "oofnd/Log.hpp"
@@ -91,9 +95,7 @@ using CallbackEntry = struct {
    OOJSFrameCallbacksRemoveAll() before resetting or shutting down, so no reset
    observer is needed.
 */
-static CallbackEntry* sCallbacks;
-static std::size_t sCount;  // Number of slots in use.
-static std::size_t sSpace;  // Number of slots allocated.
+static std::vector<CallbackEntry> sCallbacks;
 // A deferred add or remove.
 using DeferredOperation = struct {
   std::string operation;  // "add" or "remove"
@@ -169,7 +171,7 @@ void OOJSFrameCallbacksInvoke(OOTimeDelta inDeltaT) {
   OOCAssert(!sRunning, "%s cannot be called while frame callbacks are running.",
             __PRETTY_FUNCTION__);
 
-  if (sCount != 0) {
+  if (!sCallbacks.empty()) {
     const OOTimeDelta delta =
         inDeltaT *
         (UNIVERSE != nullptr ? UNIVERSE->getTimeAccelerationFactor() : 0.0);
@@ -190,7 +192,7 @@ void OOJSFrameCallbacksInvoke(OOTimeDelta inDeltaT) {
     */
     OOJSStartTimeLimiterWithTimeLimit(0.1);
 
-    for (i = 0; i < sCount; i++) {
+    for (i = 0; i < sCallbacks.size(); i++) {
       // TODO: remove out of scope callbacks - post MNSR!
       JSValue result =
           JS_Call(context, sCallbacks[i].callback, global, 1, &deltaVal);
@@ -219,9 +221,10 @@ void OOJSFrameCallbacksRemoveAll() {
   OOCAssert(!sRunning, "%s cannot be called while frame callbacks are running.",
             __PRETTY_FUNCTION__);
 
-  if (sCount != 0) {
+  if (!sCallbacks.empty()) {
     JSContext* context = OOJSAcquireContext();
-    while (sCount != 0) RemoveCallbackAtIndex(context, sCount - 1);
+    while (!sCallbacks.empty())
+      RemoveCallbackAtIndex(context, sCallbacks.size() - 1);
     OOJSRelinquishContext(context);
   }
 }
@@ -338,16 +341,16 @@ static bool AddCallback(JSContext* context, JSValueConst callback,
   OOCAssert(!sRunning, "%s cannot be called while frame callbacks are running.",
             __PRETTY_FUNCTION__);
 
-  if (EXPECT_NOT(sCount == sSpace)) {
+  if (EXPECT_NOT(sCallbacks.size() == sCallbacks.capacity())) {
     if (!GrowCallbackList(context, errorString)) return false;
   }
 
   FCBLog("script.frameCallback.debug.add",
          "Adding frame callback with tracking ID {}.", trackingID);
 
-  sCallbacks[sCount].callback = JS_DupValue(context, callback);
-  sCallbacks[sCount].trackingID = trackingID;
-  sCount++;
+  sCallbacks.push_back(CallbackEntry{.callback = JS_DupValue(context, callback),
+                                     .trackingID = trackingID,
+                                     ._padding = 0});
 
   return true;
 }
@@ -359,23 +362,13 @@ static bool GrowCallbackList(JSContext* context,
   OOCParameterAssert(context != nullptr);
   OOCParameterAssert(errorString != nullptr);
 
-  std::size_t newSpace = MAX(sSpace * 2, kMinCount);
-
-  CallbackEntry* newCallbacks =
-      static_cast<CallbackEntry*>(calloc(sizeof(CallbackEntry), newSpace));
-  if (newCallbacks == nullptr) {
+  // The occupied slots move to the new storage, their references with them.
+  try {
+    sCallbacks.reserve(std::max(sCallbacks.capacity() * 2, kMinCount));
+  } catch (const std::bad_alloc&) {
     *errorString = "Failed to allocate space for frame callback.";
     return false;
   }
-
-  // Move occupied slots; the references move with them.
-  if (sCount != 0)
-    memcpy(newCallbacks, sCallbacks, sizeof(CallbackEntry) * sCount);
-
-  // Replace array.
-  free(sCallbacks);
-  sCallbacks = newCallbacks;
-  sSpace = newSpace;
 
   return true;
 }
@@ -391,7 +384,7 @@ static bool GetIndexForTrackingID(uint32_t trackingID, std::size_t* outIndex) {
      changing the API.
   */
   std::size_t i;
-  for (i = 0; i < sCount; i++) {
+  for (i = 0; i < sCallbacks.size(); i++) {
     if (sCallbacks[i].trackingID == trackingID) {
       *outIndex = i;
       return true;
@@ -421,7 +414,7 @@ static bool RemoveCallbackWithTrackingID(JSContext* context,
 
 static void RemoveCallbackAtIndex(JSContext* context, std::size_t index) {
   OOCParameterAssert(context != nullptr);
-  OOCParameterAssert(index < sCount && sCallbacks != nullptr);
+  OOCParameterAssert(index < sCallbacks.size());
   OOCAssert(!sRunning, "%s cannot be called while frame callbacks are running.",
             __PRETTY_FUNCTION__);
 
@@ -429,15 +422,14 @@ static void RemoveCallbackAtIndex(JSContext* context, std::size_t index) {
          "Removing frame callback with tracking ID {}.",
          sCallbacks[index].trackingID);
 
-  // Overwrite entry to be removed with last entry, and decrement count.
+  // Overwrite entry to be removed with last entry, and drop the last.
   JSValue removed = sCallbacks[index].callback;
-  sCount--;
-  sCallbacks[index] = sCallbacks[sCount];
-  sCallbacks[sCount].callback = JS_NULL;
+  sCallbacks[index] = sCallbacks.back();
+  sCallbacks.pop_back();
   JS_FreeValue(context, removed);
 
 #if DEBUG_FCB_SIMPLE_TRACKING_IDS
-  if (sCount == 0) {
+  if (sCallbacks.empty()) {
     OO_LOG("script.frameCallback.debug.reset",
            "All frame callbacks removed, resetting next ID to 1.");
     sNextID = 1;

@@ -93,18 +93,10 @@ bool OOProbabilisticTextureManager::initWithPListName(
   if (OK) {
     count = config.count();
 
-    _textures = std::make_unique<std::shared_ptr<OOTexture>[]>(count);
-    _prob = static_cast<float*>(malloc(sizeof *_prob * count));
-    _galaxy = static_cast<int*>(malloc(sizeof *_galaxy * count));
-    _probMaxGal = static_cast<float*>(
-        malloc(sizeof *_probMaxGal * (kOOMaximumGalaxyID + 1)));
-
-    if (_textures == nullptr || _prob == nullptr || _galaxy == nullptr)
-      OK = false;
-  }
-
-  if (OK) {
-    for (i = 0; i <= kOOMaximumGalaxyID; i++) _probMaxGal[i] = 0;
+    _textures.resize(count);
+    _prob.resize(count);
+    _galaxy.resize(count);
+    _probMaxGal.assign(kOOMaximumGalaxyID + 1, 0.0f);
 
     //  Go through list and load textures.
     for (i = 0; i != count; ++i) {
@@ -156,11 +148,7 @@ bool OOProbabilisticTextureManager::initWithPListName(
   return OK;
 }
 
-OOProbabilisticTextureManager::~OOProbabilisticTextureManager() {
-  if (_prob != nullptr) free(_prob);
-  if (_galaxy != nullptr) free(_galaxy);
-  if (_probMaxGal != nullptr) free(_probMaxGal);
-}
+OOProbabilisticTextureManager::~OOProbabilisticTextureManager() = default;
 
 // OOObject's -description wrapped this as "<OOProbabilisticTextureManager
 // 0x...>{...}", the text this class's own -description printed.
