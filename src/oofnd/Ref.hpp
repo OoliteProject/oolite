@@ -217,20 +217,41 @@ namespace detail {
 // An owning std::shared_ptr to object (made on first need). While the object is
 // being disposed, a pointer that owns nothing: a balanced use inside
 // willDispose() neither keeps it alive nor disposes it again.
+// Whether an oo::Object has never had an owner (a weak_ptr with no control
+// block).
+inline bool neverOwned(const Object* object) noexcept {
+  const std::weak_ptr<const Object> weak = object->weak_from_this();
+  const std::weak_ptr<const Object> none;
+  return !weak.owner_before(none) && !none.owner_before(weak);
+}
+
 template <class T>
 std::shared_ptr<T> bridgeShare(T* object) {
-  static_assert(std::is_base_of_v<RefCounted, std::remove_const_t<T>>,
-                "oo::Ref requires an oo::RefCounted subclass");
-  const RefCounted* counted = object;
-  std::shared_ptr<RefCounted> owner;
-  {
-    std::lock_guard<std::mutex> lock(bridgeLock(counted));
-    if (counted->disposing())
+  using Plain = std::remove_const_t<T>;
+  static_assert(std::is_base_of_v<Object, Plain>,
+                "oo::Ref requires an oo::Object subclass");
+  if constexpr (!std::is_base_of_v<RefCounted, Plain>) {
+    // An oo::Object off the bridge: a new object is taken over (the +1 of new
+    // that oo::adopt and oo::makeRef handed on); an owned one is shared; one
+    // being disposed gets a pointer that owns nothing.
+    if (neverOwned(object))
+      return std::shared_ptr<T>(const_cast<Plain*>(object), Dispose{});
+    std::shared_ptr<const Object> owner = object->weak_from_this().lock();
+    if (owner == nullptr)
       return std::shared_ptr<T>(std::shared_ptr<void>(), object);
-    counted->ensureOwned();
-    owner = counted->selfShared();
+    return std::shared_ptr<T>(std::move(owner), object);
+  } else {
+    const RefCounted* counted = object;
+    std::shared_ptr<RefCounted> owner;
+    {
+      std::lock_guard<std::mutex> lock(bridgeLock(counted));
+      if (counted->disposing())
+        return std::shared_ptr<T>(std::shared_ptr<void>(), object);
+      counted->ensureOwned();
+      owner = counted->selfShared();
+    }
+    return std::shared_ptr<T>(std::move(owner), object);
   }
-  return std::shared_ptr<T>(std::move(owner), object);
 }
 
 struct WeakAccess {
@@ -241,6 +262,22 @@ struct WeakAccess {
     if (object->disposingUnowned_) return {};
     if (!object->disposing()) object->ensureOwned();
     return {const_cast<RefCounted*>(object)->weak_from_this(), object->token()};
+  }
+
+  // An oo::Object off the bridge: its own weak_ptr is also its identity.
+  static std::pair<std::weak_ptr<Object>, std::weak_ptr<const void>> weakParts(
+      const Object* object) noexcept {
+    std::weak_ptr<Object> weak = const_cast<Object*>(object)->weak_from_this();
+    return {weak, weak};
+  }
+
+  // The object's weak identity if it has one (empty if not); never makes one.
+  static std::weak_ptr<const void> identity(const RefCounted* object) noexcept {
+    std::lock_guard<std::mutex> lock(bridgeLock(object));
+    return object->token_;
+  }
+  static std::weak_ptr<const void> identity(const Object* object) noexcept {
+    return object->weak_from_this();
   }
 
   // The object's token if it has one; never makes one.
@@ -260,6 +297,11 @@ struct WeakAccess {
 template <class A, class B>
 bool sameOwner(const A& a, const B& b) noexcept {
   return !a.owner_before(b) && !b.owner_before(a);
+}
+
+// Whether a weak identity is empty (no control block).
+inline bool isEmpty(const std::weak_ptr<const void>& weak) noexcept {
+  return sameOwner(weak, std::weak_ptr<const void>());
 }
 
 }  // namespace detail
@@ -362,6 +404,8 @@ class Ref {
   // Gives up ownership as a manual hold: the caller now owns the +1 (a method
   // that returns a retained object, or oo::autorelease(std::move(ref))).
   [[nodiscard]] T* leakRef() noexcept {
+    static_assert(std::is_base_of_v<RefCounted, std::remove_const_t<T>>,
+                  "leakRef needs a manual hold: an oo::RefCounted type");
     T* object = sp_.get();
     if (object != nullptr) {
       object->retain();
@@ -373,7 +417,9 @@ class Ref {
   // Takes over an owning +1 pointer: shares it, then gives back the hold.
   [[nodiscard]] static Ref adopt(T* object) noexcept {
     Ref result(object);
-    if (object != nullptr) object->release();
+    if constexpr (std::is_base_of_v<RefCounted, std::remove_const_t<T>>) {
+      if (object != nullptr) object->release();
+    }
     return result;
   }
 
@@ -462,12 +508,16 @@ void release(T* object) noexcept {
 // With no scope the +1 is kept forever and counted.
 template <class T>
 T* autorelease(T* object) noexcept {
-  static_assert(std::is_base_of_v<RefCounted, std::remove_const_t<T>>,
-                "oo::autorelease requires an oo::RefCounted subclass");
+  static_assert(std::is_base_of_v<Object, std::remove_const_t<T>>,
+                "oo::autorelease requires an oo::Object subclass");
+  constexpr bool kCounted =
+      std::is_base_of_v<RefCounted, std::remove_const_t<T>>;
   if (object == nullptr) return object;
-  if (AutoreleaseScope::current() == nullptr) {
-    ++detail::tLeakedWithoutScope;  // the manual hold is never given back
-    return object;
+  if constexpr (kCounted) {
+    if (AutoreleaseScope::current() == nullptr) {
+      ++detail::tLeakedWithoutScope;  // the manual hold is never given back
+      return object;
+    }
   }
   std::shared_ptr<const void> owner;
   try {
@@ -475,7 +525,9 @@ T* autorelease(T* object) noexcept {
   } catch (...) {
     std::abort();
   }
-  object->release();  // the hold becomes the scope's owner
+  // A RefCounted object's hold becomes the scope's owner; an oo::Object off
+  // the bridge has no hold, so the scope simply owns it.
+  if constexpr (kCounted) object->release();
   detail::autoreleaseOwner(std::move(owner));
   return object;
 }
@@ -483,7 +535,7 @@ T* autorelease(T* object) noexcept {
 // return [[x retain] autorelease]: autorelease the reference a Ref owns.
 template <class T>
 T* autorelease(Ref<T>&& ref) noexcept {
-  return autorelease(ref.leakRef());
+  return autorelease(std::move(ref).takeShared());
 }
 
 // --- WeakRef<T>
@@ -502,8 +554,8 @@ class WeakRef {
   constexpr WeakRef(std::nullptr_t) noexcept {}
 
   WeakRef(T* object) noexcept : ptr_(object) {
-    static_assert(std::is_base_of_v<RefCounted, std::remove_const_t<T>>,
-                  "oo::WeakRef requires an oo::RefCounted subclass");
+    static_assert(std::is_base_of_v<Object, std::remove_const_t<T>>,
+                  "oo::WeakRef requires an oo::Object subclass");
     if (object != nullptr) {
       auto parts = detail::WeakAccess::weakParts(object);
       object_ = std::move(parts.first);
@@ -581,9 +633,9 @@ class WeakRef {
   // object allocated at a dead referent's address for the referent.
   friend bool operator==(const WeakRef& a, const T* object) noexcept {
     if (object == nullptr || a.ptr_ == nullptr) return false;
-    const std::shared_ptr<const void> token =
-        detail::WeakAccess::existingToken(object);
-    return token != nullptr && detail::sameOwner(a.token_, token);
+    const std::weak_ptr<const void> identity =
+        detail::WeakAccess::identity(object);
+    return !detail::isEmpty(identity) && detail::sameOwner(a.token_, identity);
   }
 
   // Hash of the referent's address when the reference was made; stable across
