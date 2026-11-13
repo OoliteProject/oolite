@@ -677,8 +677,9 @@ void PlayerEntity::unloadCargoPods() {
 void PlayerEntity::createCargoPodWithType(const std::string& type,
                                           OOCargoQuantity amount) {
   ::ShipEntity* container =
-      (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("1t-cargopod")
-                           : static_cast<::ShipEntity*>(nullptr));
+      (UNIVERSE != nullptr
+           ? oo::RetainedEntity(UNIVERSE->newShipWithRole("1t-cargopod"))
+           : static_cast<::ShipEntity*>(nullptr));
   if (container) {
     if (container != nullptr) container->setScanClass(OOScanClass::kCargo);
     if (container != nullptr) container->setStatus(OOEntityStatus::kInHold);
@@ -770,8 +771,10 @@ void PlayerEntity::loadCargoPodsForType(const std::string& type,
         int smaller_quantity = 1 + ((quantity - 1) % amount_per_container);
         if (cargo.size() < maxAvailableCargoSpace()) {
           ::ShipEntity* container =
-              (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("1t-cargopod")
-                                   : static_cast<::ShipEntity*>(nullptr));
+              (UNIVERSE != nullptr
+                   ? oo::RetainedEntity(
+                         UNIVERSE->newShipWithRole("1t-cargopod"))
+                   : static_cast<::ShipEntity*>(nullptr));
           if (container) {
             // the cargopod ship is just being set up. If ejected,  will call
             // UNIVERSE addEntity
@@ -806,8 +809,10 @@ void PlayerEntity::loadCargoPodsForType(const std::string& type,
       while (quantity) {
         if (cargo.size() < maxAvailableCargoSpace()) {
           ::ShipEntity* container =
-              (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("1t-cargopod")
-                                   : static_cast<::ShipEntity*>(nullptr));
+              (UNIVERSE != nullptr
+                   ? oo::RetainedEntity(
+                         UNIVERSE->newShipWithRole("1t-cargopod"))
+                   : static_cast<::ShipEntity*>(nullptr));
           if (container) {
             // the cargopod ship is just being set up. If ejected, will call
             // UNIVERSE addEntity
@@ -2226,8 +2231,9 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
           StringAt(*missileRoles, roleIndex);
       if (missile_desc.has_value() && *missile_desc != "NONE") {
         ::ShipEntity* amiss =
-            (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(*missile_desc)
-                                 : static_cast<::ShipEntity*>(nullptr));
+            (UNIVERSE != nullptr
+                 ? oo::RetainedEntity(UNIVERSE->newShipWithRole(*missile_desc))
+                 : static_cast<::ShipEntity*>(nullptr));
         if (amiss) {
           missile_list[missileCount] =
               OOEquipmentType::equipmentTypeWithIdentifier(*missile_desc).get();
@@ -2251,7 +2257,7 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
           OOEquipmentType::equipmentTypeWithIdentifier("EQ_MISSILE").get();
       missile_entity[i] = oo::AdoptHold(
           (UNIVERSE != nullptr
-               ? UNIVERSE->newShipWithRole("EQ_MISSILE")
+               ? oo::RetainedEntity(UNIVERSE->newShipWithRole("EQ_MISSILE"))
                : static_cast<::ShipEntity*>(
                      nullptr)));  // retain count = 1 - should be okay
                                   // as long as we keep a missile with
@@ -2822,7 +2828,7 @@ bool PlayerEntity::setUpShipFromDictionary(const oo::PList& shipDict) {
         OOEquipmentType::equipmentTypeWithIdentifier("EQ_MISSILE").get();
     missile_entity[i] = oo::AdoptHold(
         (UNIVERSE != nullptr
-             ? UNIVERSE->newShipWithRole("EQ_MISSILE")
+             ? oo::RetainedEntity(UNIVERSE->newShipWithRole("EQ_MISSILE"))
              : static_cast<::ShipEntity*>(nullptr)));  // retain count = 1
   }
 
@@ -3408,7 +3414,8 @@ void PlayerEntity::doBookkeeping(double delta_t) {
       // restore player ship
       ::ShipEntity* player_ship =
           (UNIVERSE != nullptr
-               ? UNIVERSE->newShipWithName(shipDataKey().value_or(""))
+               ? oo::RetainedEntity(
+                     UNIVERSE->newShipWithName(shipDataKey().value_or("")))
                : static_cast<::ShipEntity*>(nullptr));  // retained
       if (player_ship) {
         // FIXME: this should use OOShipType, which should exist. -- Ahruman
@@ -6014,7 +6021,7 @@ bool PlayerEntity::mountMissile(::ShipEntity* missile) {
 bool PlayerEntity::mountMissileWithRole(const std::string& role) {
   if (missileCount() >= missileCapacity()) return false;
   return mountMissile(oo::ToShip(oo::AutoreleaseEntity(
-      (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(role)
+      (UNIVERSE != nullptr ? oo::RetainedEntity(UNIVERSE->newShipWithRole(role))
                            : static_cast<::ShipEntity*>(nullptr)))));
 }
 
@@ -6115,8 +6122,9 @@ bool PlayerEntity::assignToActivePylon(const std::string& equipmentKey) {
   }
 
   ::ShipEntity* amiss =
-      (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(equipmentKey)
-                           : static_cast<::ShipEntity*>(nullptr));
+      (UNIVERSE != nullptr
+           ? oo::RetainedEntity(UNIVERSE->newShipWithRole(equipmentKey))
+           : static_cast<::ShipEntity*>(nullptr));
 
   if (!amiss) return false;
 
@@ -6594,9 +6602,9 @@ void PlayerEntity::takeHeatDamage(double amount) {
 
 ::ShipEntity* PlayerEntity::createDoppelganger() {
   ::ShipEntity* result = oo::ToShip(oo::AutoreleaseEntity(
-      (UNIVERSE != nullptr
-           ? UNIVERSE->newShipWithName(shipDataKey().value_or(""), true)
-           : static_cast<::ShipEntity*>(nullptr))));
+      (UNIVERSE != nullptr ? oo::RetainedEntity(UNIVERSE->newShipWithName(
+                                 shipDataKey().value_or(""), true))
+                           : static_cast<::ShipEntity*>(nullptr))));
 
   if (result != nullptr) {
     if (result != nullptr) result->setPosition(getPosition());
@@ -6677,8 +6685,9 @@ void PlayerEntity::takeHeatDamage(double amount) {
 
   // set up you
   escapePod =
-      (UNIVERSE != nullptr ? UNIVERSE->newShipWithName("escape-capsule")
-                           : static_cast<::ShipEntity*>(nullptr));  // retained
+      (UNIVERSE != nullptr
+           ? oo::RetainedEntity(UNIVERSE->newShipWithName("escape-capsule"))
+           : static_cast<::ShipEntity*>(nullptr));  // retained
   if (escapePod != nullptr) {
     // FIXME: this should use OOShipType, which should exist. -- Ahruman
     setMesh((escapePod != nullptr ? escapePod->mesh()
@@ -11143,8 +11152,9 @@ bool PlayerEntity::tryBuyingItem(const std::string& eqKey) {
   if (oo::str::hasSuffix(eqKey, "MISSILE") ||
       oo::str::hasSuffix(eqKey, "MINE")) {
     ::ShipEntity* weapon = oo::ToShip(oo::AutoreleaseEntity(
-        (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(eqKey)
-                             : static_cast<::ShipEntity*>(nullptr))));
+        (UNIVERSE != nullptr
+             ? oo::RetainedEntity(UNIVERSE->newShipWithRole(eqKey))
+             : static_cast<::ShipEntity*>(nullptr))));
     if (weapon)
       OO_LOG("equip.buy.mounted", "Got ship for mounted weapon role {}", eqKey);
     else

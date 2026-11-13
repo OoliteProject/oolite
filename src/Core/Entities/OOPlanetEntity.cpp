@@ -964,7 +964,7 @@ void OOPlanetEntity::launchShuttle() {
 
   ::ShipEntity* shuttle_ship =
       (UNIVERSE != nullptr
-           ? UNIVERSE->newShipWithRole("shuttle")
+           ? oo::RetainedEntity(UNIVERSE->newShipWithRole("shuttle"))
            : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
   if (shuttle_ship) {
     if ((shuttle_ship != nullptr
