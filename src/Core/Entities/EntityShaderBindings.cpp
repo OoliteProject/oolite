@@ -890,7 +890,7 @@ constexpr EntityShaderBindingRow kEntityShaderBindings[] = {
 // The row's getter, given the uniform's target (the entity the lookup
 // answered).
 template <size_t I>
-void GetShaderBinding(oo::RefCounted* target, OOShaderBindingValue& out) {
+void GetShaderBinding(oo::Object* target, OOShaderBindingValue& out) {
   kEntityShaderBindings[I].get(static_cast<Entity*>(target), out);
 }
 

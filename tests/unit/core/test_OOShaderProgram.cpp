@@ -231,14 +231,14 @@ OO_TEST(applyAndApplyNone)
 	{
 		p = Make(kVertex, kFragment);
 		std::shared_ptr<OOShaderProgram> q = Make(kVertex, kFragment);
-		const unsigned retained = p->retainCount();
+		const long retained = p.use_count();
 		p->apply();
 		OO_CHECK(CurrentProgram() == (GLint)p->program());
-		OO_CHECK(p->retainCount() == retained + 1);	// kept while in use
+		OO_CHECK(p.use_count() == retained + 1);	// kept while in use
 		p->apply();	// again: no change
-		OO_CHECK(p->retainCount() == retained + 1);
+		OO_CHECK(p.use_count() == retained + 1);
 		q->apply();
-		OO_CHECK(CurrentProgram() == (GLint)q->program() && p->retainCount() == retained);
+		OO_CHECK(CurrentProgram() == (GLint)q->program() && p.use_count() == retained);
 		OOShaderProgram::applyNone();
 		OO_CHECK(CurrentProgram() == 0);
 		OOShaderProgram::applyNone();	// nothing in use: nothing

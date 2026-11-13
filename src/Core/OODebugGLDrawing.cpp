@@ -154,7 +154,7 @@ OODebugWFState OODebugBeginWireframe(bool ignoreZ) {
 void OODebugEndWireframe(OODebugWFState state) {
   OO_ENTER_OPENGL();
   OOGL(glPopAttrib());
-  OOMaterialApplyAndRelease(state.material);
+  OOMaterialApplyAndRelease(std::move(state.material));
 }
 
 #endif

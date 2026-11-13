@@ -30,6 +30,8 @@ SOFTWARE.
 
 #pragma once
 
+#include <memory>
+
 #include "OOColor.h"
 #include "OOMaths.h"
 
@@ -42,8 +44,8 @@ SOFTWARE.
 class OOMaterial;
 
 typedef struct {
-  OOMaterial* material;  // retained by OODebugBeginWireframe(), released by
-                         // OODebugEndWireframe()
+  std::shared_ptr<OOMaterial> material;  // from OODebugBeginWireframe(),
+                                         // given up by OODebugEndWireframe()
 } OODebugWFState;
 
 OODebugWFState OODebugBeginWireframe(

@@ -67,10 +67,10 @@ class Entity;                 // Entity.h: the materials' binding target
    does for an entity target. The target is held weakly: once it has gone,
    -apply sets nothing.
 */
-typedef void (*OOShaderCxxBindingGetter)(oo::RefCounted* target,
+typedef void (*OOShaderCxxBindingGetter)(oo::Object* target,
                                          OOShaderBindingValue& outValue);
 
-class OOShaderUniform : public oo::RefCounted {
+class OOShaderUniform : public oo::Object {
  public:
   ~OOShaderUniform() override;
 
@@ -113,7 +113,7 @@ class OOShaderUniform : public oo::RefCounted {
   */
   static std::shared_ptr<OOShaderUniform> initWithName(
       const std::string& uniformName, OOShaderProgram* shaderProgram,
-      oo::RefCounted* target, const std::string& property,
+      oo::Object* target, const std::string& property,
       uint8_t type,  // OOShaderUniformType (OOShaderUniformMethodType.h)
       OOShaderCxxBindingGetter get, OOUniformConvertOptions options);
 
@@ -173,7 +173,7 @@ class OOShaderUniform : public oo::RefCounted {
       OOShaderCxxBindingGetter cxxGet;
     } binding;
   } value = {};
-  std::weak_ptr<oo::RefCounted> cxxTarget = {};
+  std::weak_ptr<oo::Object> cxxTarget = {};
   std::string cxxProperty = {};
 };
 

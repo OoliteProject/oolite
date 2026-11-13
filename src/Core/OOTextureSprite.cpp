@@ -43,7 +43,8 @@ std::shared_ptr<OOTextureSprite> OOTextureSprite::initWithTexture(
     return nullptr;
   }
 
-  return oo::adopt(new OOTextureSprite(inTexture, spriteSize));
+  return std::shared_ptr<OOTextureSprite>(
+      new OOTextureSprite(inTexture, spriteSize), oo::Dispose{});
 }
 
 OOTextureSprite::OOTextureSprite(OOTexture* inTexture, NSSize spriteSize) {

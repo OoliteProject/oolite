@@ -298,7 +298,8 @@ bool OOShaderMaterial::initWithName(const std::optional<std::string>& name,
   return OK;
 }
 
-// The shader program is an oo::Ref. (The uniforms hold the binding target.)
+// The shader program is an std::shared_ptr. (The uniforms hold the binding
+// target.)
 OOShaderMaterial::~OOShaderMaterial() {
   uint32_t i;
 

@@ -65,7 +65,7 @@ class Entity;  // Entity.h: the shader binding target
 #include "oofnd/PList.hpp"
 #include "oofnd/Ref.hpp"
 
-class OOMaterial : public oo::RefCounted {
+class OOMaterial : public oo::Object {
  public:
   // Called once at startup (by Universe's initialiser).
   static void setUp();

@@ -58,7 +58,7 @@ SOFTWARE.
    texture has no path, and a generator may have no cache key).
 
         A leaf of OOTexture. Its loader is the C++ OOTextureLoader, held as
-   oo::Ref. Callers hold it as an std::shared_ptr<OOTexture>.
+   std::shared_ptr. Callers hold it as an std::shared_ptr<OOTexture>.
 */
 class OOConcreteTexture : public OOTexture {
  public:

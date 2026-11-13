@@ -61,12 +61,11 @@ constexpr int kShaderModeUnknown = kShaderModeOn + 1;
 */
 namespace {
 
-void DustWarpVectorBinding(oo::RefCounted* target,
-                           OOShaderBindingValue& outValue) {
+void DustWarpVectorBinding(oo::Object* target, OOShaderBindingValue& outValue) {
   outValue.v = static_cast<DustEntity*>(target)->warpVector();
 }
 
-void DustOffsetPlayerPositionBinding(oo::RefCounted* target,
+void DustOffsetPlayerPositionBinding(oo::Object* target,
                                      OOShaderBindingValue& outValue) {
   outValue.v = static_cast<DustEntity*>(target)->offsetPlayerPosition();
 }
