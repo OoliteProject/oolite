@@ -45,7 +45,9 @@ constexpr int kSpecialMission = kSpecialDocked + 1;
 
 OOMusicController* OOMusicController::sharedController() {
   if (sSingleton == nullptr) {
-    sSingleton = oo::makeRef<OOMusicController>().leakRef();
+    sSingleton = (*new std::shared_ptr<OOMusicController>(
+                      oo::makeShared<OOMusicController>()))
+                     .get();
   }
 
   return sSingleton;

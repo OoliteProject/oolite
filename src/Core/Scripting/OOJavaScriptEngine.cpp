@@ -131,7 +131,9 @@ OOJavaScriptEngine* OOJavaScriptEngine::sharedEngine() {
     // The one +1, never released. Recorded before init() runs, as -init
     // recorded self before it made the context, so a re-entrant sharedEngine()
     // answers the engine being set up.
-    OOJavaScriptEngine* engine = oo::makeRef<OOJavaScriptEngine>().leakRef();
+    OOJavaScriptEngine* engine = (*new std::shared_ptr<OOJavaScriptEngine>(
+                                      oo::makeShared<OOJavaScriptEngine>()))
+                                     .get();
     sSharedEngine = engine;
     engine->init();
   }
@@ -1547,7 +1549,8 @@ JSValue OONativeVectorJSValueInContext(OONativeVector* vector,
 
 OONull* OONull::null() {
   static OONull* sNull = nullptr;  // the one +1 is never released
-  if (sNull == nullptr) sNull = oo::makeRef<OONull>().leakRef();
+  if (sNull == nullptr)
+    sNull = (*new std::shared_ptr<OONull>(oo::makeShared<OONull>())).get();
   return sNull;
 }
 

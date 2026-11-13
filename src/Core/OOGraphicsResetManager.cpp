@@ -45,7 +45,9 @@ OOGraphicsResetManager::~OOGraphicsResetManager() {
 
 OOGraphicsResetManager* OOGraphicsResetManager::sharedManager() {
   if (sSingleton == nullptr)
-    sSingleton = oo::makeRef<OOGraphicsResetManager>().leakRef();
+    sSingleton = (*new std::shared_ptr<OOGraphicsResetManager>(
+                      oo::makeShared<OOGraphicsResetManager>()))
+                     .get();
   return sSingleton;
 }
 

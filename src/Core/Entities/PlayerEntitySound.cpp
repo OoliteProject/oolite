@@ -69,7 +69,7 @@ void ReleasePool(OOSoundSourcePool*& pool) {
 // ReleaseSource. A message to a nil source did nothing and -isPlaying answered
 // NO, so each use checks for none.
 ::OOSoundSource* NewSource(::OOSound* sound = nullptr) {
-  return oo::makeRef<::OOSoundSource>(sound).leakRef();
+  return new ::OOSoundSource(sound);
 }
 
 void ReleaseSource(::OOSoundSource*& source) {

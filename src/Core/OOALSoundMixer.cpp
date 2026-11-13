@@ -47,7 +47,7 @@ OOSoundMixer* sSingleton = nullptr;
 */
 OOSoundMixer* OOSoundMixer::sharedMixer() {
   if (nullptr == sSingleton) {
-    sSingleton = oo::makeRef<OOSoundMixer>().leakRef();
+    sSingleton = new OOSoundMixer();
     if (!sSingleton->init()) {
       OOSoundMixer* failed = sSingleton;
       sSingleton = nullptr;

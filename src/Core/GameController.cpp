@@ -214,7 +214,9 @@ bool NextDeferredCallDeadline(
 
 GameController* GameController::sharedController() {
   if (sSharedController == nullptr) {
-    sSharedController = oo::makeRef<GameController>().leakRef();
+    sSharedController =
+        (*new std::shared_ptr<GameController>(oo::makeShared<GameController>()))
+            .get();
   }
   return sSharedController;
 }
