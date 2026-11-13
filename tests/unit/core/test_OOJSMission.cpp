@@ -55,7 +55,7 @@ public:
 #include "oofnd/Ref.hpp"
 #include "OOJSPrivateObject.h"
 
-class Entity : public oo::RefCounted, public OOJSPrivateObject	// the game's root's bases (its JS glue)
+class Entity : public oo::Object, public OOJSPrivateObject	// the game's root's bases (its JS glue)
 {
 public:
 	OOEntityStatus status();

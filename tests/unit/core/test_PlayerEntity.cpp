@@ -340,11 +340,11 @@ OO_TEST(deallocReleasesWhatThePlayerHeld)
 		missile = oo::RetainedEntity(oo::NewShipObject(oo::makeRef<TestMissile>(), "missile", oo::PList()));
 		TestPlayer *player = NewTestPlayer<TestPlayer>();
 		PlayerEntityTestAccess::missile_entity(player)[2] = oo::AdoptHold(oo::RetainEntity(missile));	// held by oo::EntityHold
-		OO_CHECK(missile->retainCount() == 2);
+		OO_CHECK(missile->weak_from_this().use_count() == 2);
 		OO_CHECK(PlayerEntityTestAccess::missile_entity(player)[2].get() == missile);
 		Release(player);
 	}
-	OO_CHECK(missile->retainCount() == 1);
+	OO_CHECK(missile->weak_from_this().use_count() == 1);
 	oo::ReleaseEntity(missile);
 }
 
@@ -543,11 +543,11 @@ OO_TEST(slice3Wormhole)
 		std::shared_ptr<WormholeEntity> holeRef = oo::makeRef<WormholeEntity>();
 		Entity *object = oo::RetainEntity(oo::MadeEntity(holeRef));
 		WormholeEntity *hole = holeRef.get();
-		std::size_t count = object->retainCount();
+		const long count = object->weak_from_this().use_count();
 		player->setWormhole(hole);
-		OO_CHECK(player->getWormhole() == hole && object->retainCount() == count + 1);
+		OO_CHECK(player->getWormhole() == hole && object->weak_from_this().use_count() == count + 1);
 		player->setWormhole(nullptr);
-		OO_CHECK(player->getWormhole() == nullptr && object->retainCount() == count);
+		OO_CHECK(player->getWormhole() == nullptr && object->weak_from_this().use_count() == count);
 		oo::ReleaseEntity(object);
 	}
 }

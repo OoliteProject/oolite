@@ -66,11 +66,11 @@ MA 02110-1301, USA.
 class MyOpenGLView;
 class ShipEntity;
 class GuiDisplayGen;
-#include "HeadUpDisplay.h"  // the player keeps its HUD (oo::Ref)
+#include "HeadUpDisplay.h"  // the player keeps its HUD (std::shared_ptr)
 class OOSound;
 class OOSoundSource;
 class OOTexture;
-#include "OOJSGuiScreenKeyDefinition.h"  // extraGuiScreenKeys keeps it (oo::Ref)
+#include "OOJSGuiScreenKeyDefinition.h"  // extraGuiScreenKeys keeps it (std::shared_ptr)
 #include "OOScript.h"      // std::shared_ptr<OOScript> members and results
 class StickProfileScreen;  // PlayerEntityStickProfile.h
 

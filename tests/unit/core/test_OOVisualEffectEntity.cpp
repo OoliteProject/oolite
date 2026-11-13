@@ -286,7 +286,7 @@ OO_TEST(standardSubentities)
 		OO_CHECK(Near(child->getPosition().y, 5.0));
 		OO_CHECK(child->owner() == effect);
 		OO_CHECK(child->getIsSubEntity());
-		OO_CHECK(childObject->retainCount() == 2);	// the parent's list and the enumerator's snapshot (effects)
+		OO_CHECK(childObject->weak_from_this().use_count() == 2);	// the parent's list and the enumerator's snapshot (effects)
 		OO_CHECK(effect->isShipWithSubEntityShip(child));
 		OO_CHECK(child->parentEntity() == effect);
 		OO_CHECK(!child->isShipWithSubEntityShip(effect));

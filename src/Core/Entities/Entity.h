@@ -4,8 +4,8 @@ Entity.h
 
 Base class for entities, i.e. drawable world objects.
 
-The C++ entity is its own identity and owns itself (oo::RefCounted; its last
-release runs willDispose()). EntityHelpers.h,
+The C++ entity is its own identity (an oo::Object; its last owner's release
+runs willDispose()). EntityHelpers.h,
 imported at the end of this header, has the questions asked of an entity.
 
 Oolite
@@ -94,16 +94,13 @@ extern size_t gTotalEntityMemory;
    getter with a data member's name is get + the name (position is read with
    getPosition()). The members that subclasses override are virtual.
 */
-class Entity : public oo::RefCounted, public ::OOJSPrivateObject {
+class Entity : public oo::Object, public ::OOJSPrivateObject {
  public:
   Entity();
 
   // The constructor runs it, and PlayerEntity's deferred initialisation runs it
   // again.
   void init();
-
-  // willDispose() zeroes the weak references to the entity.
-  using oo::RefCounted::dropWeakReferences;
 
   /*	The entity's object: it "has" one from the creator that made it
           (oo::MadeEntity(), oo::NewShipObject(), ...) until its last release
@@ -115,8 +112,9 @@ class Entity : public oo::RefCounted, public ::OOJSPrivateObject {
     _hasObject = true;
   }  // the creators' (oo::MadeEntity())
 
-  // Teardown for an entity that had its object: the last release runs it
-  // (oo::RefCounted::willDispose()).
+  // Teardown for an entity that had its object: the last owner's release runs
+  // it (oo::Object::willDispose(), from oo::Dispose); the weak references to
+  // the entity are already empty.
   void willDispose() noexcept override;
 
   // The virtual members, declared once in EntityVirtualMembers.h in this order,
@@ -484,7 +482,7 @@ class EntityWeakPListForeign final : public PListForeign {
 // The entity's weak node; a null PList for null.
 inline PList EntityWeakNode(Entity* entity) {
   if (entity == nullptr) return PList();
-  return PList(PList::Object(makeRef<EntityWeakPListForeign>(entity)));
+  return PList(PList::Object(oo::makeShared<EntityWeakPListForeign>(entity)));
 }
 
 // The live C++ entity of a weak node; null once it has gone, and for any other

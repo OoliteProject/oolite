@@ -27,7 +27,7 @@ MA 02110-1301, USA.
 #pragma once
 
 #include "Entity.h"
-#include "OODrawable.h"  // the drawable is held by oo::Ref (a complete type wherever the entity is destroyed)
+#include "OODrawable.h"  // the drawable is held by std::shared_ptr (a complete type wherever the entity is destroyed)
 
 class OOEntityWithDrawable : public Entity {
  public:

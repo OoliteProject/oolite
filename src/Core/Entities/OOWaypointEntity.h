@@ -46,7 +46,7 @@ MA 02110-1301, USA.
 #include <vector>
 
 #include "Entity.h"
-#include "OOPolygonSprite.h"  // OOHUDBeaconIcon: the beacon drawable is oo::Ref
+#include "OOPolygonSprite.h"  // OOHUDBeaconIcon: the beacon drawable is std::shared_ptr
 #include "oofnd/PList.hpp"
 
 /*	+waypointWithDictionary: takes an oo::PList; the beacon accessors are

@@ -61,7 +61,7 @@ typedef OOEquipmentType* OOWeaponType;
 // The C++ root, as far as the binding and the root's JS category reach it; its JS glue
 // (OOJSPrivateObject, as the game's root implements it) answers its object's JS value
 // (the binding's launches return OOJSValueFromCxxObject of the C++ ship).
-class Entity : public oo::RefCounted, public OOJSPrivateObject
+class Entity : public oo::Object, public OOJSPrivateObject
 {
 public:
 	virtual ~Entity();

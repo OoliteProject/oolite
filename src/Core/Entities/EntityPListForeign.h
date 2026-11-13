@@ -69,7 +69,7 @@ class EntityPListForeign final : public PListForeign {
 // entity without its object.
 inline PList EntityObjectNode(Entity* entity) {
   if (WithObject(entity) == nullptr) return PList();
-  return PList(PList::Object(makeRef<EntityPListForeign>(entity)));
+  return PList(PList::Object(oo::makeShared<EntityPListForeign>(entity)));
 }
 inline PList EntityObjectNode(const Ref<Entity>& entity) {
   return EntityObjectNode(entity.get());

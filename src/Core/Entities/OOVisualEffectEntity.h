@@ -49,7 +49,7 @@
 #include "OOEntityWithDrawable.h"
 #include "OOJSPropID.h"
 #include "OOPlanetEntity.h"
-#include "OOPolygonSprite.h"  // OOHUDBeaconIcon: the beacon drawable is oo::Ref
+#include "OOPolygonSprite.h"  // OOHUDBeaconIcon: the beacon drawable is std::shared_ptr
 #include "oofnd/PList.hpp"
 
 class OOMesh;

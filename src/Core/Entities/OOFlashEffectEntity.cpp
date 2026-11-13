@@ -39,7 +39,13 @@ MA 02110-1301, USA.
 #define kLaserFlashInitialSize 1.0f
 #define kExplosionFlashAlpha 0.5f
 
-static OOTexture* sFlashTexture = nullptr;
+// The texture, made on first use and given up by a graphics reset. The holder
+// is never deleted, so exit(0) frees no texture after the GL context has gone.
+static std::shared_ptr<OOTexture>& FlashTexture() {
+  static std::shared_ptr<OOTexture>& texture =
+      *new std::shared_ptr<OOTexture>();
+  return texture;
+}
 
 namespace {
 
@@ -136,13 +142,13 @@ void OOFlashEffectEntity::update(OOTimeDelta delta_t) {
 }
 
 OOTexture* OOFlashEffectEntity::texture() {
-  if (sFlashTexture == nullptr) OOFlashEffectEntity::setUpTexture();
-  return sFlashTexture;
+  if (FlashTexture() == nullptr) OOFlashEffectEntity::setUpTexture();
+  return FlashTexture().get();
 }
 
 void OOFlashEffectEntity::setUpTexture() {
-  if (sFlashTexture == nullptr) {
-    sFlashTexture = oo::leakRef(OOTexture::textureWithName(
+  if (FlashTexture() == nullptr) {
+    FlashTexture() = (OOTexture::textureWithName(
         "oolite-particle-flash.png", "Textures",
         OOTextureFlags::kMinFilterMipMap | OOTextureFlags::kMagFilterLinear |
             OOTextureFlags::kAlphaMask,
@@ -152,7 +158,4 @@ void OOFlashEffectEntity::setUpTexture() {
   }
 }
 
-void OOFlashEffectEntity::resetGraphicsState() {
-  oo::release(sFlashTexture);
-  sFlashTexture = nullptr;
-}
+void OOFlashEffectEntity::resetGraphicsState() { FlashTexture().reset(); }

@@ -109,7 +109,8 @@ std::vector<oo::EntityHold> VisualEffectsIn(
 // fail.
 std::shared_ptr<Entity> oo::NewVisualEffect(const std::string& key,
                                             const oo::PList& dict) {
-  const Ref<OOVisualEffectEntity> effect = makeRef<OOVisualEffectEntity>();
+  const std::shared_ptr<OOVisualEffectEntity> effect =
+      oo::makeShared<OOVisualEffectEntity>();
   (void)MadeEntityRetained(effect);  // its object, as +alloc made it
   if (!effect->initWithKey(key, dict)) return nullptr;  // released
   return effect;

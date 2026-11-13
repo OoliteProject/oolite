@@ -924,7 +924,7 @@ OO_TEST(slice17UpdateOff) {
       OO_CHECK(u->getTime() == 5.0 &&
                u->getTimeDelta() == 0.5);  // no time passes
       OO_CHECK(u->entitiesDeadThisUpdate.empty());
-      OO_CHECK(dead->retainCount() == 1);  // alive until the pool drains
+      OO_CHECK(dead->weak_from_this().use_count() == 1);  // alive until the pool drains
     }
   }
 }
