@@ -29,8 +29,8 @@ MA 02110-1301, USA.
 #include "OOEnumFlags.h"
 #include "OOFoundation.h"
 #include "OOOpenGL.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 class AI;  // AI.h
 class OOTexture;

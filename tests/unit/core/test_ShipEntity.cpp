@@ -26,7 +26,7 @@
 #include "AI.h"
 #include "PlayerEntity.h"
 #include "ShipEntityLoadRestore.h"
-#include "EntityManualRefs.h"  // the tests' manual entity references (T095)
+#include "EntityManualRefs.h"  // the tests' manual entity references
 
 #include "oo_test.hpp"
 
@@ -2996,6 +2996,7 @@ OO_TEST(slice33FindBoundingBoxRelativeTo)
 // events and AI reactions, alert condition, shader helpers.
 
 #include "OOJSPropID.h"
+#include "oofnd/AutoreleaseScope.hpp"
 
 
 

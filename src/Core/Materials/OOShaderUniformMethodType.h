@@ -41,8 +41,7 @@ SOFTWARE.
 
 // A uniform's (and a by-name method's) type tag: stored as uint8_t, an index
 // into the template table, and the start of OOJSCall's method-type numbers, so
-// typed constants rather than an enumeration (as design D5 decided for such
-// groups; spec 009 research R8).
+// typed constants rather than an enumeration.
 using OOShaderUniformType = int;
 inline constexpr OOShaderUniformType kOOShaderUniformTypeInvalid =
     0;  // Not valid for bindings or constants

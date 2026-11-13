@@ -11,7 +11,7 @@
    included. A flag enum declared inside a namespace finds them only by ordinary
    lookup, which stops at the first enclosing namespace that declares any
    operator of that name; such a namespace adds `using ::operator|;` and the
-   others (spec 009 D3).
+   others.
 */
 
 #pragma once

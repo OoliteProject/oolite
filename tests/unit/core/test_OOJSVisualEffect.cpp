@@ -24,11 +24,12 @@
 #include "OOMaths.h"
 #include "OOTypes.h"
 #include <quickjs.h>
-#include "oofnd/objc/OOException.h"
+#include "OODescription.h"
 #include "OOEntityHold.h"	// the sub-entity lists
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
-#include "OODescription.h"
+#include "oofnd/objc/OOException.h"
 #include <algorithm>
 #include <chrono>
 #include <condition_variable>
@@ -48,7 +49,7 @@
 #include <vector>
 #include "EntityPListForeign.h"	// an entity's node
 #include "OOScript.h"
-#include "EntityManualRefs.h"  // the tests' manual references (T096)
+#include "EntityManualRefs.h"  // the tests' manual references
 
 
 // MARK: The classes, as far as the binding sees them ----------------------------------------------

@@ -52,7 +52,7 @@ SOFTWARE.
 #include "OOMaths.h"
 #include "OOOpenGL.h"
 #include "OOTextureFlags.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 #include "oofnd/objc/OOObject.h"
 
 class OOTexture;

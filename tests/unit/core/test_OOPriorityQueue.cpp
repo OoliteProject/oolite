@@ -10,6 +10,7 @@
 
 #include "OOPriorityQueue.h"
 #include "oo_test.hpp"
+#include "oofnd/AutoreleaseScope.hpp"
 
 // MARK: OOPriorityQueueOf
 // ------------------------------------------------------

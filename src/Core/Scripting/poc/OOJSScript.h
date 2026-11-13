@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 #include <string>
 
 #include "OOJavaScriptEngine.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 
 class OOJSScript : public oo::Object {
  public:

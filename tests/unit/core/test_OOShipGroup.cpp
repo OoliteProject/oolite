@@ -14,9 +14,10 @@
 */
 
 #include "OOShipGroup.h"
-#include "EntityManualRefs.h"  // the tests' manual references (T097)
+#include "EntityManualRefs.h"  // the tests' manual references
 
 #include "oo_test.hpp"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/objc/OOException.h"
 
 #include <algorithm>
@@ -39,7 +40,7 @@ std::optional<std::string> OOShipGroup::jsDescription()  { return std::nullopt; 
    oo::ToObjC answers for them) and calls the ships' members. Declared as
    Entity.h and ShipEntity.h declare them (the test imports neither); every
    object the test makes holds a ship that records what the group asks of it.
-   The object is C++, rooted on oo::RefCounted.
+   The object is C++, rooted on oo::Object.
 */
 class TestEntityObject;
 

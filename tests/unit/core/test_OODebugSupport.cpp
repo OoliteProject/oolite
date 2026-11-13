@@ -23,7 +23,7 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include "EntityManualRefs.h"  // the tests' manual references (T096)
+#include "EntityManualRefs.h"  // the tests' manual references
 
 #include "OODebugMonitor.h"
 #include "OODebugSupport.h"

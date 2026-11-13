@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #pragma once
 
 #include "OOMaths.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 
 /*	Nothing outside this file messages it: the one outside mention,
    OOSoundSource's no-op -positionRelativeTo:, takes it by (borrowed) pointer.

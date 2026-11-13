@@ -40,7 +40,7 @@ OUT OF OR
 #include "OOALSoundChannel.h"
 #include "OOMaths.h"
 #include "OOSoundSource.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 
 #ifndef OO_DEFAULT_SOUNDSOURCE_GAIN
 #define OO_DEFAULT_SOUNDSOURCE_GAIN 1.0f

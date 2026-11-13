@@ -51,8 +51,8 @@ MA 02110-1301, USA.
 #include "OOPolygonSprite.h"  // OOHUDBeaconIcon
 #include "OOTypes.h"
 #include "ShipEntity.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 #include "oofnd/objc/OOObject.h"
 
 // PlayerEntity.h defines it; this header does not include PlayerEntity.h (it

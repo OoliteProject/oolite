@@ -25,12 +25,13 @@
 #include <map>
 #include <string>
 #include <vector>
-#include "EntityManualRefs.h"  // the tests' manual references (T097)
+#include "EntityManualRefs.h"  // the tests' manual references
 
 #include "AI.h"
 #include "GameController.h"  // OOScheduleDeferredCall, stood in below
 #include "OOCallByName.h"    // oo::CallEntityByName, stood in below
 #include "oo_test.hpp"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/Log.hpp"
 #include "oofnd/objc/OOException.h"  // oo::Exception
 

@@ -23,6 +23,7 @@
 */
 
 
+#include "EntityManualRefs.h"  // the tests' manual entity references
 #include "EntityOOJavaScriptExtensions.h"
 #include "OOJSEntity.h"
 #include "OOJSWaypoint.h"
@@ -30,7 +31,7 @@
 #include "PlayerEntity.h"
 #include "Universe.h"
 #include "oo_test.hpp"
-#include "EntityManualRefs.h"  // the tests' manual entity references (T095)
+#include "oofnd/AutoreleaseScope.hpp"
 
 // main.mm defines the debug flags, and the test has its own main.
 #ifndef NDEBUG

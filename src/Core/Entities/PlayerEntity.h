@@ -59,8 +59,8 @@ MA 02110-1301, USA.
 #include "OOTypes.h"
 #include "ShipEntity.h"
 #include "WormholeEntity.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 #include "oofnd/objc/OOAssert.h"
 
 class MyOpenGLView;
@@ -129,7 +129,7 @@ inline constexpr std::string_view KEYCONFIG_CUSTOMEQUIP =
 
 // The rows of the options screen and the game options screen, each one more
 // than the row before it; the screens place them with OOGUIOptionsRow() and
-// OOGUIGameOptionsRow() (design D5: row numbers, not an enumeration).
+// OOGUIGameOptionsRow(): row numbers that are added to, not an enumeration.
 inline constexpr int GUI_ROW_OPTIONS_QUICKSAVE = 0;
 inline constexpr int GUI_ROW_OPTIONS_SAVE = GUI_ROW_OPTIONS_QUICKSAVE + 1;
 inline constexpr int GUI_ROW_OPTIONS_LOAD = GUI_ROW_OPTIONS_SAVE + 1;

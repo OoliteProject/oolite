@@ -1,9 +1,7 @@
 /*	test_EntityDisposalReaders.cpp
         Pins the effect of the code that reads a weak reference to an entity
-   while it is being disposed (spec 009 design step D2, data-model.md
-   "Disposal reader"), on today's ownership code, so that moving the weak
-   references to std::weak_ptr (which has expired by then) can be shown not
-   to change it.
+   while it is being disposed: a std::weak_ptr has already expired by then,
+   so the readers must not depend on it still reading the entity.
 
         The readers are Universe::clearBeacon's two comparisons of the dying
    beacon with the beacon list's head and tail (firstBeacon() == beacon,
@@ -23,11 +21,12 @@
    Run: tests/run.sh unit
 */
 
+#include "EntityManualRefs.h"  // the tests' manual entity references
 #include "OOWaypointEntity.h"
 #include "PlayerEntity.h"
 #include "Universe.h"
 #include "oo_test.hpp"
-#include "EntityManualRefs.h"  // the tests' manual entity references (T095)
+#include "oofnd/AutoreleaseScope.hpp"
 
 // main.mm defines the debug flags, and the test has its own main.
 #ifndef NDEBUG

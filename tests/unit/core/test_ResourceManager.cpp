@@ -27,6 +27,7 @@
 #include "OOSystemDescriptionManager.h"
 #include "ResourceManager.h"
 #include "oo_test.hpp"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/Data.hpp"
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/PListParsing.hpp"

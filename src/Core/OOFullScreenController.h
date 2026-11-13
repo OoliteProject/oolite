@@ -33,8 +33,8 @@ MA 02110-1301, USA.
 #include "MyOpenGLView.h"  // std::shared_ptr<MyOpenGLView>
 #include "OOFoundation.h"
 #include "OOMouseInteractionMode.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 /*	Display-mode dictionary keys. On Mac OS X they were CoreGraphics'
    kCGDisplay* constants, whose values are these same strings (CFSTR("Width")

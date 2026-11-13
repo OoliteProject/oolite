@@ -50,7 +50,7 @@ MA 02110-1301, USA.
 #include "OODrawable.h"
 #include "OOMaterial.h"
 #include "OOMaths.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 
 class OOPlanetDrawable : public OODrawable {
  public:

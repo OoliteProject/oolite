@@ -64,8 +64,8 @@ MA 02110-1301, USA.
 #include <vector>
 
 #include "OOFoundation.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 #include "oofnd/objc/OOObject.h"
 
 // Plain numbers are used here rather than a more complex object because

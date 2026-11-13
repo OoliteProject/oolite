@@ -35,8 +35,8 @@ MA 02110-1301, USA.
 #include <string>
 
 #include "OOTypes.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 #define MAIN_SYSTEM_MARKET_LIMIT 127
 

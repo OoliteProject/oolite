@@ -34,8 +34,8 @@ MA 02110-1301, USA.
 #include <vector>
 
 #include "OOEntityHold.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 class Entity;
 
@@ -71,7 +71,7 @@ inline PList EntityObjectNode(Entity* entity) {
   if (WithObject(entity) == nullptr) return PList();
   return PList(PList::Object(oo::makeShared<EntityPListForeign>(entity)));
 }
-inline PList EntityObjectNode(const Ref<Entity>& entity) {
+inline PList EntityObjectNode(const std::shared_ptr<Entity>& entity) {
   return EntityObjectNode(entity.get());
 }
 

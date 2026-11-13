@@ -6,7 +6,7 @@ component per seam the game used, each with its own unit tests. Namespace `oo`.
 Rules that hold for every component:
 
 - **C++23.** Where the standard library has the thing, game code uses it directly and the
-  `oofnd` copy goes (spec 009); a component stays only where the standard has no equivalent or
+  `oofnd` copy goes; a component stays only where the standard has no equivalent or
   gives different answers.
 - **No exceptions across oofnd APIs.** Fallible operations return `std::expected<T, E>`. The game
   itself does throw (`OORaiseException`, `oo::Exception`), so nothing is built with
@@ -21,7 +21,6 @@ Rules that hold for every component:
 |---|---|
 | `src/oofnd/Object.hpp` | `oo::Object`, the base of every shared-owned game object (`std::enable_shared_from_this`), with `oo::makeShared`, `oo::share` and the `oo::Dispose` deleter that runs `willDispose()`: ownership is `std::shared_ptr<T>`, observation `std::weak_ptr<T>` |
 | `src/oofnd/AutoreleaseScope.hpp` | `oo::AutoreleaseScope`: the per-thread, nested autorelease pool over shared ownership, with libobjc2's draining rules |
-| `src/oofnd/Ref.hpp` | `oo::RefCounted`, `oo::Ref<T>`, `oo::WeakRef<T>`: the reference-counted bridge over `oo::Object`, not used by the game; only `test_ref` and `test_weakset` still name it |
 | `src/oofnd/WeakSet.hpp` | `oo::WeakSet<T>`: `OOWeakSet` |
 | `src/oofnd/PList.hpp` | `oo::PList`: the property-list value (null/bool/integer/real/string/data/date/array/dict) replacing the Foundation plist object graph; UTF-16 <-> UTF-8 helpers |
 | `src/oofnd/PListOldStyle.hpp` | `oo::parseOldStylePList`: GNUstep's old-style (OpenStep) scanner, `parsePlItem`, ported quirk-for-quirk |
@@ -47,7 +46,7 @@ Rules that hold for every component:
 | `src/oofnd/objc/OOObject.h` | `OOZone`, the opaque zone type (always null) that OOMesh's copy members take |
 | `src/oofnd/objc/OOException.h` | forwards to `oofnd/Exception.hpp` (`oo::Exception`, `OORaiseException`) |
 | `src/oofnd/objc/OOAssert.h` | `OOCAssert` / `OOCParameterAssert`: gnustep-base's assertion semantics, live in every flavour |
-| `src/oofnd/objc/OOFoundationTypes.h` | what is left of Foundation's C types: `NSRange`, `NSPoint`/`NSSize`/`NSRect` with `NSMake*`/`NSEqual*`, and `oo::kNotFound`, with GNUstep's exact definitions; refuses to compile beside a Foundation header. The integer, interval and `CGFloat` aliases became the standard types (spec 009 T033). Pinned by `tests/unit/oofnd/test_foundation_types.cpp` |
+| `src/oofnd/objc/OOFoundationTypes.h` | what is left of Foundation's C types: `NSRange`, `NSPoint`/`NSSize`/`NSRect` with `NSMake*`/`NSEqual*`, and `oo::kNotFound`, with GNUstep's exact definitions; refuses to compile beside a Foundation header. The integer, interval and `CGFloat` aliases became the standard types. Pinned by `tests/unit/oofnd/test_foundation_types.cpp` |
 | `src/oofnd/meson.build` | `oofnd_dep` (include path `src/`, so consumers write `#include "oofnd/X.hpp"`) |
 | `tests/unit/oofnd/test_*.cpp` | one executable per component, plain C++23 |
 | `tests/unit/oofnd/oo_test.hpp` | the whole test harness: `OO_TEST`, `OO_CHECK`, `OO_CHECK_EQ`, `OO_TEST_MAIN` |
@@ -57,10 +56,10 @@ Rules that hold for every component:
 
 ## Surviving components
 
-What stays in `oofnd` after spec 009 moved game code onto the standard library, and why. A
+What stays in `oofnd` now that game code uses the standard library, and why. A
 component stays when the standard library has no equivalent, or gives a different answer the game
 depends on (then a test pins the difference), or when it is a thin helper over the standard
-facility that reads better at the call site (spec 009 decision 11).
+facility that reads better at the call site.
 
 | Component | Why it stays | Pinned by |
 |---|---|---|
@@ -68,7 +67,7 @@ facility that reads better at the call site (spec 009 decision 11).
 | `String` (`oo::str`) | GNUstep's answers: `hasPrefix("")` is false (`starts_with("")` is true), UTF-16 ordering and lengths, case tables, whitespace set, `intValue` through `long`, the 18-digit `doubleValue`, path rules | `test_string`, `test_string_compare`, `test_string_path_extension`, `test_string_sweep` |
 | `FileSystem` (`oo::fs`) | GNUstep semantics (`removeItem` errors on a missing path, `moveItem` never overwrites, atomic `writeFile`, `/` separators); `fileExists` and five more are thin helpers over `std::filesystem` that read better than its `error_code` calls | `test_filesystem` |
 | `Date` (`oo::date`) | NSDate's 2001 reference date, its `-description` text and the local UTC offset; the calendar itself is `std::chrono` | `test_date` |
-| `Exception` | the game's exception, a `std::exception` since spec 009, with the name `OORaiseException` gives it | `test_exception_std` |
+| `Exception` | the game's exception, a `std::exception`, with the name `OORaiseException` gives it | `test_exception_std` |
 | `Finally` | `@finally`: the standard library has no scope guard in C++23 (`std::scope_exit` is a TS) | `test_std_differences` |
 | `NSRange`, `NSPoint`, `NSSize`, `NSRect` | no standard equivalent | `test_foundation_types` |
 | `PrintfFormat` | the printf-format attribute that `oo::str::vformat`, `OORaiseException` and `OOCAssert` still need for data formats | `test_string_format_runtime` |

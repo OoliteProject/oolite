@@ -50,8 +50,8 @@ SOFTWARE.
 
 #include "OOFoundation.h"
 #include "oofnd/Encoding.hpp"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 class OOCache;
 

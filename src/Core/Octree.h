@@ -31,8 +31,8 @@ MA 02110-1301, USA.
 #include "OOFoundation.h"
 #include "OOMaths.h"
 #include "OOOpenGL.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 #include "oofnd/objc/OOObject.h"
 
 #define OCTREE_MIN_HALF_WIDTH 1.0

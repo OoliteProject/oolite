@@ -36,6 +36,7 @@
 #include "OOTrumble.h"
 #include "OOTypes.h"
 #include "oo_test.hpp"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/String.hpp"
 
 // --- The game around the class
@@ -135,7 +136,7 @@ void OOSoundSource::playOOSound(OOSound* s) {
 // The cargo pods: C++ ships held as their objects, the root's (which holds the
 // C++ part, oo::ToCxx reads it, and which oo::ToObjC answers for it), declared
 // as Entity.h and ShipEntity.h declare them (the test imports neither) with the
-// stand-in's answers. The object is C++, rooted on oo::RefCounted.
+// stand-in's answers. The object is C++, rooted on oo::Object.
 class Entity : public oo::Object {
  public:
   virtual ~Entity();

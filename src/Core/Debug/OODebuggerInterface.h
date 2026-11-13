@@ -36,8 +36,8 @@ SOFTWARE.
 #include <string>
 
 #include "OOFoundation.h"  // NSRange
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 class OODebugMonitor;
 

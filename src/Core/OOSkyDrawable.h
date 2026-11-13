@@ -50,7 +50,7 @@ SOFTWARE.
 #include "OODrawable.h"
 #include "OOGraphicsResetManager.h"
 #include "OOOpenGL.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 
 class OOColor;
 class OOSkyQuadSet;

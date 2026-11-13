@@ -13,7 +13,7 @@
 */
 
 #include <cstdlib>
-#include "EntityManualRefs.h"  // the tests' manual references (T096)
+#include "EntityManualRefs.h"  // the tests' manual references
 
 #include "OOFullScreenController.h"
 #include "OOLogging.h"

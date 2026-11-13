@@ -1,6 +1,6 @@
 /*	test_SaveEnumValues.cpp
-	Spec 009 (T010, FR-016): the numbers a saved game holds for the player's enums, pinned before the
-	enums change. A player is saved (PlayerEntity::commanderDataDictionary()) and the numbers it
+	The numbers a saved game holds for the player's enums, which older and newer builds must keep
+	reading the same way. A player is saved (PlayerEntity::commanderDataDictionary()) and the numbers it
 	writes for chart_ana_mode, chart_colour_mode and speech_on are asserted, and each is read back
 	with the conversion setCommanderDataFromDictionary() uses (the number cast to its enum): the
 	whole load needs the game's data and add-ons, which a unit test does not have. The legacy
@@ -25,11 +25,12 @@
 
 #include "oo_gl_test_context.hpp"
 #include "oo_test.hpp"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/Defaults.hpp"
 
 #include <format>
 #include <string>
-#include "EntityManualRefs.h"  // the tests' manual entity references (T095)
+#include "EntityManualRefs.h"  // the tests' manual entity references
 
 
 #define OO_PLAYER_MEMBER(name)	static auto &name(PlayerEntity *player)	{ return player->name; }

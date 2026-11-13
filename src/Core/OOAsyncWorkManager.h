@@ -31,7 +31,7 @@ SOFTWARE.
 
 #include "OOEnumFlags.h"
 #include "OOFoundation.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 
 enum class OOAsyncWorkPriority : std::int32_t {
   kLow,

@@ -58,8 +58,8 @@ MA 02110-1301, USA.
 
 #include "OOFoundation.h"
 #include "OOTypes.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 class OOScriptTimer : public oo::PListForeign {
  public:

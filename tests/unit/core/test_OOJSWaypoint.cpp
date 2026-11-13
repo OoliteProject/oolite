@@ -20,7 +20,7 @@
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
-#include "EntityManualRefs.h"  // the tests' manual references (T097)
+#include "EntityManualRefs.h"  // the tests' manual references
 
 
 // MARK: The classes, as far as the binding sees them ----------------------------------------------

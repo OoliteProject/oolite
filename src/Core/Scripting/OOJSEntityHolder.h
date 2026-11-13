@@ -36,7 +36,7 @@ MA 02110-1301, USA.
 #pragma once
 
 #include "OOJSPrivateObject.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 
 class OOJSEntityHolder final : public oo::Object, public OOJSPrivateObject {
  public:

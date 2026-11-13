@@ -17,12 +17,13 @@
 
 #include <vector>
 
+#include "EntityManualRefs.h"  // the tests' manual entity references
 #include "OOECMBlastEntity.h"
 #include "PlayerEntity.h"  // the stand-in PLAYER
 #include "ShipEntity.h"
 #include "Universe.h"
 #include "oo_test.hpp"
-#include "EntityManualRefs.h"  // the tests' manual entity references (T095)
+#include "oofnd/AutoreleaseScope.hpp"
 
 // main.mm defines the debug flags, and the test has its own main.
 #ifndef NDEBUG

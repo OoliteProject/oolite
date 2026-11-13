@@ -52,6 +52,7 @@ SOFTWARE.
 #include "OOLogHeader.h"  // OOPlatformDescription()
 #include "OOLoggingExtended.h"
 #include "OOOpenGLExtensionManager.h"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/PList.hpp"
 #if OO_DEBUG
 #include "OOShaderUniformMethodType.h"  // callObjC()'s scalar results on the console

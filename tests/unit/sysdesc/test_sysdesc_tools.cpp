@@ -40,9 +40,10 @@
 #include "OOConvertSystemDescriptions.h"
 #include "ResourceManager.h"
 #include "Universe.h"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/FileSystem.hpp"
-#include "oofnd/PListParsing.hpp"
 #include "oofnd/Object.hpp"
+#include "oofnd/PListParsing.hpp"
 #include "oofnd/String.hpp"
 
 namespace {

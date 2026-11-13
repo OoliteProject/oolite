@@ -50,8 +50,8 @@ SOFTWARE.
 #include "OODebuggerInterface.h"
 #include "OOFoundation.h"
 #include "OOTCPStreamDecoderAbstractionLayer.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 #include "oofnd/objc/OOObject.h"
 
 #if OOLITE_WINDOWS

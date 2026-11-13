@@ -40,7 +40,7 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include "EntityManualRefs.h"  // the tests' manual references (T096)
+#include "EntityManualRefs.h"  // the tests' manual references
 
 
 // MARK: The classes, as far as the binding and the converted classes see them --------------------

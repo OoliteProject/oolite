@@ -94,6 +94,7 @@ MA 02110-1301, USA.
 #include "SkyEntity.h"
 #include "StationEntity.h"
 #include "WormholeEntity.h"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/Date.hpp"
 #include "oofnd/Defaults.hpp"
 #include "oofnd/FileSystem.hpp"

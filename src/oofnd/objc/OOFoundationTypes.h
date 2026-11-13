@@ -2,7 +2,7 @@
         What is left of Foundation's plain C types: the geometry structs and
    NSRange, which have no standard equivalent, and oo::kNotFound.
 
-        Since spec 009 (T033) game code uses the standard types for the rest:
+        Game code uses the standard types for the rest:
    NSInteger/NSUInteger were intptr_t/uintptr_t and are std::ptrdiff_t/
    std::size_t (the same types on Windows x64, macOS and Linux 64-bit);
    NSIntegerMax/Min and NSUIntegerMax are PTRDIFF_MAX/MIN and SIZE_MAX;

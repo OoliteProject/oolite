@@ -29,7 +29,7 @@
 #include "oofnd/Object.hpp"
 #include "oofnd/String.hpp"
 #include "OOConstToJSString.h"
-#include "EntityManualRefs.h"  // the tests' manual references (T097)
+#include "EntityManualRefs.h"  // the tests' manual references
 
 
 // MARK: The classes, as far as the binding sees them ----------------------------------------------

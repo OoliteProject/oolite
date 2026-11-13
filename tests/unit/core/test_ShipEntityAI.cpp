@@ -22,7 +22,8 @@
 
 #include <cmath>
 #include <string>
-#include "EntityManualRefs.h"  // the tests' manual entity references (T095)
+#include "EntityManualRefs.h"  // the tests' manual entity references
+#include "oofnd/AutoreleaseScope.hpp"
 
 
 // main.mm defines the debug flags, and the test has its own main.

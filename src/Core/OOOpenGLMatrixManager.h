@@ -47,8 +47,8 @@ MA 02110-1301, USA.
 #include <vector>
 
 #include "OOMaths.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 extern const char* ooliteStandardMatrixUniforms[];
 

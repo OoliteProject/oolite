@@ -10,15 +10,14 @@
    error.
           * Copying yields a set of the currently live members.
           * Not thread-safe: all use on one thread, which must also make the
-   members' final releases (OOWeakSet.h states the same contract; see
-   oofnd/Ref.hpp).
+   members' final releases (OOWeakSet.h states the same contract).
 
         OOWeakSet method              oo::WeakSet<T>
         ----------------------------
    ----------------------------------------------------------------- -count
    count()          (empty() too) -containsObject:              contains(obj)
         -addObject: / -removeObject:  add(obj) / remove(obj)
-        -addObjectsByEnumerating:     addAll(range of T* or oo::Ref<T>)
+        -addObjectsByEnumerating:     addAll(range of T* or std::shared_ptr<T>)
         -allObjects                   allObjects()     (live members, retained,
    as NSArray retained them) -makeObjectsPerformSelector:  forEach(f) (f(T&) for
    each live member) -removeAllObjects             removeAll() -isEqual: ==
@@ -45,7 +44,7 @@
 #include <utility>
 #include <vector>
 
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 
 namespace oo {
 
@@ -77,25 +76,25 @@ class WeakSet {
   bool contains(const T* object) const {
     if (object == nullptr) return false;
     compact();
-    const Key identity = detail::WeakAccess::identity(object);
-    return !detail::isEmpty(identity) && index_.contains(identity);
+    const Key identity = identityOf(object);
+    return !isUnset(identity) && index_.contains(identity);
   }
 
   void add(T* object) {
     if (object == nullptr) return;
     compact();
-    WeakRef<T> weak(object);
-    if (index_.insert(weak.token_).second) entries_.push_back(std::move(weak));
+    std::weak_ptr<T> weak = share(object);
+    if (index_.insert(Key(weak)).second) entries_.push_back(std::move(weak));
   }
 
-  void add(const Ref<T>& object) { add(object.get()); }
+  void add(const std::shared_ptr<T>& object) { add(object.get()); }
 
   void remove(const T* object) {
     if (object == nullptr) return;
-    const Key identity = detail::WeakAccess::identity(object);
-    if (detail::isEmpty(identity) || index_.erase(identity) == 0) return;
-    std::erase_if(entries_, [&identity](const WeakRef<T>& w) {
-      return detail::sameOwner(w.token_, identity);
+    const Key identity = identityOf(object);
+    if (isUnset(identity) || index_.erase(identity) == 0) return;
+    std::erase_if(entries_, [&identity](const std::weak_ptr<T>& w) {
+      return sameObject(w, identity);
     });
   }
 
@@ -109,27 +108,28 @@ class WeakSet {
     index_.clear();
   }
 
-  // The live members, retained, in insertion order.
-  std::vector<Ref<T>> allObjects() const {
-    std::vector<Ref<T>> result;
+  // The live members, owned, in insertion order.
+  std::vector<std::shared_ptr<T>> allObjects() const {
+    std::vector<std::shared_ptr<T>> result;
     result.reserve(entries_.size());
-    for (const WeakRef<T>& w : entries_) {
-      if (Ref<T> strong = w.lock()) result.push_back(std::move(strong));
+    for (const std::weak_ptr<T>& w : entries_) {
+      if (std::shared_ptr<T> strong = w.lock())
+        result.push_back(std::move(strong));
     }
     return result;
   }
 
-  // Calls f(T&) on each live member, in insertion order, over a retained
+  // Calls f(T&) on each live member, in insertion order, over an owned
   // snapshot.
   template <class F>
   void forEach(F&& f) const {
-    for (const Ref<T>& member : allObjects()) f(*member);
+    for (const std::shared_ptr<T>& member : allObjects()) f(*member);
   }
 
   friend bool operator==(const WeakSet& a, const WeakSet& b) {
     if (a.count() != b.count()) return false;
-    for (const WeakRef<T>& w : a.entries_) {
-      if (!b.index_.contains(w.token_)) return false;
+    for (const std::weak_ptr<T>& w : a.entries_) {
+      if (!b.index_.contains(Key(w))) return false;
     }
     return true;
   }
@@ -137,29 +137,34 @@ class WeakSet {
  private:
   using Key = std::weak_ptr<const void>;
 
+  // The object's weak identity, empty for an object no shared_ptr owns (which
+  // is then never a member). Asking creates no ownership.
+  static Key identityOf(const T* object) noexcept {
+    return static_cast<const Object*>(object)->weak_from_this();
+  }
+
   // OOWeakSet's -compact: drop entries whose object has gone. Logically const
   // (the set's observable contents already exclude them), hence the mutable
   // members.
   void compact() const {
-    auto dead = [](const WeakRef<T>& w) { return w.expired(); };
+    auto dead = [](const std::weak_ptr<T>& w) { return w.expired(); };
     if (std::none_of(entries_.begin(), entries_.end(), dead)) return;
-    for (const WeakRef<T>& w : entries_) {
-      if (w.expired()) index_.erase(w.token_);
+    for (const std::weak_ptr<T>& w : entries_) {
+      if (w.expired()) index_.erase(Key(w));
     }
     std::erase_if(entries_, dead);
   }
 
   void addLiveFrom(const WeakSet& other) {
     entries_.reserve(other.entries_.size());
-    for (const WeakRef<T>& w : other.entries_) {
-      if (!w.expired() && index_.insert(w.token_).second) entries_.push_back(w);
+    for (const std::weak_ptr<T>& w : other.entries_) {
+      if (!w.expired() && index_.insert(Key(w)).second) entries_.push_back(w);
     }
   }
 
-  // Each member's weak identity (its token), by owner: an entry's WeakRef keeps
-  // the token's control block alive, so no other object can share it while it
-  // is listed.
-  mutable std::vector<WeakRef<T>> entries_;
+  // Each member's weak identity, by owner: an entry's weak_ptr keeps its
+  // control block alive, so no other object can share it while it is listed.
+  mutable std::vector<std::weak_ptr<T>> entries_;
   mutable std::set<Key, std::owner_less<Key>> index_;
 };
 

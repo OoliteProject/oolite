@@ -61,8 +61,8 @@ MA 02110-1301, USA.
 #include <vector>
 
 #include "OOFoundation.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 inline constexpr unsigned kOOCacheMinimumPruneThreshold = 25U;
 inline constexpr unsigned kOOCacheDefaultPruneThreshold = 200U;

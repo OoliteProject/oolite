@@ -56,8 +56,8 @@ MA 02110-1301, USA.
 #include "OOFoundation.h"
 #include "OOJSPrivateObject.h"
 #include "OOTypes.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 // The system a SystemInfo stands for, and its data through the universe.
 class OOSystemInfo : public oo::PListForeign, public ::OOJSPrivateObject {

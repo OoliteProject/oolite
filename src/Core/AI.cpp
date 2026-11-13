@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 #include "ResourceManager.h"
 #include "ShipEntity.h"
 #include "ShipEntityAI.h"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/Log.hpp"
 #include "oofnd/Scanner.hpp"
 #include "oofnd/String.hpp"

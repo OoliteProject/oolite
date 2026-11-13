@@ -53,8 +53,8 @@ MA 02110-1301, USA.
 #include "OOEntityHold.h"  // memberArray()
 #include "OOFoundation.h"
 #include "OOJSPrivateObject.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 class ShipEntity;
 class Entity;  // the members are held as weak references to the ships' C++

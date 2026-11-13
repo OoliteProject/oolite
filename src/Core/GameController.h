@@ -48,8 +48,8 @@ MA 02110-1301, USA.
 #include "OOFullScreenController.h"
 #include "OOFunctionAttributes.h"
 #include "OOMouseInteractionMode.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 #include "oofnd/objc/OOObject.h"
 
 #define MINIMUM_GAME_TICK 0.25

@@ -56,7 +56,7 @@ MA 02110-1301, USA.
 #include <vector>
 
 #include "OOFoundation.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 
 inline constexpr int STICKPROFILE_TYPE_STANDARD = 1;
 inline constexpr int STICKPROFILE_TYPE_SPLINE = 2;

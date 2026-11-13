@@ -59,7 +59,7 @@ MA 02110-1301, USA.
 #include "OOJSPrivateObject.h"
 #include "OOMaths.h"
 #include "OOTypes.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 
 class Entity;
 class Universe;

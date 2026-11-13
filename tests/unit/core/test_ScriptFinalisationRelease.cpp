@@ -1,7 +1,6 @@
 /*	test_ScriptFinalisationRelease.cpp
-        Pins two ownership facts on today's code (oo::Object and std::shared_ptr),
-   so that the move to std::shared_ptr (spec 009 US2) can be shown to keep
-   them:
+        Pins two ownership facts (oo::Object and std::shared_ptr) that scripts
+   and the universe's update depend on:
 
         - A native object that a script object refers to is released when the
           engine finalises the script object, and not before: a ship group's JS
@@ -26,13 +25,14 @@
 
 #include <quickjs.h>
 
+#include "EntityManualRefs.h"  // the tests' manual entity references
 #include "OOJSShipGroup.h"
 #include "OOShipGroup.h"
 #include "OOWaypointEntity.h"
 #include "PlayerEntity.h"
 #include "Universe.h"
 #include "oo_test.hpp"
-#include "EntityManualRefs.h"  // the tests' manual entity references (T095)
+#include "oofnd/AutoreleaseScope.hpp"
 
 // main.mm defines the debug flags, and the test has its own main.
 #ifndef NDEBUG

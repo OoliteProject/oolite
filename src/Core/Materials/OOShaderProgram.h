@@ -58,8 +58,8 @@ SOFTWARE.
 #include <utility>
 #include <vector>
 
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 /*	Shader sources,
    names, prefix and cache key are nil-able strings (std::optional: a missing

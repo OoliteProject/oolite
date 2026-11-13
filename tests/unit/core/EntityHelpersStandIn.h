@@ -13,7 +13,7 @@
         OO_ENTITY_HELPERS_STAND_IN_CXX first and declares, before the include,
    its
         ::TestEntityObject *TestObjectOf(Entity *) in place of oo::ToObjC();
-   ::TestEntityObject is an oo::RefCounted whose className() answers its
+   ::TestEntityObject is an oo::Object whose className() answers its
    Objective-C class's name. The helpers answer the same: the hold retains and
    releases the object, and both descriptions are what the Objective-C object
    printed: <ClassName 0x...>, then {components} where its class answered
@@ -24,7 +24,7 @@
 
 #include <optional>
 #include <string>
-#include "EntityManualRefs.h"  // the tests' manual references (T097)
+#include "EntityManualRefs.h"  // the tests' manual references
 
 #include "OODescription.h"
 

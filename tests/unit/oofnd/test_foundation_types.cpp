@@ -29,7 +29,7 @@ static_assert(sizeof(std::ptrdiff_t) == 8 && alignof(std::ptrdiff_t) == 8);
 static_assert(sizeof(std::size_t) == 8 && alignof(std::size_t) == 8);
 
 // Recorded: CGFloat was double (8 bytes), CGFLOAT_IS_DOUBLE 1, and NSTimeInterval
-// double; since spec 009 (T033) the geometry structs and intervals are double.
+// double; the geometry structs and intervals are double.
 static_assert(std::is_same_v<decltype(CGPoint::x), double>);
 static_assert(std::is_same_v<decltype(CGSize::width), double>);
 static_assert(std::is_same_v<double, double>);

@@ -48,8 +48,8 @@ SOFTWARE.
 #include <vector>
 
 #include "OOFoundation.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 #include "oofnd/objc/OOObject.h"
 
 class OOProbabilitySet;

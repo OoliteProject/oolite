@@ -46,6 +46,7 @@ MA 02110-1301, USA.
 #include "OOTypes.h"  // OOCreditsQuantity (samplePrice)
 #include "PlayerEntityScriptMethods.h"
 #include "Universe.h"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/Notification.hpp"
 #include "oofnd/PList.hpp"
 

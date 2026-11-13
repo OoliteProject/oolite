@@ -55,7 +55,7 @@ typedef uint32_t OOPixMapDimension;  // Note: dimensions are assumed to be less
 #define OORoundUpToPowerOf2_PixMap OORoundUpToPowerOf2_32
 
 // A pixel map's format: its number of components per pixel, which sizes rows
-// and buffers (design D5: typed constants, not an enumeration).
+// and buffers: a number used in arithmetic, so not an enumeration.
 using OOPixMapFormat = int;
 inline constexpr OOPixMapFormat kOOPixMapInvalidFormat = 0;
 inline constexpr OOPixMapFormat kOOPixMapGrayscale = 1;

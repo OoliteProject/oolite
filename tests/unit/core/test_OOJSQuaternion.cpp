@@ -20,7 +20,7 @@
 #include "legacy_random.h"
 #include "oofnd/objc/OOException.h"
 #include "oofnd/String.hpp"
-#include "EntityManualRefs.h"  // the tests' manual references (T097)
+#include "EntityManualRefs.h"  // the tests' manual references
 
 #include "oo_test.hpp"
 

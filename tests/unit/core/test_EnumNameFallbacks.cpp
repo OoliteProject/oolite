@@ -1,6 +1,6 @@
 /*	test_EnumNameFallbacks.cpp
-        Spec 009 (T011, FR-016): the names the game reads and writes for its enums, pinned before
-   the enums change. For every enum with a name lookup in OOConstToString.cpp and
+        The names the game reads and writes for its enums: saved games, scripts and expansions
+   depend on them. For every enum with a name lookup in OOConstToString.cpp and
    OOConstToJSString.cpp: each value's exact string, each known name's value, and the value an
    unknown name falls back to. Every string here is written out: written from today's
    OOConstToString.cpp and Tables/*.tbl by a script (the fallbacks resolved to the enumerators they name today), and only ever added to. Run:

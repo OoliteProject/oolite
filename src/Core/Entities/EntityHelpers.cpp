@@ -33,7 +33,7 @@ MA 02110-1301, USA.
 #include "OOVisualEffectEntity.h"
 #include "OOWaypointEntity.h"
 #include "ShipEntity.h"
-#include "oofnd/Ref.hpp"  // oo::autorelease
+#include "oofnd/AutoreleaseScope.hpp"  // oo::autorelease
 #include "oofnd/String.hpp"
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
@@ -68,7 +68,8 @@ bool oo::detail::EntityHasObject(const Entity* entity) noexcept {
   return entity != nullptr && entity->hasObject();
 }
 
-std::shared_ptr<Entity> oo::MadeEntityRetained(const Ref<Entity>& entity) {
+std::shared_ptr<Entity> oo::MadeEntityRetained(
+    const std::shared_ptr<Entity>& entity) {
   if (entity == nullptr) return nullptr;
   // From here the entity has its object, and it is counted.
   entity->setMadeWithObject();
@@ -79,7 +80,7 @@ std::shared_ptr<Entity> oo::MadeEntityRetained(const Ref<Entity>& entity) {
   return entity;  // +alloc's object: the caller's owning reference
 }
 
-Entity* oo::MadeEntity(const Ref<Entity>& entity) {
+Entity* oo::MadeEntity(const std::shared_ptr<Entity>& entity) {
   return oo::autorelease(
       MadeEntityRetained(entity));  // [[... alloc] init...] autorelease]
 }

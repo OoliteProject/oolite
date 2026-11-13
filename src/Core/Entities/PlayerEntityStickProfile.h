@@ -35,7 +35,7 @@ MA 02110-1301, USA.
 #include "MyOpenGLView.h"
 #include "OOJoystickProfile.h"
 #include "Universe.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 
 class OOJoystickManager;  // OOJoystickManager.h
 

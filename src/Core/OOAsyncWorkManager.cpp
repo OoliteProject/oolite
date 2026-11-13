@@ -43,6 +43,7 @@ SOFTWARE.
 #include <thread>
 #include <vector>
 
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/Defaults.hpp"
 #include "oofnd/objc/OOAssert.h"
 

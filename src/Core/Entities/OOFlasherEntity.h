@@ -47,8 +47,8 @@ MA 02110-1301, USA.
 
 #include "OOLightParticleEntity.h"
 #include "ShipEntity.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 /*	+flasherWithDictionary: takes the subentity configuration as an
    oo::PList, as does the initializer -initWithDictionary:.

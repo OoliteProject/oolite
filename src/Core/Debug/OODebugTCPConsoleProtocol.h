@@ -307,7 +307,7 @@ inline constexpr std::uint32_t kOOTCPProtocolVersionPListFormat = 1;
 
 // A version number from its format, major and minor numbers. Upstream's
 // OOTCP_ENCODE_VERSION shifted the format, not the major number, into the
-// major byte; kept, so 1:1.0 is still 0x00010100 (spec 009 research R14).
+// major byte; kept, so 1:1.0 is still 0x00010100 and old clients still connect.
 constexpr std::uint32_t OOTCPEncodeVersion(std::uint32_t format,
                                            std::uint32_t /*major*/,
                                            std::uint32_t minor) {

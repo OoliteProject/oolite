@@ -48,8 +48,8 @@ MA 02110-1301, USA.
 #include <vector>
 
 #include "OOFoundation.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 class OOJSScript;  // included by the .cpp, so that a test can stand in for it
 

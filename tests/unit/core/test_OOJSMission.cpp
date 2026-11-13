@@ -26,7 +26,7 @@
 #include "oofnd/String.hpp"
 #include "OOConstToJSString.h"
 #include "OOStringExpander.h"
-#include "EntityManualRefs.h"  // the tests' manual references (T096)
+#include "EntityManualRefs.h"  // the tests' manual references
 
 
 // MARK: The classes, as far as the binding sees them ----------------------------------------------

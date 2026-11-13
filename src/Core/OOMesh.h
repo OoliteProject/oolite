@@ -60,8 +60,8 @@ class Entity;  // Entity.h: the shader binding target
 #include <utility>
 #include <vector>
 
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 class OOMaterial;
 struct VertexFaceRef;  // OOMesh.cpp: the faces that use one vertex, while

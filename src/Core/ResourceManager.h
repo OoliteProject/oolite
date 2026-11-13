@@ -49,8 +49,8 @@ MA 02110-1301, USA.
 #include "OOOpenGL.h"
 #include "OOScript.h"  // std::shared_ptr<OOScript> members and results
 #include "oofnd/Data.hpp"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 #include "oofnd/objc/OOObject.h"
 class OOSystemDescriptionManager;  // OOSystemDescriptionManager.h
 class OOSound;

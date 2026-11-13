@@ -56,7 +56,7 @@ SOFTWARE.
 #include "OOFoundation.h"
 #include "OOJSEngineCore.h"  // OOJSValue, which the matcher holds
 #include "OOJSFunction.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 
 // Same values as SpiderMonkey's JSREG_FOLD and JSREG_MULTILINE.
 enum class OORegExpFlags : std::size_t {

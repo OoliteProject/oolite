@@ -52,8 +52,8 @@ MA 02110-1301, USA.
 #include "OOFunctionAttributes.h"
 #include "OOMaths.h"
 #include "OOTypes.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 #include "oofnd/objc/OOObject.h"
 
 #define GUI_DEFAULT_COLUMNS 6

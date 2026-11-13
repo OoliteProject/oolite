@@ -15,8 +15,8 @@
    names do not change
 
         The name and reason are copied; a null one becomes "", as
-   -initWithName:reason: did. It is a std::exception whose what() is the reason
-   (spec 009 FR-014), so standard handlers see the game's exceptions too; the
+   -initWithName:reason: did. It is a std::exception whose what() is the reason,
+   so standard handlers see the game's exceptions too; the
    one game handler for std::exception (OOJSReportCurrentException) comes after
    the oo::Exception handler in the same try and reports the same text. %@ has
    no meaning in OORaiseException's format: callers pass UTF-8 strings (%s).

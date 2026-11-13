@@ -126,8 +126,8 @@ std::shared_ptr<OOCharacter> OOCharacter::randomCharacterWithRole(
   seed.e = (Ranrot() & 0xff);
   seed.f = (Ranrot() & 0xff);
 
-  std::shared_ptr<OOCharacter> character =
-      oo::adopt(new OOCharacter(seed, system));
+  std::shared_ptr<OOCharacter> character(new OOCharacter(seed, system),
+                                         oo::Dispose{});
   character->castInRole(role);
 
   return character;

@@ -25,15 +25,16 @@
 #include "OOJSEntity.h"
 #include "OOJSVisualEffect.h"
 
-#include "oofnd/FileSystem.hpp"
 #include "oo_test.hpp"
+#include "oofnd/AutoreleaseScope.hpp"
+#include "oofnd/FileSystem.hpp"
 
 #include <cmath>
 #include <cstdlib>
 #include <filesystem>
 #include <process.h>
 #include <string>
-#include "EntityManualRefs.h"  // the tests' manual entity references (T095)
+#include "EntityManualRefs.h"  // the tests' manual entity references
 
 
 // main.mm defines the debug flags, and the test has its own main.

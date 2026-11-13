@@ -42,6 +42,7 @@ MA 02110-1301, USA.
 #include "PlayerEntity.h"
 #include "ResourceManager.h"
 #include "Universe.h"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/PrintfFormat.h"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"

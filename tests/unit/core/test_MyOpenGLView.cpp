@@ -28,7 +28,7 @@
 */
 
 #include <process.h>
-#include "EntityManualRefs.h"  // the tests' manual references (T096)
+#include "EntityManualRefs.h"  // the tests' manual references
 
 #include <cmath>
 #include <cstdlib>

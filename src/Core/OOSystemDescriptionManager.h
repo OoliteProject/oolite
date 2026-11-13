@@ -48,8 +48,8 @@ MA 02110-1301, USA.
 #include "OOFoundation.h"
 #include "OOTypes.h"
 #include "legacy_random.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 enum class OOSystemLayer : std::int32_t {
   kCore = 0,
@@ -63,7 +63,7 @@ static_assert(static_cast<std::int32_t>(OOSystemLayer::kOXPDynamic) == 2);
 static_assert(static_cast<std::int32_t>(OOSystemLayer::kOXPPriority) == 3);
 
 // A system's concealment: planetinfo.plist's number, compared with these
-// thresholds (any value may occur), so typed constants (design D5's reading).
+// thresholds (any value may occur), so typed constants.
 inline constexpr int OO_SYSTEMCONCEALMENT_NONE = 0;
 inline constexpr int OO_SYSTEMCONCEALMENT_NODATA = 100;
 inline constexpr int OO_SYSTEMCONCEALMENT_NONAME = 200;

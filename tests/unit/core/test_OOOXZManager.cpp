@@ -20,6 +20,7 @@
    C++ singleton. Run: bash tools/check-core-tests.sh test_OOOXZManager
 */
 
+#include "EntityManualRefs.h"  // the tests' manual entity references
 #include "OOCacheManager.h"
 #include "OOColor.h"
 #include "OOManifestProperties.h"
@@ -29,11 +30,11 @@
 #include "PlayerEntity.h"  // the stand-in PLAYER
 #include "ResourceManager.h"
 #include "oo_test.hpp"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/Date.hpp"
 #include "oofnd/Defaults.hpp"
 #include "oofnd/PListParsing.hpp"
 #include "oofnd/String.hpp"
-#include "EntityManualRefs.h"  // the tests' manual entity references (T095)
 extern PlayerEntity* gOOPlayer;
 
 #include <process.h>

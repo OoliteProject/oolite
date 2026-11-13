@@ -54,7 +54,7 @@ SOFTWARE.
 #include <utility>
 #include <vector>
 
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 
 /*	The resolved stage
    sets are vectors of retained stages (identity, no duplicates), in

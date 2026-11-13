@@ -54,8 +54,8 @@ SOFTWARE.
 #include "OOGraphicsResetManager.h"
 #include "OOOpenGL.h"
 #include "OOOpenGLExtensionManager.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 #include "oofnd/objc/OOObject.h"
 
 /*	A HUD compass icon of a beacon: the interface OOHUDBeaconIcon. The

@@ -19,6 +19,7 @@
 #include "OOPixMapTextureLoader.h"
 #include "oo_gl_test_context.hpp"
 #include "oo_test.hpp"
+#include "oofnd/AutoreleaseScope.hpp"
 
 // main.mm defines the debug flags, and the test has its own main.
 #ifndef NDEBUG

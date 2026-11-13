@@ -26,7 +26,7 @@
 #include <map>
 #include <string>
 #include <vector>
-#include "EntityManualRefs.h"  // the tests' manual references (T096)
+#include "EntityManualRefs.h"  // the tests' manual references
 
 #include "OODescription.h"
 #include "oofnd/PList.hpp"

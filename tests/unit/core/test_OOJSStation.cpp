@@ -47,7 +47,7 @@
 #include <utility>
 #include <vector>
 #include "EntityPListForeign.h"	// an entity's node
-#include "EntityManualRefs.h"  // the tests' manual references (T097)
+#include "EntityManualRefs.h"  // the tests' manual references
 
 #include <quickjs.h>
 

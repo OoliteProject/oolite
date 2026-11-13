@@ -1,9 +1,7 @@
 /*	oofnd/Object.hpp
         oo::Object, the common base of every shared-owned game object, and the
-   deleter and helpers that go with it (spec 009, contracts/ownership.md).
+   deleter and helpers that go with it.
    Shared ownership is std::shared_ptr<T>, observation std::weak_ptr<T>.
-   Until the bridge (oofnd/Ref.hpp) is deleted, its reference-counted base is a
-   subclass of oo::Object that keeps the old retain/release names.
 */
 
 #pragma once

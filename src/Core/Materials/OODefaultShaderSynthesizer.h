@@ -39,8 +39,8 @@ SOFTWARE.
 #include <vector>
 
 #include "OOFoundation.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 class OOMesh;
 

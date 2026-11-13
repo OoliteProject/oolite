@@ -1,5 +1,5 @@
 /*	test_OOEnumFlags.cpp
-        Spec 009 (US5, design D3): the flag operators of OOEnumFlags.h, the name table of
+        The flag operators of OOEnumFlags.h, the name table of
         OOEnumTable.h and the exemplar converted enum, OODebugFlags. Header-only; no game
         objects. Run: tests/run.sh unit
 */

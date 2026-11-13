@@ -58,6 +58,7 @@ MA 02110-1301, USA.
 #include "ShipEntityAI.h"
 #include "StationEntity.h"
 #include "Universe.h"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/Log.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/PListWriting.hpp"

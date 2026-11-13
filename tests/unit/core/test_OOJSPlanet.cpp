@@ -14,13 +14,14 @@
 	category answers the engine. Run: tests/run.sh unit
 */
 
+#include "EntityManualRefs.h"  // the tests' manual references
 #include "OOColor.h"
-#include "OOStellarBody.h"
 #include "OOJSEngineCore.h"
-#include "oofnd/objc/OOException.h"
+#include "OOStellarBody.h"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
-#include "EntityManualRefs.h"  // the tests' manual references (T097)
+#include "oofnd/objc/OOException.h"
 
 
 // MARK: The classes, as far as the binding sees them ----------------------------------------------
@@ -609,7 +610,7 @@ OO_TEST(category)
 	OO_CHECK(TestObjectOf(sMoon)->oo_jsClassName() == std::optional<std::string>("Moon"));
 	OO_CHECK(TestObjectOf(sMoon)->isVisibleToScripts());
 	OOPlanetEntity *mini = NewPlanet();
-	oo::autorelease(TestObjectOf(mini));
+	oo::test::Autorelease(TestObjectOf(mini));
 	mini->_type = OOStellarBodyType::kMiniature;
 	OO_CHECK(TestObjectOf(mini)->oo_jsClassName() == std::optional<std::string>("Unknown"));
 	OO_CHECK(!TestObjectOf(mini)->isVisibleToScripts());

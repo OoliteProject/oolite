@@ -24,6 +24,7 @@
 #include "OOJSFunction.h"
 #include "OORegExpMatcher.h"
 #include "oo_test.hpp"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/PList.hpp"
 
 // --- Stand-ins for the engine glue (see the banner)

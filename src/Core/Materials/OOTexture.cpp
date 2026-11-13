@@ -53,6 +53,7 @@
 #include "OOTextureLoader.h"
 #include "ResourceManager.h"
 #include "Universe.h"
+#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/Defaults.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/PListGet.hpp"

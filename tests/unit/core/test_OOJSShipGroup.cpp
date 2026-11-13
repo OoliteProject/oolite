@@ -30,7 +30,7 @@
 #include <optional>
 #include <string>
 #include "EntityPListForeign.h"	// an entity's node
-#include "EntityManualRefs.h"  // the tests' manual references (T096)
+#include "EntityManualRefs.h"  // the tests' manual references
 
 
 // MARK: The classes, as far as the binding sees them ----------------------------------------------
@@ -251,7 +251,7 @@ oo::Object *PrivateOf(JSValueConst value)
 	if (!JS_IsObject(value))  return nullptr;
 	JSClassID classID = JS_GetClassID(value);
 	if (OOJSClassName(classID) == nullptr)  return nullptr;
-	if (classID == sFakeShipClassID)  return static_cast<oo::RefCounted *>(JS_GetOpaque(value, classID));
+	if (classID == sFakeShipClassID)  return static_cast<oo::Object *>(JS_GetOpaque(value, classID));
 	return OOJSCxxPrivateFromOpaque(JS_GetOpaque(value, classID));
 }
 
@@ -352,7 +352,7 @@ void OOJSUnreachable(const char *function, const char *, unsigned)
 // slot, as the game's slot held the object's weak reference before.
 Entity *OOJSEntityFromJSValue(JSContext *, JSValueConst value)
 {
-	// The slot holds an oo::RefCounted: a ship's object, or a group (the class
+	// The slot holds an oo::Object: a ship's object, or a group (the class
   // check is the C++ one).
 	TestEntityObject *entity = dynamic_cast<TestEntityObject *>(PrivateOf(value));
 	return entity != nullptr ? entity->_cxxEntity.get() : nullptr;

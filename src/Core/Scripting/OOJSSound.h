@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 
 #include "OOFoundation.h"
 #include "OOJSPrivateObject.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 
 class OOSound;
 

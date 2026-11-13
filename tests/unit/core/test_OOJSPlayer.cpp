@@ -41,7 +41,7 @@
 #include <utility>
 #include <vector>
 #include "EntityPListForeign.h"	// an entity's node
-#include "EntityManualRefs.h"  // the tests' manual references (T096)
+#include "EntityManualRefs.h"  // the tests' manual references
 
 
 // MARK: The classes, as far as the binding sees them ----------------------------------------------

@@ -48,7 +48,7 @@ SOFTWARE.
 #include "OOTypes.h"
 #endif
 
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 
 /*	Platform-specific high-resolution timer:
 

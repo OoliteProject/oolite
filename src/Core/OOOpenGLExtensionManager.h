@@ -55,8 +55,8 @@ SOFTWARE.
 #include "OOFunctionAttributes.h"
 #include "OOOpenGL.h"
 #include "OOTypes.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 // The OpenGL feature switches and the Windows extension function pointers.
 #include "OOOpenGLExtensionPointers.h"

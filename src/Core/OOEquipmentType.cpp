@@ -38,6 +38,7 @@ SOFTWARE.
 #include "OOScript.h"
 #include "PlayerEntityLegacyScriptEngine.h"  // (was imported before the Conveniences category)
 #include "Universe.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/String.hpp"
 
 namespace {
@@ -199,7 +200,7 @@ std::shared_ptr<OOEquipmentType> OOEquipmentType::equipmentTypeWithIdentifier(
 // returned nil).
 std::shared_ptr<OOEquipmentType> OOEquipmentType::createWithInfo(
     const oo::PList& info) {
-  std::shared_ptr<OOEquipmentType> item = oo::adopt(new OOEquipmentType);
+  std::shared_ptr<OOEquipmentType> item(new OOEquipmentType, oo::Dispose{});
   if (!item->initWithInfo(info)) return nullptr;
   return item;
 }

@@ -62,8 +62,8 @@ class Entity;  // Entity.h: the shader binding target
 #include <vector>
 
 #include "OOTexture.h"  // allTextures() answers std::shared_ptr<OOTexture>, which needs the class
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
 
 class OOMaterial : public oo::Object {
  public:

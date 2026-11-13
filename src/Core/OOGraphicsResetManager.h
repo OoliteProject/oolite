@@ -54,7 +54,7 @@ SOFTWARE.
 #include <vector>
 
 #include "OOFoundation.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 
 // A client: the one method, resetGraphicsState(), as a pure virtual. It
 // registers with registerCxxClient().

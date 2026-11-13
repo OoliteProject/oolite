@@ -4,7 +4,7 @@
 	As the binding tests do, it runs a JS class in a real QuickJS-ng context and links the glue, the
 	engine's class registry (OOJSClasses.mm) and its exception translator
 	(OOJSEngineNativeWrappers.mm). The class is the test's own: a JS class "Thing" whose private
-	slot holds a C++ Thing (an oo::RefCounted that implements OOJSPrivateObject), with
+	slot holds a C++ Thing (an oo::Object that implements OOJSPrivateObject), with
 	OOJSCxxObjectWrapperFinalize as its finalizer, a toString() that is
 	OOJSCxxObjectWrapperToString, and a "name" property read through OOJSGetCxxPrivate; a JS
 	subclass "SubThing" is registered as the engine's subclasses are. What the rest of the engine
@@ -20,7 +20,7 @@
 #include "OOJSEngineCore.h"
 #include "oofnd/Object.hpp"
 #include "oofnd/String.hpp"
-#include "EntityManualRefs.h"  // the tests' manual references (T097)
+#include "EntityManualRefs.h"  // the tests' manual references
 
 #include "oo_test.hpp"
 
@@ -292,7 +292,7 @@ OO_TEST(jsValue)
 	JSValue again = OOJSValueFromCxxObject(sContext, thing.get());
 	OO_CHECK(JS_VALUE_GET_PTR(again) == JS_VALUE_GET_PTR(first));
 	JS_FreeValue(sContext, again);
-	// The slot holds the object as an oo::RefCounted *, with one retain.
+	// The slot holds the object as an oo::Object *, with one retain.
 	OO_CHECK(OOJSCxxPrivateFromOpaque(JS_GetOpaque(first, sThingClassID)) == static_cast<oo::Object *>(thing.get()));
 	OO_CHECK_EQ(thing->weak_from_this().use_count(), 2u);
 	Define("alpha", first);

@@ -1618,9 +1618,9 @@ namespace oo {
    object was, or null when the set-up fails (the failing initialiser released
    it).
 */
-std::shared_ptr<ShipEntity> NewShipObject(const Ref<ShipEntity>& ship,
-                                          const std::string& key,
-                                          const oo::PList& dict);
+std::shared_ptr<ShipEntity> NewShipObject(
+    const std::shared_ptr<ShipEntity>& ship, const std::string& key,
+    const oo::PList& dict);
 
 // The ship an entity is: nullptr for null or another entity (what
 // -isKindOfClass:[ShipEntity class] and the cast after it found).
