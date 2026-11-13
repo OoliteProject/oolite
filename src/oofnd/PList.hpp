@@ -139,7 +139,7 @@ class PList {
   using Data = ::oo::Data;  // NSData (oofnd/Data.hpp)
   using Array = std::vector<PList>;
   using Dict = std::map<std::string, PList, std::less<>>;
-  using Object = Ref<PListForeign>;
+  using Object = std::shared_ptr<PListForeign>;
 
   // --- construction
   // ---------------------------------------------------------------------

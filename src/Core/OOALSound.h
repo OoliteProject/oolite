@@ -5,7 +5,7 @@ OOALSound.h
 OOALSound - OpenAL sound implementation for Oolite.
 
 The sound sources, the channels, the resource manager, the player and the JS
-Sound class hold and call the C++ sound (oo::Ref).
+Sound class hold and call the C++ sound (std::shared_ptr).
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

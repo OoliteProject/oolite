@@ -158,7 +158,8 @@ using TessFuncPtr = GLvoid (*)();
 // nil.
 std::shared_ptr<OOPolygonSprite> OOPolygonSprite::initWithDataArray(
     const oo::PList& dataArray, GLfloat outlineWidth, const std::string& name) {
-  std::shared_ptr<OOPolygonSprite> sprite = oo::adopt(new OOPolygonSprite);
+  std::shared_ptr<OOPolygonSprite> sprite =
+      std::shared_ptr<OOPolygonSprite>(new OOPolygonSprite(), oo::Dispose{});
   {
 #ifndef NDEBUG
     sprite->_name = name;

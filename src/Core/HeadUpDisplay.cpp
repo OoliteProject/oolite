@@ -281,7 +281,13 @@ static void GLDrawNonlinearCascadeWeapon(GLfloat x, GLfloat y, GLfloat z,
                                          GLfloat radius, GLfloat zoom,
                                          GLfloat alpha);
 
-static OOTexture* sFontTexture = nullptr;
+// The text engine's font texture, made by the first text drawn. The holder is
+// never deleted, so exit(0) frees no texture after the GL context has gone.
+static std::shared_ptr<OOTexture>& FontTexture() {
+  static std::shared_ptr<OOTexture>& texture =
+      *new std::shared_ptr<OOTexture>();
+  return texture;
+}
 // The text engine's encoding converter, made by the first text drawn. The
 // holder is never deleted, so exit(0) runs no destructor for it after the
 // logger has gone.
@@ -343,7 +349,7 @@ void HeadUpDisplay::initWithDictionary(
 
   lineWidth = 1.0;
 
-  if (sFontTexture == nullptr) InitTextEngine();
+  if (FontTexture() == nullptr) InitTextEngine();
 
   deferredHudName
       .reset();  // if engaged, it means that we have a deferred HUD which is to
@@ -1043,8 +1049,8 @@ void HeadUpDisplay::drawCrosshairs() {
     // Make new crosshairs object
     points = crosshairDefinitionForWeaponType(weapon);
 
-    _crosshairs = oo::makeShared<OOCrosshairs>(points, _crosshairScale,
-                                               _crosshairColor.get(), useAlpha);
+    _crosshairs = std::make_unique<OOCrosshairs>(
+        points, _crosshairScale, _crosshairColor.get(), useAlpha);
     _lastWeaponType = weapon;
     _lastOverallAlpha = useAlpha;
     _lastWeaponsOnline = weaponsOnline;
@@ -1758,8 +1764,8 @@ void HeadUpDisplay::drawScannerZoomIndicator(const oo::PList& info) {
   if (scanner_ultra_zoom) zoomLevel = pow(2, zoomLevel - 1);
   GLColorWithOverallAlpha(zoom_color, alpha);
   OOGL(glEnable(GL_TEXTURE_2D));
-  if (sFontTexture != nullptr)
-    sFontTexture->apply();  // a message to nil did nothing
+  if (FontTexture() != nullptr)
+    FontTexture()->apply();  // a message to nil did nothing
 
   OOGLBEGIN(GL_QUADS);
   if (zoomLevel / 10 > 0)
@@ -4206,9 +4212,9 @@ static void InitTextEngine() {
       "oolite-font.plist", std::string("Config"), false);
 
   texName = fontSpec.get<std::string>("texture", "oolite-font.png");
-  sFontTexture = oo::leakRef(OOTexture::textureWithName(
+  FontTexture() = OOTexture::textureWithName(
       texName, std::string("Textures"), kFontTextureOptions, 0.0f,
-      -0.75f));  // retained, as -retain kept it
+      -0.75f);  // retained, as -retain kept it
 
   sF6KernGovt = fontSpec.get<float>("f6KernGovernment", 1.0);
   sF6KernTL = fontSpec.get<float>("f6KernTechLevel", 2.0);
@@ -4235,10 +4241,8 @@ oo::Data ConvertedString(const std::string& text) {
 }  // namespace
 
 void OOHUDResetTextEngine() {
-  OOTexture* fontTexture =
-      sFontTexture;  // DESTROY(): cleared before the release
-  sFontTexture = nullptr;
-  oo::release(fontTexture);
+  // DESTROY(): cleared before the release
+  const std::shared_ptr<OOTexture> fontTexture = std::move(FontTexture());
   // DESTROY(): cleared before the release
   const std::unique_ptr<OOEncodingConverter> encodingConverter =
       std::move(EncodingConverter());
@@ -4336,8 +4340,8 @@ void OOStartDrawingStrings() {
   OOSetOpenGLState(OOOpenGLStateID::kOverlay);
 
   OOGL(glEnable(GL_TEXTURE_2D));
-  if (sFontTexture != nullptr)
-    sFontTexture->apply();  // a message to nil did nothing
+  if (FontTexture() != nullptr)
+    FontTexture()->apply();  // a message to nil did nothing
   OOGLBEGIN(GL_QUADS);
 }
 
@@ -4406,8 +4410,8 @@ void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y,
   OOSetOpenGLState(OOOpenGLStateID::kOverlay);
 
   OOGL(glEnable(GL_TEXTURE_2D));
-  if (sFontTexture != nullptr)
-    sFontTexture->apply();  // a message to nil did nothing
+  if (FontTexture() != nullptr)
+    FontTexture()->apply();  // a message to nil did nothing
 
   OOGLBEGIN(GL_QUADS);
   {

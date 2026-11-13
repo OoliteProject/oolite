@@ -7,8 +7,9 @@ A channel for audio playback.
 This class is an implementation detail. Do not use it directly; use an
 OOSoundSource to play an OOSound.
 
-The mixer makes and keeps the channels (oo::Ref), the sound sources hold one
-borrowed, and the delegate is the C++ interface OOSoundChannelDelegate below.
+The mixer makes and keeps the channels (std::shared_ptr), the sound sources hold
+one borrowed, and the delegate is the C++ interface OOSoundChannelDelegate
+below.
 
 OOALSound - OpenAL sound implementation for Oolite.
 Copyright (C) 2006-2013 Jens Ayton

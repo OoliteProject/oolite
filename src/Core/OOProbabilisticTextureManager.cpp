@@ -64,7 +64,8 @@ OOProbabilisticTextureManager::createWithPListName(const std::string& plistName,
                                                    GLfloat lodBias,
                                                    RANROTSeed seed) {
   std::shared_ptr<OOProbabilisticTextureManager> manager =
-      oo::adopt(new OOProbabilisticTextureManager);
+      std::shared_ptr<OOProbabilisticTextureManager>(
+          new OOProbabilisticTextureManager(), oo::Dispose{});
   if (!manager->initWithPListName(plistName, options, anisotropy, lodBias,
                                   seed))
     return nullptr;
@@ -92,7 +93,7 @@ bool OOProbabilisticTextureManager::initWithPListName(
   if (OK) {
     count = config.count();
 
-    _textures = static_cast<OOTexture**>(malloc(sizeof *_textures * count));
+    _textures = std::make_unique<std::shared_ptr<OOTexture>[]>(count);
     _prob = static_cast<float*>(malloc(sizeof *_prob * count));
     _galaxy = static_cast<int*>(malloc(sizeof *_galaxy * count));
     _probMaxGal = static_cast<float*>(
@@ -131,8 +132,7 @@ bool OOProbabilisticTextureManager::initWithPListName(
         texture = OOTexture::textureWithName(name, "Textures", options,
                                              anisotropy, lodBias);
         if (texture != nullptr) {
-          _textures[_count] =
-              oo::leakRef(texture);  // released in the destructor
+          _textures[_count] = texture;
           _prob[_count] =
               probability + (galID >= 0 ? _probMaxGal[galID] : _probMax);
           _galaxy[_count] = (galID >= 0 ? galID : -1);
@@ -157,15 +157,6 @@ bool OOProbabilisticTextureManager::initWithPListName(
 }
 
 OOProbabilisticTextureManager::~OOProbabilisticTextureManager() {
-  unsigned i;
-
-  if (_textures != nullptr) {
-    for (i = 0; i != _count; ++i) {
-      oo::release(_textures[i]);
-    }
-    free(_textures);
-  }
-
   if (_prob != nullptr) free(_prob);
   if (_galaxy != nullptr) free(_galaxy);
   if (_probMaxGal != nullptr) free(_probMaxGal);
@@ -196,7 +187,7 @@ OOTexture* OOProbabilisticTextureManager::selectTexture() {
       // make a note of the index of the first texture that meets the galaxy
       // list criteria (but only if _galaxy is set)
       if (hold == -1 && _prob[i] > 0 && _galaxy[i] == galID) hold = i;
-      if (selection <= _prob[i]) return _textures[i];
+      if (selection <= _prob[i]) return _textures[i].get();
     }
   }
 
@@ -208,12 +199,12 @@ OOTexture* OOProbabilisticTextureManager::selectTexture() {
            "{}: overrun! Galaxy List requirements not met. Choosing first "
            "texture available for galaxy.",
            __PRETTY_FUNCTION__);
-    return _textures[hold];
+    return _textures[hold].get();
   }
 
   OO_LOG("probabilisticTextureManager.internalFailure",
          "{}: overrun! Choosing last texture.", __PRETTY_FUNCTION__);
-  return _textures[_count - 1];
+  return _textures[_count - 1].get();
 }
 
 unsigned OOProbabilisticTextureManager::textureCount() { return _count; }

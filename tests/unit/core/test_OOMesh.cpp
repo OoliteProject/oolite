@@ -541,10 +541,10 @@ OO_TEST(renderingMembers) {
 
     // The materials: the placeholder, rebound; a reset.
     cxxMesh->rebindMaterials();
-    OO_CHECK(cxxMesh->materials[0] == OOMesh::placeholderMaterial().get());
+    OO_CHECK(cxxMesh->materials[0].get() == OOMesh::placeholderMaterial().get());
     cxxMesh->resetGraphicsState();
     OO_CHECK(!cxxMesh->listsReady);
-    OO_CHECK(cxxMesh->materials[0] == OOMesh::placeholderMaterial().get());
+    OO_CHECK(cxxMesh->materials[0].get() == OOMesh::placeholderMaterial().get());
 
     // The buffers: a renamed key, and bytes kept by key.
     cxxMesh->renameTexturesFrom("_oo_placeholder_material",

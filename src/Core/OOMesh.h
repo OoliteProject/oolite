@@ -200,7 +200,7 @@ class OOMesh : public OODrawable, public OOGraphicsResetClient {
 
   NSRange triangle_range[kOOMeshMaxMaterials] = {};
   std::string materialKeys[kOOMeshMaxMaterials];
-  OOMaterial* materials[kOOMeshMaxMaterials] = {};  // retained
+  std::shared_ptr<OOMaterial> materials[kOOMeshMaxMaterials];  // shared
   GLuint displayList0 = {};
 
   // (named like the overridden getters, which a C++ member cannot be)

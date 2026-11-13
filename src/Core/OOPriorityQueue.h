@@ -59,7 +59,7 @@ SOFTWARE.
 #include "OOFoundation.h"  // OOComparisonResult
 #include "oofnd/Ref.hpp"
 
-/*	The queue for C++ elements: the elements are held by oo::Ref
+/*	The queue for C++ elements: the elements are held by std::shared_ptr
    and ordered by a comparator function. The heap is the standard one, step
    for step (bubbling up on insertion; on removal the last element
    takes the removed one's place and bubbles down; the exact-object search goes

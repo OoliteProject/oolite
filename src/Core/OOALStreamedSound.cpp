@@ -30,14 +30,15 @@ SOFTWARE.
 
 #include "OOALSoundDecoder.h"
 
-// The decoder is released by its oo::Ref, the chunk buffer by its vector.
+// The decoder is released by its std::shared_ptr, the chunk buffer by its
+// vector.
 OOALStreamedSound::~OOALStreamedSound() = default;
 
 std::optional<std::string> OOALStreamedSound::name() { return _name; }
 
 /*	The body of -initWithDecoder:, with self as the new sound; its [self
    release]; self = nil; is the null it answers. [inDecoder retain] is the
-   oo::Ref.
+   std::shared_ptr.
 */
 std::shared_ptr<OOALStreamedSound> OOALStreamedSound::initWithDecoder(
     OOALSoundDecoder* inDecoder) {
@@ -48,7 +49,8 @@ std::shared_ptr<OOALStreamedSound> OOALStreamedSound::initWithDecoder(
   if (!isSoundOK() || nullptr == inDecoder) OK = false;
 
   if (OK) {
-    self = oo::adopt(new OOALStreamedSound);
+    self = std::shared_ptr<OOALStreamedSound>(new OOALStreamedSound(),
+                                              oo::Dispose{});
   }
 
   if (OK) {

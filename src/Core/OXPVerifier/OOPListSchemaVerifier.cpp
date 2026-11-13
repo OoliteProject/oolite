@@ -314,7 +314,8 @@ OOPListSchemaVerifier::OOPListSchemaVerifier(const oo::PList& schema) {
 std::shared_ptr<OOPListSchemaVerifier> OOPListSchemaVerifier::initWithSchema(
     const oo::PList& schema) {
   std::shared_ptr<OOPListSchemaVerifier> verifier =
-      oo::adopt(new OOPListSchemaVerifier(schema));
+      std::shared_ptr<OOPListSchemaVerifier>(new OOPListSchemaVerifier(schema),
+                                             oo::Dispose{});
   if (!verifier->_schema) {
     return nullptr;
   }

@@ -103,7 +103,7 @@ class OOProbabilisticTextureManager : public oo::Object {
                          GLfloat anisotropy, GLfloat lodBias, RANROTSeed seed);
 
   unsigned _count = {};
-  OOTexture** _textures = {};
+  std::unique_ptr<std::shared_ptr<OOTexture>[]> _textures;
   float* _prob = {};
   int* _galaxy = {};
   float _probMax = {};

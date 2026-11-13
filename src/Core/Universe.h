@@ -44,10 +44,10 @@ MA 02110-1301, USA.
 #include <utility>
 #include <vector>
 
-#include "OOCharacter.h"  // the character pool is oo::Ref
+#include "OOCharacter.h"  // the character pool is std::shared_ptr
 #include "OOColor.h"
 #include "OOCommodities.h"
-#include "OOCommodityMarket.h"  // the universe keeps its market (oo::Ref)
+#include "OOCommodityMarket.h"  // the universe keeps its market (std::shared_ptr)
 #include "OOEntityWithDrawable.h"
 #include "OOFoundation.h"
 #include "OOJSPropID.h"
@@ -86,7 +86,7 @@ class PlayerEntity;
 class WormholeEntity;
 class OOSunEntity;
 class OOPlanetEntity;
-#include "GuiDisplayGen.h"  // the universe keeps its GUIs (oo::Ref)
+#include "GuiDisplayGen.h"  // the universe keeps its GUIs (std::shared_ptr)
 class CollisionRegion;
 
 typedef bool (*EntityFilterPredicate)(Entity* entity,

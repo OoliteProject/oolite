@@ -74,9 +74,9 @@ struct OOOXPVerifierTestAccess;  // tests only
 
 /*	verifyOXP.plist is
    an oo::PList, paths and names are UTF-8 std::strings, stages are retained
-   through oo::Ref. The stages waiting to be examined or run are a vector in
-   registration order (they were a set). A stage is kept as the C++ stage itself
-   (std::shared_ptr<::OOOXPVerifierStage>).
+   through std::shared_ptr. The stages waiting to be examined or run are a
+   vector in registration order (they were a set). A stage is kept as the C++
+   stage itself (std::shared_ptr<::OOOXPVerifierStage>).
 */
 class OOOXPVerifier : public oo::Object {
  public:

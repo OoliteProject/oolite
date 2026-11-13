@@ -56,7 +56,7 @@ class OOColor;
 class OOSkyQuadSet;
 struct OOSkyQuadDesc;
 
-/*	A drawable. Its one caller, SkyEntity, makes it with oo::makeRef and
+/*	A drawable. Its one caller, SkyEntity, makes it with oo::makeShared and
    hands it to the entity. It is a graphics reset client through the C++ client
         interface.
 */
@@ -103,7 +103,7 @@ class OOSkyDrawable : public OODrawable, public OOGraphicsResetClient {
   unsigned _starCount = {};
   unsigned _nebulaCount = {};
 
-  std::vector<std::shared_ptr<OOSkyQuadSet>>
+  std::vector<std::unique_ptr<OOSkyQuadSet>>
       _quadSets;  // no `= {}` (GCC, incomplete
                   // T);	// one per texture
 

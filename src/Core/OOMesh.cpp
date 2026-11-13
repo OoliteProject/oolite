@@ -216,9 +216,13 @@ std::shared_ptr<OOMaterial> OOMesh::placeholderMaterial() {
     // points into it.
     const oo::PList materialDefaults = ResourceManager::materialDefaults();
     const oo::PList* noTextures = materialDefaults.find("no-textures-material");
-    placeholderMaterial = oo::leakRef(OOBasicMaterial::materialWithName(
-        std::string("/placeholder/"),
-        (noTextures != nullptr ? *noTextures : oo::PList())));
+    // Never released: a heap std::shared_ptr that is never deleted.
+    placeholderMaterial =
+        (*new std::shared_ptr<OOBasicMaterial>(
+             OOBasicMaterial::materialWithName(
+                 std::string("/placeholder/"),
+                 (noTextures != nullptr ? *noTextures : oo::PList()))))
+            .get();
   }
 
   return oo::share(placeholderMaterial);
@@ -243,10 +247,8 @@ OOMesh::~OOMesh() {
   deleteDisplayLists();
 
   for (i = 0; i != kOOMeshMaxMaterials; ++i) {
-    OOMaterial* material =
-        materials[i];  // DESTROY(): cleared before the release
-    materials[i] = nullptr;
-    oo::release(material);
+    // DESTROY(): cleared before the release
+    const std::shared_ptr<OOMaterial> material = std::move(materials[i]);
   }
 
   OOGraphicsResetManager::sharedManager()->unregisterCxxClient(this);
@@ -488,7 +490,7 @@ void OOMesh::rebindMaterials() {
 
   if (materialCount != 0) {
     for (i = 0; i != materialCount; ++i) {
-      OOMaterial* oldMaterial = materials[i];
+      std::shared_ptr<OOMaterial> oldMaterial = materials[i];
 
       if (materialKeys[i] != "_oo_placeholder_material") {
         material = OOMaterial::materialWithName(
@@ -502,15 +504,15 @@ void OOMesh::rebindMaterials() {
 
       // The member holds the material, retained, as before.
       if (material != nullptr) {
-        materials[i] = oo::retain(material.get());
+        materials[i] = material;
       } else {
-        materials[i] = oo::leakRef(placeholderMaterial());
+        materials[i] = placeholderMaterial();
       }
 
       /*	Release is deferred to here to ensure we don't end up releasing
               a texture that's not in the recent-cache and then reloading it.
       */
-      oo::release(oldMaterial);
+      oldMaterial.reset();
     }
   }
 }
@@ -688,7 +690,8 @@ void OOMesh::setBindingTarget(Entity* target) {
 
   for (i = 0; i != kOOMeshMaxMaterials; ++i) {
     // A nil material did nothing.
-    if (OOMaterial* material = materials[i]) material->setBindingTarget(target);
+    if (OOMaterial* material = materials[i].get())
+      material->setBindingTarget(target);
   }
 }
 
@@ -711,7 +714,7 @@ std::vector<std::shared_ptr<OOTexture>> OOMesh::allTextures() {
   OOMeshMaterialCount i;
   for (i = 0; i != materialCount; i++) {
     // A nil material answered no textures.
-    OOMaterial* material = materials[i];
+    OOMaterial* material = materials[i].get();
     if (material == nullptr) continue;
     for (const std::shared_ptr<OOTexture>& texture : material->allTextures())
       result.push_back(texture);
@@ -810,18 +813,12 @@ bool OOMesh::initWithName(const std::string& name,
 }
 
 std::shared_ptr<OOMesh> OOMesh::mutableCopyWithZone(OOZone* /*zone*/) {
-  OOMeshMaterialCount i;
-
   // A new mesh whose members are copied one by one (the copy constructor),
   // so the buffers are shared. Zones are unused.
   std::shared_ptr<OOMesh> result = oo::makeShared<OOMesh>(*this);
 
   // (The binding target is a weak reference, copied; the octree is a C++
-  // reference, copied.)
-
-  for (i = 0; i != kOOMeshMaxMaterials; ++i) {
-    oo::retain(result->materials[i]);
-  }
+  // reference, copied; the materials are shared, copied.)
 
   // Reset unsharable GL state
   result->listsReady = false;
@@ -1577,7 +1574,7 @@ void OOMesh::debugDrawNormals() {
 
 void OOMesh::setRetainedObject(oo::Data object, const std::string& key) {
   _retainedObjects.insert_or_assign(
-      key, oo::adopt(new OOMeshBuffer(std::move(object))));
+      key, oo::makeShared<OOMeshBuffer>(std::move(object)));
 }
 
 /* valgrind complains that the memory allocated here isn't initialised

@@ -77,7 +77,7 @@ inline constexpr int OO_SYSTEMCONCEALMENT_NOTHING = 300;
 #define OO_SYSTEM_CACHE_LENGTH OO_SYSTEMS_AVAILABLE
 
 /*	OOSystemDescriptionEntry is used only by the manager. The universe holds
-   the manager as oo::Ref.
+   the manager as std::shared_ptr.
 */
 class OOSystemDescriptionEntry : public oo::Object {
  public:

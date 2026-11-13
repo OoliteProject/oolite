@@ -131,7 +131,8 @@ std::optional<std::string> OOALSoundDecoder::descriptionComponents() const {
 std::shared_ptr<OOALSoundDecoder> OOALSoundVorbisCodec::createWithPath(
     const std::optional<std::string>& path) {
   std::shared_ptr<OOALSoundVorbisCodec> codec =
-      oo::adopt(new OOALSoundVorbisCodec);
+      std::shared_ptr<OOALSoundVorbisCodec>(new OOALSoundVorbisCodec(),
+                                            oo::Dispose{});
   if (!codec->initWithPath(path)) return nullptr;
   return codec;
 }

@@ -546,7 +546,8 @@ std::optional<std::string> OOCacheManager::cachePathCreatingIfNecessary(
 std::shared_ptr<OOAsyncCacheWriter> OOAsyncCacheWriter::writerWithCacheContents(
     const oo::PList& cacheContents) {
   if (cacheContents.isNull()) return nullptr;
-  return oo::adopt(new OOAsyncCacheWriter(cacheContents));
+  return std::shared_ptr<OOAsyncCacheWriter>(
+      new OOAsyncCacheWriter(cacheContents), oo::Dispose{});
 }
 
 void OOAsyncCacheWriter::performAsyncTask() {

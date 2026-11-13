@@ -316,7 +316,8 @@ std::optional<std::vector<std::string>> OOOXPVerifier::configurationSetForKey(
 
 std::shared_ptr<OOOXPVerifier> OOOXPVerifier::createWithPath(
     const std::optional<std::string>& path) {
-  std::shared_ptr<OOOXPVerifier> verifier = oo::adopt(new OOOXPVerifier);
+  std::shared_ptr<OOOXPVerifier> verifier =
+      std::shared_ptr<OOOXPVerifier>(new OOOXPVerifier(), oo::Dispose{});
   if (!verifier->initWithPath(path)) return nullptr;
   return verifier;
 }

@@ -73,8 +73,9 @@ OOSoundSource::OOSoundSource(OOSound* inSound) : OOSoundSource() {
   setSound(inSound);
 }
 
-// [_sound autorelease] is the oo::Ref's release: the sounds the game plays are
-// kept by the resource manager's cache, and a playing channel retains its own.
+// [_sound autorelease] is the std::shared_ptr's release: the sounds the game
+// plays are kept by the resource manager's cache, and a playing channel retains
+// its own.
 OOSoundSource::~OOSoundSource() { stop(); }
 
 /*	A const member, so it reads the ivars that -isPlaying, -loop and

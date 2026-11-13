@@ -91,7 +91,8 @@ Octree::Octree(const oo::Data& data, GLfloat radius) {
 // returned nil.
 std::shared_ptr<Octree> Octree::initWithData(const oo::Data& data,
                                              GLfloat radius) {
-  std::shared_ptr<Octree> result = oo::adopt(new Octree(data, radius));
+  std::shared_ptr<Octree> result =
+      std::shared_ptr<Octree>(new Octree(data, radius), oo::Dispose{});
   if (result->_octree == nullptr || result->_collisionOctree == nullptr) {
     return nullptr;
   }
