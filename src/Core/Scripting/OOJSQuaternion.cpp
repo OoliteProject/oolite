@@ -29,6 +29,8 @@ MA 02110-1301, USA.
 #include "OOJSEntity.h"
 #endif
 #include <cstring>
+#include <memory>
+#include <new>
 
 #include "OOJavaScriptEngine.h"
 #include "oofnd/String.hpp"
@@ -146,19 +148,13 @@ void InitOOJSQuaternion(JSContext* context, JSValueConst global) {
 JSValue JSQuaternionWithQuaternion(JSContext* context, Quaternion quaternion) {
   OOJS_PROFILE_ENTER
 
-  Quaternion* priv = nullptr;
-
-  priv = static_cast<Quaternion*>(malloc(sizeof *priv));
+  // The object's private data, deleted by the class finaliser.
+  std::unique_ptr<Quaternion> priv(new (std::nothrow) Quaternion(quaternion));
   if (EXPECT_NOT(priv == nullptr)) return JS_ThrowOutOfMemory(context);
 
-  *priv = quaternion;
-
   JSValue result = JS_NewObjectClass(context, sQuaternionClassID);
-  if (EXPECT_NOT(JS_IsException(result))) {
-    free(priv);
-    return result;
-  }
-  JS_SetOpaque(result, priv);
+  if (EXPECT_NOT(JS_IsException(result))) return result;
+  JS_SetOpaque(result, priv.release());
 
   return result;
 
@@ -470,7 +466,7 @@ static JSValue QuaternionSetProperty(JSContext* context, JSValueConst thisObj,
 static void QuaternionFinalize(JSRuntime* runtime, JSValueConst thisObj) {
   OOJS_PROFILE_ENTER
 
-  free(JS_GetOpaque(thisObj, sQuaternionClassID));
+  delete static_cast<Quaternion*>(JS_GetOpaque(thisObj, sQuaternionClassID));
 
   OOJS_PROFILE_EXIT_VOID
 }
