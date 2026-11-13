@@ -39,6 +39,7 @@
 #include <process.h>
 #include <string>
 #include <vector>
+#include "EntityManualRefs.h"  // the tests' manual entity references (T095)
 
 
 // What UNIVERSE and PLAYER read (Universe.mm, PlayerEntity.mm).

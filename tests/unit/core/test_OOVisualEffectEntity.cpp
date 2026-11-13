@@ -35,6 +35,7 @@
 #include <filesystem>
 #include <process.h>
 #include <string>
+#include "EntityManualRefs.h"  // the tests' manual entity references (T095)
 
 
 // main.mm defines the debug flags, and the test has its own main.
@@ -71,7 +72,7 @@ T *NewTestPlayer()
 class TestUniverse : public Universe
 {
 public:
-	Entity *newVisualEffectWithName(const std::string &effectKey) override	// the effect, its object +1
+	std::shared_ptr<Entity> newVisualEffectWithName(const std::string &effectKey) override	// the effect, owned by the caller
 	{
 		if (effectKey == "missing")  return nullptr;
 		return oo::NewVisualEffect(effectKey, oo::PList());
@@ -141,12 +142,12 @@ oo::PList Flasher(double x)
 }
 
 
-// An effect, as the universe makes it (oo::NewVisualEffect(),
-// An effect, as the universe makes it (oo::NewVisualEffect()): the C++ effect,
+// An effect, as the universe makes it (oo::RetainedEntity(oo::NewVisualEffect()),
+// An effect, as the universe makes it (oo::RetainedEntity(oo::NewVisualEffect())): the C++ effect,
 // autoreleased.
 OOVisualEffectEntity *Effect(const std::string &key, const oo::PList &definition)
 {
-	return oo::ToEffect(oo::AutoreleaseEntity(oo::NewVisualEffect(key, definition)));
+	return oo::ToEffect(oo::autorelease(oo::NewVisualEffect(key, definition)));
 }
 
 
@@ -267,7 +268,7 @@ OO_TEST(standardSubentities)
 		std::vector<oo::EntityHold> effects;	// the subentities (held C++ entities)
 		Entity *effectObject = nullptr;
 		{
-			effectObject = oo::NewVisualEffect("parent", Dict({ { "subentities", oo::PList(std::move(subs)) } }));
+			effectObject = oo::RetainedEntity(oo::NewVisualEffect("parent", Dict({ { "subentities", oo::PList(std::move(subs)) } })));
 			effect = oo::ToEffect(effectObject);
 			effects = effect->effectSubEntityEnumerator();
 		}

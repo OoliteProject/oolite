@@ -20,6 +20,7 @@
 #include "StationEntity.h"
 #include "Universe.h"
 #include "oo_test.hpp"
+#include "EntityManualRefs.h"  // the tests' manual entity references (T095)
 
 // main.mm defines the debug flags, and the test has its own main.
 #ifndef NDEBUG
@@ -83,10 +84,10 @@ oo::PList Definition() {
 }
 
 // [[[DockEntity alloc] cxx_initWithKey:definition:] autorelease]: the dock
-// DockEntity::newDockObject() makes, its object (the ship's facade)
+// oo::RetainedEntity(DockEntity::newDockObject()) makes, its object (the ship's facade)
 // autoreleased.
 DockEntity* MakeDock(const std::string& key) {
-  ::ShipEntity* ship = DockEntity::newDockObject(key, Definition());
+  ::ShipEntity* ship = oo::RetainedEntity(DockEntity::newDockObject(key, Definition()));
   oo::AutoreleaseEntity(ship);
   return static_cast<DockEntity*>(ship);
 }
@@ -94,9 +95,9 @@ DockEntity* MakeDock(const std::string& key) {
 // A dock that is a subentity of a station, so its parent is the station.
 DockEntity* MakeDockOfStation(TestDockStation** outStation) {
   // [[[TestDockStation alloc] cxx_initWithKey:definition:] autorelease]: made
-  // as StationEntity::newStationObject() makes a station, its object (the
+  // as oo::RetainedEntity(StationEntity::newStationObject()) makes a station, its object (the
   // ship's facade) autoreleased.
-  ::ShipEntity* object = oo::ToShip(oo::AutoreleaseEntity(oo::NewShipObject(
+  ::ShipEntity* object = oo::ToShip(oo::autorelease(oo::NewShipObject(
       oo::makeRef<TestDockStation>(), "dock-station", Definition())));
   TestDockStation* station = static_cast<TestDockStation*>(object);
   station->initStationDefaults();
@@ -248,8 +249,7 @@ namespace {
 
 // A ship with the universal ID the approach queue keys it by.
 ShipEntity* MakeQueuedShip(OOUniversalID shipID) {
-  ShipEntity* ship = oo::ToShip(oo::AutoreleaseEntity(
-      oo::NewShipObject(oo::makeRef<::ShipEntity>(), "queued", Definition())));
+  ShipEntity* ship = oo::ToShip(oo::autorelease(oo::NewShipObject(oo::makeRef<::ShipEntity>(), "queued", Definition())));
   ship->universalID = shipID;
   return ship;
 }

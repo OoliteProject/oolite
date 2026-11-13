@@ -56,18 +56,6 @@ void EntityRelease(Entity* entity) noexcept;
 
 }  // namespace detail
 
-/*	The universe's +1 creators and the references the universe and the
-   entities keep by hand (EntityHelpers.cpp): what -retain, -release and
-   -autorelease of the entity's object did, on the entity's own count
-   (-autorelease hands the reference to the innermost oo::AutoreleaseScope,
-        oo::autorelease(), so it is released at the same drain, in the same
-   order); nothing for null or an entity without its object. RetainEntity() and
-   AutoreleaseEntity() answer their argument.
-*/
-Entity* RetainEntity(Entity* entity);
-void ReleaseEntity(Entity* entity);
-Entity* AutoreleaseEntity(Entity* entity);
-
 // An owning reference to an entity; an entity without its object is held as
 // null.
 using EntityHold = std::shared_ptr<Entity>;
@@ -78,25 +66,6 @@ using EntityHold = std::shared_ptr<Entity>;
 template <class E>
 std::shared_ptr<E> Hold(E* e) {
   return (e != nullptr && detail::EntityHasObject(e)) ? oo::share(e) : nullptr;
-}
-
-// Takes over a +1 reference to the entity (oo::RetainEntity()'s): its owning
-// reference, the +1 given back. Null, and nothing taken, for an entity without
-// its object. (The manual references leave with the bridge, T095.)
-template <class E>
-std::shared_ptr<E> AdoptHold(E* e) {
-  std::shared_ptr<E> hold = Hold(e);
-  if (hold != nullptr) ReleaseEntity(e);
-  return hold;
-}
-
-// The entity with a +1 its caller gives back (oo::ReleaseEntity()): what the
-// +1 creators answered before they answered a std::shared_ptr. (Leaves with
-// the manual references, T095.)
-template <class E>
-E* RetainedEntity(const std::shared_ptr<E>& entity) {
-  (void)RetainEntity(entity.get());
-  return entity.get();
 }
 
 // The first hold of entity in holds (by the entity; holds.end() for none), and
@@ -114,10 +83,29 @@ inline std::size_t EraseHold(std::vector<EntityHold>& holds,
       holds, [entity](const EntityHold& hold) { return hold.get() == entity; });
 }
 
-// Drops the reference without a release (the deliberate leaks): the entity
-// keeps a +1 that is never given back. Null afterwards.
+// Holds entity in holds (oo::Hold) and answers it: a list that keeps raw
+// pointers beside their owning references, released together by clearing
+// holds (each one's object retained, then released, as before).
+template <class E>
+E* HoldIn(std::vector<EntityHold>& holds, E* entity) {
+  holds.push_back(Hold(entity));
+  return entity;
+}
+
+// The entity, its owning reference handed to the innermost
+// oo::AutoreleaseScope ([[e retain] autorelease]): the entity until the scope
+// drains. Null, and nothing held, for null; an entity without its object is
+// answered and not held.
+template <class E>
+E* AutoreleaseHold(E* entity) {
+  (void)oo::autorelease(Hold(entity));
+  return entity;
+}
+
+// Drops the reference without a release (the deliberate leaks): the reference
+// moves into a holder that is never deleted. Null afterwards.
 inline void LeakHold(EntityHold& hold) {
-  (void)RetainEntity(hold.get());
+  if (hold != nullptr) (void)new EntityHold(std::move(hold));
   hold.reset();
 }
 

@@ -74,22 +74,6 @@ void oo::detail::EntityRelease(Entity* entity) noexcept {
   if (entity != nullptr) entity->release();
 }
 
-Entity* oo::RetainEntity(Entity* entity) {
-  if (WithObject(entity) != nullptr) entity->retain();
-  return entity;
-}
-
-void oo::ReleaseEntity(Entity* entity) {
-  if (WithObject(entity) != nullptr) entity->release();
-}
-
-Entity* oo::AutoreleaseEntity(Entity* entity) {
-  // The caller's +1 goes to the innermost oo::AutoreleaseScope, released at the
-  // same drain and in the same order as -autorelease's object.
-  if (WithObject(entity) != nullptr) oo::autorelease(entity);
-  return entity;
-}
-
 std::shared_ptr<Entity> oo::MadeEntityRetained(const Ref<Entity>& entity) {
   if (entity == nullptr) return nullptr;
   // From here the entity has its object, and it is counted.

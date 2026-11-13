@@ -31,6 +31,7 @@
 #include "oo_test.hpp"
 
 #include <string>
+#include "EntityManualRefs.h"  // the tests' manual entity references (T095)
 
 
 // main.mm defines the debug flags, and the test has its own main.
@@ -108,7 +109,7 @@ void SetUp()
 ProxyPlayerEntity *MakeProxy(Entity **outObject = nullptr)
 {
 	oo::PList::Dict dict{ { "unpiloted", oo::PList(true) } };
-	::ShipEntity *ship = ProxyPlayerEntity::newProxyObject("proxy", oo::PList(std::move(dict)));
+	::ShipEntity *ship = oo::RetainedEntity(ProxyPlayerEntity::newProxyObject("proxy", oo::PList(std::move(dict))));
 	Entity *object = oo::AutoreleaseEntity(ship);
 	if (outObject != nullptr)  *outObject = object;
 	return dynamic_cast<ProxyPlayerEntity *>(ship);
@@ -261,7 +262,7 @@ OO_TEST(dialsAnsweredByNameForAProxy)
 		OO_CHECK(oo::CallEntityByNameTyped(proxy, "tradeInFactor", factor) && factor.integer == 42);
 		OO_CHECK(oo::CallEntityByNameTyped(proxy, "alertCondition", condition) && static_cast<OOAlertCondition>(condition.integer) == OOAlertCondition::kDocked);
 
-		ShipEntity *ship = oo::ToShip(oo::AutoreleaseEntity(oo::NewShipObject(oo::makeRef<::ShipEntity>(), "ship", oo::PList(oo::PList::Dict{ { "unpiloted", oo::PList(true) } }))));
+		ShipEntity *ship = oo::ToShip(oo::autorelease(oo::NewShipObject(oo::makeRef<::ShipEntity>(), "ship", oo::PList(oo::PList::Dict{ { "unpiloted", oo::PList(true) } }))));
 		OO_CHECK(ship != nullptr && !(ship != nullptr ? oo::EntityRespondsToName(ship, "dialForwardShield") : false));
 	}
 }
@@ -282,7 +283,7 @@ OO_TEST(playerAndProxyAreVisibleToScripts)
 		OO_CHECK(player->isVisibleToScripts());
 		OO_CHECK(OOJSEntityIsVisibleToScripts(player));
 
-		ShipEntity *ship = oo::ToShip(oo::AutoreleaseEntity(oo::NewShipObject(oo::makeRef<::ShipEntity>(), "ship", oo::PList(oo::PList::Dict{ { "unpiloted", oo::PList(true) } }))));
+		ShipEntity *ship = oo::ToShip(oo::autorelease(oo::NewShipObject(oo::makeRef<::ShipEntity>(), "ship", oo::PList(oo::PList::Dict{ { "unpiloted", oo::PList(true) } }))));
 		OO_CHECK(OOJSEntityIsVisibleToScripts(ship));
 	}
 }

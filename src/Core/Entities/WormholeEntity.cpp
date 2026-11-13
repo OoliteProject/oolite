@@ -387,10 +387,9 @@ bool WormholeEntity::suckInShip(::ShipEntity* ship) {
              ? PLAYER->dockedStation()
              : static_cast<StationEntity*>(nullptr)) == oo::ToStation(ship)) {
       // the carrier has jumped while the player is docked
-      if (ship != nullptr) oo::ToShip(oo::RetainEntity(ship));
+      const oo::EntityHold keepShip = oo::Hold(ship);  // through the carry
       if (UNIVERSE != nullptr)
         UNIVERSE->carryPlayerOn(oo::ToStation(ship), this);
-      if (ship != nullptr) oo::ReleaseEntity(ship);
     }
   }
 

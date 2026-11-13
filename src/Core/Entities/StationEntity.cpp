@@ -774,13 +774,13 @@ void StationEntity::launchShipWithRole(
 
 // Class shell, market and shipyard, flags and accessors.
 
-::ShipEntity* StationEntity::newStationObject(const std::string& key,
-                                              const oo::PList& dict) {
-  ::ShipEntity* object = oo::ToShip(
-      oo::NewShipObject(oo::makeShared<StationEntity>(), key,
-                        dict));  // [super cxx_initWithKey:key definition:dict]
+std::shared_ptr<::ShipEntity> StationEntity::newStationObject(
+    const std::string& key, const oo::PList& dict) {
+  std::shared_ptr<::ShipEntity> object =
+      (oo::NewShipObject(oo::makeShared<StationEntity>(), key,
+                         dict));  // [super cxx_initWithKey:key definition:dict]
   if (object != nullptr)
-    static_cast<StationEntity*>(object)->initStationDefaults();
+    static_cast<StationEntity*>(object.get())->initStationDefaults();
   return object;
 }
 

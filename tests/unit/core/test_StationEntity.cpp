@@ -31,6 +31,7 @@
 
 #include <cmath>
 #include <string>
+#include "EntityManualRefs.h"  // the tests' manual entity references (T095)
 
 
 // main.mm defines the debug flags, and the test has its own main.
@@ -121,11 +122,11 @@ oo::PList Definition(oo::PList::Dict extra = {})
 }
 
 
-// Made as StationEntity::newStationObject() makes a station, and its object
+// Made as oo::RetainedEntity(StationEntity::newStationObject()) makes a station, and its object
 // autoreleased.
 TestStation *MakeStation(const std::string &key, oo::PList::Dict extra = {})
 {
-	::ShipEntity *ship = oo::ToShip(oo::NewShipObject(oo::makeRef<TestStation>(), key, Definition(std::move(extra))));
+	::ShipEntity *ship = oo::ToShip(oo::RetainedEntity(oo::NewShipObject(oo::makeRef<TestStation>(), key, Definition(std::move(extra)))));
 	if (ship == nullptr)  return nullptr;
 	TestStation *station = static_cast<TestStation *>(ship);
 	station->initStationDefaults();
@@ -420,7 +421,7 @@ TestVisitor *MakeVisitor(const std::string &key, oo::PList::Dict extra = {})
 {
 	oo::PList::Dict dict{ { "unpiloted", oo::PList(true) } };
 	for (auto &entry : extra)  dict[entry.first] = entry.second;
-	return static_cast<TestVisitor *>(oo::ToShip(oo::AutoreleaseEntity(oo::NewShipObject(oo::makeRef<TestVisitor>(), key, oo::PList(std::move(dict))))));
+	return static_cast<TestVisitor *>(oo::ToShip(oo::autorelease(oo::NewShipObject(oo::makeRef<TestVisitor>(), key, oo::PList(std::move(dict))))));
 }
 
 oo::WeakSet<Entity> *ShipsOnHold2(StationEntity *s)	{ return &s->_shipsOnHold; }

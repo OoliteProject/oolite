@@ -307,15 +307,13 @@ std::size_t ShipGroupCursorBatch(OOShipGroupCursor& cursor,
 /*	A ship made in C++ (oo::NewShipObject): the object holding the ship,
    then the set-up from the definition. A failing set-up releases the object.
 */
-ShipEntity* oo::NewShipObject(const Ref<ShipEntity>& ship,
-                              const std::string& key, const oo::PList& dict) {
+std::shared_ptr<ShipEntity> oo::NewShipObject(const Ref<ShipEntity>& ship,
+                                              const std::string& key,
+                                              const oo::PList& dict) {
   if (ship == nullptr) return nullptr;
-  (void)RetainEntity(MadeEntityRetained(ship).get());  // +1, as +alloc gave
-  if (!ship->initShipSetUp(key, dict)) {
-    ReleaseEntity(ship.get());
-    return nullptr;
-  }
-  return ship.get();
+  (void)MadeEntityRetained(ship);  // its object, as +alloc made it
+  if (!ship->initShipSetUp(key, dict)) return nullptr;  // released
+  return ship;
 }
 
 // The ship's set-up from its key and definition.
@@ -1932,10 +1930,9 @@ void ShipEntity::setUpEscorts() {
                    ? *escortRoleSetting
                    : info.get<std::string>("escort-role", defaultRole);
   if (escortRole != defaultRole) {
-    if (!oo::ToShip(oo::AutoreleaseEntity(
-            (UNIVERSE != nullptr
-                 ? oo::RetainedEntity(UNIVERSE->newShipWithRole(escortRole))
-                 : nullptr)))) {
+    if (!oo::ToShip(oo::autorelease((UNIVERSE != nullptr
+                                         ? UNIVERSE->newShipWithRole(escortRole)
+                                         : nullptr)))) {
       escortRole = defaultRole;
     }
   }
@@ -1945,10 +1942,9 @@ void ShipEntity::setUpEscorts() {
     escortShipKey = StringForKey(info, "escort-ship");
 
   if (escortShipKey.has_value()) {
-    if (!oo::ToShip(oo::AutoreleaseEntity(
-            (UNIVERSE != nullptr
-                 ? oo::RetainedEntity(UNIVERSE->newShipWithName(*escortShipKey))
-                 : nullptr)))) {
+    if (!oo::ToShip(oo::autorelease(
+            (UNIVERSE != nullptr ? UNIVERSE->newShipWithName(*escortShipKey)
+                                 : nullptr)))) {
       escortShipKey = std::nullopt;
     } else {
       escortRole = std::format("[{}]", *escortShipKey);
@@ -8584,14 +8580,14 @@ void ShipEntity::becomeExplosion() {
   // check if we're destroying a subentity
   ::ShipEntity* parent = oo::ToShip(parentEntity());
   if (parent != nullptr) {
-    ::ShipEntity* this_ship = oo::ToShip(oo::RetainEntity(this));
+    std::shared_ptr<::ShipEntity> this_ship = oo::Hold(this);
     HPVector this_pos = absolutePositionForSubentity();
 
     // remove this ship from its parent's subentity list
     if (parent != nullptr) parent->subEntityDied(this);
-    if (UNIVERSE != nullptr) UNIVERSE->addEntity(this_ship);
+    if (UNIVERSE != nullptr) UNIVERSE->addEntity(this_ship.get());
     if (this_ship != nullptr) this_ship->setPosition(this_pos);
-    if (this_ship != nullptr) oo::ReleaseEntity(this_ship);
+    this_ship.reset();
     if ((parent != nullptr ? parent->getIsPlayer() : false)) {
       // make the parent ship less reliable.
       static_cast<PlayerEntity*>(parent)->adjustTradeInFactorBy(
@@ -8991,9 +8987,9 @@ void ShipEntity::subEntityReallyDied(::ShipEntity* sub) {
                oo::EntityDescription(this),
                "This is an internal error, please report it.");
 
-    // Leak subentity list: one more retain each, so that emptying the list
-    // keeps them all alive, as dropping the array pointer did.
-    for (const auto& leaked : subEntities) oo::RetainEntity(leaked.get());
+    // Leak subentity list: the list moves into a holder that is never deleted,
+    // so they all stay alive, as dropping the array pointer did.
+    (void)new std::vector<oo::EntityHold>(std::move(subEntities));
     subEntities.clear();
   }
 }
@@ -11783,24 +11779,21 @@ void ShipEntity::dumpCargo() { dumpCargoItem(std::nullopt); }
        0.5))  // space them 0.5s or 10m apart
   {
     if (!preferred.has_value()) {
-      jetto =
-          oo::ToShip(oo::AutoreleaseEntity(oo::RetainEntity(cargo[0].get())));
+      jetto = oo::ToShip(oo::AutoreleaseHold(cargo[0].get()));
     } else {
       bool found = false;
       for (i = 0; i < cargo.size(); i++) {
         if ((oo::ToShip(cargo[i].get()) != nullptr
                  ? oo::ToShip(cargo[i].get())->commodityType()
                  : std::optional<std::string>()) == preferred) {
-          jetto = oo::ToShip(
-              oo::AutoreleaseEntity(oo::RetainEntity(cargo[i].get())));
+          jetto = oo::ToShip(oo::AutoreleaseHold(cargo[i].get()));
           found = true;
           break;
         }
       }
       if (found == false) {
         // dump anything
-        jetto =
-            oo::ToShip(oo::AutoreleaseEntity(oo::RetainEntity(cargo[0].get())));
+        jetto = oo::ToShip(oo::AutoreleaseHold(cargo[0].get()));
         i = 0;
       }
     }
@@ -11944,8 +11937,8 @@ void ShipEntity::manageCollisions() {
   while (!collidingEntities.empty()) {
     // EMMSTRAN: investigate if doing this backwards would be more efficient.
     // (Not entirely obvious, the vector is kinda funky.) -- Ahruman 2011-02-12
-    ent = oo::AutoreleaseEntity(oo::RetainEntity(
-        collidingEntities.front().get()));  // [[... retain] autorelease]
+    ent = oo::AutoreleaseHold(
+        collidingEntities.front().get());  // [[... retain] autorelease]
     collidingEntities.erase(collidingEntities.begin());
     if (ent) {
       if (oo::EntityIsShip(ent)) {
@@ -11954,7 +11947,8 @@ void ShipEntity::manageCollisions() {
       } else if (ent->isStellarObject()) {
         getDestroyedBy(ent, ent->isSun() ? OOShipDamageType::kHitASun
                                          : OOShipDamageType::kHitAPlanet);
-        if (this == PLAYER) oo::RetainEntity(this);
+        if (this == PLAYER)  // kept alive: a holder that is never deleted
+          (void)new oo::EntityHold(oo::Hold(this));
       } else if (ent->getIsWormhole()) {
         // the C++ wormhole
         if (getIsPlayer())
@@ -13255,12 +13249,13 @@ void ShipEntity::setTargetToNearestStationIncludingHostiles(
   Entity** uni_entities =
       UNIVERSE->sortedEntities;  // grab the public sorted list
   std::vector<Entity*> my_entities(ent_count);
+  std::vector<oo::EntityHold> my_holds;  // each one's object, held
   int i;
   int station_count = 0;
   for (i = 0; i < ent_count; i++)
     if (uni_entities[i]->isStation)
       my_entities[station_count++] =
-          oo::RetainEntity(uni_entities[i]);  //	retained
+          oo::HoldIn(my_holds, uni_entities[i]);  //	retained
   //
   ::StationEntity *thing = nullptr, *station = nullptr;
   double range2,
@@ -13276,8 +13271,7 @@ void ShipEntity::setTargetToNearestStationIncludingHostiles(
       nearest2 = range2;
     }
   }
-  for (i = 0; i < station_count; i++)
-    oo::ReleaseEntity(my_entities[i]);  //	released
+  my_holds.clear();  //	released
   //
   if (station) {
     addTarget(station);
@@ -13643,13 +13637,14 @@ int ShipEntity::checkShipsInVicinityForWitchJumpExit() {
   Entity** uni_entities =
       UNIVERSE->sortedEntities;  // grab the public sorted list
   std::vector<::ShipEntity*> my_entities(ent_count);
+  std::vector<oo::EntityHold> my_holds;  // each one's object, held
   int i;
 
   int ship_count = 0;
   for (i = 0; i < ent_count; i++)
     if ((uni_entities[i]->isShip) && (uni_entities[i] != this))
       my_entities[ship_count++] =
-          oo::ToShip(oo::RetainEntity(uni_entities[i]));  //	retained
+          oo::HoldIn(my_holds, oo::ToShip(uni_entities[i]));  //	retained
   //
   for (i = 0; (i < ship_count) && (result == NO_TARGET); i++) {
     ::ShipEntity* ship = my_entities[i];
@@ -13664,9 +13659,7 @@ int ShipEntity::checkShipsInVicinityForWitchJumpExit() {
         result = (ship != nullptr ? ship->getUniversalID() : OOUniversalID{});
     }
   }
-  for (i = 0; i < ship_count; i++)
-    if (my_entities[i] != nullptr)
-      oo::ReleaseEntity(my_entities[i]);  //		released
+  my_holds.clear();  //		released
 
   return result;
 }

@@ -105,15 +105,14 @@ std::vector<oo::EntityHold> VisualEffectsIn(
 
 }  // namespace
 
-// A new effect held (+1), then the initialiser's body, which may fail.
-Entity* oo::NewVisualEffect(const std::string& key, const oo::PList& dict) {
+// A new effect, owned by the caller, then the initialiser's body, which may
+// fail.
+std::shared_ptr<Entity> oo::NewVisualEffect(const std::string& key,
+                                            const oo::PList& dict) {
   const Ref<OOVisualEffectEntity> effect = makeRef<OOVisualEffectEntity>();
-  (void)RetainEntity(MadeEntityRetained(effect).get());  // +1, as +alloc gave
-  if (!effect->initWithKey(key, dict)) {
-    ReleaseEntity(effect.get());
-    return nullptr;
-  }
-  return effect.get();
+  (void)MadeEntityRetained(effect);  // its object, as +alloc made it
+  if (!effect->initWithKey(key, dict)) return nullptr;  // released
+  return effect;
 }
 
 /*	-cxx_initWithKey:definition:'s body after [super init] (the constructor
@@ -303,7 +302,7 @@ bool OOVisualEffectEntity::setUpOneFlasher(const oo::PList& subentDict) {
 
 bool OOVisualEffectEntity::setUpOneStandardSubentity(
     const oo::PList& subentDict) {
-  Entity* subentity = nullptr;  // the effect, its object +1
+  std::shared_ptr<Entity> subentity;  // the effect, owned
   std::optional<std::string> subentKey;
   HPVector subPosition;
   Quaternion subOrientation;
@@ -332,9 +331,9 @@ bool OOVisualEffectEntity::setUpOneStandardSubentity(
   subentity->setPosition(subPosition);
   subentity->setOrientation(subOrientation);
 
-  addSubEntity(subentity);
+  addSubEntity(subentity.get());
 
-  oo::ReleaseEntity(subentity);
+  subentity.reset();
 
   return true;
 }

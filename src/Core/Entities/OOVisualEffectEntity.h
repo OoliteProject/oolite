@@ -255,7 +255,8 @@ namespace oo {
 // (oo::MadeEntityRetained()); null where the body failed, as
 // [[OOVisualEffectEntity alloc] cxx_initWithKey:definition:] answered nil. +1,
 // as +alloc gave.
-Entity* NewVisualEffect(const std::string& key, const oo::PList& dict);
+std::shared_ptr<Entity> NewVisualEffect(const std::string& key,
+                                        const oo::PList& dict);
 
 // The effect an entity is: nullptr for null or another entity (what
 // -isKindOfClass: [OOVisualEffectEntity class] and the cast after it found).

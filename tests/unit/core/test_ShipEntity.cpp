@@ -28,6 +28,7 @@
 #include "PlayerEntity.h"
 #include "ShipEntityScriptMethods.h"
 #include "ShipEntityLoadRestore.h"
+#include "EntityManualRefs.h"  // the tests' manual entity references (T095)
 
 #include "oo_test.hpp"
 
@@ -100,14 +101,14 @@ namespace {
 template <class T>
 T *MakeShip(const std::string &key, const oo::PList &dict)
 {
-	return static_cast<T *>(oo::ToShip(oo::AutoreleaseEntity(oo::NewShipObject(oo::makeRef<T>(), key, dict))));
+	return static_cast<T *>(oo::ToShip(oo::autorelease(oo::NewShipObject(oo::makeRef<T>(), key, dict))));
 }
 
 // [[T alloc] cxx_initWithKey:key definition:dict]: the same with its object retained (+1).
 template <class T>
 T *NewShip(const std::string &key, const oo::PList &dict)
 {
-	return static_cast<T *>(oo::ToShip(oo::NewShipObject(oo::makeRef<T>(), key, dict)));
+	return static_cast<T *>(oo::ToShip(oo::RetainedEntity(oo::NewShipObject(oo::makeRef<T>(), key, dict))));
 }
 
 }	// namespace

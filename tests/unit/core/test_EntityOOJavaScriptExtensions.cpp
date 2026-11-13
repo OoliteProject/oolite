@@ -32,6 +32,7 @@
 #include "OOJSShip.h"
 #include "ShipEntity.h"
 #include "oo_test.hpp"
+#include "EntityManualRefs.h"  // the tests' manual entity references (T095)
 
 // main.mm defines the debug flags, and the test has its own main.
 #ifndef NDEBUG

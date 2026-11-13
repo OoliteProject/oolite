@@ -2381,9 +2381,10 @@ void PlayerEntity::sendAllShipsAway() {
   Entity** uni_entities =
       UNIVERSE->sortedEntities;  // grab the public sorted list
   std::vector<Entity*> my_entities(ent_count);
+  std::vector<oo::EntityHold> my_holds;  // each one's object, held
   int i;
   for (i = 0; i < ent_count; i++)
-    my_entities[i] = oo::RetainEntity(uni_entities[i]);  //	retained
+    my_entities[i] = oo::HoldIn(my_holds, uni_entities[i]);  //	retained
 
   for (i = 1; i < ent_count; i++) {
     Entity* e1 = my_entities[i];
@@ -2426,9 +2427,7 @@ void PlayerEntity::sendAllShipsAway() {
     }
   }
 
-  for (i = 0; i < ent_count; i++) {
-    oo::ReleaseEntity(my_entities[i]);  //	released
-  }
+  my_holds.clear();
 }
 
 void PlayerEntity::addPlanet(const std::string& planetKey)  // called by name

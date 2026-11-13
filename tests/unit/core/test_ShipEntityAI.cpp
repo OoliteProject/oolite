@@ -22,6 +22,7 @@
 
 #include <cmath>
 #include <string>
+#include "EntityManualRefs.h"  // the tests' manual entity references (T095)
 
 
 // main.mm defines the debug flags, and the test has its own main.
@@ -74,12 +75,12 @@ public:
 };
 
 
-// Made as StationEntity::newStationObject() makes a station; answers its object.
+// Made as oo::RetainedEntity(StationEntity::newStationObject()) makes a station; answers its object.
 namespace {
 
 ShipEntity *NewTestAIStation(const std::string &key, const oo::PList &dict)
 {
-	ShipEntity *station = oo::ToShip(oo::NewShipObject(oo::makeRef<TestAIStation>(), key, dict));
+	ShipEntity *station = oo::ToShip(oo::RetainedEntity(oo::NewShipObject(oo::makeRef<TestAIStation>(), key, dict)));
 	if (station != nullptr)  static_cast<StationEntity *>(station)->initStationDefaults();
 	oo::AutoreleaseEntity(station);
 	return station;
@@ -130,7 +131,7 @@ void SetUp()
 
 TestAIShip *MakeShip(const char *key)
 {
-	return static_cast<TestAIShip *>(oo::ToShip(oo::AutoreleaseEntity(oo::NewShipObject(oo::makeRef<TestAIShip>(), key, oo::PList(oo::PList::Dict{})))));
+	return static_cast<TestAIShip *>(oo::ToShip(oo::autorelease(oo::NewShipObject(oo::makeRef<TestAIShip>(), key, oo::PList(oo::PList::Dict{})))));
 }
 
 
