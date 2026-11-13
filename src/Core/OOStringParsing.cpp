@@ -24,7 +24,7 @@ MA 02110-1301, USA.
 
 #include "OOStringParsing.h"
 
-#include <array>
+#include <array>  // IWYU pragma: keep: used only with DEBUG_GRAPHVIZ
 #include <format>
 #include <string_view>
 

@@ -171,7 +171,6 @@ JSValue JSVectorWithVector(JSContext* context, Vector vector) {
 }
 
 bool VectorToJSValue(JSContext* context, Vector vector, JSValue* outValue) {
-
   return HPVectorToJSValue(context, vectorToHPVector(vector), outValue);
 }
 
@@ -193,7 +192,6 @@ JSValue JSVectorWithHPVector(JSContext* context, HPVector vector) {
 
 bool HPVectorToJSValue(JSContext* context, HPVector vector, JSValue* outValue) {
   OOJS_PROFILE_ENTER
-
 
   JSValue object = JSVectorWithHPVector(context, vector);
   if (EXPECT_NOT(JS_IsException(object))) {
@@ -242,7 +240,6 @@ static bool GetArrayElementNumber(JSContext* context, JSValueConst array,
 bool JSObjectGetVector(JSContext* context, JSValueConst vectorObj,
                        HPVector* outVector) {
   OOJS_PROFILE_ENTER
-
 
   HPVector* priv = nullptr;
   int64_t arrayLength;

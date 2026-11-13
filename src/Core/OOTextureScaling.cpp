@@ -34,7 +34,7 @@ SOFTWARE.
 #include "OOFunctionAttributes.h"
 #include "OOLogging.h"
 #include "oofnd/objc/OOAssert.h"
-#include "oofnd/objc/OOException.h"
+#include "oofnd/objc/OOException.h"  // IWYU pragma: keep: used only without NDEBUG
 
 #define DUMP_MIP_MAPS 0
 #define DUMP_SCALE 0

@@ -108,8 +108,8 @@ MA 02110-1301, USA.
 
 #include <format>
 
-#include "OOStringParsing.h"
-#include "oofnd/String.hpp"
+#include "OOStringParsing.h"  // IWYU pragma: keep: used only with DEBUG_GRAPHVIZ
+#include "oofnd/String.hpp"  // IWYU pragma: keep: used only by the debug dumps and integrity checks
 #if DEBUG_GRAPHVIZ
 #include "oofnd/FileSystem.hpp"
 #endif

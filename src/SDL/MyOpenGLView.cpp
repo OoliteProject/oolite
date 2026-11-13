@@ -990,9 +990,7 @@ void MyOpenGLView::setHDRPaperWhiteBrightness(float newPaperWhiteBrightness) {
                                     _hdrPaperWhiteBrightness);
 }
 
-OOHDRToneMapper MyOpenGLView::hdrToneMapper() {
-  return _hdrToneMapper;
-}
+OOHDRToneMapper MyOpenGLView::hdrToneMapper() { return _hdrToneMapper; }
 
 void MyOpenGLView::setHDRToneMapper(OOHDRToneMapper newToneMapper) {
   if (newToneMapper > OOHDRToneMapper::kReinhard)

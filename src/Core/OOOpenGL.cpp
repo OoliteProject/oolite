@@ -27,12 +27,12 @@ MA 02110-1301, USA.
 #include <format>
 
 #include "OOFunctionAttributes.h"
-#include "OOLogging.h"
+#include "OOLogging.h"  // IWYU pragma: keep: used only without NDEBUG or with OO_CHECK_GL_HEAVY
 #include "OOMacroOpenGL.h"
 // M_PI: Windows' <math.h> leaves it out unless _USE_MATH_DEFINES is set, and
 // OOMathsBase.h supplies it there.
-#include "OOMathsBase.h"  // IWYU pragma: keep
-#include "OOOpenGLExtensionManager.h"
+#include "OOMathsBase.h"               // IWYU pragma: keep
+#include "OOOpenGLExtensionManager.h"  // IWYU pragma: keep: used only without NDEBUG
 #include "oofnd/Log.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
