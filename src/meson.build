@@ -43,7 +43,9 @@ oolite_vendored_lib = static_library(
     override_options: oolite_override_options,
     install: false,
 )
-oolite_dependencies += [declare_dependency(link_with: oolite_vendored_lib)]
+# Its objects, not the archive: an LTO archive needs an archiver that indexes LLVM bitcode
+# (llvm-ar), and GNU ar, which the Windows CI image has, leaves every symbol unresolved.
+oolite_dependencies += [declare_dependency(objects: oolite_vendored_lib.extract_all_objects(recursive: true))]
 
 appname = 'oolite'
 exe_rpath = host_os == 'darwin' ? '@executable_path' : '$ORIGIN'

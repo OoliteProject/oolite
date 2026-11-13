@@ -167,9 +167,9 @@ OOMemoryStatus OOSystemMemoryStatus(void) {
   struct sysinfo si;
   sysinfo(&si);
   systemMemoryStatus.ooPhysicalMemory =
-      (unsigned long long)(si.totalram / toMegabyte);
+      static_cast<unsigned long long>(si.totalram / toMegabyte);
   systemMemoryStatus.ooAvailableMemory =
-      (unsigned long long)(si.freeram / toMegabyte);
+      static_cast<unsigned long long>(si.freeram / toMegabyte);
 #endif
 
   return systemMemoryStatus;
