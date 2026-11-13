@@ -68,12 +68,9 @@ SOFTWARE.
 using OOPolygonContour = std::vector<NSPoint>;
 
 using TessPolygonData = struct {
-  GLfloat* data;
-  size_t count;     // Number of vertices in use, i.e. half of number of data
-                    // elements used.
-  size_t capacity;  // Half of number of floats there is space for in data.
-  GLenum mode;      // Current primitive mode.
-  size_t vCount;    // Number of vertices so far in primitive.
+  std::vector<GLfloat> data;   // the vertices, as x, y pairs
+  GLenum mode;                 // Current primitive mode.
+  size_t vCount;               // Number of vertices so far in primitive.
   NSPoint pending0, pending1;  // Used for splitting
                                // GL_TRIANGLE_STRIP/GL_TRIANGLE_FAN primitives.
   bool OK;                     // Set to false to indicate error.
@@ -98,9 +95,6 @@ void SubmitVertices(GLUtesselator* tesselator, TessPolygonData* polygonData,
                     const OOPolygonContour& contour);
 }  // namespace
 
-static bool GrowTessPolygonData(
-    TessPolygonData* data,
-    size_t capacityHint);  // Returns true if capacity grew by at least one.
 static bool AppendVertex(TessPolygonData* data, NSPoint vertex);
 
 #ifndef NDEBUG
@@ -188,8 +182,6 @@ std::shared_ptr<OOPolygonSprite> OOPolygonSprite::initWithDataArray(
 
 OOPolygonSprite::~OOPolygonSprite() {
   OOGraphicsResetManager::sharedManager()->unregisterCxxClient(this);
-  free(_solidData);
-  free(_outlineData);
 }
 
 #ifndef NDEBUG
@@ -254,7 +246,7 @@ void OOPolygonSprite::drawFilled() {
   GLuint _solidVBO;  // Unusued
 #endif
 
-  drawWithData(_solidData, _solidCount, &_solidVBO);
+  drawWithData(_solidData.data(), _solidData.size() / 2, &_solidVBO);
 }
 
 void OOPolygonSprite::drawOutline() {
@@ -262,7 +254,7 @@ void OOPolygonSprite::drawOutline() {
   GLuint _outlineVBO;  // Unusued
 #endif
 
-  drawWithData(_outlineData, _outlineCount, &_outlineVBO);
+  drawWithData(_outlineData.data(), _outlineData.size() / 2, &_outlineVBO);
 }
 
 void OOPolygonSprite::resetGraphicsState() {
@@ -298,10 +290,7 @@ bool OOPolygonSprite::loadPolygons(const oo::PList& dataArray,
 
   // For efficiency, grow to more than big enough for most cases to avoid
   // regrowing.
-  if (!GrowTessPolygonData(&polygonData, 100)) {
-    polygonData.OK = false;
-    goto END;
-  }
+  polygonData.data.reserve(100 * 2);
 
   tesselator = gluNewTess();
   if (tesselator == nullptr) {
@@ -337,22 +326,8 @@ bool OOPolygonSprite::loadPolygons(const oo::PList& dataArray,
   SVGDumpEndGroup(&polygonData);
 
   if (polygonData.OK) {
-    _solidCount = polygonData.count;
-
-    if (_solidCount != 0) {
-      _solidData = static_cast<GLfloat*>(
-          realloc(polygonData.data, polygonData.count * sizeof(GLfloat) * 2));
-      if (_solidData != nullptr)
-        polygonData.data = nullptr;  // realloc succeded.
-      else {
-        // Unlikely, but legal: realloc failed to shrink buffer.
-        _solidData = polygonData.data;
-        if (_solidData == nullptr) polygonData.OK = false;
-      }
-    } else {
-      // Empty polygon.
-      _solidData = nullptr;
-    }
+    _solidData = std::move(polygonData.data);
+    _solidData.shrink_to_fit();
   }
   if (!polygonData.OK) goto END;
 
@@ -364,12 +339,8 @@ bool OOPolygonSprite::loadPolygons(const oo::PList& dataArray,
     goto END;
   }
 
-  polygonData.count = 0;
-  polygonData.capacity = 0;
-  if (!GrowTessPolygonData(&polygonData, 100)) {
-    polygonData.OK = false;
-    goto END;
-  }
+  polygonData.data = {};
+  polygonData.data.reserve(100 * 2);
 #ifndef NDEBUG
   polygonData.generatingOutline = true;
 #endif
@@ -407,27 +378,12 @@ bool OOPolygonSprite::loadPolygons(const oo::PList& dataArray,
   SVGDumpEndGroup(&polygonData);
 
   if (polygonData.OK) {
-    if (polygonData.count != 0) {
-      _outlineCount = polygonData.count;
-      _outlineData = static_cast<GLfloat*>(
-          realloc(polygonData.data, polygonData.count * sizeof(GLfloat) * 2));
-      if (_outlineData != nullptr)
-        polygonData.data = nullptr;  // realloc succeded.
-      else {
-        // Unlikely, but legal: realloc failed to shrink buffer.
-        _outlineData = polygonData.data;
-        if (_outlineData == nullptr) polygonData.OK = false;
-      }
-    } else {
-      // Empty polygon.
-      _outlineCount = 0;
-      _outlineData = nullptr;
-    }
+    _outlineData = std::move(polygonData.data);
+    _outlineData.shrink_to_fit();
   }
 
 END:
   SVGDumpEnd(&polygonData);
-  free(polygonData.data);
   gluDeleteTess(tesselator);
   return polygonData.OK;
 }
@@ -614,42 +570,11 @@ OOPolygonContour BuildOutlineContour(const OOPolygonContour& dataArray,
 
 }  // namespace
 
-static bool GrowTessPolygonData(TessPolygonData* data, size_t capacityHint) {
-  OOCParameterAssert(data != nullptr);
-
-  size_t minCapacity = data->capacity + 1;
-  size_t desiredCapacity = MAX(capacityHint, minCapacity);
-  size_t newCapacity = 0;
-  GLfloat* newData = static_cast<GLfloat*>(
-      realloc(data->data, desiredCapacity * sizeof(GLfloat) * 2));
-  if (newData != nullptr) {
-    newCapacity = desiredCapacity;
-  } else {
-    desiredCapacity = minCapacity;
-    newData = static_cast<GLfloat*>(
-        realloc(data->data, desiredCapacity * sizeof(GLfloat) * 2));
-    if (newData != nullptr) newCapacity = desiredCapacity;
-  }
-
-  if (newData == nullptr) return false;
-
-  OOCAssert(newCapacity > data->capacity, "Buffer regrow logic error");
-
-  data->data = newData;
-  data->capacity = newCapacity;
-  return true;
-}
-
 static bool AppendVertex(TessPolygonData* data, NSPoint vertex) {
   OOCParameterAssert(data != nullptr);
 
-  if (data->capacity == data->count &&
-      !GrowTessPolygonData(data, data->capacity * 2))
-    return false;
-
-  data->data[data->count * 2] = vertex.x;
-  data->data[data->count * 2 + 1] = vertex.y;
-  data->count++;
+  data->data.push_back(vertex.x);
+  data->data.push_back(vertex.y);
   return true;
 }
 
