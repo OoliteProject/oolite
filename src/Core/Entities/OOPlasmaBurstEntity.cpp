@@ -31,9 +31,10 @@ MA 02110-1301, USA.
 #define kPlasmaBurstGrowthRate 64.0f
 #define kPlasmaBurstDuration 2.0f
 
-oo::Ref<OOPlasmaBurstEntity> OOPlasmaBurstEntity::burstWithPosition(
+std::shared_ptr<OOPlasmaBurstEntity> OOPlasmaBurstEntity::burstWithPosition(
     HPVector inPosition) {
-  const oo::Ref<OOPlasmaBurstEntity> burst = oo::makeRef<OOPlasmaBurstEntity>();
+  const std::shared_ptr<OOPlasmaBurstEntity> burst =
+      oo::makeShared<OOPlasmaBurstEntity>();
   burst->initWithPosition(inPosition);
   return burst;
 }

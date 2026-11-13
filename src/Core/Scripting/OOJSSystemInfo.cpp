@@ -270,8 +270,8 @@ OOSystemInfo::OOSystemInfo(OOGalaxyID galaxy, OOSystemID system)
       _system(system),
       _planetKey(std::format("{} {}", galaxy, system)) {}
 
-oo::Ref<OOSystemInfo> OOSystemInfo::initWithGalaxy(OOGalaxyID galaxy,
-                                                   OOSystemID system) {
+std::shared_ptr<OOSystemInfo> OOSystemInfo::initWithGalaxy(OOGalaxyID galaxy,
+                                                           OOSystemID system) {
   if (galaxy > kOOMaximumGalaxyID || system > kOOMaximumSystemID ||
       system < kOOMinimumSystemID) {
     return nullptr;
@@ -424,7 +424,7 @@ static oo::PList SystemInfoConverter(JSContext* /*context*/,
                                      JSValueConst object) {
   OOSystemInfo* info = SystemInfoForObject(object);
   if (info == nullptr) return oo::PList();
-  return oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(info)));
+  return oo::PList(oo::PList::Object(oo::share(info)));
 }
 
 // Drop the cached SystemInfo object.
@@ -465,7 +465,7 @@ JSValue GetJSSystemInfoForSystem(JSContext* context, OOGalaxyID galaxy,
   }
 
   // If not, create a new one.
-  oo::Ref<OOSystemInfo> info;
+  std::shared_ptr<OOSystemInfo> info;
   JSValue result;
   OOJS_BEGIN_FULL_NATIVE(context)
   info = OOSystemInfo::initWithGalaxy(
@@ -1157,7 +1157,7 @@ static JSValue SystemInfoStaticFilteredSystems(OOJS_NATIVE_ARGS) {
   JSValue rval = JS_UNDEFINED;
   {
     oo::AutoreleaseScope pool;
-    std::vector<oo::Ref<OOSystemInfo>> result;
+    std::vector<std::shared_ptr<OOSystemInfo>> result;
     result.reserve(256);
 
     // Not OOJS_BEGIN_FULL_NATIVE() - we use JSAPI while paused.
@@ -1174,7 +1174,8 @@ static JSValue SystemInfoStaticFilteredSystems(OOJS_NATIVE_ARGS) {
     for (system = 0; system <= kOOMaximumSystemID; system++) {
       // NOTE: this deliberately bypasses the cache, since iteration is
       // inherently unfriendly to a single-item cache.
-      oo::Ref<OOSystemInfo> info = OOSystemInfo::initWithGalaxy(galaxy, system);
+      std::shared_ptr<OOSystemInfo> info =
+          OOSystemInfo::initWithGalaxy(galaxy, system);
       JSValue args[1] = {OOJSValueFromCxxObject(context, info.get())};
 
       OOJSResumeTimeLimiter();
@@ -1203,8 +1204,7 @@ static JSValue SystemInfoStaticFilteredSystems(OOJS_NATIVE_ARGS) {
       oo::PList::Array infos;
       infos.reserve(result.size());
       for (const auto& info : result)
-        infos.push_back(oo::PList(
-            oo::PList::Object(oo::Ref<oo::PListForeign>(info.get()))));
+        infos.push_back(oo::PList(oo::PList::Object(oo::share(info.get()))));
       rval = OOJSValueFromPList(context, oo::PList(std::move(infos)));
     } else {
       rval = OOJSNativeFailure(context);

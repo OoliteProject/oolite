@@ -6,7 +6,7 @@ Commodity price and quantity manager
 
 The universe
 holds it as oo::Ref, and the markets it makes are
-oo::Ref<OOCommodityMarket>.
+std::shared_ptr<OOCommodityMarket>.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -60,12 +60,13 @@ class OOCommodities : public oo::RefCounted {
   static std::optional<std::string> legacyCommodityType(
       std::size_t i);  // always a key (the old method never returned nil)
 
-  oo::Ref<OOCommodityMarket> generateManifestForPlayer();
-  oo::Ref<OOCommodityMarket> generateBlankMarket();
-  oo::Ref<OOCommodityMarket> generateMarketForSystemWithEconomy(
+  std::shared_ptr<OOCommodityMarket> generateManifestForPlayer();
+  std::shared_ptr<OOCommodityMarket> generateBlankMarket();
+  std::shared_ptr<OOCommodityMarket> generateMarketForSystemWithEconomy(
       OOEconomyID economy, const std::optional<std::string>&
                                scriptName);  // nullopt: no script (was nil)
-  oo::Ref<OOCommodityMarket> generateMarketForStation(::StationEntity* station);
+  std::shared_ptr<OOCommodityMarket> generateMarketForStation(
+      ::StationEntity* station);
 
   OOCreditsQuantity samplePriceForCommodity(
       const std::string& commodity, OOEconomyID economy,

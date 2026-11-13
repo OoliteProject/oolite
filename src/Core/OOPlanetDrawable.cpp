@@ -30,7 +30,7 @@
 #include "OOPlanetData.h"
 #include "OOSingleTextureMaterial.h"
 #include "OOStellarBody.h"
-#include "OOTexture.h"  // allTextures() destroys oo::Ref<OOTexture>s
+#include "OOTexture.h"  // allTextures() destroys std::shared_ptr<OOTexture>s
 #include "Universe.h"
 #include "oofnd/Log.hpp"
 
@@ -43,17 +43,18 @@
 #define LOD_GRANULARITY (static_cast<float>(kOOPlanetDataLevels - 1))
 #define LOD_FACTOR (1.0 / 4.0)
 
-oo::Ref<OOPlanetDrawable> OOPlanetDrawable::planetWithTextureName(
+std::shared_ptr<OOPlanetDrawable> OOPlanetDrawable::planetWithTextureName(
     const std::string& textureName, float radius) {
-  oo::Ref<OOPlanetDrawable> result = oo::makeRef<OOPlanetDrawable>();
+  std::shared_ptr<OOPlanetDrawable> result = oo::makeShared<OOPlanetDrawable>();
   result->setTextureName(textureName);
   result->setRadius(radius);
 
   return result;
 }
 
-oo::Ref<OOPlanetDrawable> OOPlanetDrawable::atmosphereWithRadius(float radius) {
-  oo::Ref<OOPlanetDrawable> result = initAsAtmosphere();
+std::shared_ptr<OOPlanetDrawable> OOPlanetDrawable::atmosphereWithRadius(
+    float radius) {
+  std::shared_ptr<OOPlanetDrawable> result = initAsAtmosphere();
   result->setRadius(radius);
 
   return result;
@@ -67,8 +68,8 @@ OOPlanetDrawable::OOPlanetDrawable() {
   }
 }
 
-oo::Ref<OOPlanetDrawable> OOPlanetDrawable::initAsAtmosphere() {
-  oo::Ref<OOPlanetDrawable> self = oo::makeRef<OOPlanetDrawable>();
+std::shared_ptr<OOPlanetDrawable> OOPlanetDrawable::initAsAtmosphere() {
+  std::shared_ptr<OOPlanetDrawable> self = oo::makeShared<OOPlanetDrawable>();
   {  // -init could not fail.
     self->_isAtmosphere = true;
   }
@@ -78,10 +79,10 @@ oo::Ref<OOPlanetDrawable> OOPlanetDrawable::initAsAtmosphere() {
 
 // -dealloc's DESTROY(_material) is the member's destructor.
 
-oo::Ref<OOPlanetDrawable> OOPlanetDrawable::copy() {
-  oo::Ref<OOPlanetDrawable> copy =
-      oo::makeRef<OOPlanetDrawable>();  // [[[self class] allocWithZone:zone]
-                                        // init]: the class has no subclass
+std::shared_ptr<OOPlanetDrawable> OOPlanetDrawable::copy() {
+  std::shared_ptr<OOPlanetDrawable> copy =
+      oo::makeShared<OOPlanetDrawable>();  // [[[self class] allocWithZone:zone]
+                                           // init]: the class has no subclass
   copy->setMaterial(material());
   copy->_isAtmosphere = _isAtmosphere;
   copy->_radius = _radius;
@@ -95,7 +96,7 @@ OOMaterial* OOPlanetDrawable::material() { return _material.get(); }
 
 void OOPlanetDrawable::setMaterial(OOMaterial* material) {
   OOMaterialAutorelease(std::move(_material));  // [_material autorelease]
-  _material = oo::Ref<OOMaterial>(material);
+  _material = oo::share(material);
 }
 
 std::optional<std::string> OOPlanetDrawable::textureName() {
@@ -348,10 +349,10 @@ void OOPlanetDrawable::debugDrawNormals() {
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::Ref<OOTexture>> OOPlanetDrawable::allTextures() {
+std::vector<std::shared_ptr<OOTexture>> OOPlanetDrawable::allTextures() {
   OOMaterial* material = this->material();
   return material != nullptr ? material->allTextures()
-                             : std::vector<oo::Ref<OOTexture>>();
+                             : std::vector<std::shared_ptr<OOTexture>>();
 }
 
 #endif

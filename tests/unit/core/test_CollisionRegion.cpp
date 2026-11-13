@@ -42,7 +42,7 @@ class TestPlayer : public PlayerEntity {
 void SetUpTestPlayer() {
   static TestPlayer* player = nullptr;
   if (player == nullptr) {
-    oo::Ref<TestPlayer> made = oo::makeRef<TestPlayer>();
+    std::shared_ptr<TestPlayer> made = oo::makeRef<TestPlayer>();
     {
       oo::RetainEntity(oo::MadeEntity(
           made));  // +1, as PlayerEntity::sharedPlayer() makes the game's
@@ -65,7 +65,7 @@ bool EndsWith(const std::string& text, const std::string& tail) {
          text.compare(text.size() - tail.size(), tail.size(), tail) == 0;
 }
 
-oo::Ref<CollisionRegion> MakeUniverse() {
+std::shared_ptr<CollisionRegion> MakeUniverse() {
   return oo::makeRef<CollisionRegion>(CollisionRegion::AsUniverse{});
 }
 
@@ -77,8 +77,8 @@ CollisionRegion* RegionOf(Entity* entity) {
 // A universe with three regions: one at x = 1000 (radius 100) holding one at x
 // = 1000 (radius 10), and one at x = 5000 (radius 100). A sphere crossing the
 // first region's border is left out.
-oo::Ref<CollisionRegion> MakeTree() {
-  oo::Ref<CollisionRegion> universe = MakeUniverse();
+std::shared_ptr<CollisionRegion> MakeTree() {
+  std::shared_ptr<CollisionRegion> universe = MakeUniverse();
   universe->addSubregionAtPosition(make_HPvector(1000, 0, 0), 100);
   universe->addSubregionAtPosition(make_HPvector(1000, 0, 0),
                                    10);  // fits: nested
@@ -92,7 +92,7 @@ oo::Ref<CollisionRegion> MakeTree() {
 
 OO_TEST(universeAlone) {
   {
-    oo::Ref<CollisionRegion> universe = MakeUniverse();
+    std::shared_ptr<CollisionRegion> universe = MakeUniverse();
     OO_CHECK(universe != nullptr);
     OO_CHECK(universe->debugOut() == std::optional<std::string>("0:"));
     OO_CHECK(universe->collisionDescription() == "p0 - c0");
@@ -103,7 +103,7 @@ OO_TEST(universeAlone) {
 
 OO_TEST(subregionTree) {
   {
-    oo::Ref<CollisionRegion> universe = MakeTree();
+    std::shared_ptr<CollisionRegion> universe = MakeTree();
     OO_CHECK(universe->debugOut() == std::optional<std::string>("0:0:0:0:"));
     OO_CHECK(EndsWith(universe->descriptionComponents().value_or(""),
                       ", 2 subregions, 0 ents"));
@@ -117,7 +117,7 @@ OO_TEST(subregionTree) {
 
 OO_TEST(entitiesAreFiled) {
   {
-    oo::Ref<CollisionRegion> universe = MakeTree();
+    std::shared_ptr<CollisionRegion> universe = MakeTree();
     Entity* inner = MakeEntity(make_HPvector(1000, 0, 0), 5);
     Entity* second = MakeEntity(make_HPvector(5000, 0, 0), 5);
     Entity* distant = MakeEntity(make_HPvector(1.0e7, 0, 0), 5);
@@ -155,7 +155,7 @@ OO_TEST(entitiesAreFiled) {
 
 OO_TEST(entityListGrows) {
   {
-    oo::Ref<CollisionRegion> universe = MakeUniverse();
+    std::shared_ptr<CollisionRegion> universe = MakeUniverse();
     for (unsigned i = 0; i < COLLISION_MAX_ENTITIES * 3; i++) {
       universe->addEntity(MakeEntity(make_HPvector(i, 0, 0), 1));
     }
@@ -169,7 +169,7 @@ OO_TEST(shadowGeometry) {
   {
     // The function reads only Entity members of the sun, which is C++: a C++
     // sun with the same position and radius.
-    oo::Ref<OOSunEntity> sunRef = oo::makeRef<OOSunEntity>();
+    std::shared_ptr<OOSunEntity> sunRef = oo::makeRef<OOSunEntity>();
     sunRef->position = make_HPvector(0, 0, 10000);
     sunRef->collision_radius = 10;
     OOSunEntity* sun = sunRef.get();
@@ -196,7 +196,7 @@ OO_TEST(shadowGeometry) {
 
 OO_TEST(cxxRegion) {
   {
-    oo::Ref<CollisionRegion> universe = MakeUniverse();
+    std::shared_ptr<CollisionRegion> universe = MakeUniverse();
     universe->addSubregionAtPosition(make_HPvector(1000, 0, 0), 100);
     universe->addSubregionAtPosition(make_HPvector(5000, 0, 0), 100);
     OO_CHECK(universe->debugOut() == std::optional<std::string>("0:0:0:"));

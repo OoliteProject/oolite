@@ -48,10 +48,10 @@ SOFTWARE.
 // result): a new uniform whose initialiser answered nil is dropped (null)
 // instead of released.
 
-oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(
+std::shared_ptr<OOShaderUniform> OOShaderUniform::initWithName(
     const std::string& uniformName, OOShaderProgram* shaderProgram,
     GLint constValue) {
-  oo::Ref<OOShaderUniform> result = oo::adopt(new OOShaderUniform());
+  std::shared_ptr<OOShaderUniform> result = oo::adopt(new OOShaderUniform());
   if (!result->initWithName(uniformName, shaderProgram)) return nullptr;
   {
     result->type = kOOShaderUniformTypeInt;
@@ -61,10 +61,10 @@ oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(
   return result;
 }
 
-oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(
+std::shared_ptr<OOShaderUniform> OOShaderUniform::initWithName(
     const std::string& uniformName, OOShaderProgram* shaderProgram,
     GLfloat constValue) {
-  oo::Ref<OOShaderUniform> result = oo::adopt(new OOShaderUniform());
+  std::shared_ptr<OOShaderUniform> result = oo::adopt(new OOShaderUniform());
   if (!result->initWithName(uniformName, shaderProgram)) return nullptr;
   {
     result->type = kOOShaderUniformTypeFloat;
@@ -74,10 +74,10 @@ oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(
   return result;
 }
 
-oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(
+std::shared_ptr<OOShaderUniform> OOShaderUniform::initWithName(
     const std::string& uniformName, OOShaderProgram* shaderProgram,
     GLfloat constValue[4]) {
-  oo::Ref<OOShaderUniform> result = oo::adopt(new OOShaderUniform());
+  std::shared_ptr<OOShaderUniform> result = oo::adopt(new OOShaderUniform());
   if (!result->initWithName(uniformName, shaderProgram)) return nullptr;
   {
     result->type = kOOShaderUniformTypeVector;
@@ -88,14 +88,14 @@ oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(
   return result;
 }
 
-oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(
+std::shared_ptr<OOShaderUniform> OOShaderUniform::initWithName(
     const std::string& uniformName, OOShaderProgram* shaderProgram,
     OOColor* constValue) {
   if (EXPECT_NOT(constValue == nullptr)) {
     return nullptr;
   }
 
-  oo::Ref<OOShaderUniform> result = oo::adopt(new OOShaderUniform());
+  std::shared_ptr<OOShaderUniform> result = oo::adopt(new OOShaderUniform());
   if (!result->initWithName(uniformName, shaderProgram)) return nullptr;
   {
     result->type = kOOShaderUniformTypeVector;
@@ -108,10 +108,10 @@ oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(
   return result;
 }
 
-oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(
+std::shared_ptr<OOShaderUniform> OOShaderUniform::initWithName(
     const std::string& uniformName, OOShaderProgram* shaderProgram,
     Quaternion constValue, bool asMatrix) {
-  oo::Ref<OOShaderUniform> result = oo::adopt(new OOShaderUniform());
+  std::shared_ptr<OOShaderUniform> result = oo::adopt(new OOShaderUniform());
   if (!result->initWithName(uniformName, shaderProgram)) return nullptr;
   {
     if (asMatrix) {
@@ -129,10 +129,10 @@ oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(
   return result;
 }
 
-oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(
+std::shared_ptr<OOShaderUniform> OOShaderUniform::initWithName(
     const std::string& uniformName, OOShaderProgram* shaderProgram,
     OOMatrix constValue) {
-  oo::Ref<OOShaderUniform> result = oo::adopt(new OOShaderUniform());
+  std::shared_ptr<OOShaderUniform> result = oo::adopt(new OOShaderUniform());
   if (!result->initWithName(uniformName, shaderProgram)) return nullptr;
   {
     result->type = kOOShaderUniformTypeMatrix;
@@ -142,7 +142,7 @@ oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(
   return result;
 }
 
-oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(
+std::shared_ptr<OOShaderUniform> OOShaderUniform::initWithName(
     const std::string& uniformName, OOShaderProgram* shaderProgram,
     oo::RefCounted* target, const std::string& property, uint8_t boundType,
     OOShaderCxxBindingGetter get, OOUniformConvertOptions options) {
@@ -156,7 +156,7 @@ oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(
                  boundType >= kOOShaderUniformTypeCount))
     return nullptr;
 
-  oo::Ref<OOShaderUniform> result = oo::adopt(new OOShaderUniform());
+  std::shared_ptr<OOShaderUniform> result = oo::adopt(new OOShaderUniform());
   result->location =
       glGetUniformLocationARB(shaderProgram->program(), uniformName.c_str());
   if (result->location == -1) {
@@ -178,12 +178,12 @@ oo::Ref<OOShaderUniform> OOShaderUniform::initWithName(
   result->value.binding.cxxGet = get;
   result->cxxTargetOnly = true;
   result->cxxProperty = property;
-  result->cxxTarget = target;
+  result->cxxTarget = oo::share(target);
   result->isActiveBinding = target != nullptr;
   return result;
 }
 
-oo::Ref<OOShaderUniform> OOShaderUniform::initWithEntityTarget(
+std::shared_ptr<OOShaderUniform> OOShaderUniform::initWithEntityTarget(
     const std::string& uniformName, OOShaderProgram* shaderProgram,
     Entity* target, const char* property, OOUniformConvertOptions options) {
   // The selector initialiser's checks and log line, its target the entity: the
@@ -193,7 +193,7 @@ oo::Ref<OOShaderUniform> OOShaderUniform::initWithEntityTarget(
   if (EXPECT_NOT(shaderProgram == nullptr || property == nullptr))
     return nullptr;
 
-  oo::Ref<OOShaderUniform> result = oo::adopt(new OOShaderUniform());
+  std::shared_ptr<OOShaderUniform> result = oo::adopt(new OOShaderUniform());
   result->location =
       glGetUniformLocationARB(shaderProgram->program(), uniformName.c_str());
   if (result->location == -1) {
@@ -232,7 +232,7 @@ std::optional<std::string> OOShaderUniform::description() {
 
   if (isBinding && entityMember) {
     // An entity's member: the class, the entity's address and the property.
-    oo::RefCounted* cxxObject = cxxTarget.get();
+    oo::RefCounted* cxxObject = cxxTarget.lock().get();
     if (cxxObject != nullptr)
       valueDesc =
           std::format("[<{} {}> {}]", "Entity",
@@ -241,7 +241,7 @@ std::optional<std::string> OOShaderUniform::description() {
       valueDesc = "0";
   } else if (isBinding && cxxTargetOnly) {
     // A C++ target: its address and the member's name.
-    oo::RefCounted* cxxObject = cxxTarget.get();
+    oo::RefCounted* cxxObject = cxxTarget.lock().get();
     if (cxxObject != nullptr)
       valueDesc = std::format(
           "[<{}> {}]", oo::str::pointerDescription(cxxObject), cxxProperty);
@@ -356,7 +356,7 @@ void OOShaderUniform::setEntityBindingTarget(Entity* target) {
   if (target != nullptr && hooks != nullptr &&
       hooks->memberBinding(target, cxxProperty.c_str(), &memberBinding)) {
     value.binding.cxxGet = memberBinding.get;
-    cxxTarget = memberBinding.target;
+    cxxTarget = oo::share(memberBinding.target);
     type = memberBinding.type;
     entityMember = true;
     isActiveBinding = true;
@@ -369,7 +369,7 @@ void OOShaderUniform::setEntityBindingTarget(Entity* target) {
      no hooks) nothing was bound or logged.
   */
   value.binding.cxxGet = nullptr;
-  cxxTarget = nullptr;
+  cxxTarget.reset();
   isActiveBinding = false;
   if (target != nullptr && hooks != nullptr &&
       hooks->className(target) != "(null)") {
@@ -450,7 +450,7 @@ void OOShaderUniform::applyBinding() {
   {
     // The C++ target (the entity, or the C++ object), held weakly: once it has
     // gone, nothing is set.
-    oo::RefCounted* cxxObject = cxxTarget.get();
+    oo::RefCounted* cxxObject = cxxTarget.lock().get();
     if (cxxObject == nullptr) return;
     value.binding.cxxGet(cxxObject, member);
   }

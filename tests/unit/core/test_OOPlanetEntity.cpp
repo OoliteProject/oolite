@@ -63,7 +63,7 @@ public:
 template <class T>
 T *NewTestPlayer()
 {
-	oo::Ref<T> player = oo::makeRef<T>();
+	std::shared_ptr<T> player = oo::makeRef<T>();
 	{
 		oo::RetainEntity(oo::MadeEntity(player));
 	}
@@ -95,7 +95,7 @@ std::vector<std::string> sTexturesAsked;
 
 // OOTexture::configurationFactory, the test-only loader hook: records the name,
 // finds nothing.
-oo::Ref<OOTexture> NoTexture(const oo::PList &configuration)
+std::shared_ptr<OOTexture> NoTexture(const oo::PList &configuration)
 {
 	sTexturesAsked.push_back(configuration.get<std::string>("name", "?"));
 	return nullptr;
@@ -160,7 +160,7 @@ oo::PList PlanetDict(int radiusKm)
 OOPlanetEntity *Planet(bool atmosphere, int radiusKm = 5000)
 {
 	Random_Seed seed = { 1, 2, 3, 4, 5, 6 };
-	oo::Ref<OOPlanetEntity> planet = oo::makeRef<OOPlanetEntity>();
+	std::shared_ptr<OOPlanetEntity> planet = oo::makeRef<OOPlanetEntity>();
 	(void)oo::MadeEntity(planet);
 	planet->initFromDictionary(PlanetDict(radiusKm), atmosphere, seed, 7);
 	return planet.get();
@@ -170,7 +170,7 @@ OOPlanetEntity *Planet(bool atmosphere, int radiusKm = 5000)
 // The miniature version: a new C++ planet.
 OOPlanetEntity *Miniature(OOPlanetEntity *planet)
 {
-	oo::Ref<OOPlanetEntity> mini = planet->miniatureVersion();
+	std::shared_ptr<OOPlanetEntity> mini = planet->miniatureVersion();
 	(void)oo::MadeEntity(mini);
 	return mini.get();
 }
@@ -252,19 +252,19 @@ OO_TEST(shaderValues)
 		SetUp();
 		OOPlanetEntity *planet = Planet(false);
 
-		oo::Ref<OOColor>	red = OOColor::colorWithRed(1.0f, 0.0f, 0.0f, 1.0f);
+		std::shared_ptr<OOColor>	red = OOColor::colorWithRed(1.0f, 0.0f, 0.0f, 1.0f);
 		planet->setAirColor(red.get());
-		OO_CHECK(planet->airColor() == red);
+		OO_CHECK(planet->airColor() == red.get());
 		planet->setAirColor(nullptr);		// ignored
-		OO_CHECK(planet->airColor() == red);
+		OO_CHECK(planet->airColor() == red.get());
 		Vector v = planet->airColorAsVector();
 		OO_CHECK(v.x == 1.0f && v.y == 0.0f && v.z == 0.0f);
 
-		oo::Ref<OOColor>	blue = OOColor::colorWithRed(0.0f, 0.0f, 1.0f, 1.0f);
+		std::shared_ptr<OOColor>	blue = OOColor::colorWithRed(0.0f, 0.0f, 1.0f, 1.0f);
 		planet->setIlluminationColor(blue.get());
-		OO_CHECK(planet->illuminationColor() == blue);
+		OO_CHECK(planet->illuminationColor() == blue.get());
 		planet->setIlluminationColor(nullptr);	// ignored
-		OO_CHECK(planet->illuminationColor() == blue);
+		OO_CHECK(planet->illuminationColor() == blue.get());
 		v = planet->illuminationColorAsVector();
 		OO_CHECK(v.x == 0.0f && v.y == 0.0f && v.z == 1.0f);
 

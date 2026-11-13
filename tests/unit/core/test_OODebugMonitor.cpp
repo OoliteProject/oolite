@@ -106,7 +106,7 @@ class TestEntityObject final : public oo::RefCounted
 public:
 	const char *className() const  { return "Entity"; }
 
-	oo::Ref<Entity> _cxxEntity;
+	std::shared_ptr<Entity> _cxxEntity;
 };
 
 class ShipEntity : public Entity
@@ -232,7 +232,7 @@ std::string OONull::description() const	{ return "<null>"; }
 class OOJSScript : public OOScript
 {
 public:
-	static oo::Ref<OOJSScript> scriptWithPath(const std::optional<std::string> &path, const oo::PList &properties);
+	static std::shared_ptr<OOJSScript> scriptWithPath(const std::optional<std::string> &path, const oo::PList &properties);
 	static OOJSScript *currentlyRunningScript();
 
 	bool callMethod(JSAtom methodID, JSContext *context, JSValueConst *argv, int argc, JSValue *outResult) override
@@ -257,7 +257,7 @@ JSValue OOScript::jsValueInContext(JSContext *)				{ return JS_UNDEFINED; }
 void OOScript::clearJSSelf(JSValueConst)						{}
 std::optional<std::string> OOScript::displayName()			{ return "test script"; }
 
-oo::Ref<OOJSScript> OOJSScript::scriptWithPath(const std::optional<std::string> &path, const oo::PList &properties)
+std::shared_ptr<OOJSScript> OOJSScript::scriptWithPath(const std::optional<std::string> &path, const oo::PList &properties)
 {
 	(void)path;
 	sConsoleScriptsMade++;
@@ -282,7 +282,7 @@ JSValue JSSpecialFunctionsObjectWrapper(JSContext *context)
 
 // A held JS value (OOJSEngineCore.h): the special-functions object's wrapper, which the monitor
 // makes only for an object (never here).
-oo::Ref<OOJSValue> OOJSValue::valueWithJSValue(JSValueConst, JSContext *)	{ std::abort(); }
+std::shared_ptr<OOJSValue> OOJSValue::valueWithJSValue(JSValueConst, JSContext *)	{ std::abort(); }
 OOJSValue::~OOJSValue()										{}
 std::string OOJSValue::className() const						{ return "OOJSValue"; }
 std::string OOJSValue::description() const					{ return "<OOJSValue>"; }
@@ -331,8 +331,8 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string &path)
 // No textures, so the memory dump lists none; and no entity class is ever an
 // entity. The C++ OOTexture's static members, and the member the dump calls on
 // each texture (there are none: never reached).
-std::vector<oo::Ref<OOTexture>> OOTexture::cachedTexturesByAge()	{ return {}; }
-std::vector<oo::Ref<OOTexture>> OOTexture::allTextures()			{ return {}; }
+std::vector<std::shared_ptr<OOTexture>> OOTexture::cachedTexturesByAge()	{ return {}; }
+std::vector<std::shared_ptr<OOTexture>> OOTexture::allTextures()			{ return {}; }
 size_t OOTexture::dataSize()	{ std::abort(); }
 
 
@@ -455,7 +455,7 @@ void SetUp()
 	oxp.emplace("show-console-on-log", oo::PList(kFalse));
 	oxp.emplace("error-fg-color", oo::PList("redColor"));
 	oxp.emplace("bogus-color", oo::PList("not a colour"));
-	oxp.emplace("hidden", oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(OONull::null()))));	// [OONull null]
+	oxp.emplace("hidden", oo::PList(oo::PList::Object(oo::share(OONull::null()))));	// [OONull null]
 	sOXPConfig = oo::PList(std::move(oxp));
 
 	oo::PList::Dict overrides;
@@ -513,7 +513,7 @@ int LogLinesContaining(std::string_view text)
 TestDebugger *NewDebugger()
 {
 	// Kept for the rest of the run (the Objective-C debugger lived until its test's pool drained).
-	static std::vector<oo::Ref<TestDebugger>> debuggers;
+	static std::vector<std::shared_ptr<TestDebugger>> debuggers;
 	debuggers.push_back(oo::makeRef<TestDebugger>());
 	return debuggers.back().get();
 }

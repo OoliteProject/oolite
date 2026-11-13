@@ -27,9 +27,9 @@ uint32_t gDebugFlags = 0;
 
 // The C++ texture, kept until the current autorelease scope drains
 // (oo::autorelease).
-static OOTexture* Autoreleased(const oo::Ref<OOTexture>& texture) {
+static OOTexture* Autoreleased(const std::shared_ptr<OOTexture>& texture) {
   if (texture == nullptr) return nullptr;
-  oo::autorelease(oo::Ref<OOTexture>(texture));
+  oo::autorelease(std::shared_ptr<OOTexture>(texture));
   return texture.get();
 }
 
@@ -54,9 +54,9 @@ OOPixMap TestPixMap() {
 
 // The generators made, kept for the test's life (each was autoreleased in its
 // case's pool).
-std::vector<oo::Ref<OOTextureGenerator>> gKeptGenerators;
+std::vector<std::shared_ptr<OOTextureGenerator>> gKeptGenerators;
 
-OOTextureGenerator* Kept(oo::Ref<OOTextureGenerator> generator) {
+OOTextureGenerator* Kept(std::shared_ptr<OOTextureGenerator> generator) {
   if (generator != nullptr) gKeptGenerators.push_back(generator);
   return generator.get();
 }
@@ -174,7 +174,7 @@ OO_TEST(cxxApi) {
     oo::AutoreleaseScope pool;
     OO_CHECK(!OOPixMapTextureLoader::loaderWithPixMap(kOONullPixMap, OOTextureFlags::kNone, true));
 
-    const oo::Ref<OOPixMapTextureLoader> loader =
+    const std::shared_ptr<OOPixMapTextureLoader> loader =
         OOPixMapTextureLoader::loaderWithPixMap(
             TestPixMap(), OOTextureFlags::kMinFilterLinear, true);
     OO_CHECK(loader &&

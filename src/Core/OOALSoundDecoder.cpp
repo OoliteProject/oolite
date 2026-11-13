@@ -52,7 +52,7 @@ class OOALSoundVorbisCodec final : public OOALSoundDecoder {
  public:
   // Was [[OOALSoundVorbisCodec alloc] cxx_initWithPath:]: null where it
   // answered nil.
-  static oo::Ref<OOALSoundDecoder> createWithPath(
+  static std::shared_ptr<OOALSoundDecoder> createWithPath(
       const std::optional<std::string>& path);
 
   ~OOALSoundVorbisCodec() override;
@@ -84,9 +84,9 @@ class OOALSoundVorbisCodec final : public OOALSoundDecoder {
 
 }  // namespace
 
-oo::Ref<OOALSoundDecoder> OOALSoundDecoder::initWithPath(
+std::shared_ptr<OOALSoundDecoder> OOALSoundDecoder::initWithPath(
     const std::optional<std::string>& inPath) {
-  oo::Ref<OOALSoundDecoder> self;
+  std::shared_ptr<OOALSoundDecoder> self;
 
   if (oo::str::pathExtension(inPath.value_or(std::string())) == "ogg") {
     self = OOALSoundVorbisCodec::createWithPath(inPath);
@@ -95,7 +95,7 @@ oo::Ref<OOALSoundDecoder> OOALSoundDecoder::initWithPath(
   return self;
 }
 
-oo::Ref<OOALSoundDecoder> OOALSoundDecoder::codecWithPath(
+std::shared_ptr<OOALSoundDecoder> OOALSoundDecoder::codecWithPath(
     const std::string& inPath) {
   if (oo::str::pathExtension(inPath) == "ogg") {
     return OOALSoundVorbisCodec::createWithPath(inPath);
@@ -128,9 +128,10 @@ std::optional<std::string> OOALSoundDecoder::descriptionComponents() const {
   return std::nullopt;
 }
 
-oo::Ref<OOALSoundDecoder> OOALSoundVorbisCodec::createWithPath(
+std::shared_ptr<OOALSoundDecoder> OOALSoundVorbisCodec::createWithPath(
     const std::optional<std::string>& path) {
-  oo::Ref<OOALSoundVorbisCodec> codec = oo::adopt(new OOALSoundVorbisCodec);
+  std::shared_ptr<OOALSoundVorbisCodec> codec =
+      oo::adopt(new OOALSoundVorbisCodec);
   if (!codec->initWithPath(path)) return nullptr;
   return codec;
 }

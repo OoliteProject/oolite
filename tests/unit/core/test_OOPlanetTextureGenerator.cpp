@@ -37,9 +37,9 @@ uint32_t gDebugFlags = 0;
 
 // The C++ texture, kept until the current autorelease scope drains
 // (oo::autorelease).
-static OOTexture* Autoreleased(const oo::Ref<OOTexture>& texture) {
+static OOTexture* Autoreleased(const std::shared_ptr<OOTexture>& texture) {
   if (texture == nullptr) return nullptr;
-  oo::autorelease(oo::Ref<OOTexture>(texture));
+  oo::autorelease(std::shared_ptr<OOTexture>(texture));
   return texture.get();
 }
 
@@ -78,9 +78,9 @@ oo::PList PlanetInfo(bool perlin3d) {
 
 // The generators made, kept for the test's life (each was autoreleased in its
 // case's pool).
-std::vector<oo::Ref<OOTextureGenerator>> gKeptGenerators;
+std::vector<std::shared_ptr<OOTextureGenerator>> gKeptGenerators;
 
-OOTextureGenerator* Kept(oo::Ref<OOTextureGenerator> generator) {
+OOTextureGenerator* Kept(std::shared_ptr<OOTextureGenerator> generator) {
   if (generator != nullptr) gKeptGenerators.push_back(generator);
   return generator.get();
 }
@@ -106,7 +106,7 @@ struct Textures {
 
 Textures GenerateWithAtmosphere(const oo::PList& info, RANROTSeed seed) {
   Textures t;
-  oo::Ref<OOTexture> texture, atmosphere;
+  std::shared_ptr<OOTexture> texture, atmosphere;
   t.ok = OOPlanetTextureGenerator::generatePlanetTextureAndAtmosphere(
       &texture, &atmosphere, info, seed);
   t.texture = Autoreleased(texture);
@@ -117,7 +117,7 @@ Textures GenerateWithAtmosphere(const oo::PList& info, RANROTSeed seed) {
 Textures GenerateWithSecondary(const oo::PList& info, RANROTSeed seed,
                                bool secondary) {
   Textures t;
-  oo::Ref<OOTexture> texture, secondaryTexture;
+  std::shared_ptr<OOTexture> texture, secondaryTexture;
   t.ok = OOPlanetTextureGenerator::generatePlanetTexture(
       &texture, secondary ? &secondaryTexture : NULL, info, seed);
   t.texture = Autoreleased(texture);
@@ -127,7 +127,7 @@ Textures GenerateWithSecondary(const oo::PList& info, RANROTSeed seed,
 
 Textures GenerateAll(const oo::PList& info, RANROTSeed seed, bool secondary) {
   Textures t;
-  oo::Ref<OOTexture> texture, secondaryTexture, atmosphere;
+  std::shared_ptr<OOTexture> texture, secondaryTexture, atmosphere;
   t.ok = OOPlanetTextureGenerator::generatePlanetTexture(
       &texture, secondary ? &secondaryTexture : NULL, &atmosphere, info, seed);
   t.texture = Autoreleased(texture);
@@ -293,7 +293,7 @@ OO_TEST(cxxApi) {
   SetUp();
   {
     oo::AutoreleaseScope pool;
-    const oo::Ref<OOPlanetTextureGenerator> generator =
+    const std::shared_ptr<OOPlanetTextureGenerator> generator =
         OOPlanetTextureGenerator::generatorWithPlanetInfo(
             PlanetInfo(false), (RANROTSeed){12345, 67890});
     OO_CHECK(generator &&

@@ -4,9 +4,9 @@ AI.h
 
 Core NPC behaviour/artificial intelligence class.
 
-The AI is the global C++ class AI, held as oo::Ref<AI>, and a deferred call
-holds it. The AI sends its owner's object its actions by name; the owner is the
-C++ ShipEntity, which the AI holds by weak reference (oo::WeakRef).
+The AI is the global C++ class AI, held as std::shared_ptr<AI>, and a deferred
+call holds it. The AI sends its owner's object its actions by name; the owner is
+the C++ ShipEntity, which the AI holds by weak reference (oo::WeakRef).
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -59,7 +59,7 @@ class ShipEntity;
 class Entity;
 class OOPreservedAIStateMachine;  // private to AI.cpp; global
 
-/*	A ship's AI. Held as oo::Ref<AI>; a ship's shipAI owns it.
+/*	A ship's AI. Held as std::shared_ptr<AI>; a ship's shipAI owns it.
  */
 class AI : public oo::RefCounted {
  public:
@@ -68,7 +68,7 @@ class AI : public oo::RefCounted {
 
   // [[AI alloc] cxx_initWithStateMachine:andState:]: a new AI running the state
   // machine (nullopt: none) in the state (nullopt: none).
-  static oo::Ref<AI> newWithStateMachine(
+  static std::shared_ptr<AI> newWithStateMachine(
       const std::optional<std::string>& smName,
       const std::optional<std::string>& stateName);
 
@@ -174,7 +174,8 @@ class AI : public oo::RefCounted {
                          const std::string& stateKey,
                          const std::string& smName);
 
-  oo::WeakRef<Entity> _owner = {};  // the ShipEntity this is the AI for, weakly
+  std::weak_ptr<Entity> _owner =
+      {};  // the ShipEntity this is the AI for, weakly
   std::optional<std::string> ownerDesc =
       {};  // describes the object this is the AI for; nullopt until it has an
            // owner
@@ -186,7 +187,7 @@ class AI : public oo::RefCounted {
   std::set<std::string> pendingMessages =
       {};  // in byte order (a Foundation set before)
 
-  std::vector<oo::Ref<OOPreservedAIStateMachine>>
+  std::vector<std::shared_ptr<OOPreservedAIStateMachine>>
       aiStack;  // no `= {}`: GCC instantiates ~Ref<T> at a default member
                 // initializer, and T is incomplete here
 
@@ -201,4 +202,4 @@ class AI : public oo::RefCounted {
    it may still be running lives exactly as long as its autoreleased object did.
    Nothing for null.
 */
-void OOAIAutorelease(oo::Ref<AI> ai);
+void OOAIAutorelease(std::shared_ptr<AI> ai);

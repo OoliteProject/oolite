@@ -50,7 +50,7 @@ class OOParticleSystem : public Entity {
   virtual OOTexture* texture();
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  std::vector<oo::Ref<OOTexture>> allTextures() override;
+  std::vector<std::shared_ptr<OOTexture>> allTextures() override;
 #endif
 
  protected:
@@ -79,7 +79,7 @@ class OOParticleSystem : public Entity {
 
 class OOSmallFragmentBurstEntity : public OOParticleSystem {
  public:
-  static oo::Ref<OOSmallFragmentBurstEntity> fragmentBurstFromEntity(
+  static std::shared_ptr<OOSmallFragmentBurstEntity> fragmentBurstFromEntity(
       Entity* entity);  // the C++ entity
 
   void update(OOTimeDelta delta_t) override;
@@ -91,7 +91,7 @@ class OOSmallFragmentBurstEntity : public OOParticleSystem {
 
 class OOBigFragmentBurstEntity : public OOParticleSystem {
  public:
-  static oo::Ref<OOBigFragmentBurstEntity> fragmentBurstFromEntity(
+  static std::shared_ptr<OOBigFragmentBurstEntity> fragmentBurstFromEntity(
       Entity* entity);  // the C++ entity
 
   void update(double delta_t) override;

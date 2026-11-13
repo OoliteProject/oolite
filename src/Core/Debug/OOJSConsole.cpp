@@ -116,7 +116,7 @@ static JSValue ConsoleTrace(OOJS_NATIVE_ARGS);
 namespace {
 bool PerformProfiling(JSContext* context, const char* nominalFunction, int argc,
                       JSValueConst* argv, JSValue* outRval, bool trace,
-                      oo::Ref<OOTimeProfile>* outProfile);
+                      std::shared_ptr<OOTimeProfile>* outProfile);
 }  // namespace
 #endif
 
@@ -362,7 +362,7 @@ OODebugMonitor* MonitorForConsoleObject(JSContext* context, JSValueConst object,
 oo::PList ConsoleConverter(JSContext* /*context*/, JSValueConst object) {
   OODebugMonitor* monitor = MonitorFromJSObject(object);
   if (monitor == nullptr) return oo::PList();
-  return oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(monitor)));
+  return oo::PList(oo::PList::Object(oo::share(monitor)));
 }
 
 }  // namespace
@@ -821,7 +821,7 @@ static JSValue ConsoleScriptStack(OOJS_NATIVE_ARGS) {
   // The scripts' nodes (a script that has gone, which a timer or definition
   // pushed weakly, is null).
   oo::PList::Array stack;
-  for (const oo::Ref<OOJSScript>& script : OOJSScript::scriptStack())
+  for (const std::shared_ptr<OOJSScript>& script : OOJSScript::scriptStack())
     stack.push_back(OOScriptObjectNode(script.get()));
   OOJS_RETURN_PLIST(oo::PList(std::move(stack)));
 
@@ -1307,7 +1307,7 @@ static JSValue ConsoleProfile(OOJS_NATIVE_ARGS) {
   JSValue result = JS_UNDEFINED;
   {
     oo::AutoreleaseScope pool;  // was @autoreleasepool
-    oo::Ref<OOTimeProfile> profile;
+    std::shared_ptr<OOTimeProfile> profile;
 
     if (PerformProfiling(context, "profile", argc, OOJS_ARGV, nullptr, false,
                          &profile)) {
@@ -1340,7 +1340,7 @@ static JSValue ConsoleGetProfile(OOJS_NATIVE_ARGS) {
   JSValue result = JS_UNDEFINED;
   {
     oo::AutoreleaseScope pool;  // was @autoreleasepool
-    oo::Ref<OOTimeProfile> profile;
+    std::shared_ptr<OOTimeProfile> profile;
 
     if (PerformProfiling(context, "getProfile", argc, OOJS_ARGV, nullptr, false,
                          &profile)) {
@@ -1392,7 +1392,7 @@ namespace {
 
 bool PerformProfiling(JSContext* context, const char* nominalFunction, int argc,
                       JSValueConst* argv, JSValue* outRval, bool trace,
-                      oo::Ref<OOTimeProfile>* outProfile) {
+                      std::shared_ptr<OOTimeProfile>* outProfile) {
   // Get function.
   if (argc < 1 || !OOJSValueIsFunction(context, argv[0])) {
     cxx_OOJSReportBadArguments(context, "Console", nominalFunction,
@@ -1427,7 +1427,7 @@ bool PerformProfiling(JSContext* context, const char* nominalFunction, int argc,
   JSValue rval = JS_Call(context, function, thisObj, 0, nullptr);
 
   // Get results.
-  oo::Ref<OOTimeProfile> profile = OOJSEndProfiling();
+  std::shared_ptr<OOTimeProfile> profile = OOJSEndProfiling();
   if (outProfile != nullptr) *outProfile = std::move(profile);
 
   // Restore original timer state.

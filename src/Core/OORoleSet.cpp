@@ -33,22 +33,23 @@ SOFTWARE.
 #include "OOMaths.h"  // randf()
 #include "oofnd/String.hpp"
 
-oo::Ref<OORoleSet> OORoleSet::roleSetWithString(const std::string& roleString) {
-  oo::Ref<OORoleSet> result = oo::makeRef<OORoleSet>();
+std::shared_ptr<OORoleSet> OORoleSet::roleSetWithString(
+    const std::string& roleString) {
+  std::shared_ptr<OORoleSet> result = oo::makeShared<OORoleSet>();
   if (!result->initWithRoleString(roleString)) return nullptr;
   return result;
 }
 
-oo::Ref<OORoleSet> OORoleSet::roleSetWithRole(const std::string& role,
-                                              float probability) {
-  oo::Ref<OORoleSet> result = oo::makeRef<OORoleSet>();
+std::shared_ptr<OORoleSet> OORoleSet::roleSetWithRole(const std::string& role,
+                                                      float probability) {
+  std::shared_ptr<OORoleSet> result = oo::makeShared<OORoleSet>();
   if (!result->initWithRole(role, probability)) return nullptr;
   return result;
 }
 
-oo::Ref<OORoleSet> OORoleSet::roleSetWithRolesAndProbabilities(
+std::shared_ptr<OORoleSet> OORoleSet::roleSetWithRolesAndProbabilities(
     const std::map<std::string, float>* dict) {
-  oo::Ref<OORoleSet> result = oo::makeRef<OORoleSet>();
+  std::shared_ptr<OORoleSet> result = oo::makeShared<OORoleSet>();
   if (!result->initWithRolesAndProbabilities(dict)) return nullptr;
   return result;
 }
@@ -174,12 +175,12 @@ std::optional<std::string> OORoleSet::anyRole() {
   return role;
 }
 
-oo::Ref<OORoleSet> OORoleSet::roleSetWithAddedRoleIfNotSet(
+std::shared_ptr<OORoleSet> OORoleSet::roleSetWithAddedRoleIfNotSet(
     const std::string& role, float probability) {
   if (role.empty() || probability < 0 ||
       (_rolesAndProbabilities.contains(role) &&
        probabilityForRole(role) == probability)) {
-    return oo::Ref<OORoleSet>(this);  // copy is retain: a role set is immutable
+    return oo::share(this);  // copy is retain: a role set is immutable
   }
 
   std::map<std::string, float> dict = _rolesAndProbabilities;
@@ -187,11 +188,11 @@ oo::Ref<OORoleSet> OORoleSet::roleSetWithAddedRoleIfNotSet(
   return roleSetWithRolesAndProbabilities(&dict);
 }
 
-oo::Ref<OORoleSet> OORoleSet::roleSetWithAddedRole(const std::string& role,
-                                                   float probability) {
+std::shared_ptr<OORoleSet> OORoleSet::roleSetWithAddedRole(
+    const std::string& role, float probability) {
   if (role.empty() || probability < 0 ||
       _rolesAndProbabilities.contains(role)) {
-    return oo::Ref<OORoleSet>(this);  // copy is retain: a role set is immutable
+    return oo::share(this);  // copy is retain: a role set is immutable
   }
 
   std::map<std::string, float> dict = _rolesAndProbabilities;
@@ -199,9 +200,10 @@ oo::Ref<OORoleSet> OORoleSet::roleSetWithAddedRole(const std::string& role,
   return roleSetWithRolesAndProbabilities(&dict);
 }
 
-oo::Ref<OORoleSet> OORoleSet::roleSetWithRemovedRole(const std::string& role) {
+std::shared_ptr<OORoleSet> OORoleSet::roleSetWithRemovedRole(
+    const std::string& role) {
   if (!_rolesAndProbabilities.contains(role))
-    return oo::Ref<OORoleSet>(this);  // copy is retain
+    return oo::share(this);  // copy is retain
 
   std::map<std::string, float> dict = _rolesAndProbabilities;
   dict.erase(role);

@@ -57,14 +57,14 @@ class OOJSPopulatorDefinition : public oo::RefCounted {
  private:
   void deleteJSPointers();
 
-  JSValue _callback = JS_UNDEFINED;       // Owned.
-  JSValue _callbackThis = JS_UNDEFINED;   // Owned.
-  oo::WeakRef<OOJSScript> _owningScript;  // a weak reference
+  JSValue _callback = JS_UNDEFINED;         // Owned.
+  JSValue _callbackThis = JS_UNDEFINED;     // Owned.
+  std::weak_ptr<OOJSScript> _owningScript;  // a weak reference
 };
 
 // A PList::Object node holding the definition (strongly), as the settings'
 // callbackObj.
 oo::PList OOJSPopulatorDefinitionToPList(
-    oo::Ref<OOJSPopulatorDefinition> definition);
+    std::shared_ptr<OOJSPopulatorDefinition> definition);
 // The definition inside such a node; nullptr for any other node.
 OOJSPopulatorDefinition* OOJSPopulatorDefinitionIn(const oo::PList& plist);

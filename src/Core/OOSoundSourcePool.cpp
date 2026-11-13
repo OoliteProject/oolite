@@ -38,9 +38,9 @@ using PoolElement = struct OOSoundSourcePoolElement {
   float priority;
 };
 
-oo::Ref<OOSoundSourcePool> OOSoundSourcePool::poolWithCount(
+std::shared_ptr<OOSoundSourcePool> OOSoundSourcePool::poolWithCount(
     uint8_t count, OOTimeDelta minRepeat) {
-  oo::Ref<OOSoundSourcePool> pool = oo::makeRef<OOSoundSourcePool>();
+  std::shared_ptr<OOSoundSourcePool> pool = oo::makeShared<OOSoundSourcePool>();
   if (!pool->initWithCount(count, minRepeat)) return nullptr;
   return pool;
 }

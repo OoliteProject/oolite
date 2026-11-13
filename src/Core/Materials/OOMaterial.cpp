@@ -42,8 +42,8 @@ namespace {
 /*	The current material, retained. Never destroyed, as the static pointer
    was not.
 */
-oo::Ref<OOMaterial>& ActiveMaterial() {
-  static auto* active = new oo::Ref<OOMaterial>;
+std::shared_ptr<OOMaterial>& ActiveMaterial() {
+  static auto* active = new std::shared_ptr<OOMaterial>;
   return *active;
 }
 
@@ -81,7 +81,7 @@ void OOMaterial::apply() {
   ActiveMaterial() = nullptr;
 
   if (doApply()) {
-    ActiveMaterial() = oo::Ref<OOMaterial>(this);
+    ActiveMaterial() = oo::share(this);
   }
 }
 
@@ -91,11 +91,11 @@ void OOMaterial::applyNone() {
   ActiveMaterial() = nullptr;
 }
 
-oo::Ref<OOMaterial> OOMaterial::current() { return ActiveMaterial(); }
+std::shared_ptr<OOMaterial> OOMaterial::current() { return ActiveMaterial(); }
 
 // OOMaterialState.h: the slot for plain C++ translation units.
 OOMaterial* OOMaterialRetainCurrent() {
-  return OOMaterial::current().leakRef();
+  return oo::leakRef(OOMaterial::current());
 }
 
 void OOMaterialApplyNone() { OOMaterial::applyNone(); }
@@ -118,7 +118,7 @@ std::size_t OOMaterial::countOfTextureUnitsWithBaseCoordinates() { return 1; }
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::Ref<OOTexture>> OOMaterial::allTextures() { return {}; }
+std::vector<std::shared_ptr<OOTexture>> OOMaterial::allTextures() { return {}; }
 #endif
 
 bool OOMaterial::doApply() {
@@ -136,8 +136,8 @@ void OOMaterial::willDealloc() {
            "***** Material deallocated while active, indicating a "
            "retain/release imbalance.");
     unapplyWithNext(nullptr);
-    (void)ActiveMaterial()
-        .leakRef();  // = nil: not released, it is being deallocated
+    (void)oo::leakRef(
+        ActiveMaterial());  // = nil: not released, it is being deallocated
   }
 }
 
@@ -145,7 +145,7 @@ void OOMaterial::willDealloc() {
    oo::AutoreleaseScope, whose drain releases it where the keeper object that
    held it was released.
 */
-void OOMaterialAutorelease(oo::Ref<OOMaterial> material) {
+void OOMaterialAutorelease(std::shared_ptr<OOMaterial> material) {
   if (material == nullptr) return;
   oo::autorelease(std::move(material));
 }

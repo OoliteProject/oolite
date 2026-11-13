@@ -56,7 +56,7 @@ class TestPlayer : public PlayerEntity {
 // retained (+1) as +alloc's object was.
 template <class T>
 T* NewTestPlayer() {
-  oo::Ref<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeRef<T>();
   {
     oo::AutoreleaseScope scope;
     oo::RetainEntity(oo::MadeEntity(player));
@@ -687,7 +687,7 @@ OO_TEST(cxxEntityBehindItsFacade) {
     oo::AutoreleaseScope scope;
     // The test's reference goes with the pool (the object's lifetime is the
     // entity's, so the live count below falls when the entity goes).
-    const oo::Ref<TestCxxEntity> entity = oo::makeRef<TestCxxEntity>();
+    const std::shared_ptr<TestCxxEntity> entity = oo::makeRef<TestCxxEntity>();
     SetUpUniverse();
     SetUpPlayer(kZeroHPVector, kZeroHPVector);
 

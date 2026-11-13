@@ -152,7 +152,7 @@ bool HasRoleInSetPredicate(Entity* ship, void* parameter) {
   // -intersectsSet: of them
   const std::vector<std::string>& roles =
       *static_cast<const std::vector<std::string>*>(parameter);
-  const oo::Ref<OORoleSet> roleSet = oo::ToShip(ship)->getRoleSet();
+  const std::shared_ptr<OORoleSet> roleSet = oo::ToShip(ship)->getRoleSet();
   if (roleSet == nullptr) return false;
   return std::any_of(
       roles.begin(), roles.end(),

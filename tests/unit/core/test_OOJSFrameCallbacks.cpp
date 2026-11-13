@@ -101,9 +101,9 @@ void OOJSReportPendingException(JSContext *context)
 
 // A JS value kept alive for C++ (OOJSEngineCore.h): the members the deferred
 // add calls, defined here with the stand-in's answers. It owns a reference.
-oo::Ref<OOJSValue> OOJSValue::valueWithJSValue(JSValueConst value, JSContext *context)
+std::shared_ptr<OOJSValue> OOJSValue::valueWithJSValue(JSValueConst value, JSContext *context)
 {
-	oo::Ref<OOJSValue> result = oo::makeRef<OOJSValue>();
+	std::shared_ptr<OOJSValue> result = oo::makeRef<OOJSValue>();
 	result->_val = JS_DupValue(context, value);
 	return result;
 }

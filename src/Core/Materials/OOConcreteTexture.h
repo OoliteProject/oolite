@@ -58,7 +58,7 @@ SOFTWARE.
    texture has no path, and a generator may have no cache key).
 
         A leaf of OOTexture. Its loader is the C++ OOTextureLoader, held as
-   oo::Ref. Callers hold it as an oo::Ref<OOTexture>.
+   oo::Ref. Callers hold it as an std::shared_ptr<OOTexture>.
 */
 class OOConcreteTexture : public OOTexture {
  public:
@@ -66,11 +66,11 @@ class OOConcreteTexture : public OOTexture {
      -initWithPath:..., which answered nil for no loader: null here. The new
      texture is in the caches.
   */
-  static oo::Ref<OOConcreteTexture> initWithLoader(
+  static std::shared_ptr<OOConcreteTexture> initWithLoader(
       OOTextureLoader* loader, const std::optional<std::string>& key,
       OOTextureFlags options, GLfloat anisotropy, GLfloat lodBias);
 
-  static oo::Ref<OOConcreteTexture> initWithPath(
+  static std::shared_ptr<OOConcreteTexture> initWithPath(
       const std::string& path, const std::optional<std::string>& key,
       OOTextureFlags options, float anisotropy, GLfloat lodBias);
 
@@ -133,7 +133,7 @@ class OOConcreteTexture : public OOTexture {
                     _valid : 1 = 0;
   uint8_t _mipLevels = {};
 
-  oo::Ref<OOTextureLoader> _loader = {};
+  std::shared_ptr<OOTextureLoader> _loader = {};
 
   void* _bytes = {};
   GLuint _textureName = {};

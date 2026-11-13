@@ -118,9 +118,9 @@ class OOPListSchemaVerifierDelegate {
 
 class OOPListSchemaVerifier : public oo::RefCounted {
  public:
-  static oo::Ref<OOPListSchemaVerifier> verifierWithSchema(
+  static std::shared_ptr<OOPListSchemaVerifier> verifierWithSchema(
       const oo::PList& schema);  // null for a null schema
-  static oo::Ref<OOPListSchemaVerifier> initWithSchema(
+  static std::shared_ptr<OOPListSchemaVerifier> initWithSchema(
       const oo::PList& schema);  // -initWithSchema:; null for a null schema
 
   void setDelegate(OOPListSchemaVerifierDelegate* delegate);  // not retained

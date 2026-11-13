@@ -47,7 +47,7 @@ class TestPlayer : public PlayerEntity {
 // PlayerEntity::sharedPlayer() makes the game's, retained (+1).
 template <class T>
 T* NewTestPlayer() {
-  oo::Ref<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeRef<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }

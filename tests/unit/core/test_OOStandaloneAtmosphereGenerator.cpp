@@ -35,9 +35,9 @@ uint32_t gDebugFlags = 0;
 
 // What an autoreleased texture is: the C++ texture, kept until the current
 // autorelease scope drains (oo::autorelease).
-static OOTexture* Autoreleased(const oo::Ref<OOTexture>& texture) {
+static OOTexture* Autoreleased(const std::shared_ptr<OOTexture>& texture) {
   if (texture == nullptr) return nullptr;
-  oo::autorelease(oo::Ref<OOTexture>(texture));
+  oo::autorelease(std::shared_ptr<OOTexture>(texture));
   return texture.get();
 }
 
@@ -71,9 +71,9 @@ oo::PList PlanetInfo(float cloudAlpha, bool perlin3d) {
 
 // The generators made, kept for the test's life (each was autoreleased in its
 // case's pool).
-std::vector<oo::Ref<OOTextureGenerator>> gKeptGenerators;
+std::vector<std::shared_ptr<OOTextureGenerator>> gKeptGenerators;
 
-OOTextureGenerator* Kept(oo::Ref<OOTextureGenerator> generator) {
+OOTextureGenerator* Kept(std::shared_ptr<OOTextureGenerator> generator) {
   if (generator != nullptr) gKeptGenerators.push_back(generator);
   return generator.get();
 }
@@ -88,7 +88,7 @@ OOTextureGenerator* NewGenerator(const oo::PList& info, RANROTSeed seed) {
 // Was +generateAtmosphereTexture:withInfo:seed:; the texture (autoreleased), or
 // nil where it answered NO.
 OOTexture* GenerateAtmosphere(const oo::PList& info, RANROTSeed seed) {
-  oo::Ref<OOTexture> texture;
+  std::shared_ptr<OOTexture> texture;
   return OOStandaloneAtmosphereGenerator::generateAtmosphereTexture(&texture,
                                                                     info, seed)
              ? Autoreleased(texture)
@@ -224,7 +224,7 @@ OO_TEST(cxxApi) {
   SetUp();
   {
     oo::AutoreleaseScope pool;
-    const oo::Ref<OOStandaloneAtmosphereGenerator> generator =
+    const std::shared_ptr<OOStandaloneAtmosphereGenerator> generator =
         OOStandaloneAtmosphereGenerator::generatorWithPlanetInfo(
             PlanetInfo(1.0f, false), kSeed);
     OO_CHECK(generator &&
@@ -249,7 +249,7 @@ OO_TEST(cxxApi) {
              format == kOOPixMapRGBA && pixMap.width == 512);
     OOFreePixMap(&pixMap);
 
-    oo::Ref<OOTexture> texture;
+    std::shared_ptr<OOTexture> texture;
     OO_CHECK(OOStandaloneAtmosphereGenerator::generateAtmosphereTexture(
                  &texture, PlanetInfo(1.0f, false), (RANROTSeed){9, 9}) &&
              (dynamic_cast<OOConcreteTexture*>(texture.get()) != nullptr));

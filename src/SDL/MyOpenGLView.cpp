@@ -442,7 +442,7 @@ bool MyOpenGLView::init() {
 #endif
 #endif
 
-  matrixManager = oo::makeRef<OOOpenGLMatrixManager>();
+  matrixManager = oo::makeShared<OOOpenGLMatrixManager>();
 
   // TODO: This code up to and including stickHandler really ought
   // not to be in this class.
@@ -467,9 +467,10 @@ bool MyOpenGLView::init() {
   viewSize = firstScreen;  // viewSize must be set prior to splash screen
                            // initialization
 
-  OOJoystickManager::setStickHandlerFactory([]() -> oo::Ref<OOJoystickManager> {
-    return oo::makeRef<OOSDLJoystickManager>();
-  });  // was +setStickHandlerClass:
+  OOJoystickManager::setStickHandlerFactory(
+      []() -> std::shared_ptr<OOJoystickManager> {
+        return oo::makeShared<OOSDLJoystickManager>();
+      });  // was +setStickHandlerClass:
   // end TODO
 
   OOSound::setUp();

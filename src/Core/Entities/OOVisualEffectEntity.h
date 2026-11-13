@@ -53,7 +53,7 @@
 #include "oofnd/PList.hpp"
 
 class OOMesh;
-#include "OOScript.h"  // oo::Ref<OOScript> members and results
+#include "OOScript.h"  // std::shared_ptr<OOScript> members and results
 class OOColor;
 class OOFlasherEntity; /*	The effect definition and script_info are
         oo::PLists (script_info null where it was nil); the effect key and
@@ -222,8 +222,8 @@ class OOVisualEffectEntity
   Vector _v_up = {};
   Vector _v_right = {};
 
-  oo::Ref<OOScript> _script;  // was script, named like its getter
-  oo::PList _scriptInfo;      // was scriptInfo, named like its getter
+  std::shared_ptr<OOScript> _script;  // was script, named like its getter
+  oo::PList _scriptInfo;              // was scriptInfo, named like its getter
 
   std::optional<std::string> _effectKey;
 
@@ -232,9 +232,9 @@ class OOVisualEffectEntity
   // beacons
   std::optional<std::string> _beaconCode;
   std::optional<std::string> _beaconLabel;
-  oo::WeakRef<Entity> _prevBeacon;  // the beacons' C++ parts
-  oo::WeakRef<Entity> _nextBeacon;
-  oo::Ref<OOHUDBeaconIcon> _beaconDrawable;
+  std::weak_ptr<Entity> _prevBeacon;  // the beacons' C++ parts
+  std::weak_ptr<Entity> _nextBeacon;
+  std::shared_ptr<OOHUDBeaconIcon> _beaconDrawable;
 
   // scaling (were scaleX, scaleY, scaleZ, named like their getters)
   GLfloat _scaleX = {};

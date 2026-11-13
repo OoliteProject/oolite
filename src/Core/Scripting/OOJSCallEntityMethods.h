@@ -117,7 +117,7 @@ inline const OOJSCallEntityMethodRow kOOJSCallEntityMethods[] =
 #ifdef OO_DEBUG_MONITOR_ENABLED
 	{ "descriptionForObjDumpBasic",	OOJSCallEntityMethodForm::Typed,	kOOTypeEncoding<std::optional<std::string>> },
 	{ "descriptionForObjDump",	OOJSCallEntityMethodForm::Typed,	kOOTypeEncoding<std::optional<std::string>> },
-	{ "cxx_allTextures",	OOJSCallEntityMethodForm::Typed,	kOOTypeEncoding<std::vector<oo::Ref<OOTexture>>> },
+	{ "cxx_allTextures",	OOJSCallEntityMethodForm::Typed,	kOOTypeEncoding<std::vector<std::shared_ptr<OOTexture>>> },
 #endif
 	{ "airColorAsVector",	OOJSCallEntityMethodForm::Typed,	kOOTypeEncoding<Vector> },
 	{ "illuminationColorAsVector",	OOJSCallEntityMethodForm::Typed,	kOOTypeEncoding<Vector> },

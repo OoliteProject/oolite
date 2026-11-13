@@ -48,7 +48,7 @@ OOJSInterfaceDefinition::OOJSInterfaceDefinition() {
   _callback = JS_UNDEFINED;
   _callbackThis = JS_UNDEFINED;
 
-  _owningScript = OOJSScript::currentlyRunningScript();
+  _owningScript = oo::share(OOJSScript::currentlyRunningScript());
 
   // Stays registered until destruction, so values set after a reset are also
   // released on the next one.
@@ -72,7 +72,7 @@ OOJSInterfaceDefinition::~OOJSInterfaceDefinition() {
       this, kOOJavaScriptEngineWillResetNotificationName,
       OOJavaScriptEngine::sharedEngine());
 
-  _owningScript = nullptr;
+  _owningScript.reset();
 
   deleteJSPointers();
 }
@@ -137,7 +137,7 @@ void OOJSInterfaceDefinition::runCallback(const std::string& key) {
 
   JSValue cKey = OOJSValueFromPList(context, oo::PList(key));
 
-  const oo::WeakRef<OOJSScript> owner = _owningScript;  // local copy needed
+  const std::weak_ptr<OOJSScript> owner = _owningScript;  // local copy needed
   OOJSScript::pushScript(owner);
 
   // Hold our own references in case the callback replaces them.
@@ -149,7 +149,7 @@ void OOJSInterfaceDefinition::runCallback(const std::string& key) {
   JS_FreeValue(context, callback);
   JS_FreeValue(context, callbackThis);
 
-  OOJSScript::popScript(owner.get());
+  OOJSScript::popScript(owner.lock().get());
 
   JS_FreeValue(context, rval);
   JS_FreeValue(context, cKey);

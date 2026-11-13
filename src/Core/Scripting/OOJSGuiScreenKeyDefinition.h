@@ -79,9 +79,9 @@ class OOJSGuiScreenKeyDefinition : public oo::RefCounted {
  private:
   void deleteJSPointers();
 
-  JSValue _callback = JS_UNDEFINED;       // Owned.
-  JSValue _callbackThis = JS_UNDEFINED;   // Owned.
-  oo::WeakRef<OOJSScript> _owningScript;  // a weak reference
+  JSValue _callback = JS_UNDEFINED;         // Owned.
+  JSValue _callbackThis = JS_UNDEFINED;     // Owned.
+  std::weak_ptr<OOJSScript> _owningScript;  // a weak reference
 
   std::optional<std::string> _name;  // nullopt until set (was nil)
   oo::PList

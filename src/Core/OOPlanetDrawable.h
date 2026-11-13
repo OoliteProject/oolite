@@ -5,7 +5,7 @@ OOPlanetDrawable.h
 Draw a ball, such as might be used to represent a planet.
 
 A class derived from the drawable root OODrawable. It keeps its material
-retained, as an oo::Ref<OOMaterial>.
+retained, as an std::shared_ptr<OOMaterial>.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -54,19 +54,19 @@ MA 02110-1301, USA.
 
 class OOPlanetDrawable : public OODrawable {
  public:
-  static oo::Ref<OOPlanetDrawable> planetWithTextureName(
+  static std::shared_ptr<OOPlanetDrawable> planetWithTextureName(
       const std::string& textureName, float radius);
-  static oo::Ref<OOPlanetDrawable> atmosphereWithRadius(float radius);
+  static std::shared_ptr<OOPlanetDrawable> atmosphereWithRadius(float radius);
 
   // -init's body.
   OOPlanetDrawable();
 
   // -initAsAtmosphere: a new drawable that draws an atmosphere.
-  static oo::Ref<OOPlanetDrawable> initAsAtmosphere();
+  static std::shared_ptr<OOPlanetDrawable> initAsAtmosphere();
 
   // -copy (OOCopying's -copyWithZone:): a new drawable with this one's
   // material, kind, radius, transform and level of detail.
-  oo::Ref<OOPlanetDrawable> copy();
+  std::shared_ptr<OOPlanetDrawable> copy();
 
   OOMaterial* material();
   void setMaterial(OOMaterial* material);
@@ -100,7 +100,7 @@ class OOPlanetDrawable : public OODrawable {
   void setBindingTarget(Entity* target) override;
   void dumpSelfState() override;
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  std::vector<oo::Ref<OOTexture>> allTextures() override;
+  std::vector<std::shared_ptr<OOTexture>> allTextures() override;
 #endif
 
  private:
@@ -110,7 +110,7 @@ class OOPlanetDrawable : public OODrawable {
 #endif
   void renderCommonParts();
 
-  oo::Ref<OOMaterial> _material;
+  std::shared_ptr<OOMaterial> _material;
   bool _isAtmosphere = false;
   float _radius = {};
   OOMatrix _transform = {};

@@ -41,10 +41,11 @@ MA 02110-1301, USA.
 */
 #define PLASMA_ATTENUATION 0
 
-oo::Ref<OOPlasmaShotEntity> OOPlasmaShotEntity::shotWithPosition(
+std::shared_ptr<OOPlasmaShotEntity> OOPlasmaShotEntity::shotWithPosition(
     HPVector inPosition, Vector inVelocity, float inEnergy,
     OOTimeDelta duration, OOColor* color) {
-  const oo::Ref<OOPlasmaShotEntity> shot = oo::makeRef<OOPlasmaShotEntity>();
+  const std::shared_ptr<OOPlasmaShotEntity> shot =
+      oo::makeShared<OOPlasmaShotEntity>();
   shot->initWithPosition(inPosition, inVelocity, inEnergy, duration, color);
   return shot;
 }

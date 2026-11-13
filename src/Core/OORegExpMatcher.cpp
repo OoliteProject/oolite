@@ -39,19 +39,20 @@ namespace {
 static OORegExpMatcher* sActiveInstance;
 }  // namespace
 
-oo::Ref<OORegExpMatcher> OORegExpMatcher::regExpMatcher() {
+std::shared_ptr<OORegExpMatcher> OORegExpMatcher::regExpMatcher() {
   OOCAssert(oo::thread::isMainThread(),
             "OORegExpMatcher may only be used on the main thread.");
 
   if (sActiveInstance == nullptr) {
-    oo::Ref<OORegExpMatcher> matcher = oo::makeRef<OORegExpMatcher>();
+    std::shared_ptr<OORegExpMatcher> matcher =
+        oo::makeShared<OORegExpMatcher>();
     if (!matcher->init())
       return nullptr;  // [[[self alloc] init] autorelease] was nil
     sActiveInstance = matcher.get();
     return matcher;
   }
 
-  return oo::Ref<OORegExpMatcher>(sActiveInstance);
+  return oo::share(sActiveInstance);
 }
 
 bool OORegExpMatcher::init() {

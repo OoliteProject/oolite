@@ -48,7 +48,7 @@ public:
 	JSClassID oo_jsClassID();
 	std::optional<std::string> cxx_oo_jsClassName();
 
-	oo::Ref<Entity> _cxxEntity;
+	std::shared_ptr<Entity> _cxxEntity;
 };
 
 /*	A dock (its object is the ship's facade); the members the binding calls,
@@ -305,7 +305,7 @@ ShipEntity *sShipPart = nullptr;
 
 
 // A ship's object holding its C++ part, kept for the life of the test.
-TestEntityObject *NewShipObject(oo::Ref<Entity> part)
+TestEntityObject *NewShipObject(std::shared_ptr<Entity> part)
 {
 	TestEntityObject *object = oo::makeRef<TestEntityObject>().leakRef();
 	object->_cxxEntity = part;

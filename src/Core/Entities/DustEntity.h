@@ -57,8 +57,8 @@ MA 02110-1301, USA.
 #define DUST_SCALE 2000
 #define DUST_N_PARTICLES 600
 
-/*	The universe makes the dust with oo::makeRef<DustEntity>() and init(),
-   and finds it with dynamic_cast. It is its own graphics reset client
+/*	The universe makes the dust with oo::makeShared<DustEntity>() and
+   init(), and finds it with dynamic_cast. It is its own graphics reset client
    (OOGraphicsResetClient), and the dust shader's uniforms are bound to its
    members (OOShaderUniform's C++ target binding).
 */
@@ -104,14 +104,14 @@ class DustEntity : public Entity, public OOGraphicsResetClient {
   Vector vertices[DUST_N_PARTICLES * 2] = {};
   GLushort indices[DUST_N_PARTICLES * 2] = {};
   GLfloat color_fv[4] = {};
-  oo::Ref<OOTexture> texture;
+  std::shared_ptr<OOTexture> texture;
   bool hasPointSprites = {};
   bool drawDust = {};
 
 #if OO_SHADERS
   GLfloat warpinessAttr[DUST_N_PARTICLES * 2] = {};
-  oo::Ref<OOShaderProgram> shader;
-  std::vector<oo::Ref<OOShaderUniform>> uniforms;
+  std::shared_ptr<OOShaderProgram> shader;
+  std::vector<std::shared_ptr<OOShaderUniform>> uniforms;
   uint8_t shaderMode = {};
 #endif
 };

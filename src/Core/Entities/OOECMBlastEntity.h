@@ -37,7 +37,7 @@ class ShipEntity;
 class OOECMBlastEntity : public Entity {
  public:
   // -initFromShip:, which answered nil for a nil ship: null then.
-  static oo::Ref<OOECMBlastEntity> initFromShip(ShipEntity* ship);
+  static std::shared_ptr<OOECMBlastEntity> initFromShip(ShipEntity* ship);
 
   void update(OOTimeDelta delta_t) override;
   void drawImmediate(bool immediate, bool translucent) override;
@@ -49,5 +49,5 @@ class OOECMBlastEntity : public Entity {
 
   OOTimeDelta _nextBlast = {};
   uint8_t _blastsRemaining = {};
-  oo::WeakRef<Entity> _ship;  // the ship's C++ part
+  std::weak_ptr<Entity> _ship;  // the ship's C++ part
 };

@@ -32,9 +32,10 @@ SOFTWARE.
 #include "OOTextureScaling.h"
 #include "oofnd/String.hpp"
 
-oo::Ref<OOPixMapTextureLoader> OOPixMapTextureLoader::loaderWithPixMap(
+std::shared_ptr<OOPixMapTextureLoader> OOPixMapTextureLoader::loaderWithPixMap(
     OOPixMap pixMap, OOTextureFlags options, bool freeWhenDone) {
-  oo::Ref<OOPixMapTextureLoader> result = oo::makeRef<OOPixMapTextureLoader>();
+  std::shared_ptr<OOPixMapTextureLoader> result =
+      oo::makeShared<OOPixMapTextureLoader>();
   if (!result->initWithPixMap(pixMap, options, freeWhenDone)) return {};
   return result;
 }

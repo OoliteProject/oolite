@@ -52,7 +52,7 @@ public:
 
 	std::map<std::string, OOCargoQuantity> _cargo;
 	std::optional<std::string> _specialCargo;
-	oo::Ref<OOCommodityMarket> _shipCommodityData;
+	std::shared_ptr<OOCommodityMarket> _shipCommodityData;
 	int _sets = {};
 	bool _throwCxx = {};
 };
@@ -62,8 +62,8 @@ public:
 class Universe
 {
 public:
-	oo::Ref<OOCommodities> _commodities;
-	oo::Ref<OOCommodityMarket> _market;
+	std::shared_ptr<OOCommodities> _commodities;
+	std::shared_ptr<OOCommodityMarket> _market;
 
 	::OOCommodities *getCommodities();
 	::OOCommodityMarket *getCommodityMarket();

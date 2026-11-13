@@ -93,7 +93,7 @@ const DeferredAIMethod kDeferredAIMethods[] = {
    whose drain releases it where the keeper object that held it was released.
 */
 
-void OOAIAutorelease(oo::Ref<AI> ai) {
+void OOAIAutorelease(std::shared_ptr<AI> ai) {
   if (ai == nullptr) return;
   oo::autorelease(std::move(ai));
 }
@@ -146,10 +146,10 @@ class OOPreservedAIStateMachine : public oo::RefCounted {
   std::optional<std::string> _jsScript = {};
 };
 
-oo::Ref<AI> AI::newWithStateMachine(
+std::shared_ptr<AI> AI::newWithStateMachine(
     const std::optional<std::string>& smName,
     const std::optional<std::string>& stateName) {
-  oo::Ref<AI> ai = oo::makeRef<AI>();
+  std::shared_ptr<AI> ai = oo::makeShared<AI>();
   ai->initWithStateMachine(smName, stateName);
   return ai;
 }
@@ -204,7 +204,7 @@ AI::~AI() {
     sCurrentlyRunningAI = nullptr;
   }
 
-  _owner = nullptr;
+  _owner.reset();
 }
 
 std::optional<std::string> AI::descriptionComponents() const {
@@ -221,16 +221,16 @@ std::optional<std::string> AI::shortDescriptionComponents() const {
 
 ::ShipEntity* AI::owner() {
   // Only a ship is ever the owner (setOwner()).
-  ::ShipEntity* owner = static_cast<::ShipEntity*>(_owner.get());
+  ::ShipEntity* owner = static_cast<::ShipEntity*>(_owner.lock().get());
   if (owner == nullptr) {
-    _owner = nullptr;
+    _owner.reset();
   }
 
   return owner;
 }
 
 void AI::setOwner(::ShipEntity* ship) {
-  _owner = ship;
+  _owner = oo::share(ship);
   refreshOwnerDesc();
 }
 
@@ -271,8 +271,8 @@ void AI::preserveCurrentStateMachine() {
   }
 
   const oo::PList* script = stateMachine.find("jsScript");
-  oo::Ref<OOPreservedAIStateMachine> preservedMachine =
-      oo::makeRef<OOPreservedAIStateMachine>(
+  std::shared_ptr<OOPreservedAIStateMachine> preservedMachine =
+      oo::makeShared<OOPreservedAIStateMachine>(
           stateMachine, stateMachineName, currentState, pendingMessages,
           (script != nullptr && script->isString())
               ? std::optional<std::string>(*script->getIf<std::string>())
@@ -289,7 +289,8 @@ void AI::preserveCurrentStateMachine() {
 void AI::restorePreviousStateMachine() {
   if (aiStack.empty()) return;
 
-  const oo::Ref<OOPreservedAIStateMachine> preservedMachine = aiStack.back();
+  const std::shared_ptr<OOPreservedAIStateMachine> preservedMachine =
+      aiStack.back();
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
   if ((owner() != nullptr ? owner()->getReportAIMessages() : false))
@@ -691,7 +692,7 @@ void AI::performDeferredCall(std::string_view selectorName,
                              const std::string& argument, double delay) {
   if (!selectorName.empty()) {
     // The call keeps the AI alive until it has run.
-    oo::Ref<AI> ai(this);
+    std::shared_ptr<AI> ai = oo::share(this);
     OOScheduleDeferredCall(
         [ai, selectorName, argument]() {
           FireAIDeferredCall(ai.get(), selectorName, argument);

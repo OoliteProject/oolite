@@ -41,8 +41,8 @@ std::string OOModelVerifierStage::nameForReverseDependencyForVerifier(
     OOOXPVerifier* verifier) {
   OOOXPVerifierStage* stage = verifier->stageWithName(kStageName);
   if (stage == nullptr) {
-    const oo::Ref<OOModelVerifierStage> newStage =
-        oo::makeRef<OOModelVerifierStage>();
+    const std::shared_ptr<OOModelVerifierStage> newStage =
+        oo::makeShared<OOModelVerifierStage>();
     verifier->registerStage(newStage.get());
   }
 

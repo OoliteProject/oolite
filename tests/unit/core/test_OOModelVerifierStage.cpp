@@ -52,7 +52,7 @@ std::optional<std::string> ResourceManager::pathForFileNamed(
 void OOFreePixMap(OOPixMap* ioPixMap) { *ioPixMap = OOPixMap{}; }
 
 // The loader factory, answering nil.
-oo::Ref<OOTextureLoader> OOTextureLoader::loaderWithPath(
+std::shared_ptr<OOTextureLoader> OOTextureLoader::loaderWithPath(
     const std::optional<std::string>& /*path*/, OOTextureFlags /*options*/) {
   return nullptr;
 }
@@ -147,7 +147,7 @@ OO_TEST(nameRegistersTheStage) {
 OO_TEST(stagesNameModels) {
   {
     OOOXPVerifier* verifier = MakeVerifier({{"Models/ship.dat", "model"}});
-    const oo::Ref<OOModelVerifierStage> stage =
+    const std::shared_ptr<OOModelVerifierStage> stage =
         oo::makeRef<OOModelVerifierStage>();
     stage->setVerifier(verifier);
     const oo::PList materials = *oo::parsePropertyListData("{ a = b; }");

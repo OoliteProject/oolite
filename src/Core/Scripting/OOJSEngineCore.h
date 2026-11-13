@@ -502,8 +502,8 @@ void OOJSSetTimeLimiterLimit(OOTimeDelta limit);
 class OOJSValue : public oo::PListForeign {
  public:
   // context may be NULL (the main thread context is used).
-  static oo::Ref<OOJSValue> valueWithJSValue(JSValueConst value,
-                                             JSContext* context);
+  static std::shared_ptr<OOJSValue> valueWithJSValue(JSValueConst value,
+                                                     JSContext* context);
 
   ~OOJSValue();
 
@@ -529,7 +529,7 @@ class OOJSValue : public oo::PListForeign {
 // A held value as a PList::Object node ; null -> null PList.
 inline oo::PList OOJSValueObjectNode(OOJSValue* value) {
   if (value == nullptr) return oo::PList();
-  return oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(value)));
+  return oo::PList(oo::PList::Object(oo::share(value)));
 }
 
 /*	OOJSDumpStack()

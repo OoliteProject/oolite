@@ -49,7 +49,7 @@ void OOSoundMixer::shutdown() {}
 
 // The decoder the root's cluster asks for: none, for every path (a C++
 // stand-in).
-oo::Ref<OOALSoundDecoder> OOALSoundDecoder::initWithPath(
+std::shared_ptr<OOALSoundDecoder> OOALSoundDecoder::initWithPath(
     const std::optional<std::string>& inPath) {
   (void)inPath;
   return nullptr;
@@ -57,7 +57,7 @@ oo::Ref<OOALSoundDecoder> OOALSoundDecoder::initWithPath(
 
 // The buffered sound the root's cluster names: a C++ stand-in. The decoder
 // above refuses every path, so none is made.
-oo::Ref<OOALBufferedSound> OOALBufferedSound::initWithDecoder(
+std::shared_ptr<OOALBufferedSound> OOALBufferedSound::initWithDecoder(
     OOALSoundDecoder* inDecoder) {
   (void)inDecoder;
   return nullptr;
@@ -68,7 +68,7 @@ ALuint OOALBufferedSound::soundBuffer() { return 0; }
 
 // The streamed sound the root's cluster names: a C++ stand-in. None is made
 // here.
-oo::Ref<OOALStreamedSound> OOALStreamedSound::initWithDecoder(
+std::shared_ptr<OOALStreamedSound> OOALStreamedSound::initWithDecoder(
     OOALSoundDecoder* inDecoder) {
   (void)inDecoder;
   return nullptr;
@@ -160,8 +160,8 @@ ALuint SourceOf(OOSoundChannel* channel) {
 
 // What [[OOSoundChannel alloc] init] made: a new channel, null when OpenAL
 // would not make its source.
-oo::Ref<OOSoundChannel> NewChannel() {
-  oo::Ref<OOSoundChannel> channel = oo::makeRef<OOSoundChannel>();
+std::shared_ptr<OOSoundChannel> NewChannel() {
+  std::shared_ptr<OOSoundChannel> channel = oo::makeRef<OOSoundChannel>();
   if (!channel->init()) channel = nullptr;
   return channel;
 }
@@ -186,7 +186,7 @@ bool UpdateUntilFinished(OOSoundChannel* channel) {
 OO_TEST(aNewChannelHasARelativeSource) {
   SetUp();
   {
-    const oo::Ref<OOSoundChannel> channel = NewChannel();
+    const std::shared_ptr<OOSoundChannel> channel = NewChannel();
     OO_CHECK(channel != nullptr);
     const ALuint source = SourceOf(channel.get());
     OO_CHECK(source != 0 && alIsSource(source));
@@ -201,8 +201,8 @@ OO_TEST(aNewChannelHasARelativeSource) {
 OO_TEST(positionGainAndTheFreeList) {
   SetUp();
   {
-    const oo::Ref<OOSoundChannel> channel = NewChannel();
-    const oo::Ref<OOSoundChannel> other = NewChannel();
+    const std::shared_ptr<OOSoundChannel> channel = NewChannel();
+    const std::shared_ptr<OOSoundChannel> other = NewChannel();
     const ALuint source = SourceOf(channel.get());
 
     channel->setPosition(make_vector(1.0f, 2.0f, 3.0f));
@@ -228,12 +228,12 @@ OO_TEST(playsASoundToTheEnd) {
   SetUp();
   TestDelegate delegate;
   {
-    const oo::Ref<OOSoundChannel> channel = NewChannel();
+    const std::shared_ptr<OOSoundChannel> channel = NewChannel();
     channel->setDelegate(&delegate);
 
     OO_CHECK(!channel->playSound(nullptr, false));
 
-    oo::Ref<TestSound> made = oo::makeRef<TestSound>();
+    std::shared_ptr<TestSound> made = oo::makeRef<TestSound>();
     TestSound* sound = made.get();
     OO_CHECK(channel->playSound(sound, false));
     OO_CHECK(sound->_rewinds == 1 && sound->_made == 1);
@@ -258,12 +258,12 @@ OO_TEST(stopAndReplace) {
   SetUp();
   TestDelegate delegate;
   {
-    const oo::Ref<OOSoundChannel> channel = NewChannel();
+    const std::shared_ptr<OOSoundChannel> channel = NewChannel();
     channel->setDelegate(&delegate);
 
-    const oo::Ref<TestSound> first = oo::makeRef<TestSound>();
+    const std::shared_ptr<TestSound> first = oo::makeRef<TestSound>();
     first->_frames = 22050;  // a second: still playing when stopped
-    const oo::Ref<TestSound> second = oo::makeRef<TestSound>();
+    const std::shared_ptr<TestSound> second = oo::makeRef<TestSound>();
     second->_frames = 22050;
     OO_CHECK(channel->playSound(first.get(), false));
     OO_CHECK(channel->playSound(second.get(), false));
@@ -288,10 +288,10 @@ OO_TEST(streamsAnIncompleteSound) {
   SetUp();
   TestDelegate delegate;
   {
-    const oo::Ref<OOSoundChannel> channel = NewChannel();
+    const std::shared_ptr<OOSoundChannel> channel = NewChannel();
     channel->setDelegate(&delegate);
 
-    const oo::Ref<TestSound> sound = oo::makeRef<TestSound>();
+    const std::shared_ptr<TestSound> sound = oo::makeRef<TestSound>();
     sound->_chunks = 4;
     sound->_frames = 2205;  // a tenth of a second each
     OO_CHECK(channel->playSound(sound.get(), false));
@@ -306,8 +306,8 @@ OO_TEST(streamsAnIncompleteSound) {
 OO_TEST(loopsASound) {
   SetUp();
   {
-    const oo::Ref<OOSoundChannel> channel = NewChannel();
-    const oo::Ref<TestSound> sound = oo::makeRef<TestSound>();
+    const std::shared_ptr<OOSoundChannel> channel = NewChannel();
+    const std::shared_ptr<TestSound> sound = oo::makeRef<TestSound>();
     sound->_frames = 2205;
     OO_CHECK(channel->playSound(sound.get(), true));
     for (int i = 0; i < 400 && sound->_rewinds < 3; i++) {
@@ -327,20 +327,20 @@ OO_TEST(cxxApi) {
   SetUp();
   TestDelegate delegate;
   {
-    const oo::Ref<OOSoundChannel> channel = oo::makeRef<OOSoundChannel>();
+    const std::shared_ptr<OOSoundChannel> channel = oo::makeRef<OOSoundChannel>();
     OO_CHECK(channel->init());
     const ALuint source = OOSoundChannelTestAccess::Source(channel.get());
     OO_CHECK(source != 0 && alIsSource(source) &&
              SourceInt(source, AL_SOURCE_RELATIVE) == AL_TRUE);
 
-    const oo::Ref<OOSoundChannel> other = oo::makeRef<OOSoundChannel>();
+    const std::shared_ptr<OOSoundChannel> other = oo::makeRef<OOSoundChannel>();
     OO_CHECK(other->init());
     channel->setNext(other.get());
     OO_CHECK(channel->next() == other.get() && other->next() == nullptr);
 
     channel->setDelegate(&delegate);
     OO_CHECK(!channel->playSound(nullptr, false));
-    const oo::Ref<TestSound> sound = oo::makeRef<TestSound>();
+    const std::shared_ptr<TestSound> sound = oo::makeRef<TestSound>();
     sound->_frames = 22050;
     OO_CHECK(channel->playSound(sound.get(), false) &&
              channel->sound() == sound.get());
@@ -361,9 +361,9 @@ OO_TEST(releasedWhilePlayingTellsTheDelegate) {
   OOSoundChannel* released = nullptr;
   TestSound* sound = nullptr;
   {
-    const oo::Ref<TestSound> made =
+    const std::shared_ptr<TestSound> made =
         oo::makeRef<TestSound>();  // was autoreleased in this pool
-    oo::Ref<OOSoundChannel> channel = NewChannel();
+    std::shared_ptr<OOSoundChannel> channel = NewChannel();
     sound = made.get();
     sound->_frames = 22050;
     channel->setDelegate(&delegate);

@@ -58,7 +58,7 @@
 
 class StationEntity;
 class OOMesh;
-#include "OOScript.h"  // oo::Ref<OOScript> members and results
+#include "OOScript.h"  // std::shared_ptr<OOScript> members and results
 class WormholeEntity;
 #include "AI.h"               // shipAI is oo::Ref
 #include "OOCharacter.h"      // the crew is oo::Ref
@@ -363,7 +363,7 @@ class ShipEntity : public OOEntityWithDrawable,
   Triangle absoluteIJKForSubentity();
   void addSubentityToCollisionRadius(Entity* subent);
   ::ShipEntity* launchPodWithCrew(
-      const std::vector<oo::Ref<OOCharacter>>& podCrew);
+      const std::vector<std::shared_ptr<OOCharacter>>& podCrew);
   bool validForAddToUniverse() override;
 
   // update:.
@@ -399,12 +399,12 @@ class ShipEntity : public OOEntityWithDrawable,
   OOWeaponType weaponTypeIDForFacing(OOWeaponFacing facing, bool strict);
   virtual ::OOEquipmentType* weaponTypeForFacing(OOWeaponFacing facing,
                                                  bool strict);
-  virtual std::vector<oo::Ref<::OOEquipmentType>> missilesList();
+  virtual std::vector<std::shared_ptr<::OOEquipmentType>> missilesList();
   virtual oo::PList passengerListForScripting();
   virtual oo::PList parcelListForScripting();
   virtual oo::PList contractListForScripting();
   ::OOEquipmentType* generateMissileEquipmentTypeFrom(const std::string& role);
-  std::vector<oo::Ref<::OOEquipmentType>> equipmentListForScripting();
+  std::vector<std::shared_ptr<::OOEquipmentType>> equipmentListForScripting();
   bool equipmentValidToAdd(const std::string& equipmentKey,
                            const std::string& context);
   bool equipmentValidToAdd(const std::string& fullEquipmentKey, bool loading,
@@ -591,7 +591,7 @@ class ShipEntity : public OOEntityWithDrawable,
   // transition, nearest planet.
   std::optional<std::string> identFromShip(::ShipEntity* otherShip);
   bool hasRole(const std::string& role);
-  oo::Ref<::OORoleSet> getRoleSet();  // null where there is none
+  std::shared_ptr<::OORoleSet> getRoleSet();  // null where there is none
   void addRole(const std::string& role);
   void addRole(const std::string& role, float probability);
   void removeRole(const std::string& role);
@@ -652,9 +652,9 @@ class ShipEntity : public OOEntityWithDrawable,
   void setDestinationSystem(OOSystemID s);
   void setStatus(OOEntityStatus stat) override;
   void setLaunchDelay(double delay);
-  std::optional<std::vector<oo::Ref<OOCharacter>>> getCrew();
-  void setCrew(
-      const std::optional<std::vector<oo::Ref<OOCharacter>>>& crewArray);
+  std::optional<std::vector<std::shared_ptr<OOCharacter>>> getCrew();
+  void setCrew(const std::optional<std::vector<std::shared_ptr<OOCharacter>>>&
+                   crewArray);
   void setSingleCrewWithRole(const std::string& crewRole);
   std::vector<oo::PList> crewForScripting();
   void setStateMachine(const std::string& smName);
@@ -1240,8 +1240,8 @@ class ShipEntity : public OOEntityWithDrawable,
   Quaternion subentityRotationalVelocity = {};
 
   // scripting
-  oo::Ref<OOScript> script;
-  oo::Ref<OOScript> aiScript;
+  std::shared_ptr<OOScript> script;
+  std::shared_ptr<OOScript> aiScript;
   OOTimeAbsolute aiScriptWakeTime = {};
 
   // docking instructions
@@ -1367,7 +1367,7 @@ class ShipEntity : public OOEntityWithDrawable,
       {};  // minimum time interval between missile launches
   OOTimeAbsolute missile_launch_time = {};  // time of last missile launch
 
-  oo::Ref<::AI> shipAI = {};  // ship's AI system
+  std::shared_ptr<::AI> shipAI = {};  // ship's AI system
 
   std::optional<std::string> name;  // descriptive name; nullopt: nil
   std::optional<std::string>
@@ -1375,8 +1375,9 @@ class ShipEntity : public OOEntityWithDrawable,
   std::optional<std::string> shipClassName;  // e.g. "Cobra III"; nullopt: nil
   std::optional<std::string> displayName;  // name shown on screen; nullopt: nil
   std::optional<std::string> scan_description;  // scan class name; nullopt: nil
-  oo::Ref<::OORoleSet> roleSet;  // Roles a ship can take, eg. trader, hunter,
-                                 // police, pirate, scavenger &c.
+  std::shared_ptr<::OORoleSet>
+      roleSet;  // Roles a ship can take, eg. trader, hunter,
+                // police, pirate, scavenger &c.
   std::optional<std::string>
       primaryRole;  // "Main" role of the ship; nullopt: not chosen yet
 
@@ -1456,7 +1457,7 @@ class ShipEntity : public OOEntityWithDrawable,
 
   // crew (typically one OOCharacter - the pilot); nullopt: unpiloted (was nil);
   // an empty vector is crewed
-  std::optional<std::vector<oo::Ref<OOCharacter>>> crew;
+  std::optional<std::vector<std::shared_ptr<OOCharacter>>> crew;
 
   // close contact / collision tracking
   std::map<std::string, std::string, std::less<>>
@@ -1481,7 +1482,7 @@ class ShipEntity : public OOEntityWithDrawable,
   unsigned number_of_navpoints = {};
 
   // Collision detection
-  oo::Ref<Octree> octree;
+  std::shared_ptr<Octree> octree;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
   // DEBUGGING
@@ -1497,15 +1498,15 @@ class ShipEntity : public OOEntityWithDrawable,
   ::OOEquipmentType* missile_list[SHIPENTITY_MAX_MISSILES] = {};
 
   // various types of target
-  oo::WeakRef<Entity> _primaryTarget;     // for combat or rendezvous
-  oo::WeakRef<Entity> _primaryAggressor;  // recorded after attack
-  oo::WeakRef<Entity> _targetStation;     // for docking
-  oo::WeakRef<Entity> _foundTarget;       // from scans
-  oo::WeakRef<Entity>
-      _lastEscortTarget;             // last target an escort was deployed after
-  oo::WeakRef<Entity> _thankedShip;  // last ship thanked
-  oo::WeakRef<Entity> _rememberedShip;  // ship being remembered
-  oo::WeakRef<Entity>
+  std::weak_ptr<Entity> _primaryTarget;     // for combat or rendezvous
+  std::weak_ptr<Entity> _primaryAggressor;  // recorded after attack
+  std::weak_ptr<Entity> _targetStation;     // for docking
+  std::weak_ptr<Entity> _foundTarget;       // from scans
+  std::weak_ptr<Entity>
+      _lastEscortTarget;  // last target an escort was deployed after
+  std::weak_ptr<Entity> _thankedShip;     // last ship thanked
+  std::weak_ptr<Entity> _rememberedShip;  // ship being remembered
+  std::weak_ptr<Entity>
       _proximityAlert;  // a ShipEntity within 2x collision_radius
 
   // Stuff for the target tracking curve.  The ship records the position of the
@@ -1525,8 +1526,8 @@ class ShipEntity : public OOEntityWithDrawable,
   friend struct ::ShipEntityTestAccess;
 
  private:
-  oo::WeakRef<Entity> _subEntityTakingDamage;  //	frangible => subEntities
-                                               // can be damaged individually
+  std::weak_ptr<Entity> _subEntityTakingDamage;  //	frangible => subEntities
+                                                 // can be damaged individually
 
   std::optional<std::string> _shipKey;  // nullopt: nil
 
@@ -1535,12 +1536,12 @@ class ShipEntity : public OOEntityWithDrawable,
   float _heatInsulation = {};
 
  private:
-  oo::WeakRef<Entity> _lastAegisLock;  // remember last aegis planet/sun
+  std::weak_ptr<Entity> _lastAegisLock;  // remember last aegis planet/sun
 
-  oo::Ref<::OOShipGroup> _group;
+  std::shared_ptr<::OOShipGroup> _group;
 
  private:
-  oo::Ref<::OOShipGroup> _escortGroup;
+  std::shared_ptr<::OOShipGroup> _escortGroup;
   uint8_t _maxEscortCount = {};
   uint8_t _pendingEscortCount = {};
 
@@ -1560,14 +1561,14 @@ class ShipEntity : public OOEntityWithDrawable,
   GLfloat _profileRadius = {};
 
  private:
-  oo::WeakRef<Entity> _shipHitByLaser;  // entity hit by the last laser shot
+  std::weak_ptr<Entity> _shipHitByLaser;  // entity hit by the last laser shot
 
   // beacons
   std::optional<std::string> _beaconCode;   // nullopt: nil (never empty)
   std::optional<std::string> _beaconLabel;  // nullopt: nil (never empty)
-  oo::WeakRef<Entity> _prevBeacon;
-  oo::WeakRef<Entity> _nextBeacon;
-  oo::Ref<OOHUDBeaconIcon> _beaconDrawable;
+  std::weak_ptr<Entity> _prevBeacon;
+  std::weak_ptr<Entity> _nextBeacon;
+  std::shared_ptr<OOHUDBeaconIcon> _beaconDrawable;
 
   double _nextAegisCheck = {};
 

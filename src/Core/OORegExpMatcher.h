@@ -72,7 +72,7 @@ class OORegExpMatcher : public oo::RefCounted {
      released. While one is alive (held by a Ref) this returns it; otherwise a
      new one. Null if the tester function could not be compiled.
   */
-  static oo::Ref<OORegExpMatcher> regExpMatcher();
+  static std::shared_ptr<OORegExpMatcher> regExpMatcher();
 
   // Strings are UTF-8.
   bool string(const std::string& string, const std::string& regExp);
@@ -87,9 +87,9 @@ class OORegExpMatcher : public oo::RefCounted {
   // returns false.
   bool init();
 
-  oo::Ref<OOJSFunction> _tester = {};
+  std::shared_ptr<OOJSFunction> _tester = {};
   std::optional<std::string> _cachedRegExpString =
       {};  // UTF-8; nullopt: nothing cached
-  oo::Ref<OOJSValue> _cachedRegExpObject = {};
+  std::shared_ptr<OOJSValue> _cachedRegExpObject = {};
   OORegExpFlags _cachedFlags = {};
 };

@@ -44,19 +44,20 @@ OOPriorityQueueOf<OOScriptTimer>* sTimers;
 
 // During an update, new timers must be deferred to avoid an infinite loop.
 bool sUpdating;
-std::vector<oo::Ref<OOScriptTimer>>* sDeferredTimers;
+std::vector<std::shared_ptr<OOScriptTimer>>* sDeferredTimers;
 
 }  // namespace
 
-oo::Ref<OOScriptTimer> OOScriptTimer::timerWithNextTime(OOTimeAbsolute nextTime,
-                                                        OOTimeDelta interval) {
-  oo::Ref<OOScriptTimer> timer = oo::adopt(new OOScriptTimer);
+std::shared_ptr<OOScriptTimer> OOScriptTimer::timerWithNextTime(
+    OOTimeAbsolute nextTime, OOTimeDelta interval) {
+  std::shared_ptr<OOScriptTimer> timer = oo::adopt(new OOScriptTimer);
   if (!timer->initWithNextTime(nextTime, interval)) return nullptr;
   return timer;
 }
 
-oo::Ref<OOScriptTimer> OOScriptTimer::oneShotTimerWithDelay(OOTimeDelta delay) {
-  oo::Ref<OOScriptTimer> timer = oo::adopt(new OOScriptTimer);
+std::shared_ptr<OOScriptTimer> OOScriptTimer::oneShotTimerWithDelay(
+    OOTimeDelta delay) {
+  std::shared_ptr<OOScriptTimer> timer = oo::adopt(new OOScriptTimer);
   if (!timer->initOneShotTimerWithDelay(delay)) return nullptr;
   return timer;
 }
@@ -147,8 +148,8 @@ bool OOScriptTimer::scheduleTimer() {
     sTimers->addObject(this);  // the queue holds the timer
   } else {
     if (sDeferredTimers == nullptr)
-      sDeferredTimers = new std::vector<oo::Ref<OOScriptTimer>>;
-    sDeferredTimers->emplace_back(this);
+      sDeferredTimers = new std::vector<std::shared_ptr<OOScriptTimer>>;
+    sDeferredTimers->emplace_back(oo::share(this));
   }
 
   _isScheduled = true;
@@ -177,7 +178,7 @@ void OOScriptTimer::updateTimers() {
     if (next == nullptr || now < next->nextTime()) break;
 
     // Held while it fires and is rescheduled.
-    const oo::Ref<OOScriptTimer> timer = sTimers->removeNextObject();
+    const std::shared_ptr<OOScriptTimer> timer = sTimers->removeNextObject();
 
     // Must fire before rescheduling so that the timer callback can stop itself.
     // -- Ahruman 2011-01-01
@@ -205,9 +206,9 @@ void OOScriptTimer::updateTimers() {
 void OOScriptTimer::noteGameReset() {
   // Intermediate array is required so we don't get stuck in an endless loop
   // over reinserted timers. Note that -sortedObjects also clears the queue!
-  const std::vector<oo::Ref<OOScriptTimer>> timers =
+  const std::vector<std::shared_ptr<OOScriptTimer>> timers =
       (sTimers != nullptr) ? sTimers->sortedObjects()
-                           : std::vector<oo::Ref<OOScriptTimer>>();
+                           : std::vector<std::shared_ptr<OOScriptTimer>>();
   for (const auto& timer : timers) {
     timer->_isScheduled = false;
   }

@@ -66,17 +66,17 @@ class OOStandaloneAtmosphereGenerator : public OOTextureGenerator {
      Was [[OOStandaloneAtmosphereGenerator alloc] initWithPlanetInfo:seed:];
      null where that answered nil.
   */
-  static oo::Ref<OOStandaloneAtmosphereGenerator> generatorWithPlanetInfo(
-      const oo::PList& planetInfo, RANROTSeed seed);
+  static std::shared_ptr<OOStandaloneAtmosphereGenerator>
+  generatorWithPlanetInfo(const oo::PList& planetInfo, RANROTSeed seed);
   bool initWithPlanetInfo(const oo::PList& planetInfo,
                           RANROTSeed seed);  // false where it answered nil
 
   // Were +planetTextureWithInfo:seed: and
   // +generateAtmosphereTexture:withInfo:seed:; the texture is answered
   // retained.
-  static oo::Ref<OOTexture> planetTextureWithInfo(const oo::PList& planetInfo,
-                                                  RANROTSeed seed);
-  static bool generateAtmosphereTexture(oo::Ref<OOTexture>* texture,
+  static std::shared_ptr<OOTexture> planetTextureWithInfo(
+      const oo::PList& planetInfo, RANROTSeed seed);
+  static bool generateAtmosphereTexture(std::shared_ptr<OOTexture>* texture,
                                         const oo::PList& planetInfo,
                                         RANROTSeed seed);
 

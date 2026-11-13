@@ -74,7 +74,7 @@ class OOCache : public oo::RefCounted {
   // An array of {key = string; value = plist;} entries, oldest first (a null
   // PList: empty); null for anything else. pListRepresentation() is the same
   // form, null for an empty cache.
-  static oo::Ref<OOCache> cacheWithPList(const oo::PList& pList);
+  static std::shared_ptr<OOCache> cacheWithPList(const oo::PList& pList);
   oo::PList pListRepresentation();
 
   ~OOCache() override;

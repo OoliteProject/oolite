@@ -29,12 +29,10 @@ MA 02110-1301, USA.
 #include "PlayerEntity.h"
 #include "Universe.h"
 
-oo::Ref<OOSparkEntity> OOSparkEntity::sparkWithPosition(HPVector pos,
-                                                        Vector vel,
-                                                        OOTimeDelta duration,
-                                                        float size,
-                                                        OOColor* color) {
-  const oo::Ref<OOSparkEntity> spark = oo::makeRef<OOSparkEntity>();
+std::shared_ptr<OOSparkEntity> OOSparkEntity::sparkWithPosition(
+    HPVector pos, Vector vel, OOTimeDelta duration, float size,
+    OOColor* color) {
+  const std::shared_ptr<OOSparkEntity> spark = oo::makeShared<OOSparkEntity>();
   spark->initWithPosition(pos, vel, duration, size, color);
   return spark;
 }

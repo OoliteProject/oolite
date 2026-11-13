@@ -66,12 +66,13 @@ class OOScriptTimer : public oo::PListForeign {
   // [[OOScriptTimer alloc] initWithNextTime:interval:]: null where the
   // initialiser answered nil (a next time in the past, or negative, with no
   // interval).
-  static oo::Ref<OOScriptTimer> timerWithNextTime(OOTimeAbsolute nextTime,
-                                                  OOTimeDelta interval);
+  static std::shared_ptr<OOScriptTimer> timerWithNextTime(
+      OOTimeAbsolute nextTime, OOTimeDelta interval);
 
   // [[OOScriptTimer alloc] initOneShotTimerWithDelay:]: sets nextTime to
   // current time + delay.
-  static oo::Ref<OOScriptTimer> oneShotTimerWithDelay(OOTimeDelta delay);
+  static std::shared_ptr<OOScriptTimer> oneShotTimerWithDelay(
+      OOTimeDelta delay);
 
   ~OOScriptTimer() override;
 

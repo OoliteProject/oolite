@@ -68,12 +68,14 @@ class OOCombinedEmissionMapGenerator : public OOTextureGenerator {
           diffuseMap:diffuseColor:emissionColor:illuminationColor:optionsSpecifier:;
      null where they answered nil.
   */
-  static oo::Ref<OOCombinedEmissionMapGenerator> generatorWithEmissionMapSpec(
-      const oo::PList& emissionMapSpec, OOColor* emissionColor,
-      OOTexture* diffuseMap, OOColor* diffuseColor,
-      const oo::PList& illuminationMapSpec, OOColor* illuminationColor,
-      const oo::PList& spec);
-  static oo::Ref<OOCombinedEmissionMapGenerator>
+  static std::shared_ptr<OOCombinedEmissionMapGenerator>
+  generatorWithEmissionMapSpec(const oo::PList& emissionMapSpec,
+                               OOColor* emissionColor, OOTexture* diffuseMap,
+                               OOColor* diffuseColor,
+                               const oo::PList& illuminationMapSpec,
+                               OOColor* illuminationColor,
+                               const oo::PList& spec);
+  static std::shared_ptr<OOCombinedEmissionMapGenerator>
   generatorWithEmissionAndIlluminationMapSpec(
       const oo::PList& emissionAndIlluminationMapSpec, OOTexture* diffuseMap,
       OOColor* diffuseColor, OOColor* emissionColor, OOColor* illuminationColor,
@@ -104,7 +106,7 @@ class OOCombinedEmissionMapGenerator : public OOTextureGenerator {
 
   oo::PList _emissionSpec;
   oo::PList _illuminationSpec;
-  oo::Ref<OOTexture> _diffuseMap;
+  std::shared_ptr<OOTexture> _diffuseMap;
 
   OOPixMap _emissionPx = {};
   OOPixMap _diffusePx = {};

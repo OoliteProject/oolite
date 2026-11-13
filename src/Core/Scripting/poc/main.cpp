@@ -75,7 +75,7 @@ std::optional<std::string> CallForString(OOJSScript* script,
 
 void RunBehaviourTests(const std::string& testDir,
                        const std::string& fileName) {
-  oo::Ref<OOJSScript> script = OOJSScript::scriptWithPath(
+  std::shared_ptr<OOJSScript> script = OOJSScript::scriptWithPath(
       oo::str::appendingPathComponent(testDir, fileName));
   Check(script != nullptr, fileName + " loads");
 
@@ -85,9 +85,9 @@ void RunBehaviourTests(const std::string& testDir,
 }
 
 void RunScopeTests(const std::string& testDir) {
-  oo::Ref<OOJSScript> scriptA = OOJSScript::scriptWithPath(
+  std::shared_ptr<OOJSScript> scriptA = OOJSScript::scriptWithPath(
       oo::str::appendingPathComponent(testDir, "scope_a.js"));
-  oo::Ref<OOJSScript> scriptB = OOJSScript::scriptWithPath(
+  std::shared_ptr<OOJSScript> scriptB = OOJSScript::scriptWithPath(
       oo::str::appendingPathComponent(testDir, "scope_b.js"));
   Check(scriptA != nullptr && scriptB != nullptr,
         "scripts with the same top-level const and var names both load");
@@ -109,7 +109,7 @@ void RunScopeTests(const std::string& testDir) {
 
 void RunErrorTests(const std::string& testDir) {
   OOPocClearRecordedLogMessages();
-  oo::Ref<OOJSScript> script = OOJSScript::scriptWithPath(
+  std::shared_ptr<OOJSScript> script = OOJSScript::scriptWithPath(
       oo::str::appendingPathComponent(testDir, "runtime_error.js"));
   Check(CallForString(script.get(), "startUp") == std::nullopt,
         "handler that throws reports failure");
@@ -132,7 +132,7 @@ void RunErrorTests(const std::string& testDir) {
 
 void RunTimeLimiterTests(const std::string& testDir) {
   OOPocClearRecordedLogMessages();
-  oo::Ref<OOJSScript> script = OOJSScript::scriptWithPath(
+  std::shared_ptr<OOJSScript> script = OOJSScript::scriptWithPath(
       oo::str::appendingPathComponent(testDir, "runaway.js"));
 
   double start = Now();
@@ -154,7 +154,7 @@ void RunTimeLimiterTests(const std::string& testDir) {
 // primitive without a TypeError, as under SpiderMonkey 1.8.5.
 void RunPrimitivePropertyTests(const std::string& testDir) {
   OOPocClearRecordedLogMessages();
-  oo::Ref<OOJSScript> script = OOJSScript::scriptWithPath(
+  std::shared_ptr<OOJSScript> script = OOJSScript::scriptWithPath(
       oo::str::appendingPathComponent(testDir, "primitive_property.js"));
   Check(script != nullptr, "primitive_property.js loads");
 

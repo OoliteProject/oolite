@@ -42,7 +42,7 @@ MA 02110-1301, USA.
 #include "OOEntityEnums.h"  // OOEntityStatus, OOScanClass
 #include "OOFoundation.h"
 #include "OOMaths.h"
-#include "OOTexture.h"  // allTextures() answers oo::Ref<OOTexture>
+#include "OOTexture.h"  // allTextures() answers std::shared_ptr<OOTexture>
 #include "OOTypes.h"
 #include "oofnd/Ref.hpp"
 
@@ -149,7 +149,7 @@ class Entity;
 // clang-format off
 #define OO_ENTITY_DEBUG_VIRTUAL_MEMBERS(VOID_BODY, VALUE_BODY) \
     virtual std::optional<std::string> descriptionForObjDump() VALUE_BODY \
-    virtual std::vector<oo::Ref<OOTexture>> allTextures() VALUE_BODY
+    virtual std::vector<std::shared_ptr<OOTexture>> allTextures() VALUE_BODY
 // clang-format on
 #else
 #define OO_ENTITY_DEBUG_VIRTUAL_MEMBERS(VOID_BODY, VALUE_BODY)

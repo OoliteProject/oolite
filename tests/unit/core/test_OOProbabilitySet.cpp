@@ -44,7 +44,7 @@ const float kWeights[] = {1.0f, 0.0f, 2.0f};
 
 OO_TEST(emptySet) {
   {
-    oo::Ref<OOProbabilitySet> empty = OOProbabilitySet::probabilitySet();
+    std::shared_ptr<OOProbabilitySet> empty = OOProbabilitySet::probabilitySet();
     OO_CHECK(empty != nullptr &&
              empty == OOProbabilitySet::probabilitySet());  // one shared object
     OO_CHECK(empty ==
@@ -69,7 +69,7 @@ OO_TEST(oneObjectSet) {
   {
     const oo::PList object = Str("cobra");
     const float weight = -2.0f;
-    oo::Ref<OOProbabilitySet> one =
+    std::shared_ptr<OOProbabilitySet> one =
         OOProbabilitySet::probabilitySetWithObjects(&object, &weight, 1);
     OO_CHECK(one->count() == 1);
     OO_CHECK(one->weightForObject(Str("cobra")) == 0.0f);  // clamped
@@ -83,7 +83,7 @@ OO_TEST(oneObjectSet) {
              std::optional<std::string>("count=1"));
 
     const float two = 2.0f;
-    oo::Ref<OOProbabilitySet> weighted =
+    std::shared_ptr<OOProbabilitySet> weighted =
         OOProbabilitySet::probabilitySetWithObjects(&object, &two, 1);
     OO_CHECK(weighted->probabilityForObject(Str("cobra")) == 1.0f);
     OO_CHECK(weighted->propertyListRepresentation() ==
@@ -96,7 +96,7 @@ OO_TEST(oneObjectSet) {
 
 OO_TEST(generalSet) {
   {
-    oo::Ref<OOProbabilitySet> set =
+    std::shared_ptr<OOProbabilitySet> set =
         OOProbabilitySet::probabilitySetWithObjects(kABC, kWeights, 3);
     OO_CHECK(set->count() == 3);
     OO_CHECK(Strings(set->allElements()) ==
@@ -144,9 +144,9 @@ OO_TEST(generalSet) {
 
 OO_TEST(propertyListRoundTrip) {
   {
-    oo::Ref<OOProbabilitySet> set =
+    std::shared_ptr<OOProbabilitySet> set =
         OOProbabilitySet::probabilitySetWithObjects(kABC, kWeights, 3);
-    oo::Ref<OOProbabilitySet> again =
+    std::shared_ptr<OOProbabilitySet> again =
         OOProbabilitySet::probabilitySetWithPropertyListRepresentation(
             set->propertyListRepresentation());
     OO_CHECK(again->propertyListRepresentation() ==
@@ -157,7 +157,7 @@ OO_TEST(propertyListRoundTrip) {
         {{"objects", oo::PList(oo::PList::Array({Str("x"), Str("y")}))},
          {"weights", oo::PList(oo::PList::Array(
                          {oo::PList(-1.0), oo::PList(std::int64_t(3))}))}}));
-    oo::Ref<OOProbabilitySet> clamped =
+    std::shared_ptr<OOProbabilitySet> clamped =
         OOProbabilitySet::probabilitySetWithPropertyListRepresentation(
             negative);
     OO_CHECK(clamped->weightForObject(Str("x")) == 0.0f &&
@@ -190,7 +190,7 @@ class TestForeign final : public oo::PListForeign {
   std::string description() const override { return "<TestForeign>"; }
 };
 
-oo::PList Node(const oo::Ref<TestForeign>& object) {
+oo::PList Node(const std::shared_ptr<TestForeign>& object) {
   return oo::PList(oo::PList::Object(object));
 }
 
@@ -199,10 +199,10 @@ oo::PList Node(const oo::Ref<TestForeign>& object) {
 OO_TEST(objectElements) {
   {
     oo::AutoreleaseScope pool;
-    oo::Ref<TestForeign> object = oo::makeRef<TestForeign>();
+    std::shared_ptr<TestForeign> object = oo::makeRef<TestForeign>();
     const oo::PList elements[] = {Node(object), Str("s")};
     const float weights[] = {1.0f, 1.0f};
-    oo::Ref<OOProbabilitySet> set =
+    std::shared_ptr<OOProbabilitySet> set =
         OOProbabilitySet::probabilitySetWithObjects(elements, weights, 2);
     OO_CHECK(set->weightForObject(Node(object)) ==
              1.0f);  // the same object in another node
@@ -215,7 +215,7 @@ OO_TEST(objectElements) {
 
 OO_TEST(mutableSet) {
   {
-    oo::Ref<OOMutableProbabilitySet> set =
+    std::shared_ptr<OOMutableProbabilitySet> set =
         OOMutableProbabilitySet::probabilitySet();
     OO_CHECK(set != nullptr &&
              set.get() != OOProbabilitySet::probabilitySet().get() &&
@@ -250,12 +250,12 @@ OO_TEST(mutableSet) {
     for (int i = 0; i < 100; i++)
       OO_CHECK(set->randomObject() == Str("a"));  // c has weight 0
 
-    oo::Ref<OOMutableProbabilitySet> made =
+    std::shared_ptr<OOMutableProbabilitySet> made =
         OOMutableProbabilitySet::probabilitySetWithObjects(kABC, kWeights, 3);
     OO_CHECK(made->count() == 3 && made->sumOfWeights() == 3.0f);
     made->setWeight(1.0f, Str("d"));
     OO_CHECK(made->count() == 4);
-    oo::Ref<OOMutableProbabilitySet> fromPList =
+    std::shared_ptr<OOMutableProbabilitySet> fromPList =
         OOMutableProbabilitySet::probabilitySetWithPropertyListRepresentation(
             made->propertyListRepresentation());
     OO_CHECK(fromPList->count() == 4 && fromPList->sumOfWeights() == 4.0f);
@@ -265,23 +265,23 @@ OO_TEST(mutableSet) {
 OO_TEST(copies) {
   {
     // Mutable to immutable: the empty set, a one-object set, a general set.
-    oo::Ref<OOMutableProbabilitySet> mutableSet =
+    std::shared_ptr<OOMutableProbabilitySet> mutableSet =
         OOMutableProbabilitySet::probabilitySet();
     OO_CHECK(mutableSet->copy() == OOProbabilitySet::probabilitySet());
     mutableSet->setWeight(2.0f, Str("a"));
-    oo::Ref<OOProbabilitySet> one = mutableSet->copy();
+    std::shared_ptr<OOProbabilitySet> one = mutableSet->copy();
     OO_CHECK(one.get() != mutableSet.get() && one->count() == 1 &&
              one->weightForObject(Str("a")) == 2.0f);
     mutableSet->setWeight(0.5f, Str("b"));
     mutableSet->setWeight(1.5f, Str("c"));
-    oo::Ref<OOProbabilitySet> general = mutableSet->copy();
+    std::shared_ptr<OOProbabilitySet> general = mutableSet->copy();
     OO_CHECK(general->count() == 3 && general->sumOfWeights() == 4.0f);
     OO_CHECK(general->weightForObject(Str("a")) == 2.0f &&
              general->weightForObject(Str("b")) == 0.5f &&
              general->weightForObject(Str("c")) == 1.5f);
 
     // Immutable to mutable, and mutable to mutable: independent.
-    oo::Ref<OOMutableProbabilitySet> back = general->mutableCopy();
+    std::shared_ptr<OOMutableProbabilitySet> back = general->mutableCopy();
     OO_CHECK(back->count() == 3 && back->sumOfWeights() == 4.0f);
     back->removeObject(Str("a"));
     OO_CHECK(back->count() == 2 && general->count() == 3);
@@ -289,7 +289,7 @@ OO_TEST(copies) {
     // asserts that it is known: -sumOfWeights first, as the game never copies a
     // mutable set it has edited.)
     OO_CHECK(back->sumOfWeights() == 2.0f);
-    oo::Ref<OOMutableProbabilitySet> twin = back->mutableCopy();
+    std::shared_ptr<OOMutableProbabilitySet> twin = back->mutableCopy();
     twin->setWeight(9.0f, Str("z"));
     OO_CHECK(twin->count() == 3 && back->count() == 2 &&
              twin->sumOfWeights() == 11.0f);

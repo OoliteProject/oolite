@@ -261,7 +261,7 @@ void OOPlanetEntity::initFromDictionary(const oo::PList& dictionary,
 
   RNG_Seed savedRndSeed = currentRandomSeed();
 
-  _planetDrawable = oo::makeRef<OOPlanetDrawable>();
+  _planetDrawable = oo::makeShared<OOPlanetDrawable>();
 
   _terminatorThresholdVector =
       VectorForKey(planetInfo, "terminator_threshold_vector",
@@ -618,13 +618,13 @@ bool OOPlanetEntity::initAsMiniatureVersionOfPlanet(OOPlanetEntity* planet) {
   // A copy of nil was nil.
   _atmosphereDrawable = planet->_atmosphereDrawable
                             ? planet->_atmosphereDrawable->copy()
-                            : oo::Ref<OOPlanetDrawable>();
+                            : std::shared_ptr<OOPlanetDrawable>();
   _cloudsShaderDrawable = planet->_cloudsShaderDrawable
                               ? planet->_cloudsShaderDrawable->copy()
-                              : oo::Ref<OOPlanetDrawable>();
+                              : std::shared_ptr<OOPlanetDrawable>();
   _atmosphereShaderDrawable = planet->_atmosphereShaderDrawable
                                   ? planet->_atmosphereShaderDrawable->copy()
-                                  : oo::Ref<OOPlanetDrawable>();
+                                  : std::shared_ptr<OOPlanetDrawable>();
   if (_atmosphereDrawable)
     _atmosphereDrawable->setRadius(
         collision_radius + ATMOSPHERE_DEPTH * PLANET_MINIATURE_FACTOR *
@@ -671,10 +671,10 @@ OOStellarBodyType OOPlanetEntity::planetType() {
   return OOStellarBodyType::kMoon;
 }
 
-oo::Ref<OOPlanetEntity> OOPlanetEntity::miniatureVersion() {
+std::shared_ptr<OOPlanetEntity> OOPlanetEntity::miniatureVersion() {
   // [[[self class] alloc] initAsMiniatureVersionOfPlanet:self]: the class has
   // no subclass.
-  oo::Ref<OOPlanetEntity> result = oo::makeRef<OOPlanetEntity>();
+  std::shared_ptr<OOPlanetEntity> result = oo::makeShared<OOPlanetEntity>();
   if (!result->initAsMiniatureVersionOfPlanet(this)) return nullptr;
   return result;
 }
@@ -969,8 +969,8 @@ void OOPlanetEntity::launchShuttle() {
   if (shuttle_ship) {
     if ((shuttle_ship != nullptr
              ? shuttle_ship->getCrew()
-             : std::optional<std::vector<oo::Ref<OOCharacter>>>())
-            .value_or(std::vector<oo::Ref<OOCharacter>>())
+             : std::optional<std::vector<std::shared_ptr<OOCharacter>>>())
+            .value_or(std::vector<std::shared_ptr<OOCharacter>>())
             .empty()) {
       if (shuttle_ship != nullptr)
         shuttle_ship->setSingleCrewWithRole("trader");
@@ -1086,10 +1086,10 @@ void OOPlanetEntity::setTextureFileName(
   bool isMoon = _atmosphereDrawable == nullptr;
 
   std::optional<std::string> textureName = textureFileName;
-  oo::Ref<OOTexture>
+  std::shared_ptr<OOTexture>
       diffuseMap;  // held: the factories answer the texture retained
-  oo::Ref<OOTexture> normalMap;
-  oo::Ref<OOTexture> generatedDiffuseMap,
+  std::shared_ptr<OOTexture> normalMap;
+  std::shared_ptr<OOTexture> generatedDiffuseMap,
       generatedNormalMap;  // the C++ generator answers them retained
   oo::PList macros;        // null: nil
   const oo::PList materialDefaults = ResourceManager::materialDefaults();
@@ -1168,7 +1168,7 @@ void OOPlanetEntity::setTextureFileName(
            oo::EntityDescription(this));
     /* Generate a standalone atmosphere texture */
     // (the C++ generator answers it retained)
-    oo::Ref<OOTexture> generatedAtmosphere;
+    std::shared_ptr<OOTexture> generatedAtmosphere;
     OOStandaloneAtmosphereGenerator::generateAtmosphereTexture(
         &generatedAtmosphere, _materialParameters, _noiseMapSeed);
     OOTexture* atmosphere = generatedAtmosphere.get();
@@ -1178,7 +1178,7 @@ void OOPlanetEntity::setTextureFileName(
            (atmosphere != nullptr) ? atmosphere->description()
                                    : std::string("(null)"));
 
-    oo::Ref<OOSingleTextureMaterial> dynamicMaterial =
+    std::shared_ptr<OOSingleTextureMaterial> dynamicMaterial =
         OOSingleTextureMaterial::materialWithName("dynamic", atmosphere,
                                                   oo::PList());
     _atmosphereDrawable->setMaterial(dynamicMaterial.get());
@@ -1191,7 +1191,7 @@ void OOPlanetEntity::setTextureFileName(
       const oo::PList amacros =
           DictionaryForKey(materialDefaults, "atmosphere-dynamic-macros");
 
-      oo::Ref<OOShaderMaterial> dynamicShaderMaterial =
+      std::shared_ptr<OOShaderMaterial> dynamicShaderMaterial =
           OOShaderMaterial::shaderMaterialWithName("dynamic", aConfig, amacros,
                                                    this);  // the C++ planet
 
@@ -1208,7 +1208,7 @@ void OOPlanetEntity::setTextureFileName(
       const oo::PList cloudMacros =
           DictionaryForKey(materialDefaults, "clouds-dynamic-macros");
 
-      oo::Ref<OOShaderMaterial> cloudsMaterial =
+      std::shared_ptr<OOShaderMaterial> cloudsMaterial =
           OOShaderMaterial::shaderMaterialWithName("dynamic", cloudConfig,
                                                    cloudMacros,
                                                    this);  // the C++ planet
@@ -1223,7 +1223,7 @@ void OOPlanetEntity::setTextureFileName(
     // [dynamicMaterial release]: the reference's.
   }
 
-  oo::Ref<OOMaterial> material;
+  std::shared_ptr<OOMaterial> material;
 
 #if OO_SHADERS
   if (shadersOn) {

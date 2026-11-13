@@ -8,8 +8,8 @@ OOMaterial.
 Note: OOTexture is abstract. The factory methods return instances of
 OOConcreteTexture, but special-case implementations are possible.
 
-Callers hold oo::Ref<OOTexture>, and a texture travels in property lists as its
-own Object node (oo::PListForeign, OOTextureObjectNode()).
+Callers hold std::shared_ptr<OOTexture>, and a texture travels in property lists
+as its own Object node (oo::PListForeign, OOTextureObjectNode()).
 
 Copyright (C) 2007-2013 Jens Ayton and contributors
 
@@ -98,13 +98,13 @@ class OOTexture : public oo::PListForeign {
           This method may change; textureWithConfiguration() is generally more
           appropriate. Null for no name, or a file that is not found.
   */
-  static oo::Ref<OOTexture> textureWithName(
+  static std::shared_ptr<OOTexture> textureWithName(
       const std::optional<std::string>& name,
       const std::optional<std::string>& directory, OOTextureFlags options,
       GLfloat anisotropy, GLfloat lodBias);
 
   // Default options, anisotropy and LOD bias.
-  static oo::Ref<OOTexture> textureWithName(
+  static std::shared_ptr<OOTexture> textureWithName(
       const std::optional<std::string>& name,
       const std::optional<std::string>& directory);
 
@@ -125,9 +125,9 @@ class OOTexture : public oo::PListForeign {
                   extract_channel		(string, one of "r", "g", "b",
      "a")
   */
-  static oo::Ref<OOTexture> textureWithConfiguration(
+  static std::shared_ptr<OOTexture> textureWithConfiguration(
       const oo::PList& configuration);
-  static oo::Ref<OOTexture> textureWithConfiguration(
+  static std::shared_ptr<OOTexture> textureWithConfiguration(
       const oo::PList& configuration, OOTextureFlags extraOptions);
 
   /*	Test-only loader hooks: the five-argument
@@ -137,28 +137,28 @@ class OOTexture : public oo::PListForeign {
      replaces them. The game never sets them; the other
      factories call the real loaders directly.
   */
-  using NameFactory = oo::Ref<OOTexture> (*)(
+  using NameFactory = std::shared_ptr<OOTexture> (*)(
       const std::optional<std::string>& name,
       const std::optional<std::string>& directory, OOTextureFlags options,
       GLfloat anisotropy, GLfloat lodBias);
   using ConfigurationFactory =
-      oo::Ref<OOTexture> (*)(const oo::PList& configuration);
+      std::shared_ptr<OOTexture> (*)(const oo::PList& configuration);
   static NameFactory nameFactory;
   static ConfigurationFactory configurationFactory;
-  static oo::Ref<OOTexture> loadTextureWithName(
+  static std::shared_ptr<OOTexture> loadTextureWithName(
       const std::optional<std::string>& name,
       const std::optional<std::string>& directory, OOTextureFlags options,
       GLfloat anisotropy, GLfloat lodBias);
-  static oo::Ref<OOTexture> loadTextureWithConfiguration(
+  static std::shared_ptr<OOTexture> loadTextureWithConfiguration(
       const oo::PList& configuration);
 
   // The "null texture" (OONullTexture's shared instance).
-  static oo::Ref<OOTexture> nullTexture();
+  static std::shared_ptr<OOTexture> nullTexture();
 
   // Load a texture from a generator, optionally forcing an enqueue.
-  static oo::Ref<OOTexture> textureWithGenerator(
+  static std::shared_ptr<OOTexture> textureWithGenerator(
       ::OOTextureGenerator* generator);
-  static oo::Ref<OOTexture> textureWithGenerator(
+  static std::shared_ptr<OOTexture> textureWithGenerator(
       ::OOTextureGenerator* generator, bool enqueue);
 
   // Bind the texture to the current texture unit. This will block until loading
@@ -192,9 +192,9 @@ class OOTexture : public oo::PListForeign {
   static void rebindAllTextures();
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  static std::vector<oo::Ref<OOTexture>>
+  static std::vector<std::shared_ptr<OOTexture>>
   cachedTexturesByAge();  // youngest first
-  static std::vector<oo::Ref<OOTexture>>
+  static std::vector<std::shared_ptr<OOTexture>>
   allTextures();  // in no particular order
 
   size_t dataSize();
@@ -244,7 +244,7 @@ inline oo::PList OOTextureObjectNode(
     OOTexture* texture)  // null texture -> null PList
 {
   if (texture == nullptr) return oo::PList();
-  return oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(texture)));
+  return oo::PList(oo::PList::Object(oo::share(texture)));
 }
 
 inline OOTexture* OOTextureInObjectNode(

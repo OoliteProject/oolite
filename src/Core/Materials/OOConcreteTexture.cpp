@@ -65,7 +65,7 @@ OOConcreteTexture::OOConcreteTexture(OOTextureLoader* loader,
                                      const std::optional<std::string>& key,
                                      OOTextureFlags options, GLfloat anisotropy,
                                      GLfloat lodBias) {
-  _loader = oo::Ref<OOTextureLoader>(loader);
+  _loader = oo::share(loader);
   _options = options;
 
 #if GL_EXT_texture_filter_anisotropic
@@ -85,14 +85,14 @@ OOConcreteTexture::OOConcreteTexture(OOTextureLoader* loader,
   _key = key;
 }
 
-oo::Ref<OOConcreteTexture> OOConcreteTexture::initWithLoader(
+std::shared_ptr<OOConcreteTexture> OOConcreteTexture::initWithLoader(
     OOTextureLoader* loader, const std::optional<std::string>& key,
     OOTextureFlags options, GLfloat anisotropy, GLfloat lodBias) {
   if (loader == nullptr) {
     return nullptr;
   }
 
-  oo::Ref<OOConcreteTexture> self = oo::adopt(
+  std::shared_ptr<OOConcreteTexture> self = oo::adopt(
       new OOConcreteTexture(loader, key, options, anisotropy, lodBias));
 
   self->addToCaches();
@@ -100,16 +100,16 @@ oo::Ref<OOConcreteTexture> OOConcreteTexture::initWithLoader(
   return self;
 }
 
-oo::Ref<OOConcreteTexture> OOConcreteTexture::initWithPath(
+std::shared_ptr<OOConcreteTexture> OOConcreteTexture::initWithPath(
     const std::string& path, const std::optional<std::string>& key,
     OOTextureFlags options, float anisotropy, GLfloat lodBias) {
-  const oo::Ref<OOTextureLoader> loader =
+  const std::shared_ptr<OOTextureLoader> loader =
       OOTextureLoader::loaderWithPath(path, options);
   if (loader == nullptr) {
     return nullptr;
   }
 
-  oo::Ref<OOConcreteTexture> self =
+  std::shared_ptr<OOConcreteTexture> self =
       initWithLoader(loader.get(), key, options, anisotropy, lodBias);
   if (self != nullptr) {
 #if OOTEXTURE_RELOADABLE

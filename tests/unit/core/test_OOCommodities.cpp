@@ -11,7 +11,7 @@
 	returns the table below, UNIVERSE and the player answer from fields, stations are fakes, the
 	string expander returns its input in angle brackets, and commodity scripts, which the test does
 	not run, are aborting link stubs. The RNG is the game's own (legacy_random.c), reseeded by each
-	test. The tests ask the C++ class, whose markets are oo::Ref<OOCommodityMarket>; the last tests
+	test. The tests ask the C++ class, whose markets are std::shared_ptr<OOCommodityMarket>; the last tests
 	pin the C++ API.
 	Run: tests/run.sh unit
 */
@@ -113,7 +113,7 @@ PlayerEntity *gOOPlayer = nullptr;
 class Universe
 {
 public:
-	oo::Ref<OOCommodityMarket> mainMarket;	// the C++ market
+	std::shared_ptr<OOCommodityMarket> mainMarket;	// the C++ market
 
 	OOSystemID currentSystemID();
 	::OOCommodityMarket *getCommodityMarket();
@@ -180,7 +180,7 @@ void Reset()
 }
 
 
-oo::Ref<OOCommodities> Commodities()
+std::shared_ptr<OOCommodities> Commodities()
 {
 	return oo::makeRef<OOCommodities>();
 }
@@ -201,7 +201,7 @@ std::string Describe(OOCommodityMarket *market)
 }
 
 
-std::string Describe(const oo::Ref<OOCommodityMarket> &market)
+std::string Describe(const std::shared_ptr<OOCommodityMarket> &market)
 {
 	return Describe(market.get());
 }
@@ -263,7 +263,7 @@ OO_TEST(goods)
 
 	{
 		Reset();
-		oo::Ref<OOCommodities> c = Commodities();
+		std::shared_ptr<OOCommodities> c = Commodities();
 		OO_CHECK(expect(Log()));
 		OO_CHECK(c->count() == 4);
 		std::string goods;
@@ -299,7 +299,7 @@ OO_TEST(markets)
 
 	{
 		Reset();
-		oo::Ref<OOCommodities> c = Commodities();
+		std::shared_ptr<OOCommodities> c = Commodities();
 		OO_CHECK(expect(Describe(c->generateManifestForPlayer())));
 		OO_CHECK(expect(Describe(c->generateBlankMarket())));
 		OO_CHECK(expect(c->generateManifestForPlayer()->definitionForGood("food").get<std::string>("key")));
@@ -337,7 +337,7 @@ OO_TEST(stationMarkets)
 
 	{
 		Reset();
-		oo::Ref<OOCommodities> c = Commodities();
+		std::shared_ptr<OOCommodities> c = Commodities();
 		gSharedUniverse->mainMarket = c->generateMarketForSystemWithEconomy(2, std::nullopt);
 		OO_CHECK(expect(Describe(gSharedUniverse->mainMarket)));
 
@@ -368,7 +368,7 @@ OO_TEST(cxxClass)
 {
 	{
 		Reset();
-		oo::Ref<OOCommodities> c = oo::makeRef<OOCommodities>();
+		std::shared_ptr<OOCommodities> c = oo::makeRef<OOCommodities>();
 		OO_CHECK(c->count() == 4 && c->goods() == std::vector<std::string>({ "food", "furs", "gems", "junk" }));
 		OO_CHECK(c->goodDefined("furs") && !c->goodDefined("junk"));
 		OO_CHECK(c->goodNamed("<Gem-stones>") == std::optional<std::string>("gems"));
@@ -376,7 +376,7 @@ OO_TEST(cxxClass)
 		OO_CHECK(OOCommodities::legacyCommodityType(11) == std::optional<std::string>("furs"));
 
 		// Its markets are C++ markets; the same answers as above.
-		oo::Ref<OOCommodityMarket> manifest = c->generateManifestForPlayer();
+		std::shared_ptr<OOCommodityMarket> manifest = c->generateManifestForPlayer();
 		OO_CHECK(manifest->count() == 4 && manifest->capacityForGood("food") == UINT32_MAX);
 		OO_CHECK(Describe(c->generateBlankMarket()) == "food q0 p0 c0 l0/0 u0; furs q0 p0 c0 l1/2 u1; gems q0 p0 c0 l0/0 u2; junk q0 p0 c0 l0/0 u0; ");
 		Reset();
@@ -399,10 +399,10 @@ OO_TEST(facadeIdentity)
 {
 	{
 		Reset();
-		oo::Ref<OOCommodities> c = Commodities();
+		std::shared_ptr<OOCommodities> c = Commodities();
 
 		// It makes a market, and a new one each time, as before.
-		oo::Ref<OOCommodityMarket> manifest = c->generateManifestForPlayer();
+		std::shared_ptr<OOCommodityMarket> manifest = c->generateManifestForPlayer();
 		OO_CHECK(manifest != nullptr);
 		OO_CHECK(c->generateBlankMarket() != c->generateBlankMarket());	// a new market each time, as before
 		OO_CHECK(c->count() == 4);

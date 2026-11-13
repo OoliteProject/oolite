@@ -72,8 +72,8 @@ inline size_t EntityObjectSize(Entity*) { return 3 * sizeof(void*); }
 
 // The live C++ entity a weak reference reads: null once it has gone, and for an
 // entity without its object.
-inline Entity* LiveEntity(const WeakRef<Entity>& ref) {
-  return WithObject(ref.get());
+inline Entity* LiveEntity(const std::weak_ptr<Entity>& ref) {
+  return WithObject(ref.lock().get());
 }
 
 // The entity's owner, null for none or once it has gone (Entity::owner()).

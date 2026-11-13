@@ -62,7 +62,7 @@ class OOFlasherEntity : public OOLightParticleEntity,
                         public cxx::OOSubEntityInterface {
  public:
   // A new flasher, initialised.
-  static oo::Ref<OOFlasherEntity> flasherWithDictionary(
+  static std::shared_ptr<OOFlasherEntity> flasherWithDictionary(
       const oo::PList& dictionary);
 
   // -cxx_initWithDictionary:'s body, run once right after construction.

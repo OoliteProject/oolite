@@ -1664,7 +1664,7 @@ void PlayerEntity::pollFlightControls(double delta_t) {
           if (!safety_pressed) {
             // targeting off in both cases!
             if (primaryTarget() != nullptr) noteLostTarget();
-            _primaryTarget = nullptr;
+            _primaryTarget.reset();
             safeAllMissiles();
             if (!ident_engaged && weaponsOnline()) {
               if (UNIVERSE != nullptr)
@@ -3284,10 +3284,10 @@ void PlayerEntity::pollGuiArrowKeyControls(double delta_t) {
 
   // check for any extra keys added by scripting
   const auto screenKeys = extraGuiScreenKeys.find(gui_screen);
-  const std::vector<oo::Ref<::OOJSGuiScreenKeyDefinition>> keys =
+  const std::vector<std::shared_ptr<::OOJSGuiScreenKeyDefinition>> keys =
       (screenKeys != extraGuiScreenKeys.end())
           ? screenKeys->second
-          : std::vector<oo::Ref<::OOJSGuiScreenKeyDefinition>>();
+          : std::vector<std::shared_ptr<::OOJSGuiScreenKeyDefinition>>();
   if (!keys.empty()) {
     std::size_t kc = keys.size();
     ::OOJSGuiScreenKeyDefinition* definition = nullptr;

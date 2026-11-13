@@ -36,10 +36,11 @@ SOFTWARE.
 
 #if OO_MULTITEXTURE
 
-oo::Ref<OOMultiTextureMaterial> OOMultiTextureMaterial::materialWithName(
-    const std::optional<std::string>& name, const oo::PList& configuration) {
-  oo::Ref<OOMultiTextureMaterial> result =
-      oo::makeRef<OOMultiTextureMaterial>();
+std::shared_ptr<OOMultiTextureMaterial>
+OOMultiTextureMaterial::materialWithName(const std::optional<std::string>& name,
+                                         const oo::PList& configuration) {
+  std::shared_ptr<OOMultiTextureMaterial> result =
+      oo::makeShared<OOMultiTextureMaterial>();
   if (!result->initWithName(name, configuration)) return nullptr;
   return result;
 }
@@ -84,8 +85,7 @@ bool OOMultiTextureMaterial::initWithName(
   OOBasicMaterial::initWithName(name, mutableConfiguration);
   {  // was if (self != nil): the superclass's initialiser cannot fail
     if (!diffuseSpec.isNull()) {
-      _diffuseMap =
-          oo::Ref<OOTexture>(OOTexture::textureWithConfiguration(diffuseSpec));
+      _diffuseMap = OOTexture::textureWithConfiguration(diffuseSpec);
       if (_diffuseMap.get() != nullptr) _unitsUsed++;
     }
 
@@ -93,11 +93,11 @@ bool OOMultiTextureMaterial::initWithName(
     // map.
     if (!emissionSpec.isNull() && illuminationSpec.isNull() &&
         emissionAndIlluminationSpec.isNull() && emissionColor == nullptr) {
-      _emissionMap = oo::Ref<OOTexture>(OOTexture::textureWithConfiguration(
-          emissionSpec, OOTextureFlags::kExtraShrink));
+      _emissionMap = OOTexture::textureWithConfiguration(
+          emissionSpec, OOTextureFlags::kExtraShrink);
       if (_emissionMap.get() != nullptr) _unitsUsed++;
     } else {
-      oo::Ref<OOCombinedEmissionMapGenerator> generator;
+      std::shared_ptr<OOCombinedEmissionMapGenerator> generator;
 
       if (!emissionAndIlluminationSpec.isNull()) {
         generator = OOCombinedEmissionMapGenerator::
@@ -115,8 +115,7 @@ bool OOMultiTextureMaterial::initWithName(
                 optionsSpec);
       }
 
-      _emissionMap =
-          oo::Ref<OOTexture>(OOTexture::textureWithGenerator(generator.get()));
+      _emissionMap = OOTexture::textureWithGenerator(generator.get());
       if (_emissionMap.get() != nullptr) _unitsUsed++;
     }
   }
@@ -203,14 +202,14 @@ void OOMultiTextureMaterial::unapplyWithNext(OOMaterial* next) {
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::Ref<OOTexture>> OOMultiTextureMaterial::allTextures() {
-  std::vector<oo::Ref<OOTexture>> result;
+std::vector<std::shared_ptr<OOTexture>> OOMultiTextureMaterial::allTextures() {
+  std::vector<std::shared_ptr<OOTexture>> result;
   if (_diffuseMap.get() == nullptr) {
-    result.emplace_back(_emissionMap.get());
+    result.emplace_back(_emissionMap);
     return result;
   }
-  result.emplace_back(_diffuseMap.get());
-  result.emplace_back(_emissionMap.get());
+  result.emplace_back(_diffuseMap);
+  result.emplace_back(_emissionMap);
   return result;
 }
 #endif

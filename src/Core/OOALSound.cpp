@@ -100,15 +100,15 @@ OOSound::OOSound() {
    the concrete sound it makes. The decoder is released at the end of the
    scope, as [decoder release] did.
 */
-oo::Ref<OOSound> OOSound::initWithContentsOfFile(
+std::shared_ptr<OOSound> OOSound::initWithContentsOfFile(
     const std::optional<std::string>& path) {
   if (!sIsSoundOK) return nullptr;
 
   if (!sIsSetUp && !setUp()) return nullptr;
 
-  oo::Ref<OOSound> self;
+  std::shared_ptr<OOSound> self;
 
-  const oo::Ref<OOALSoundDecoder> decoder =
+  const std::shared_ptr<OOALSoundDecoder> decoder =
       OOALSoundDecoder::initWithPath(path);
   if (nullptr == decoder) return nullptr;
 

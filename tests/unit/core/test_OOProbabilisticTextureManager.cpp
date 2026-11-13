@@ -61,7 +61,7 @@ class TestTexture final : public OOTexture {
   unsigned _loaded = 0;
 };
 
-oo::Ref<OOTexture> OOTexture::textureWithName(
+std::shared_ptr<OOTexture> OOTexture::textureWithName(
     const std::optional<std::string>& name,
     const std::optional<std::string>& directory, OOTextureFlags options,
     GLfloat anisotropy, GLfloat lodBias) {
@@ -71,7 +71,7 @@ oo::Ref<OOTexture> OOTexture::textureWithName(
   gLog.push_back("texture " + name.value_or("(nil)") + " in " +
                  directory.value_or("(nil)") + args);
   if (name == "missing.png") return nullptr;
-  oo::Ref<TestTexture> texture = oo::makeRef<TestTexture>();
+  std::shared_ptr<TestTexture> texture = oo::makeRef<TestTexture>();
   texture->_name = *name;
   return texture;
 }
@@ -157,7 +157,7 @@ void Reset(const oo::PList& config) {
   gGalaxy = 0;
 }
 
-std::string Picks(const oo::Ref<OOProbabilisticTextureManager>& manager,
+std::string Picks(const std::shared_ptr<OOProbabilisticTextureManager>& manager,
                   int count) {
   std::string picks;
   for (int i = 0; i < count; i++) {
@@ -171,7 +171,7 @@ bool SameSeed(RANROTSeed a, RANROTSeed b) {
   return a.high == b.high && a.low == b.low;
 }
 
-oo::Ref<OOProbabilisticTextureManager> Manager(RANROTSeed seed) {
+std::shared_ptr<OOProbabilisticTextureManager> Manager(RANROTSeed seed) {
   return OOProbabilisticTextureManager::createWithPListName("test.plist", static_cast<OOTextureFlags>(0x803),
                                                             0.5f, -0.25f, seed);
 }
@@ -192,7 +192,7 @@ bool CheckPicks(const char* what, const std::string& picks,
 OO_TEST(entriesKeptAndHowTheyAreLoaded) {
   {
     Reset(Config());
-    oo::Ref<OOProbabilisticTextureManager> manager = Manager(MakeRanrotSeed(1));
+    std::shared_ptr<OOProbabilisticTextureManager> manager = Manager(MakeRanrotSeed(1));
     OO_CHECK(manager != nullptr);
     OO_CHECK(manager->textureCount() == 4);
     const std::vector<std::string> expected = {
@@ -235,7 +235,7 @@ OO_TEST(seed) {
     Reset(Config());
     RANROTSeed global = MakeRanrotSeed(77);
     RANROTSetFullSeed(global);
-    oo::Ref<OOProbabilisticTextureManager> manager =
+    std::shared_ptr<OOProbabilisticTextureManager> manager =
         OOProbabilisticTextureManager::createWithPListName("test.plist", OOTextureFlags::kNone, 0,
                                                            0);
     OO_CHECK(SameSeed(manager->seed(), global));  // copied from the global seed
@@ -298,7 +298,7 @@ OO_TEST(picks) {
 
 OO_TEST(texturesAreLoadedAndKept) {
   std::vector<TestTexture*> textures;
-  oo::Ref<OOProbabilisticTextureManager> manager;
+  std::shared_ptr<OOProbabilisticTextureManager> manager;
   {
     Reset(Config());
     manager = Manager(MakeRanrotSeed(0x1234567));
@@ -313,7 +313,7 @@ OO_TEST(texturesAreLoadedAndKept) {
         for (TestTexture* t : textures) seen = seen || t == texture;
         if (!seen)
           textures.push_back(
-              oo::Ref<TestTexture>(texture).leakRef());  // the test's reference
+              oo::leakRef(oo::share(texture)));  // the test's reference
       }
     }
   }

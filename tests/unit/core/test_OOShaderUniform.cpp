@@ -48,7 +48,7 @@ oo::PList ResourceManager::dictionaryFromFilesNamed(
 }
 
 // OORegExpMatcher stub: answers no match.
-oo::Ref<OORegExpMatcher> OORegExpMatcher::regExpMatcher() {
+std::shared_ptr<OORegExpMatcher> OORegExpMatcher::regExpMatcher() {
   return oo::makeRef<OORegExpMatcher>();
 }
 bool OORegExpMatcher::string(const std::string&, const std::string&) {
@@ -67,10 +67,10 @@ static GLhandleARB gStandInProgram = 0;
 
 OOShaderProgram::~OOShaderProgram() {}
 GLhandleARB OOShaderProgram::program() { return _program; }
-oo::Ref<OOShaderProgram> OOShaderProgram::shaderProgramWithVertexShaderName(
+std::shared_ptr<OOShaderProgram> OOShaderProgram::shaderProgramWithVertexShaderName(
     const std::string&, const std::string&, const std::optional<std::string>&,
     const oo::PList&) {
-  oo::Ref<OOShaderProgram> made = oo::adopt(new OOShaderProgram());
+  std::shared_ptr<OOShaderProgram> made = oo::adopt(new OOShaderProgram());
   made->_program = gStandInProgram;
   return made;
 }
@@ -84,7 +84,7 @@ GLhandleARB gProgram = 0;
 GetUniformfv gGetUniformfv = nullptr;
 GetUniformiv gGetUniformiv = nullptr;
 OOShaderProgram* gShaderProgram = nullptr;
-oo::Ref<OOShaderProgram> gShaderProgramHeld;
+std::shared_ptr<OOShaderProgram> gShaderProgramHeld;
 
 // A program with one uniform of each kind, each used so that the linker keeps
 // it.
@@ -163,7 +163,7 @@ void Reset() {
 
 // The uniform's description, as its description() prints it (nil:
 // "(null)").
-std::string Description(const oo::Ref<OOShaderUniform>& uniform) {
+std::string Description(const std::shared_ptr<OOShaderUniform>& uniform) {
   return uniform->description().value_or("(null)");
 }
 
@@ -236,7 +236,7 @@ OO_TEST(constantIgnoresABindingTarget) {
   {
     oo::AutoreleaseScope pool;
     Reset();
-    const oo::Ref<OOShaderUniform> constant =
+    const std::shared_ptr<OOShaderUniform> constant =
         OOShaderUniform::initWithName("uFloat", gShaderProgram, 0.25f);
     constant->setEntityBindingTarget(nullptr);
     constant->apply();
@@ -307,9 +307,9 @@ OO_TEST(cxxTargetBindings) {
                  kOOShaderUniformTypeInvalid, CxxTargetVector, OOUniformConvertOptions::kNone) == nullptr);
 
     Reset();
-    oo::Ref<CxxTarget> target = oo::makeRef<CxxTarget>();
+    std::shared_ptr<CxxTarget> target = oo::makeRef<CxxTarget>();
     target->vector = make_vector(3, 0, 4);
-    oo::Ref<OOShaderUniform> u = OOShaderUniform::initWithName(
+    std::shared_ptr<OOShaderUniform> u = OOShaderUniform::initWithName(
         "uVector", gShaderProgram, target.get(), "vector",
         kOOShaderUniformTypeVector, CxxTargetVector, OOUniformConvertOptions::kNone);
     OO_CHECK(u != nullptr);
@@ -384,13 +384,13 @@ void PointValue(oo::RefCounted*, OOShaderBindingValue& v) {
   v.p = NSMakePoint(1.5, -2.5);
 }
 void ColorValue(oo::RefCounted*, OOShaderBindingValue& v) {
-  static oo::Ref<OOColor> color =
+  static std::shared_ptr<OOColor> color =
       OOColor::colorWithRed(0.25f, 0.5f, 0.75f, 1.0f);
   v.color = color.get();
 }
 void NotAColor(oo::RefCounted*, OOShaderBindingValue&) {}
 
-oo::Ref<OOShaderUniform> BoundCxx(const char* uniform, ConvertTarget* target,
+std::shared_ptr<OOShaderUniform> BoundCxx(const char* uniform, ConvertTarget* target,
                                   OOShaderUniformType type,
                                   OOShaderCxxBindingGetter get,
                                   OOUniformConvertOptions options = {}) {
@@ -407,7 +407,7 @@ OO_TEST(cxxTargetConvertOptions) {
   }
   {
     oo::AutoreleaseScope pool;
-    oo::Ref<ConvertTarget> held = oo::makeRef<ConvertTarget>();
+    std::shared_ptr<ConvertTarget> held = oo::makeRef<ConvertTarget>();
     ConvertTarget* target = held.get();
     target->_int = 5;
     target->_float = 1.75f;
@@ -415,7 +415,7 @@ OO_TEST(cxxTargetConvertOptions) {
 
     // Each supported value kind, applied on every apply from the target's
     // current value.
-    const oo::Ref<OOShaderUniform> u =
+    const std::shared_ptr<OOShaderUniform> u =
         BoundCxx("uInt", target, kOOShaderUniformTypeInt, IntValue);
     u->apply();
     OO_CHECK(Int("uInt") == 5);
@@ -522,7 +522,7 @@ OO_TEST(descriptionPrintsTheUniform) {
     OO_CHECK(false);
     return;
   }
-  const oo::Ref<OOShaderUniform> u =
+  const std::shared_ptr<OOShaderUniform> u =
       OOShaderUniform::initWithName("uInt", gShaderProgram, GLint(2));
   OO_CHECK(Description(u).starts_with(
       "<OOShaderUniform " + oo::str::pointerDescription(u.get()) + ">{"));

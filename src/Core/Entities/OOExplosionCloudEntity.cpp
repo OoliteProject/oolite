@@ -96,11 +96,11 @@ bool OOExplosionCloudEntity::initExplosionCloudWithEntity(
   std::string textureFile = _settings.get<std::string>(
       kExplosionTexture, "oolite-particle-cloud2.png");
 
-  _texture = oo::Ref<OOTexture>(OOTexture::textureWithName(
-      textureFile, std::string("Textures"),
-      OOTextureFlags::kMinFilterMipMap | OOTextureFlags::kMagFilterLinear |
-          OOTextureFlags::kAlphaMask,
-      kOOTextureDefaultAnisotropy, 0.0));
+  _texture = OOTexture::textureWithName(textureFile, std::string("Textures"),
+                                        OOTextureFlags::kMinFilterMipMap |
+                                            OOTextureFlags::kMagFilterLinear |
+                                            OOTextureFlags::kAlphaMask,
+                                        kOOTextureDefaultAnisotropy, 0.0);
   if (_texture == nullptr) {
     return false;
   }
@@ -171,21 +171,21 @@ bool OOExplosionCloudEntity::initExplosionCloudWithEntity(
 
 // -dealloc released the texture: _texture does.
 
-oo::Ref<OOExplosionCloudEntity>
+std::shared_ptr<OOExplosionCloudEntity>
 OOExplosionCloudEntity::explosionCloudFromEntity(Entity* entity,
                                                  const oo::PList& settings) {
-  oo::Ref<OOExplosionCloudEntity> result =
-      oo::makeRef<OOExplosionCloudEntity>();
+  std::shared_ptr<OOExplosionCloudEntity> result =
+      oo::makeShared<OOExplosionCloudEntity>();
   if (!result->initExplosionCloudWithEntity(entity, 0, settings))
     return nullptr;
   return result;
 }
 
-oo::Ref<OOExplosionCloudEntity>
+std::shared_ptr<OOExplosionCloudEntity>
 OOExplosionCloudEntity::explosionCloudFromEntity(Entity* entity, float size,
                                                  const oo::PList& settings) {
-  oo::Ref<OOExplosionCloudEntity> result =
-      oo::makeRef<OOExplosionCloudEntity>();
+  std::shared_ptr<OOExplosionCloudEntity> result =
+      oo::makeShared<OOExplosionCloudEntity>();
   if (!result->initExplosionCloudWithEntity(entity, size, settings))
     return nullptr;
   return result;

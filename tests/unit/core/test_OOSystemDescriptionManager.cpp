@@ -112,7 +112,7 @@ bool SameSeed(Random_Seed a, Random_Seed b) {
          a.f == b.f;
 }
 
-oo::Ref<OOSystemDescriptionManager> NewManager() {
+std::shared_ptr<OOSystemDescriptionManager> NewManager() {
   return oo::makeRef<OOSystemDescriptionManager>();
 }
 
@@ -124,7 +124,7 @@ oo::Ref<OOSystemDescriptionManager> NewManager() {
 OO_TEST(emptyManager) {
   Fake();
   {
-    oo::Ref<OOSystemDescriptionManager> manager = NewManager();
+    std::shared_ptr<OOSystemDescriptionManager> manager = NewManager();
     OO_CHECK(manager != nullptr);
     OO_CHECK(manager->getPropertiesForSystem(7, 0) ==
              oo::PList(oo::PList::Dict()));
@@ -147,7 +147,7 @@ OO_TEST(emptyManager) {
 OO_TEST(invalidSystems) {
   Fake();
   {
-    oo::Ref<OOSystemDescriptionManager> manager = NewManager();
+    std::shared_ptr<OOSystemDescriptionManager> manager = NewManager();
     manager->setUniversalProperties(Dict({{"economy", oo::PList(3)}}));
 
     // A negative system, and one past the last galaxy.
@@ -190,7 +190,7 @@ OO_TEST(invalidSystems) {
 OO_TEST(layersAndUniversal) {
   Fake();
   {
-    oo::Ref<OOSystemDescriptionManager> manager = NewManager();
+    std::shared_ptr<OOSystemDescriptionManager> manager = NewManager();
     manager->setUniversalProperties(
         Dict({{"economy", oo::PList(3)}, {"sky", Str("blue")}}));
     // Universal properties reach only systems that have a description of their
@@ -250,7 +250,7 @@ OO_TEST(layersAndUniversal) {
 OO_TEST(validation) {
   Fake();
   {
-    oo::Ref<OOSystemDescriptionManager> manager = NewManager();
+    std::shared_ptr<OOSystemDescriptionManager> manager = NewManager();
     manager->setProperties(Dict({
                                {"coordinates", Str("20 173")},
                                {"radius", oo::PList(5000)},
@@ -288,7 +288,7 @@ OO_TEST(validation) {
 OO_TEST(interstellar) {
   Fake();
   {
-    oo::Ref<OOSystemDescriptionManager> manager = NewManager();
+    std::shared_ptr<OOSystemDescriptionManager> manager = NewManager();
     manager->setUniversalProperties(Dict({{"economy", oo::PList(3)}}));
     manager->setInterstellarProperties(
         Dict({{"sky_n_stars", oo::PList(100)}, {"economy", oo::PList(1)}}));
@@ -320,7 +320,7 @@ OO_TEST(interstellar) {
 OO_TEST(scriptedChanges) {
   Fake();
   {
-    oo::Ref<OOSystemDescriptionManager> manager = NewManager();
+    std::shared_ptr<OOSystemDescriptionManager> manager = NewManager();
     // Saved under manifest~|~key~|~property~|~layer; not saved without a
     // manifest.
     manager->setProperty("description", "0 7", OOSystemLayer::kOXPDynamic,
@@ -357,7 +357,7 @@ OO_TEST(scriptedChanges) {
     // Importing into a new manager: an installed OXP's changes are applied (and
     // kept for the next export); another's are skipped; a key of the wrong
     // shape is skipped; a layer past the last is the priority layer.
-    oo::Ref<OOSystemDescriptionManager> loaded = NewManager();
+    std::shared_ptr<OOSystemDescriptionManager> loaded = NewManager();
     loaded->importScriptedChanges(Dict({
         {"org.test.installed~|~0 7~|~description~|~2", Str("A nice place.")},
         {"org.test.installed~|~0 8~|~economy~|~9", oo::PList(2)},
@@ -382,7 +382,7 @@ OO_TEST(scriptedChanges) {
 OO_TEST(legacyScriptedChanges) {
   Fake();
   {
-    oo::Ref<OOSystemDescriptionManager> manager = NewManager();
+    std::shared_ptr<OOSystemDescriptionManager> manager = NewManager();
     manager->importLegacyScriptedChanges(Dict({
         {"0 7", Dict({{"sun_gone_nova", oo::PList(true)},
                       {"sun_radius", oo::PList(1000)},
@@ -414,7 +414,7 @@ OO_TEST(legacyScriptedChanges) {
 OO_TEST(routeCacheAndSeeds) {
   Fake();
   {
-    oo::Ref<OOSystemDescriptionManager> manager = NewManager();
+    std::shared_ptr<OOSystemDescriptionManager> manager = NewManager();
     // Distances are 0.4 * the truncated distance with dy halved: 4 (10 apart)
     // and 8 (20 apart).
     manager->setProperties(Dict({{"coordinates", Str("100 100")},
@@ -456,7 +456,7 @@ OO_TEST(routeCacheAndSeeds) {
 OO_TEST(cxxApi) {
   Fake();
   {
-    oo::Ref<OOSystemDescriptionManager> manager =
+    std::shared_ptr<OOSystemDescriptionManager> manager =
         oo::makeRef<OOSystemDescriptionManager>();
     manager->setUniversalProperties(Dict({{"economy", oo::PList(3)}}));
     manager->setProperties(
@@ -487,7 +487,7 @@ OO_TEST(cxxApi) {
 }
 
 OO_TEST(entry) {
-  oo::Ref<OOSystemDescriptionEntry> entry =
+  std::shared_ptr<OOSystemDescriptionEntry> entry =
       oo::makeRef<OOSystemDescriptionEntry>();
   OO_CHECK(entry->getProperty("name", OOSystemLayer::kCore).isNull());
   entry->setProperty("name", OOSystemLayer::kCore, Str("Lave"));

@@ -186,10 +186,10 @@ JSValue OOScript::jsValueInContext(JSContext*) {
   std::abort();
 }  // never reached (no engine is linked)
 void OOScript::clearJSSelf(JSValueConst) {}
-void OOScriptAutorelease(oo::Ref<OOScript>) {}
+void OOScriptAutorelease(std::shared_ptr<OOScript>) {}
 
 // Only good.js loads.
-oo::Ref<OOScript> OOScript::jsScriptFromFileNamed(const std::string& fileName,
+std::shared_ptr<OOScript> OOScript::jsScriptFromFileNamed(const std::string& fileName,
                                                   const oo::PList&) {
   gLog.push_back("script " + fileName);
   return (fileName == "good.js") ? oo::makeRef<OOScript>() : nullptr;
@@ -348,7 +348,7 @@ std::string Log() {
   return result;
 }
 
-std::string Identifiers(const std::vector<oo::Ref<OOEquipmentType>>& types) {
+std::string Identifiers(const std::vector<std::shared_ptr<OOEquipmentType>>& types) {
   std::string result;
   for (const auto& t : types) result += t->identifier().value_or("-") + " ";
   return result;
@@ -581,11 +581,11 @@ OO_TEST(cxxClass) {
   {
     Reset();
     OOEquipmentType::loadEquipment();
-    const std::vector<oo::Ref<OOEquipmentType>> all =
+    const std::vector<std::shared_ptr<OOEquipmentType>> all =
         OOEquipmentType::allEquipmentTypes();
     OO_CHECK(all.size() == 9 &&
              OOEquipmentType::allEquipmentTypesOutfitting().size() == 2);
-    oo::Ref<OOEquipmentType> laser =
+    std::shared_ptr<OOEquipmentType> laser =
         OOEquipmentType::equipmentTypeWithIdentifier("EQ_WEAPON_PULSE_LASER");
     OO_CHECK(laser != nullptr && laser == all[4]);
     OO_CHECK(OOEquipmentType::equipmentTypeWithIdentifier("EQ_NO_NAME") ==
@@ -605,7 +605,7 @@ OO_TEST(cxxClass) {
         laser->descriptionComponents() ==
         std::optional<std::string>("EQ_WEAPON_PULSE_LASER \"Pulse laser\""));
 
-    oo::Ref<OOEquipmentType> booster =
+    std::shared_ptr<OOEquipmentType> booster =
         OOEquipmentType::equipmentTypeWithIdentifier("EQ_SHIELD_BOOSTER");
     OO_CHECK(booster->techLevel() == 99 && booster->effectiveTechLevel() == 7);
     OO_CHECK(booster->requiresEquipment() ==
@@ -641,8 +641,8 @@ OO_TEST(objectNode) {
     OO_CHECK(text.rfind("<OOEquipmentType 0x", 0) == 0 &&
              text.find(">{EQ_FUEL \"Fuel\"}") != std::string::npos);
     const oo::PList nodes = OOEquipmentTypeObjectNodes(
-        {oo::Ref<OOEquipmentType>(fuel), oo::Ref<OOEquipmentType>(),
-         oo::Ref<OOEquipmentType>(fuel)});
+        {oo::share(fuel), std::shared_ptr<OOEquipmentType>(),
+         oo::share(fuel)});
     OO_CHECK(nodes.count() == 2 &&
              OOEquipmentTypeInObjectNode(
                  (*nodes.getIf<oo::PList::Array>())[1]) == fuel);
@@ -651,7 +651,7 @@ OO_TEST(objectNode) {
 
 OO_TEST(facadeIdentity) {
   OOEquipmentType* fuel = nullptr;
-  oo::Ref<OOColor> blue;  // the C++ colour
+  std::shared_ptr<OOColor> blue;  // the C++ colour
   {
     Reset();
     OOEquipmentType::loadEquipment();
@@ -660,14 +660,14 @@ OO_TEST(facadeIdentity) {
     // The display colour comes back as the same colour.
     blue = OOColor::blueColor();
     fuel->setDisplayColor(blue.get());
-    OO_CHECK(fuel->displayColor().get() == blue);
+    OO_CHECK(fuel->displayColor().get() == blue.get());
   }
   {
     // A registered type outlives the pool (ships keep them unretained), and a
     // type registered later is the same object each time it is looked up.
     OO_CHECK(OOEquipmentType::equipmentTypeWithIdentifier("EQ_FUEL").get() ==
                  fuel &&
-             fuel->displayColor().get() == blue);
+             fuel->displayColor().get() == blue.get());
     OOEquipmentType::addEquipmentWithInfo(
         Item(3, 30, "Quiet", "EQ_QUIET", "Added in C++"));
     OOEquipmentType* quiet =

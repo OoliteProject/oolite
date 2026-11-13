@@ -44,7 +44,7 @@ class OOMusic : public OOSound {
      the path. Null where it answered nil. It hides the root's factory of the
      same name.
   */
-  static oo::Ref<OOMusic> initWithContentsOfFile(
+  static std::shared_ptr<OOMusic> initWithContentsOfFile(
       const std::optional<std::string>& inPath);
 
   ~OOMusic() override;
@@ -62,5 +62,5 @@ class OOMusic : public OOSound {
   OOMusic() = default;
 
   // The sound the root's cluster made for the path, retained as before.
-  oo::Ref<OOSound> sound;
+  std::shared_ptr<OOSound> sound;
 };

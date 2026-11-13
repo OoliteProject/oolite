@@ -55,9 +55,9 @@ class OOJSFunction : public oo::RefCounted {
   // The initialisers' factories: null where the initialiser answered nil (not a
   // function; no code, missing argument names, or a compile error). function
   // must be a function value; the OOJSFunction takes its own reference.
-  static oo::Ref<OOJSFunction> initWithFunction(JSValueConst function,
-                                                JSContext* context);
-  static oo::Ref<OOJSFunction> initWithName(
+  static std::shared_ptr<OOJSFunction> initWithFunction(JSValueConst function,
+                                                        JSContext* context);
+  static std::shared_ptr<OOJSFunction> initWithName(
       const std::optional<std::string>& name,
       JSValueConst scope,  // Ignored; QuickJS compiles functions in the global
                            // scope. Pass JS_UNDEFINED.

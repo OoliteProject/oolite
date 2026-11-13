@@ -77,7 +77,7 @@ class OOPriorityQueueOf {
   void addObject(T* object)  // null is ignored (OOPriorityQueue raised)
   {
     if (object == nullptr) return;
-    _heap.emplace_back(object);
+    _heap.emplace_back(oo::share(object));
     bubbleUpFrom(_heap.size() - 1);
   }
 
@@ -98,11 +98,11 @@ class OOPriorityQueueOf {
 
   // Removes the next element and answers it (null when empty), so the caller
   // decides how long it lives (OOPriorityQueue autoreleased it).
-  oo::Ref<T> removeNextObject() { return removeObjectAtIndex(0); }
+  std::shared_ptr<T> removeNextObject() { return removeObjectAtIndex(0); }
 
   // The elements in removeNextObject() order; empties the queue.
-  std::vector<oo::Ref<T>> sortedObjects() {
-    std::vector<oo::Ref<T>> result;
+  std::vector<std::shared_ptr<T>> sortedObjects() {
+    std::vector<std::shared_ptr<T>> result;
     result.reserve(_heap.size());
     while (!_heap.empty()) result.push_back(removeNextObject());
     return result;
@@ -146,9 +146,9 @@ class OOPriorityQueueOf {
     }
   }
 
-  oo::Ref<T> removeObjectAtIndex(size_t i) {
+  std::shared_ptr<T> removeObjectAtIndex(size_t i) {
     if (_heap.size() <= i) return nullptr;
-    oo::Ref<T> object = std::move(_heap[i]);
+    std::shared_ptr<T> object = std::move(_heap[i]);
     if (i < _heap.size() - 1) {
       // Overwrite object with last object in array, then push it down until the
       // tree is partially ordered.
@@ -163,5 +163,5 @@ class OOPriorityQueueOf {
   }
 
   Comparator _comparator;
-  std::vector<oo::Ref<T>> _heap;
+  std::vector<std::shared_ptr<T>> _heap;
 };

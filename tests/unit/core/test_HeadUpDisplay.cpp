@@ -76,10 +76,10 @@ void SetUp() {
 }
 
 // Makes the C++ HUD from a dictionary and file name.
-oo::Ref<HeadUpDisplay> NewHUD(
+std::shared_ptr<HeadUpDisplay> NewHUD(
     const oo::PList& info,
     const std::optional<std::string>& name = std::string("test-hud.plist")) {
-  oo::Ref<HeadUpDisplay> hud = oo::makeRef<HeadUpDisplay>();
+  std::shared_ptr<HeadUpDisplay> hud = oo::makeRef<HeadUpDisplay>();
   hud->initWithDictionary(info, name);
   return hud;
 }
@@ -100,7 +100,7 @@ bool SameRGBA(OOColor* color, float r, float g, float b, float a) {
 OO_TEST(madeFromAnEmptyDictionary) {
   SetUp();
   {
-    oo::Ref<HeadUpDisplay> hud = NewHUD(oo::PList(oo::PList::Dict{}));
+    std::shared_ptr<HeadUpDisplay> hud = NewHUD(oo::PList(oo::PList::Dict{}));
     OO_CHECK(hud != nullptr);
     OO_CHECK(hud->getHudName() == std::optional<std::string>("test-hud.plist"));
     OO_CHECK(!hud->getDeferredHudName().has_value());
@@ -163,7 +163,7 @@ OO_TEST(readsItsConfiguration) {
         {"scanner_non_linear", oo::PList(true)},
         {"scanner_ultra_zoom", oo::PList(true)},
     });
-    oo::Ref<HeadUpDisplay> hud = NewHUD(info);
+    std::shared_ptr<HeadUpDisplay> hud = NewHUD(info);
     OO_CHECK_EQ(hud->mfdCount(), 3u);
     OO_CHECK(hud->getOverallAlpha() == 0.5f);
     OO_CHECK(hud->getReticleTargetSensitive());
@@ -182,7 +182,7 @@ OO_TEST(reticleColoursFromTheTargetReticleDial) {
         oo::PList::Dict{{"selector", oo::PList("drawTargetReticle:")},
                         {"target_rgba", oo::PList("blueColor")},
                         {"wormhole_rgba", oo::PList("yellowColor")}});
-    oo::Ref<HeadUpDisplay> hud = NewHUD(oo::PList(
+    std::shared_ptr<HeadUpDisplay> hud = NewHUD(oo::PList(
         oo::PList::Dict{{"dials", oo::PList(oo::PList::Array{reticle})}}));
     OO_CHECK(SameRGBA(hud->reticleColorForIndex(OO_RETICLE_COLOR_TARGET).get(),
                       0, 0, 1, 1));
@@ -197,7 +197,7 @@ OO_TEST(reticleColoursFromTheTargetReticleDial) {
     oo::PList shortList(oo::PList::Dict{
         {"selector", oo::PList("drawTargetReticle:")},
         {"target_sensitive_rgba", oo::PList(oo::PList::Array{})}});
-    oo::Ref<HeadUpDisplay> shortHUD = NewHUD(oo::PList(
+    std::shared_ptr<HeadUpDisplay> shortHUD = NewHUD(oo::PList(
         oo::PList::Dict{{"dials", oo::PList(oo::PList::Array{shortList})}}));
     OO_CHECK(
         SameRGBA(shortHUD->reticleColorForIndex(OO_RETICLE_COLOR_TARGET).get(),
@@ -213,8 +213,8 @@ OO_TEST(reticleColoursFromTheTargetReticleDial) {
 OO_TEST(setReticleColour) {
   SetUp();
   {
-    oo::Ref<HeadUpDisplay> hud = NewHUD(oo::PList(oo::PList::Dict{}));
-    oo::Ref<OOColor> magenta = OOColor::magentaColor();
+    std::shared_ptr<HeadUpDisplay> hud = NewHUD(oo::PList(oo::PList::Dict{}));
+    std::shared_ptr<OOColor> magenta = OOColor::magentaColor();
     OO_CHECK(
         hud->setReticleColorForIndex(OO_RETICLE_COLOR_WORMHOLE, magenta.get()));
     OO_CHECK(hud->reticleColorForIndex(OO_RETICLE_COLOR_WORMHOLE) ==
@@ -229,13 +229,13 @@ OO_TEST(setReticleColour) {
 OO_TEST(crosshairFile) {
   SetUp();
   {
-    oo::Ref<HeadUpDisplay> hud = NewHUD(oo::PList(
+    std::shared_ptr<HeadUpDisplay> hud = NewHUD(oo::PList(
         oo::PList::Dict{{"crosshair_file", oo::PList("testcross.plist")}}));
     OO_CHECK(hud->getCrosshairDefinition() ==
              std::optional<std::string>("testcross.plist"));
 
     // A file that is not found falls back to crosshairs.plist.
-    oo::Ref<HeadUpDisplay> missing = NewHUD(oo::PList(
+    std::shared_ptr<HeadUpDisplay> missing = NewHUD(oo::PList(
         oo::PList::Dict{{"crosshair_file", oo::PList("nosuch.plist")}}));
     OO_CHECK(missing->getCrosshairDefinition() ==
              std::optional<std::string>("crosshairs.plist"));
@@ -245,7 +245,7 @@ OO_TEST(crosshairFile) {
 OO_TEST(accessorsAndSetters) {
   SetUp();
   {
-    oo::Ref<HeadUpDisplay> hud = NewHUD(oo::PList(oo::PList::Dict{}));
+    std::shared_ptr<HeadUpDisplay> hud = NewHUD(oo::PList(oo::PList::Dict{}));
 
     hud->setHudName(std::string("other.plist"));
     OO_CHECK(hud->getHudName() == std::optional<std::string>("other.plist"));
@@ -304,7 +304,7 @@ OO_TEST(accessorsAndSetters) {
 OO_TEST(hiddenSelectors) {
   SetUp();
   {
-    oo::Ref<HeadUpDisplay> hud = NewHUD(oo::PList(oo::PList::Dict{}));
+    std::shared_ptr<HeadUpDisplay> hud = NewHUD(oo::PList(oo::PList::Dict{}));
     OO_CHECK(!hud->hasHidden(std::string("drawCompass:")));
     OO_CHECK(!hud->hasHidden(std::nullopt));
     hud->setHiddenSelector("drawCompass:", true);
@@ -337,7 +337,7 @@ OO_TEST(setCrosshairDefinition) {
   {
     // The scripts' crosshair setter. (The frame's dials by name are the dial
     // table's.)
-    oo::Ref<HeadUpDisplay> hud = NewHUD(oo::PList(oo::PList::Dict{}));
+    std::shared_ptr<HeadUpDisplay> hud = NewHUD(oo::PList(oo::PList::Dict{}));
     OO_CHECK(hud->setCrosshairDefinition("testcross.plist"));
     OO_CHECK(hud->getCrosshairDefinition() ==
              std::optional<std::string>("testcross.plist"));
@@ -351,7 +351,7 @@ OO_TEST(beaconCodeIcon) {
   SetUp();
   {
     // The entities hold the code icon by the C++ OOHUDBeaconIcon interface.
-    oo::Ref<OOHUDBeaconCodeIcon> icon = oo::makeRef<OOHUDBeaconCodeIcon>("A");
+    std::shared_ptr<OOHUDBeaconCodeIcon> icon = oo::makeRef<OOHUDBeaconCodeIcon>("A");
     OO_CHECK(icon != nullptr);
     OO_CHECK(dynamic_cast<OOHUDBeaconIcon*>(icon.get()) != nullptr);
   }
@@ -363,7 +363,7 @@ OO_TEST(beaconCodeIcon) {
 OO_TEST(cxxAPI) {
   SetUp();
   {
-    oo::Ref<HeadUpDisplay> hud = oo::makeRef<HeadUpDisplay>();
+    std::shared_ptr<HeadUpDisplay> hud = oo::makeRef<HeadUpDisplay>();
     hud->initWithDictionary(
         oo::PList(oo::PList::Dict{
             {"dials", oo::PList(oo::PList::Array{Dial("drawCompass:")})},
@@ -382,12 +382,12 @@ OO_TEST(cxxAPI) {
     OO_CHECK(hud->getPropertiesReticleTargetSensitive()->get<bool>("isAccurate",
                                                                    false));
 
-    oo::Ref<OOColor> target =
+    std::shared_ptr<OOColor> target =
         hud->reticleColorForIndex(OO_RETICLE_COLOR_TARGET);
     OO_CHECK(target != nullptr && target->redComponent() == 0.0f &&
              target->greenComponent() == 1.0f);
     OO_CHECK(hud->reticleColorForIndex(3) == nullptr);
-    oo::Ref<OOColor> blue = OOColor::blueColor();
+    std::shared_ptr<OOColor> blue = OOColor::blueColor();
     OO_CHECK(hud->setReticleColorForIndex(OO_RETICLE_COLOR_TARGET, blue.get()));
     OO_CHECK(hud->reticleColorForIndex(OO_RETICLE_COLOR_TARGET) == blue);
     OO_CHECK(!hud->setReticleColorForIndex(OO_RETICLE_COLOR_TARGET, nullptr));

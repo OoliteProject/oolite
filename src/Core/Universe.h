@@ -82,7 +82,7 @@ class DockEntity;
 class StationEntity;
 class OOWaypointEntity;
 class PlayerEntity;
-#include "OOScript.h"  // oo::Ref<OOScript> members and results
+#include "OOScript.h"  // std::shared_ptr<OOScript> members and results
 class WormholeEntity;
 class OOSunEntity;
 class OOPlanetEntity;
@@ -314,7 +314,7 @@ class Universe : public oo::RefCounted {
 
   std::vector<oo::EntityHold> entities;  // owning: each entity's object
 
-  oo::WeakRef<Entity> _firstBeacon,  // the beacons' C++ parts
+  std::weak_ptr<Entity> _firstBeacon,  // the beacons' C++ parts
       _lastBeacon;
   std::map<std::string, oo::EntityHold, std::less<>>
       waypoints;  // by key: the waypoints (their objects held)
@@ -328,19 +328,19 @@ class Universe : public oo::RefCounted {
           // weapon overheat messages.
           //                       For proper handling of message dispatching,
           //                       code refactoring is needed.
-  oo::Ref<GuiDisplayGen> gui;
-  oo::Ref<GuiDisplayGen> message_gui;
-  oo::Ref<GuiDisplayGen> comm_log_gui;
+  std::shared_ptr<GuiDisplayGen> gui;
+  std::shared_ptr<GuiDisplayGen> message_gui;
+  std::shared_ptr<GuiDisplayGen> comm_log_gui;
   // The GUIs setUpSettings() replaced, kept until it replaces them again: they
   // were autoreleased, and a caller may still be using one in the pass that
   // reinitialised the universe .
-  std::vector<oo::Ref<GuiDisplayGen>> replacedGuis;
+  std::vector<std::shared_ptr<GuiDisplayGen>> replacedGuis;
   // The commodities, the system manager and the character pool setUpSettings()
   // and setUpInitialUniverse() replaced, kept until they replace them again:
   // they are not released until then.
-  oo::Ref<OOCommodities> replacedCommodities;
-  oo::Ref<OOSystemDescriptionManager> replacedSystemManager;
-  std::vector<oo::Ref<OOCharacter>> replacedCharacterPool;
+  std::shared_ptr<OOCommodities> replacedCommodities;
+  std::shared_ptr<OOSystemDescriptionManager> replacedSystemManager;
+  std::vector<std::shared_ptr<OOCharacter>> replacedCharacterPool;
 
   bool displayGUI = false;
   bool wasDisplayGUI = false;
@@ -370,8 +370,8 @@ class Universe : public oo::RefCounted {
 
   bool dumpCollisionInfo = false;
 
-  oo::Ref<OOCommodities> commodities;
-  oo::Ref<OOCommodityMarket> commodityMarket;
+  std::shared_ptr<OOCommodities> commodities;
+  std::shared_ptr<OOCommodityMarket> commodityMarket;
 
   oo::PList _descriptions;  // holds descriptive text for lots of stuff, loaded
                             // at initialisation (a dict; null until loaded)
@@ -383,7 +383,8 @@ class Universe : public oo::RefCounted {
   oo::PList characters;    // holds descriptons of characters
   oo::PList _scenarios;    // game start scenarios (an array)
   oo::PList globalSettings;  // miscellaneous global game settings
-  oo::Ref<OOSystemDescriptionManager> systemManager;  // planetinfo data manager
+  std::shared_ptr<OOSystemDescriptionManager>
+      systemManager;        // planetinfo data manager
   oo::PList missiontext;    // holds descriptive text for missions, loaded at
                             // initialisation
   oo::PList equipmentData;  // holds data on available equipment, loaded at
@@ -447,9 +448,9 @@ class Universe : public oo::RefCounted {
 
   std::vector<oo::EntityHold> activeWormholes;
 
-  std::vector<oo::Ref<OOCharacter>> characterPool;
+  std::vector<std::shared_ptr<OOCharacter>> characterPool;
 
-  oo::Ref<::CollisionRegion> universeRegion;
+  std::shared_ptr<::CollisionRegion> universeRegion;
 
   // check and maintain linked lists occasionally
   bool doLinkedListMaintenanceThisUpdate = false;
@@ -467,12 +468,13 @@ class Universe : public oo::RefCounted {
   oo::PList speechArray;  // [original, replacement(, espeak replacement)] pairs
 #endif
 
-  std::vector<oo::Ref<::OOMaterial>> _preloadingPlanetMaterials;
+  std::vector<std::shared_ptr<::OOMaterial>> _preloadingPlanetMaterials;
   bool doProcedurallyTexturedPlanets = false;
 
   GLfloat frustum[6][4] = {};
 
-  std::map<std::string, oo::Ref<OOScript>, std::less<>> conditionScripts;
+  std::map<std::string, std::shared_ptr<OOScript>, std::less<>>
+      conditionScripts;
 
   bool _pauseMessage = false;
   bool _autoCommLog = false;
@@ -492,9 +494,9 @@ class Universe : public oo::RefCounted {
   GLuint targetDepthBufferID = 0;
   GLuint targetFramebufferID = 0;
   GLuint passthroughFramebufferID = 0;
-  oo::Ref<OOShaderProgram> textureProgram = {};
-  oo::Ref<OOShaderProgram> blurProgram = {};
-  oo::Ref<OOShaderProgram> finalProgram = {};
+  std::shared_ptr<OOShaderProgram> textureProgram = {};
+  std::shared_ptr<OOShaderProgram> blurProgram = {};
+  std::shared_ptr<OOShaderProgram> finalProgram = {};
   GLuint quadTextureVBO = 0, quadTextureVAO = 0, quadTextureEBO = 0;
   GLint defaultDrawFBO = 0;
   GLuint pingpongFBO[2] = {};

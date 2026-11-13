@@ -825,7 +825,7 @@ namespace {
 // nothing). matcher is the one pass's matcher, taken on first use and held by
 // the caller, so one pass compiles one tester.
 // A null matcher (the tester did not compile) answers NO and is asked again.
-bool MatchesRegExp(oo::Ref<::OORegExpMatcher>& matcher,
+bool MatchesRegExp(std::shared_ptr<::OORegExpMatcher>& matcher,
                    const std::optional<std::string>& string,
                    const std::string& regexp) {
   if (!string.has_value()) return false;
@@ -836,7 +836,7 @@ bool MatchesRegExp(oo::Ref<::OORegExpMatcher>& matcher,
 
 // regexps may be a single string or an array of strings (in which case results
 // are ANDed).
-bool CheckRegExps(oo::Ref<::OORegExpMatcher>& matcher,
+bool CheckRegExps(std::shared_ptr<::OORegExpMatcher>& matcher,
                   const std::optional<std::string>& string,
                   const oo::PList& regexps) {
   if (regexps.isNull()) return true;  // No restriction == match.
@@ -898,7 +898,8 @@ oo::PList OOOpenGLExtensionManager::lookUpPerGPUSettingsWithVersionString(
         return oo::str::caseInsensitiveCompare(keyA, keyB) < 0;
       });
 
-  oo::Ref<::OORegExpMatcher> matcher;  // one for the pass (see MatchesRegExp)
+  std::shared_ptr<::OORegExpMatcher>
+      matcher;  // one for the pass (see MatchesRegExp)
   for (const std::string& key : keys) {
     const oo::PList* config = configurations.get<oo::PList::Dict>(key);
     if (EXPECT_NOT(config == nullptr)) continue;

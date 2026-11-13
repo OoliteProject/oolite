@@ -1506,7 +1506,7 @@ OO_TEST(cxxSynthesizerAnswersAsTheEntryPoint) {
       Synthesize({{"specular", Color(1, 1, 1)}, {"shininess", oo::PList(20)}},
                  std::string("hull.png"));
   {
-    oo::Ref<OODefaultShaderSynthesizer> synthesizer =
+    std::shared_ptr<OODefaultShaderSynthesizer> synthesizer =
         oo::makeRef<OODefaultShaderSynthesizer>(
             oo::PList(oo::PList::Dict{{"specular", Color(1, 1, 1)},
                                       {"shininess", oo::PList(20)}}),

@@ -52,8 +52,9 @@ std::string ScriptNameFromPath(const std::string& path) {
 }
 }  // namespace
 
-oo::Ref<OOJSScript> OOJSScript::scriptWithPath(const std::string& path) {
-  oo::Ref<OOJSScript> script = oo::makeRef<OOJSScript>();
+std::shared_ptr<OOJSScript> OOJSScript::scriptWithPath(
+    const std::string& path) {
+  std::shared_ptr<OOJSScript> script = oo::makeShared<OOJSScript>();
   if (!script->initWithPath(path)) return nullptr;
   return script;
 }

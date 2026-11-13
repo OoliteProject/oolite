@@ -78,11 +78,11 @@ void OOJavaScriptEngine::setShowErrorLocations(bool value) {
 // C++ subclass of OOScript declaring the members that code calls.
 class OOJSScript : public OOScript {
  public:
-  static oo::Ref<OOJSScript> scriptWithPath(
+  static std::shared_ptr<OOJSScript> scriptWithPath(
       const std::optional<std::string>& path, const oo::PList& properties);
 };
 
-oo::Ref<OOJSScript> OOJSScript::scriptWithPath(
+std::shared_ptr<OOJSScript> OOJSScript::scriptWithPath(
     const std::optional<std::string>& path, const oo::PList& properties) {
   gScriptPaths.push_back(path.value_or("(nil)") +
                          (properties.isNull() ? "" : " with properties"));
@@ -151,7 +151,7 @@ OOOXPVerifier* MakeVerifier(std::initializer_list<const char*> files) {
 
 OO_TEST(nameAndNeighbours) {
   {
-    const oo::Ref<OOCheckJSSyntaxVerifierStage> stage =
+    const std::shared_ptr<OOCheckJSSyntaxVerifierStage> stage =
         oo::makeRef<OOCheckJSSyntaxVerifierStage>();
     stage->setVerifier(MakeVerifier({}));
     OO_CHECK(stage->name() ==
@@ -163,7 +163,7 @@ OO_TEST(nameAndNeighbours) {
 
 OO_TEST(runsWhenThereAreScripts) {
   {
-    const oo::Ref<OOCheckJSSyntaxVerifierStage> stage =
+    const std::shared_ptr<OOCheckJSSyntaxVerifierStage> stage =
         oo::makeRef<OOCheckJSSyntaxVerifierStage>();
     stage->setVerifier(MakeVerifier({"Config/shipdata.plist"}));
     OO_CHECK(!stage->shouldRun());
@@ -185,7 +185,7 @@ OO_TEST(runsWhenThereAreScripts) {
 
 OO_TEST(compilesEachScript) {
   {
-    const oo::Ref<OOCheckJSSyntaxVerifierStage> stage =
+    const std::shared_ptr<OOCheckJSSyntaxVerifierStage> stage =
         oo::makeRef<OOCheckJSSyntaxVerifierStage>();
     stage->setVerifier(MakeVerifier({"Scripts/b.js", "Scripts/A.JS",
                                      "Scripts/c.es", "Scripts/notes.txt",
@@ -217,7 +217,7 @@ OO_TEST(compilesEachScript) {
 OO_TEST(facade) {
   {
     OOOXPVerifier* verifier = MakeVerifier({"Config/script.js"});
-    const oo::Ref<OOCheckJSSyntaxVerifierStage> stage =
+    const std::shared_ptr<OOCheckJSSyntaxVerifierStage> stage =
         oo::makeRef<OOCheckJSSyntaxVerifierStage>();
     OO_CHECK(
         stage->description().starts_with("<OOCheckJSSyntaxVerifierStage 0x"));

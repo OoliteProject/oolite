@@ -99,7 +99,7 @@ OOJSScript* sRunningScript = nullptr;
 class OOJSScript : public OOScript {
  public:
   static OOJSScript* currentlyRunningScript();
-  static void pushScript(const oo::WeakRef<OOJSScript>& script);
+  static void pushScript(const std::weak_ptr<OOJSScript>& script);
   static void popScript(OOJSScript* script);
 };
 
@@ -124,8 +124,8 @@ JSValue OOScript::jsValueInContext(JSContext*) { return JS_UNDEFINED; }
 void OOScript::clearJSSelf(JSValueConst) {}
 
 OOJSScript* OOJSScript::currentlyRunningScript() { return sRunningScript; }
-void OOJSScript::pushScript(const oo::WeakRef<OOJSScript>& script) {
-  sPushed.push_back(script.get());
+void OOJSScript::pushScript(const std::weak_ptr<OOJSScript>& script) {
+  sPushed.push_back(script.lock().get());
   sScriptDepth++;
 }
 void OOJSScript::popScript(OOJSScript* script) {
@@ -205,7 +205,7 @@ void CollectGarbage() { JS_RunGC(JS_GetRuntime(Context())); }
 
 OO_TEST(initialState) {
   Context();
-  const oo::Ref<OOJSInterfaceDefinition> definition =
+  const std::shared_ptr<OOJSInterfaceDefinition> definition =
       oo::makeRef<OOJSInterfaceDefinition>();
   OO_CHECK(definition != nullptr);
   OO_CHECK(IsUndefined(definition->callback()));
@@ -225,9 +225,9 @@ OO_TEST(initialState) {
 
 OO_TEST(runCallback) {
   {
-    const oo::Ref<OOJSScript> owner = oo::makeRef<OOJSScript>();
+    const std::shared_ptr<OOJSScript> owner = oo::makeRef<OOJSScript>();
     sRunningScript = owner.get();
-    const oo::Ref<OOJSInterfaceDefinition> definition =
+    const std::shared_ptr<OOJSInterfaceDefinition> definition =
         oo::makeRef<OOJSInterfaceDefinition>();
     sRunningScript = nullptr;
 
@@ -261,9 +261,9 @@ OO_TEST(runCallback) {
 }
 
 namespace {
-oo::Ref<OOJSInterfaceDefinition> Interface(std::optional<std::string> category,
+std::shared_ptr<OOJSInterfaceDefinition> Interface(std::optional<std::string> category,
                                            std::optional<std::string> title) {
-  const oo::Ref<OOJSInterfaceDefinition> definition =
+  const std::shared_ptr<OOJSInterfaceDefinition> definition =
       oo::makeRef<OOJSInterfaceDefinition>();
   if (category.has_value()) definition->setCategory(*category);
   definition->setTitle(title);
@@ -310,7 +310,7 @@ OO_TEST(interfaceCompare) {
 
 OO_TEST(engineReset) {
   {
-    const oo::Ref<OOJSInterfaceDefinition> definition =
+    const std::shared_ptr<OOJSInterfaceDefinition> definition =
         oo::makeRef<OOJSInterfaceDefinition>();
     definition->setCallback(Evaluate("(function () {})"));
     definition->setCallbackThis(Evaluate("({})"));

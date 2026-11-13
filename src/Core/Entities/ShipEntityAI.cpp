@@ -154,7 +154,7 @@ void ShipEntity::switchAITo(const std::string& aiString)  // called by name
 void ShipEntity::scanForHostiles() {
   /*-- Locates all the ships in range targeting the receiver and chooses the
    * nearest --*/
-  _foundTarget = nullptr;
+  _foundTarget.reset();
 
   checkScanner();
   unsigned i;
@@ -473,13 +473,13 @@ void ShipEntity::enterTargetWormhole() {
     int ent_count = UNIVERSE->n_entities;
     Entity** uni_entities =
         UNIVERSE->sortedEntities;  // grab the public sorted list
-    std::vector<oo::Ref<Entity>> wormholes(
+    std::vector<std::shared_ptr<Entity>> wormholes(
         ent_count);  // kept for the loop, as the objects were retained
     int i;
     int wh_count = 0;
     for (i = 0; i < ent_count; i++)
       if (uni_entities[i]->isWormhole)
-        wormholes[wh_count++] = oo::Ref<Entity>(uni_entities[i]);
+        wormholes[wh_count++] = oo::share(uni_entities[i]);
     //
     // double found_d2 = scannerRange * scannerRange;
     for (i = 0; i < wh_count; i++) {
@@ -574,7 +574,7 @@ void ShipEntity::broadcastDistressMessage() {
 
 void ShipEntity::broadcastDistressMessageWithDumping(bool dumpCargo) {
   checkScannerIgnoringUnpowered();
-  _foundTarget = nullptr;
+  _foundTarget.reset();
 
   ::ShipEntity* aggressor_ship = oo::ToShip(primaryAggressor());
   if (aggressor_ship == nullptr) return;
@@ -614,11 +614,12 @@ void ShipEntity::broadcastDistressMessageWithDumping(bool dumpCargo) {
       }
 
       // reset the thanked_ship_id
-      _thankedShip = nullptr;
+      _thankedShip.reset();
     } else if (getBounty() == 0 &&
                (ship != nullptr
                     ? ship->getCrew()
-                    : std::optional<std::vector<oo::Ref<OOCharacter>>>())
+                    : std::optional<
+                          std::vector<std::shared_ptr<OOCharacter>>>())
                    .has_value())  // Only clean ships can have their distress
                                   // calls accepted
     {
@@ -733,7 +734,7 @@ bool ShipEntity::performHyperSpaceExitReplace(bool replace,
 
   // create wormhole
   // A new C++ wormhole.
-  oo::Ref<WormholeEntity> whRef = oo::makeRef<WormholeEntity>();
+  std::shared_ptr<WormholeEntity> whRef = oo::makeShared<WormholeEntity>();
   Entity* wholeObject =
       oo::MadeEntity(whRef);  // the wormhole, given its object
   whRef->initWormholeTo(targetSystem, this);
@@ -754,7 +755,7 @@ void ShipEntity::scanForNearestShipWithPredicate(
   ::ShipEntity* candidate;
   float d2, found_d2 = scannerRange * scannerRange;
 
-  _foundTarget = nullptr;
+  _foundTarget.reset();
   checkScanner();
 
   if (predicate == nullptr) return;
@@ -853,10 +854,9 @@ void ShipEntity::abortAllDockings() {
 void StationEntity::acceptDistressMessageFrom(::ShipEntity* other) {
   if (this != (UNIVERSE != nullptr ? UNIVERSE->station() : nullptr)) return;
 
-  const oo::WeakRef<Entity> old_target = _primaryTarget;
-  _primaryTarget =
-      oo::WeakRef<Entity>(other != nullptr ? other->primaryTarget()
-                                           : static_cast<Entity*>(nullptr));
+  const std::weak_ptr<Entity> old_target = _primaryTarget;
+  _primaryTarget = oo::share(other != nullptr ? other->primaryTarget()
+                                              : static_cast<Entity*>(nullptr));
   if (oo::ToShip((other != nullptr ? other->primaryTarget()
                                    : static_cast<Entity*>(nullptr))) != nullptr)
     oo::ToShip((other != nullptr ? other->primaryTarget()
@@ -1031,7 +1031,7 @@ void ShipEntity::scanForNearestMerchantman() {
   checkScannerIgnoringUnpowered();
 
   found_d2 = scannerRange * scannerRange;
-  _foundTarget = nullptr;
+  _foundTarget.reset();
 
   for (i = 0; i < n_scanned_ships; i++) {
     ship = scanned_ships[i];
@@ -1064,7 +1064,7 @@ void ShipEntity::scanForRandomMerchantman() {
   std::vector<::ShipEntity*> ids_found(n_scanned_ships);
 
   n_found = 0;
-  _foundTarget = nullptr;
+  _foundTarget.reset();
   for (i = 0; i < n_scanned_ships; i++) {
     ::ShipEntity* ship = scanned_ships[i];
     if (((ship != nullptr ? ship->status() : OOEntityStatus{}) !=
@@ -1114,7 +1114,7 @@ void ShipEntity::scanForLoot() {
   checkScanner();
 
   double found_d2 = scannerRange * scannerRange;
-  _foundTarget = nullptr;
+  _foundTarget.reset();
   unsigned i;
   for (i = 0; i < n_scanned_ships; i++) {
     ::ShipEntity* other = oo::ToShip(scanned_ships[i]);
@@ -1153,7 +1153,7 @@ void ShipEntity::scanForRandomLoot() {
   //
   ::ShipEntity* thing_uids_found[16];
   unsigned things_found = 0;
-  _foundTarget = nullptr;
+  _foundTarget.reset();
   unsigned i;
   for (i = 0; (i < n_scanned_ships) && (things_found < 16); i++) {
     ::ShipEntity* other = scanned_ships[i];
@@ -1577,7 +1577,7 @@ void ShipEntity::scanForOffenders() {
   if ((UNIVERSE != nullptr ? UNIVERSE->sun() : nullptr) == nullptr)
     gov_factor = 1.0;
   //
-  _foundTarget = nullptr;
+  _foundTarget.reset();
 
   // find the worst offender on the scanner
   //
@@ -1710,7 +1710,7 @@ void ShipEntity::scanForThargoid() {
 
 void ShipEntity::scanForNonThargoid() {
   /*-- Locates all the non thargoid ships in range and chooses the nearest --*/
-  _foundTarget = nullptr;
+  _foundTarget.reset();
 
   checkScanner();
   unsigned i;
@@ -1788,7 +1788,7 @@ void ShipEntity::becomeUncontrolledThargon() {
   scanClass = OOScanClass::kCargo;
   reportAIMessages = false;
   setAITo("dumbAI.plist");
-  _primaryTarget = nullptr;
+  _primaryTarget.reset();
   setSpeed(0.0);
   setGroup(nullptr);
 }
@@ -1885,7 +1885,7 @@ void ShipEntity::checkGroupOddsVersusTarget() {
 
 void ShipEntity::scanForFormationLeader() {
   //-- Locates the nearest suitable formation leader in range --//
-  _foundTarget = nullptr;
+  _foundTarget.reset();
   checkScannerIgnoringUnpowered();
   unsigned i;
   GLfloat found_d2 = scannerRange * scannerRange;
@@ -2146,7 +2146,7 @@ void ShipEntity::storeTarget() {
   if (target) {
     setRememberedShip(target);
   } else {
-    _rememberedShip = nullptr;
+    _rememberedShip.reset();
   }
 }
 
@@ -2170,8 +2170,7 @@ void ShipEntity::recallStoredTarget() {
     setFoundTarget(oldTarget);
     if (shipAI != nullptr) shipAI->message("TARGET_FOUND");
   } else {
-    if (oldTarget == nullptr)
-      _rememberedShip = nullptr;  // ship no longer exists
+    if (oldTarget == nullptr) _rememberedShip.reset();  // ship no longer exists
     if (shipAI != nullptr) shipAI->message("NOTHING_FOUND");
   }
 }
@@ -2181,7 +2180,7 @@ void ShipEntity::scanForRocks() {
 
   // find boulders then asteroids within range
   //
-  _foundTarget = nullptr;
+  _foundTarget.reset();
   checkScanner();
   unsigned i;
   GLfloat found_d2 = scannerRange * scannerRange;
@@ -2250,7 +2249,7 @@ void ShipEntity::requestNewTarget() {
 
   /*-- Locates all the ships in range targeting the mother ship and chooses the
    * nearest/biggest --*/
-  _foundTarget = nullptr;
+  _foundTarget.reset();
   checkScanner();
   unsigned i;
   GLfloat found_d2 = scannerRange * scannerRange;
@@ -2390,10 +2389,10 @@ void ShipEntity::scanForNearestShipMatchingPredicate(
 
   // Created on first use and never destroyed, as the dictionary it replaces (it
   // holds JS functions).
-  static std::map<std::string, oo::Ref<OOJSFunction>, std::less<>>*
+  static std::map<std::string, std::shared_ptr<OOJSFunction>, std::less<>>*
       scriptCache = nullptr;
   std::string key;
-  oo::Ref<OOJSFunction> function;
+  std::shared_ptr<OOJSFunction> function;
   JSContext* context = nullptr;
 
   context = OOJSAcquireContext();
@@ -2430,8 +2429,8 @@ void ShipEntity::scanForNearestShipMatchingPredicate(
     // Cache function.
     if (function != nullptr) {
       if (scriptCache == nullptr)
-        scriptCache =
-            new std::map<std::string, oo::Ref<OOJSFunction>, std::less<>>();
+        scriptCache = new std::map<std::string, std::shared_ptr<OOJSFunction>,
+                                   std::less<>>();
       (*scriptCache)[key] = function;
     }
   }
@@ -2462,7 +2461,7 @@ void ShipEntity::scanForNearestShipMatchingPredicate(
     }
 
     // Select nothing
-    _foundTarget = nullptr;
+    _foundTarget.reset();
     if (getAI() != nullptr) getAI()->message("NOTHING_FOUND");
   }
 
@@ -2520,7 +2519,7 @@ void ShipEntity::setTargetToRandomStation() {
   int ent_count = UNIVERSE->n_entities;
   Entity** uni_entities =
       UNIVERSE->sortedEntities;  // grab the public sorted list
-  std::vector<oo::Ref<Entity>> my_entities(
+  std::vector<std::shared_ptr<Entity>> my_entities(
       ent_count);  // kept for the search, as the objects were retained
   ::StationEntity *station = nullptr, *my_station = nullptr;
   double maxRange2 = desired_range * desired_range;
@@ -2537,8 +2536,7 @@ void ShipEntity::setTargetToRandomStation() {
           HPdistance2(position,
                       (my_station != nullptr ? my_station->getPosition()
                                              : HPVector{})) < maxRange2) {
-        my_entities[station_count++] =
-            oo::Ref<Entity>(uni_entities[i]);  //	retained
+        my_entities[station_count++] = oo::share(uni_entities[i]);  //	retained
       }
     }
   }

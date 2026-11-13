@@ -44,9 +44,8 @@ class OOPixMapTextureLoader : public OOTextureGenerator {
   /*	Was [[OOPixMapTextureLoader alloc]
      initWithPixMap:textureOptions:freeWhenDone:]: null where that answered nil.
   */
-  static oo::Ref<OOPixMapTextureLoader> loaderWithPixMap(OOPixMap pixMap,
-                                                         OOTextureFlags options,
-                                                         bool freeWhenDone);
+  static std::shared_ptr<OOPixMapTextureLoader> loaderWithPixMap(
+      OOPixMap pixMap, OOTextureFlags options, bool freeWhenDone);
 
   // Was -initWithPixMap:textureOptions:freeWhenDone:; false where it answered
   // nil.

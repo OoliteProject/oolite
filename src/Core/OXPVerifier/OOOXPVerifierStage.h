@@ -127,8 +127,8 @@ class OOOXPVerifierStage : public oo::RefCounted {
 
   // These return sets of stages set up by registerDependency(), wheras
   // dependencies()/dependents() return sets of names.
-  std::vector<oo::Ref<OOOXPVerifierStage>> resolvedDependencies();
-  std::vector<oo::Ref<OOOXPVerifierStage>> resolvedDependents();
+  std::vector<std::shared_ptr<OOOXPVerifierStage>> resolvedDependencies();
+  std::vector<std::shared_ptr<OOOXPVerifierStage>> resolvedDependents();
 
  private:
   void registerDepedent(OOOXPVerifierStage* dependent);
@@ -136,9 +136,9 @@ class OOOXPVerifierStage : public oo::RefCounted {
   void notifyDependents();
 
   OOOXPVerifier* _verifier = {};  // Not retained.
-  std::vector<oo::Ref<OOOXPVerifierStage>> _dependencies = {};
-  std::vector<oo::Ref<OOOXPVerifierStage>> _incompleteDependencies = {};
-  std::vector<oo::Ref<OOOXPVerifierStage>> _dependents = {};
+  std::vector<std::shared_ptr<OOOXPVerifierStage>> _dependencies = {};
+  std::vector<std::shared_ptr<OOOXPVerifierStage>> _incompleteDependencies = {};
+  std::vector<std::shared_ptr<OOOXPVerifierStage>> _dependents = {};
   bool _canRun = {}, _hasRun = {};
 };
 

@@ -150,7 +150,7 @@ bool OODebugMonitor::setDebugger(OODebuggerInterface* newDebugger) {
       try {
         if (newDebugger->connectDebugMonitor(this, &error)) {
           newDebugger->debugMonitor(this, mergedConfiguration());
-          _debugger = oo::Ref<OODebuggerInterface>(newDebugger);
+          _debugger = oo::share(newDebugger);
         } else {
           OO_LOG(
               "debugMonitor.setDebugger.failed",
@@ -368,8 +368,8 @@ std::string SizeString(size_t size) {
 // Sets of objects by identity (the mutable sets of textures and entities
 // compared by identity).
 struct OODebugMonitor::EntityDumpState {
-  std::set<oo::Ref<OOTexture>> entityTextures;
-  std::set<oo::Ref<OOTexture>> visibleEntityTextures;
+  std::set<std::shared_ptr<OOTexture>> entityTextures;
+  std::set<std::shared_ptr<OOTexture>> visibleEntityTextures;
   std::map<Entity*, oo::EntityHold>
       seenEntities;  // each held, as its object was retained
   unsigned seenCount = 0;
@@ -399,7 +399,7 @@ void OODebugMonitor::dumpEntity(Entity* entity, EntityDumpState* state,
       parentVisible &&
       entity->isVisible();  // the virtual member -isVisible forwarded to
 
-  for (const oo::Ref<OOTexture>& texture : entity->allTextures()) {
+  for (const std::shared_ptr<OOTexture>& texture : entity->allTextures()) {
     state->entityTextures.insert(texture);
     if (visible) state->visibleEntityTextures.insert(texture);
   }
@@ -462,10 +462,11 @@ void OODebugMonitor::dumpMemoryStatistics() {
 
   //	Get texture retain counts before the entity dumper starts messing with
   // them.
-  const std::vector<oo::Ref<OOTexture>> allTextures = OOTexture::allTextures();
+  const std::vector<std::shared_ptr<OOTexture>> allTextures =
+      OOTexture::allTextures();
   std::map<OOTexture*, std::size_t> textureRefCounts;
 
-  for (const oo::Ref<OOTexture>& tex : allTextures) {
+  for (const std::shared_ptr<OOTexture>& tex : allTextures) {
     // We subtract one because allTextures retains the textures.
     textureRefCounts[tex.get()] = tex->retainCount() - 1;
   }
@@ -503,9 +504,10 @@ void OODebugMonitor::dumpMemoryStatistics() {
   /*	Sort textures so that textures in the "recent cache" come first by age,
           followed by others.
   */
-  std::vector<oo::Ref<OOTexture>> textures = OOTexture::cachedTexturesByAge();
+  std::vector<std::shared_ptr<OOTexture>> textures =
+      OOTexture::cachedTexturesByAge();
 
-  for (const oo::Ref<OOTexture>& tex : allTextures) {
+  for (const std::shared_ptr<OOTexture>& tex : allTextures) {
     if (std::find(textures.begin(), textures.end(), tex) == textures.end()) {
       textures.push_back(tex);
     }
@@ -518,7 +520,7 @@ void OODebugMonitor::dumpMemoryStatistics() {
   writeMemStat("Textures:");
   oo::log::indent();
 
-  for (const oo::Ref<OOTexture>& texRef : textures) {
+  for (const std::shared_ptr<OOTexture>& texRef : textures) {
     OOTexture* tex = texRef.get();
     size_t objSize = sizeof *tex;  // the texture root's size
     size_t dataSize = tex->dataSize();
@@ -681,11 +683,10 @@ void OODebugMonitor::setUpDebugConsoleScript() {
     // itself (oo::PListForeign), whose JS value is the console object
     // (jsValueInContext()).
     oo::PList::Dict jsProps;
-    jsProps["console"] =
-        oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(this)));
+    jsProps["console"] = oo::PList(oo::PList::Object(oo::share(this)));
     JSValue special = JSSpecialFunctionsObjectWrapper(context);
     if (JS_IsObject(special)) {
-      const oo::Ref<OOJSValue> specialWrapper =
+      const std::shared_ptr<OOJSValue> specialWrapper =
           OOJSValue::valueWithJSValue(special, context);
       jsProps["special"] = OOJSValueObjectNode(specialWrapper.get());
     }

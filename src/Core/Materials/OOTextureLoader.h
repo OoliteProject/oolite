@@ -84,7 +84,7 @@ class OOTextureLoader : public ::OOAsyncWorkTask {
      (the C++ OOPNGTextureLoader) is answered retained, already
           queued on the work manager; null where they answered nil.
   */
-  static oo::Ref<OOTextureLoader> loaderWithPath(
+  static std::shared_ptr<OOTextureLoader> loaderWithPath(
       const std::optional<std::string>& path, OOTextureFlags options);
 
   /*	Convenience method to load images not destined for normal texture use.
@@ -93,7 +93,7 @@ class OOTextureLoader : public ::OOAsyncWorkTask {
           directory to look in, typically Textures or Images. Options in the
           specifier which are applied at the OOTexture level will be ignored.
   */
-  static oo::Ref<OOTextureLoader> loaderWithTextureSpecifier(
+  static std::shared_ptr<OOTextureLoader> loaderWithTextureSpecifier(
       const oo::PList& specifier, OOTextureFlags extraOptions,
       const std::optional<std::string>& folder);
 

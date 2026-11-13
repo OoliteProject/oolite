@@ -46,7 +46,7 @@ public:
 template <class T>
 T *NewTestPlayer()
 {
-	oo::Ref<T> player = oo::makeRef<T>();
+	std::shared_ptr<T> player = oo::makeRef<T>();
 	{
 		oo::RetainEntity(oo::MadeEntity(player));
 	}
@@ -108,7 +108,7 @@ void SetAccuracy(ShipEntity *s, GLfloat a)		{ s->accuracy = a; }
 void SetNearPlanetSurface(ShipEntity *s, bool v)	{ s->isNearPlanetSurface = v; }
 void SetPrimaryTarget(ShipEntity *s, Entity *target)
 {
-	s->_primaryTarget = oo::WeakRef<Entity>(target);
+	s->_primaryTarget = oo::share(target);
 }
 
 

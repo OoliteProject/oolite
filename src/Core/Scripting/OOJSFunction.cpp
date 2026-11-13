@@ -39,8 +39,8 @@ MA 02110-1301, USA.
    private constructor.
 */
 
-oo::Ref<OOJSFunction> OOJSFunction::initWithFunction(JSValueConst function,
-                                                     JSContext* context) {
+std::shared_ptr<OOJSFunction> OOJSFunction::initWithFunction(
+    JSValueConst function, JSContext* context) {
   OOCParameterAssert(context != nullptr);
 
   if (!JS_IsFunction(context, function)) {
@@ -72,7 +72,7 @@ OOJSFunction::OOJSFunction(JSValueConst function, JSContext* context) {
   }
 }
 
-oo::Ref<OOJSFunction> OOJSFunction::initWithName(
+std::shared_ptr<OOJSFunction> OOJSFunction::initWithName(
     const std::optional<std::string>& name, JSValueConst scope,
     const std::optional<std::string>& code, std::size_t argCount,
     const char** argNames, const std::optional<std::string>& fileName,
@@ -80,7 +80,7 @@ oo::Ref<OOJSFunction> OOJSFunction::initWithName(
   bool OK = true;
   bool releaseContext = false;
   JSValue function = JS_UNDEFINED;
-  oo::Ref<OOJSFunction> result;
+  std::shared_ptr<OOJSFunction> result;
 
   if (context == nullptr) {
     context = OOJSAcquireContext();

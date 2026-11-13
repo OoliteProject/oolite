@@ -59,7 +59,7 @@ oo::PList ResourceManager::dictionaryFromFilesNamed(
 }
 
 // OORegExpMatcher: the stub answers no match.
-oo::Ref<OORegExpMatcher> OORegExpMatcher::regExpMatcher() {
+std::shared_ptr<OORegExpMatcher> OORegExpMatcher::regExpMatcher() {
   return oo::makeRef<OORegExpMatcher>();
 }
 bool OORegExpMatcher::string(const std::string&, const std::string&) {
@@ -103,30 +103,30 @@ class TestTexture final : public OOTexture {
   int _ensures = 0;
 };
 
-static TestTexture* AsTest(const oo::Ref<OOTexture>& texture) {
+static TestTexture* AsTest(const std::shared_ptr<OOTexture>& texture) {
   return static_cast<TestTexture*>(texture.get());
 }
 
 void OOTexture::applyNone() { gTextureApplyNones++; }
 
-oo::Ref<OOTexture> OOTexture::textureWithConfiguration(
+std::shared_ptr<OOTexture> OOTexture::textureWithConfiguration(
     const oo::PList& configuration) {
   return textureWithConfiguration(configuration, OOTextureFlags::kNone);
 }
 
-oo::Ref<OOTexture> OOTexture::textureWithConfiguration(
+std::shared_ptr<OOTexture> OOTexture::textureWithConfiguration(
     const oo::PList& configuration, OOTextureFlags extraOptions) {
   gTextureConfigurations.emplace_back(configuration, oo::ToUnderlying(extraOptions));
   if (configuration.isNull()) return nullptr;
-  oo::Ref<TestTexture> texture = oo::makeRef<TestTexture>();
+  std::shared_ptr<TestTexture> texture = oo::makeRef<TestTexture>();
   texture->_configuration = configuration;
   return texture;
 }
 
-oo::Ref<OOTexture> OOTexture::textureWithGenerator(
+std::shared_ptr<OOTexture> OOTexture::textureWithGenerator(
     ::OOTextureGenerator* generator) {
   if (generator == nullptr) return nullptr;
-  oo::Ref<TestTexture> texture = oo::makeRef<TestTexture>();
+  std::shared_ptr<TestTexture> texture = oo::makeRef<TestTexture>();
   texture->_configuration = oo::PList("generated");
   return texture;
 }
@@ -199,7 +199,7 @@ std::optional<std::string> OOTextureGenerator::cacheKey() {
 }
 bool OOTextureGenerator::enqueue() { return false; }
 
-oo::Ref<OOCombinedEmissionMapGenerator>
+std::shared_ptr<OOCombinedEmissionMapGenerator>
 OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(
     const oo::PList& emissionMapSpec, OOColor* emissionColor,
     OOTexture* diffuseMap, OOColor* diffuseColor,
@@ -216,7 +216,7 @@ OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(
   return oo::makeRef<OOCombinedEmissionMapGenerator>();
 }
 
-oo::Ref<OOCombinedEmissionMapGenerator>
+std::shared_ptr<OOCombinedEmissionMapGenerator>
 OOCombinedEmissionMapGenerator::generatorWithEmissionAndIlluminationMapSpec(
     const oo::PList& emissionAndIlluminationMapSpec, OOTexture* diffuseMap,
     OOColor*, OOColor*, OOColor*, const oo::PList& spec) {
@@ -268,7 +268,7 @@ bool CombinersSupported() {
          OOOpenGLExtensionManager::sharedManager()->textureCombinersSupported();
 }
 
-oo::Ref<OOMultiTextureMaterial> Make(const char* name, oo::PList::Dict config) {
+std::shared_ptr<OOMultiTextureMaterial> Make(const char* name, oo::PList::Dict config) {
   gTextureConfigurations.clear();
   gGenerators.clear();
   return OOMultiTextureMaterial::materialWithName(std::string(name),
@@ -306,7 +306,7 @@ OO_TEST(mapsFromTheConfiguration) {
   {
     // Only a name: the diffuse map is named after it, and there is no emission
     // map to bake.
-    oo::Ref<OOMultiTextureMaterial> m = Make("hull.png", {});
+    std::shared_ptr<OOMultiTextureMaterial> m = Make("hull.png", {});
     OO_CHECK(gTextureConfigurations.size() == 1 &&
              gTextureConfigurations[0].first == oo::PList("hull.png") &&
              gTextureConfigurations[0].second == 0);
@@ -375,7 +375,7 @@ OO_TEST(texturesKeptAndAsked) {
     return;
   }
   const int deallocated = gTexturesDeallocated;
-  oo::Ref<OOMultiTextureMaterial> m;
+  std::shared_ptr<OOMultiTextureMaterial> m;
   {
     m = Make("Hull", {{"diffuse_map", oo::PList("d.png")},
                       {"emission_map", oo::PList("e.png")}});
@@ -384,7 +384,7 @@ OO_TEST(texturesKeptAndAsked) {
   {
     m->ensureFinishedLoading();
 #ifndef NDEBUG
-    const std::vector<oo::Ref<OOTexture>> textures = m->allTextures();
+    const std::vector<std::shared_ptr<OOTexture>> textures = m->allTextures();
     OO_CHECK(textures.size() == 2 && AsTest(textures[0])->_ensures == 1 &&
              AsTest(textures[1])->_ensures == 1);
     OO_CHECK(AsTest(textures[0])->_configuration == oo::PList("d.png") &&
@@ -401,7 +401,7 @@ OO_TEST(texturesKeptAndAsked) {
   {
     // No diffuse map (no name): only the emission map.
     gTextureConfigurations.clear();
-    const oo::Ref<OOMultiTextureMaterial> emissive =
+    const std::shared_ptr<OOMultiTextureMaterial> emissive =
         OOMultiTextureMaterial::materialWithName(
             std::nullopt,
             oo::PList(oo::PList::Dict{{"emission_map", oo::PList("e.png")}}));
@@ -420,10 +420,10 @@ OO_TEST(applyAndUnapply) {
     return;
   }
   {
-    const oo::Ref<OOMultiTextureMaterial> two =
+    const std::shared_ptr<OOMultiTextureMaterial> two =
         Make("Two", {{"diffuse_map", oo::PList("d.png")},
                      {"emission_map", oo::PList("e.png")}});
-    const oo::Ref<OOMultiTextureMaterial> one = Make("one.png", {});
+    const std::shared_ptr<OOMultiTextureMaterial> one = Make("one.png", {});
 #ifndef NDEBUG
     TestTexture *diffuse = AsTest(two->allTextures()[0]),
                 *emission = AsTest(two->allTextures()[1]);
@@ -473,7 +473,7 @@ OO_TEST(cxxAPI) {
   }
   {
     gTextureConfigurations.clear();
-    const oo::Ref<OOMultiTextureMaterial> m =
+    const std::shared_ptr<OOMultiTextureMaterial> m =
         OOMultiTextureMaterial::materialWithName(
             std::string("Cxx"),
             oo::PList(oo::PList::Dict{{"diffuse_map", oo::PList("d.png")},
@@ -512,7 +512,7 @@ OO_TEST(descriptionNamesTheClass) {
     return;
   }
   {
-    const oo::Ref<OOMultiTextureMaterial> m =
+    const std::shared_ptr<OOMultiTextureMaterial> m =
         OOMultiTextureMaterial::materialWithName(std::string("Cxx"),
                                                  oo::PList());
     OO_CHECK(m->description().starts_with("<OOMultiTextureMaterial 0x"));

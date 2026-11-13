@@ -43,9 +43,10 @@ MA 02110-1301, USA.
 #define OOWAYPOINT_KEY_CODE "beaconCode"
 #define OOWAYPOINT_KEY_LABEL "beaconLabel"
 
-oo::Ref<OOWaypointEntity> OOWaypointEntity::waypointWithDictionary(
+std::shared_ptr<OOWaypointEntity> OOWaypointEntity::waypointWithDictionary(
     const oo::PList& info) {
-  const oo::Ref<OOWaypointEntity> waypoint = oo::makeRef<OOWaypointEntity>();
+  const std::shared_ptr<OOWaypointEntity> waypoint =
+      oo::makeShared<OOWaypointEntity>();
   waypoint->initWithDictionary(info);
   return waypoint;
 }
@@ -234,10 +235,10 @@ OOHUDBeaconIcon* OOWaypointEntity::beaconDrawable() {
 
     if (_beaconDrawable == nullptr) {
       if (length > 0)
-        _beaconDrawable = oo::makeRef<OOHUDBeaconCodeIcon>(
+        _beaconDrawable = oo::makeShared<OOHUDBeaconCodeIcon>(
             oo::utf16ToUtf8(beaconCode.substr(0, 1)));  // -substringToIndex:1
       else
-        _beaconDrawable = oo::makeRef<OOHUDBeaconCodeIcon>(std::string());
+        _beaconDrawable = oo::makeShared<OOHUDBeaconCodeIcon>(std::string());
     }
   }
 
@@ -250,13 +251,13 @@ Entity* OOWaypointEntity::nextBeacon() { return oo::LiveEntity(_nextBeacon); }
 
 void OOWaypointEntity::setPrevBeacon(Entity* beaconShip) {
   if (beaconShip != prevBeacon()) {
-    _prevBeacon = oo::WeakRef<Entity>(beaconShip);
+    _prevBeacon = std::weak_ptr<Entity>(oo::share(beaconShip));
   }
 }
 
 void OOWaypointEntity::setNextBeacon(Entity* beaconShip) {
   if (beaconShip != nextBeacon()) {
-    _nextBeacon = oo::WeakRef<Entity>(beaconShip);
+    _nextBeacon = std::weak_ptr<Entity>(oo::share(beaconShip));
   }
 }
 

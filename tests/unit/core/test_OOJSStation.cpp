@@ -98,7 +98,7 @@ public:
 	std::optional<std::string> cxx_oo_jsClassName();
 	JSValue oo_jsValueInContext(JSContext *context);
 
-	oo::Ref<Entity> _cxxEntity;
+	std::shared_ptr<Entity> _cxxEntity;
 	std::string _name;
 	JSValue _jsSelf = JS_UNDEFINED;	// owned; not an object until first asked for
 };
@@ -181,11 +181,11 @@ public:
 	bool _breakPattern = false;
 	std::vector<oo::PList> *_shipyard = nullptr;
 	int _shipyardsMade = 0;
-	oo::Ref<OOCommodityMarket> _market;
+	std::shared_ptr<OOCommodityMarket> _market;
 	int _abortAll = 0;
 	::ShipEntity *_abortedShip = nullptr;
 	bool _fits = false;
-	std::map<std::string, oo::Ref<OOJSInterfaceDefinition>> _interfaces;
+	std::map<std::string, std::shared_ptr<OOJSInterfaceDefinition>> _interfaces;
 	std::string _lastLaunch;
 	::ShipEntity *_launched = nullptr;
 };
@@ -241,7 +241,7 @@ public:
 	OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
 
 	StationEntity *_station;
-	oo::Ref<OOCommodities> _commodities;
+	std::shared_ptr<OOCommodities> _commodities;
 	GameController *_controller;
 	OOViewID _view;
 
@@ -343,7 +343,7 @@ namespace {
 
 // A ship's object (the root's, holding a C++ ship), kept for the life of the
 // test.
-::TestEntityObject *NewShipObject(const char *name, oo::Ref<Entity> ship)
+::TestEntityObject *NewShipObject(const char *name, std::shared_ptr<Entity> ship)
 {
 	::TestEntityObject *object = oo::makeRef<::TestEntityObject>().leakRef();
 	object->_cxxEntity = ship;
@@ -455,7 +455,7 @@ oo::PList StationEntity::launchPolice()
 void StationEntity::setInterfaceDefinition(::OOJSInterfaceDefinition *definition, const std::string &key)
 {
 	if (definition == nullptr)  _interfaces.erase(key);
-	else  _interfaces[key] = oo::Ref<OOJSInterfaceDefinition>(definition);
+	else  _interfaces[key] = oo::share(definition);
 }
 
 // Link stubs: what the linked commodities ask a station for its market, and a station's object for
@@ -541,14 +541,14 @@ class OOJSScript : public OOScript
 {
 public:
 	static OOJSScript *currentlyRunningScript();
-	static void pushScript(const oo::WeakRef<OOJSScript> &script);
+	static void pushScript(const std::weak_ptr<OOJSScript> &script);
 	static void popScript(OOJSScript *script);
 };
 
 OOJSScript *OOJSScript::currentlyRunningScript()  { return nullptr; }
 // The interface definition linked here pushes its owner when its callback runs, which no case does
 // (the class methods were never sent; as C++ statics they must be defined).
-void OOJSScript::pushScript(const oo::WeakRef<OOJSScript> &)  { std::abort(); }
+void OOJSScript::pushScript(const std::weak_ptr<OOJSScript> &)  { std::abort(); }
 void OOJSScript::popScript(OOJSScript *)  { std::abort(); }
 
 
@@ -578,8 +578,8 @@ std::string cxx_OOLookUpDescriptionPRIV(const std::string &key)
 OOCacheManager *OOCacheManager::sharedCache()  { std::abort(); }
 void OOCacheManager::setPList(const oo::PList &, const std::string &, const std::string &)  { std::abort(); }
 
-oo::Ref<OOScript> OOScript::jsScriptFromFileNamed(const std::string &, const oo::PList &)  { std::abort(); }
-void OOScriptAutorelease(oo::Ref<OOScript>)  { std::abort(); }
+std::shared_ptr<OOScript> OOScript::jsScriptFromFileNamed(const std::string &, const oo::PList &)  { std::abort(); }
+void OOScriptAutorelease(std::shared_ptr<OOScript>)  { std::abort(); }
 
 void cxx_OOStandardsDeprecated(const std::string&) { std::abort(); }
 bool OOEnforceStandards(void) { std::abort(); }

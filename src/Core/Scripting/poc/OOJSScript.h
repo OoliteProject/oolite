@@ -38,7 +38,7 @@ class OOJSScript : public oo::RefCounted {
  public:
   // Null (after logging) if the script cannot be loaded or its top level
   // throws.
-  static oo::Ref<OOJSScript> scriptWithPath(const std::string& path);
+  static std::shared_ptr<OOJSScript> scriptWithPath(const std::string& path);
   ~OOJSScript() override;
 
   static OOJSScript* currentlyRunningScript();

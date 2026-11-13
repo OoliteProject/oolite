@@ -59,7 +59,7 @@ MA 02110-1301, USA.
 class OOWaypointEntity : public Entity {
  public:
   // A new waypoint, initialised.
-  static oo::Ref<OOWaypointEntity> waypointWithDictionary(
+  static std::shared_ptr<OOWaypointEntity> waypointWithDictionary(
       const oo::PList& info);
 
   // -cxx_initWithDictionary:'s body after [super init] (the constructor ran
@@ -100,8 +100,8 @@ class OOWaypointEntity : public Entity {
 
   std::optional<std::string> _beaconCode;  // nullopt: nil
   std::optional<std::string> _beaconLabel;
-  oo::WeakRef<Entity> _prevBeacon;  // the beacons' C++ parts
-  oo::WeakRef<Entity> _nextBeacon;
-  oo::Ref<OOHUDBeaconIcon> _beaconDrawable;
+  std::weak_ptr<Entity> _prevBeacon;  // the beacons' C++ parts
+  std::weak_ptr<Entity> _nextBeacon;
+  std::shared_ptr<OOHUDBeaconIcon> _beaconDrawable;
   bool oriented = {};
 };

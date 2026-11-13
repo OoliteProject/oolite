@@ -110,8 +110,8 @@ class TestCxxMaterial : public OOMaterial {
 
 namespace {
 
-oo::Ref<TestObjCMaterial> MakeMaterial(const char* name, bool applies = true) {
-  oo::Ref<TestObjCMaterial> material = oo::makeRef<TestObjCMaterial>();
+std::shared_ptr<TestObjCMaterial> MakeMaterial(const char* name, bool applies = true) {
+  std::shared_ptr<TestObjCMaterial> material = oo::makeRef<TestObjCMaterial>();
   material->_testName = name;
   material->_applies = applies;
   return material;
@@ -129,7 +129,7 @@ bool Unapplied(
 
 OO_TEST(rootDefaults) {
   {
-    const oo::Ref<OOMaterial> material = oo::makeRef<OOMaterial>();
+    const std::shared_ptr<OOMaterial> material = oo::makeRef<OOMaterial>();
     const int parameterErrors = gParameterErrors,
               responsibilities = gSubclassResponsibilities;
     OO_CHECK(
@@ -159,21 +159,21 @@ OO_TEST(rootDefaults) {
 
 OO_TEST(applyMakesCurrent) {
   {
-    const oo::Ref<TestObjCMaterial> a = MakeMaterial("A"),
+    const std::shared_ptr<TestObjCMaterial> a = MakeMaterial("A"),
                                     b = MakeMaterial("B");
     gUnapplied.clear();
     OO_CHECK(OOMaterial::current() == nullptr);
 
     a->apply();
-    OO_CHECK(OOMaterial::current() == a.get() && a->_doApplies == 1);
+    OO_CHECK(OOMaterial::current().get() == a.get() && a->_doApplies == 1);
     OO_CHECK(Unapplied({}));
 
     b->apply();  // the previous material is told what comes next
-    OO_CHECK(OOMaterial::current() == b.get());
+    OO_CHECK(OOMaterial::current().get() == b.get());
     OO_CHECK(Unapplied({{a.get(), b.get()}}));
 
     b->apply();  // again: told itself
-    OO_CHECK(OOMaterial::current() == b.get() && b->_doApplies == 2);
+    OO_CHECK(OOMaterial::current().get() == b.get() && b->_doApplies == 2);
     OO_CHECK(Unapplied({{b.get(), b.get()}}));
 
     OOMaterial::applyNone();
@@ -187,7 +187,7 @@ OO_TEST(applyMakesCurrent) {
 
 OO_TEST(failedApplyLeavesNone) {
   {
-    const oo::Ref<TestObjCMaterial> a = MakeMaterial("A"),
+    const std::shared_ptr<TestObjCMaterial> a = MakeMaterial("A"),
                                     failing = MakeMaterial("Failing", false);
     a->apply();
     gUnapplied.clear();
@@ -203,14 +203,14 @@ OO_TEST(currentIsRetained) {
   const int deallocs = gDeallocs;
   TestObjCMaterial* material = nullptr;
   {
-    const oo::Ref<TestObjCMaterial> made = MakeMaterial("Kept");
+    const std::shared_ptr<TestObjCMaterial> made = MakeMaterial("Kept");
     material = made.get();
     material->apply();
   }
   // The maker's reference is gone; being current keeps it.
   OO_CHECK(gDeallocs == deallocs);
   {
-    OO_CHECK(OOMaterial::current() == material);
+    OO_CHECK(OOMaterial::current().get() == material);
     OO_CHECK(OOMaterial::current()->description().ends_with(">{\"Kept\"}"));
     gUnapplied.clear();
     OOMaterial::applyNone();
@@ -221,7 +221,7 @@ OO_TEST(currentIsRetained) {
 
 OO_TEST(willDeallocWhileCurrent) {
   {
-    const oo::Ref<TestObjCMaterial> material = MakeMaterial("Imbalanced");
+    const std::shared_ptr<TestObjCMaterial> material = MakeMaterial("Imbalanced");
     material->apply();
     const unsigned retained = material->retainCount();
     gUnapplied.clear();
@@ -242,7 +242,7 @@ OO_TEST(willDeallocWhileCurrent) {
 
 OO_TEST(superCallsReachTheRoot) {
   {
-    const oo::Ref<TestSuperCallingMaterial> material =
+    const std::shared_ptr<TestSuperCallingMaterial> material =
         oo::makeRef<TestSuperCallingMaterial>();
     material->_applies = false;
     const int responsibilities = gSubclassResponsibilities;
@@ -267,7 +267,7 @@ OO_TEST(description) {
 // .
 OO_TEST(cxxMaterial) {
   {
-    const oo::Ref<TestCxxMaterial> material =
+    const std::shared_ptr<TestCxxMaterial> material =
         oo::makeRef<TestCxxMaterial>("Cxx");
     OO_CHECK(material->name() == std::optional<std::string>("Cxx"));
     OO_CHECK(material->wantsNormalsAsTextureCoordinates());

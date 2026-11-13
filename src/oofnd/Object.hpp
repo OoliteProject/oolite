@@ -62,4 +62,18 @@ std::shared_ptr<T> share(T* p) {
           ->shared_from_this());
 }
 
+// Whether two weak references observe the same object, alive or gone (the same
+// owner); two that never observed one are the same.
+template <class A, class B>
+bool sameObject(const std::weak_ptr<A>& a, const std::weak_ptr<B>& b) noexcept {
+  return !a.owner_before(b) && !b.owner_before(a);
+}
+
+// Whether a weak reference never observed an object (an empty one, not one
+// whose object has gone).
+template <class T>
+bool isUnset(const std::weak_ptr<T>& weak) noexcept {
+  return sameObject(weak, std::weak_ptr<T>());
+}
+
 }  // namespace oo

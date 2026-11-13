@@ -35,7 +35,7 @@ class OOQuiriumCascadeEntity : public Entity {
  public:
   // +quiriumCascadeFromShip:: a new cascade where the ship is, or null for a
   // nil ship.
-  static oo::Ref<OOQuiriumCascadeEntity> quiriumCascadeFromShip(
+  static std::shared_ptr<OOQuiriumCascadeEntity> quiriumCascadeFromShip(
       ShipEntity* ship);
 
   std::optional<std::string> descriptionComponents() const override;

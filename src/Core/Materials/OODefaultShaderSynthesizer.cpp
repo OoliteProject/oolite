@@ -100,9 +100,9 @@ bool OOSynthesizeMaterialShader(const oo::PList& configuration,
                      outTextureSpecs != nullptr && outUniformSpecs != nullptr);
 
   {
-    oo::Ref<OODefaultShaderSynthesizer> synthesizer =
-        oo::makeRef<OODefaultShaderSynthesizer>(configuration, materialKey,
-                                                entityName);
+    std::shared_ptr<OODefaultShaderSynthesizer> synthesizer =
+        oo::makeShared<OODefaultShaderSynthesizer>(configuration, materialKey,
+                                                   entityName);
 
     bool OK = synthesizer->run();
     if (OK) {

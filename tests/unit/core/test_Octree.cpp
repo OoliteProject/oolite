@@ -36,25 +36,25 @@ std::vector<int> Nodes(const oo::PList& representation) {
 // An octree built by an OOOctreeBuilder.
 #define BUILD(radius, ...)                                             \
   ([&]() {                                                             \
-    oo::Ref<OOOctreeBuilder> builder = oo::makeRef<OOOctreeBuilder>(); \
+    std::shared_ptr<OOOctreeBuilder> builder = oo::makeRef<OOOctreeBuilder>(); \
     __VA_ARGS__;                                                       \
     return builder->buildOctreeWithRadius(radius);                     \
   }())
 
 OO_TEST(builderAndRepresentation) {
   {
-    oo::Ref<Octree> solid = BUILD(2.0f, builder->writeSolid());
+    std::shared_ptr<Octree> solid = BUILD(2.0f, builder->writeSolid());
     OO_CHECK(solid);
     oo::PList representation = solid->dictionaryRepresentation();
     OO_CHECK(Nodes(representation) == std::vector<int>({-1}));
     OO_CHECK(representation.get<float>("radius") == 2.0f);
 
-    oo::Ref<Octree> empty = BUILD(2.0f, builder->writeEmpty());
+    std::shared_ptr<Octree> empty = BUILD(2.0f, builder->writeEmpty());
     OO_CHECK(Nodes(empty->dictionaryRepresentation()) == std::vector<int>({0}));
 
     // One inner node with its first child solid: the root holds the offset to
     // its children.
-    oo::Ref<Octree> corner =
+    std::shared_ptr<Octree> corner =
         BUILD(2.0f, builder->beginInnerNode(); builder->writeSolid();
               for (int i = 0; i < 7; i++) builder->writeEmpty();
               builder->endInnerNode());
@@ -62,7 +62,7 @@ OO_TEST(builderAndRepresentation) {
              std::vector<int>({1, -1, 0, 0, 0, 0, 0, 0, 0}));
 
     // Eight solid children fold into one solid node.
-    oo::Ref<Octree> folded =
+    std::shared_ptr<Octree> folded =
         BUILD(2.0f, builder->beginInnerNode();
               for (int i = 0; i < 8; i++) builder->writeSolid();
               builder->endInnerNode());
@@ -70,7 +70,7 @@ OO_TEST(builderAndRepresentation) {
              std::vector<int>({-1}));
 
     // The representation comes back as an equal octree.
-    oo::Ref<Octree> copy =
+    std::shared_ptr<Octree> copy =
         Octree::initWithDictionary(corner->dictionaryRepresentation());
     OO_CHECK(copy && copy != corner);
     OO_CHECK(Nodes(copy->dictionaryRepresentation()) ==
@@ -104,7 +104,7 @@ OO_TEST(volumeAndRandomPoint) {
     OO_CHECK(BUILD(2.0f, builder->writeSolid())->volume() == 8.0f);
     OO_CHECK(BUILD(2.0f, builder->writeEmpty())->volume() == 0.0f);
 
-    oo::Ref<Octree> corner =
+    std::shared_ptr<Octree> corner =
         BUILD(2.0f, builder->beginInnerNode(); builder->writeSolid();
               for (int i = 0; i < 7; i++) builder->writeEmpty();
               builder->endInnerNode());
@@ -121,16 +121,16 @@ OO_TEST(volumeAndRandomPoint) {
 
 OO_TEST(lineHits) {
   {
-    oo::Ref<Octree> solid = BUILD(2.0f, builder->writeSolid());
+    std::shared_ptr<Octree> solid = BUILD(2.0f, builder->writeSolid());
     OO_CHECK(
         solid->isHitByLine(make_vector(-10, 0, 0), make_vector(10, 0, 0)) ==
         10.0f);  // solid root: distance to v0
 
-    oo::Ref<Octree> empty = BUILD(2.0f, builder->writeEmpty());
+    std::shared_ptr<Octree> empty = BUILD(2.0f, builder->writeEmpty());
     OO_CHECK(empty->isHitByLine(make_vector(-10, 0, 0),
                                 make_vector(10, 0, 0)) == 0.0f);
 
-    oo::Ref<Octree> corner =
+    std::shared_ptr<Octree> corner =
         BUILD(2.0f, builder->beginInnerNode(); builder->writeSolid();
               for (int i = 0; i < 7; i++) builder->writeEmpty();
               builder->endInnerNode());
@@ -156,10 +156,10 @@ OO_TEST(lineHits) {
 
 OO_TEST(octreeHits) {
   {
-    oo::Ref<Octree> a = BUILD(2.0f, builder->writeSolid());
-    oo::Ref<Octree> b = BUILD(1.0f, builder->writeSolid());
-    oo::Ref<Octree> empty = BUILD(1.0f, builder->writeEmpty());
-    oo::Ref<Octree> corner =
+    std::shared_ptr<Octree> a = BUILD(2.0f, builder->writeSolid());
+    std::shared_ptr<Octree> b = BUILD(1.0f, builder->writeSolid());
+    std::shared_ptr<Octree> empty = BUILD(1.0f, builder->writeEmpty());
+    std::shared_ptr<Octree> corner =
         BUILD(2.0f, builder->beginInnerNode(); builder->writeSolid();
               for (int i = 0; i < 7; i++) builder->writeEmpty();
               builder->endInnerNode());
@@ -189,28 +189,28 @@ OO_TEST(octreeHits) {
 }
 
 OO_TEST(cxxOctree) {
-  oo::Ref<OOOctreeBuilder> builder = oo::makeRef<OOOctreeBuilder>();
+  std::shared_ptr<OOOctreeBuilder> builder = oo::makeRef<OOOctreeBuilder>();
   builder->beginInnerNode();
   builder->writeSolid();
   for (int i = 0; i < 7; i++) builder->writeEmpty();
   builder->endInnerNode();
-  oo::Ref<Octree> corner = builder->buildOctreeWithRadius(2.0f);
+  std::shared_ptr<Octree> corner = builder->buildOctreeWithRadius(2.0f);
   OO_CHECK(corner.get() != nullptr);
   OO_CHECK(corner->volume() == 1.0f);
   OO_CHECK(Nodes(corner->dictionaryRepresentation()) ==
            std::vector<int>({1, -1, 0, 0, 0, 0, 0, 0, 0}));
   OO_CHECK(corner->octreeScaledBy(2.0f)->volume() == 8.0f);
 
-  oo::Ref<Octree> copy =
+  std::shared_ptr<Octree> copy =
       Octree::initWithDictionary(corner->dictionaryRepresentation());
   OO_CHECK(copy.get() != nullptr && copy.get() != corner.get() &&
            copy->volume() == 1.0f);
   OO_CHECK(Octree::initWithDictionary(oo::PList(oo::PList::Dict())).get() ==
            nullptr);
 
-  oo::Ref<OOOctreeBuilder> small = oo::makeRef<OOOctreeBuilder>();
+  std::shared_ptr<OOOctreeBuilder> small = oo::makeRef<OOOctreeBuilder>();
   small->writeSolid();
-  oo::Ref<Octree> b = small->buildOctreeWithRadius(1.0f);
+  std::shared_ptr<Octree> b = small->buildOctreeWithRadius(1.0f);
   OO_CHECK(corner->isHitByOctree(b.get(), make_vector(-1.5f, -1.5f, -1.5f),
                                  kIdentityIJK));
   OO_CHECK(!corner->isHitByOctree(b.get(), make_vector(1.5f, 1.5f, 1.5f),

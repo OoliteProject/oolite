@@ -103,7 +103,7 @@ static const JSCFunctionListEntry sSoundSourceMethods[] = {
 // OOJSSoundSourceHolder (OOJSSoundSource.h): the JS glue of a SoundSource
 // object's slot.
 OOJSSoundSourceHolder::OOJSSoundSourceHolder(OOSoundSource* inSource)
-    : _source(inSource) {}
+    : _source(oo::share(inSource)) {}
 OOJSSoundSourceHolder::~OOJSSoundSourceHolder() = default;
 OOSoundSource* OOJSSoundSourceHolder::source() const { return _source.get(); }
 JSValue OOJSSoundSourceHolder::jsValueInContext(JSContext* context) {
@@ -158,9 +158,9 @@ static JSValue SoundSourceConstruct(OOJS_NATIVE_ARGS) {
     return JS_EXCEPTION;
   }
 
-  const oo::Ref<OOSoundSource> source =
-      oo::makeRef<OOSoundSource>();  // [[[OOSoundSource alloc] init]
-                                     // autorelease]
+  const std::shared_ptr<OOSoundSource> source =
+      oo::makeShared<OOSoundSource>();  // [[[OOSoundSource alloc] init]
+                                        // autorelease]
   OOJS_RETURN(OOJSSoundSourceJSValueInContext(source.get(), context));
 
   OOJS_NATIVE_EXIT
@@ -375,8 +375,8 @@ JSValue OOJSSoundSourceJSValueInContext(OOSoundSource* source,
     JS_FreeValue(context, JS_GetException(context));
     return JS_NULL;
   }
-  const oo::Ref<OOJSSoundSourceHolder> holder =
-      oo::makeRef<OOJSSoundSourceHolder>(source);
+  const std::shared_ptr<OOJSSoundSourceHolder> holder =
+      oo::makeShared<OOJSSoundSourceHolder>(source);
   if (!OOJSSetCxxPrivate(result, holder.get())) {
     JS_FreeValue(context, result);
     return JS_NULL;

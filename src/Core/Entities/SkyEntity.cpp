@@ -82,7 +82,7 @@ std::shared_ptr<OOColor> PremultipliedColorWithDescription(
 
 void SkyEntity::initWithColors(OOColor* col1In, OOColor* col2In,
                                const oo::PList& systemInfo) {
-  oo::Ref<OOSkyDrawable> skyDrawable;
+  std::shared_ptr<OOSkyDrawable> skyDrawable;
   float clusterChance, alpha, scale, starCountMultiplier, nebulaCountMultiplier;
   signed starCount,  // Need to be able to hold -1...
       nebulaCount;
@@ -153,7 +153,7 @@ void SkyEntity::initWithColors(OOColor* col1In, OOColor* col2In,
     }
   }
 
-  skyDrawable = oo::makeRef<OOSkyDrawable>(
+  skyDrawable = oo::makeShared<OOSkyDrawable>(
       col1.get(), col2.get(), col3.get(), col4.get(), starCount, nebulaCount,
       nebulaColorSet, clusterChance, alpha, scale);
   setDrawable(skyDrawable.get());

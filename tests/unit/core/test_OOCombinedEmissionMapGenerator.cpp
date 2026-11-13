@@ -41,9 +41,9 @@ uint32_t gDebugFlags = 0;
 
 // What an autoreleased texture is: the C++ texture, kept until the current
 // autorelease scope drains (oo::autorelease).
-static OOTexture* Autoreleased(const oo::Ref<OOTexture>& texture) {
+static OOTexture* Autoreleased(const std::shared_ptr<OOTexture>& texture) {
   if (texture == nullptr) return nullptr;
-  oo::autorelease(oo::Ref<OOTexture>(texture));
+  oo::autorelease(std::shared_ptr<OOTexture>(texture));
   return texture.get();
 }
 
@@ -101,9 +101,9 @@ void SetUp() {
 
 // The generators made, kept for the test's life (each was autoreleased in its
 // case's pool).
-std::vector<oo::Ref<OOTextureGenerator>> gKeptGenerators;
+std::vector<std::shared_ptr<OOTextureGenerator>> gKeptGenerators;
 
-OOTextureGenerator* Kept(oo::Ref<OOTextureGenerator> generator) {
+OOTextureGenerator* Kept(std::shared_ptr<OOTextureGenerator> generator) {
   if (generator != nullptr) gKeptGenerators.push_back(generator);
   return generator.get();
 }
@@ -214,7 +214,7 @@ OO_TEST(cacheKeys) {
   SetUp();
   {
     oo::AutoreleaseScope pool;
-    oo::Ref<OOColor> red = OOColor::redColor();
+    std::shared_ptr<OOColor> red = OOColor::redColor();
     const std::string redRGBA = red->rgbaDescription().value_or("");
 
     OO_CHECK(NewGenerator(oo::PList("e.png"), red.get(), nullptr, nullptr, oo::PList(),
@@ -385,9 +385,9 @@ OO_TEST(cxxApi) {
                  generatorWithEmissionAndIlluminationMapSpec(
                      oo::PList(), nullptr, nullptr, nullptr, nullptr, oo::PList()));
 
-    const oo::Ref<OOColor> red = OOColor::colorWithRGBAComponents(
+    const std::shared_ptr<OOColor> red = OOColor::colorWithRGBAComponents(
         (OORGBAComponents){1.0f, 0.0f, 0.0f, 1.0f});
-    const oo::Ref<OOCombinedEmissionMapGenerator> generator =
+    const std::shared_ptr<OOCombinedEmissionMapGenerator> generator =
         OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(
             oo::PList("e.png"), red.get(), nullptr, nullptr, oo::PList(), nullptr,
             oo::PList("e.png"));

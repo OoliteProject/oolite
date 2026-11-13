@@ -72,7 +72,7 @@ class TestPlayer : public PlayerEntity {
 void SetUpTestPlayer() {
   static TestPlayer* player = nullptr;
   if (player == nullptr) {
-    oo::Ref<TestPlayer> made = oo::makeRef<TestPlayer>();
+    std::shared_ptr<TestPlayer> made = oo::makeRef<TestPlayer>();
     {
       oo::AutoreleaseScope scope;
       oo::RetainEntity(oo::MadeEntity(

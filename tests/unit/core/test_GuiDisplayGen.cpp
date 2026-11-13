@@ -72,7 +72,7 @@ double MiddleOfRow(int row)
 OO_TEST(everyRowUnderItsOwnMiddle)
 {
 	{
-		oo::Ref<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>();
+		std::shared_ptr<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>();
 		OO_CHECK(gui->rowHeight() == MAIN_GUI_ROW_HEIGHT && gui->rowStart() == MAIN_GUI_PIXEL_ROW_START);
 		// Rows 0..28 are on screen: row 29's middle (cursor_y -256) is below the GUI's bottom edge
 		// (-240), where the pointer is clamped into row 28 (pointerOffTheScreenIsClampedToItsEdge).
@@ -90,7 +90,7 @@ OO_TEST(everyRowUnderItsOwnMiddle)
 OO_TEST(rowBorders)
 {
 	{
-		oo::Ref<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>();
+		std::shared_ptr<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>();
 		// Row 26 spans cursor_y in (-216, -200]; half a pixel inside and outside each border.
 		OO_CHECK_EQ(gui->rowAtVirtualJoystickPosition(NSMakePoint(0.0, 200.5 / 480.0)), 26);
 		OO_CHECK_EQ(gui->rowAtVirtualJoystickPosition(NSMakePoint(0.0, 215.5 / 480.0)), 26);
@@ -103,7 +103,7 @@ OO_TEST(rowBorders)
 OO_TEST(pointerOffTheScreenIsClampedToItsEdge)
 {
 	{
-		oo::Ref<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>();
+		std::shared_ptr<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>();
 		// cursor_y is clamped to +-240 (half the GUI's height), as the render clamps the pointer.
 		OO_CHECK_EQ(gui->rowAtVirtualJoystickPosition(NSMakePoint(0.0, 10.0)), 28);	// 1 + floor(440 / 16)
 		OO_CHECK_EQ(gui->rowAtVirtualJoystickPosition(NSMakePoint(0.0, 0.5)), 28);
@@ -118,7 +118,7 @@ OO_TEST(answersForThePointerNowWithoutARender)
 	{
 		// The G5 failure: the pointer tweened from row 20 through 22 to 26 and the click came before
 		// any render. Nothing is drawn here; the row follows the pointer alone.
-		oo::Ref<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>();
+		std::shared_ptr<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>();
 		OO_CHECK_EQ(gui->rowAtVirtualJoystickPosition(NSMakePoint(0.0, MiddleOfRow(20))), 20);
 		OO_CHECK_EQ(gui->rowAtVirtualJoystickPosition(NSMakePoint(0.0, MiddleOfRow(22))), 22);
 		OO_CHECK_EQ(gui->rowAtVirtualJoystickPosition(NSMakePoint(0.0, MiddleOfRow(26))), 26);
@@ -169,7 +169,7 @@ void StartJavaScript()
 
 
 // A small GUI made by the second initialiser: 5 rows, no user settings.
-oo::Ref<GuiDisplayGen> SmallGUI(const std::optional<std::string> &title)
+std::shared_ptr<GuiDisplayGen> SmallGUI(const std::optional<std::string> &title)
 {
 	return oo::makeRef<GuiDisplayGen>(NSMakeSize(200, 100), 4, 5, 12, 8, title);
 }
@@ -180,7 +180,7 @@ oo::Ref<GuiDisplayGen> SmallGUI(const std::optional<std::string> &title)
 OO_TEST(initDefaults)
 {
 	{
-		oo::Ref<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>();
+		std::shared_ptr<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>();
 		OO_CHECK(gui->size().width == 480 && gui->size().height == 480);
 		OO_CHECK_EQ(gui->columns(), 6u);
 		OO_CHECK_EQ(gui->rows(), 30u);
@@ -211,7 +211,7 @@ OO_TEST(initDefaults)
 OO_TEST(initWithPixelSize)
 {
 	{
-		oo::Ref<GuiDisplayGen> gui = SmallGUI("T");
+		std::shared_ptr<GuiDisplayGen> gui = SmallGUI("T");
 		OO_CHECK(gui->size().width == 200 && gui->size().height == 100);
 		OO_CHECK_EQ(gui->columns(), 4u);
 		OO_CHECK_EQ(gui->rows(), 5u);
@@ -236,7 +236,7 @@ OO_TEST(initWithPixelSize)
 OO_TEST(titleAndDrawPosition)
 {
 	{
-		oo::Ref<GuiDisplayGen> gui = SmallGUI("T");
+		std::shared_ptr<GuiDisplayGen> gui = SmallGUI("T");
 		gui->setTitle("Hello");
 		OO_CHECK(gui->getTitle() == std::optional<std::string>("Hello"));
 		gui->setTitle("");	// an empty title is no title
@@ -254,7 +254,7 @@ OO_TEST(titleAndDrawPosition)
 OO_TEST(rowTextsAndKeys)
 {
 	{
-		oo::Ref<GuiDisplayGen> gui = SmallGUI("T");
+		std::shared_ptr<GuiDisplayGen> gui = SmallGUI("T");
 		gui->setText("one", 1);
 		OO_CHECK(RowString(gui.get(), 1) == std::optional<std::string>("one"));
 		gui->setText(std::optional<std::string>("two"), 2, OOGUIAlignment::kRight);
@@ -293,7 +293,7 @@ OO_TEST(selectionSkipsSkipRows)
 {
 	{
 		StartJavaScript();
-		oo::Ref<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>();
+		std::shared_ptr<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>();
 		gui->clear();	// every key is SKIP-ROW
 		OO_CHECK(gui->keyForRow(0) == std::optional<std::string>(GUI_KEY_SKIP));
 		for (OOGUIRow row = 2; row <= 6; row++)
@@ -353,7 +353,7 @@ OO_TEST(selectionSkipsSkipRows)
 OO_TEST(currentRowIsWhereALineIsPrinted)
 {
 	{
-		oo::Ref<GuiDisplayGen> gui = SmallGUI("T");
+		std::shared_ptr<GuiDisplayGen> gui = SmallGUI("T");
 		gui->setCurrentRow(3);
 		gui->printLineNoScroll("printed", OOGUIAlignment::kLeft, nullptr, 0.0f, "pk", nullptr);
 		OO_CHECK(RowString(gui.get(), 3) == std::optional<std::string>("printed"));
@@ -370,7 +370,7 @@ OO_TEST(currentRowIsWhereALineIsPrinted)
 OO_TEST(alphaAndFades)
 {
 	{
-		oo::Ref<GuiDisplayGen> gui = SmallGUI("T");
+		std::shared_ptr<GuiDisplayGen> gui = SmallGUI("T");
 		gui->setAlpha(0.5f);
 		OO_CHECK_EQ(gui->alpha(), 0.5f);	// max alpha 1
 		gui->setMaxAlpha(0.5f);
@@ -390,14 +390,14 @@ OO_TEST(alphaAndFades)
 OO_TEST(coloursAndColourSettings)
 {
 	{
-		oo::Ref<GuiDisplayGen> gui = SmallGUI("T");
-		oo::Ref<OOColor>	red = OOColor::redColor();
+		std::shared_ptr<GuiDisplayGen> gui = SmallGUI("T");
+		std::shared_ptr<OOColor>	red = OOColor::redColor();
 		gui->setTextColor(red.get());
-		OO_CHECK(gui->getTextColor() == red);
+		OO_CHECK(gui->getTextColor() == red.get());
 		gui->setTextColor(nullptr);
 		OO_CHECK(SameComponents(gui->getTextColor(), OOColor::yellowColor().get()));
 		gui->setTextCommsColor(red.get());
-		OO_CHECK(gui->getTextCommsColor() == red);
+		OO_CHECK(gui->getTextCommsColor() == red.get());
 		gui->setTextCommsColor(nullptr);
 		OO_CHECK(SameComponents(gui->getTextCommsColor(), OOColor::yellowColor().get()));
 		gui->setBackgroundColor(red.get());
@@ -412,7 +412,7 @@ OO_TEST(coloursAndColourSettings)
 		OO_CHECK(gui->userSettings().isNull());
 
 		// With settings (gui-settings.plist, when the test finds it), a set colour is read back.
-		oo::Ref<GuiDisplayGen> main = oo::makeRef<GuiDisplayGen>();
+		std::shared_ptr<GuiDisplayGen> main = oo::makeRef<GuiDisplayGen>();
 		if (main->userSettings().isDict())
 		{
 			main->setGuiColorSettingFromKey("oo_test_colour", red.get());
@@ -429,7 +429,7 @@ OO_TEST(coloursAndColourSettings)
 OO_TEST(tabStops)
 {
 	{
-		oo::Ref<GuiDisplayGen> gui = SmallGUI("T");
+		std::shared_ptr<GuiDisplayGen> gui = SmallGUI("T");
 		OOGUITabSettings stops = { 0, 10, 20 };
 		gui->setTabStops(stops);
 		gui->setTabStops(NULL);
@@ -446,7 +446,7 @@ OO_TEST(tabStops)
 OO_TEST(clearAndResize)
 {
 	{
-		oo::Ref<GuiDisplayGen> gui = SmallGUI("T");
+		std::shared_ptr<GuiDisplayGen> gui = SmallGUI("T");
 		gui->setText("x", 2);
 		gui->setKey("k", 2);
 		gui->setSelectableRange(NSMakeRange(0, 3));
@@ -493,7 +493,7 @@ OO_TEST(clearAndResize)
 OO_TEST(cxxAPIAnswersTheSame)
 {
 	{
-		oo::Ref<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>(NSMakeSize(200, 100), 4, 5, 12, 8, std::optional<std::string>("T"));
+		std::shared_ptr<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>(NSMakeSize(200, 100), 4, 5, 12, 8, std::optional<std::string>("T"));
 		OO_CHECK_EQ(gui->columns(), 4u);
 		OO_CHECK_EQ(gui->rows(), 5u);
 		OO_CHECK_EQ(gui->rowHeight(), 12u);
@@ -518,7 +518,7 @@ OO_TEST(cxxAPIAnswersTheSame)
 		gui->clearAndKeepBackground(true);
 		OO_CHECK(gui->keyForRow(1) == std::optional<std::string>(GUI_KEY_SKIP));
 
-		oo::Ref<GuiDisplayGen> main = oo::makeRef<GuiDisplayGen>();
+		std::shared_ptr<GuiDisplayGen> main = oo::makeRef<GuiDisplayGen>();
 		OO_CHECK_EQ(main->rows(), 30u);
 		OO_CHECK(main->objectForRow(0) == oo::PList("."));
 	}
@@ -533,7 +533,7 @@ OO_TEST(cxxAPIAnswersTheSame)
 OO_TEST(longTextAndReflow)
 {
 	{
-		oo::Ref<GuiDisplayGen> gui = SmallGUI("T");
+		std::shared_ptr<GuiDisplayGen> gui = SmallGUI("T");
 		OO_CHECK_EQ(gui->addLongText(std::nullopt, 1, OOGUIAlignment::kLeft), 1);
 		OO_CHECK_EQ(gui->addLongText("one line", 1, OOGUIAlignment::kLeft), 2);
 		OO_CHECK(RowString(gui.get(), 1) == std::optional<std::string>("one line"));
@@ -551,7 +551,7 @@ OO_TEST(longTextAndReflow)
 OO_TEST(printingScrollsAndKeepsTheLines)
 {
 	{
-		oo::Ref<GuiDisplayGen> gui = SmallGUI("T");	// 5 rows
+		std::shared_ptr<GuiDisplayGen> gui = SmallGUI("T");	// 5 rows
 		gui->setCurrentRow(3);
 		std::vector<std::string> printed;
 		gui->printLongText("first\nsecond", OOGUIAlignment::kLeft, OOColor::redColor().get(), 2.0f, "pk", &printed);
@@ -596,7 +596,7 @@ OO_TEST(printingScrollsAndKeepsTheLines)
 OO_TEST(arraysAndInsertedItems)
 {
 	{
-		oo::Ref<GuiDisplayGen> gui = SmallGUI("T");
+		std::shared_ptr<GuiDisplayGen> gui = SmallGUI("T");
 		gui->setArray({ "a", "b", "c" }, 0);
 		OO_CHECK_EQ(gui->objectForRow(0).count(), 3u);
 		gui->setArray({ "x" }, 5);	// out of range
@@ -644,7 +644,7 @@ OO_TEST(arraysAndInsertedItems)
 OO_TEST(statusPage)
 {
 	{
-		oo::Ref<GuiDisplayGen> gui = SmallGUI("T");
+		std::shared_ptr<GuiDisplayGen> gui = SmallGUI("T");
 		gui->setStatusPage(0);
 		OO_CHECK_EQ(gui->getStatusPage(), 1u);
 		gui->setStatusPage(2);
@@ -663,7 +663,7 @@ OO_TEST(noTexturesWithoutAUniverse)
 {
 	{
 		StartJavaScript();
-		oo::Ref<GuiDisplayGen> gui = SmallGUI("T");
+		std::shared_ptr<GuiDisplayGen> gui = SmallGUI("T");
 		// No texture is named: no sprite.
 		OO_CHECK(!gui->setBackgroundTextureDescriptor(oo::PList()));
 		OO_CHECK(!gui->setForegroundTextureDescriptor(oo::PList()));
@@ -687,7 +687,7 @@ OO_TEST(cxxSlice2API)
 {
 	{
 		StartJavaScript();
-		oo::Ref<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>(NSMakeSize(200, 100), 4, 5, 12, 8, std::optional<std::string>("T"));
+		std::shared_ptr<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>(NSMakeSize(200, 100), 4, 5, 12, 8, std::optional<std::string>("T"));
 		OO_CHECK_EQ(gui->addLongText("a\nb", 0, OOGUIAlignment::kLeft), 2);
 		OO_CHECK(gui->objectForRow(1) == oo::PList("b"));
 		OO_CHECK(gui->reflowTextForMFD("x y") == std::optional<std::string>("x y\n"));
@@ -719,7 +719,7 @@ OO_TEST(drawingWithoutAUniverse)
 {
 	{
 		StartJavaScript();
-		oo::Ref<GuiDisplayGen> gui = SmallGUI("T");
+		std::shared_ptr<GuiDisplayGen> gui = SmallGUI("T");
 		OO_CHECK_EQ(gui->drawGUI(0.0f, false), 0);	// too faint to draw: nothing, row 0
 		gui->setAlpha(0.5f);
 		gui->fadeOutFromTime(0.0, 1.0);
@@ -737,7 +737,7 @@ OO_TEST(starChartTitleWithoutAUniverse)
 {
 	{
 		StartJavaScript();
-		oo::Ref<GuiDisplayGen> gui = SmallGUI("T");
+		std::shared_ptr<GuiDisplayGen> gui = SmallGUI("T");
 		gui->setStarChartTitle();
 		const std::optional<std::string> title = gui->getTitle();
 		std::printf("  star chart title: %s\n", title ? title->c_str() : "(none)");
@@ -750,7 +750,7 @@ OO_TEST(cxxSlice3API)
 {
 	{
 		StartJavaScript();
-		oo::Ref<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>(NSMakeSize(200, 100), 4, 5, 12, 8, std::optional<std::string>("T"));
+		std::shared_ptr<GuiDisplayGen> gui = oo::makeRef<GuiDisplayGen>(NSMakeSize(200, 100), 4, 5, 12, 8, std::optional<std::string>("T"));
 		OO_CHECK_EQ(gui->drawGUI(0.0f, false), 0);
 		gui->drawGUIBackground();
 		gui->refreshStarChart();

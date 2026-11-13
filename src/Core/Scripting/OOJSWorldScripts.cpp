@@ -99,8 +99,9 @@ static int WorldScriptsGetOwnProperty(JSContext* context,
           (player != nullptr
                ? player->worldScriptsByName()
                : std::vector<std::pair<
-                     std::string, oo::Ref<OOScript>>>());  // kept while script
-                                                           // is used
+                     std::string, std::shared_ptr<OOScript>>>());  // kept while
+                                                                   // script is
+                                                                   // used
       for (const auto& [name, scriptRef] :
            worldScripts)  // the last of a name, as the dictionary kept
       {

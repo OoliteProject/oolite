@@ -118,19 +118,19 @@ OOTexture::NameFactory OOTexture::nameFactory = &OOTexture::loadTextureWithName;
 OOTexture::ConfigurationFactory OOTexture::configurationFactory =
     &OOTexture::loadTextureWithConfiguration;
 
-oo::Ref<OOTexture> OOTexture::textureWithName(
+std::shared_ptr<OOTexture> OOTexture::textureWithName(
     const std::optional<std::string>& name,
     const std::optional<std::string>& directory, OOTextureFlags options,
     GLfloat anisotropy, GLfloat lodBias) {
   return nameFactory(name, directory, options, anisotropy, lodBias);
 }
 
-oo::Ref<OOTexture> OOTexture::loadTextureWithName(
+std::shared_ptr<OOTexture> OOTexture::loadTextureWithName(
     const std::optional<std::string>& name,
     const std::optional<std::string>& directory, OOTextureFlags options,
     GLfloat anisotropy, GLfloat lodBias) {
   std::string key;
-  oo::Ref<OOTexture> result;
+  std::shared_ptr<OOTexture> result;
   std::optional<std::string> path;
   bool noFNF;
 
@@ -155,7 +155,7 @@ oo::Ref<OOTexture> OOTexture::loadTextureWithName(
   // Look for existing texture
   key =
       OOGenerateTextureCacheKey(directory, *name, options, anisotropy, lodBias);
-  result = oo::Ref<OOTexture>(existingTextureForKey(key));
+  result = oo::share(existingTextureForKey(key));
   if (result == nullptr) {
     path = ResourceManager::pathForFileNamed(*name, directory);
     if (!path.has_value()) {
@@ -173,7 +173,7 @@ oo::Ref<OOTexture> OOTexture::loadTextureWithName(
   return result;
 }
 
-oo::Ref<OOTexture> OOTexture::textureWithName(
+std::shared_ptr<OOTexture> OOTexture::textureWithName(
     const std::optional<std::string>& name,
     const std::optional<std::string>& directory) {
   return loadTextureWithName(name, directory, OOTextureFlags::kDefaultOptions,
@@ -181,17 +181,17 @@ oo::Ref<OOTexture> OOTexture::textureWithName(
                              kOOTextureDefaultLODBias);
 }
 
-oo::Ref<OOTexture> OOTexture::textureWithConfiguration(
+std::shared_ptr<OOTexture> OOTexture::textureWithConfiguration(
     const oo::PList& configuration) {
   return configurationFactory(configuration);
 }
 
-oo::Ref<OOTexture> OOTexture::loadTextureWithConfiguration(
+std::shared_ptr<OOTexture> OOTexture::loadTextureWithConfiguration(
     const oo::PList& configuration) {
   return textureWithConfiguration(configuration, OOTextureFlags::kNone);
 }
 
-oo::Ref<OOTexture> OOTexture::textureWithConfiguration(
+std::shared_ptr<OOTexture> OOTexture::textureWithConfiguration(
     const oo::PList& configuration, OOTextureFlags extraOptions) {
   std::string name;
   OOTextureFlags options = OOTextureFlags::kNone;
@@ -206,25 +206,25 @@ oo::Ref<OOTexture> OOTexture::textureWithConfiguration(
                              anisotropy, lodBias);
 }
 
-oo::Ref<OOTexture> OOTexture::nullTexture() {
+std::shared_ptr<OOTexture> OOTexture::nullTexture() {
   // The shared null texture, which OONullTexture keeps for the life of the
   // process.
-  return oo::Ref<OOTexture>(::OONullTexture::sharedNullTexture());
+  return oo::share(::OONullTexture::sharedNullTexture());
 }
 
-oo::Ref<OOTexture> OOTexture::textureWithGenerator(
+std::shared_ptr<OOTexture> OOTexture::textureWithGenerator(
     ::OOTextureGenerator* generator) {
   return textureWithGenerator(generator, false);
 }
 
-oo::Ref<OOTexture> OOTexture::textureWithGenerator(
+std::shared_ptr<OOTexture> OOTexture::textureWithGenerator(
     ::OOTextureGenerator* generator, bool enqueue) {
   if (generator == nullptr) return nullptr;
   ::OOTextureGenerator* cxxGenerator = generator;
 
 #ifndef OOTEXTURE_NO_CACHE
   OOTexture* existing = existingTextureForKey(cxxGenerator->cacheKey());
-  if (existing != nullptr && !enqueue) return oo::Ref<OOTexture>(existing);
+  if (existing != nullptr && !enqueue) return oo::share(existing);
 #endif
 
   if (!cxxGenerator->enqueue()) {
@@ -235,7 +235,7 @@ oo::Ref<OOTexture> OOTexture::textureWithGenerator(
   OO_LOG("texture.generator.queue", "Queued texture generator {}",
          generator->description());
 
-  oo::Ref<OOTexture> result = ::OOConcreteTexture::initWithLoader(
+  std::shared_ptr<OOTexture> result = ::OOConcreteTexture::initWithLoader(
       generator, cxxGenerator->cacheKey(),
       OOApplyTextureOptionDefaults(cxxGenerator->textureOptions()),
       cxxGenerator->anisotropy(), cxxGenerator->lodBias());
@@ -334,21 +334,22 @@ void OOTexture::rebindAllTextures() {
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::Ref<OOTexture>> OOTexture::cachedTexturesByAge() {
-  std::vector<oo::Ref<OOTexture>> result;
+std::vector<std::shared_ptr<OOTexture>> OOTexture::cachedTexturesByAge() {
+  std::vector<std::shared_ptr<OOTexture>> result;
   for (const oo::PList& texture : (sRecentTextures != nullptr)
                                       ? sRecentTextures->pListsByAge()
                                       : std::vector<oo::PList>()) {
-    result.emplace_back(OOTextureInObjectNode(texture));
+    result.emplace_back(oo::share(OOTextureInObjectNode(texture)));
   }
   return result;
 }
 
-std::vector<oo::Ref<OOTexture>> OOTexture::allTextures() {
-  std::vector<oo::Ref<OOTexture>> result;
+std::vector<std::shared_ptr<OOTexture>> OOTexture::allTextures() {
+  std::vector<std::shared_ptr<OOTexture>> result;
   if (sAllLiveTextures != nullptr) {
     result.reserve(sAllLiveTextures->size());
-    for (OOTexture* texture : *sAllLiveTextures) result.emplace_back(texture);
+    for (OOTexture* texture : *sAllLiveTextures)
+      result.emplace_back(oo::share(texture));
   }
 
   return result;
@@ -433,7 +434,7 @@ void OOTexture::addToCaches() {
 
   // Add self to recent textures cache.
   if (EXPECT_NOT(sRecentTextures == nullptr)) {
-    sRecentTextures = OOCache::cacheWithPList(oo::PList()).leakRef();
+    sRecentTextures = oo::leakRef(OOCache::cacheWithPList(oo::PList()));
     sRecentTextures->setName(std::string("recent textures"));
     sRecentTextures->setAutoPrune(true);
     sRecentTextures->setPruneThreshold(kRecentTexturesCount);

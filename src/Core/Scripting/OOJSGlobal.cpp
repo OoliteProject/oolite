@@ -577,8 +577,8 @@ static JSValue GlobalSetExtraGuiScreenKeys(OOJS_NATIVE_ARGS) {
   }
 
   // The player keeps it (oo::Ref).
-  const oo::Ref<OOJSGuiScreenKeyDefinition> definition =
-      oo::makeRef<OOJSGuiScreenKeyDefinition>();
+  const std::shared_ptr<OOJSGuiScreenKeyDefinition> definition =
+      oo::makeShared<OOJSGuiScreenKeyDefinition>();
   OOJSGuiScreenKeyDefinition* cxxDefinition = definition.get();
   cxxDefinition->setName(key);
   cxxDefinition->setRegisterKeys(keydefs);

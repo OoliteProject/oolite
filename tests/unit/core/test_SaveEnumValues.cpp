@@ -76,7 +76,7 @@ void SetUp()
 template <class T>
 T *NewEntity()
 {
-	oo::Ref<T> made = oo::makeRef<T>();
+	std::shared_ptr<T> made = oo::makeRef<T>();
 	{
 		oo::AutoreleaseScope scope;
 		oo::RetainEntity(oo::MadeEntity(made));

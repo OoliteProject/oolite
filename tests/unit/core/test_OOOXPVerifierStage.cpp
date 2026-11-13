@@ -35,7 +35,7 @@ void OOLogGenericSubclassResponsibilityForFunction(const char* inFunction) {
    OOOXPVerifier.mm is not linked.
 */
 struct OOOXPVerifierTestAccess {
-  static oo::Ref<OOOXPVerifier> Make() {
+  static std::shared_ptr<OOOXPVerifier> Make() {
     return oo::adopt(new OOOXPVerifier());
   }
 };
@@ -95,13 +95,13 @@ class TestCxxStage : public OOOXPVerifierStage {
 
 namespace {
 
-oo::Ref<TestObjCStage> MakeStage(const char* name) {
-  oo::Ref<TestObjCStage> stage = oo::makeRef<TestObjCStage>();
+std::shared_ptr<TestObjCStage> MakeStage(const char* name) {
+  std::shared_ptr<TestObjCStage> stage = oo::makeRef<TestObjCStage>();
   stage->_testName = name;
   return stage;
 }
 
-bool Holds(const std::vector<oo::Ref<OOOXPVerifierStage>>& stages,
+bool Holds(const std::vector<std::shared_ptr<OOOXPVerifierStage>>& stages,
            std::initializer_list<OOOXPVerifierStage*> expected) {
   if (stages.size() != expected.size()) return false;
   std::size_t i = 0;
@@ -115,7 +115,7 @@ bool Holds(const std::vector<oo::Ref<OOOXPVerifierStage>>& stages,
 
 OO_TEST(baseDefaults) {
   {
-    const oo::Ref<OOOXPVerifierStage> stage = oo::makeRef<OOOXPVerifierStage>();
+    const std::shared_ptr<OOOXPVerifierStage> stage = oo::makeRef<OOOXPVerifierStage>();
     const int before = gSubclassResponsibilities;
     OO_CHECK(!stage->name()
                   .has_value());  // subclass responsibility: logs, answers nil
@@ -137,9 +137,9 @@ OO_TEST(baseDefaults) {
 
 OO_TEST(verifierIsNotRetained) {
   {
-    const oo::Ref<OOOXPVerifier> object = OOOXPVerifierTestAccess::Make();
+    const std::shared_ptr<OOOXPVerifier> object = OOOXPVerifierTestAccess::Make();
     OOOXPVerifier* verifier = object.get();
-    const oo::Ref<TestObjCStage> stage = MakeStage("Stage");
+    const std::shared_ptr<TestObjCStage> stage = MakeStage("Stage");
     const unsigned before = object->retainCount();
     stage->setVerifier(verifier);
     OO_CHECK(object->retainCount() == before);
@@ -152,7 +152,7 @@ OO_TEST(verifierIsNotRetained) {
 
 OO_TEST(dependencyGraph) {
   {
-    const oo::Ref<TestObjCStage> a = MakeStage("A"), b = MakeStage("B"),
+    const std::shared_ptr<TestObjCStage> a = MakeStage("A"), b = MakeStage("B"),
                                  c = MakeStage("C"), d = MakeStage("D");
     b->registerDependency(a.get());
     c->registerDependency(b.get());
@@ -186,7 +186,7 @@ OO_TEST(dependencyGraph) {
 
 OO_TEST(exceptionInRunIsCaught) {
   {
-    const oo::Ref<TestObjCStage> raising = MakeStage("Raising"),
+    const std::shared_ptr<TestObjCStage> raising = MakeStage("Raising"),
                                  after = MakeStage("After");
     raising->_raise = true;
     after->registerDependency(raising.get());
@@ -201,7 +201,7 @@ OO_TEST(exceptionInRunIsCaught) {
 
 OO_TEST(superCallsReachTheBase) {
   {
-    const oo::Ref<TestSuperCallingStage> stage =
+    const std::shared_ptr<TestSuperCallingStage> stage =
         oo::makeRef<TestSuperCallingStage>();
     const std::optional<std::vector<std::string>> dependents =
         stage->dependents();
@@ -221,7 +221,7 @@ OO_TEST(description) {
 
 OO_TEST(cxxStageBehindTheFacade) {
   {
-    const oo::Ref<TestCxxStage> stage = oo::makeRef<TestCxxStage>("Cxx");
+    const std::shared_ptr<TestCxxStage> stage = oo::makeRef<TestCxxStage>("Cxx");
 
     // The verifier's calls reach the C++ overrides, and the base's defaults.
     OO_CHECK(stage->name() == std::optional<std::string>("Cxx"));
@@ -243,7 +243,7 @@ OO_TEST(cxxStageBehindTheFacade) {
 
 OO_TEST(objCStageBehindACxxPointer) {
   {
-    const oo::Ref<TestObjCStage> objCStage = MakeStage("ObjC");
+    const std::shared_ptr<TestObjCStage> objCStage = MakeStage("ObjC");
     OOOXPVerifierStage* part = objCStage.get();
     OO_CHECK(part != nullptr);
 
@@ -256,7 +256,7 @@ OO_TEST(objCStageBehindACxxPointer) {
 
     // The subclass's base call still reaches the base, not back to the
     // subclass.
-    const oo::Ref<TestSuperCallingStage> superCalling =
+    const std::shared_ptr<TestSuperCallingStage> superCalling =
         oo::makeRef<TestSuperCallingStage>();
     OO_CHECK(
         static_cast<OOOXPVerifierStage*>(superCalling.get())->dependents() ==
@@ -266,9 +266,9 @@ OO_TEST(objCStageBehindACxxPointer) {
 
 OO_TEST(mixedDependencyGraph) {
   {
-    const oo::Ref<TestCxxStage> cxxStage = oo::makeRef<TestCxxStage>("Cxx");
+    const std::shared_ptr<TestCxxStage> cxxStage = oo::makeRef<TestCxxStage>("Cxx");
     cxxStage->_shouldRun = true;
-    const oo::Ref<TestObjCStage> objCStage = MakeStage("ObjC");
+    const std::shared_ptr<TestObjCStage> objCStage = MakeStage("ObjC");
 
     // The verifier wires the stages together.
     objCStage->registerDependency(cxxStage.get());
@@ -276,7 +276,7 @@ OO_TEST(mixedDependencyGraph) {
     OO_CHECK(objCStage->isDependentOf(cxxStage.get()));
     OO_CHECK(Holds(cxxStage->resolvedDependents(), {objCStage.get()}));
     OO_CHECK(cxxStage->resolvedDependents().size() == 1 &&
-             cxxStage->resolvedDependents()[0] == objCStage.get());
+             cxxStage->resolvedDependents()[0].get() == objCStage.get());
 
     cxxStage->dependencyRegistrationComplete();
     objCStage->dependencyRegistrationComplete();

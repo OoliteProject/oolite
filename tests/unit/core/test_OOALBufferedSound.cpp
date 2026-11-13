@@ -44,7 +44,7 @@ void OOSoundMixer::shutdown() {}
 
 // OOALSound.mm makes a streamed sound for more than 1 MB of decoded data; never
 // here.
-oo::Ref<OOALStreamedSound> OOALStreamedSound::initWithDecoder(
+std::shared_ptr<OOALStreamedSound> OOALStreamedSound::initWithDecoder(
     OOALSoundDecoder* inDecoder) {
   (void)inDecoder;
   return nullptr;
@@ -97,10 +97,10 @@ constexpr ALint kBoopBytes = 7682;
 
 OO_TEST(madeFromADecoder) {
   SetUp();
-  const oo::Ref<OOALSoundDecoder> decoder =
+  const std::shared_ptr<OOALSoundDecoder> decoder =
       OOALSoundDecoder::codecWithPath(BoopPath());
   OO_CHECK(decoder != nullptr);
-  const oo::Ref<OOALBufferedSound> sound =
+  const std::shared_ptr<OOALBufferedSound> sound =
       OOALBufferedSound::initWithDecoder(decoder.get());
   OO_CHECK(sound != nullptr);
   OO_CHECK(dynamic_cast<OOALBufferedSound*>(sound.get()) != nullptr &&
@@ -118,7 +118,7 @@ OO_TEST(madeFromADecoder) {
 OO_TEST(eachBufferHoldsTheWholeSound) {
   SetUp();
   {
-    const oo::Ref<OOALBufferedSound> sound = OOALBufferedSound::initWithDecoder(
+    const std::shared_ptr<OOALBufferedSound> sound = OOALBufferedSound::initWithDecoder(
         OOALSoundDecoder::codecWithPath(BoopPath()).get());
     const ALuint first = sound->soundBuffer();
     OO_CHECK(first != 0 && alIsBuffer(first));
@@ -139,7 +139,7 @@ OO_TEST(eachBufferHoldsTheWholeSound) {
 OO_TEST(theClusterAnswersOne) {
   SetUp();
   {
-    const oo::Ref<OOSound> sound = OOSound::initWithContentsOfFile(BoopPath());
+    const std::shared_ptr<OOSound> sound = OOSound::initWithContentsOfFile(BoopPath());
     OO_CHECK(dynamic_cast<OOALBufferedSound*>(sound.get()) != nullptr);
     OO_CHECK(sound->name() == std::optional<std::string>("boop.ogg"));
     const ALuint buffer = sound->soundBuffer();
@@ -153,7 +153,7 @@ OO_TEST(cxxApi) {
   SetUp();
   {
     OO_CHECK(!OOALBufferedSound::initWithDecoder(nullptr));
-    const oo::Ref<OOALBufferedSound> sound = OOALBufferedSound::initWithDecoder(
+    const std::shared_ptr<OOALBufferedSound> sound = OOALBufferedSound::initWithDecoder(
         OOALSoundDecoder::codecWithPath(BoopPath()).get());
     OO_CHECK(sound && sound->name() == std::optional<std::string>("boop.ogg"));
     OO_CHECK(!sound->soundIncomplete());

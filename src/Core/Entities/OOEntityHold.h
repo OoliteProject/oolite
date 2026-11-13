@@ -53,8 +53,8 @@ void EntityRelease(Entity* entity) noexcept;
 
 }  // namespace detail
 
-/*	An owning reference to an entity (oo::Ref<Entity>, with a rule for an
-   entity without its object: held as null). Copying retains, destroying
+/*	An owning reference to an entity (std::shared_ptr<Entity>, with a rule
+   for an entity without its object: held as null). Copying retains, destroying
    releases, moving steals.
 */
 class EntityHold {

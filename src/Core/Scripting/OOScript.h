@@ -15,7 +15,7 @@ the order of precedence is:
 
 The methods a subclass overrides (name, scriptDescription, version,
 requiresTickle, runWithTarget, and the description's components) are virtual.
-The class is global, a script is held as oo::Ref<OOScript> (weakly as
+The class is global, a script is held as std::shared_ptr<OOScript> (weakly as
 oo::WeakRef), the class methods that load scripts answer oo::Ref, and the
 following are members here: -callMethod:... (OOScript (JavaScriptEvents); false
 but for a JS script), the plist payload (oo::PListForeign: a script travels in
@@ -75,26 +75,26 @@ class OOScript : public oo::PListForeign, public ::OOJSPrivateObject {
      path/script.plist. May return zero or more scripts; nullopt (was nil) when
      none could be loaded.
   */
-  static std::optional<std::vector<oo::Ref<OOScript>>> worldScriptsAtPath(
-      const std::string& path);
+  static std::optional<std::vector<std::shared_ptr<OOScript>>>
+  worldScriptsAtPath(const std::string& path);
 
   //	Load named scripts from Scripts folders. nullopt where these returned
   // nil.
-  static std::optional<std::vector<oo::Ref<OOScript>>> scriptsFromFileNamed(
-      const std::string& fileName);
-  static std::vector<oo::Ref<OOScript>> scriptsFromList(
+  static std::optional<std::vector<std::shared_ptr<OOScript>>>
+  scriptsFromFileNamed(const std::string& fileName);
+  static std::vector<std::shared_ptr<OOScript>> scriptsFromList(
       const std::vector<std::string>& fileNames);
 
-  static std::optional<std::vector<oo::Ref<OOScript>>> scriptsFromFileAtPath(
-      const std::string& filePath);
+  static std::optional<std::vector<std::shared_ptr<OOScript>>>
+  scriptsFromFileAtPath(const std::string& filePath);
 
   //	Load a single JavaScript script (an OOJSScript; null where it answered
   // nil). The properties may hold live objects (oo::PList Object nodes).
-  static oo::Ref<OOScript> jsScriptFromFileNamed(const std::string& fileName,
-                                                 const oo::PList& properties);
+  static std::shared_ptr<OOScript> jsScriptFromFileNamed(
+      const std::string& fileName, const oo::PList& properties);
   //  As above, but load from the "AIs" directory
-  static oo::Ref<OOScript> jsAIScriptFromFileNamed(const std::string& fileName,
-                                                   const oo::PList& properties);
+  static std::shared_ptr<OOScript> jsAIScriptFromFileNamed(
+      const std::string& fileName, const oo::PList& properties);
 
   // The subclass responsibilities. The root's own answer
   // none, logging an error.
@@ -131,7 +131,7 @@ class OOScript : public oo::PListForeign, public ::OOJSPrivateObject {
    deallocated) or a caller does not keep lives exactly as long as its
    autoreleased object did. Nothing for null.
 */
-void OOScriptAutorelease(oo::Ref<OOScript> script);
+void OOScriptAutorelease(std::shared_ptr<OOScript> script);
 
 /*	A script carried through plist data as a PList::Object node, as
    oo::PListObject() and oo::ObjectIn() carry it.
@@ -140,7 +140,7 @@ inline oo::PList OOScriptObjectNode(
     OOScript* script)  // null script -> null PList
 {
   if (script == nullptr) return oo::PList();
-  return oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(script)));
+  return oo::PList(oo::PList::Object(oo::share(script)));
 }
 
 inline OOScript* OOScriptInObjectNode(

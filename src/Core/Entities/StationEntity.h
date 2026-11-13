@@ -120,7 +120,8 @@ class StationEntity : public ShipEntity {
   void setQuantity(OOCargoQuantity quantity, const std::string& commodity);
   std::vector<oo::PList>* getLocalShipyard();
   void setLocalShipyard(const std::vector<oo::PList>& some_market);
-  std::map<std::string, oo::Ref<::OOJSInterfaceDefinition>, std::less<>>*
+  std::map<std::string, std::shared_ptr<::OOJSInterfaceDefinition>,
+           std::less<>>*
   getLocalInterfaces();
   void setInterfaceDefinition(::OOJSInterfaceDefinition* definition,
                               const std::string& key);
@@ -253,14 +254,14 @@ class StationEntity : public ShipEntity {
 
   std::optional<std::string> allegiance;  // nullopt: none (was nil)
 
-  oo::Ref<OOCommodityMarket> localMarket;
+  std::shared_ptr<OOCommodityMarket> localMarket;
   OOCargoQuantity marketCapacity = {};
   oo::PList marketDefinition;  // an array; null: none (was nil)
   std::optional<std::string> marketScriptName;  // nullopt: none (was nil)
   std::optional<std::vector<oo::PList>>
       localShipyard;  // nullopt: not generated yet (was nil)
 
-  std::map<std::string, oo::Ref<::OOJSInterfaceDefinition>, std::less<>>
+  std::map<std::string, std::shared_ptr<::OOJSInterfaceDefinition>, std::less<>>
       localInterfaces;
 
   unsigned docked_shuttles = {};

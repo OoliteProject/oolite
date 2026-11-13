@@ -154,7 +154,7 @@ class TestEntityObject : public oo::RefCounted {
     return "Entity";
   }  // its Objective-C class's runtime name
 
-  oo::Ref<Entity> _cxxEntity;
+  std::shared_ptr<Entity> _cxxEntity;
 };
 
 class TestShip final : public TestEntityObject {
@@ -371,7 +371,7 @@ TestShip* NewShip(OOUniversalID uid) {
 }
 
 // [[[AI alloc] init] autorelease] (OOAIAutorelease).
-AI* Autoreleased(oo::Ref<AI> ai) {
+AI* Autoreleased(std::shared_ptr<AI> ai) {
   AI* result = ai.get();
   OOAIAutorelease(std::move(ai));
   return result;
@@ -715,7 +715,7 @@ OO_TEST(deferredCalls) {
     OO_CHECK(ai->name() == std::optional<std::string>("test.plist"));
 
     // The call keeps the AI alive until it fires.
-    oo::Ref<AI> keptRef = oo::makeRef<AI>();
+    std::shared_ptr<AI> keptRef = oo::makeRef<AI>();
     AI* kept = keptRef.get();
     kept->setState("GLOBAL", 0.0);
     keptRef = nullptr;  // [kept release]
@@ -744,11 +744,11 @@ OO_TEST(initialiserWithStateMachine) {
 // The C++ AI's own calls.
 OO_TEST(cxxAPI) {
   SetUp();
-  oo::Ref<AI> kept;
+  std::shared_ptr<AI> kept;
   {
     oo::AutoreleaseScope pool;
     TestShip* ship = NewShip(10);
-    oo::Ref<AI> ai = oo::makeRef<AI>();
+    std::shared_ptr<AI> ai = oo::makeRef<AI>();
     ship->_ai = ai.get();
     ai->setOwner(Part(ship));
     OO_CHECK(ai->owner() == Part(ship));
@@ -772,7 +772,7 @@ OO_TEST(cxxAPI) {
   OO_CHECK(kept->name() == std::optional<std::string>("test.plist"));
   {
     oo::AutoreleaseScope pool;
-    oo::Ref<AI> bare = oo::makeRef<AI>();
+    std::shared_ptr<AI> bare = oo::makeRef<AI>();
     OO_CHECK(bare->name() == std::optional<std::string>("<no AI>"));
   }
 }

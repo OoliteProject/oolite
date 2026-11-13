@@ -68,7 +68,7 @@ class OOSound : public oo::RefCounted {
      where it answered nil: sound not OK, no decoder for the path, or the
      concrete sound refused.
   */
-  static oo::Ref<OOSound> initWithContentsOfFile(
+  static std::shared_ptr<OOSound> initWithContentsOfFile(
       const std::optional<std::string>& path);  // nullopt: null
 
   virtual std::optional<std::string> name();  // nullopt: none

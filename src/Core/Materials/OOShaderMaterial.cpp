@@ -121,10 +121,10 @@ std::string TargetDescription(Entity* target) {
 
 }  // namespace
 
-oo::Ref<OOShaderMaterial> OOShaderMaterial::shaderMaterialWithName(
+std::shared_ptr<OOShaderMaterial> OOShaderMaterial::shaderMaterialWithName(
     const std::optional<std::string>& name, const oo::PList& configuration,
     const oo::PList& macros, Entity* target) {
-  oo::Ref<OOShaderMaterial> result = oo::makeRef<OOShaderMaterial>();
+  std::shared_ptr<OOShaderMaterial> result = oo::makeShared<OOShaderMaterial>();
   if (!result->initWithName(name, configuration, macros, target))
     return nullptr;
   return result;
@@ -262,12 +262,11 @@ bool OOShaderMaterial::initWithName(const std::optional<std::string>& name,
 
     // Texture objects from the configuration (Object nodes), else texture
     // specifiers loaded.
-    std::vector<oo::Ref<OOTexture>> textureObjects;
+    std::vector<std::shared_ptr<OOTexture>> textureObjects;
     if (const oo::PList* textureArray =
             configuration.get<oo::PList::Array>(kOOTextureObjectsKey)) {
       for (const oo::PList& entry : *textureArray->getIf<oo::PList::Array>()) {
-        textureObjects.push_back(
-            oo::Ref<OOTexture>(OOTextureInObjectNode(entry)));
+        textureObjects.push_back(oo::share(OOTextureInObjectNode(entry)));
       }
     } else if (const oo::PList* textureSpecs =
                    configuration.get<oo::PList::Array>(kOOTexturesKey)) {
@@ -314,7 +313,7 @@ OOShaderMaterial::~OOShaderMaterial() {
 bool OOShaderMaterial::bindUniform(const std::string& uniformName,
                                    Entity* source, const char* property,
                                    OOUniformConvertOptions options) {
-  oo::Ref<OOShaderUniform> uniform;
+  std::shared_ptr<OOShaderUniform> uniform;
 
   uniform = OOShaderUniform::initWithEntityTarget(
       uniformName, shaderProgram.get(), source, property, options);
@@ -351,7 +350,7 @@ bool OOShaderMaterial::bindSafeUniform(
 }
 
 void OOShaderMaterial::setUniform(const std::string& uniformName, int value) {
-  oo::Ref<OOShaderUniform> uniform;
+  std::shared_ptr<OOShaderUniform> uniform;
 
   uniform =
       OOShaderUniform::initWithName(uniformName, shaderProgram.get(), value);
@@ -366,7 +365,7 @@ void OOShaderMaterial::setUniform(const std::string& uniformName, int value) {
 }
 
 void OOShaderMaterial::setUniform(const std::string& uniformName, float value) {
-  oo::Ref<OOShaderUniform> uniform;
+  std::shared_ptr<OOShaderUniform> uniform;
 
   uniform =
       OOShaderUniform::initWithName(uniformName, shaderProgram.get(), value);
@@ -382,7 +381,7 @@ void OOShaderMaterial::setUniform(const std::string& uniformName, float value) {
 
 void OOShaderMaterial::setUniform(const std::string& uniformName,
                                   GLfloat value[4]) {
-  oo::Ref<OOShaderUniform> uniform;
+  std::shared_ptr<OOShaderUniform> uniform;
 
   uniform =
       OOShaderUniform::initWithName(uniformName, shaderProgram.get(), value);
@@ -411,7 +410,7 @@ void OOShaderMaterial::setUniform(const std::string& uniformName,
     vecArray[3] = 1.0;
   }
 
-  oo::Ref<OOShaderUniform> uniform =
+  std::shared_ptr<OOShaderUniform> uniform =
       OOShaderUniform::initWithName(uniformName, shaderProgram.get(), vecArray);
   if (uniform != nullptr) {
     OO_LOG("shader.uniform.set", "Set up uniform {}",
@@ -425,7 +424,7 @@ void OOShaderMaterial::setUniform(const std::string& uniformName,
 
 void OOShaderMaterial::setUniform(const std::string& uniformName,
                                   Quaternion value, bool asMatrix) {
-  oo::Ref<OOShaderUniform> uniform;
+  std::shared_ptr<OOShaderUniform> uniform;
 
   uniform = OOShaderUniform::initWithName(uniformName, shaderProgram.get(),
                                           value, asMatrix);
@@ -681,25 +680,25 @@ void OOShaderMaterial::setBindingTarget(Entity* target) {
 bool OOShaderMaterial::permitSpecular() { return true; }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::Ref<OOTexture>> OOShaderMaterial::allTextures() {
-  std::vector<oo::Ref<OOTexture>> result;
+std::vector<std::shared_ptr<OOTexture>> OOShaderMaterial::allTextures() {
+  std::vector<std::shared_ptr<OOTexture>> result;
   result.reserve(texCount);
   for (uint32_t i = 0; i < texCount; i++) {
-    result.emplace_back(textures[i]);
+    result.emplace_back(oo::share(textures[i]));
   }
   return result;
 }
 #endif
 
-std::vector<oo::Ref<OOTexture>> OOShaderMaterial::loadTexturesFromArray(
+std::vector<std::shared_ptr<OOTexture>> OOShaderMaterial::loadTexturesFromArray(
     const oo::PList& textureSpecs, GLuint max) {
   GLuint i, count = static_cast<GLuint>(
                 MIN(textureSpecs.count(), static_cast<size_t>(max)));
-  std::vector<oo::Ref<OOTexture>> result;
+  std::vector<std::shared_ptr<OOTexture>> result;
   result.reserve(count);
 
   for (i = 0; i < count; i++) {
-    oo::Ref<OOTexture> texture =
+    std::shared_ptr<OOTexture> texture =
         OOTexture::textureWithConfiguration(*textureSpecs.at(i));
     if (texture == nullptr) texture = OOTexture::nullTexture();
     result.push_back(texture);
@@ -709,7 +708,7 @@ std::vector<oo::Ref<OOTexture>> OOShaderMaterial::loadTexturesFromArray(
 }
 
 void OOShaderMaterial::addTexturesFromArray(
-    const std::vector<oo::Ref<OOTexture>>& textureObjects, GLuint max) {
+    const std::vector<std::shared_ptr<OOTexture>>& textureObjects, GLuint max) {
   // Allocate space for texture object name array
   texCount = static_cast<uint32_t>(
       MIN(textureObjects.size(), static_cast<size_t>(max)));
@@ -724,8 +723,8 @@ void OOShaderMaterial::addTexturesFromArray(
   // Set up texture object names and appropriate uniforms
   unsigned i;
   for (i = 0; i != texCount; ++i) {
-    textures[i] = oo::Ref<OOTexture>(textureObjects[i])
-                      .leakRef();  // released in the destructor
+    textures[i] =
+        oo::retain(textureObjects[i].get());  // released in the destructor
   }
 }
 

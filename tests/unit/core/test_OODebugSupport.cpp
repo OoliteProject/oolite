@@ -122,11 +122,11 @@ void OODebugMonitor::setUsingPlugInController(bool flag) {
   sRecord.usingPlugInController.push_back(flag);
 }
 
-oo::Ref<OODebugTCPConsoleClient> OODebugTCPConsoleClient::clientWithAddress(
+std::shared_ptr<OODebugTCPConsoleClient> OODebugTCPConsoleClient::clientWithAddress(
     const std::optional<std::string>& address, uint16_t port) {
   sRecord.clientsMade.emplace_back(address, port);
-  if (sRecord.clientFails) return oo::Ref<OODebugTCPConsoleClient>();
-  oo::Ref<OODebugTCPConsoleClient> client =
+  if (sRecord.clientFails) return std::shared_ptr<OODebugTCPConsoleClient>();
+  std::shared_ptr<OODebugTCPConsoleClient> client =
       oo::adopt(new OODebugTCPConsoleClient);
   sRecord.lastClient = client.get();
   return client;

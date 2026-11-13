@@ -94,7 +94,7 @@ class OOSoundChannel : public oo::RefCounted {
 
   OOSoundChannel* _next = {};
   OOSoundChannelDelegate* _delegate = {};
-  oo::Ref<OOSound> _sound;  // retained
+  std::shared_ptr<OOSound> _sound;  // retained
   ALuint _buffer = {};
   ALuint _lastBuffer = {};
   bool _bigSound = {};

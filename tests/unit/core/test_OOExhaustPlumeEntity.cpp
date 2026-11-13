@@ -56,7 +56,7 @@ class TestPlayer : public PlayerEntity {
 // the game's, retained (+1) as +alloc's object was.
 template <class T>
 T* NewTestPlayer() {
-  oo::Ref<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeRef<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -101,11 +101,11 @@ std::optional<std::string> sTextureName;
 OOTexture* sTexture = nullptr;  // never released
 
 // OOTexture::nameFactory, the test-only loader hook.
-oo::Ref<OOTexture> LoadTexture(const std::optional<std::string>& name,
+std::shared_ptr<OOTexture> LoadTexture(const std::optional<std::string>& name,
                                const std::optional<std::string>&,
                                OOTextureFlags, GLfloat, GLfloat) {
   sTextureName = name;
-  return oo::Ref<OOTexture>(sTexture);
+  return oo::share(sTexture);
 }
 
 void SetUp(OOTimeAbsolute time) {
@@ -144,7 +144,7 @@ bool VectorIs(Vector v, float x, float y, float z) {
 // A ship's object (autoreleased, as the Objective-C stand-in was), holding the
 // stand-in ship.
 Entity* Ship() {
-  oo::Ref<TestShip> ship = oo::makeRef<TestShip>();
+  std::shared_ptr<TestShip> ship = oo::makeRef<TestShip>();
   Entity* object = oo::MadeEntity(ship);
   ship->isShip =
       true;  // a ship (its subentity plume asks it, as a set-up ship answers)

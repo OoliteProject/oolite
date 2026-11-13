@@ -4,7 +4,7 @@ OOCharacter.h
 
 Represents an NPC person (as opposed to an NPC ship).
 
-Ships' crews and the character pool hold oo::Ref<OOCharacter>, and a
+Ships' crews and the character pool hold std::shared_ptr<OOCharacter>, and a
 character is its own PList::Object payload (oo::PListForeign) for its script's
 "character".
 
@@ -49,7 +49,7 @@ MA 02110-1301, USA.
 #include <vector>
 
 #include "OOJSPropID.h"
-#include "OOScript.h"  // oo::Ref<OOScript> members and results
+#include "OOScript.h"  // std::shared_ptr<OOScript> members and results
 #include "OOTypes.h"
 #include "legacy_random.h"
 #include "oofnd/PList.hpp"
@@ -60,11 +60,11 @@ class OOCharacter : public oo::PListForeign {
   OOCharacter() = default;  // [[OOCharacter alloc] init]: every field zero
   OOCharacter(const std::string& role, OOSystemID s);
 
-  static oo::Ref<OOCharacter> characterWithRole(const std::string& c_role,
-                                                OOSystemID s);
-  static oo::Ref<OOCharacter> randomCharacterWithRole(const std::string& c_role,
-                                                      OOSystemID s);
-  static oo::Ref<OOCharacter> characterWithDictionary(
+  static std::shared_ptr<OOCharacter> characterWithRole(
+      const std::string& c_role, OOSystemID s);
+  static std::shared_ptr<OOCharacter> randomCharacterWithRole(
+      const std::string& c_role, OOSystemID s);
+  static std::shared_ptr<OOCharacter> characterWithDictionary(
       const oo::PList& c_dict);  // a dictionary (JS crew definitions may hold
                                  // any object, as an Object node)
 
@@ -122,5 +122,5 @@ class OOCharacter : public oo::PListForeign {
   int _legalStatus = {};
   OOCreditsQuantity _insuranceCredits = {};
   oo::PList _scriptActions;  // an array; null: none
-  oo::Ref<OOScript> _script;
+  std::shared_ptr<OOScript> _script;
 };

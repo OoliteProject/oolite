@@ -67,5 +67,5 @@ class OOJSSoundSourceHolder final : public oo::RefCounted,
   std::optional<std::string> jsDescription() override;
 
  private:
-  oo::Ref<OOSoundSource> _source;
+  std::shared_ptr<OOSoundSource> _source;
 };

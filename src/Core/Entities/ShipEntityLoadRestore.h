@@ -56,9 +56,9 @@ struct OOShipSaveContext {
   std::map<OOShipGroup*, unsigned>
       groupIDs;  // not retained, as the pointer-box keys were not
   unsigned nextGroupID = 0;
-  std::vector<oo::Ref<OOShipGroup>>
+  std::vector<std::shared_ptr<OOShipGroup>>
       groups;  // keeps the groups alive while they have IDs
-  std::map<std::size_t, oo::Ref<OOShipGroup>> groupsByID;
+  std::map<std::size_t, std::shared_ptr<OOShipGroup>> groupsByID;
 };
 
 /*	The ShipEntity (LoadRestore) members are declared in ShipEntity.h and

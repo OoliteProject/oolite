@@ -55,7 +55,7 @@ class OOALStreamedSound : public OOSound {
   /*	Was -initWithDecoder:, which kept the decoder to stream from: null where
      it answered nil (sound not OK, or no decoder).
   */
-  static oo::Ref<OOALStreamedSound> initWithDecoder(
+  static std::shared_ptr<OOALStreamedSound> initWithDecoder(
       OOALSoundDecoder* inDecoder);
 
   ~OOALStreamedSound() override;
@@ -75,6 +75,6 @@ class OOALStreamedSound : public OOSound {
   double _sampleRate = {};
   std::optional<std::string> _name;  // nil-able, as the name was
   bool _stereo = {};
-  oo::Ref<OOALSoundDecoder> decoder;  // retained
+  std::shared_ptr<OOALSoundDecoder> decoder;  // retained
   bool _reachedEnd = {};
 };

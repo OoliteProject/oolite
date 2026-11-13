@@ -124,7 +124,7 @@ class TestPlayer : public PlayerEntity {
 void SetUpTestPlayer() {
   static TestPlayer* player = nullptr;
   if (player == nullptr) {
-    oo::Ref<TestPlayer> made = oo::makeRef<TestPlayer>();
+    std::shared_ptr<TestPlayer> made = oo::makeRef<TestPlayer>();
     {
       oo::RetainEntity(oo::MadeEntity(
           made));  // +1, as PlayerEntity::sharedPlayer() makes the game's
@@ -540,7 +540,7 @@ const char* kGammaManifest =
 
 std::string ColorName(OOColor* c) {
   if (c == nullptr) return "nil";
-  const std::pair<const char*, oo::Ref<OOColor>> named[] = {
+  const std::pair<const char*, std::shared_ptr<OOColor>> named[] = {
       {"yellow", OOColor::yellowColor()}, {"cyan", OOColor::cyanColor()},
       {"orange", OOColor::orangeColor()}, {"brown", OOColor::brownColor()},
       {"white", OOColor::whiteColor()},   {"red", OOColor::redColor()},
@@ -800,7 +800,7 @@ class TestGameView : public MyOpenGLView {
 // has a member _descriptions).
 class TestUniverse : public Universe {
  public:
-  oo::Ref<TestGui> testGui = {};
+  std::shared_ptr<TestGui> testGui = {};
   TestGameView* testGameView = nullptr;
   oo::PList testDescriptions = {};
 

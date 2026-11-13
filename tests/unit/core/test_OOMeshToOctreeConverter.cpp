@@ -45,25 +45,25 @@ void AddCube(OOMeshToOctreeConverter& converter, float h) {
   }
 }
 
-std::vector<int> Nodes(const oo::Ref<Octree>& octree) {
+std::vector<int> Nodes(const std::shared_ptr<Octree>& octree) {
   oo::PList representation = octree->dictionaryRepresentation();
   const oo::Data* data = representation.find("octree")->getIf<oo::Data>();
   const int* ints = (const int*)data->bytes();
   return std::vector<int>(ints, ints + data->length() / sizeof(int));
 }
 
-float Radius(const oo::Ref<Octree>& octree) {
+float Radius(const std::shared_ptr<Octree>& octree) {
   return octree->dictionaryRepresentation().get<float>("radius");
 }
 
 // The octree at a depth (Nodes and Radius read its representation).
-oo::Ref<Octree> At(const oo::Ref<OOMeshToOctreeConverter>& converter,
+std::shared_ptr<Octree> At(const std::shared_ptr<OOMeshToOctreeConverter>& converter,
                    std::size_t depth) {
   return converter->findOctreeToDepth(depth);
 }
 
 std::optional<std::string> Description(
-    const oo::Ref<OOMeshToOctreeConverter>& converter) {
+    const std::shared_ptr<OOMeshToOctreeConverter>& converter) {
   return converter->descriptionComponents();
 }
 
@@ -71,8 +71,8 @@ bool Near(float a, float b) {
   return std::fabs(a - b) < 1e-3f * std::fmax(1.0f, std::fabs(b));
 }
 
-oo::Ref<OOMeshToOctreeConverter> OneTriangle() {
-  oo::Ref<OOMeshToOctreeConverter> one =
+std::shared_ptr<OOMeshToOctreeConverter> OneTriangle() {
+  std::shared_ptr<OOMeshToOctreeConverter> one =
       OOMeshToOctreeConverter::converterWithCapacity(1);
   one->addTriangle(
       Tri(make_vector(0, 0, 0), make_vector(4, 0, 0), make_vector(0, 4, 0)));
@@ -85,9 +85,9 @@ oo::Ref<OOMeshToOctreeConverter> OneTriangle() {
 
 OO_TEST(emptyGivesAnEmptyOctree) {
   {
-    oo::Ref<OOMeshToOctreeConverter> empty =
+    std::shared_ptr<OOMeshToOctreeConverter> empty =
         OOMeshToOctreeConverter::converterWithCapacity(0);
-    oo::Ref<Octree> octree = At(empty, 3);
+    std::shared_ptr<Octree> octree = At(empty, 3);
     OO_CHECK(Nodes(octree) == std::vector<int>({0}));
     OO_CHECK(Radius(octree) == 0.5f);  // the half-metre pad
     OO_CHECK(octree->volume() == 0.0f);
@@ -97,10 +97,10 @@ OO_TEST(emptyGivesAnEmptyOctree) {
 
 OO_TEST(oneTriangle) {
   {
-    oo::Ref<OOMeshToOctreeConverter> one = OneTriangle();
+    std::shared_ptr<OOMeshToOctreeConverter> one = OneTriangle();
     OO_CHECK(Description(one) == std::optional<std::string>("1 triangles"));
 
-    oo::Ref<Octree> d0 = At(one, 0);
+    std::shared_ptr<Octree> d0 = At(one, 0);
     OO_CHECK(Nodes(d0) == std::vector<int>({-1}));
     OO_CHECK(Radius(d0) == 4.5f);
     OO_CHECK(Near(d0->volume(), 91.125f));
@@ -122,18 +122,18 @@ OO_TEST(oneTriangle) {
 
 OO_TEST(cubeGrowsPastInlineStorage) {
   {
-    oo::Ref<OOMeshToOctreeConverter> cube =
+    std::shared_ptr<OOMeshToOctreeConverter> cube =
         oo::makeRef<OOMeshToOctreeConverter>(12);
     AddCube(*cube, 10);
     AddCube(*cube, 5);  // 24 triangles: past the sixteen inline slots
     OO_CHECK(Description(cube) == std::optional<std::string>("24 triangles"));
 
     for (unsigned d = 0; d <= 2; d++) {
-      oo::Ref<Octree> octree = At(cube, d);
+      std::shared_ptr<Octree> octree = At(cube, d);
       OO_CHECK(Nodes(octree) == std::vector<int>({-1}) &&
                Radius(octree) == 10.5f);
     }
-    oo::Ref<Octree> d3 = At(cube, 3);
+    std::shared_ptr<Octree> d3 = At(cube, 3);
     std::vector<int> nodes = Nodes(d3);
     OO_CHECK(nodes.size() == 585);
     OO_CHECK(std::vector<int>(nodes.begin(), nodes.begin() + 9) ==
@@ -145,7 +145,7 @@ OO_TEST(cubeGrowsPastInlineStorage) {
 }
 
 OO_TEST(cxxConverter) {
-  oo::Ref<OOMeshToOctreeConverter> one =
+  std::shared_ptr<OOMeshToOctreeConverter> one =
       OOMeshToOctreeConverter::converterWithCapacity(1);
   one->addTriangle(
       Tri(make_vector(0, 0, 0), make_vector(4, 0, 0), make_vector(0, 4, 0)));
@@ -153,11 +153,11 @@ OO_TEST(cxxConverter) {
                        make_vector(2, 2, 2)));  // degenerate: dropped
   OO_CHECK(one->descriptionComponents() ==
            std::optional<std::string>("1 triangles"));
-  oo::Ref<Octree> octree = one->findOctreeToDepth(1);
+  std::shared_ptr<Octree> octree = one->findOctreeToDepth(1);
   OO_CHECK(octree.get() != nullptr && Near(octree->volume(), 11.3906f));
   OO_CHECK(Nodes(octree) == std::vector<int>({1, 0, 0, 0, 0, 0, 0, 0, -1}));
 
-  oo::Ref<OOMeshToOctreeConverter> empty =
+  std::shared_ptr<OOMeshToOctreeConverter> empty =
       oo::makeRef<OOMeshToOctreeConverter>(0);
   OO_CHECK(empty->findOctreeToDepth(2)->volume() == 0.0f);
 }

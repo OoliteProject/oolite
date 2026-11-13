@@ -44,11 +44,11 @@ class OOJSTimer : public OOScriptTimer, public ::OOJSPrivateObject {
   // Timer constructor: null where the initialiser answered nil. function and
   // jsThis are borrowed (the timer takes its own references); jsThis may be JS
   // null.
-  static oo::Ref<OOJSTimer> timerWithDelay(OOTimeAbsolute delay,
-                                           OOTimeDelta interval,
-                                           JSContext* context,
-                                           JSValueConst function,
-                                           JSValueConst jsThis);
+  static std::shared_ptr<OOJSTimer> timerWithDelay(OOTimeAbsolute delay,
+                                                   OOTimeDelta interval,
+                                                   JSContext* context,
+                                                   JSValueConst function,
+                                                   JSValueConst jsThis);
 
   ~OOJSTimer() override;
 
@@ -91,7 +91,7 @@ class OOJSTimer : public OOScriptTimer, public ::OOJSPrivateObject {
   JSValue _jsThis = JS_UNDEFINED;  // The object that is 'this' in the function
                                    // call. Owned; may be JS_NULL.
 
-  oo::WeakRef<OOJSScript> _owningScript;  // a weak reference
+  std::weak_ptr<OOJSScript> _owningScript;  // a weak reference
   // The function's name, read once: the finalizer's description must not run JS
   // code. nullopt for an anonymous function.
   std::optional<std::string> _functionName;

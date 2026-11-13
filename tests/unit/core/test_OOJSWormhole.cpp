@@ -71,7 +71,7 @@ public:
 	std::optional<std::string> cxx_oo_jsClassName();
 	bool isVisibleToScripts();
 
-	oo::Ref<Entity> _cxxEntity;	// the wormhole's C++ part (oo::ToCxx reads it)
+	std::shared_ptr<Entity> _cxxEntity;	// the wormhole's C++ part (oo::ToCxx reads it)
 };
 
 #include "OOJSWormhole.h"

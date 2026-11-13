@@ -64,7 +64,7 @@ class TestPlayer : public PlayerEntity {
 // the game's, retained (+1).
 template <class T>
 T* NewTestPlayer() {
-  oo::Ref<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeRef<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -115,17 +115,17 @@ void SetUp() {
     sPlayer = NewTestPlayer<TestPlayer>();
     // Systems 7 at (10, 20) and 9 at (13, 24) of galaxy 0: 5 light-year units
     // apart, 2.0 LY.
-    oo::Ref<OOSystemDescriptionManager> manager =
+    std::shared_ptr<OOSystemDescriptionManager> manager =
         oo::makeRef<OOSystemDescriptionManager>();
     manager->setProperties(
         oo::PList(oo::PList::Dict{{"coordinates", oo::PList("10 20")}}), "0 7");
     manager->setProperties(
         oo::PList(oo::PList::Dict{{"coordinates", oo::PList("13 24")}}), "0 9");
     manager->buildRouteCache();    // fills the coordinates cache
-    sManager = manager.leakRef();  // never released
+    sManager = oo::leakRef(manager);  // never released
     // The universe's own manager and descriptions (the game's clock format, for
     // the description's arrival time).
-    sUniverse->systemManager = oo::Ref<OOSystemDescriptionManager>(sManager);
+    sUniverse->systemManager = oo::share(sManager);
     sUniverse->_descriptions = oo::PList(
         oo::PList::Dict{{"clock-format", oo::PList("%07d:%02d:%02d:%02d")}});
   }
@@ -162,14 +162,14 @@ Entity* Ship(GLfloat mass) {
 
 // A new C++ wormhole.
 WormholeEntity* ToNine(Entity* ship) {
-  oo::Ref<WormholeEntity> wh = oo::makeRef<WormholeEntity>();
+  std::shared_ptr<WormholeEntity> wh = oo::makeRef<WormholeEntity>();
   (void)oo::MadeEntity(wh);
   wh->initWormholeTo(9, oo::ToShip(ship));
   return wh.get();
 }
 
 WormholeEntity* FromDict(const oo::PList& dict) {
-  oo::Ref<WormholeEntity> wh = oo::makeRef<WormholeEntity>();
+  std::shared_ptr<WormholeEntity> wh = oo::makeRef<WormholeEntity>();
   (void)oo::MadeEntity(wh);
   wh->initWithDict(dict);
   return wh.get();

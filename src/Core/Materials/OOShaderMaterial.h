@@ -88,7 +88,7 @@ class OOShaderMaterial : public OOBasicMaterial {
 
           Null where the initialiser failed (it answered nil).
   */
-  static oo::Ref<OOShaderMaterial> shaderMaterialWithName(
+  static std::shared_ptr<OOShaderMaterial> shaderMaterialWithName(
       const std::optional<std::string>& name,
       const oo::PList& configuration,  // null = nil
       const oo::PList& macros,         // null = nil
@@ -172,20 +172,21 @@ class OOShaderMaterial : public OOBasicMaterial {
   void setBindingTarget(Entity* target) override;
   bool permitSpecular() override;
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  std::vector<oo::Ref<OOTexture>> allTextures() override;
+  std::vector<std::shared_ptr<OOTexture>> allTextures() override;
 #endif
 
  private:
   // Convert a "textures" array (texture specifiers) to texture objects.
-  std::vector<oo::Ref<OOTexture>> loadTexturesFromArray(
+  std::vector<std::shared_ptr<OOTexture>> loadTexturesFromArray(
       const oo::PList& textureSpecs, GLuint max);
 
   // Load up an array of texture objects.
   void addTexturesFromArray(
-      const std::vector<oo::Ref<OOTexture>>& textureObjects, GLuint max);
+      const std::vector<std::shared_ptr<OOTexture>>& textureObjects,
+      GLuint max);
 
-  oo::Ref<OOShaderProgram> shaderProgram = {};
-  std::map<std::string, oo::Ref<OOShaderUniform>, std::less<>>
+  std::shared_ptr<OOShaderProgram> shaderProgram = {};
+  std::map<std::string, std::shared_ptr<OOShaderUniform>, std::less<>>
       uniforms;  // no `= {}` (GCC, incomplete T); by uniform name
 
   uint32_t texCount = {};

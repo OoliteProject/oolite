@@ -172,13 +172,13 @@ oo::PList OOMaterial::synthesizeMaterialDictionaryWithName(
   return oo::PList(std::move(context.outConfig));
 }
 
-oo::Ref<OOMaterial> OOMaterial::defaultShaderMaterialWithName(
+std::shared_ptr<OOMaterial> OOMaterial::defaultShaderMaterialWithName(
     const std::optional<std::string>& name,
     const std::optional<std::string>& cacheKey, const oo::PList& configuration,
     const oo::PList& macros, Entity* target) {
   ::OOCacheManager* cache = nullptr;
   oo::PList synthesizedConfig;
-  oo::Ref<OOMaterial> result;
+  std::shared_ptr<OOMaterial> result;
 
   // Avoid looping (can happen if shader fails to compile).
   if (configuration.find("_oo_is_synthesized_config") != nullptr) {
@@ -238,7 +238,7 @@ bool DumpShaderSource() {
 }  // namespace
 #endif
 
-oo::Ref<OOMaterial> OOMaterial::defaultShaderMaterialWithName(
+std::shared_ptr<OOMaterial> OOMaterial::defaultShaderMaterialWithName(
     const std::optional<std::string>& name,
     const std::optional<std::string>& cacheKey, const oo::PList& configuration,
     const oo::PList& macros, Entity* target) {
@@ -310,13 +310,13 @@ oo::Ref<OOMaterial> OOMaterial::defaultShaderMaterialWithName(
 
 #endif
 
-oo::Ref<OOMaterial> OOMaterial::materialWithName(
+std::shared_ptr<OOMaterial> OOMaterial::materialWithName(
     const std::optional<std::string>& name,
     const std::optional<std::string>& cacheKey, const oo::PList& configuration,
     const oo::PList& macros, Entity* object,
     bool smooth)  // Internally, this flg really means "force use of shaders".
 {
-  oo::Ref<OOMaterial> result;
+  std::shared_ptr<OOMaterial> result;
 
 #if OO_SHADERS
 
@@ -372,7 +372,7 @@ oo::Ref<OOMaterial> OOMaterial::materialWithName(
   return result;
 }
 
-oo::Ref<OOMaterial> OOMaterial::materialWithName(
+std::shared_ptr<OOMaterial> OOMaterial::materialWithName(
     const std::optional<std::string>& name,
     const std::optional<std::string>& cacheKey, const oo::PList& materialDict,
     const oo::PList& shadersDict, const oo::PList& macros, Entity* object,
@@ -398,7 +398,7 @@ oo::Ref<OOMaterial> OOMaterial::materialWithName(
   if (configuration.isNull()) {
     // Use fallback material for non-existent simple texture.
     // Texture caching means this won't be wasted in the general case.
-    oo::Ref<OOTexture> texture = OOTexture::textureWithName(
+    std::shared_ptr<OOTexture> texture = OOTexture::textureWithName(
         name, std::optional<std::string>("Textures"));
     if (texture == nullptr) return nullptr;
 

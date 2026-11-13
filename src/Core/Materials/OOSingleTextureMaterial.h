@@ -39,9 +39,9 @@ class OOSingleTextureMaterial : public OOBasicMaterial {
      (below); null where the initialiser failed (it answered nil). They were
      [[OOSingleTextureMaterial alloc] initWith...].
   */
-  static oo::Ref<OOSingleTextureMaterial> materialWithName(
+  static std::shared_ptr<OOSingleTextureMaterial> materialWithName(
       const std::optional<std::string>& name, const oo::PList& configuration);
-  static oo::Ref<OOSingleTextureMaterial> materialWithName(
+  static std::shared_ptr<OOSingleTextureMaterial> materialWithName(
       const std::optional<std::string>& name, OOTexture* texture,
       const oo::PList& configuration);
 
@@ -77,9 +77,9 @@ class OOSingleTextureMaterial : public OOBasicMaterial {
   bool isFinishedLoading() override;
   bool wantsNormalsAsTextureCoordinates() override;
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  std::vector<oo::Ref<OOTexture>> allTextures() override;
+  std::vector<std::shared_ptr<OOTexture>> allTextures() override;
 #endif
 
  private:
-  oo::Ref<OOTexture> _texture = {};
+  std::shared_ptr<OOTexture> _texture = {};
 };

@@ -49,7 +49,7 @@ MA 02110-1301, USA.
 OOECMBlastEntity::OOECMBlastEntity(ShipEntity* ship) {
   _blastsRemaining = ECM_PULSE_COUNT;
   _nextBlast = ECM_PULSE_INTERVAL;
-  _ship = oo::WeakRef<Entity>(ship);
+  _ship = std::weak_ptr<Entity>(oo::share(ship));
 
   Entity::setPosition((ship != nullptr ? ship->getPosition() : HPVector{}));
 
@@ -57,7 +57,8 @@ OOECMBlastEntity::OOECMBlastEntity(ShipEntity* ship) {
   setScanClass(OOScanClass::kNoDraw);
 }
 
-oo::Ref<OOECMBlastEntity> OOECMBlastEntity::initFromShip(ShipEntity* ship) {
+std::shared_ptr<OOECMBlastEntity> OOECMBlastEntity::initFromShip(
+    ShipEntity* ship) {
   if (ship == nullptr) {
     return nullptr;
   }
@@ -66,7 +67,7 @@ oo::Ref<OOECMBlastEntity> OOECMBlastEntity::initFromShip(ShipEntity* ship) {
 
 void OOECMBlastEntity::update(OOTimeDelta delta_t) {
   _nextBlast -= delta_t;
-  ShipEntity* ship = oo::ToShip(_ship.get());
+  ShipEntity* ship = oo::ToShip(_ship.lock().get());
   bool validShip = (ship != nullptr) &&
                    ((ship != nullptr ? ship->status() : OOEntityStatus{}) !=
                     OOEntityStatus::kDead);

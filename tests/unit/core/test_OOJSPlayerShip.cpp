@@ -69,15 +69,15 @@ class FakeGui : public GuiDisplayGen {
  public:
   FakeGui() : GuiDisplayGen(NSMakeSize(480, 160), 1, 9, 19, 20, std::nullopt) {}
 
-  oo::Ref<OOColor> _textColor, _textCommsColor;
+  std::shared_ptr<OOColor> _textColor, _textCommsColor;
 
   OOColor* getTextColor() override { return _textColor.get(); }
   OOColor* getTextCommsColor() override { return _textCommsColor.get(); }
   void setTextColor(OOColor* color) override {
-    _textColor = oo::Ref<OOColor>(color);
+    _textColor = oo::share(color);
   }
   void setTextCommsColor(OOColor* color) override {
-    _textCommsColor = oo::Ref<OOColor>(color);
+    _textCommsColor = oo::share(color);
   }
   std::optional<std::string> reflowTextForMFD(
       const std::optional<std::string>& input) override {
@@ -88,7 +88,7 @@ class FakeGui : public GuiDisplayGen {
 class FakeUniverse : public Universe {
  public:
   OOViewID _viewDirection = {};
-  oo::Ref<FakeGui> _gui = {};
+  std::shared_ptr<FakeGui> _gui = {};
   std::string _lastCommander = {};
   std::vector<std::string> _messages = {};
 
@@ -113,7 +113,7 @@ class FakeUniverse : public Universe {
 
 class FakePlayer : public PlayerEntity {
  public:
-  oo::Ref<HeadUpDisplay> _hud;
+  std::shared_ptr<HeadUpDisplay> _hud;
   Entity *_dockedStation = {}, *_compassTarget = {};
   bool _docked = {};
   std::optional<std::string> _specialCargo, _fastA, _fastB;
@@ -437,7 +437,7 @@ class FakePlayer : public PlayerEntity {
 // object was.
 template <class T>
 T* NewTestPlayer() {
-  oo::Ref<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeRef<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -663,7 +663,7 @@ OO_TEST(getterHUD) {
   OO_CHECK_EVAL("player.ship.hudHidden", "false");
 
   // A player with no HUD: what messages to nil answered.
-  oo::Ref<HeadUpDisplay> hud = sPlayer->_hud;
+  std::shared_ptr<HeadUpDisplay> hud = sPlayer->_hud;
   sPlayer->_hud = nullptr;
   OO_CHECK_EVAL("player.ship.reticleColorTarget", "null");
   OO_CHECK_EVAL("player.ship.reticleTargetSensitive", "false");
@@ -945,7 +945,7 @@ OO_TEST(setterHUD) {
       "PlayerShip to invalid value \"notAColor\".");
 
   // No HUD: nothing to set.
-  oo::Ref<HeadUpDisplay> hud = sPlayer->_hud;
+  std::shared_ptr<HeadUpDisplay> hud = sPlayer->_hud;
   sPlayer->_hud = nullptr;
   OO_CHECK_EVAL(
       "(function () { player.ship.hudHidden = true; return "
@@ -1135,7 +1135,7 @@ OO_TEST(mfdsAndDials) {
   OO_CHECK(!sPlayer->_hud->hasHidden(std::string("drawCompass:")));
   OO_CHECK(Eval("player.ship.hideHUDSelector()").rfind("threw: ", 0) == 0);
   OO_CHECK(Eval("player.ship.showHUDSelector()").rfind("threw: ", 0) == 0);
-  oo::Ref<HeadUpDisplay> hud = sPlayer->_hud;
+  std::shared_ptr<HeadUpDisplay> hud = sPlayer->_hud;
   sPlayer->_hud = nullptr;
   OO_CHECK_EVAL("player.ship.hideHUDSelector('drawCompass:')",
                 "undefined");  // no HUD: nothing

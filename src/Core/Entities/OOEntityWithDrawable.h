@@ -38,10 +38,10 @@ class OOEntityWithDrawable : public Entity {
   void drawImmediate(bool immediate, bool translucent) override;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-  std::vector<oo::Ref<OOTexture>> allTextures() override;
+  std::vector<std::shared_ptr<OOTexture>> allTextures() override;
 #endif
 
  private:
   // The drawable, held.
-  oo::Ref<OODrawable> drawable;
+  std::shared_ptr<OODrawable> drawable;
 };

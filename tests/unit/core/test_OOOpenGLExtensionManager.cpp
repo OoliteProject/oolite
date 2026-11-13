@@ -52,7 +52,7 @@ oo::PList ResourceManager::dictionaryFromFilesNamed(
 // pass takes one and holds it across its matches.
 static unsigned sMatchersMade = 0;
 
-oo::Ref<OORegExpMatcher> OORegExpMatcher::regExpMatcher() {
+std::shared_ptr<OORegExpMatcher> OORegExpMatcher::regExpMatcher() {
   sMatchersMade++;
   return oo::makeRef<OORegExpMatcher>();
 }

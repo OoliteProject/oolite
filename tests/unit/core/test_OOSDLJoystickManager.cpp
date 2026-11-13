@@ -86,14 +86,14 @@ SDL_Event HatEvent(SDL_JoystickID which, Uint8 hat, Uint8 value) {
 
 // As +alloc then -init made it: the SDL constructor, then the superclass's
 // -init body.
-oo::Ref<OOSDLJoystickManager> NewManager() {
-  oo::Ref<OOSDLJoystickManager> manager = oo::makeRef<OOSDLJoystickManager>();
+std::shared_ptr<OOSDLJoystickManager> NewManager() {
+  std::shared_ptr<OOSDLJoystickManager> manager = oo::makeRef<OOSDLJoystickManager>();
   manager->init();
   return manager;
 }
 
 // The factory the game registers (MyOpenGLView.mm).
-oo::Ref<OOJoystickManager> MakeSDLManager() {
+std::shared_ptr<OOJoystickManager> MakeSDLManager() {
   return oo::makeRef<OOSDLJoystickManager>();
 }
 
@@ -104,7 +104,7 @@ OO_TEST(opensAndNamesTheSticks) {
   OO_CHECK(vs.id != 0 && vs.handle != nullptr);
 
   {
-    oo::Ref<OOSDLJoystickManager> manager = NewManager();
+    std::shared_ptr<OOSDLJoystickManager> manager = NewManager();
     OO_CHECK(manager != nullptr);
     OO_CHECK(manager->joystickCount() == 1);
     OO_CHECK(manager->nameOfJoystick(0) ==
@@ -125,7 +125,7 @@ OO_TEST(opensAndNamesTheSticks) {
 OO_TEST(makesEvents) {
   VirtualStick& vs = Stick();
   {
-    oo::Ref<OOSDLJoystickManager> manager = NewManager();
+    std::shared_ptr<OOSDLJoystickManager> manager = NewManager();
 
     SDL_Event axis = AxisEvent(vs.id, 1, -1234);
     SDL_JoyAxisEvent a = manager->makeJoyAxisEvent(&axis.jaxis);
@@ -152,7 +152,7 @@ OO_TEST(makesEvents) {
 OO_TEST(readsAxesFromSDL) {
   VirtualStick& vs = Stick();
   {
-    oo::Ref<OOSDLJoystickManager> manager = NewManager();
+    std::shared_ptr<OOSDLJoystickManager> manager = NewManager();
     SDL_SetJoystickVirtualAxis(vs.handle, 0, 5000);
     SDL_SetJoystickVirtualAxis(vs.handle, 1, -300);
     SDL_UpdateJoysticks();
@@ -208,7 +208,7 @@ OO_TEST(refusesEventsOfAStickItDidNotOpen) {
   VirtualStick& vs = Stick();
   const SDL_JoystickID stray = vs.id + 100;
   {
-    oo::Ref<OOSDLJoystickManager> manager = NewManager();
+    std::shared_ptr<OOSDLJoystickManager> manager = NewManager();
     OO_CHECK(manager->getJoystickIndexFromId(stray) == -1);
 
     SDL_Event down = ButtonEvent(vs.id, 0, true);
@@ -237,7 +237,7 @@ OO_TEST(refusesEventsOfAStickItDidNotOpen) {
 OO_TEST(decodesGuiButtonsFromSDL) {
   VirtualStick& vs = Stick();
   {
-    oo::Ref<OOSDLJoystickManager> manager = NewManager();
+    std::shared_ptr<OOSDLJoystickManager> manager = NewManager();
     auto buttonFn = [](int button) {
       oo::PList::Dict fn;
       fn[std::string(STICK_ISAXIS)] = oo::PList(false);

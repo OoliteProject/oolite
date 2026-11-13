@@ -358,7 +358,7 @@ class OOJoystickManager : public oo::RefCounted {
   // Registers the platform's handler, before the first sharedStickHandler().
   // Was +setStickHandlerClass: (the class is a function that makes the
   // manager).
-  using StickHandlerFactory = oo::Ref<OOJoystickManager> (*)();
+  using StickHandlerFactory = std::shared_ptr<OOJoystickManager> (*)();
   static bool setStickHandlerFactory(StickHandlerFactory factory);
 
   // General.
@@ -458,7 +458,7 @@ class OOJoystickManager : public oo::RefCounted {
   bool invertPitch = {};
 
  private:
-  oo::Ref<OOJoystickAxisProfile> roll_profile = {};
-  oo::Ref<OOJoystickAxisProfile> pitch_profile = {};
-  oo::Ref<OOJoystickAxisProfile> yaw_profile = {};
+  std::shared_ptr<OOJoystickAxisProfile> roll_profile = {};
+  std::shared_ptr<OOJoystickAxisProfile> pitch_profile = {};
+  std::shared_ptr<OOJoystickAxisProfile> yaw_profile = {};
 };

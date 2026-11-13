@@ -67,7 +67,7 @@ std::string OODrawable::description() const {
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::Ref<OOTexture>> OODrawable::allTextures() { return {}; }
+std::vector<std::shared_ptr<OOTexture>> OODrawable::allTextures() { return {}; }
 
 // The object's own size.
 size_t OODrawable::totalSize() { return objectSize(); }
@@ -77,7 +77,7 @@ size_t OODrawable::totalSize() { return objectSize(); }
    oo::AutoreleaseScope, whose drain releases it where the keeper object that
    held it was released.
 */
-void OODrawableAutorelease(oo::Ref<OODrawable> drawable) {
+void OODrawableAutorelease(std::shared_ptr<OODrawable> drawable) {
   if (drawable == nullptr) return;
   oo::autorelease(std::move(drawable));
 }

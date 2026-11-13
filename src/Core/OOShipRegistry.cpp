@@ -586,7 +586,8 @@ void OOShipRegistry::loadCachedRoleProbabilitySets() {
       kRoleWeightsCacheKey, kShipRegistryCacheName);
   if (cachedSets.isNull()) return;
 
-  std::map<std::string, oo::Ref<OOProbabilitySet>, std::less<>> restoredSets;
+  std::map<std::string, std::shared_ptr<OOProbabilitySet>, std::less<>>
+      restoredSets;
   if (const oo::PList::Dict* sets = cachedSets.getIf<oo::PList::Dict>()) {
     for (const auto& [role, representation] : *sets) {
       restoredSets[role] =
@@ -599,7 +600,7 @@ void OOShipRegistry::loadCachedRoleProbabilitySets() {
 }
 
 void OOShipRegistry::buildRoleProbabilitySets() {
-  std::map<std::string, oo::Ref<OOMutableProbabilitySet>, std::less<>>
+  std::map<std::string, std::shared_ptr<OOMutableProbabilitySet>, std::less<>>
       probabilitySets;
 
   // Build role sets (ships in key order; was hash order)
@@ -611,10 +612,10 @@ void OOShipRegistry::buildRoleProbabilitySets() {
   }
 
   // Convert role sets to immutable form, and build cache entry.
-  std::map<std::string, oo::Ref<OOProbabilitySet>, std::less<>> sets;
+  std::map<std::string, std::shared_ptr<OOProbabilitySet>, std::less<>> sets;
   oo::PList::Dict cacheEntry;
   for (const auto& [role, mutableSet] : probabilitySets) {
-    oo::Ref<OOProbabilitySet> pset = mutableSet->copy();
+    std::shared_ptr<OOProbabilitySet> pset = mutableSet->copy();
     sets[role] = pset;
     // OOProbabilitySet is an unmigrated callee (its weights are floats: single
     // reals, written to disk)
@@ -1150,8 +1151,8 @@ bool OOShipRegistry::canonicalizeAndTagSubentities(oo::PList& ioData) {
 
 void OOShipRegistry::mergeShipRoles(
     const std::string& roles, const std::string& shipKey,
-    std::map<std::string, oo::Ref<OOMutableProbabilitySet>, std::less<>>&
-        probabilitySets) {
+    std::map<std::string, std::shared_ptr<OOMutableProbabilitySet>,
+             std::less<>>& probabilitySets) {
   /*	probabilitySets is a dictionary whose keys are roles and whose values
           are mutable probability sets, whose values are ship keys.
 
@@ -1175,7 +1176,7 @@ void OOShipRegistry::mergeShipRoles(
 
   // (roles in role order; was hash order: each role's set is separate)
   for (const auto& [role, weight] : rolesAndWeights) {
-    oo::Ref<OOMutableProbabilitySet>& probSet = probabilitySets[role];
+    std::shared_ptr<OOMutableProbabilitySet>& probSet = probabilitySets[role];
     if (probSet == nullptr) {
       probSet = OOMutableProbabilitySet::probabilitySet();
     }

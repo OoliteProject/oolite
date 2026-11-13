@@ -68,7 +68,7 @@ public:
 	bool isStation();
 	OOEntityStatus status();
 
-	oo::Ref<Entity> _cxxEntity;
+	std::shared_ptr<Entity> _cxxEntity;
 	bool _isStation = false;
 	OOEntityStatus _status = {};
 };

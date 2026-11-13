@@ -37,9 +37,8 @@ struct OOLaserShotEntityTestAccess;
 class OOLaserShotEntity : public Entity {
  public:
   // A new shot, initialised.
-  static oo::Ref<OOLaserShotEntity> laserFromShip(::ShipEntity* ship,
-                                                  OOWeaponFacing direction,
-                                                  Vector offset);
+  static std::shared_ptr<OOLaserShotEntity> laserFromShip(
+      ::ShipEntity* ship, OOWeaponFacing direction, Vector offset);
 
   std::optional<std::string> descriptionComponents() const override;
 

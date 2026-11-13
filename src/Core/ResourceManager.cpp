@@ -349,7 +349,7 @@ static bool sAllMet = false;
 //
 namespace {
 
-std::map<std::string, oo::Ref<::OOSound>, std::less<>> sSoundCache;
+std::map<std::string, std::shared_ptr<::OOSound>, std::less<>> sSoundCache;
 std::map<std::string, std::string, std::less<>> sStringCache;
 
 }  // namespace
@@ -1984,11 +1984,11 @@ void ResourceManager::mergeRoleCategories(const oo::PList& catData,
   }
 }
 
-oo::Ref<OOSystemDescriptionManager>
+std::shared_ptr<OOSystemDescriptionManager>
 ResourceManager::systemDescriptionManager() {
   OO_LOG("resourceManager.planetinfo.load", "{}", "Initialising manager");
-  oo::Ref<OOSystemDescriptionManager> manager =
-      oo::makeRef<OOSystemDescriptionManager>();
+  std::shared_ptr<OOSystemDescriptionManager> manager =
+      oo::makeShared<OOSystemDescriptionManager>();
 
   // OODictionaryFromFile (OOPListParsing) and OOSystemDescriptionManager are
   // unmigrated callees: the planetinfo dictionaries arrive through
@@ -2135,9 +2135,9 @@ std::optional<std::string> ResourceManager::pathForFileNamed(
  * an extremely expensive operation */
 ::OOSound* ResourceManager::retrieveFileNamed(
     const std::string& fileName, const std::optional<std::string>& folderName,
-    std::map<std::string, oo::Ref<::OOSound>, std::less<>>* ioCache,
+    std::map<std::string, std::shared_ptr<::OOSound>, std::less<>>* ioCache,
     std::optional<std::string> key, bool useCache) {
-  oo::Ref<::OOSound> result;
+  std::shared_ptr<::OOSound> result;
 
   if (ioCache) {
     if (!key.has_value())
@@ -2164,10 +2164,10 @@ std::optional<std::string> ResourceManager::pathForFileNamed(
     return result.get();
   }
 
-  return oo::autorelease(result.leakRef());
+  return oo::autorelease(std::move(result));
 }
 
-oo::Ref<OOMusic> ResourceManager::ooMusicNamed(
+std::shared_ptr<OOMusic> ResourceManager::ooMusicNamed(
     const std::string& fileName, const std::optional<std::string>& folderName) {
   // Don't cache music objects; minimizing latency isn't really important.
   const std::optional<std::string> path =
@@ -2222,11 +2222,11 @@ std::optional<std::string> ResourceManager::stringFromFilesNamed(
   return result;
 }
 
-std::vector<std::pair<std::string, oo::Ref<OOScript>>>
+std::vector<std::pair<std::string, std::shared_ptr<OOScript>>>
 ResourceManager::loadScripts() {
   // name -> script, in the order each name was first loaded (a later script of
   // the same name replaces the earlier one in place)
-  std::vector<std::pair<std::string, oo::Ref<OOScript>>> loadedScripts;
+  std::vector<std::pair<std::string, std::shared_ptr<OOScript>>> loadedScripts;
 
   OO_LOG("script.load.world.begin", "{}", "Loading world scripts...");
 
@@ -2238,13 +2238,13 @@ ResourceManager::loadScripts() {
       {
         oo::AutoreleaseScope pool;  // was @autoreleasepool
         try {
-          std::optional<std::vector<oo::Ref<OOScript>>> results =
+          std::optional<std::vector<std::shared_ptr<OOScript>>> results =
               OOScript::worldScriptsAtPath(
                   oo::str::appendingPathComponent(path, "Config"));
           if (!results.has_value())
             results = OOScript::worldScriptsAtPath(path);
           if (results.has_value()) {
-            for (const oo::Ref<OOScript>& script : *results) {
+            for (const std::shared_ptr<OOScript>& script : *results) {
               const std::optional<std::string> name =
                   (script != nullptr) ? script->name() : std::nullopt;
               if (name.has_value()) {

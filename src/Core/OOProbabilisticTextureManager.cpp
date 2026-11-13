@@ -47,7 +47,7 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict,
 
 }  // namespace
 
-oo::Ref<OOProbabilisticTextureManager>
+std::shared_ptr<OOProbabilisticTextureManager>
 OOProbabilisticTextureManager::createWithPListName(const std::string& plistName,
                                                    OOTextureFlags options,
                                                    GLfloat anisotropy,
@@ -57,13 +57,13 @@ OOProbabilisticTextureManager::createWithPListName(const std::string& plistName,
 }
 
 // -initWithPListName:...seed: on a new object; null where it answered nil.
-oo::Ref<OOProbabilisticTextureManager>
+std::shared_ptr<OOProbabilisticTextureManager>
 OOProbabilisticTextureManager::createWithPListName(const std::string& plistName,
                                                    OOTextureFlags options,
                                                    GLfloat anisotropy,
                                                    GLfloat lodBias,
                                                    RANROTSeed seed) {
-  oo::Ref<OOProbabilisticTextureManager> manager =
+  std::shared_ptr<OOProbabilisticTextureManager> manager =
       oo::adopt(new OOProbabilisticTextureManager);
   if (!manager->initWithPListName(plistName, options, anisotropy, lodBias,
                                   seed))
@@ -80,7 +80,7 @@ bool OOProbabilisticTextureManager::initWithPListName(
   const oo::PList* entry = nullptr;
   std::optional<std::string> name;
   float probability = 0.0f;  // set wherever name is (GCC -Wmaybe-uninitialized)
-  oo::Ref<OOTexture> texture;
+  std::shared_ptr<OOTexture> texture;
   int galID = -1;
   const oo::PList* object = nullptr;
 
@@ -131,8 +131,8 @@ bool OOProbabilisticTextureManager::initWithPListName(
         texture = OOTexture::textureWithName(name, "Textures", options,
                                              anisotropy, lodBias);
         if (texture != nullptr) {
-          _textures[_count] = oo::Ref<OOTexture>(texture)
-                                  .leakRef();  // released in the destructor
+          _textures[_count] =
+              oo::leakRef(texture);  // released in the destructor
           _prob[_count] =
               probability + (galID >= 0 ? _probMaxGal[galID] : _probMax);
           _galaxy[_count] = (galID >= 0 ? galID : -1);

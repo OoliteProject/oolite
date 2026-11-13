@@ -247,9 +247,9 @@ OOMeshToOctreeConverter::~OOMeshToOctreeConverter() {
   DestroyGeometryData(&_data);
 }
 
-oo::Ref<OOMeshToOctreeConverter> OOMeshToOctreeConverter::converterWithCapacity(
-    std::size_t capacity) {
-  return oo::makeRef<OOMeshToOctreeConverter>(capacity);
+std::shared_ptr<OOMeshToOctreeConverter>
+OOMeshToOctreeConverter::converterWithCapacity(std::size_t capacity) {
+  return oo::makeShared<OOMeshToOctreeConverter>(capacity);
 }
 
 std::optional<std::string> OOMeshToOctreeConverter::descriptionComponents()
@@ -263,8 +263,9 @@ void OOMeshToOctreeConverter::addTriangle(Triangle tri) {
   }
 }
 
-oo::Ref<Octree> OOMeshToOctreeConverter::findOctreeToDepth(std::size_t depth) {
-  oo::Ref<OOOctreeBuilder> builder = oo::makeRef<OOOctreeBuilder>();
+std::shared_ptr<Octree> OOMeshToOctreeConverter::findOctreeToDepth(
+    std::size_t depth) {
+  std::shared_ptr<OOOctreeBuilder> builder = oo::makeShared<OOOctreeBuilder>();
   OOScalar halfWidth =
       0.5f +
       MaxDimensionFromOrigin(&_data);  // pad out from geometry by a half meter

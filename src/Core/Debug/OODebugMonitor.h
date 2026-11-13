@@ -70,7 +70,7 @@ SOFTWARE.
 
 class OOJavaScriptEngine;
 #include "OOColor.h"   // the colour maps hold std::shared_ptr<OOColor>
-#include "OOScript.h"  // the console script, oo::Ref<OOScript>
+#include "OOScript.h"  // the console script, std::shared_ptr<OOScript>
 
 /*	The one debug monitor (sharedDebugMonitor(), made on first use and never
    released). The debugger reaches it as itself, the JavaScript engine as its
@@ -182,10 +182,10 @@ class OODebugMonitor : public oo::PListForeign,
   std::optional<std::vector<std::string>> loadSourceFile(
       const std::string& filePath);  // nullopt: can't be read
 
-  oo::Ref<OODebuggerInterface> _debugger;  // a C++ interface
+  std::shared_ptr<OODebuggerInterface> _debugger;  // a C++ interface
 
   // JavaScript console support.
-  oo::Ref<OOScript> _script;       // the console script (an OOJSScript)
+  std::shared_ptr<OOScript> _script;  // the console script (an OOJSScript)
   JSValue _jsSelf = JS_UNDEFINED;  // Owned; released when the JS engine resets.
 
   oo::PList _configFromOXPs;   // Settings from debugConfig.plist (a Dict, never

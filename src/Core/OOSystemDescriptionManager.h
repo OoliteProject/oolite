@@ -175,8 +175,8 @@ class OOSystemDescriptionManager : public oo::RefCounted {
                                     const std::optional<std::string>& manifest);
 
   oo::PList universalProperties = {};  // a Dict: property -> value
-  oo::Ref<OOSystemDescriptionEntry> interstellarSpace = {};
-  std::map<std::string, oo::Ref<OOSystemDescriptionEntry>, std::less<>>
+  std::shared_ptr<OOSystemDescriptionEntry> interstellarSpace = {};
+  std::map<std::string, std::shared_ptr<OOSystemDescriptionEntry>, std::less<>>
       systemDescriptions = {};
   oo::PList propertyCache[OO_SYSTEM_CACHE_LENGTH] =
       {};  // each a Dict: property -> value

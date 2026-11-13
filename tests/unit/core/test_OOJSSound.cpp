@@ -121,7 +121,7 @@ public:
 
 
 namespace {
-std::vector<oo::Ref<OOSound>> sLoaded;	// the sounds made, kept as the resource manager's cache keeps them
+std::vector<std::shared_ptr<OOSound>> sLoaded;	// the sounds made, kept as the resource manager's cache keeps them
 MusicRecord *sMusic = nullptr;
 char sMusicSourceObject;	// the music's source: an object the binding hands on unopened
 OOSoundSource *sMusicSource = reinterpret_cast<OOSoundSource *>(&sMusicSourceObject);
@@ -129,7 +129,7 @@ OOSoundSource *sMusicSource = reinterpret_cast<OOSoundSource *>(&sMusicSourceObj
 
 OOSound *MakeSound(const std::optional<std::string> &name)
 {
-	const oo::Ref<TestSound> sound = oo::makeRef<TestSound>();
+	const std::shared_ptr<TestSound> sound = oo::makeRef<TestSound>();
 	sound->_name = name;
 	sLoaded.push_back(sound);
 	return sound.get();
@@ -388,7 +388,7 @@ OO_TEST(registration)
 	OO_CHECK_EVAL("typeof Sound", "function");
 	OO_CHECK_EVAL("new Sound()", "threw: unconstructable");
 	OO_CHECK_EQ(sConverters.size(), 1u);
-	const oo::Ref<TestSound> sound = oo::makeRef<TestSound>();
+	const std::shared_ptr<TestSound> sound = oo::makeRef<TestSound>();
 	sound->_name = "a.ogg";
 	OO_CHECK(OOJSSoundJSClassName() == std::optional<std::string>("Sound"));
 	OO_CHECK(OOJSSoundJSDescription(sound.get()) == std::optional<std::string>("[Sound \"a.ogg\"]"));
@@ -449,7 +449,7 @@ OO_TEST(soundFromJSValue)
 	OO_CHECK(NameOf(SoundFromJSValue(sContext, name)) == std::optional<std::string>("Sounds/ping.ogg"));
 	OO_CHECK_EQ(sLimiterPauses, 0);	// a named sound pauses the time limiter and resumes it (upstream #768 balances the pause)
 	sLimiterPauses = 0;
-	const oo::Ref<TestSound> sound = oo::makeRef<TestSound>();
+	const std::shared_ptr<TestSound> sound = oo::makeRef<TestSound>();
 	sound->_name = "object.ogg";
 	JSValue object = OOJSSoundJSValueInContext(sound.get(), sContext);
 	OO_CHECK(SoundFromJSValue(sContext, object) == sound.get());

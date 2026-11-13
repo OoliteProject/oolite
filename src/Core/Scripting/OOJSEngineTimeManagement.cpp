@@ -70,7 +70,7 @@ static bool sTracing = false;
 static OOJSProfileStackFrame* sProfileStack = nullptr;
 // Profile key (native name or JS function, by pointer) -> entry, retained.
 namespace {
-static std::unordered_map<const void*, oo::Ref<OOTimeProfileEntry>>*
+static std::unordered_map<const void*, std::shared_ptr<OOTimeProfileEntry>>*
     sProfileInfo;
 
 static OOTimeProfileEntry* ProfileEntryForKey(const void* key) {
@@ -88,7 +88,7 @@ void OOJSBeginProfiling(bool trace) {
   sProfiling = true;
   sTracing = trace;
   sProfileInfo =
-      new std::unordered_map<const void*, oo::Ref<OOTimeProfileEntry>>;
+      new std::unordered_map<const void*, std::shared_ptr<OOTimeProfileEntry>>;
   sProfileInfo->reserve(100);
   sProfilerOverhead = 0.0;
   sProfilerTotalNativeTime = 0.0;
@@ -103,7 +103,7 @@ void OOJSBeginProfiling(bool trace) {
   }
 }
 
-oo::Ref<OOTimeProfile> OOJSEndProfiling() {
+std::shared_ptr<OOTimeProfile> OOJSEndProfiling() {
   // This should be at the top for precision.
   OOHighResTimeValue now = OOGetHighResTime();
   // Time limiter should be as close to outermost as practical.
@@ -113,7 +113,7 @@ oo::Ref<OOTimeProfile> OOJSEndProfiling() {
 
   sProfiling = false;
 
-  oo::Ref<OOTimeProfile> result = oo::makeRef<OOTimeProfile>();
+  std::shared_ptr<OOTimeProfile> result = oo::makeShared<OOTimeProfile>();
 
   result->setTotalTime(OOHighResTimeDeltaInSeconds(sProfilerStartTime, now));
   result->setNativeTime(sProfilerTotalNativeTime);
@@ -122,7 +122,7 @@ oo::Ref<OOTimeProfile> OOJSEndProfiling() {
   double currentTimeLimit = OOJSGetTimeLimiterLimit();
   result->setExtensionTime(currentTimeLimit - sProfilerEntryTimeLimit);
 
-  std::vector<oo::Ref<OOTimeProfileEntry>> entries;
+  std::vector<std::shared_ptr<OOTimeProfileEntry>> entries;
   entries.reserve(sProfileInfo->size());
   for (const auto& keyAndEntry : *sProfileInfo)
     entries.emplace_back(keyAndEntry.second);
@@ -217,8 +217,8 @@ static void UpdateProfileForFrame(OOHighResTimeValue now,
 
   OOTimeProfileEntry* entry = ProfileEntryForKey(frame->key);
   if (entry == nullptr) {
-    const oo::Ref<OOTimeProfileEntry> made =
-        oo::makeRef<OOTimeProfileEntry>(frame->function);
+    const std::shared_ptr<OOTimeProfileEntry> made =
+        oo::makeShared<OOTimeProfileEntry>(frame->function);
     (*sProfileInfo)[frame->key] = made;  // the table's reference
     entry = made.get();
   }
@@ -244,7 +244,7 @@ std::optional<std::string> OOTimeProfile::description() {
       nonExtensionTime() * 1000.0, extensionTime() * 1000.0,
       profilerOverhead() * 1000.0);
 
-  const std::vector<oo::Ref<OOTimeProfileEntry>>& profileEntries =
+  const std::vector<std::shared_ptr<OOTimeProfileEntry>>& profileEntries =
       _profileEntries;
   std::size_t i, count = profileEntries.size();
   if (count != 0) {
@@ -292,12 +292,13 @@ void OOTimeProfile::setProfilerOverhead(double value) {
   _profilerOverhead = value;
 }
 
-std::vector<oo::Ref<OOTimeProfileEntry>> OOTimeProfile::profileEntries() {
+std::vector<std::shared_ptr<OOTimeProfileEntry>>
+OOTimeProfile::profileEntries() {
   return _profileEntries;
 }
 
 void OOTimeProfile::setProfileEntries(
-    const std::vector<oo::Ref<OOTimeProfileEntry>>& value) {
+    const std::vector<std::shared_ptr<OOTimeProfileEntry>>& value) {
   _profileEntries = value;
 }
 

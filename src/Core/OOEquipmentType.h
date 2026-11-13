@@ -65,12 +65,12 @@ class OOEquipmentType : public oo::PListForeign, public ::OOJSPrivateObject {
   static void setMissileRegistryRole(const std::string& role,
                                      const std::string& shipKey);
 
-  static std::vector<oo::Ref<OOEquipmentType>>
+  static std::vector<std::shared_ptr<OOEquipmentType>>
   allEquipmentTypes();  // a snapshot, in equipment.plist order
-  static std::vector<oo::Ref<OOEquipmentType>>
+  static std::vector<std::shared_ptr<OOEquipmentType>>
   allEquipmentTypesOutfitting();  // the outfitting dataset
 
-  static oo::Ref<OOEquipmentType> equipmentTypeWithIdentifier(
+  static std::shared_ptr<OOEquipmentType> equipmentTypeWithIdentifier(
       const std::string& identifier);  // null: none
 
   std::optional<std::string> identifier();
@@ -173,7 +173,7 @@ class OOEquipmentType : public oo::PListForeign, public ::OOJSPrivateObject {
   OOEquipmentType() = default;
 
   // -initWithInfo:, which could fail: createWithInfo() runs it on a new object.
-  static oo::Ref<OOEquipmentType> createWithInfo(const oo::PList& info);
+  static std::shared_ptr<OOEquipmentType> createWithInfo(const oo::PList& info);
   bool initWithInfo(
       const oo::PList& info);  // an equipment.plist entry (an array)
 
@@ -224,7 +224,7 @@ inline oo::PList OOEquipmentTypeObjectNode(
     OOEquipmentType* type)  // null type -> null PList
 {
   if (type == nullptr) return oo::PList();
-  return oo::PList(oo::PList::Object(oo::Ref<oo::PListForeign>(type)));
+  return oo::PList(oo::PList::Object(oo::share(type)));
 }
 
 inline OOEquipmentType* OOEquipmentTypeInObjectNode(
@@ -238,10 +238,10 @@ inline OOEquipmentType* OOEquipmentTypeInObjectNode(
 // An array of Object nodes, one per non-null type, in order (as
 // oo::PListFromObjects() makes).
 inline oo::PList OOEquipmentTypeObjectNodes(
-    const std::vector<oo::Ref<OOEquipmentType>>& types) {
+    const std::vector<std::shared_ptr<OOEquipmentType>>& types) {
   oo::PList::Array result;
   result.reserve(types.size());
-  for (const oo::Ref<OOEquipmentType>& type : types) {
+  for (const std::shared_ptr<OOEquipmentType>& type : types) {
     if (type != nullptr)
       result.push_back(OOEquipmentTypeObjectNode(type.get()));
   }

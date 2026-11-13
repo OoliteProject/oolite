@@ -116,55 +116,47 @@ std::string ExpandTildeInPath(const std::string& path) {
 */
 struct CxxStage {
   std::string_view name;
-  oo::Ref<OOOXPVerifierStage> (*make)();
+  std::shared_ptr<OOOXPVerifierStage> (*make)();
 };
 
 constexpr CxxStage kCxxStages[] = {
     {"OOAIStateMachineVerifierStage",
-     [] {
-       return oo::Ref<OOOXPVerifierStage>(
-           oo::makeRef<OOAIStateMachineVerifierStage>());
+     []() -> std::shared_ptr<OOOXPVerifierStage> {
+       return oo::makeShared<OOAIStateMachineVerifierStage>();
      }},
     {"OOCheckJSSyntaxVerifierStage",
-     [] {
-       return oo::Ref<OOOXPVerifierStage>(
-           oo::makeRef<OOCheckJSSyntaxVerifierStage>());
+     []() -> std::shared_ptr<OOOXPVerifierStage> {
+       return oo::makeShared<OOCheckJSSyntaxVerifierStage>();
      }},
     {"OOCheckPListSyntaxVerifierStage",
-     [] {
-       return oo::Ref<OOOXPVerifierStage>(
-           oo::makeRef<OOCheckPListSyntaxVerifierStage>());
+     []() -> std::shared_ptr<OOOXPVerifierStage> {
+       return oo::makeShared<OOCheckPListSyntaxVerifierStage>();
      }},
     {"OOCheckDemoShipsPListVerifierStage",
-     [] {
-       return oo::Ref<OOOXPVerifierStage>(
-           oo::makeRef<OOCheckDemoShipsPListVerifierStage>());
+     []() -> std::shared_ptr<OOOXPVerifierStage> {
+       return oo::makeShared<OOCheckDemoShipsPListVerifierStage>();
      }},
     {"OOCheckRequiresPListVerifierStage",
-     [] {
-       return oo::Ref<OOOXPVerifierStage>(
-           oo::makeRef<OOCheckRequiresPListVerifierStage>());
+     []() -> std::shared_ptr<OOOXPVerifierStage> {
+       return oo::makeShared<OOCheckRequiresPListVerifierStage>();
      }},
     {"OOCheckEquipmentPListVerifierStage",
-     [] {
-       return oo::Ref<OOOXPVerifierStage>(
-           oo::makeRef<OOCheckEquipmentPListVerifierStage>());
+     []() -> std::shared_ptr<OOOXPVerifierStage> {
+       return oo::makeShared<OOCheckEquipmentPListVerifierStage>();
      }},
     {"OOTextureVerifierStage",
-     [] {
-       return oo::Ref<OOOXPVerifierStage>(
-           oo::makeRef<OOTextureVerifierStage>());
+     []() -> std::shared_ptr<OOOXPVerifierStage> {
+       return oo::makeShared<OOTextureVerifierStage>();
      }},
     {"OOCheckShipDataPListVerifierStage",
-     [] {
-       return oo::Ref<OOOXPVerifierStage>(
-           oo::makeRef<OOCheckShipDataPListVerifierStage>());
+     []() -> std::shared_ptr<OOOXPVerifierStage> {
+       return oo::makeShared<OOCheckShipDataPListVerifierStage>();
      }},
 };
 
 }  // namespace
 
-oo::Ref<::OOOXPVerifierStage> (*OOOXPVerifier::sTestStageMaker)(
+std::shared_ptr<::OOOXPVerifierStage> (*OOOXPVerifier::sTestStageMaker)(
     const std::string& name) = nullptr;
 
 /**
@@ -177,7 +169,7 @@ oo::Ref<::OOOXPVerifierStage> (*OOOXPVerifier::sTestStageMaker)(
 bool OOOXPVerifier::runVerificationIfRequested() {
   std::optional<std::string> foundPath;
   bool exists, isDirectory;
-  oo::Ref<OOOXPVerifier> verifier;
+  std::shared_ptr<OOOXPVerifier> verifier;
 
   const std::vector<std::string>& arguments = oo::process::arguments();
 
@@ -269,8 +261,8 @@ void OOOXPVerifier::registerStage(::OOOXPVerifierStage* stage) {
   // Checks passed, store state.
   // The stage keeps the verifier, unretained.
   stage->setVerifier(this);
-  _stagesByName[*name] = oo::Ref<::OOOXPVerifierStage>(stage);
-  _waitingStages.push_back(oo::Ref<::OOOXPVerifierStage>(stage));
+  _stagesByName[*name] = oo::share(stage);
+  _waitingStages.push_back(oo::share(stage));
 }
 
 std::optional<std::string> OOOXPVerifier::oxpPath() { return _basePath; }
@@ -322,9 +314,9 @@ std::optional<std::vector<std::string>> OOOXPVerifier::configurationSetForKey(
 
 // Private
 
-oo::Ref<OOOXPVerifier> OOOXPVerifier::createWithPath(
+std::shared_ptr<OOOXPVerifier> OOOXPVerifier::createWithPath(
     const std::optional<std::string>& path) {
-  oo::Ref<OOOXPVerifier> verifier = oo::adopt(new OOOXPVerifier);
+  std::shared_ptr<OOOXPVerifier> verifier = oo::adopt(new OOOXPVerifier);
   if (!verifier->initWithPath(path)) return nullptr;
   return verifier;
 }
@@ -446,7 +438,7 @@ void OOOXPVerifier::registerBaseStages() {
       }
 
       if (sTestStageMaker != nullptr) {
-        const oo::Ref<::OOOXPVerifierStage> testStage =
+        const std::shared_ptr<::OOOXPVerifierStage> testStage =
             sTestStageMaker(stageName);
         if (testStage.get() != nullptr) {
           registerStage(testStage.get());
@@ -481,7 +473,8 @@ void OOOXPVerifier::buildDependencyGraph() {
               added.
       */
       if (_waitingStages.empty()) break;
-      const oo::Ref<::OOOXPVerifierStage> waiting = _waitingStages.front();
+      const std::shared_ptr<::OOOXPVerifierStage> waiting =
+          _waitingStages.front();
       _waitingStages.erase(_waitingStages.begin());
       stage = waiting.get();
 
@@ -614,7 +607,9 @@ void OOOXPVerifier::runStages() {
     }
     oo::log::popIndent();
 
-    std::erase(_waitingStages, stageToRun);
+    std::erase_if(_waitingStages, [stageToRun](const auto& owner) {
+      return owner.get() == stageToRun;
+    });
   }
 
   if (!_waitingStages.empty()) {
@@ -714,7 +709,7 @@ void OOOXPVerifier::dumpDebugGraphviz() {
       graphVizTemplate.get<std::string>("startArc");
   for (const auto& entry : _stagesByName) {
     ::OOOXPVerifierStage* stage = entry.second.get();
-    const std::vector<oo::Ref<OOOXPVerifierStage>> deps =
+    const std::vector<std::shared_ptr<OOOXPVerifierStage>> deps =
         stage->resolvedDependencies();
     if (!deps.empty()) {
       for (const auto& dep : deps) {
@@ -737,7 +732,7 @@ void OOOXPVerifier::dumpDebugGraphviz() {
   const std::string endTemplate = graphVizTemplate.get<std::string>("endArc");
   for (const auto& entry : _stagesByName) {
     ::OOOXPVerifierStage* stage = entry.second.get();
-    const std::vector<oo::Ref<OOOXPVerifierStage>> deps =
+    const std::vector<std::shared_ptr<OOOXPVerifierStage>> deps =
         stage->resolvedDependents();
     if (!deps.empty()) {
       for (const auto& dep : deps) {

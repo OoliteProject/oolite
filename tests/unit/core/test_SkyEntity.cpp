@@ -63,12 +63,12 @@ TestUniverse* sUniverse = nullptr;
 TestPlayer* sPlayer = nullptr;
 
 // The drawable's star set-up's stand-in: the colours the sky passed.
-oo::Ref<OOColor> sStarColor1;
-oo::Ref<OOColor> sStarColor2;
+std::shared_ptr<OOColor> sStarColor1;
+std::shared_ptr<OOColor> sStarColor2;
 
 void SetUpStars(OOSkyDrawable*, OOColor* color1, OOColor* color2) {
-  sStarColor1 = oo::Ref<OOColor>(color1);
-  sStarColor2 = oo::Ref<OOColor>(color2);
+  sStarColor1 = oo::share(color1);
+  sStarColor2 = oo::share(color2);
 }
 
 }  // namespace
@@ -85,7 +85,7 @@ struct OOSkyDrawableTestAccess {
 // the game's, retained (+1).
 template <class T>
 T* NewTestPlayer() {
-  oo::Ref<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeRef<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -128,7 +128,7 @@ bool ColorIs(OOColor* color, float r, float g, float b, float a) {
 
 // The object first, then the initialiser's body, as the universe makes the sky.
 Entity* Sky(const oo::PList& info) {
-  const oo::Ref<SkyEntity> sky = oo::makeRef<SkyEntity>();
+  const std::shared_ptr<SkyEntity> sky = oo::makeRef<SkyEntity>();
   Entity* object = oo::MadeEntity(sky);
   sky->initWithColors(OOColor::redColor().get(), OOColor::blueColor().get(),
                       info);

@@ -112,8 +112,8 @@ OOFileScannerVerifierStage::nameForDependencyForVerifier(
     OOOXPVerifier* verifier) {
   OOOXPVerifierStage* stage = verifier->stageWithName(kFileScannerStageName);
   if (stage == nullptr) {
-    const oo::Ref<OOFileScannerVerifierStage> newStage =
-        oo::makeRef<OOFileScannerVerifierStage>();
+    const std::shared_ptr<OOFileScannerVerifierStage> newStage =
+        oo::makeShared<OOFileScannerVerifierStage>();
     verifier->registerStage(newStage.get());
   }
 
@@ -652,8 +652,8 @@ std::string OOListUnusedFilesStage::nameForReverseDependencyForVerifier(
     OOOXPVerifier* verifier) {
   OOOXPVerifierStage* stage = verifier->stageWithName(kUnusedListerStageName);
   if (stage == nullptr) {
-    const oo::Ref<OOListUnusedFilesStage> newStage =
-        oo::makeRef<OOListUnusedFilesStage>();
+    const std::shared_ptr<OOListUnusedFilesStage> newStage =
+        oo::makeShared<OOListUnusedFilesStage>();
     verifier->registerStage(newStage.get());
   }
 

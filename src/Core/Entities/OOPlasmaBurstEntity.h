@@ -31,7 +31,8 @@ MA 02110-1301, USA.
 class OOPlasmaBurstEntity : public OOLightParticleEntity {
  public:
   // [[OOPlasmaBurstEntity alloc] initWithPosition:]: a new burst, initialised.
-  static oo::Ref<OOPlasmaBurstEntity> burstWithPosition(HPVector position);
+  static std::shared_ptr<OOPlasmaBurstEntity> burstWithPosition(
+      HPVector position);
 
   // -initWithPosition:'s body, run once right after construction.
   void initWithPosition(HPVector position);

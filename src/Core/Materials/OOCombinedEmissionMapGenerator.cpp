@@ -85,14 +85,14 @@ void ScaleToMatch(OOPixMap* pmA, OOPixMap* pmB) {
 
 }  // namespace
 
-oo::Ref<OOCombinedEmissionMapGenerator>
+std::shared_ptr<OOCombinedEmissionMapGenerator>
 OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(
     const oo::PList& emissionMapSpec, OOColor* emissionColor,
     OOTexture* diffuseMap, OOColor* diffuseColor,
     const oo::PList& illuminationMapSpec, OOColor* illuminationColor,
     const oo::PList& spec) {
-  oo::Ref<OOCombinedEmissionMapGenerator> result =
-      oo::makeRef<OOCombinedEmissionMapGenerator>();
+  std::shared_ptr<OOCombinedEmissionMapGenerator> result =
+      oo::makeShared<OOCombinedEmissionMapGenerator>();
   if (!result->initWithEmissionMapSpec(
           emissionMapSpec, emissionColor, diffuseMap, diffuseColor,
           illuminationMapSpec, illuminationColor, false, spec))
@@ -100,13 +100,13 @@ OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(
   return result;
 }
 
-oo::Ref<OOCombinedEmissionMapGenerator>
+std::shared_ptr<OOCombinedEmissionMapGenerator>
 OOCombinedEmissionMapGenerator::generatorWithEmissionAndIlluminationMapSpec(
     const oo::PList& emissionAndIlluminationMapSpec, OOTexture* diffuseMap,
     OOColor* diffuseColor, OOColor* emissionColor, OOColor* illuminationColor,
     const oo::PList& spec) {
-  oo::Ref<OOCombinedEmissionMapGenerator> result =
-      oo::makeRef<OOCombinedEmissionMapGenerator>();
+  std::shared_ptr<OOCombinedEmissionMapGenerator> result =
+      oo::makeShared<OOCombinedEmissionMapGenerator>();
   if (!result->initWithEmissionMapSpec(
           emissionAndIlluminationMapSpec, emissionColor, diffuseMap,
           diffuseColor, oo::PList(), illuminationColor, true, spec))
@@ -155,7 +155,7 @@ bool OOCombinedEmissionMapGenerator::initWithEmissionMapSpec(
     _emissionSpec = SpecWithExtraShrink(emissionMapSpec);
     _illuminationSpec = SpecWithExtraShrink(illuminationMapSpec);
 
-    _diffuseMap = oo::Ref<OOTexture>(diffuseMap);
+    _diffuseMap = oo::share(diffuseMap);
 
     _emissionColor = oo::share(emissionColor);
     _illuminationColor = oo::share(illuminationColor);
@@ -185,7 +185,7 @@ bool OOCombinedEmissionMapGenerator::initWithEmissionMapSpec(
       */
       OOTextureDataFormat format;
       if (!_emissionSpec.isNull()) {
-        const oo::Ref<OOTextureLoader> emissionMapLoader =
+        const std::shared_ptr<OOTextureLoader> emissionMapLoader =
             OOTextureLoader::loaderWithTextureSpecifier(
                 _emissionSpec, OOTextureFlags::kNone, std::string("Textures"));
         if (emissionMapLoader)
@@ -197,7 +197,7 @@ bool OOCombinedEmissionMapGenerator::initWithEmissionMapSpec(
 #endif
       }
       if (!_illuminationSpec.isNull()) {
-        const oo::Ref<OOTextureLoader> illuminationMapLoader =
+        const std::shared_ptr<OOTextureLoader> illuminationMapLoader =
             OOTextureLoader::loaderWithTextureSpecifier(
                 _illuminationSpec, OOTextureFlags::kNone,
                 std::string("Textures"));

@@ -99,11 +99,11 @@ Result GetResult(OOTextureLoader* loader) {
 
 // The loaders made, kept for the test's life (each was autoreleased in its
 // case's pool).
-std::vector<oo::Ref<OOTextureLoader>> gKeptLoaders;
+std::vector<std::shared_ptr<OOTextureLoader>> gKeptLoaders;
 
 // The factory's loader for a path, already queued.
 OOTextureLoader* Load(const std::string& path) {
-  const oo::Ref<OOTextureLoader> loader =
+  const std::shared_ptr<OOTextureLoader> loader =
       OOTextureLoader::loaderWithPath(path, OOTextureFlags::kMinFilterLinear);
   if (loader != nullptr) gKeptLoaders.push_back(loader);
   return loader.get();
@@ -254,7 +254,7 @@ OO_TEST(cxxApi) {
   SetUpLoaders();
   {
     const std::string path = WritePNG("cxx.png", 8, 8, PNG_FORMAT_RGBA);
-    const oo::Ref<OOPNGTextureLoader> loader =
+    const std::shared_ptr<OOPNGTextureLoader> loader =
         oo::makeRef<OOPNGTextureLoader>();
     OO_CHECK(!loader->initWithPath(std::nullopt, OOTextureFlags::kNone));
     OO_CHECK(loader->initWithPath(path, OOTextureFlags::kMinFilterLinear));
@@ -275,7 +275,7 @@ OO_TEST(cxxApi) {
     OOFreePixMap(&pixMap);
 
     // The factory's loader is one.
-    oo::Ref<OOTextureLoader> made =
+    std::shared_ptr<OOTextureLoader> made =
         OOTextureLoader::loaderWithPath(path, OOTextureFlags::kMinFilterLinear);
     OO_CHECK(dynamic_cast<OOPNGTextureLoader*>(made.get()) != nullptr);
     OO_CHECK(made->getResult(&pixMap, &format, nullptr, nullptr));
@@ -283,7 +283,7 @@ OO_TEST(cxxApi) {
 
     // Reading on its own (as libpng's read callback does): the loader reads its
     // file first.
-    const oo::Ref<OOPNGTextureLoader> direct =
+    const std::shared_ptr<OOPNGTextureLoader> direct =
         oo::makeRef<OOPNGTextureLoader>();
     OO_CHECK(
         direct->initWithPath(WritePNG("direct.png", 8, 8, PNG_FORMAT_GA), OOTextureFlags::kNone));

@@ -152,7 +152,7 @@ bool SameObject(JSValueConst a, JSValueConst b)
 }
 
 
-oo::Ref<OOJSFunction> Compile(const char *name, const char *code, std::vector<const char *> args)
+std::shared_ptr<OOJSFunction> Compile(const char *name, const char *code, std::vector<const char *> args)
 {
 	return OOJSFunction::initWithName((name != nullptr ? std::optional<std::string>(name) : std::nullopt),
 									  JS_UNDEFINED,
@@ -175,7 +175,7 @@ OO_TEST(initWithFunction)
 		OO_CHECK(OOJSFunction::initWithFunction(JS_NULL, Context()) == nullptr);
 
 		JSValue f = Evaluate("(function double(x) { return 2 * x; })");
-		oo::Ref<OOJSFunction> function = OOJSFunction::initWithFunction(f, Context());
+		std::shared_ptr<OOJSFunction> function = OOJSFunction::initWithFunction(f, Context());
 		OO_CHECK(function != nullptr);
 		OO_CHECK(SameObject(function->function(), f));
 		OO_CHECK_EQ(function->name().value_or("<none>"), "double");
@@ -187,7 +187,7 @@ OO_TEST(initWithFunction)
 		JS_FreeValue(Context(), f);
 
 		JSValue anonymousFunction = Evaluate("(function () { return 1; })");
-		oo::Ref<OOJSFunction> anonymous = OOJSFunction::initWithFunction(anonymousFunction, Context());
+		std::shared_ptr<OOJSFunction> anonymous = OOJSFunction::initWithFunction(anonymousFunction, Context());
 		JS_FreeValue(Context(), anonymousFunction);
 		OO_CHECK(!anonymous->name().has_value());
 		OO_CHECK_EQ(anonymous->descriptionComponents().value_or("<none>"), "<anonymous>()");
@@ -198,7 +198,7 @@ OO_TEST(initWithFunction)
 OO_TEST(initWithName)
 {
 	{
-		oo::Ref<OOJSFunction> function = Compile("add", "return a + b;", { "a", "b" });
+		std::shared_ptr<OOJSFunction> function = Compile("add", "return a + b;", { "a", "b" });
 		OO_CHECK(function != nullptr);
 		OO_CHECK_EQ(function->name().value_or("<none>"), "add");
 		JSValueConst argv[2] = { JS_NewInt32(Context(), 2), JS_NewInt32(Context(), 3) };
@@ -213,13 +213,13 @@ OO_TEST(initWithName)
 		JS_FreeValue(Context(), JS_GetException(Context()));
 
 		// A NULL context: the main thread's is acquired and released.
-		oo::Ref<OOJSFunction> withoutContext = OOJSFunction::initWithName(std::string("seven"), JS_UNDEFINED, std::string("return 7;"), 0, NULL, std::nullopt, 0, NULL);
+		std::shared_ptr<OOJSFunction> withoutContext = OOJSFunction::initWithName(std::string("seven"), JS_UNDEFINED, std::string("return 7;"), 0, NULL, std::nullopt, 0, NULL);
 		OO_CHECK(withoutContext != nullptr);
 		OO_CHECK(withoutContext->evaluateWithContext(Context(), JS_UNDEFINED, 0, NULL, &result));
 		OO_CHECK_EQ(String(result), "7");
 
 		// An empty body answers undefined.
-		oo::Ref<OOJSFunction> empty = Compile("empty", "", {});
+		std::shared_ptr<OOJSFunction> empty = Compile("empty", "", {});
 		OO_CHECK(empty->evaluateWithContext(Context(), JS_UNDEFINED, 0, NULL, &result));
 		OO_CHECK_EQ(String(result), "undefined");
 	}
@@ -229,7 +229,7 @@ OO_TEST(initWithName)
 OO_TEST(evaluation)
 {
 	{
-		oo::Ref<OOJSFunction> function = Compile("thisName", "return this.name + ':' + arguments.length;", {});
+		std::shared_ptr<OOJSFunction> function = Compile("thisName", "return this.name + ':' + arguments.length;", {});
 		JS_FreeValue(Context(), Evaluate("globalThis.named = { name: 'n' }; globalThis.name = 'global';"));
 		JSValue result = JS_UNDEFINED;
 		sScriptPushes = 0;
@@ -246,7 +246,7 @@ OO_TEST(evaluation)
 		OO_CHECK_EQ(sLimiterDepth, 0);
 
 		// A throwing function answers NO, with the stack and the limiter balanced.
-		oo::Ref<OOJSFunction> thrower = Compile("thrower", "throw new Error('boom');", {});
+		std::shared_ptr<OOJSFunction> thrower = Compile("thrower", "throw new Error('boom');", {});
 		OO_CHECK(!thrower->evaluateWithContext(Context(), JS_UNDEFINED, 0, NULL, &result));
 		JS_FreeValue(Context(), JS_GetException(Context()));
 		OO_CHECK_EQ(sScriptDepth, 0);
@@ -258,7 +258,7 @@ OO_TEST(evaluation)
 OO_TEST(engineReset)
 {
 	{
-		oo::Ref<OOJSFunction> function = Compile("resettable", "return 1;", {});
+		std::shared_ptr<OOJSFunction> function = Compile("resettable", "return 1;", {});
 		OO_CHECK(!JS_IsNull(function->function()));
 		oo::NotificationCenter::defaultCenter().post(kOOJavaScriptEngineWillResetNotificationName, OOJavaScriptEngine::sharedEngine());
 		OO_CHECK(JS_IsNull(function->function()));
@@ -271,7 +271,7 @@ OO_TEST(engineReset)
 OO_TEST(cxxAndFacade)
 {
 	{
-		oo::Ref<OOJSFunction> function = OOJSFunction::initWithName(std::string("triple"), JS_UNDEFINED, std::string("return 3 * x;"), 1, (const char *[]){ "x" }, std::nullopt, 0, Context());
+		std::shared_ptr<OOJSFunction> function = OOJSFunction::initWithName(std::string("triple"), JS_UNDEFINED, std::string("return 3 * x;"), 1, (const char *[]){ "x" }, std::nullopt, 0, Context());
 		OO_CHECK(function != nullptr);
 		OO_CHECK(OOJSFunction::initWithFunction(JS_NULL, Context()) == nullptr);
 		OO_CHECK(OOJSFunction::initWithName(std::string("bad"), JS_UNDEFINED, std::string("return (;"), 0, NULL, std::nullopt, 0, Context()) == nullptr);

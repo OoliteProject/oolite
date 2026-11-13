@@ -425,7 +425,7 @@ class HeadUpDisplay : public oo::RefCounted {
   std::set<std::string> _hiddenSelectors;
 
   // Crosshairs
-  oo::Ref<OOCrosshairs> _crosshairs;
+  std::shared_ptr<OOCrosshairs> _crosshairs;
   OOWeaponType _lastWeaponType = {};
   GLfloat _lastOverallAlpha = {};
   bool _lastWeaponsOnline = {};

@@ -58,9 +58,9 @@ class ChoosyGenerator : public BareGenerator {
 
 // What an autoreleased texture is: the C++ texture, kept until the current
 // autorelease scope drains (oo::autorelease).
-static OOTexture* Autoreleased(const oo::Ref<OOTexture>& texture) {
+static OOTexture* Autoreleased(const std::shared_ptr<OOTexture>& texture) {
   if (texture == nullptr) return nullptr;
-  oo::autorelease(oo::Ref<OOTexture>(texture));
+  oo::autorelease(std::shared_ptr<OOTexture>(texture));
   return texture.get();
 }
 
@@ -77,11 +77,11 @@ void SetUpLoaders() {
 
 // The generators made, kept for the test's life (each was autoreleased in its
 // case's pool).
-std::vector<oo::Ref<OOTextureGenerator>> gKeptGenerators;
+std::vector<std::shared_ptr<OOTextureGenerator>> gKeptGenerators;
 
 template <class G>
 G* Generator(const char* path, OOTextureFlags options) {
-  const oo::Ref<G> made = oo::makeRef<G>();
+  const std::shared_ptr<G> made = oo::makeRef<G>();
   if (!made->initWithPath(std::string(path), options)) return nullptr;
   gKeptGenerators.push_back(made);
   return made.get();
@@ -197,7 +197,7 @@ OO_TEST(cxxApi) {
   SetUpLoaders();
   {
     oo::AutoreleaseScope pool;
-    const oo::Ref<TestCxxGenerator> generator = oo::makeRef<TestCxxGenerator>();
+    const std::shared_ptr<TestCxxGenerator> generator = oo::makeRef<TestCxxGenerator>();
     OO_CHECK(generator->initWithPath(std::string("cxx generator"), OOTextureFlags::kNone));
     OO_CHECK(generator->anisotropy() == (GLfloat)kOOTextureDefaultAnisotropy &&
              generator->lodBias() == (GLfloat)kOOTextureDefaultLODBias);
@@ -214,7 +214,7 @@ OO_TEST(cxxApi) {
     OO_CHECK(generator->loads == 1 && texture->dimensions().width == 8);
 
     // The bare class's own answers.
-    const oo::Ref<OOTextureGenerator> bare = oo::makeRef<OOTextureGenerator>();
+    const std::shared_ptr<OOTextureGenerator> bare = oo::makeRef<OOTextureGenerator>();
     OO_CHECK(bare->textureOptions() == OOTextureFlags::kDefaultOptions &&
              !bare->cacheKey().has_value());
   }

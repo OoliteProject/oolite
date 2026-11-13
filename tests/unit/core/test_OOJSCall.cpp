@@ -142,7 +142,7 @@ class TestEntityObject : public oo::RefCounted
 public:
 	virtual const char *className() const  { return "Entity"; }
 
-	oo::Ref<Entity> _cxxEntity;
+	std::shared_ptr<Entity> _cxxEntity;
 };
 
 class ShipEntity : public Entity
@@ -268,7 +268,7 @@ JSContext *Context()
 		JSRuntime *runtime = JS_NewRuntime();
 		JS_SetMemoryLimit(runtime, 8u * 1024u * 1024u);
 		sContext = JS_NewContext(runtime);
-		oo::Ref<PlayerEntity> player = oo::makeRef<PlayerEntity>();
+		std::shared_ptr<PlayerEntity> player = oo::makeRef<PlayerEntity>();
 		gOOPlayer = player.get();	// never deleted: its object holds it
 		sPlayerObject = new TestPlayerObject();	// never released, as the Objective-C object was not
 		sPlayerObject->_cxxEntity = player;

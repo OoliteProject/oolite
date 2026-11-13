@@ -31,10 +31,11 @@ MA 02110-1301, USA.
 class OOSparkEntity : public OOLightParticleEntity {
  public:
   // [[OOSparkEntity alloc] initWithPosition:...]: a new spark, initialised.
-  static oo::Ref<OOSparkEntity> sparkWithPosition(HPVector position,
-                                                  Vector velocity,
-                                                  OOTimeDelta duration,
-                                                  float size, OOColor* color);
+  static std::shared_ptr<OOSparkEntity> sparkWithPosition(HPVector position,
+                                                          Vector velocity,
+                                                          OOTimeDelta duration,
+                                                          float size,
+                                                          OOColor* color);
 
   // -initWithPosition:...'s body, run once right after construction.
   void initWithPosition(HPVector position, Vector velocity,

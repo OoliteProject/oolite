@@ -57,7 +57,7 @@ namespace {
 struct RunningStack {
   RunningStack* back = nullptr;
   // The running script, held weakly; null for a script-less push.
-  oo::WeakRef<OOJSScript> current;
+  std::weak_ptr<OOJSScript> current;
   bool scriptless =
       false;  // pushed with no script, which scriptStack() refuses
 };
@@ -66,8 +66,8 @@ struct RunningStack {
 static JSClassID sScriptClassID;
 static RunningStack* sRunningStack = nullptr;
 
-static void AddStackToArrayReversed(std::vector<oo::Ref<OOJSScript>>& array,
-                                    RunningStack* stack);
+static void AddStackToArrayReversed(
+    std::vector<std::shared_ptr<OOJSScript>>& array, RunningStack* stack);
 
 static bool RunScriptWithName(JSContext* context,
                               const std::optional<std::string>& path,
@@ -110,12 +110,12 @@ namespace {
 */
 class ScriptPrivate final : public oo::RefCounted {
  public:
-  explicit ScriptPrivate(OOJSScript* script) : _script(script) {}
+  explicit ScriptPrivate(OOJSScript* script) : _script(oo::share(script)) {}
 
-  OOJSScript* script() const { return _script.get(); }
+  OOJSScript* script() const { return _script.lock().get(); }
 
  private:
-  oo::WeakRef<OOJSScript> _script;
+  std::weak_ptr<OOJSScript> _script;
 };
 }  // namespace
 
@@ -138,9 +138,9 @@ static const JSCFunctionListEntry sScriptMethods[] = {
 };
 
 // A script that cannot be loaded is dropped, which runs the destructor.
-oo::Ref<OOJSScript> OOJSScript::scriptWithPath(
+std::shared_ptr<OOJSScript> OOJSScript::scriptWithPath(
     const std::optional<std::string>& path, const oo::PList& properties) {
-  oo::Ref<OOJSScript> script = oo::makeRef<OOJSScript>();
+  std::shared_ptr<OOJSScript> script = oo::makeShared<OOJSScript>();
   if (!script->initWithPath(path, properties)) return nullptr;
   return script;
 }
@@ -174,14 +174,16 @@ bool OOJSScript::initWithPath(const std::optional<std::string>& path,
 
     if (!problem.has_value()) {
       // (the slot held the script's weak reference proxy, retained)
-      if (!OOJSSetCxxPrivate(_jsSelf, oo::makeRef<ScriptPrivate>(this).get())) {
+      if (!OOJSSetCxxPrivate(_jsSelf,
+                             oo::makeShared<ScriptPrivate>(this).get())) {
         problem = "could not set private backreference";
       }
     }
 
     // Push self on stack of running scripts.
-    RunningStack stackElement = {.back = sRunningStack,
-                                 .current = oo::WeakRef<OOJSScript>(this)};
+    RunningStack stackElement = {
+        .back = sRunningStack,
+        .current = std::weak_ptr<OOJSScript>(oo::share(this))};
     sRunningStack = &stackElement;
 
     _filePath = path;
@@ -324,11 +326,11 @@ void OOJSScript::javaScriptEngineWillReset(const oo::Notification&) {
 
 OOJSScript* OOJSScript::currentlyRunningScript() {
   if (sRunningStack == nullptr) return nullptr;
-  return sRunningStack->current.get();
+  return sRunningStack->current.lock().get();
 }
 
-std::vector<oo::Ref<OOJSScript>> OOJSScript::scriptStack() {
-  std::vector<oo::Ref<OOJSScript>> result;
+std::vector<std::shared_ptr<OOJSScript>> OOJSScript::scriptStack() {
+  std::vector<std::shared_ptr<OOJSScript>> result;
 
   AddStackToArrayReversed(result, sRunningStack);
   return result;
@@ -383,8 +385,9 @@ bool OOJSScript::callMethod(JSAtom methodID, JSContext* context,
 #endif
 
     // Push self on stack of running scripts.
-    RunningStack stackElement = {.back = sRunningStack,
-                                 .current = oo::WeakRef<OOJSScript>(this)};
+    RunningStack stackElement = {
+        .back = sRunningStack,
+        .current = std::weak_ptr<OOJSScript>(oo::share(this))};
     sRunningStack = &stackElement;
 
     // Call the method.
@@ -505,12 +508,12 @@ void OOJSScript::pushScript(OOJSScript* script) {
   if (element == nullptr) exit(EXIT_FAILURE);
 
   element->back = sRunningStack;
-  element->current = script;
+  element->current = oo::share(script);
   element->scriptless = (script == nullptr);
   sRunningStack = element;
 }
 
-void OOJSScript::pushScript(const oo::WeakRef<OOJSScript>& script) {
+void OOJSScript::pushScript(const std::weak_ptr<OOJSScript>& script) {
   RunningStack* element = new (std::nothrow) RunningStack;
   if (element == nullptr) exit(EXIT_FAILURE);
 
@@ -522,7 +525,7 @@ void OOJSScript::pushScript(const oo::WeakRef<OOJSScript>& script) {
 void OOJSScript::popScript(OOJSScript* script) {
   RunningStack* element = nullptr;
 
-  assert(sRunningStack->current.get() == script);
+  assert(sRunningStack->current.lock().get() == script);
   (void)script;
 
   element = sRunningStack;
@@ -683,8 +686,8 @@ static JSValue ScriptToString(OOJS_NATIVE_ARGS) {
   OOJS_NATIVE_EXIT
 }
 
-static void AddStackToArrayReversed(std::vector<oo::Ref<OOJSScript>>& array,
-                                    RunningStack* stack) {
+static void AddStackToArrayReversed(
+    std::vector<std::shared_ptr<OOJSScript>>& array, RunningStack* stack) {
   if (stack != nullptr) {
     AddStackToArrayReversed(array, stack->back);
     // -addObject: raised on the nil a script-less push leaves (GNUstep 1.31.1's
@@ -692,7 +695,7 @@ static void AddStackToArrayReversed(std::vector<oo::Ref<OOJSScript>>& array,
     // not nil: it is a null entry.
     if (stack->scriptless)
       OORaiseException(OOInvalidArgumentException, "Tried to add nil to array");
-    array.emplace_back(stack->current.get());
+    array.emplace_back(stack->current.lock());
   }
 }
 

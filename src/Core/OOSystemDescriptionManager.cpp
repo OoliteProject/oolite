@@ -94,7 +94,7 @@ std::optional<std::string> StringForKey(const oo::PList& dict,
 
 OOSystemDescriptionManager::OOSystemDescriptionManager() {
   universalProperties = oo::PList(oo::PList::Dict());
-  interstellarSpace = oo::makeRef<OOSystemDescriptionEntry>();
+  interstellarSpace = oo::makeShared<OOSystemDescriptionEntry>();
   for (std::size_t i = 0; i < OO_SYSTEM_CACHE_LENGTH; i++) {
     propertyCache[i] = oo::PList(oo::PList::Dict());
     // hub count of 24 is considerably higher than occurs in
@@ -153,10 +153,10 @@ void OOSystemDescriptionManager::setInterstellarProperties(
 
 void OOSystemDescriptionManager::setProperties(const oo::PList& properties,
                                                const std::string& key) {
-  oo::Ref<OOSystemDescriptionEntry>& desc = systemDescriptions[key];
+  std::shared_ptr<OOSystemDescriptionEntry>& desc = systemDescriptions[key];
   if (desc.get() == nullptr) {
     // create it
-    desc = oo::makeRef<OOSystemDescriptionEntry>();
+    desc = oo::makeShared<OOSystemDescriptionEntry>();
   }
   setProperties(properties, desc.get());
   if (const oo::PList::Dict* entries = properties.getIf<oo::PList::Dict>()) {
@@ -185,10 +185,10 @@ void OOSystemDescriptionManager::setProperties(const oo::PList& properties,
 void OOSystemDescriptionManager::setProperty(
     const std::string& property, const std::string& key, OOSystemLayer layer,
     const oo::PList& value, const std::optional<std::string>& manifest) {
-  oo::Ref<OOSystemDescriptionEntry>& desc = systemDescriptions[key];
+  std::shared_ptr<OOSystemDescriptionEntry>& desc = systemDescriptions[key];
   if (desc.get() == nullptr) {
     // create it
-    desc = oo::makeRef<OOSystemDescriptionEntry>();
+    desc = oo::makeShared<OOSystemDescriptionEntry>();
   }
   desc->setProperty(property, layer, value);
   propertiesInUse.insert(property);

@@ -140,8 +140,9 @@ oo::PList StationEntity::launchIndependentShip(
   }
 
   if (ship) {
-    if (!(ship != nullptr ? ship->getCrew()
-                          : std::optional<std::vector<oo::Ref<OOCharacter>>>())
+    if (!(ship != nullptr
+              ? ship->getCrew()
+              : std::optional<std::vector<std::shared_ptr<OOCharacter>>>())
              .has_value()) {
       if (ship != nullptr) ship->setSingleCrewWithRole(shipRole);
     }
@@ -245,7 +246,7 @@ oo::PList StationEntity::launchPolice()  // called by name
     if (police_ship && fitsInDock(police_ship)) {
       if (!(police_ship != nullptr
                 ? police_ship->getCrew()
-                : std::optional<std::vector<oo::Ref<OOCharacter>>>())
+                : std::optional<std::vector<std::shared_ptr<OOCharacter>>>())
                .has_value()) {
         if (police_ship != nullptr)
           police_ship->setSingleCrewWithRole("police");
@@ -365,7 +366,7 @@ oo::PList StationEntity::launchPolice()  // called by name
 
   if (!(defense_ship != nullptr
             ? defense_ship->getCrew()
-            : std::optional<std::vector<oo::Ref<OOCharacter>>>())
+            : std::optional<std::vector<std::shared_ptr<OOCharacter>>>())
            .has_value()) {
     if ((defense_ship != nullptr ? defense_ship->isPolice() : false)) {
       if (defense_ship != nullptr)
@@ -447,7 +448,7 @@ oo::PList StationEntity::launchPolice()  // called by name
   if (scavenger_ship) {
     if (!(scavenger_ship != nullptr
               ? scavenger_ship->getCrew()
-              : std::optional<std::vector<oo::Ref<OOCharacter>>>())
+              : std::optional<std::vector<std::shared_ptr<OOCharacter>>>())
              .has_value()) {
       if (scavenger_ship != nullptr)
         scavenger_ship->setSingleCrewWithRole("miner");
@@ -508,7 +509,7 @@ oo::PList StationEntity::launchPolice()  // called by name
   if (miner_ship) {
     if (!(miner_ship != nullptr
               ? miner_ship->getCrew()
-              : std::optional<std::vector<oo::Ref<OOCharacter>>>())
+              : std::optional<std::vector<std::shared_ptr<OOCharacter>>>())
              .has_value()) {
       if (miner_ship != nullptr) miner_ship->setSingleCrewWithRole("miner");
     }
@@ -573,7 +574,7 @@ oo::PList StationEntity::launchPolice()  // called by name
   if (pirate_ship) {
     if (!(pirate_ship != nullptr
               ? pirate_ship->getCrew()
-              : std::optional<std::vector<oo::Ref<OOCharacter>>>())
+              : std::optional<std::vector<std::shared_ptr<OOCharacter>>>())
              .has_value()) {
       if (pirate_ship != nullptr) pirate_ship->setSingleCrewWithRole("pirate");
     }
@@ -633,7 +634,7 @@ oo::PList StationEntity::launchPolice()  // called by name
   if (shuttle_ship) {
     if (!(shuttle_ship != nullptr
               ? shuttle_ship->getCrew()
-              : std::optional<std::vector<oo::Ref<OOCharacter>>>())
+              : std::optional<std::vector<std::shared_ptr<OOCharacter>>>())
              .has_value()) {
       if (shuttle_ship != nullptr)
         shuttle_ship->setSingleCrewWithRole("trader");
@@ -673,7 +674,7 @@ oo::PList StationEntity::launchPolice()  // called by name
   if (escort_ship && fitsInDock(escort_ship)) {
     if (!(escort_ship != nullptr
               ? escort_ship->getCrew()
-              : std::optional<std::vector<oo::Ref<OOCharacter>>>())
+              : std::optional<std::vector<std::shared_ptr<OOCharacter>>>())
              .has_value()) {
       if (escort_ship != nullptr) escort_ship->setSingleCrewWithRole("hunter");
     }
@@ -723,7 +724,7 @@ oo::PList StationEntity::launchPolice()  // called by name
     if (patrol_ship) {
       if (!(patrol_ship != nullptr
                 ? patrol_ship->getCrew()
-                : std::optional<std::vector<oo::Ref<OOCharacter>>>())
+                : std::optional<std::vector<std::shared_ptr<OOCharacter>>>())
                .has_value()) {
         if (patrol_ship != nullptr)
           patrol_ship->setSingleCrewWithRole("police");
@@ -773,8 +774,9 @@ void StationEntity::launchShipWithRole(
            ? UNIVERSE->newShipWithRole(shipRole)
            : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
   if (ship && fitsInDock(ship)) {
-    if (!(ship != nullptr ? ship->getCrew()
-                          : std::optional<std::vector<oo::Ref<OOCharacter>>>())
+    if (!(ship != nullptr
+              ? ship->getCrew()
+              : std::optional<std::vector<std::shared_ptr<OOCharacter>>>())
              .has_value()) {
       if (ship != nullptr) ship->setSingleCrewWithRole(shipRole);
     }
@@ -793,7 +795,7 @@ void StationEntity::launchShipWithRole(
 ::ShipEntity* StationEntity::newStationObject(const std::string& key,
                                               const oo::PList& dict) {
   ::ShipEntity* object = oo::ToShip(
-      oo::NewShipObject(oo::makeRef<StationEntity>(), key,
+      oo::NewShipObject(oo::makeShared<StationEntity>(), key,
                         dict));  // [super cxx_initWithKey:key definition:dict]
   if (object != nullptr)
     static_cast<StationEntity*>(object)->initStationDefaults();
@@ -948,7 +950,7 @@ void StationEntity::setLocalShipyard(
   localShipyard = some_market;
 }
 
-std::map<std::string, oo::Ref<::OOJSInterfaceDefinition>, std::less<>>*
+std::map<std::string, std::shared_ptr<::OOJSInterfaceDefinition>, std::less<>>*
 StationEntity::getLocalInterfaces() {
   return &localInterfaces;
 }
@@ -958,7 +960,7 @@ void StationEntity::setInterfaceDefinition(
   if (definition == nullptr) {
     localInterfaces.erase(key);
   } else {
-    localInterfaces[key] = oo::Ref<::OOJSInterfaceDefinition>(definition);
+    localInterfaces[key] = oo::share(definition);
   }
 }
 
@@ -966,7 +968,7 @@ void StationEntity::setInterfaceDefinition(
   localMarket =
       ((UNIVERSE != nullptr ? UNIVERSE->getCommodities() : nullptr) != nullptr
            ? UNIVERSE->getCommodities()->generateMarketForStation(this)
-           : oo::Ref<OOCommodityMarket>());
+           : std::shared_ptr<OOCommodityMarket>());
   return localMarket.get();
 }
 
@@ -1393,7 +1395,7 @@ void StationEntity::dumpSelfState() {
 
     oo::log::indent();
     unsigned i = 1;
-    for (const oo::Ref<Entity>& shipRef : _shipsOnHold.allObjects()) {
+    for (const auto& shipRef : _shipsOnHold.allObjects()) {
       ::ShipEntity* ship = oo::ToShip(shipRef.get());
       OO_LOG("dumpState.stationEntity",
              "Nr {}: {} at distance {:g} with role: {}", i++,
@@ -1465,11 +1467,11 @@ void StationEntity::abortAllDockings() {
   }
 
   // -makeObjectsPerformSelector:withObject: of the live ships on hold, in order
-  for (const oo::Ref<Entity>& holdRef : _shipsOnHold.allObjects()) {
+  for (const auto& holdRef : _shipsOnHold.allObjects()) {
     if (oo::ToShip(holdRef.get()) != nullptr)
       oo::ToShip(holdRef.get())->sendAIMessage("DOCKING_ABORTED");
   }
-  for (const oo::Ref<Entity>& holdRef : _shipsOnHold.allObjects()) {
+  for (const auto& holdRef : _shipsOnHold.allObjects()) {
     ::ShipEntity* hold = oo::ToShip(holdRef.get());
     if (hold != nullptr)
       hold->doScriptEvent(OOJSID("stationWithdrewDockingClearance"));
@@ -1498,7 +1500,7 @@ void StationEntity::abortAllDockings() {
 }
 
 void StationEntity::autoDockShipsOnHold() {
-  for (const oo::Ref<Entity>& shipRef : _shipsOnHold.allObjects()) {
+  for (const auto& shipRef : _shipsOnHold.allObjects()) {
     ::ShipEntity* ship = oo::ToShip(shipRef.get());
     pullInShipIfPermitted(ship);
   }

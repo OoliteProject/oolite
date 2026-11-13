@@ -510,7 +510,7 @@ void Entity::warnAboutHostiles() {
 CollisionRegion* Entity::getCollisionRegion() { return collisionRegion.get(); }
 
 void Entity::setCollisionRegion(CollisionRegion* region) {
-  collisionRegion = oo::Ref<CollisionRegion>(region);
+  collisionRegion = oo::share(region);
 }
 
 void Entity::setUniversalID(OOUniversalID uid) { universalID = uid; }
@@ -526,21 +526,21 @@ void Entity::throwSparks() {
 }
 
 void Entity::setOwner(Entity* ent) {
-  _owner = oo::WithObject(
-      ent);  // an entity without its object was nil's empty reference
+  _owner = oo::share(oo::WithObject(
+      ent));  // an entity without its object was nil's empty reference
 }
 
 Entity* Entity::owner() {
   return oo::WithObject(
-      _owner.get());  // +0, null once it has gone, as the object read
+      _owner.lock().get());  // +0, null once it has gone, as the object read
 }
 
-Entity* Entity::ownerEntity() { return _owner.get(); }
+Entity* Entity::ownerEntity() { return _owner.lock().get(); }
 
 std::string oo::EntityWeakPListForeign::description() const {
   // What "%@" printed for the weak reference: its object's description, or
   // <Dead ...> once gone.
-  if (Entity* entity = _entity.get()) return EntityDescription(entity);
+  if (Entity* entity = _entity.lock().get()) return EntityDescription(entity);
   return std::format("<Dead OOWeakReference {}>",
                      str::pointerDescription(this));
 }
@@ -909,7 +909,7 @@ std::optional<std::string> Entity::descriptionForObjDump() {
                      isVisible() ? "yes" : "no");
 }
 
-std::vector<oo::Ref<OOTexture>> Entity::allTextures() { return {}; }
+std::vector<std::shared_ptr<OOTexture>> Entity::allTextures() { return {}; }
 #endif
 
 bool Entity::isVisible() {

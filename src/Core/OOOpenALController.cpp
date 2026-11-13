@@ -41,8 +41,9 @@ OOOpenALController* OOOpenALController::sharedController() {
   if (sSingleton == nullptr) {
     // -init's [self release]; return nil; is init() answering false: the
     // controller is freed.
-    oo::Ref<OOOpenALController> controller = oo::makeRef<OOOpenALController>();
-    if (controller->init()) sSingleton = controller.leakRef();
+    std::shared_ptr<OOOpenALController> controller =
+        oo::makeShared<OOOpenALController>();
+    if (controller->init()) sSingleton = oo::leakRef(controller);
   }
 
   return sSingleton;

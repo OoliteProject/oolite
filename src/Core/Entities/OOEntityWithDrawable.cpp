@@ -25,7 +25,7 @@ MA 02110-1301, USA.
 #include "OOEntityWithDrawable.h"
 
 #include "OODrawable.h"
-#include "OOTexture.h"  // allTextures() destroys oo::Ref<OOTexture>s
+#include "OOTexture.h"  // allTextures() destroys std::shared_ptr<OOTexture>s
 #include "OOVisualEffectEntity.h"
 #include "ShipEntity.h"
 #include "Universe.h"
@@ -39,7 +39,7 @@ void OOEntityWithDrawable::setDrawable(OODrawable* inDrawable) {
     OODrawableAutorelease(
         std::move(drawable));  // [drawable autorelease]: the old one lives
                                // until the pool drains
-    drawable = oo::Ref<OODrawable>(inDrawable);
+    drawable = oo::share(inDrawable);
     // Messages to a nil drawable did nothing and answered 0.
     OODrawable* cxxDrawable = drawable.get();
     if (cxxDrawable != nullptr)
@@ -118,9 +118,9 @@ void OOEntityWithDrawable::drawImmediate(bool /*immediate*/, bool translucent) {
 }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-std::vector<oo::Ref<OOTexture>> OOEntityWithDrawable::allTextures() {
+std::vector<std::shared_ptr<OOTexture>> OOEntityWithDrawable::allTextures() {
   OODrawable* cxxDrawable = getDrawable();
   return cxxDrawable != nullptr ? cxxDrawable->allTextures()
-                                : std::vector<oo::Ref<OOTexture>>();
+                                : std::vector<std::shared_ptr<OOTexture>>();
 }
 #endif

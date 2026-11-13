@@ -129,8 +129,8 @@ class OOOpenGLMatrixManager : public oo::RefCounted {
 
   OOMatrix matrices[OOLITE_GL_MATRIX_END] = {};
   bool valid[OOLITE_GL_MATRIX_END] = {};
-  oo::Ref<OOOpenGLMatrixStack> modelViewStack = {};
-  oo::Ref<OOOpenGLMatrixStack> projectionStack = {};
+  std::shared_ptr<OOOpenGLMatrixStack> modelViewStack = {};
+  std::shared_ptr<OOOpenGLMatrixStack> projectionStack = {};
 };
 
 void OOGLPushModelView(void);

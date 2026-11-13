@@ -189,7 +189,7 @@ std::optional<std::string> cxx_OOEquipmentIdentifierFromWeaponType(
 OOWeaponType cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(
     const std::string& string) {
   // The weapon type is borrowed: the registry holds it.
-  oo::Ref<OOEquipmentType> w =
+  std::shared_ptr<OOEquipmentType> w =
       OOEquipmentType::equipmentTypeWithIdentifier(string);
   if (w == nullptr) {
     if (!oo::str::hasPrefix(string, "EQ_")) {

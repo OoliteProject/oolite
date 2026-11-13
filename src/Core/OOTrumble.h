@@ -189,7 +189,7 @@ class OOTrumble : public oo::RefCounted {
   trumble_eyes eyeFrame = {};     // which eye position - determines what part
                                   // of the texture to display
   //
-  oo::Ref<OOTexture> texture;
+  std::shared_ptr<OOTexture> texture;
   //
   GLfloat saved_float1 = {}, saved_float2 = {};
   //

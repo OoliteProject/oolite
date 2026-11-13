@@ -107,7 +107,7 @@ class OODebugTCPConsoleClient : public OODebuggerInterface {
  public:
   // [[OODebugTCPConsoleClient alloc] initWithAddress:port:]; null when the
   // connection fails.
-  static oo::Ref<OODebugTCPConsoleClient> clientWithAddress(
+  static std::shared_ptr<OODebugTCPConsoleClient> clientWithAddress(
       const std::optional<std::string>& address,  // Pass nullopt for localhost
       uint16_t port);                             // Pass 0 for default port
 

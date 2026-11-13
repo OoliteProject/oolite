@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 
 #include <string_view>
 
-#include "MyOpenGLView.h"  // oo::Ref<MyOpenGLView>
+#include "MyOpenGLView.h"  // std::shared_ptr<MyOpenGLView>
 #include "OOFoundation.h"
 #include "OOMouseInteractionMode.h"
 #include "oofnd/PList.hpp"
@@ -80,5 +80,5 @@ class OOFullScreenController : public oo::RefCounted {
       OOMouseInteractionMode oldMode, OOMouseInteractionMode newMode);
 
  private:
-  oo::Ref<MyOpenGLView> _gameView;  // retained
+  std::shared_ptr<MyOpenGLView> _gameView;  // retained
 };

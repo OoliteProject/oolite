@@ -34,7 +34,7 @@
 */
 static int gTasksAdded = 0;
 static int gTasksPerformed = 0;
-static std::vector<oo::Ref<OOAsyncWorkTask>> gPendingTasks;
+static std::vector<std::shared_ptr<OOAsyncWorkTask>> gPendingTasks;
 
 namespace {
 
@@ -56,7 +56,7 @@ bool OOAsyncWorkManager::addTask(OOAsyncWorkTask* task,
                                  OOAsyncWorkPriority priority) {
   (void)priority;
   if (task == nullptr) return false;
-  gPendingTasks.emplace_back(task);
+  gPendingTasks.emplace_back(oo::share(task));
   gTasksAdded++;
   return true;
 }
@@ -65,8 +65,8 @@ void OOAsyncWorkManager::completePendingTasks() {}
 
 void OOAsyncWorkManager::waitForTaskToComplete(OOAsyncWorkTask* task) {
   for (auto it = gPendingTasks.begin(); it != gPendingTasks.end(); ++it) {
-    if (*it == task) {
-      const oo::Ref<OOAsyncWorkTask> pending = *it;
+    if (it->get() == task) {
+      const std::shared_ptr<OOAsyncWorkTask> pending = *it;
       gPendingTasks.erase(it);
       pending->performAsyncTask();
       pending->completeAsyncTask();

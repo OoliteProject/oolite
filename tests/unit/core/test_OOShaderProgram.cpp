@@ -60,7 +60,7 @@ std::optional<std::string> ResourceManager::stringFromFilesNamed(const std::stri
 
 
 // OORegExpMatcher stub: answers no match.
-oo::Ref<OORegExpMatcher> OORegExpMatcher::regExpMatcher()  { return oo::makeRef<OORegExpMatcher>(); }
+std::shared_ptr<OORegExpMatcher> OORegExpMatcher::regExpMatcher()  { return oo::makeRef<OORegExpMatcher>(); }
 bool OORegExpMatcher::string(const std::string &, const std::string &)  { return false; }
 OORegExpMatcher::~OORegExpMatcher()  {}
 
@@ -109,7 +109,7 @@ bool SetUp()
 }
 
 
-oo::Ref<OOShaderProgram> Make(const std::optional<std::string> &vertex, const std::optional<std::string> &fragment, const std::optional<std::string> &prefix = std::nullopt, const std::optional<std::string> &key = std::nullopt)
+std::shared_ptr<OOShaderProgram> Make(const std::optional<std::string> &vertex, const std::optional<std::string> &fragment, const std::optional<std::string> &prefix = std::nullopt, const std::optional<std::string> &key = std::nullopt)
 {
 	return OOShaderProgram::shaderProgramWithVertexShader(vertex, fragment, std::string("v"), std::string("f"), prefix, kBindings, key);
 }
@@ -140,7 +140,7 @@ OO_TEST(programsFromSources)
 {
 	if (!SetUp())  { OO_CHECK(false); return; }
 	{
-		oo::Ref<OOShaderProgram> p = Make(kVertex, kFragment);
+		std::shared_ptr<OOShaderProgram> p = Make(kVertex, kFragment);
 		OO_CHECK(p != nullptr && p->program() != 0);
 		OO_CHECK(gGetAttribLocation(p->program(), "tangent") == 15);	// the attribute bindings
 
@@ -171,10 +171,10 @@ OO_TEST(programsFromSources)
 OO_TEST(cache)
 {
 	if (!SetUp())  { OO_CHECK(false); return; }
-	oo::Ref<OOShaderProgram> kept;
+	std::shared_ptr<OOShaderProgram> kept;
 	GLhandleARB handle = 0;
 	{
-		oo::Ref<OOShaderProgram> a = Make(kVertex, kFragment, std::nullopt, std::string("key-a"));
+		std::shared_ptr<OOShaderProgram> a = Make(kVertex, kFragment, std::nullopt, std::string("key-a"));
 		OO_CHECK(a != nullptr && Make(kVertex, kFragment, std::nullopt, std::string("key-a")) == a);	// one per key
 		OO_CHECK(Make(std::string("anything: it is not compiled"), std::nullopt, std::nullopt, std::string("key-a")) == a);
 		OO_CHECK(Make(kVertex, kFragment, std::nullopt, std::string("key-b")) != a);
@@ -190,7 +190,7 @@ OO_TEST(cache)
 	{
 		// Gone: the cache forgot it, and its GL program was deleted.
 		OO_CHECK(!gIsProgram(handle));
-		oo::Ref<OOShaderProgram> again = Make(kVertex, kFragment, std::nullopt, std::string("key-a"));
+		std::shared_ptr<OOShaderProgram> again = Make(kVertex, kFragment, std::nullopt, std::string("key-a"));
 		OO_CHECK(again != nullptr && again->program() != 0);
 	}
 }
@@ -204,7 +204,7 @@ OO_TEST(programsFromFiles)
 		gShaderFileRequests.clear();
 
 		// Each name bare, then with its type's two extensions until one is found.
-		oo::Ref<OOShaderProgram> p = OOShaderProgram::shaderProgramWithVertexShaderName("test", "test", std::nullopt, kBindings);
+		std::shared_ptr<OOShaderProgram> p = OOShaderProgram::shaderProgramWithVertexShaderName("test", "test", std::nullopt, kBindings);
 		OO_CHECK(p != nullptr && gGetAttribLocation(p->program(), "tangent") == 15);
 		OO_CHECK(gShaderFileRequests == (std::vector<std::string>{ "Shaders/test", "Shaders/test.vertex", "Shaders/test", "Shaders/test.fragment", "Shaders/test.frag" }));
 
@@ -212,7 +212,7 @@ OO_TEST(programsFromFiles)
 		gShaderFileRequests.clear();
 		OO_CHECK(OOShaderProgram::shaderProgramWithVertexShaderName("test", "test", std::string(""), kBindings) == p);
 		OO_CHECK(gShaderFileRequests.empty());
-		oo::Ref<OOShaderProgram> prefixed = OOShaderProgram::shaderProgramWithVertexShaderName("test", "test", std::string("#define UNUSED 1\n"), kBindings);
+		std::shared_ptr<OOShaderProgram> prefixed = OOShaderProgram::shaderProgramWithVertexShaderName("test", "test", std::string("#define UNUSED 1\n"), kBindings);
 		OO_CHECK(prefixed != nullptr && prefixed != p && gShaderFileRequests.size() == 5);
 
 		// A name with one of the extensions is not extended; a file that is not there fails.
@@ -227,10 +227,10 @@ OO_TEST(programsFromFiles)
 OO_TEST(applyAndApplyNone)
 {
 	if (!SetUp())  { OO_CHECK(false); return; }
-	oo::Ref<OOShaderProgram> p;
+	std::shared_ptr<OOShaderProgram> p;
 	{
 		p = Make(kVertex, kFragment);
-		oo::Ref<OOShaderProgram> q = Make(kVertex, kFragment);
+		std::shared_ptr<OOShaderProgram> q = Make(kVertex, kFragment);
 		const unsigned retained = p->retainCount();
 		p->apply();
 		OO_CHECK(CurrentProgram() == (GLint)p->program());
@@ -256,7 +256,7 @@ OO_TEST(cxxAPI)
 	if (!SetUp())  { OO_CHECK(false); return; }
 	{
 		OO_CHECK(OOShaderProgram::shaderProgramWithVertexShader(std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, kBindings, std::nullopt) == nullptr);
-		const oo::Ref<OOShaderProgram> p = OOShaderProgram::shaderProgramWithVertexShader(kVertex, kFragment, std::string("v"), std::string("f"), std::nullopt, kBindings, std::string("cxx-key"));
+		const std::shared_ptr<OOShaderProgram> p = OOShaderProgram::shaderProgramWithVertexShader(kVertex, kFragment, std::string("v"), std::string("f"), std::nullopt, kBindings, std::string("cxx-key"));
 		OO_CHECK(p != nullptr && p->program() != 0 && gGetAttribLocation(p->program(), "tangent") == 15);
 
 		// The cache shares it.
@@ -264,7 +264,7 @@ OO_TEST(cxxAPI)
 		OO_CHECK(Make(kVertex, kFragment, std::nullopt, std::string("cxx-key")).get() == p.get());
 
 		gShaderFiles = { { "c.vert", kVertex }, { "c.frag", kFragment } };
-		const oo::Ref<OOShaderProgram> fromFiles = OOShaderProgram::shaderProgramWithVertexShaderName("c.vert", "c.frag", std::nullopt, kBindings);
+		const std::shared_ptr<OOShaderProgram> fromFiles = OOShaderProgram::shaderProgramWithVertexShaderName("c.vert", "c.frag", std::nullopt, kBindings);
 		OO_CHECK(fromFiles != nullptr && fromFiles.get() == OOShaderProgram::shaderProgramWithVertexShaderName("c.vert", "c.frag", std::nullopt, kBindings).get());
 		OO_CHECK(OOShaderProgram::shaderProgramWithVertexShaderName("none.vert", "c.frag", std::nullopt, kBindings) == nullptr);
 		gShaderFiles.clear();
@@ -420,7 +420,7 @@ OO_TEST(translateGameShadersGLSL330To120)
 		{
 			// GLSL 1.20 with GL_EXT_gpu_shader4, as the macOS legacy context runs it.
 			{
-				oo::Ref<OOShaderProgram> compiled = Make(vertex, fragment, kGLSL120Prefix);
+				std::shared_ptr<OOShaderProgram> compiled = Make(vertex, fragment, kGLSL120Prefix);
 				if (compiled == nullptr)  std::printf("FAIL: %s + %s do not compile as GLSL 1.20\n", program.vertex, program.fragment);
 				OO_CHECK(compiled != nullptr);
 			}

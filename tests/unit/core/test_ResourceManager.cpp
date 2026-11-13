@@ -577,7 +577,7 @@ OO_TEST(scriptsAndSystemsAndDiagnostics) {
     OO_CHECK(ResourceManager::loadScripts().empty());
 
     // No planetinfo.plist: a manager with nothing set, made anew on each call.
-    oo::Ref<OOSystemDescriptionManager> manager =
+    std::shared_ptr<OOSystemDescriptionManager> manager =
         ResourceManager::systemDescriptionManager();
     OO_CHECK(manager != nullptr);
     OO_CHECK(manager != ResourceManager::systemDescriptionManager());
@@ -616,7 +616,7 @@ OO_TEST(cxxSlice4API) {
     OO_CHECK(ResourceManager::diagnosticFileLocation() ==
              ResourceManager::diagnosticFileLocation());
     // A new C++ manager.
-    oo::Ref<OOSystemDescriptionManager> manager =
+    std::shared_ptr<OOSystemDescriptionManager> manager =
         ResourceManager::systemDescriptionManager();
     OO_CHECK(manager != nullptr);
   }

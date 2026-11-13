@@ -231,7 +231,7 @@ void UncountSecondInit(Entity *entity)
 template <class T>
 T *NewTestPlayer()
 {
-	oo::Ref<T> player = oo::makeRef<T>();
+	std::shared_ptr<T> player = oo::makeRef<T>();
 	{
 		oo::AutoreleaseScope scope;
 		oo::RetainEntity(oo::MadeEntity(player));
@@ -381,7 +381,7 @@ OO_TEST(membersStartZeroed)
 		SetUp();
 		TestPlayer *player = NewTestPlayer<TestPlayer>();
 		PlayerEntity *part = player;
-		OO_CHECK(PlayerEntityTestAccess::hud(part) == nullptr && PlayerEntityTestAccess::compassTarget(part).get() == nullptr && PlayerEntityTestAccess::wormhole(part) == nullptr);
+		OO_CHECK(PlayerEntityTestAccess::hud(part) == nullptr && PlayerEntityTestAccess::compassTarget(part).lock().get() == nullptr && PlayerEntityTestAccess::wormhole(part) == nullptr);
 		OO_CHECK(PlayerEntityTestAccess::system_id(part) == 0 && PlayerEntityTestAccess::ship_clock(part) == 0 && PlayerEntityTestAccess::scoopsActive(part) == false);
 		for (int i = 0; i < PLAYER_MAX_MISSILES; i++)  OO_CHECK(PlayerEntityTestAccess::missile_entity(part)[i] == nullptr);
 		OO_CHECK(!PlayerEntityTestAccess::save_path(part).has_value() && PlayerEntityTestAccess::worldScripts(part).empty());
@@ -540,7 +540,7 @@ OO_TEST(slice3Wormhole)
 		TestPlayer *player = MakePlayer();
 		OO_CHECK(player->getWormhole() == nullptr);
 		// A C++ wormhole: the player retains it.
-		oo::Ref<WormholeEntity> holeRef = oo::makeRef<WormholeEntity>();
+		std::shared_ptr<WormholeEntity> holeRef = oo::makeRef<WormholeEntity>();
 		Entity *object = oo::RetainEntity(oo::MadeEntity(holeRef));
 		WormholeEntity *hole = holeRef.get();
 		std::size_t count = object->retainCount();

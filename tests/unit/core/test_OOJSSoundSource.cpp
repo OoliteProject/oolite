@@ -63,7 +63,7 @@ public:
 */
 struct SourceRecord
 {
-	oo::Ref<OOSound> _sound;
+	std::shared_ptr<OOSound> _sound;
 	bool _loop = false;
 	uint8_t _repeatCount = 0;
 	bool _playing = false;
@@ -85,7 +85,7 @@ void OOSoundSource::channel(OOSoundChannel *, OOSound *)  {}
 std::optional<std::string> OOSoundSource::descriptionComponents() const  { return std::nullopt; }
 
 OOSound *OOSoundSource::sound()  { return sRecords[this]._sound.get(); }
-void OOSoundSource::setSound(OOSound *inSound)  { sRecords[this]._sound = oo::Ref<OOSound>(inSound); }
+void OOSoundSource::setSound(OOSound *inSound)  { sRecords[this]._sound = oo::share(inSound); }
 bool OOSoundSource::loop()  { return sRecords[this]._loop; }
 void OOSoundSource::setLoop(bool inLoop)  { sRecords[this]._loop = inLoop; }
 uint8_t OOSoundSource::repeatCount()  { return sRecords[this]._repeatCount; }
@@ -363,7 +363,7 @@ void SetUpContext()
 	sSound->_name = "ping";
 	sSourceObject = oo::makeRef<OOSoundSource>().leakRef();	// kept for the life of the test
 	sSource = &sRecords[sSourceObject];
-	sSource->_sound = oo::Ref<OOSound>(sSound);
+	sSource->_sound = oo::share(sSound);
 	sSource->_repeatCount = 1;
 	sSource->_position = make_vector(1, 2, 3);
 	sSource->_gain = 0.5f;

@@ -37,30 +37,27 @@ class OOJoystickSplineSegment : public oo::RefCounted {
 
   // Linear spline from left point to right point.  Returns nil if right.x -
   // left.x <= 0.0.
-  static oo::Ref<OOJoystickSplineSegment> segmentWithData(NSPoint left,
-                                                          NSPoint right);
+  static std::shared_ptr<OOJoystickSplineSegment> segmentWithData(
+      NSPoint left, NSPoint right);
 
   // Quadratic spline from left point to right point, with gradient specified at
   // left.  returns nil if right.x - left.x <= 0.0.
-  static oo::Ref<OOJoystickSplineSegment> segmentWithData(NSPoint left,
-                                                          NSPoint right,
-                                                          double gradientleft);
+  static std::shared_ptr<OOJoystickSplineSegment> segmentWithData(
+      NSPoint left, NSPoint right, double gradientleft);
 
   // Quadratic spline from left point to right point, with gradient specified at
   // right.  returns nil if right.x - left.x <= 0.0.
   // (+segmentWithData:right:gradientright: has the same argument types as the
   // one above, so it keeps its last keyword.)
-  static oo::Ref<OOJoystickSplineSegment> segmentWithDataGradientRight(
+  static std::shared_ptr<OOJoystickSplineSegment> segmentWithDataGradientRight(
       NSPoint left, NSPoint right, double gradientright);
 
   // Cubic spline from left point to right point, with gradients specified at
   // end points.  returns nil if right.x - left.x <= 0.0.
-  static oo::Ref<OOJoystickSplineSegment> segmentWithData(NSPoint left,
-                                                          NSPoint right,
-                                                          double gradientleft,
-                                                          double gradientright);
+  static std::shared_ptr<OOJoystickSplineSegment> segmentWithData(
+      NSPoint left, NSPoint right, double gradientleft, double gradientright);
 
-  oo::Ref<OOJoystickSplineSegment> copy();  // -copyWithZone:
+  std::shared_ptr<OOJoystickSplineSegment> copy();  // -copyWithZone:
   double start();
   double end();
   double value(double t);
@@ -83,10 +80,11 @@ class OOJoystickSplineSegment : public oo::RefCounted {
 
 OOJoystickAxisProfile::OOJoystickAxisProfile() { deadzone_ = STICK_DEADZONE; }
 
-oo::Ref<OOJoystickAxisProfile> OOJoystickAxisProfile::copy() {
+std::shared_ptr<OOJoystickAxisProfile> OOJoystickAxisProfile::copy() {
   // [[[self class] alloc] init]: only an OOJoystickAxisProfile itself gets
   // here; both subclasses override.
-  oo::Ref<OOJoystickAxisProfile> copy = oo::makeRef<OOJoystickAxisProfile>();
+  std::shared_ptr<OOJoystickAxisProfile> copy =
+      oo::makeShared<OOJoystickAxisProfile>();
   return copy;
 }
 
@@ -111,9 +109,9 @@ OOJoystickStandardAxisProfile::OOJoystickStandardAxisProfile() {
   parameter_ = 1.0;
 }
 
-oo::Ref<OOJoystickAxisProfile> OOJoystickStandardAxisProfile::copy() {
-  oo::Ref<OOJoystickStandardAxisProfile> copy =
-      oo::makeRef<OOJoystickStandardAxisProfile>();
+std::shared_ptr<OOJoystickAxisProfile> OOJoystickStandardAxisProfile::copy() {
+  std::shared_ptr<OOJoystickStandardAxisProfile> copy =
+      oo::makeShared<OOJoystickStandardAxisProfile>();
   copy->power_ = power_;
   copy->parameter_ = parameter_;
   return copy;
@@ -156,9 +154,9 @@ OOJoystickSplineSegment::OOJoystickSplineSegment() {
   a[3] = 0.0;
 }
 
-oo::Ref<OOJoystickSplineSegment> OOJoystickSplineSegment::copy() {
-  oo::Ref<OOJoystickSplineSegment> copy =
-      oo::makeRef<OOJoystickSplineSegment>();
+std::shared_ptr<OOJoystickSplineSegment> OOJoystickSplineSegment::copy() {
+  std::shared_ptr<OOJoystickSplineSegment> copy =
+      oo::makeShared<OOJoystickSplineSegment>();
   copy->start_ = start_;
   copy->end_ = end_;
   copy->a[0] = a[0];
@@ -250,37 +248,40 @@ bool OOJoystickSplineSegment::initWithData(NSPoint left, NSPoint right,
   return true;
 }
 
-oo::Ref<OOJoystickSplineSegment> OOJoystickSplineSegment::segmentWithData(
-    NSPoint left, NSPoint right) {
-  oo::Ref<OOJoystickSplineSegment> segment =
-      oo::makeRef<OOJoystickSplineSegment>();
+std::shared_ptr<OOJoystickSplineSegment>
+OOJoystickSplineSegment::segmentWithData(NSPoint left, NSPoint right) {
+  std::shared_ptr<OOJoystickSplineSegment> segment =
+      oo::makeShared<OOJoystickSplineSegment>();
   if (!segment->initWithData(left, right)) return nullptr;
   return segment;
 }
 
-oo::Ref<OOJoystickSplineSegment> OOJoystickSplineSegment::segmentWithData(
-    NSPoint left, NSPoint right, double gradientleft) {
-  oo::Ref<OOJoystickSplineSegment> segment =
-      oo::makeRef<OOJoystickSplineSegment>();
+std::shared_ptr<OOJoystickSplineSegment>
+OOJoystickSplineSegment::segmentWithData(NSPoint left, NSPoint right,
+                                         double gradientleft) {
+  std::shared_ptr<OOJoystickSplineSegment> segment =
+      oo::makeShared<OOJoystickSplineSegment>();
   if (!segment->initWithData(left, right, gradientleft)) return nullptr;
   return segment;
 }
 
-oo::Ref<OOJoystickSplineSegment>
+std::shared_ptr<OOJoystickSplineSegment>
 OOJoystickSplineSegment::segmentWithDataGradientRight(NSPoint left,
                                                       NSPoint right,
                                                       double gradientright) {
-  oo::Ref<OOJoystickSplineSegment> segment =
-      oo::makeRef<OOJoystickSplineSegment>();
+  std::shared_ptr<OOJoystickSplineSegment> segment =
+      oo::makeShared<OOJoystickSplineSegment>();
   if (!segment->initWithDataGradientRight(left, right, gradientright))
     return nullptr;
   return segment;
 }
 
-oo::Ref<OOJoystickSplineSegment> OOJoystickSplineSegment::segmentWithData(
-    NSPoint left, NSPoint right, double gradientleft, double gradientright) {
-  oo::Ref<OOJoystickSplineSegment> segment =
-      oo::makeRef<OOJoystickSplineSegment>();
+std::shared_ptr<OOJoystickSplineSegment>
+OOJoystickSplineSegment::segmentWithData(NSPoint left, NSPoint right,
+                                         double gradientleft,
+                                         double gradientright) {
+  std::shared_ptr<OOJoystickSplineSegment> segment =
+      oo::makeShared<OOJoystickSplineSegment>();
   if (!segment->initWithData(left, right, gradientleft, gradientright))
     return nullptr;
   return segment;
@@ -306,9 +307,9 @@ OOJoystickSplineAxisProfile::OOJoystickSplineAxisProfile() {
 
 OOJoystickSplineAxisProfile::~OOJoystickSplineAxisProfile() { return; }
 
-oo::Ref<OOJoystickAxisProfile> OOJoystickSplineAxisProfile::copy() {
-  oo::Ref<OOJoystickSplineAxisProfile> copy =
-      oo::makeRef<OOJoystickSplineAxisProfile>();
+std::shared_ptr<OOJoystickAxisProfile> OOJoystickSplineAxisProfile::copy() {
+  std::shared_ptr<OOJoystickSplineAxisProfile> copy =
+      oo::makeShared<OOJoystickSplineAxisProfile>();
   copy->controlPoints_ = controlPoints_;
   copy->segments =
       segments;  // the same segment objects, as the array copy held
@@ -375,9 +376,9 @@ bool OOJoystickSplineAxisProfile::makeSegments() {
   std::size_t i;
   NSPoint left, right, next;
   double gradientleft, gradientright;
-  oo::Ref<OOJoystickSplineSegment> segment;
+  std::shared_ptr<OOJoystickSplineSegment> segment;
   bool first_segment = true;
-  std::vector<oo::Ref<OOJoystickSplineSegment>> new_segments;
+  std::vector<std::shared_ptr<OOJoystickSplineSegment>> new_segments;
   new_segments.reserve(controlPoints_.size() + 1);
 
   left.x = 0.0;

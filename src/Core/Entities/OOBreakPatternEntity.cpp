@@ -71,12 +71,12 @@ void OOBreakPatternEntity::initWithPolygonSides(std::size_t sides,
   }
 }
 
-oo::Ref<OOBreakPatternEntity>
+std::shared_ptr<OOBreakPatternEntity>
 OOBreakPatternEntity::breakPatternWithPolygonSides(std::size_t sides,
                                                    float startAngleDegrees,
                                                    float aspectRatio) {
-  const oo::Ref<OOBreakPatternEntity> ring =
-      oo::makeRef<OOBreakPatternEntity>();
+  const std::shared_ptr<OOBreakPatternEntity> ring =
+      oo::makeShared<OOBreakPatternEntity>();
   ring->initWithPolygonSides(sides, startAngleDegrees, aspectRatio);
   return ring;
 }

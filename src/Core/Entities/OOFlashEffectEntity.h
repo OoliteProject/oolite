@@ -35,11 +35,10 @@ class OOFlashEffectEntity : public OOLightParticleEntity {
  public:
   // +explosionFlashFromEntity: and +laserFlashWithPosition:velocity:color:: a
   // new flash, initialised.
-  static oo::Ref<OOFlashEffectEntity> explosionFlashFromEntity(
+  static std::shared_ptr<OOFlashEffectEntity> explosionFlashFromEntity(
       Entity* entity);  // the C++ entity
-  static oo::Ref<OOFlashEffectEntity> laserFlashWithPosition(HPVector position,
-                                                             Vector vel,
-                                                             OOColor* color);
+  static std::shared_ptr<OOFlashEffectEntity> laserFlashWithPosition(
+      HPVector position, Vector vel, OOColor* color);
 
   static void setUpTexture();
   // Called by the texture's file-local graphics reset client.

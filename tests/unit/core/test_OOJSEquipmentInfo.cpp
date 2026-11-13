@@ -146,8 +146,8 @@ std::string OOScript::className() const						{ return "OOScript"; }
 std::string OOScript::description() const						{ return "<OOScript>"; }
 JSValue OOScript::jsValueInContext(JSContext *)				{ return JS_UNDEFINED; }
 void OOScript::clearJSSelf(JSValueConst)						{}
-void OOScriptAutorelease(oo::Ref<OOScript>)					{}
-oo::Ref<OOScript> OOScript::jsScriptFromFileNamed(const std::string &fileName, const oo::PList &properties)
+void OOScriptAutorelease(std::shared_ptr<OOScript>)					{}
+std::shared_ptr<OOScript> OOScript::jsScriptFromFileNamed(const std::string &fileName, const oo::PList &properties)
 {
 	(void)properties;
 	return (fileName == "good.js") ? oo::makeRef<OOScript>() : nullptr;

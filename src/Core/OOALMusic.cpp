@@ -42,11 +42,11 @@ OOMusic::~OOMusic() {
   if (sPlayingMusic == this) stop();
 }
 
-oo::Ref<OOMusic> OOMusic::initWithContentsOfFile(
+std::shared_ptr<OOMusic> OOMusic::initWithContentsOfFile(
     const std::optional<std::string>&
         inPath)  // OOSound's designated initializer, overridden
 {
-  oo::Ref<OOMusic> self = oo::adopt(new OOMusic);
+  std::shared_ptr<OOMusic> self = oo::adopt(new OOMusic);
   {
     self->sound = OOSound::initWithContentsOfFile(inPath);
     if (!self->sound) {

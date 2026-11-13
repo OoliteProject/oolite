@@ -47,7 +47,7 @@ oo::PList Entry(const std::string& key, const oo::PList& value) {
 
 OO_TEST(emptyCache) {
   {
-    oo::Ref<OOCache> cache = OOCache::cacheWithPList(oo::PList());
+    std::shared_ptr<OOCache> cache = OOCache::cacheWithPList(oo::PList());
     OO_CHECK(cache != nullptr);
     OO_CHECK(cache->pruneThreshold() == kOOCacheDefaultPruneThreshold);
     OO_CHECK(cache->autoPrune());
@@ -74,7 +74,7 @@ OO_TEST(emptyCache) {
 
 OO_TEST(storeReplaceRemove) {
   {
-    oo::Ref<OOCache> cache = OOCache::cacheWithPList(oo::PList());
+    std::shared_ptr<OOCache> cache = OOCache::cacheWithPList(oo::PList());
     cache->setPList(oo::PList(), "null");  // a null value is not stored
     OO_CHECK(!cache->dirty() && cache->pListsByAge().empty());
 
@@ -101,7 +101,7 @@ OO_TEST(storeReplaceRemove) {
 
 OO_TEST(leastRecentlyUsedOrder) {
   {
-    oo::Ref<OOCache> cache = OOCache::cacheWithPList(oo::PList());
+    std::shared_ptr<OOCache> cache = OOCache::cacheWithPList(oo::PList());
     for (const char* key : {"d", "b", "a", "c"})
       cache->setPList(Str(std::string("value ") + key), key);
     OO_CHECK(Strings(cache->pListsByAge()) ==
@@ -126,7 +126,7 @@ OO_TEST(leastRecentlyUsedOrder) {
 
 OO_TEST(pruning) {
   {
-    oo::Ref<OOCache> cache = OOCache::cacheWithPList(oo::PList());
+    std::shared_ptr<OOCache> cache = OOCache::cacheWithPList(oo::PList());
     cache->setPruneThreshold(3);
     OO_CHECK(cache->pruneThreshold() ==
              kOOCacheMinimumPruneThreshold);  // the floor
@@ -181,7 +181,7 @@ OO_TEST(propertyListRoundTrip) {
                                    {"value", Str("key not a string")}})));
     entries.push_back(oo::PList(oo::PList::Dict({{"key", Str("no value")}})));
 
-    oo::Ref<OOCache> loaded = OOCache::cacheWithPList(oo::PList(entries));
+    std::shared_ptr<OOCache> loaded = OOCache::cacheWithPList(oo::PList(entries));
     OO_CHECK(loaded != nullptr);
     OO_CHECK(loaded->pListsByAge().size() ==
              250);  // loading does not prune, even past the threshold
@@ -191,7 +191,7 @@ OO_TEST(propertyListRoundTrip) {
     OO_CHECK(loaded->pListForKey("k0") == oo::PList(std::int64_t(0)));
     OO_CHECK(loaded->pListForKey("no value").isNull());
 
-    oo::Ref<OOCache> again =
+    std::shared_ptr<OOCache> again =
         OOCache::cacheWithPList(loaded->pListRepresentation());
     OO_CHECK(again->pListRepresentation() == loaded->pListRepresentation());
 
@@ -213,8 +213,8 @@ class TestForeign final : public oo::PListForeign {
 }  // namespace
 
 OO_TEST(holdsALiveObject) {
-  oo::Ref<TestForeign> object = oo::makeRef<TestForeign>();
-  oo::Ref<OOCache> cache = OOCache::cacheWithPList(oo::PList());
+  std::shared_ptr<TestForeign> object = oo::makeRef<TestForeign>();
+  std::shared_ptr<OOCache> cache = OOCache::cacheWithPList(oo::PList());
   {
     oo::AutoreleaseScope pool;
     cache->setPList(oo::PList(oo::PList::Object(object)), "texture");

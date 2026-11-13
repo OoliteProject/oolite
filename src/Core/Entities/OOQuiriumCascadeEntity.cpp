@@ -59,10 +59,10 @@ bool OOQuiriumCascadeEntity::initQuiriumCascadeFromShip(::ShipEntity* ship) {
   return true;
 }
 
-oo::Ref<OOQuiriumCascadeEntity> OOQuiriumCascadeEntity::quiriumCascadeFromShip(
-    ::ShipEntity* ship) {
-  oo::Ref<OOQuiriumCascadeEntity> cascade =
-      oo::makeRef<OOQuiriumCascadeEntity>();
+std::shared_ptr<OOQuiriumCascadeEntity>
+OOQuiriumCascadeEntity::quiriumCascadeFromShip(::ShipEntity* ship) {
+  std::shared_ptr<OOQuiriumCascadeEntity> cascade =
+      oo::makeShared<OOQuiriumCascadeEntity>();
   if (!cascade->initQuiriumCascadeFromShip(ship)) return nullptr;
   return cascade;
 }

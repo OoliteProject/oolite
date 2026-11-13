@@ -124,7 +124,7 @@ class OOPlanetAtmosphereGenerator : public OOTextureGenerator {
   bool _enqueued = {};
   std::string _cacheKey;
   RANROTSeed _seed = {};
-  oo::Ref<OOPlanetTextureGenerator>
+  std::shared_ptr<OOPlanetTextureGenerator>
       _parent;  // (it holds this too: the old retain cycle, kept)
 };
 
@@ -165,11 +165,11 @@ constexpr int kPlanetScaleReducedDetail = kPlanetScale512x512;
 constexpr int kPlanetScaleFullDetail = kPlanetScale1024x1024;
 constexpr int kPlanetScaleExtraDetail = kPlanetScale2048x2048;
 
-oo::Ref<OOPlanetTextureGenerator>
+std::shared_ptr<OOPlanetTextureGenerator>
 OOPlanetTextureGenerator::generatorWithPlanetInfo(const oo::PList& planetInfo,
                                                   RANROTSeed seed) {
-  oo::Ref<OOPlanetTextureGenerator> result =
-      oo::makeRef<OOPlanetTextureGenerator>();
+  std::shared_ptr<OOPlanetTextureGenerator> result =
+      oo::makeShared<OOPlanetTextureGenerator>();
   if (!result->initWithPlanetInfo(planetInfo, seed)) return {};
   return result;
 }
@@ -231,10 +231,10 @@ bool OOPlanetTextureGenerator::initWithPlanetInfo(const oo::PList& planetInfo,
   return false;
 }
 
-oo::Ref<OOTexture> OOPlanetTextureGenerator::planetTextureWithInfo(
+std::shared_ptr<OOTexture> OOPlanetTextureGenerator::planetTextureWithInfo(
     const oo::PList& planetInfo, RANROTSeed seed) {
-  oo::Ref<OOTexture> result;
-  const oo::Ref<OOPlanetTextureGenerator> generator =
+  std::shared_ptr<OOTexture> result;
+  const std::shared_ptr<OOPlanetTextureGenerator> generator =
       generatorWithPlanetInfo(planetInfo, seed);
   if (generator) {
     result = OOTexture::textureWithGenerator(generator.get());
@@ -244,11 +244,11 @@ oo::Ref<OOTexture> OOPlanetTextureGenerator::planetTextureWithInfo(
 }
 
 bool OOPlanetTextureGenerator::generatePlanetTextureAndAtmosphere(
-    oo::Ref<OOTexture>* texture, oo::Ref<OOTexture>* atmosphere,
+    std::shared_ptr<OOTexture>* texture, std::shared_ptr<OOTexture>* atmosphere,
     const oo::PList& planetInfo, RANROTSeed seed) {
   OOCParameterAssert(texture != nullptr);
 
-  const oo::Ref<OOPlanetTextureGenerator> diffuseGen =
+  const std::shared_ptr<OOPlanetTextureGenerator> diffuseGen =
       generatorWithPlanetInfo(planetInfo, seed);
   if (!diffuseGen) return false;
 
@@ -265,13 +265,14 @@ bool OOPlanetTextureGenerator::generatePlanetTextureAndAtmosphere(
 }
 
 bool OOPlanetTextureGenerator::generatePlanetTexture(
-    oo::Ref<OOTexture>* texture, oo::Ref<OOTexture>* secondaryTexture,
-    const oo::PList& planetInfo, RANROTSeed seed) {
+    std::shared_ptr<OOTexture>* texture,
+    std::shared_ptr<OOTexture>* secondaryTexture, const oo::PList& planetInfo,
+    RANROTSeed seed) {
   OOCParameterAssert(texture != nullptr);
 
   bool enqueue = false;
 
-  const oo::Ref<OOPlanetTextureGenerator> diffuseGen =
+  const std::shared_ptr<OOPlanetTextureGenerator> diffuseGen =
       generatorWithPlanetInfo(planetInfo, seed);
   if (!diffuseGen) return false;
 
@@ -290,14 +291,15 @@ bool OOPlanetTextureGenerator::generatePlanetTexture(
 }
 
 bool OOPlanetTextureGenerator::generatePlanetTexture(
-    oo::Ref<OOTexture>* texture, oo::Ref<OOTexture>* secondaryTexture,
-    oo::Ref<OOTexture>* atmosphere, const oo::PList& planetInfo,
+    std::shared_ptr<OOTexture>* texture,
+    std::shared_ptr<OOTexture>* secondaryTexture,
+    std::shared_ptr<OOTexture>* atmosphere, const oo::PList& planetInfo,
     RANROTSeed seed) {
   OOCParameterAssert(texture != nullptr);
 
   bool enqueue = false;
 
-  const oo::Ref<OOPlanetTextureGenerator> diffuseGen =
+  const std::shared_ptr<OOPlanetTextureGenerator> diffuseGen =
       generatorWithPlanetInfo(planetInfo, seed);
   if (!diffuseGen) return false;
 
@@ -364,8 +366,8 @@ std::optional<std::string> OOPlanetTextureGenerator::cacheKeyForType(
 
 OOPlanetNormalMapGenerator* OOPlanetTextureGenerator::normalMapGenerator() {
   if (!_nMapGenerator) {
-    const oo::Ref<OOPlanetNormalMapGenerator> generator =
-        oo::makeRef<OOPlanetNormalMapGenerator>();
+    const std::shared_ptr<OOPlanetNormalMapGenerator> generator =
+        oo::makeShared<OOPlanetNormalMapGenerator>();
     if (generator->initWithCacheKey(*cacheKeyForType("normal"), _info.seed))
       _nMapGenerator = generator;
   }
@@ -374,8 +376,8 @@ OOPlanetNormalMapGenerator* OOPlanetTextureGenerator::normalMapGenerator() {
 
 OOPlanetAtmosphereGenerator* OOPlanetTextureGenerator::atmosphereGenerator() {
   if (!_atmoGenerator) {
-    const oo::Ref<OOPlanetAtmosphereGenerator> generator =
-        oo::makeRef<OOPlanetAtmosphereGenerator>();
+    const std::shared_ptr<OOPlanetAtmosphereGenerator> generator =
+        oo::makeShared<OOPlanetAtmosphereGenerator>();
     if (generator->initWithCacheKey(*cacheKeyForType("atmo"), _info.seed, this))
       _atmoGenerator = generator;
   }
@@ -1235,7 +1237,7 @@ bool OOPlanetAtmosphereGenerator::initWithCacheKey(
                    OOTextureFlags::kAllowCubeMap)) {
     _cacheKey = cacheKey;
     _seed = seed;
-    _parent = oo::Ref<OOPlanetTextureGenerator>(parent);
+    _parent = oo::share(parent);
     _enqueued = false;
     return true;
   }

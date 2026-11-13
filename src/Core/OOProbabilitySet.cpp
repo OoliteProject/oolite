@@ -113,7 +113,7 @@ class OOEmptyProbabilitySet final : public OOProbabilitySet {
   float sumOfWeights() override;
   std::size_t count() override;
   std::vector<oo::PList> allElements() override;
-  oo::Ref<OOMutableProbabilitySet> mutableCopy() override;
+  std::shared_ptr<OOMutableProbabilitySet> mutableCopy() override;
 };
 
 class OOSingleObjectProbabilitySet final : public OOProbabilitySet {
@@ -126,7 +126,7 @@ class OOSingleObjectProbabilitySet final : public OOProbabilitySet {
   float sumOfWeights() override;
   std::size_t count() override;
   std::vector<oo::PList> allElements() override;
-  oo::Ref<OOMutableProbabilitySet> mutableCopy() override;
+  std::shared_ptr<OOMutableProbabilitySet> mutableCopy() override;
 
  private:
   oo::PList _object = {};
@@ -146,7 +146,7 @@ class OOConcreteProbabilitySet final : public OOProbabilitySet {
   float weightForObject(const oo::PList& object) override;
   float sumOfWeights() override;
   std::vector<oo::PList> allElements() override;
-  oo::Ref<OOMutableProbabilitySet> mutableCopy() override;
+  std::shared_ptr<OOMutableProbabilitySet> mutableCopy() override;
 
  private:
   oo::PList privObjectForWeight(float target);
@@ -178,8 +178,8 @@ class OOConcreteMutableProbabilitySet final : public OOMutableProbabilitySet {
   std::vector<oo::PList> allElements() override;
   void setWeight(float weight, const oo::PList& object) override;
   void removeObject(const oo::PList& object) override;
-  oo::Ref<OOProbabilitySet> copy() override;
-  oo::Ref<OOMutableProbabilitySet> mutableCopy() override;
+  std::shared_ptr<OOProbabilitySet> copy() override;
+  std::shared_ptr<OOMutableProbabilitySet> mutableCopy() override;
 
  private:
   std::vector<oo::PList> _objects = {};
@@ -187,11 +187,10 @@ class OOConcreteMutableProbabilitySet final : public OOMutableProbabilitySet {
   float _sumOfWeights = {};
 };
 
-oo::Ref<OOMutableProbabilitySet> MakeConcreteMutable(const oo::PList* objects,
-                                                     const float* weights,
-                                                     std::size_t count) {
-  oo::Ref<OOConcreteMutableProbabilitySet> result =
-      oo::makeRef<OOConcreteMutableProbabilitySet>();
+std::shared_ptr<OOMutableProbabilitySet> MakeConcreteMutable(
+    const oo::PList* objects, const float* weights, std::size_t count) {
+  std::shared_ptr<OOConcreteMutableProbabilitySet> result =
+      oo::makeShared<OOConcreteMutableProbabilitySet>();
   result->initWithObjects(objects, weights, count);
   return result;
 }
@@ -200,11 +199,11 @@ oo::Ref<OOMutableProbabilitySet> MakeConcreteMutable(const oo::PList* objects,
 
 // Abstract class just tosses allocations over to concrete class.
 
-oo::Ref<OOProbabilitySet> OOProbabilitySet::probabilitySet() {
-  return oo::Ref<OOProbabilitySet>(OOEmptyProbabilitySet::singleton());
+std::shared_ptr<OOProbabilitySet> OOProbabilitySet::probabilitySet() {
+  return oo::share(OOEmptyProbabilitySet::singleton());
 }
 
-oo::Ref<OOProbabilitySet> OOProbabilitySet::probabilitySetWithObjects(
+std::shared_ptr<OOProbabilitySet> OOProbabilitySet::probabilitySetWithObjects(
     const oo::PList* objects, const float* weights, std::size_t count) {
   // Zero objects: return empty-set singleton.
   if (count == 0) return probabilitySet();
@@ -222,20 +221,20 @@ oo::Ref<OOProbabilitySet> OOProbabilitySet::probabilitySetWithObjects(
 
   // Single object: simple one-object set. Expected to be quite common.
   if (count == 1) {
-    oo::Ref<OOSingleObjectProbabilitySet> result =
-        oo::makeRef<OOSingleObjectProbabilitySet>();
+    std::shared_ptr<OOSingleObjectProbabilitySet> result =
+        oo::makeShared<OOSingleObjectProbabilitySet>();
     if (!result->initWithObject(objects[0], weights[0])) return nullptr;
     return result;
   }
 
   // Otherwise, use general implementation.
-  oo::Ref<OOConcreteProbabilitySet> result =
-      oo::makeRef<OOConcreteProbabilitySet>();
+  std::shared_ptr<OOConcreteProbabilitySet> result =
+      oo::makeShared<OOConcreteProbabilitySet>();
   if (!result->initWithObjects(objects, weights, count)) return nullptr;
   return result;
 }
 
-oo::Ref<OOProbabilitySet>
+std::shared_ptr<OOProbabilitySet>
 OOProbabilitySet::probabilitySetWithPropertyListRepresentation(
     const oo::PList& plist) {
   const oo::PList& representation = plist;
@@ -280,13 +279,13 @@ std::optional<std::string> OOProbabilitySet::descriptionComponents() const {
   return std::format("count={}", const_cast<OOProbabilitySet*>(this)->count());
 }
 
-oo::Ref<OOProbabilitySet> OOProbabilitySet::copy() {
+std::shared_ptr<OOProbabilitySet> OOProbabilitySet::copy() {
   // Immutable: a copy is the set itself. (-copyWithZone: made a new set through
   // the property list only for a different zone, which C++ does not have.)
-  return oo::Ref<OOProbabilitySet>(this);
+  return oo::share(this);
 }
 
-oo::Ref<OOMutableProbabilitySet> OOProbabilitySet::mutableCopy() {
+std::shared_ptr<OOMutableProbabilitySet> OOProbabilitySet::mutableCopy() {
   return OOMutableProbabilitySet::probabilitySetWithPropertyListRepresentation(
       propertyListRepresentation());
 }
@@ -335,10 +334,10 @@ std::vector<oo::PList> OOEmptyProbabilitySet::allElements() {
   return std::vector<oo::PList>();
 }
 
-oo::Ref<OOMutableProbabilitySet> OOEmptyProbabilitySet::mutableCopy() {
+std::shared_ptr<OOMutableProbabilitySet> OOEmptyProbabilitySet::mutableCopy() {
   // A mutable copy of an empty probability set is equivalent to a new empty
   // mutable probability set.
-  return oo::makeRef<OOConcreteMutableProbabilitySet>();
+  return oo::makeShared<OOConcreteMutableProbabilitySet>();
 }
 
 bool OOSingleObjectProbabilitySet::initWithObject(const oo::PList& object,
@@ -374,7 +373,8 @@ std::vector<oo::PList> OOSingleObjectProbabilitySet::allElements() {
   return std::vector<oo::PList>{_object};
 }
 
-oo::Ref<OOMutableProbabilitySet> OOSingleObjectProbabilitySet::mutableCopy() {
+std::shared_ptr<OOMutableProbabilitySet>
+OOSingleObjectProbabilitySet::mutableCopy() {
   return MakeConcreteMutable(&_object, &_weight, 1);
 }
 
@@ -501,8 +501,9 @@ std::vector<oo::PList> OOConcreteProbabilitySet::allElements() {
   return std::vector<oo::PList>(_objects, _objects + _count);
 }
 
-oo::Ref<OOMutableProbabilitySet> OOConcreteProbabilitySet::mutableCopy() {
-  oo::Ref<OOMutableProbabilitySet> result;
+std::shared_ptr<OOMutableProbabilitySet>
+OOConcreteProbabilitySet::mutableCopy() {
+  std::shared_ptr<OOMutableProbabilitySet> result;
   float* weights = nullptr;
   std::size_t i = 0;
   float weight = 0.0f, sum = 0.0f;
@@ -525,27 +526,28 @@ oo::Ref<OOMutableProbabilitySet> OOConcreteProbabilitySet::mutableCopy() {
 
 }  // namespace
 
-oo::Ref<OOMutableProbabilitySet> OOMutableProbabilitySet::probabilitySet() {
-  return oo::makeRef<OOConcreteMutableProbabilitySet>();
+std::shared_ptr<OOMutableProbabilitySet>
+OOMutableProbabilitySet::probabilitySet() {
+  return oo::makeShared<OOConcreteMutableProbabilitySet>();
 }
 
-oo::Ref<OOMutableProbabilitySet>
+std::shared_ptr<OOMutableProbabilitySet>
 OOMutableProbabilitySet::probabilitySetWithObjects(const oo::PList* objects,
                                                    const float* weights,
                                                    std::size_t count) {
   return MakeConcreteMutable(objects, weights, count);
 }
 
-oo::Ref<OOMutableProbabilitySet>
+std::shared_ptr<OOMutableProbabilitySet>
 OOMutableProbabilitySet::probabilitySetWithPropertyListRepresentation(
     const oo::PList& plist) {
-  oo::Ref<OOConcreteMutableProbabilitySet> result =
-      oo::makeRef<OOConcreteMutableProbabilitySet>();
+  std::shared_ptr<OOConcreteMutableProbabilitySet> result =
+      oo::makeShared<OOConcreteMutableProbabilitySet>();
   if (!result->initWithPropertyListRepresentation(plist)) return nullptr;
   return result;
 }
 
-oo::Ref<OOProbabilitySet> OOMutableProbabilitySet::copy() {
+std::shared_ptr<OOProbabilitySet> OOMutableProbabilitySet::copy() {
   return OOProbabilitySet::probabilitySetWithPropertyListRepresentation(
       propertyListRepresentation());
 }
@@ -710,7 +712,7 @@ void OOConcreteMutableProbabilitySet::removeObject(const oo::PList& object) {
   }
 }
 
-oo::Ref<OOProbabilitySet> OOConcreteMutableProbabilitySet::copy() {
+std::shared_ptr<OOProbabilitySet> OOConcreteMutableProbabilitySet::copy() {
   std::size_t count = 0;
 
   count = _objects.size();
@@ -720,11 +722,11 @@ oo::Ref<OOProbabilitySet> OOConcreteMutableProbabilitySet::copy() {
                                                      _weights.data(), count);
 }
 
-oo::Ref<OOMutableProbabilitySet>
+std::shared_ptr<OOMutableProbabilitySet>
 OOConcreteMutableProbabilitySet::mutableCopy() {
   // (the arrays are copied)
-  oo::Ref<OOConcreteMutableProbabilitySet> result =
-      oo::makeRef<OOConcreteMutableProbabilitySet>();
+  std::shared_ptr<OOConcreteMutableProbabilitySet> result =
+      oo::makeShared<OOConcreteMutableProbabilitySet>();
   result->initPrivWithObjectArray(_objects, _weights, _sumOfWeights);
   return result;
 }

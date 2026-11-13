@@ -61,8 +61,8 @@ SOFTWARE.
 /*	A HUD compass icon of a beacon: the interface OOHUDBeaconIcon. The
    polygon sprite and the beacon code icon (OOHUDBeaconCodeIcon,
    HeadUpDisplay.h) implement it; the ships, visual effects and waypoints hold
-        their beacon drawables by it, as oo::Ref<OOHUDBeaconIcon>, and the HUD
-   draws them.
+        their beacon drawables by it, as std::shared_ptr<OOHUDBeaconIcon>, and
+   the HUD draws them.
 */
 class OOHUDBeaconIcon : public oo::RefCounted {
  public:
@@ -79,9 +79,9 @@ class OOPolygonSprite : public OOHUDBeaconIcon, public OOGraphicsResetClient {
      as the vertices. Name is used for debugging only. Null where the data
      cannot be tesselated (-initWithDataArray:... answered nil).
   */
-  static oo::Ref<OOPolygonSprite> initWithDataArray(const oo::PList& dataArray,
-                                                    GLfloat outlineWidth,
-                                                    const std::string& name);
+  static std::shared_ptr<OOPolygonSprite> initWithDataArray(
+      const oo::PList& dataArray, GLfloat outlineWidth,
+      const std::string& name);
 
   void drawFilled();
   void drawOutline();

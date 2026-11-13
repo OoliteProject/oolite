@@ -123,7 +123,7 @@ public:
 	bool isWormhole();
 	bool isInSpace();
 
-	oo::Ref<Entity> _cxxEntity;	// the C++ part (oo::ToCxx reads it): a ship's
+	std::shared_ptr<Entity> _cxxEntity;	// the C++ part (oo::ToCxx reads it): a ship's
 	float _collisionRadius = {};
 	HPVector _position = {};
 	Quaternion _orientation = {};

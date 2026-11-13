@@ -66,7 +66,7 @@ class RecordingWaypoint : public OOWaypointEntity {
 namespace {
 
 TestPlayer* NewTestPlayer() {
-  oo::Ref<TestPlayer> player = oo::makeRef<TestPlayer>();
+  std::shared_ptr<TestPlayer> player = oo::makeRef<TestPlayer>();
   {
     oo::AutoreleaseScope scope;
     oo::RetainEntity(oo::MadeEntity(player));
@@ -103,12 +103,12 @@ OO_TEST(aScriptObjectKeepsItsNativeObjectUntilFinalised) {
   {
     oo::AutoreleaseScope scope;
     JSContext* context = Context();
-    oo::WeakRef<OOShipGroup> watched;
+    std::weak_ptr<OOShipGroup> watched;
     JSValue wrapper = JS_UNDEFINED;
     {
-      oo::Ref<OOShipGroup> group =
+      std::shared_ptr<OOShipGroup> group =
           OOShipGroup::groupWithName(std::string("finalised"));
-      watched = group.get();
+      watched = group;
       wrapper = group->jsValueInContext(context);
       OO_CHECK(JS_IsObject(wrapper));
     }  // the C++ reference goes; the wrapper's remains
@@ -116,11 +116,11 @@ OO_TEST(aScriptObjectKeepsItsNativeObjectUntilFinalised) {
       oo::AutoreleaseScope drained;
     }
     JS_RunGC(JS_GetRuntime(context));
-    OO_CHECK(watched.get() != nullptr);  // not before the wrapper is finalised
+    OO_CHECK(watched.lock().get() != nullptr);  // not before the wrapper is finalised
 
     JS_FreeValue(context, wrapper);
     JS_RunGC(JS_GetRuntime(context));
-    OO_CHECK(watched.get() == nullptr);  // released by the finaliser
+    OO_CHECK(watched.lock().get() == nullptr);  // released by the finaliser
   }
 }
 
@@ -132,23 +132,23 @@ OO_TEST(anEntityIsDisposedOnceAtItsLastReleaseAfterRemoval) {
     Entity* waypoint = nullptr;
     {
       oo::AutoreleaseScope made;
-      oo::Ref<RecordingWaypoint> part = oo::makeRef<RecordingWaypoint>();
+      std::shared_ptr<RecordingWaypoint> part = oo::makeRef<RecordingWaypoint>();
       part->initWithDictionary(
           oo::PList(oo::PList::Dict{{"beaconCode", oo::PList("R")}}));
       waypoint = oo::RetainEntity(oo::MadeEntity(part));
     }
-    oo::WeakRef<Entity> watched(waypoint);
+    std::weak_ptr<Entity> watched(oo::share(waypoint));
     OO_CHECK(u->addEntity(waypoint));
     OO_CHECK(sLog.empty());
 
     u->removeEntity(waypoint);
     OO_CHECK((sLog == std::vector<std::string>{"removed"}));
-    OO_CHECK(watched.get() == waypoint);  // the test's hold keeps it
+    OO_CHECK(watched.lock().get() == waypoint);  // the test's hold keeps it
 
     oo::ReleaseEntity(waypoint);  // the test's hold; the universe's dead list
                                   // keeps it until the update ends
     OO_CHECK((sLog == std::vector<std::string>{"removed"}));
-    OO_CHECK(watched.get() == waypoint);
+    OO_CHECK(watched.lock().get() == waypoint);
 
     {
       oo::AutoreleaseScope frame;
@@ -158,7 +158,7 @@ OO_TEST(anEntityIsDisposedOnceAtItsLastReleaseAfterRemoval) {
       OO_CHECK((sLog == std::vector<std::string>{"removed"}));
     }  // the pool drains: the last release, and disposal
     OO_CHECK((sLog == std::vector<std::string>{"removed", "destroyed"}));
-    OO_CHECK(watched.get() == nullptr);
+    OO_CHECK(watched.lock().get() == nullptr);
   }
 }
 

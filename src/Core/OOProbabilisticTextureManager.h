@@ -71,11 +71,11 @@ class OOProbabilisticTextureManager : public oo::RefCounted {
 
           Null where no texture loads (-initWithPListName:... answered nil).
   */
-  static oo::Ref<OOProbabilisticTextureManager> createWithPListName(
+  static std::shared_ptr<OOProbabilisticTextureManager> createWithPListName(
       const std::string& plistName, OOTextureFlags options, GLfloat anisotropy,
       GLfloat lodBias);
 
-  static oo::Ref<OOProbabilisticTextureManager> createWithPListName(
+  static std::shared_ptr<OOProbabilisticTextureManager> createWithPListName(
       const std::string& plistName, OOTextureFlags options, GLfloat anisotropy,
       GLfloat lodBias, RANROTSeed seed);
 

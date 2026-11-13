@@ -47,7 +47,7 @@ MA 02110-1301, USA.
 #include "OOEntityWithDrawable.h"
 #include "oofnd/PList.hpp"
 
-// The universe makes it with oo::makeRef<SkyEntity>() and finds it by
+// The universe makes it with oo::makeShared<SkyEntity>() and finds it by
 // dynamic_cast.
 class SkyEntity : public OOEntityWithDrawable {
  public:

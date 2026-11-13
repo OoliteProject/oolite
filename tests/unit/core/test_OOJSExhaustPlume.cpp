@@ -68,7 +68,7 @@ public:
 	std::optional<std::string> cxx_oo_jsClassName();
 	bool isVisibleToScripts();
 
-	oo::Ref<Entity> _cxxEntity;	// the plume's C++ part (oo::ToCxx reads it)
+	std::shared_ptr<Entity> _cxxEntity;	// the plume's C++ part (oo::ToCxx reads it)
 	::TestEntityObject *_owner = nullptr;
 };
 
@@ -382,7 +382,7 @@ void SetUpContext()
 	sShip->_cxxEntity = oo::makeRef<ShipEntity>();
 	sShipPart = static_cast<ShipEntity *>(sShip->_cxxEntity.get());
 	sPlume = oo::makeRef<TestEntityObject>().leakRef();
-	const oo::Ref<OOExhaustPlumeEntity> part = oo::makeRef<OOExhaustPlumeEntity>();
+	const std::shared_ptr<OOExhaustPlumeEntity> part = oo::makeRef<OOExhaustPlumeEntity>();
 	sPlume->_cxxEntity = part;
 	sPlumePart = part.get();
 	sPlumePart->_scale = make_vector(1, 2, 3.5);

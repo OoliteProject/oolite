@@ -18,7 +18,7 @@
    not a ship.
 
         OOPListScript is a C++ subclass of OOScript. The scripts are held as
-   oo::Ref<OOScript>, the cases ask the C++ class, and plistScriptIsItsOwnObject
+   std::shared_ptr<OOScript>, the cases ask the C++ class, and plistScriptIsItsOwnObject
    checks that a script is its own object. Run: tests/run.sh unit
 */
 
@@ -77,7 +77,7 @@ oo::PList Dict(std::vector<std::pair<std::string, oo::PList>> entries) {
   return oo::PList(std::move(dict));
 }
 
-std::vector<std::string> Names(const std::vector<oo::Ref<OOScript>>& scripts) {
+std::vector<std::string> Names(const std::vector<std::shared_ptr<OOScript>>& scripts) {
   std::vector<std::string> names;
   for (const auto& script : scripts)
     names.push_back(script->name().value_or("<none>"));
@@ -194,7 +194,7 @@ OO_TEST(files) {
   }
 }
 
-// A plist script is its own object, held as oo::Ref<OOScript>.
+// A plist script is its own object, held as std::shared_ptr<OOScript>.
 OO_TEST(plistScriptIsItsOwnObject) {
   SetUp();
   {

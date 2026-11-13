@@ -484,12 +484,12 @@ class Entity : public oo::RefCounted
 namespace {
 Entity *PlainPart()
 {
-	static const oo::Ref<Entity> part = oo::makeRef<Entity>();
+	static const std::shared_ptr<Entity> part = oo::makeRef<Entity>();
 	return part.get();
 }
 Entity *InspectablePart()
 {
-	static const oo::Ref<Entity> part = oo::makeRef<Entity>();
+	static const std::shared_ptr<Entity> part = oo::makeRef<Entity>();
 	return part.get();
 }
 }	// namespace
@@ -533,7 +533,7 @@ void oo::InspectEntity(Entity *entity)
 class OOJSScript : public OOScript
 {
 public:
-	static std::vector<oo::Ref<OOJSScript>> scriptStack();
+	static std::vector<std::shared_ptr<OOJSScript>> scriptStack();
 	static OOJSScript *currentlyRunningScript();
 };
 
@@ -541,7 +541,7 @@ public:
 // (the class method was never sent; as a C++ static it must be defined).
 OOJSScript *OOJSScript::currentlyRunningScript()  { std::abort(); }
 
-std::vector<oo::Ref<OOJSScript>> OOJSScript::scriptStack()
+std::vector<std::shared_ptr<OOJSScript>> OOJSScript::scriptStack()
 {
 	return {};
 }

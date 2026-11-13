@@ -46,7 +46,7 @@ class TestPlayer : public PlayerEntity {
 // object was.
 template <class T>
 T* NewTestPlayer() {
-  oo::Ref<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeRef<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -114,7 +114,7 @@ bool ComponentsAre(OOLightParticleEntity* e, GLfloat r, GLfloat g, GLfloat b,
 */
 template <class T>
 T* NewParticle(float diameter, Entity** outObject = nullptr) {
-  const oo::Ref<T> particle = oo::makeRef<T>();
+  const std::shared_ptr<T> particle = oo::makeRef<T>();
   Entity* object = oo::MadeEntity(particle);
   particle->initWithDiameter(diameter);
   if (outObject != nullptr) *outObject = object;
@@ -217,11 +217,11 @@ OO_TEST(texturesListTheSubclassTexture) {
     SetUp();
     Entity* object = nullptr;
     TestParticle* particle = NewParticle<TestParticle>(1.0f, &object);
-    const oo::Ref<OOTexture> kept =
+    const std::shared_ptr<OOTexture> kept =
         oo::makeRef<OOTexture>();  // a C++ texture; only retained and compared
     OOTexture* texture = kept.get();
     particle->_texture = texture;
-    const std::vector<oo::Ref<OOTexture>> textures = object->allTextures();
+    const std::vector<std::shared_ptr<OOTexture>> textures = object->allTextures();
     OO_CHECK(textures.size() == 1 && textures[0].get() == texture);
   }
 }
@@ -246,7 +246,7 @@ class TestCxxParticle : public OOLightParticleEntity {};
 OO_TEST(cxxSubclassFacade) {
   {
     SetUp();
-    const oo::Ref<TestCxxParticle> particle = oo::makeRef<TestCxxParticle>();
+    const std::shared_ptr<TestCxxParticle> particle = oo::makeRef<TestCxxParticle>();
     particle->initWithDiameter(6.0f);
     Entity* facade = oo::MadeEntity(particle);
     OO_CHECK(facade != nullptr);

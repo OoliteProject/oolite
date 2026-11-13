@@ -66,8 +66,8 @@ class OOJoystickSplineSegment;  // private to OOJoystickProfile.cpp
 
 class OOJoystickAxisProfile : public oo::RefCounted {
  public:
-  OOJoystickAxisProfile();                        // -init
-  virtual oo::Ref<OOJoystickAxisProfile> copy();  // -copyWithZone:
+  OOJoystickAxisProfile();                                // -init
+  virtual std::shared_ptr<OOJoystickAxisProfile> copy();  // -copyWithZone:
   virtual double rawValue(double x);
   double value(double x);
   double deadzone();
@@ -80,7 +80,7 @@ class OOJoystickAxisProfile : public oo::RefCounted {
 class OOJoystickStandardAxisProfile : public OOJoystickAxisProfile {
  public:
   OOJoystickStandardAxisProfile();  // -init
-  oo::Ref<OOJoystickAxisProfile> copy() override;
+  std::shared_ptr<OOJoystickAxisProfile> copy() override;
   void setPower(double newValue);
   double power();
   void setParameter(double newValue);
@@ -97,7 +97,7 @@ class OOJoystickSplineAxisProfile : public OOJoystickAxisProfile {
  public:
   OOJoystickSplineAxisProfile();            // -init
   ~OOJoystickSplineAxisProfile() override;  // -dealloc
-  oo::Ref<OOJoystickAxisProfile> copy() override;
+  std::shared_ptr<OOJoystickAxisProfile> copy() override;
   int addControl(NSPoint point);
   NSPoint pointAtIndex(std::ptrdiff_t index);
   int countPoints();
@@ -116,7 +116,7 @@ class OOJoystickSplineAxisProfile : public OOJoystickAxisProfile {
 
   // The ivar controlPoints (clashes with controlPoints()).
   std::vector<NSPoint> controlPoints_ = {};
-  std::vector<oo::Ref<OOJoystickSplineSegment>>
+  std::vector<std::shared_ptr<OOJoystickSplineSegment>>
       segments;  // no `= {}`: GCC instantiates ~Ref<T> at a default member
                  // initializer, and T is incomplete here
 };
