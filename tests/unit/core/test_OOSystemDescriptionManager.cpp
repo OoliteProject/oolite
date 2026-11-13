@@ -19,7 +19,7 @@
 */
 
 #include <cstdio>
-#include <cstdlib>
+#include <cstdlib>  // IWYU pragma: keep
 #include <string>
 
 #include "OOSystemDescriptionManager.h"

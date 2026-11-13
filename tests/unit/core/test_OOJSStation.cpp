@@ -24,26 +24,26 @@
 #include "OOStringExpander.h"
 #include "OOShipRegistry.h"
 #include "OOTypes.h"
-#include "OOEntityEnums.h"
+#include "OOEntityEnums.h"  // IWYU pragma: keep
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
-#include "OODescription.h"
-#include <algorithm>
-#include <chrono>
-#include <condition_variable>
+#include "OODescription.h"  // IWYU pragma: keep
+#include <algorithm>  // IWYU pragma: keep
+#include <chrono>  // IWYU pragma: keep
+#include <condition_variable>  // IWYU pragma: keep
 #include <cstddef>
 #include <cstdint>
-#include <functional>
+#include <functional>  // IWYU pragma: keep
 #include <map>
 #include <memory>
-#include <mutex>
+#include <mutex>  // IWYU pragma: keep
 #include <optional>
-#include <set>
+#include <set>  // IWYU pragma: keep
 #include <string>
-#include <string_view>
-#include <unordered_map>
-#include <unordered_set>
+#include <string_view>  // IWYU pragma: keep
+#include <unordered_map>  // IWYU pragma: keep
+#include <unordered_set>  // IWYU pragma: keep
 #include <utility>
 #include <vector>
 #include "EntityPListForeign.h"	// an entity's node

@@ -30,7 +30,7 @@
 
 #include <process.h>
 
-#include <cstdlib>
+#include <cstdlib>  // IWYU pragma: keep
 #include <filesystem>
 #include <map>
 #include <string>

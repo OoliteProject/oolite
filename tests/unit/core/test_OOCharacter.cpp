@@ -21,7 +21,6 @@
 
 #include "OOCharacter.h"
 #include "oofnd/PList.hpp"
-#include <cstddef>
 #include <memory>
 #include <optional>
 #include <string>

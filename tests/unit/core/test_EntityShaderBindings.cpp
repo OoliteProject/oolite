@@ -16,7 +16,6 @@
    read. Run: tests/run.sh unit
 */
 
-#include <cstring>
 
 #include "Entity.h"
 #include "PlayerEntity.h"

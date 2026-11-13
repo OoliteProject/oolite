@@ -30,7 +30,6 @@
 
 #include "OODescription.h"
 #include "oofnd/PList.hpp"
-#include <cstddef>
 #include <cstdint>
 #include <map>
 #include <memory>

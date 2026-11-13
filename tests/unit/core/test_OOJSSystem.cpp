@@ -26,7 +26,6 @@
 #include "OOShipGroup.h"
 #include "OODescription.h"
 #include "oofnd/PList.hpp"
-#include <cstddef>
 #include <cstdint>
 #include <functional>
 #include <map>
@@ -40,8 +39,8 @@
 #include "oofnd/String.hpp"
 #include "oo_test.hpp"
 
-#include <cstdlib>
-#include <cstring>
+#include <cstdlib>  // IWYU pragma: keep
+#include <cstring>  // IWYU pragma: keep
 #include <filesystem>
 #include <process.h>
 #include <string>

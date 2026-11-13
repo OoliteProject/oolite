@@ -13,7 +13,6 @@
    pins the C++ API (OOTextureGenerator). Run: tests/run.sh unit
 */
 
-#include <cstdlib>
 
 #include "OOConcreteTexture.h"
 #include "OOTextureGenerator.h"

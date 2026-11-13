@@ -19,7 +19,6 @@
    still sent to the object. Run: tests/run.sh unit
 */
 
-#include <cstring>
 
 #include "OODrawable.h"
 #include "OOEntityWithDrawable.h"

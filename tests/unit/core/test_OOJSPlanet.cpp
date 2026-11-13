@@ -18,7 +18,6 @@
 #include "OOColor.h"
 #include "OOJSEngineCore.h"
 #include "OOStellarBody.h"
-#include "oofnd/AutoreleaseScope.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOException.h"

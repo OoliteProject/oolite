@@ -39,7 +39,7 @@
 class Universe;
 class PlayerEntity;
 PlayerEntity* gOOPlayer = nullptr;
-#include "OOEntityEnums.h"
+#include "OOEntityEnums.h"  // IWYU pragma: keep
 class Entity {
  public:
   OOEntityStatus status();
