@@ -7,12 +7,12 @@
 #include "oofnd/Process.hpp"
 
 #if defined(_WIN32)
-#include <windows.h>
+#include <windows.h>  // IWYU pragma: keep
 #else
 #include <sys/utsname.h>
 #endif
 
-#include <cstdlib>
+#include <cstdlib>  // IWYU pragma: keep
 #include <string>
 #include <thread>
 

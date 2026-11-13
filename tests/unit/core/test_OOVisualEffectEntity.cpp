@@ -30,7 +30,7 @@
 #include "oofnd/FileSystem.hpp"
 
 #include <cmath>
-#include <cstdlib>
+#include <cstdlib>  // IWYU pragma: keep
 #include <filesystem>
 #include <process.h>
 #include <string>

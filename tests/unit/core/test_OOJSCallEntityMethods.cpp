@@ -20,7 +20,6 @@
    them against the methods until then). Run: tests/run.sh unit
 */
 
-#include <cstdlib>
 #include <cstring>
 #include <iterator>
 #include <map>

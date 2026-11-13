@@ -18,7 +18,7 @@
 */
 
 #include "OOFoundation.h"
-#include "OOMaths.h"
+#include "OOMaths.h"  // IWYU pragma: keep
 #include <quickjs.h>
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"

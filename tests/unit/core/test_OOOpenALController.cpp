@@ -14,7 +14,7 @@
 */
 
 #include <cmath>
-#include <cstdlib>
+#include <cstdlib>  // IWYU pragma: keep
 
 #include "OOALSoundMixer.h"
 #include "OOOpenALController.h"

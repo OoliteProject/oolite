@@ -17,7 +17,7 @@
 #include <process.h>
 
 #include <cstdio>
-#include <cstdlib>
+#include <cstdlib>  // IWYU pragma: keep
 #include <cstring>
 #include <filesystem>
 #include <string>

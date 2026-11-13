@@ -18,7 +18,7 @@
    debug)
 */
 
-#include "OOMaths.h"
+#include "OOMaths.h"  // IWYU pragma: keep
 #include "oo_test.hpp"
 
 namespace {

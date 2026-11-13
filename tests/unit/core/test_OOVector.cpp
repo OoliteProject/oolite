@@ -12,9 +12,7 @@
 
 #include "OOMaths.h"
 #include "oofnd/PList.hpp"
-#include <cstddef>
 #include <memory>
-#include <string>
 #include "oo_test.hpp"
 
 namespace {

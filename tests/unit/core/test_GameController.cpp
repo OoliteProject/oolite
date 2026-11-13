@@ -26,7 +26,7 @@
 #include <process.h>
 
 #include <chrono>
-#include <cstdlib>
+#include <cstdlib>  // IWYU pragma: keep
 #include <filesystem>
 #include <functional>
 #include <memory>

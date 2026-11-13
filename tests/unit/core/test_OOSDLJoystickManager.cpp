@@ -12,7 +12,7 @@
    reads back) and refuses everything else. Run: bash tests/run.sh unit
 */
 
-#include <SDL3/SDL.h>
+#include <SDL3/SDL.h>  // IWYU pragma: keep
 
 #include <string>
 #include <vector>

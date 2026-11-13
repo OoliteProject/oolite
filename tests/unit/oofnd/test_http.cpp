@@ -32,7 +32,7 @@
 
 #if defined(_WIN32)
 #include <winsock2.h>
-#include <ws2tcpip.h>
+#include <ws2tcpip.h>  // IWYU pragma: keep
 #else
 #include <netinet/in.h>
 #include <signal.h>

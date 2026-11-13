@@ -29,7 +29,7 @@
 // The protocol's names as UTF-8 literals, as the client reads them.
 #define OOALSTR(x) "" x
 #include <winsock2.h>
-#include <ws2tcpip.h>
+#include <ws2tcpip.h>  // IWYU pragma: keep
 
 #include <map>
 #include <string>
