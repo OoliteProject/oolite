@@ -71,8 +71,7 @@ class OOALBufferedSound : public OOSound {
 
   OOALBufferedSound() = default;
 
-  char* _buffer = {};
-  size_t _size = {};
+  std::vector<char> _buffer;  // the whole sound's samples
   double _sampleRate = {};
   std::optional<std::string> _name;  // nil-able, as the name was
   bool _stereo = {};

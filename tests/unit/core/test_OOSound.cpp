@@ -101,7 +101,7 @@ std::shared_ptr<OOALSoundDecoder> OOALSoundDecoder::initWithPath(
   return oo::makeShared<TestDecoder>(*inPath);
 }
 
-bool OOALSoundDecoder::readCreatingBuffer(char**, size_t*) { return false; }
+bool OOALSoundDecoder::readCreatingBuffer(std::vector<char>&) { return false; }
 size_t OOALSoundDecoder::streamToBuffer(char*) { return 0; }
 size_t OOALSoundDecoder::sizeAsBuffer() { return 0; }
 bool OOALSoundDecoder::isStereo() { return false; }

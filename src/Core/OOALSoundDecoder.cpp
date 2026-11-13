@@ -59,7 +59,7 @@ class OOALSoundVorbisCodec final : public OOALSoundDecoder {
 
   std::optional<std::map<std::string, std::string>> comments();
 
-  bool readCreatingBuffer(char** outBuffer, size_t* outSize) override;
+  bool readCreatingBuffer(std::vector<char>& out) override;
   size_t streamToBuffer(char* buffer) override;
   size_t sizeAsBuffer() override;
   bool isStereo() override;
@@ -105,10 +105,8 @@ std::shared_ptr<OOALSoundDecoder> OOALSoundDecoder::codecWithPath(
 
 size_t OOALSoundDecoder::streamToBuffer(char* /*ioBuffer*/) { return 0; }
 
-bool OOALSoundDecoder::readCreatingBuffer(char** outBuffer, size_t* outSize) {
-  if (nullptr != outBuffer) *outBuffer = nullptr;
-  if (nullptr != outSize) *outSize = 0;
-
+bool OOALSoundDecoder::readCreatingBuffer(std::vector<char>& out) {
+  out.clear();
   return false;
 }
 
@@ -289,39 +287,29 @@ OOALSoundVorbisCodec::comments() {
   return result;
 }
 
-bool OOALSoundVorbisCodec::readCreatingBuffer(char** outBuffer,
-                                              size_t* outSize) {
-  char *buffer = nullptr, *dst;
+bool OOALSoundVorbisCodec::readCreatingBuffer(std::vector<char>& out) {
+  char* dst;
   size_t sizeInFrames = 0;
   int remaining;
   long framesRead;
   // 16-bit samples, either two or one track
   int frameSize = isStereo() ? 4 : 2;
   ogg_int64_t totalSizeInFrames;
-  bool OK = true;
 
-  if (nullptr != outBuffer) *outBuffer = nullptr;
-  if (nullptr != outSize) *outSize = 0;
-  if (nullptr == outBuffer || nullptr == outSize) OK = false;
+  out.clear();
 
-  if (OK) {
-    totalSizeInFrames = ov_pcm_total(&_vf, -1);
-    assert(
-        static_cast<uint64_t>(totalSizeInFrames) <
-        static_cast<uint64_t>(SIZE_MAX));  // Should have been checked by caller
-    sizeInFrames = static_cast<size_t>(totalSizeInFrames);
-  }
+  totalSizeInFrames = ov_pcm_total(&_vf, -1);
+  assert(
+      static_cast<uint64_t>(totalSizeInFrames) <
+      static_cast<uint64_t>(SIZE_MAX));  // Should have been checked by caller
+  sizeInFrames = static_cast<size_t>(totalSizeInFrames);
 
-  if (OK) {
-    buffer =
-        static_cast<char*>(malloc(sizeof(char) * frameSize * sizeInFrames));
-    if (!buffer) OK = false;
-  }
+  std::vector<char> buffer(frameSize * sizeInFrames);
 
-  if (OK && sizeInFrames) {
+  if (sizeInFrames) {
     remaining = static_cast<int>(
         MIN(frameSize * sizeInFrames, static_cast<size_t>(INT_MAX)));
-    dst = buffer;
+    dst = buffer.data();
 
     std::array<char, 4096> pcmout{};
 
@@ -346,13 +334,9 @@ bool OOALSoundVorbisCodec::readCreatingBuffer(char** outBuffer,
     sizeInFrames -= remaining;  // In case we stopped at an error
   }
 
-  if (OK) {
-    *outBuffer = buffer;
-    *outSize = sizeInFrames * frameSize;
-  } else {
-    if (buffer) free(buffer);
-  }
-  return OK;
+  buffer.resize(std::min(buffer.size(), sizeInFrames * frameSize));
+  out = std::move(buffer);
+  return true;
 }
 
 size_t OOALSoundVorbisCodec::streamToBuffer(char* buffer) {

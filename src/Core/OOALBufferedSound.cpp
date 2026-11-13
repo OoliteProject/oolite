@@ -31,10 +31,7 @@ SOFTWARE.
 #include "OOALSoundDecoder.h"
 #include "oofnd/Log.hpp"
 
-OOALBufferedSound::~OOALBufferedSound() {
-  free(_buffer);
-  _buffer = nullptr;
-}
+OOALBufferedSound::~OOALBufferedSound() = default;
 
 std::optional<std::string> OOALBufferedSound::name() { return _name; }
 
@@ -58,7 +55,7 @@ std::shared_ptr<OOALBufferedSound> OOALBufferedSound::initWithDecoder(
   if (OK) {
     self->_name = inDecoder->name();
     self->_sampleRate = inDecoder->sampleRate();
-    OK = inDecoder->readCreatingBuffer(&self->_buffer, &self->_size);
+    OK = inDecoder->readCreatingBuffer(self->_buffer);
     self->_stereo = inDecoder->isStereo();
   }
 
@@ -77,11 +74,11 @@ ALuint OOALBufferedSound::soundBuffer() {
     return 0;
   } else {
     if (!_stereo) {
-      alBufferData(buffer, AL_FORMAT_MONO16, _buffer,
-                   static_cast<ALsizei>(_size), _sampleRate);
+      alBufferData(buffer, AL_FORMAT_MONO16, _buffer.data(),
+                   static_cast<ALsizei>(_buffer.size()), _sampleRate);
     } else {
-      alBufferData(buffer, AL_FORMAT_STEREO16, _buffer,
-                   static_cast<ALsizei>(_size), _sampleRate);
+      alBufferData(buffer, AL_FORMAT_STEREO16, _buffer.data(),
+                   static_cast<ALsizei>(_buffer.size()), _sampleRate);
     }
     return buffer;
   }

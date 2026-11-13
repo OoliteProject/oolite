@@ -17,6 +17,7 @@
 #include <filesystem>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <vector>
 
 #include "OOALSoundDecoder.h"
@@ -111,49 +112,47 @@ OO_TEST(theSoundsProperties) {
 OO_TEST(readsTheWholeSound) {
   const std::shared_ptr<OOALSoundDecoder> decoder =
       OOALSoundDecoder::codecWithPath(BoopPath());
-  char* buffer = nullptr;
-  size_t size = 0;
-  OO_CHECK(decoder->readCreatingBuffer(&buffer, &size));
-  OO_CHECK(buffer != nullptr && size == kBoopBytes);
+  std::vector<char> buffer;
+  OO_CHECK(decoder->readCreatingBuffer(buffer));
+  size_t size = buffer.size();
+  OO_CHECK(!buffer.empty() && size == kBoopBytes);
   bool silent = true;
   for (size_t i = 0; i < size; i++) silent = silent && buffer[i] == 0;
   OO_CHECK(!silent);
-  std::free(buffer);
 
-  // No out-parameters: refused.
-  OO_CHECK(!decoder->readCreatingBuffer(NULL, &size) && size == 0);
+  // No out-parameters: refused (the out-parameter is a reference now).
+  static_assert(
+      !std::is_invocable_v<decltype(&OOALSoundDecoder::readCreatingBuffer),
+                           OOALSoundDecoder*, std::nullptr_t>);
 }
 
 OO_TEST(streamsAndStartsAgain) {
   const std::shared_ptr<OOALSoundDecoder> whole =
       OOALSoundDecoder::codecWithPath(BoopPath());
-  char* expected = nullptr;
-  size_t size = 0;
-  OO_CHECK(whole->readCreatingBuffer(&expected, &size));
+  std::vector<char> expected;
+  OO_CHECK(whole->readCreatingBuffer(expected));
 
   const std::shared_ptr<OOALSoundDecoder> decoder =
       OOALSoundDecoder::codecWithPath(BoopPath());
   std::vector<char> chunk(OOAL_STREAM_CHUNK_SIZE);
   OO_CHECK(decoder->streamToBuffer(chunk.data()) == kBoopBytes);
-  OO_CHECK(expected != nullptr &&
-           std::memcmp(chunk.data(), expected, kBoopBytes) == 0);
+  OO_CHECK(!expected.empty() &&
+           std::memcmp(chunk.data(), expected.data(), kBoopBytes) == 0);
   OO_CHECK(decoder->streamToBuffer(chunk.data()) == 0);  // the end
 
   decoder->reset();
   std::fill(chunk.begin(), chunk.end(), 0);
   OO_CHECK(decoder->streamToBuffer(chunk.data()) == kBoopBytes);
-  OO_CHECK(std::memcmp(chunk.data(), expected, kBoopBytes) == 0);
-  std::free(expected);
+  OO_CHECK(std::memcmp(chunk.data(), expected.data(), kBoopBytes) == 0);
 }
 
 // The public class's own answers: a decoder of nothing.
 OO_TEST(theRootDecodesNothing) {
   const std::shared_ptr<OOALSoundDecoder> none = oo::makeShared<OOALSoundDecoder>();
   OO_CHECK(none != nullptr);
-  char* buffer = reinterpret_cast<char*>(1);
-  size_t size = 1;
-  OO_CHECK(!none->readCreatingBuffer(&buffer, &size));
-  OO_CHECK(buffer == nullptr && size == 0);
+  std::vector<char> buffer(1);
+  OO_CHECK(!none->readCreatingBuffer(buffer));
+  OO_CHECK(buffer.empty());
   char chunk[4] = {};
   OO_CHECK(none->streamToBuffer(chunk) == 0);
   OO_CHECK(none->sizeAsBuffer() == 0 && !none->isStereo() &&
@@ -177,10 +176,8 @@ OO_TEST(cxxApi) {
   OO_CHECK(decoder->descriptionComponents().value_or("").starts_with(
       "\"boop.ogg\", comments="));
 
-  char* buffer = nullptr;
-  size_t size = 0;
-  OO_CHECK(decoder->readCreatingBuffer(&buffer, &size) && size == kBoopBytes);
-  std::free(buffer);
+  std::vector<char> buffer;
+  OO_CHECK(decoder->readCreatingBuffer(buffer) && buffer.size() == kBoopBytes);
 
   const std::shared_ptr<OOALSoundDecoder> streaming =
       OOALSoundDecoder::codecWithPath(BoopPath());

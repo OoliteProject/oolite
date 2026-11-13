@@ -73,7 +73,8 @@ class OOALSoundDecoder : public oo::Object {
       const std::string& inPath);
 
   // Full-buffer reading.
-  virtual bool readCreatingBuffer(char** outBuffer, size_t* outSize);
+  // Replaces out with the whole sound's samples; false (out empty) if none.
+  virtual bool readCreatingBuffer(std::vector<char>& out);
 
   // Stream reading.
   virtual size_t streamToBuffer(char* buffer);
