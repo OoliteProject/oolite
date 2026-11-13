@@ -27,7 +27,9 @@ SOFTWARE.
 
 #include "OOJSEngineTimeManagement.h"
 
-#include <algorithm>
+#include "oofnd/PList.hpp"
+
+#if OOJS_PROFILE
 #include <cstddef>
 #include <format>
 #include <optional>
@@ -38,8 +40,8 @@ SOFTWARE.
 #include <vector>
 
 #include "oofnd/Log.hpp"
-#include "oofnd/PList.hpp"
 #include "oofnd/objc/OOAssert.h"
+#endif
 
 /*	The SpiderMonkey version of this file implemented the time limiter
         (with a watchdog thread that triggered SpiderMonkey's operation

@@ -45,7 +45,7 @@ MA 02110-1301, USA.
 #include "OOJavaScriptEngine.h"
 #endif
 #include <chrono>
-#include <cstddef>
+#include <cstddef>  // IWYU pragma: keep: NULL, in the Windows code
 #include <cstdint>
 #include <functional>
 #include <optional>

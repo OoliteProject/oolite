@@ -25,7 +25,7 @@ MA 02110-1301, USA.
 
 #include "OOJSFunction.h"
 
-#include <climits>
+#include <climits>  // IWYU pragma: keep: used only by code some build options compile
 #include <format>
 
 #include "OOJSEngineTimeManagement.h"

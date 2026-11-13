@@ -26,7 +26,7 @@ SOFTWARE.
 
 */
 
-#include "Universe.h"
+#include "Universe.h"  // IWYU pragma: keep: used only with OO_LOCALIZATION_TOOLS
 
 #if OO_LOCALIZATION_TOOLS
 

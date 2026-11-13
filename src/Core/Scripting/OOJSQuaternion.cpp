@@ -163,7 +163,6 @@ bool QuaternionToJSValue(JSContext* context, Quaternion quaternion,
                          JSValue* outValue) {
   OOJS_PROFILE_ENTER
 
-
   JSValue object = JSQuaternionWithQuaternion(context, quaternion);
   if (EXPECT_NOT(JS_IsException(object))) {
     *outValue = JS_UNDEFINED;
@@ -195,7 +194,6 @@ static bool GetArrayElementNumber(JSContext* context, JSValueConst array,
 bool JSObjectGetQuaternion(JSContext* context, JSValueConst quaternionObj,
                            Quaternion* outQuaternion) {
   OOJS_PROFILE_ENTER
-
 
   Quaternion* priv = nullptr;
   int64_t arrayLength;

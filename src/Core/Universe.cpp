@@ -80,7 +80,7 @@ MA 02110-1301, USA.
 #include "OOShipLibraryDescriptions.h"
 #include "OOShipRegistry.h"
 #include "OOStringExpander.h"
-#include "OOStringParsing.h"
+#include "OOStringParsing.h"  // IWYU pragma: keep: used only by code some build options compile
 #include "OOSunEntity.h"
 #include "OOSystemDescriptionManager.h"
 #include "OOTexture.h"
@@ -101,7 +101,7 @@ MA 02110-1301, USA.
 #include "oofnd/Log.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/PListParsing.hpp"
-#include "oofnd/Process.hpp"
+#include "oofnd/Process.hpp"  // IWYU pragma: keep: used only with OO_LOCALIZATION_TOOLS
 #include "oofnd/Scanner.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"

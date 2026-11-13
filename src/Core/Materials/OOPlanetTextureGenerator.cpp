@@ -44,9 +44,9 @@
 #include "OOColor.h"
 #include "OODescription.h"
 #include "OOPlanetTextureGenerator.h"
-#include "oofnd/Defaults.hpp"
+#include "oofnd/Defaults.hpp"  // IWYU pragma: keep: used only without NDEBUG
 #include "oofnd/PList.hpp"
-#include "oofnd/PListGet.hpp"
+#include "oofnd/PListGet.hpp"  // IWYU pragma: keep: used only without NDEBUG
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 

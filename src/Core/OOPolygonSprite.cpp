@@ -47,12 +47,11 @@ SOFTWARE.
 
 #include "OOGraphicsResetManager.h"
 #include "OOMacroOpenGL.h"
-#include "OOMaths.h"
 #include "OOPointMaths.h"
-#include "oofnd/Defaults.hpp"
+#include "oofnd/Defaults.hpp"  // IWYU pragma: keep: used only without NDEBUG
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
-#include "oofnd/objc/OOException.h"
+#include "oofnd/objc/OOException.h"  // IWYU pragma: keep: used only without NDEBUG
 
 #ifndef APIENTRY
 #define APIENTRY

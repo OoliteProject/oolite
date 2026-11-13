@@ -28,7 +28,6 @@ MA 02110-1301, USA.
 #include <assert.h>
 #include <math.h>
 #include <stdint.h>
-#include <stdio.h>
 
 #include <format>
 

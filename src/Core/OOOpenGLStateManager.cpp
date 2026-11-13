@@ -31,11 +31,10 @@ MA 02110-1301, USA.
 #include <string>
 #include <string_view>
 
-#include "OOFunctionAttributes.h"
 #include "OOMacroOpenGL.h"
 #include "OOOpenGL.h"
 #include "OOOpenGLExtensionManager.h"  // IWYU pragma: keep: the OpenGL feature macros its #if lines test
-#include "oofnd/Log.hpp"
+#include "oofnd/Log.hpp"  // IWYU pragma: keep: used only with OO_GL_STATE_VERIFICATION
 #include "oofnd/objc/OOAssert.h"
 
 /*	DESIGN NOTES
