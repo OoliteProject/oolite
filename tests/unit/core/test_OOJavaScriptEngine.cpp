@@ -757,7 +757,7 @@ OO_TEST(cxxObjectWrapper)
 		OOJSRegisterClass(&sTestWrapperClassID, &sTestWrapperClass);
 		Owned wrapper(JS_NewObjectClass(context, static_cast<int>(sTestWrapperClassID)));
 		OO_CHECK(JS_IsObject(wrapper));
-		OO_CHECK(OOJSSetCxxPrivate(wrapper, native.get()));
+		OO_CHECK(OOJSSetCxxPrivate(wrapper, native));
 		OO_CHECK(JS_SetPropertyStr(context, wrapper, "toString", JS_NewCFunction(context, OOJSObjectWrapperToString, "toString", 0)) >= 0);
 
 		// Unconverted, toString names the JS class.

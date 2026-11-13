@@ -149,7 +149,7 @@ OOSound* SoundFromJSValue(JSContext* context, JSValueConst value) {
     // sound of a Sound object, else null.
     JSClassID ignored;
     OOJSSoundHolder* holder = static_cast<OOJSSoundHolder*>(
-        static_cast<oo::RefCounted*>(JS_GetAnyOpaque(value, &ignored)));
+        OOJSCxxPrivateFromOpaque(JS_GetAnyOpaque(value, &ignored)));
     result = (holder != nullptr) ? holder->sound() : nullptr;
   }
   OOJSResumeTimeLimiter();
@@ -323,7 +323,7 @@ JSValue OOJSSoundJSValueInContext(OOSound* sound, JSContext* context) {
   }
   const std::shared_ptr<OOJSSoundHolder> holder =
       oo::makeShared<OOJSSoundHolder>(sound);
-  if (!OOJSSetCxxPrivate(result, holder.get())) {
+  if (!OOJSSetCxxPrivate(result, holder)) {
     JS_FreeValue(context, result);
     return JS_NULL;
   }

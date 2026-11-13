@@ -92,7 +92,7 @@ JSValue EntityJSValueInContext(Entity* entity, JSContext* context) {
     } else {
       const std::shared_ptr<OOJSEntityHolder> holder =
           oo::makeShared<OOJSEntityHolder>(entity);
-      if (!OOJSSetCxxPrivate(jsSelf, holder.get())) {
+      if (!OOJSSetCxxPrivate(jsSelf, holder)) {
         JS_FreeValue(context, jsSelf);
       } else {
         entity->_jsSelf = jsSelf;

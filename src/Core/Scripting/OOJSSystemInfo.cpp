@@ -259,7 +259,7 @@ static bool JSSystemInfoGetSystemInfo(JSContext* context, JSValueConst inObject,
 // another class (it answers null).
 static OOSystemInfo* SystemInfoForObject(JSValueConst obj) {
   return static_cast<OOSystemInfo*>(
-      static_cast<oo::RefCounted*>(JS_GetOpaque(obj, sSystemInfoClassID)));
+      OOJSCxxPrivateFromOpaque(JS_GetOpaque(obj, sSystemInfoClassID)));
 }
 
 // OOSystemInfo (OOJSSystemInfo.h), the helper class wrapped by JS SystemInfo
@@ -391,7 +391,7 @@ JSValue OOSystemInfo::jsValueInContext(JSContext* context) {
     return JS_NULL;
   }
   // The slot holds this, retained (OOJSCxxObjectWrapperFinalize releases it).
-  if (!OOJSSetCxxPrivate(result, this)) {
+  if (!OOJSSetCxxPrivate(result, oo::share(this))) {
     JS_FreeValue(context, result);
     return JS_NULL;
   }

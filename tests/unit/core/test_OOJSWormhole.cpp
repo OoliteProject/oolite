@@ -269,7 +269,7 @@ WormholeEntity *sWormholePart = nullptr;	// its C++ part
 JSValue JSValueForEntity(JSClassID classID, TestEntityObject *entity)
 {
 	JSValue object = JS_NewObjectClass(sContext, static_cast<int>(classID));
-	if (JS_IsException(object) || !OOJSSetCxxPrivate(object, oo::makeRef<OOJSEntityHolder>(entity->_cxxEntity.get()).get()))
+	if (JS_IsException(object) || !OOJSSetCxxPrivate(object, oo::makeShared<OOJSEntityHolder>(entity->_cxxEntity.get())))
 	{
 		JS_FreeValue(sContext, object);
 		return JS_NULL;

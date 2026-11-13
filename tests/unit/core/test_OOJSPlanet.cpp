@@ -498,7 +498,7 @@ JSValue JSValueForObject(JSClassID jsClass, TestEntityObject *entity)
 		return JS_NULL;
 	}
 	if (entity->_cxxEntity == nullptr)  entity->_cxxEntity = oo::makeRef<Entity>();	// a plain entity's C++ part
-	OOJSSetCxxPrivate(object, oo::makeRef<OOJSEntityHolder>(entity->_cxxEntity.get()).get());	// the slot holds the C++ entity
+	OOJSSetCxxPrivate(object, oo::makeShared<OOJSEntityHolder>(entity->_cxxEntity.get()));	// the slot holds the C++ entity
 	return object;
 }
 

@@ -54,7 +54,7 @@ std::optional<std::string> OOJSSoundJSDescription(OOSound* sound);
 std::optional<std::string> OOJSSoundJSClassName(void);
 
 /*	What a Sound object's private slot holds. Each Sound object has its own
-   holder, which retains the sound; the slot retains the holder
+   holder, which shares the sound; the slot shares the holder
    (OOJSSetCxxPrivate) and the finalizer releases it
    (OOJSCxxObjectWrapperFinalize). Its toString() is the sound's. Defined in
    OOJSSound.cpp; only the binding makes one.

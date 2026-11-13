@@ -241,13 +241,15 @@ JSValue OOJSNativeFailure(JSContext *context)
 namespace {
 
 // The private object of a JS object of one of the registered classes (the fake Ship class or
-// ShipGroup), an oo::RefCounted (a ship's object or a group); null for any other value.
-oo::RefCounted *PrivateOf(JSValueConst value)
+// ShipGroup), an oo::Object (a ship's object or a group); null for any other value. A fake
+// ship's slot holds its object itself; a group's is the engine's (OOJSSetCxxPrivate).
+oo::Object *PrivateOf(JSValueConst value)
 {
 	if (!JS_IsObject(value))  return nullptr;
 	JSClassID classID = JS_GetClassID(value);
 	if (OOJSClassName(classID) == nullptr)  return nullptr;
-	return static_cast<oo::RefCounted *>(JS_GetOpaque(value, classID));
+	if (classID == sFakeShipClassID)  return static_cast<oo::RefCounted *>(JS_GetOpaque(value, classID));
+	return OOJSCxxPrivateFromOpaque(JS_GetOpaque(value, classID));
 }
 
 } // namespace
@@ -470,7 +472,7 @@ OO_TEST(category)
 	JSValue again = group->jsValueInContext(sContext);
 	OO_CHECK(JS_VALUE_GET_PTR(again) == JS_VALUE_GET_PTR(first));
 	JS_FreeValue(sContext, again);
-	OO_CHECK(static_cast<oo::RefCounted *>(JS_GetOpaque(first, JS_GetClassID(first))) == static_cast<oo::RefCounted *>(group.get()));
+	OO_CHECK(OOJSCxxPrivateFromOpaque(JS_GetOpaque(first, JS_GetClassID(first))) == static_cast<oo::Object *>(group.get()));
 	Define("catGroup", first);	// the global holds it from here on
 	OO_CHECK_EVAL("catGroup.name", "cat");
 	// Clearing with another object leaves it; clearing with its own makes the next one new.

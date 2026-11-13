@@ -137,7 +137,7 @@ static int ConsoleSettingsSetProperty(JSContext* context, JSValueConst object,
                                       JSAtom propID, JSValueConst value,
                                       JSValueConst receiver, int flags);
 
-/*	The console objects' private slot holds the C++ monitor with one retain
+/*	The console objects' private slot holds the C++ monitor, shared
    (OOJSSetCxxPrivate()), released by the finalizer, which tells the monitor
    its wrapper is gone (OODebugMonitor::clearJSSelf() does nothing). The monitor
    is never released, so the slot keeps nothing alive that would otherwise die.
@@ -329,7 +329,7 @@ OODebugMonitor* MonitorFromJSObject(JSValueConst object) {
       (classID != sConsoleClassID && classID != sConsoleSettingsClassID))
     return nullptr;
   return static_cast<OODebugMonitor*>(
-      static_cast<oo::RefCounted*>(JS_GetOpaque(object, classID)));
+      OOJSCxxPrivateFromOpaque(JS_GetOpaque(object, classID)));
 }
 
 /*	The natives' internal error for a `this` that is not a console object:
@@ -389,7 +389,7 @@ JSValue DebugMonitorToJSConsole(JSContext* context, OODebugMonitor* monitor) {
     OOJSReportPendingException(context);
     return JS_NULL;
   }
-  if (!OOJSSetCxxPrivate(object, monitor)) {
+  if (!OOJSSetCxxPrivate(object, oo::share(monitor))) {
     JS_FreeValue(context, object);
     return JS_NULL;
   }
@@ -405,7 +405,7 @@ JSValue DebugMonitorToJSConsole(JSContext* context, OODebugMonitor* monitor) {
     JS_FreeValue(context, object);
     return JS_NULL;
   }
-  if (!OOJSSetCxxPrivate(settingsObject, monitor)) {
+  if (!OOJSSetCxxPrivate(settingsObject, oo::share(monitor))) {
     JS_FreeValue(context, settingsObject);
     JS_FreeValue(context, object);
     return JS_NULL;

@@ -367,7 +367,7 @@ oo::PList cxx_OOJSPListFromJSValue(JSContext *context, JSValueConst value)
 		return oo::PList(std::move(array));
 	}
 	const char *jsClass = OOJSClassName(JS_GetClassID(value));
-	if (jsClass != nullptr && std::strcmp(jsClass, "EquipmentInfo") == 0)  return OOEquipmentTypeObjectNode(static_cast<OOEquipmentType *>(static_cast<oo::RefCounted *>(JS_GetOpaque(value, JS_GetClassID(value)))));
+	if (jsClass != nullptr && std::strcmp(jsClass, "EquipmentInfo") == 0)  return OOEquipmentTypeObjectNode(static_cast<OOEquipmentType *>(OOJSCxxPrivateFromOpaque(JS_GetOpaque(value, JS_GetClassID(value)))));
 	return oo::PList(std::string("[object]"));
 }
 
@@ -537,9 +537,9 @@ std::string Eval(const char *src)
 
 
 // What a JS object's private slot holds.
-oo::RefCounted *SlotOf(JSValueConst object)
+oo::Object *SlotOf(JSValueConst object)
 {
-	return static_cast<oo::RefCounted *>(JS_GetOpaque(object, JS_GetClassID(object)));
+	return OOJSCxxPrivateFromOpaque(JS_GetOpaque(object, JS_GetClassID(object)));
 }
 
 

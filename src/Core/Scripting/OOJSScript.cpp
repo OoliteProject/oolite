@@ -123,7 +123,7 @@ class ScriptPrivate final : public oo::RefCounted {
 // object of another class, or once the script has gone.
 static OOJSScript* ScriptOfJSObject(JSValueConst object) {
   ScriptPrivate* slot = static_cast<ScriptPrivate*>(
-      static_cast<oo::RefCounted*>(JS_GetOpaque(object, sScriptClassID)));
+      OOJSCxxPrivateFromOpaque(JS_GetOpaque(object, sScriptClassID)));
   return (slot != nullptr) ? slot->script() : nullptr;
 }
 
@@ -174,8 +174,7 @@ bool OOJSScript::initWithPath(const std::optional<std::string>& path,
 
     if (!problem.has_value()) {
       // (the slot held the script's weak reference proxy, retained)
-      if (!OOJSSetCxxPrivate(_jsSelf,
-                             oo::makeShared<ScriptPrivate>(this).get())) {
+      if (!OOJSSetCxxPrivate(_jsSelf, oo::makeShared<ScriptPrivate>(this))) {
         problem = "could not set private backreference";
       }
     }

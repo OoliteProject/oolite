@@ -477,7 +477,7 @@ void InitOOJSPlayerShip(JSContext* context, JSValueConst global) {
       JS_NewObjectClass(context, static_cast<int>(sPlayerShipClassID));
   // The slot holds a weak reference to the C++ player, as every entity's JS
   // object's does.
-  OOJSSetCxxPrivate(shipObject, oo::makeShared<OOJSEntityHolder>(player).get());
+  OOJSSetCxxPrivate(shipObject, oo::makeShared<OOJSEntityHolder>(player));
   // The player object's property and the player entity each own a reference.
   JS_DefinePropertyValueStr(context, playerObject, "ship",
                             JS_DupValue(context, shipObject),

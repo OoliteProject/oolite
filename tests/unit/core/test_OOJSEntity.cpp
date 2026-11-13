@@ -354,7 +354,7 @@ JSValue JSValueForEntity(TestEntityObject *entity)
 		if (entity->_cxxEntity == nullptr)  entity->_cxxEntity = oo::makeRef<TestEntityPart>();
 		sObjects[entity->_cxxEntity.get()] = entity;
 		JSValue object = JS_NewObjectClass(sContext, static_cast<int>(JSEntityClassID()));
-		if (JS_IsException(object) || !OOJSSetCxxPrivate(object, oo::makeRef<OOJSEntityHolder>(entity->_cxxEntity.get()).get()))
+		if (JS_IsException(object) || !OOJSSetCxxPrivate(object, oo::makeShared<OOJSEntityHolder>(entity->_cxxEntity.get())))
 		{
 			JS_FreeValue(sContext, object);
 			return JS_NULL;
@@ -519,8 +519,8 @@ void OOJSResumeTimeLimiter(void)  { sLimiterPauses--; }
 
 // The engine's C++ slot glue (OOJSPrivateObject.h), as the
 // Objective-C glue was stood in for: the getter's JS class check and error, the
-// slot's retain, a finalizer that does nothing and the same toString().
-bool OOJSGetCxxPrivateImpl(JSContext *context, JSValueConst object, JSClassID requiredClassID, oo::RefCounted **outObject)
+// slot's shared holder, a finalizer that does nothing and the same toString().
+bool OOJSGetCxxPrivateImpl(JSContext *context, JSValueConst object, JSClassID requiredClassID, oo::Object **outObject)
 {
 	if (!OOJSIsSubclass(JS_GetClassID(object), requiredClassID))
 	{
@@ -529,16 +529,16 @@ bool OOJSGetCxxPrivateImpl(JSContext *context, JSValueConst object, JSClassID re
 		return false;
 	}
 	JSClassID ignored;
-	*outObject = static_cast<oo::RefCounted *>(JS_GetAnyOpaque(object, &ignored));
+	*outObject = OOJSCxxPrivateFromOpaque(JS_GetAnyOpaque(object, &ignored));
 	return true;
 }
 
 
-bool OOJSSetCxxPrivate(JSValueConst jsObject, oo::RefCounted *object)
+bool OOJSSetCxxPrivate(JSValueConst jsObject, std::shared_ptr<oo::Object> object)
 {
-	if (object != nullptr)  object->retain();
-	if (JS_SetOpaque(jsObject, object) == 0)  return true;
-	if (object != nullptr)  object->release();
+	std::shared_ptr<oo::Object> *holder = object != nullptr ? new std::shared_ptr<oo::Object>(std::move(object)) : nullptr;
+	if (JS_SetOpaque(jsObject, holder) == 0)  return true;
+	delete holder;
 	return false;
 }
 
