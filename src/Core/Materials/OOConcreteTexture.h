@@ -135,7 +135,7 @@ class OOConcreteTexture : public OOTexture {
 
   std::shared_ptr<OOTextureLoader> _loader = {};
 
-  void* _bytes = {};
+  OOPixelBuffer _bytes;  // the pixels until uploaded (kept if not reloadable)
   GLuint _textureName = {};
   uint32_t _width = {}, _height = {}, _originalWidth = {}, _originalHeight = {};
 

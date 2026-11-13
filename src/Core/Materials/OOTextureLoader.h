@@ -146,8 +146,8 @@ class OOTextureLoader : public ::OOAsyncWorkTask {
      there may be several worker threads. The caller takes responsibility for
           autorelease pools and exception safety.
 
-          Superclass will handle scaling and mip-map generation. Data must be
-          allocated with malloc() family.
+          Superclass will handle scaling and mip-map generation. Data is an
+          OOPixelBuffer (OOMakePixelBuffer()), at least _rowBytes * _height.
   */
   virtual void loadTexture();
 
@@ -169,7 +169,7 @@ class OOTextureLoader : public ::OOAsyncWorkTask {
   uint8_t _extractChannelIndex = {};
   OOTextureDataFormat _format = {};
 
-  void* _data = {};
+  OOPixelBuffer _data;  // the pixels, or null
   uint32_t _width = {}, _height = {}, _originalWidth = {}, _originalHeight = {},
            _shrinkThreshold = {}, _maxSize = {};
   size_t _rowBytes = {};

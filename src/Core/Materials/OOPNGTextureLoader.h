@@ -77,4 +77,7 @@ class OOPNGTextureLoader : public OOTextureLoader {
   std::optional<oo::Data> fileData;
   size_t length = {};
   size_t offset = {};
+  // The row pointers into _data while libpng reads. A member, not a local: a
+  // libpng error longjmps back into doLoadTexture().
+  std::vector<png_bytep> rows;
 };

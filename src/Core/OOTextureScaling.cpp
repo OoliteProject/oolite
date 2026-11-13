@@ -283,8 +283,7 @@ OOPixMap OOScalePixMap(OOPixMap srcPx, OOPixMapDimension dstWidth,
   //	Sanity check.
   if (EXPECT_NOT(!OOIsValidPixMap(srcPx))) {
     OOLogGenericParameterError();
-    free(srcPx.pixels);
-    return kOONullPixMap;
+    return kOONullPixMap;  // srcPx's buffer goes with it
   }
 
   DUMP_SCALE_PREPARE();
@@ -322,6 +321,7 @@ OOPixMap OOScalePixMap(OOPixMap srcPx, OOPixMapDimension dstWidth,
     if (dstSize <= sparePx.bufferSize) {
       dstPx = OOMakePixMap(sparePx.pixels, dstWidth, srcPx.height, srcPx.format,
                            0, sparePx.bufferSize);
+      if (OOIsValidPixMap(dstPx)) dstPx.buffer = sparePx.buffer;
       sparePx = kOONullPixMap;
     } else {
       dstPx =
@@ -347,23 +347,11 @@ OOPixMap OOScalePixMap(OOPixMap srcPx, OOPixMapDimension dstWidth,
     dstPx = srcPx;
   }
 
-  // Avoid a potential double free (if the realloc in EnsureCorrectDataSize()
-  // relocates the block).
-  if (srcPx.pixels == dstPx.pixels) srcPx.pixels = nullptr;
-
   // dstPx is now the result.
   OK = EnsureCorrectDataSize(&dstPx, leaveSpaceForMipMaps);
 
 FAIL:
-  free(srcPx.pixels);
-  if (sparePx.pixels != dstPx.pixels && sparePx.pixels != srcPx.pixels) {
-    free(sparePx.pixels);
-  }
-  if (!OK) {
-    free(dstPx.pixels);
-    dstPx.pixels = nullptr;
-  }
-
+  // The buffers of srcPx and sparePx that dstPx does not use go with them.
   return OK ? dstPx : kOONullPixMap;
 }
 
@@ -1679,7 +1667,6 @@ static void SqueezeVertically4(OOPixMap srcPx, OOPixMapDimension dstHeight) {
 
 static bool EnsureCorrectDataSize(OOPixMap* pixMap, bool leaveSpaceForMipMaps) {
   size_t correctSize;
-  void* bytes = nullptr;
 
   correctSize = pixMap->rowBytes * pixMap->height;
 
@@ -1698,10 +1685,7 @@ static bool EnsureCorrectDataSize(OOPixMap* pixMap, bool leaveSpaceForMipMaps) {
 
   if (leaveSpaceForMipMaps) correctSize = correctSize * 4 / 3;
   if (correctSize != pixMap->bufferSize) {
-    bytes = realloc(pixMap->pixels, correctSize);
-    if (EXPECT_NOT(bytes == nullptr)) free(pixMap->pixels);
-    pixMap->pixels = bytes;
-    pixMap->bufferSize = correctSize;
+    return OOResizePixMap(pixMap, correctSize);
   }
 
   return true;

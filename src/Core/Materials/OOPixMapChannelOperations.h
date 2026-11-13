@@ -46,8 +46,8 @@ bool OOExtractPixMapChannel(OOPixMap* ioPixMap, uint8_t channelIndex,
 
 /*	OOPixMapToRGBA()
         Convert a pixmap to RGBA format.
-        NOTE: if successful, this will free() the original buffer and replace
-   it.
+        NOTE: if successful, this replaces the original buffer (this pixmap
+   lets go of it).
 */
 bool OOPixMapToRGBA(OOPixMap* ioPixMap);
 

@@ -138,7 +138,6 @@ OOConcreteTexture::~OOConcreteTexture() {
       OOGL(glDeleteTextures(1, &_textureName));
       _textureName = 0;
     }
-    free(_bytes);
     _bytes = nullptr;
   }
 
@@ -369,7 +368,7 @@ void OOConcreteTexture::setUpTexture() {
       _loader->getResult(&pm, &_format, &_originalWidth,
                          &_originalHeight))  // a message to nil answered NO
   {
-    _bytes = pm.pixels;
+    _bytes = OOPixMapOwnedBuffer(pm);
     _width = pm.width;
     _height = pm.height;
 
@@ -484,7 +483,6 @@ void OOConcreteTexture::uploadTexture() {
 
 #if OOTEXTURE_RELOADABLE
     if (isReloadable()) {
-      free(_bytes);
       _bytes = nullptr;
     }
 #endif
@@ -495,7 +493,8 @@ void OOConcreteTexture::uploadTextureDataWithMipMap(
     bool mipMap, OOTextureDataFormat format) {
   GLenum glFormat = 0, internalFormat = 0, type = 0;
   unsigned w = _width, h = _height, level = 0;
-  char* bytes = static_cast<char*>(_bytes);
+  char* bytes =
+      (_bytes != nullptr ? reinterpret_cast<char*>(_bytes->data()) : nullptr);
   uint8_t components = OOTextureComponentsForFormat(format);
 
   OO_ENTER_OPENGL();
@@ -536,7 +535,8 @@ void OOConcreteTexture::uploadTextureCubeMapDataWithMipMap(
 
   unsigned side;
   for (side = 0; side < 6; side++) {
-    char* bytes = static_cast<char*>(_bytes);
+    char* bytes =
+        (_bytes != nullptr ? reinterpret_cast<char*>(_bytes->data()) : nullptr);
     bytes += side * sideSize;
 
     unsigned w = _width, level = 0;
@@ -573,8 +573,6 @@ void OOConcreteTexture::forceRebind() {
 #if OOTEXTURE_RELOADABLE
     if (isReloadable()) {
       OO_LOG("texture.reload", "Reloading texture {}", description());
-
-      free(_bytes);
       _bytes = nullptr;
       _loaded = false;
       _uploaded = false;

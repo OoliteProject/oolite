@@ -119,12 +119,7 @@ bool OOPixMapToRGBA(OOPixMap* ioPixMap) {
       // No default, because -Wswitch-enum is our friend.
   }
 
-  if (OK) {
-    free(ioPixMap->pixels);
-    *ioPixMap = temp;
-  } else {
-    free(temp.pixels);
-  }
+  if (OK) *ioPixMap = temp;  // the original buffer goes, as temp's does if not
 
   return OK;
 }

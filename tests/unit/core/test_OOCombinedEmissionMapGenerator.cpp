@@ -407,8 +407,8 @@ OO_TEST(cxxApi) {
     generator->loadTexture();
     OO_CHECK(generator->_data != nullptr &&
              generator->_format == kOOPixMapRGBA &&
-             ((const uint8_t*)generator->_data)[0] == 200 &&
-             ((const uint8_t*)generator->_data)[1] == 0);
+             generator->_data->data()[0] == 200 &&
+             generator->_data->data()[1] == 0);
   }
   ClearCache();
 }

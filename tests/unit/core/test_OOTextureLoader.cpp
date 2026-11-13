@@ -44,9 +44,10 @@ class TestLoader : public OOTextureLoader {
     if (_testEmpty) return;
     const size_t size = (size_t)_testWidth * _testHeight *
                         OOTextureComponentsForFormat(_testFormat);
-    uint8_t* bytes = (uint8_t*)malloc(size);
+    OOPixelBuffer buffer = OOMakePixelBuffer(size);
+    uint8_t* bytes = buffer->data();
     for (size_t i = 0; i < size; i++) bytes[i] = (uint8_t)(i + 1);
-    _data = bytes;
+    _data = buffer;
     _width = _testWidth;
     _height = _testHeight;
     _format = _testFormat;
@@ -305,9 +306,10 @@ class TestCxxLoader final : public OOTextureLoader {
  public:
   void loadTexture() override {
     loads++;
-    uint8_t* bytes = (uint8_t*)malloc(8 * 8 * 4);
+    OOPixelBuffer buffer = OOMakePixelBuffer(8 * 8 * 4);
+    uint8_t* bytes = buffer->data();
     for (unsigned i = 0; i < 8 * 8 * 4; i++) bytes[i] = (uint8_t)(i + 1);
-    _data = bytes;
+    _data = buffer;
     _width = 8;
     _height = 8;
     _format = kOOPixMapRGBA;

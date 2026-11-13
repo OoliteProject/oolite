@@ -34,9 +34,10 @@ class BareGenerator : public OOTextureGenerator {
  public:
   void loadTexture() override {
     gLoads++;
-    uint8_t* bytes = (uint8_t*)malloc(8 * 8 * 4);
+    OOPixelBuffer buffer = OOMakePixelBuffer(8 * 8 * 4);
+    uint8_t* bytes = buffer->data();
     for (unsigned i = 0; i < 8 * 8 * 4; i++) bytes[i] = (uint8_t)(i + 1);
-    _data = bytes;
+    _data = buffer;
     _width = 8;
     _height = 8;
     _format = kOOPixMapRGBA;
@@ -174,9 +175,10 @@ class TestCxxGenerator final : public OOTextureGenerator {
  public:
   void loadTexture() override {
     loads++;
-    uint8_t* bytes = (uint8_t*)malloc(8 * 8 * 4);
+    OOPixelBuffer buffer = OOMakePixelBuffer(8 * 8 * 4);
+    uint8_t* bytes = buffer->data();
     for (unsigned i = 0; i < 8 * 8 * 4; i++) bytes[i] = (uint8_t)(i + 1);
-    _data = bytes;
+    _data = buffer;
     _width = 8;
     _height = 8;
     _format = kOOPixMapRGBA;

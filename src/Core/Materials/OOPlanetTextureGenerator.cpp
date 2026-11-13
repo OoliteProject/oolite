@@ -60,17 +60,6 @@
 #include "MyOpenGLView.h"
 #endif
 
-#define FREE(x)                                   \
-  do {                                            \
-    if (0) {                                      \
-      void* x__ = x;                              \
-      x__ = x__;                                  \
-    } /* Preceeding is for type checking only. */ \
-    void** x_ = reinterpret_cast<void**>(&(x));   \
-    free(*x_);                                    \
-    *x_ = NULL;                                   \
-  } while (0)
-
 #define PLANET_TEXTURE_OPTIONS                                           \
   (OOTextureFlags::kMinFilterLinear | OOTextureFlags::kMagFilterLinear | \
    OOTextureFlags::kRepeatS | OOTextureFlags::kNoShrink)
@@ -87,7 +76,7 @@ class OOPlanetNormalMapGenerator : public OOTextureGenerator {
   bool initWithCacheKey(const std::string& cacheKey,
                         RANROTSeed seed);  // was -initWithCacheKey:seed:
 
-  void completeWithData(void* data, unsigned width, unsigned height);
+  void completeWithData(OOPixelBuffer data, unsigned width, unsigned height);
 
   bool enqueued();
 
@@ -109,7 +98,7 @@ class OOPlanetAtmosphereGenerator : public OOTextureGenerator {
                         OOPlanetTextureGenerator*
                             parent);  // was -initWithCacheKey:seed:andParent:
 
-  void completeWithData(void* data, unsigned width, unsigned height);
+  void completeWithData(OOPixelBuffer data, unsigned width, unsigned height);
 
   bool enqueued();
 
@@ -417,10 +406,8 @@ void OOPlanetTextureGenerator::loadTexture() {
   bool generateNormalMap = static_cast<bool>(_nMapGenerator);
   bool generateAtmosphere = static_cast<bool>(_atmoGenerator);
 
-  uint8_t *buffer = nullptr, *px = nullptr;
-  uint8_t *nBuffer = nullptr, *npx = nullptr;
-  uint8_t *aBuffer = nullptr, *apx = nullptr;
-  float* randomBuffer = nullptr;
+  OOPixelBuffer buffer, nBuffer, aBuffer;
+  uint8_t *px = nullptr, *npx = nullptr, *apx = nullptr;
 
   _height = _info.height = 1 << (_planetScale + _info.planetScaleOffset);
   _width = _info.width = _height * _info.planetAspectRatio;
@@ -429,30 +416,23 @@ void OOPlanetTextureGenerator::loadTexture() {
   do {                              \
     if (EXPECT_NOT(cond)) goto END; \
   } while (0)
-#define FAIL_IF_NULL(x) FAIL_IF((x) == NULL)
 
-  buffer =
-      static_cast<uint8_t*>(malloc(4 * static_cast<size_t>(_width) * _height));
-  FAIL_IF_NULL(buffer);
-  px = buffer;
+  buffer = OOMakePixelBuffer(4 * static_cast<size_t>(_width) * _height);
+  px = buffer->data();
 
   if (generateNormalMap) {
-    nBuffer = static_cast<uint8_t*>(
-        malloc(4 * static_cast<size_t>(_width) * _height));
-    FAIL_IF_NULL(nBuffer);
-    npx = nBuffer;
+    nBuffer = OOMakePixelBuffer(4 * static_cast<size_t>(_width) * _height);
+    npx = nBuffer->data();
   }
 
   if (generateAtmosphere) {
-    aBuffer = static_cast<uint8_t*>(
-        malloc(4 * static_cast<size_t>(_width) * _height));
-    FAIL_IF_NULL(aBuffer);
-    apx = aBuffer;
+    aBuffer = OOMakePixelBuffer(4 * static_cast<size_t>(_width) * _height);
+    apx = aBuffer->data();
   }
 
   FAIL_IF(!FillFBMBuffer(&_info));
 #if DEBUG_DUMP_RAW
-  dumpNoiseBuffer(_info.fbmBuffer);
+  dumpNoiseBuffer(_info.fbmBuffer.data());
 #endif
 
   {
@@ -495,9 +475,7 @@ void OOPlanetTextureGenerator::loadTexture() {
                                                   // inside each loop!
 
     // first pass, calculate q.
-    _info.qBuffer = static_cast<float*>(
-        malloc(static_cast<size_t>(_width * _height) * sizeof(float)));
-    FAIL_IF_NULL(_info.qBuffer);
+    _info.qBuffer.assign(static_cast<size_t>(_width * _height), 0.0f);
 
     for (y = static_cast<int>(_height) - 1, fy = static_cast<float>(y); y >= 0;
          y--, fy--) {
@@ -505,8 +483,8 @@ void OOPlanetTextureGenerator::loadTexture() {
       nearPole *= nearPole;
 
       for (x = static_cast<int>(_width) - 1; x >= 0; x--) {
-        _info.qBuffer[y * _width + x] = QFactor(_info.fbmBuffer, x, y, _width,
-                                                poleValue, seaBias, nearPole);
+        _info.qBuffer[y * _width + x] = QFactor(
+            _info.fbmBuffer.data(), x, y, _width, poleValue, seaBias, nearPole);
       }
     }
 
@@ -523,13 +501,13 @@ void OOPlanetTextureGenerator::loadTexture() {
       for (x = static_cast<int>(_width) - 1; x >= 0; x--) {
         q = _info.qBuffer[y * _width + x];  // no need to use GetQ, x and y are
                                             // always within bounds.
-        yN = GetQ(_info.qBuffer, x, y - 1, _width, _height, widthMask,
+        yN = GetQ(_info.qBuffer.data(), x, y - 1, _width, _height, widthMask,
                   heightMask);  // recalculates x & y if they go out of bounds.
-        yS = GetQ(_info.qBuffer, x, y + 1, _width, _height, widthMask,
+        yS = GetQ(_info.qBuffer.data(), x, y + 1, _width, _height, widthMask,
                   heightMask);
-        yW = GetQ(_info.qBuffer, x - 1, y, _width, _height, widthMask,
+        yW = GetQ(_info.qBuffer.data(), x - 1, y, _width, _height, widthMask,
                   heightMask);
-        yE = GetQ(_info.qBuffer, x + 1, y, _width, _height, widthMask,
+        yE = GetQ(_info.qBuffer.data(), x + 1, y, _width, _height, widthMask,
                   heightMask);
 
         color = PlanetMix(&_info, q, nearPole);
@@ -569,8 +547,8 @@ void OOPlanetTextureGenerator::loadTexture() {
         *px++ = 0;  // FIXME: light map goes here.
 
         if (generateAtmosphere) {
-          q = QFactor(_info.fbmBuffer, x, y, _width, paleClouds, cloudFraction,
-                      nearPole);
+          q = QFactor(_info.fbmBuffer.data(), x, y, _width, paleClouds,
+                      cloudFraction, nearPole);
           color = CloudMix(&_info, q, nearPole);
           *apx++ = 255.0f * color.r;
           *apx++ = 255.0f * color.g;
@@ -585,20 +563,15 @@ void OOPlanetTextureGenerator::loadTexture() {
   }
 
 END:
-  FREE(_info.fbmBuffer);
-  FREE(_info.qBuffer);
-  FREE(randomBuffer);
+  _info.fbmBuffer = std::vector<float>();
+  _info.qBuffer = std::vector<float>();
   if (success) {
     _data = buffer;
     if (generateNormalMap)
       _nMapGenerator->completeWithData(nBuffer, _width, _height);
     if (generateAtmosphere)
       _atmoGenerator->completeWithData(aBuffer, _width, _height);
-  } else {
-    FREE(buffer);
-    FREE(nBuffer);
-    FREE(aBuffer);
-  }
+  }  // (otherwise the buffers go with their locals)
   _nMapGenerator = nullptr;
   _atmoGenerator = nullptr;
 
@@ -615,8 +588,8 @@ END:
 
     if (MyOpenGLView* gameView =
             (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr))
-      gameView->dumpRGBAToRGBFileNamed(diffuseName, lightsName, buffer, _width,
-                                       _height, _width * 4);
+      gameView->dumpRGBAToRGBFileNamed(diffuseName, lightsName, buffer->data(),
+                                       _width, _height, _width * 4);
   }
 #endif
 }
@@ -627,7 +600,7 @@ void OOPlanetTextureGenerator::dumpNoiseBuffer(float* noise) {
   const std::string noiseName =
       std::format("planet-{}-{}-noise-new", _info.seed.high, _info.seed.low);
 
-  uint8_t* noisePx = static_cast<uint8_t*>(malloc(_width * _height));
+  std::vector<uint8_t> noisePx(static_cast<size_t>(_width) * _height);
   unsigned x, y;
   for (y = 0; y < _height; y++) {
     for (x = 0; x < _width; x++) {
@@ -637,8 +610,8 @@ void OOPlanetTextureGenerator::dumpNoiseBuffer(float* noise) {
 
   if (MyOpenGLView* gameView =
           (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr))
-    gameView->dumpGrayToFileNamed(noiseName, noisePx, _width, _height, _width);
-  FREE(noisePx);
+    gameView->dumpGrayToFileNamed(noiseName, noisePx.data(), _width, _height,
+                                  _width);
 }
 
 #endif
@@ -824,18 +797,14 @@ static bool FillFBMBuffer(OOPlanetTextureGeneratorInfo* info) {
   OOCParameterAssert(info != nullptr);
 
   // Allocate result buffer.
-  info->fbmBuffer =
-      static_cast<float*>(calloc(info->width * info->height, sizeof(float)));
-  if (info->fbmBuffer != nullptr) {
-    if (!info->perlin3d) {
-      GenerateFBMNoise(info);
-    } else {
-      GenerateFBMNoise3D(info);
-    }
-
-    return true;
+  info->fbmBuffer.assign(static_cast<size_t>(info->width) * info->height, 0.0f);
+  if (!info->perlin3d) {
+    GenerateFBMNoise(info);
+  } else {
+    GenerateFBMNoise3D(info);
   }
-  return false;
+
+  return true;
 }
 
 //	Size of permutation buffer used to map integer coordinates to gradients.
@@ -879,7 +848,7 @@ OOINLINE float TDot3(const uint8_t grad[3], float x, float y, float z) {
 // Sample 3D noise function defined by kGradients and permutation table at point
 // p.
 static float SampleNoise3D(OOPlanetTextureGeneratorInfo* info, Vector p) {
-  uint16_t* permutations = info->permutations;
+  uint16_t* permutations = info->permutations.data();
 
   // Split coordinates into integer and fractional parts.
   float fx = floor(p.x);
@@ -958,9 +927,8 @@ static float SampleNoise3D(OOPlanetTextureGeneratorInfo* info, Vector p) {
 
 //	Noise map generator
 static bool MakePermutationTable(OOPlanetTextureGeneratorInfo* info) {
-  uint16_t* perms = static_cast<uint16_t*>(
-      malloc(sizeof *info->permutations * kPermutationCount));
-  if (EXPECT_NOT(perms == nullptr)) return false;
+  info->permutations.resize(kPermutationCount);
+  uint16_t* perms = info->permutations.data();
 
   perms[0] = 0;
   uint16_t n;
@@ -968,7 +936,6 @@ static bool MakePermutationTable(OOPlanetTextureGeneratorInfo* info) {
     perms[n] = RanrotWithSeed(&info->seed) & kPermutationMask;
   }
 
-  info->permutations = perms;
   return true;
 }
 
@@ -982,7 +949,7 @@ static bool GenerateFBMNoise3D(OOPlanetTextureGeneratorInfo* info) {
     float lon, lat;  // Longitude and latitude in radians.
     float dlon = 2.0f * M_PI / width;
     float dlat = M_PI / height;
-    float* px = info->fbmBuffer;
+    float* px = info->fbmBuffer.data();
 
     for (y = 0, lat = -M_PI_2; y < height; y++, lat += dlat) {
       float las = sin(lat);
@@ -1024,7 +991,7 @@ static bool GenerateFBMNoise3D(OOPlanetTextureGeneratorInfo* info) {
   }
 
 END:
-  FREE(info->permutations);
+  info->permutations = std::vector<uint16_t>();
   return OK;
 }
 
@@ -1045,7 +1012,7 @@ static void AddNoise(OOPlanetTextureGeneratorInfo* info, float* randomBuffer,
   int ix, jx, iy, jy;
   float rr = octave / width;
   float fx, fy, qx, qy, rix, rjx, rfinal;
-  float* dst = info->fbmBuffer;
+  float* dst = info->fbmBuffer.data();
 
   for (fy = 0, y = 0; y < height; fy++, y++) {
     qy = fy * rr;
@@ -1091,14 +1058,13 @@ static bool GenerateFBMNoise(OOPlanetTextureGeneratorInfo* info) {
       kRandomBufferSize * kRandomBufferSize * sizeof(float);
   size_t qxBufferSize = info->width * sizeof(float);
   size_t ixBufferSize = info->width * sizeof(int);
-  char* sharedBuffer = static_cast<char*>(
-      malloc(randomBufferSize + qxBufferSize + ixBufferSize));
-  if (sharedBuffer == nullptr) return false;
+  std::vector<float> randomStorage(randomBufferSize / sizeof(float));
+  std::vector<float> qxStorage(qxBufferSize / sizeof(float));
+  std::vector<int> ixStorage(ixBufferSize / sizeof(int));
 
-  float* randomBuffer = reinterpret_cast<float*>(sharedBuffer);
-  float* qxBuffer = reinterpret_cast<float*>(sharedBuffer + randomBufferSize);
-  int* ixBuffer =
-      reinterpret_cast<int*>(sharedBuffer + randomBufferSize + qxBufferSize);
+  float* randomBuffer = randomStorage.data();
+  float* qxBuffer = qxStorage.data();
+  int* ixBuffer = ixStorage.data();
 
   // Get us some value noise.
   FillRandomBuffer(randomBuffer, info->seed);
@@ -1117,7 +1083,6 @@ static bool GenerateFBMNoise(OOPlanetTextureGeneratorInfo* info) {
     scale *= 0.5f;
   }
 
-  FREE(sharedBuffer);
   return true;
 }
 
@@ -1203,9 +1168,10 @@ void OOPlanetNormalMapGenerator::loadTexture() {
   // Do nothing.
 }
 
-void OOPlanetNormalMapGenerator::completeWithData(void* data_, unsigned width_,
+void OOPlanetNormalMapGenerator::completeWithData(OOPixelBuffer data_,
+                                                  unsigned width_,
                                                   unsigned height_) {
-  _data = data_;
+  _data = std::move(data_);
   _width = width_;
   _height = height_;
   _format = kOOTextureDataRGBA;
@@ -1221,8 +1187,8 @@ void OOPlanetNormalMapGenerator::completeWithData(void* data_, unsigned width_,
 
   if (MyOpenGLView* gameView =
           (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr))
-    gameView->dumpRGBAToRGBFileNamed(normalName, specularName, _data, _width,
-                                     _height, _width * 4);
+    gameView->dumpRGBAToRGBFileNamed(normalName, specularName, _data->data(),
+                                     _width, _height, _width * 4);
 #endif
 }
 
@@ -1284,11 +1250,12 @@ bool OOPlanetAtmosphereGenerator::getResult(OOPixMap* result,
   return OOTextureGenerator::getResult(result, outFormat, outWidth, outHeight);
 }
 
-void OOPlanetAtmosphereGenerator::completeWithData(void* data_, unsigned width_,
+void OOPlanetAtmosphereGenerator::completeWithData(OOPixelBuffer data_,
+                                                   unsigned width_,
                                                    unsigned height_) {
   OO_LOG("texture.planet.generate", "{}", "Completing atmosphere generator");
 
-  _data = data_;
+  _data = std::move(data_);
   _width = width_;
   _height = height_;
   _format = kOOTextureDataRGBA;
@@ -1304,7 +1271,7 @@ void OOPlanetAtmosphereGenerator::completeWithData(void* data_, unsigned width_,
 
   if (MyOpenGLView* gameView =
           (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr))
-    gameView->dumpRGBAToRGBFileNamed(rgbName, alphaName, _data, _width, _height,
-                                     _width * 4);
+    gameView->dumpRGBAToRGBFileNamed(rgbName, alphaName, _data->data(), _width,
+                                     _height, _width * 4);
 #endif
 }

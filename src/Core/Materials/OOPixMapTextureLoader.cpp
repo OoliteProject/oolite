@@ -79,14 +79,14 @@ void OOPixMapTextureLoader::loadTexture() {
   }
 
   // Set up output ivars as per OOTextureLoader contract.
-  _data = _pixMap.pixels;
+  _data = OOPixMapOwnedBuffer(_pixMap);
   _width = _pixMap.width;
   _height = _pixMap.height;
   _rowBytes = _pixMap.rowBytes;
   _format = _pixMap.format;
 
-  //	Explicitly do not free pixels - ownership passes to texture.
-  _pixMap.pixels = nullptr;
+  //	The pixels' ownership passes to the texture.
+  OOFreePixMap(&_pixMap);
 }
 
 OOTextureFlags OOPixMapTextureLoader::textureOptions() { return _texOptions; }

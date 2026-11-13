@@ -27,6 +27,7 @@ SOFTWARE.
 
 #include "OOPixMap.h"
 
+#include <algorithm>
 #include <cstring>
 #include <format>
 
@@ -37,7 +38,12 @@ const OOPixMap kOONullPixMap = {.pixels = nullptr,
                                 .height = 0,
                                 .format = kOOPixMapInvalidFormat,
                                 .rowBytes = 0,
-                                .bufferSize = 0};
+                                .bufferSize = 0,
+                                .buffer = nullptr};
+
+OOPixelBuffer OOMakePixelBuffer(size_t size) {
+  return std::make_shared<std::vector<std::uint8_t>>(size);
+}
 
 bool OOIsValidPixMap(OOPixMap pixMap) {
   return pixMap.pixels != nullptr && pixMap.width > 0 && pixMap.height > 0 &&
@@ -66,6 +72,31 @@ OOPixMap OOMakePixMap(void* pixels, OOPixMapDimension width,
     return kOONullPixMap;
 }
 
+OOPixMap OOMakePixMap(OOPixelBuffer buffer, OOPixMapDimension width,
+                      OOPixMapDimension height, OOPixMapFormat format,
+                      size_t rowBytes, size_t bufferSize) {
+  if (buffer == nullptr) return kOONullPixMap;
+  if (bufferSize == 0 || bufferSize > buffer->size())
+    bufferSize = buffer->size();
+
+  OOPixMap result =
+      OOMakePixMap(buffer->data(), width, height, format, rowBytes, bufferSize);
+  if (OOIsValidPixMap(result)) result.buffer = std::move(buffer);
+  return result;
+}
+
+OOPixelBuffer OOPixMapOwnedBuffer(const OOPixMap& pixMap) {
+  if (pixMap.pixels == nullptr) return nullptr;
+  if (pixMap.buffer != nullptr && pixMap.buffer->data() == pixMap.pixels &&
+      pixMap.buffer->size() >= pixMap.bufferSize) {
+    return pixMap.buffer;
+  }
+
+  OOPixelBuffer copy = OOMakePixelBuffer(pixMap.bufferSize);
+  memcpy(copy->data(), pixMap.pixels, pixMap.bufferSize);
+  return copy;
+}
+
 OOPixMap OOAllocatePixMap(OOPixMapDimension width, OOPixMapDimension height,
                           OOPixMapFormat format, size_t rowBytes,
                           size_t bufferSize) {
@@ -74,8 +105,8 @@ OOPixMap OOAllocatePixMap(OOPixMapDimension width, OOPixMapDimension height,
                                  format, rowBytes, bufferSize);
   if (EXPECT_NOT(!OOIsValidPixMap(pixMap))) return kOONullPixMap;
 
-  pixMap.pixels = malloc(pixMap.bufferSize);
-  if (EXPECT_NOT(pixMap.pixels == nullptr)) return kOONullPixMap;
+  pixMap.buffer = OOMakePixelBuffer(pixMap.bufferSize);
+  pixMap.pixels = pixMap.buffer->data();
 
   return pixMap;
 }
@@ -83,7 +114,6 @@ OOPixMap OOAllocatePixMap(OOPixMapDimension width, OOPixMapDimension height,
 void OOFreePixMap(OOPixMap* ioPixMap) {
   if (EXPECT_NOT(ioPixMap == nullptr)) return;
 
-  free(ioPixMap->pixels);
   *ioPixMap = kOONullPixMap;
 }
 
@@ -108,14 +138,19 @@ bool OOResizePixMap(OOPixMap* ioPixMap, size_t desiredSize) {
   if (desiredSize == ioPixMap->bufferSize) return true;
   if (desiredSize < OOMinimumPixMapBufferSize(*ioPixMap)) return false;
 
-  void* newPixels = realloc(ioPixMap->pixels, desiredSize);
-  if (newPixels != nullptr) {
-    ioPixMap->pixels = newPixels;
-    ioPixMap->bufferSize = desiredSize;
-    return true;
+  if (ioPixMap->buffer != nullptr &&
+      ioPixMap->buffer->data() == ioPixMap->pixels) {
+    ioPixMap->buffer->resize(desiredSize);
   } else {
-    return false;
+    // Not ours to resize: a buffer of its own, holding the pixels.
+    OOPixelBuffer buffer = OOMakePixelBuffer(desiredSize);
+    memcpy(buffer->data(), ioPixMap->pixels,
+           std::min(ioPixMap->bufferSize, desiredSize));
+    ioPixMap->buffer = std::move(buffer);
   }
+  ioPixMap->pixels = ioPixMap->buffer->data();
+  ioPixMap->bufferSize = desiredSize;
+  return true;
 }
 
 bool OOExpandPixMap(OOPixMap* ioPixMap, size_t desiredSize) {

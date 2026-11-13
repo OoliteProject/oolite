@@ -27,6 +27,8 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#include <vector>
+
 #include "OOMaths.h"
 #include "OOTextureGenerator.h"
 #include "oofnd/PList.hpp"
@@ -64,10 +66,10 @@ typedef struct OOPlanetTextureGeneratorInfo {
   FloatRGB paleCloudColor;
 
   // Noise generation stuff.
-  float* fbmBuffer;
-  float* qBuffer;
+  std::vector<float> fbmBuffer;
+  std::vector<float> qBuffer;
 
-  uint16_t* permutations;
+  std::vector<uint16_t> permutations;
 
   unsigned planetAspectRatio;
   unsigned planetScaleOffset;

@@ -58,17 +58,6 @@
 #include "MyOpenGLView.h"
 #endif
 
-#define FREE(x)                                   \
-  do {                                            \
-    if (0) {                                      \
-      void* x__ = x;                              \
-      x__ = x__;                                  \
-    } /* Preceeding is for type checking only. */ \
-    void** x_ = reinterpret_cast<void**>(&(x));   \
-    free(*x_);                                    \
-    *x_ = NULL;                                   \
-  } while (0)
-
 #define PLANET_TEXTURE_OPTIONS                                           \
   (OOTextureFlags::kMinFilterLinear | OOTextureFlags::kMagFilterLinear | \
    OOTextureFlags::kRepeatS | OOTextureFlags::kNoShrink)
@@ -234,8 +223,8 @@ void OOStandaloneAtmosphereGenerator::loadTexture() {
 
   bool success = false;
 
-  uint8_t *aBuffer = nullptr, *apx = nullptr;
-  float* randomBuffer = nullptr;
+  OOPixelBuffer aBuffer;
+  uint8_t* apx = nullptr;
 
   _height = _info.height = 1 << (_planetScale + _info.planetScaleOffset);
   _width = _info.width = _height * _info.planetAspectRatio;
@@ -244,16 +233,13 @@ void OOStandaloneAtmosphereGenerator::loadTexture() {
   do {                              \
     if (EXPECT_NOT(cond)) goto END; \
   } while (0)
-#define FAIL_IF_NULL(x) FAIL_IF((x) == NULL)
 
-  aBuffer =
-      static_cast<uint8_t*>(malloc(4 * static_cast<size_t>(_width) * _height));
-  FAIL_IF_NULL(aBuffer);
-  apx = aBuffer;
+  aBuffer = OOMakePixelBuffer(4 * static_cast<size_t>(_width) * _height);
+  apx = aBuffer->data();
 
   FAIL_IF(!FillFBMBuffer(&_info));
 #if DEBUG_DUMP_RAW
-  dumpNoiseBuffer(_info.fbmBuffer);
+  dumpNoiseBuffer(_info.fbmBuffer.data());
 #endif
   {
     float paleClouds =
@@ -275,8 +261,8 @@ void OOStandaloneAtmosphereGenerator::loadTexture() {
       nearPole *= nearPole;
 
       for (x = static_cast<int>(_width) - 1; x >= 0; x--) {
-        q = QFactor(_info.fbmBuffer, x, y, _width, paleClouds, cloudFraction,
-                    nearPole);
+        q = QFactor(_info.fbmBuffer.data(), x, y, _width, paleClouds,
+                    cloudFraction, nearPole);
         color = CloudMix(&_info, q, nearPole);
         *apx++ = 255.0f * color.r;
         *apx++ = 255.0f * color.g;
@@ -290,13 +276,8 @@ void OOStandaloneAtmosphereGenerator::loadTexture() {
   }
 
 END:
-  FREE(_info.fbmBuffer);
-  FREE(randomBuffer);
-  if (success) {
-    _data = aBuffer;
-  } else {
-    FREE(aBuffer);
-  }
+  _info.fbmBuffer = std::vector<float>();
+  if (success) _data = aBuffer;  // (otherwise the buffer goes with aBuffer)
 
   OO_LOG("texture.planet.generate.complete",
          "Completed generator {} {}successfully", description(),
@@ -311,8 +292,8 @@ END:
 
     if (MyOpenGLView* gameView =
             (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr))
-      gameView->dumpRGBAToRGBFileNamed(diffuseName, lightsName, aBuffer, _width,
-                                       _height, _width * 4);
+      gameView->dumpRGBAToRGBFileNamed(diffuseName, lightsName, aBuffer->data(),
+                                       _width, _height, _width * 4);
   }
 #endif
 }
@@ -323,7 +304,7 @@ void OOStandaloneAtmosphereGenerator::dumpNoiseBuffer(float* noise) {
   const std::string noiseName = std::format("atmosphere-{}-{}-noise-new",
                                             _info.seed.high, _info.seed.low);
 
-  uint8_t* noisePx = static_cast<uint8_t*>(malloc(_width * _height));
+  std::vector<uint8_t> noisePx(static_cast<size_t>(_width) * _height);
   unsigned x, y;
   for (y = 0; y < _height; y++) {
     for (x = 0; x < _width; x++) {
@@ -333,8 +314,8 @@ void OOStandaloneAtmosphereGenerator::dumpNoiseBuffer(float* noise) {
 
   if (MyOpenGLView* gameView =
           (UNIVERSE != nullptr ? UNIVERSE->getGameView() : nullptr))
-    gameView->dumpGrayToFileNamed(noiseName, noisePx, _width, _height, _width);
-  FREE(noisePx);
+    gameView->dumpGrayToFileNamed(noiseName, noisePx.data(), _width, _height,
+                                  _width);
 }
 
 #endif
@@ -450,18 +431,14 @@ static bool FillFBMBuffer(OOStandaloneAtmosphereGeneratorInfo* info) {
   OOCParameterAssert(info != nullptr);
 
   // Allocate result buffer.
-  info->fbmBuffer =
-      static_cast<float*>(calloc(info->width * info->height, sizeof(float)));
-  if (info->fbmBuffer != nullptr) {
-    if (!info->perlin3d) {
-      GenerateFBMNoise(info);
-    } else {
-      GenerateFBMNoise3D(info);
-    }
-
-    return true;
+  info->fbmBuffer.assign(static_cast<size_t>(info->width) * info->height, 0.0f);
+  if (!info->perlin3d) {
+    GenerateFBMNoise(info);
+  } else {
+    GenerateFBMNoise3D(info);
   }
-  return false;
+
+  return true;
 }
 
 //	Size of permutation buffer used to map integer coordinates to gradients.
@@ -506,7 +483,7 @@ OOINLINE float TDot3(const uint8_t grad[3], float x, float y, float z) {
 // p.
 static float SampleNoise3D(OOStandaloneAtmosphereGeneratorInfo* info,
                            Vector p) {
-  uint16_t* permutations = info->permutations;
+  uint16_t* permutations = info->permutations.data();
 
   // Split coordinates into integer and fractional parts.
   float fx = floor(p.x);
@@ -590,9 +567,8 @@ static float SampleNoise3D(OOStandaloneAtmosphereGeneratorInfo* info,
         which is a lot more than RanRot will actually give us.
 */
 static bool MakePermutationTable(OOStandaloneAtmosphereGeneratorInfo* info) {
-  uint16_t* perms = static_cast<uint16_t*>(
-      malloc(sizeof *info->permutations * kPermutationCount));
-  if (EXPECT_NOT(perms == nullptr)) return false;
+  info->permutations.resize(kPermutationCount);
+  uint16_t* perms = info->permutations.data();
 
   /*	Fisher-Yates/Durstenfeld/Knuth shuffle, "inside-out" variant.
           Based on pseudocode from
@@ -610,7 +586,6 @@ static bool MakePermutationTable(OOStandaloneAtmosphereGeneratorInfo* info) {
     perms[j] = n - 1;
   }
 
-  info->permutations = perms;
   return true;
 }
 
@@ -624,7 +599,7 @@ static bool GenerateFBMNoise3D(OOStandaloneAtmosphereGeneratorInfo* info) {
     float lon, lat;  // Longitude and latitude in radians.
     float dlon = 2.0f * M_PI / width;
     float dlat = M_PI / height;
-    float* px = info->fbmBuffer;
+    float* px = info->fbmBuffer.data();
 
     for (y = 0, lat = -M_PI_2; y < height; y++, lat += dlat) {
       float las = sin(lat);
@@ -666,7 +641,7 @@ static bool GenerateFBMNoise3D(OOStandaloneAtmosphereGeneratorInfo* info) {
   }
 
 END:
-  FREE(info->permutations);
+  info->permutations = std::vector<uint16_t>();
   return OK;
 }
 
@@ -687,7 +662,7 @@ static void AddNoise(OOStandaloneAtmosphereGeneratorInfo* info,
   int ix, jx, iy, jy;
   float rr = octave / width;
   float fx, fy, qx, qy, rix, rjx, rfinal;
-  float* dst = info->fbmBuffer;
+  float* dst = info->fbmBuffer.data();
 
   for (fy = 0, y = 0; y < height; fy++, y++) {
     qy = fy * rr;
@@ -733,14 +708,13 @@ static bool GenerateFBMNoise(OOStandaloneAtmosphereGeneratorInfo* info) {
       kRandomBufferSize * kRandomBufferSize * sizeof(float);
   size_t qxBufferSize = info->width * sizeof(float);
   size_t ixBufferSize = info->width * sizeof(int);
-  char* sharedBuffer = static_cast<char*>(
-      malloc(randomBufferSize + qxBufferSize + ixBufferSize));
-  if (sharedBuffer == nullptr) return false;
+  std::vector<float> randomStorage(randomBufferSize / sizeof(float));
+  std::vector<float> qxStorage(qxBufferSize / sizeof(float));
+  std::vector<int> ixStorage(ixBufferSize / sizeof(int));
 
-  float* randomBuffer = reinterpret_cast<float*>(sharedBuffer);
-  float* qxBuffer = reinterpret_cast<float*>(sharedBuffer + randomBufferSize);
-  int* ixBuffer =
-      reinterpret_cast<int*>(sharedBuffer + randomBufferSize + qxBufferSize);
+  float* randomBuffer = randomStorage.data();
+  float* qxBuffer = qxStorage.data();
+  int* ixBuffer = ixStorage.data();
 
   // Get us some value noise.
   FillRandomBuffer(randomBuffer, info->seed);
@@ -759,7 +733,6 @@ static bool GenerateFBMNoise(OOStandaloneAtmosphereGeneratorInfo* info) {
     scale *= 0.5f;
   }
 
-  FREE(sharedBuffer);
   return true;
 }
 

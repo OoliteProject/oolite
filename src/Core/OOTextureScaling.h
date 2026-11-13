@@ -37,7 +37,8 @@ SOFTWARE.
         dstPixels must have space for dstWidth * dstHeight pixels (no row
    padding is generated).
 
-        IMPORTANT: this will free() srcPixMap's pixels.
+        IMPORTANT: srcPixMap's pixels may be changed in place; use the result,
+        not srcPixMap, afterwards.
 */
 OOPixMap OOScalePixMap(OOPixMap srcPixMap, OOPixMapDimension dstWidth,
                        OOPixMapDimension dstHeight, bool leaveSpaceForMipMaps);
