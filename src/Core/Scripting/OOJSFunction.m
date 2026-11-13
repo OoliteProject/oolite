@@ -29,19 +29,28 @@ MA 02110-1301, USA.
 
 @implementation OOJSFunction
 
-- (id)initWithFunction:(JSFunction*)function context:(JSContext*)context
+- (id)initWithFunction:(JSValueConst)function context:(JSContext*)context
 {
     NSParameterAssert(context != NULL);
 
-    if (function == NULL) {
+    if (!JS_IsFunction(context, function)) {
         [self release];
         return nil;
     }
 
     if ((self = [super init])) {
-        _function = function;
-        OOJSAddGCObjectRoot(context, (JSObject**)&_function, "OOJSFunction._function");
-        _name = [OOStringFromJSString(context, JS_GetFunctionId(function)) retain];
+        _function = JS_DupValue(context, function);
+
+        // QuickJS has no JS_GetFunctionId(); use the function's name property.
+        JSValue nameValue = JS_GetPropertyStr(context, function, "name");
+        if (JS_IsException(nameValue)) {
+            JS_FreeValue(context, JS_GetException(context));
+        } else {
+            NSString* name = OOStringFromJSValue(context, nameValue);
+            if ([name length] != 0)
+                _name = [name retain];
+        }
+        JS_FreeValue(context, nameValue);
 
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(deleteJSValue)
@@ -53,7 +62,7 @@ MA 02110-1301, USA.
 }
 
 - (id)initWithName:(NSString*)name
-             scope:(JSObject*)scope
+             scope:(JSValueConst)scope
               code:(NSString*)code
      argumentCount:(NSUInteger)argCount
      argumentNames:(const char**)argNames
@@ -63,40 +72,62 @@ MA 02110-1301, USA.
 {
     BOOL OK = YES;
     BOOL releaseContext = NO;
-    jschar* buffer = NULL;
-    size_t length = 0;
-    JSFunction* function;
+    JSValue function = JS_UNDEFINED;
 
     if (context == NULL) {
         context = OOJSAcquireContext();
         releaseContext = YES;
     }
-    if (scope == NULL)
-        scope = [[OOJavaScriptEngine sharedEngine] globalObject];
+
+    /*	SpiderMonkey's JS_CompileUCFunction() could compile the function in an
+            arbitrary scope object. QuickJS has no equivalent, so the function is
+            always compiled in the global scope. (The only caller passed NULL,
+            meaning the global object, anyway.)
+    */
+    (void)scope;
 
     if (code == nil || (argCount > 0 && argNames == NULL))
         OK = NO;
 
     if (OK) {
-        // jschar and unichar are both defined to be 16-bit elements.
-        assert(sizeof(jschar) == sizeof(unichar));
+        assert(argCount < INT_MAX && lineNumber < INT_MAX);
 
-        length = [code length];
-        buffer = malloc(sizeof(jschar) * length);
-        if (buffer == NULL)
+        /*	QuickJS has no API to compile a function from a body and argument
+                names, so evaluate a function expression. The wrapper is kept on
+                the first line so that line numbers in the body are unchanged.
+        */
+        NSMutableString* source = [NSMutableString stringWithString:@"(function("];
+        NSUInteger i;
+        for (i = 0; i < argCount; i++) {
+            if (i != 0)
+                [source appendString:@","];
+            [source appendString:[NSString stringWithUTF8String:argNames[i]]];
+        }
+        [source appendFormat:@"){%@\n})", code];
+
+        NSData* utf8 = [source dataUsingEncoding:NSUTF8StringEncoding];
+        NSMutableData* buffer = [NSMutableData dataWithData:utf8];
+        [buffer appendBytes:"" length:1]; // JS_Eval2() requires a NUL-terminated buffer.
+
+        JSEvalOptions options = {
+            .version = JS_EVAL_OPTIONS_VERSION,
+            .eval_flags = JS_EVAL_TYPE_GLOBAL,
+            .filename = [fileName UTF8String] ?: "<anonymous>",
+            .line_num = (int)lineNumber
+        };
+        function = JS_Eval2(context, [buffer bytes], [utf8 length], &options);
+        if (JS_IsException(function)) {
+            OOJSReportPendingException(context);
+            function = JS_UNDEFINED;
             OK = NO;
+        } else if (!JS_IsFunction(context, function)) {
+            OK = NO;
+        }
     }
 
-    if (OK) {
-        assert(argCount < UINT32_MAX);
-
-        [code getCharacters:buffer];
-
-        function = JS_CompileUCFunction(context, scope, [name UTF8String], (uint32_t)argCount, argNames, buffer, length, [fileName UTF8String], (uint32_t)lineNumber);
-        if (function == NULL)
-            OK = NO;
-
-        free(buffer);
+    if (OK && name != nil) {
+        // Function expression names are read-only but configurable; redefine it.
+        JS_DefinePropertyValueStr(context, function, "name", [name oo_jsValueInContext:context], JS_PROP_CONFIGURABLE);
     }
 
     if (OK) {
@@ -104,6 +135,7 @@ MA 02110-1301, USA.
     } else {
         DESTROY(self);
     }
+    JS_FreeValue(context, function);
 
     if (releaseContext)
         OOJSRelinquishContext(context);
@@ -113,12 +145,13 @@ MA 02110-1301, USA.
 
 - (void)deleteJSValue
 {
-    if (_function != NULL) {
+    // _function is zero-filled (not an object) if never set.
+    if (JS_IsObject(_function)) {
         JSContext* context = OOJSAcquireContext();
-        JS_RemoveObjectRoot(context, (JSObject**)&_function);
+        JS_FreeValue(context, _function);
         OOJSRelinquishContext(context);
 
-        _function = NULL;
+        _function = JS_NULL;
         [[NSNotificationCenter defaultCenter] removeObserver:self
                                                         name:kOOJavaScriptEngineWillResetNotification
                                                       object:[OOJavaScriptEngine sharedEngine]];
@@ -146,63 +179,108 @@ MA 02110-1301, USA.
     return _name;
 }
 
-- (JSFunction*)function
+- (BOOL)isValid
 {
-    return _function;
+    // _function is zero-filled (the integer 0) until set, and JS_NULL after reset.
+    return JS_IsObject(_function);
 }
 
-- (jsval)functionValue
+- (JSValueConst)function
 {
-    if (EXPECT(_function != NULL)) {
-        return OBJECT_TO_JSVAL(JS_GetFunctionObject(_function));
+    return [self isValid] ? _function : JS_NULL;
+}
+
+- (JSValue)functionValue
+{
+    if (EXPECT([self isValid])) {
+        return JS_DupValue(OOJSAcquireContext(), _function);
     } else {
-        return JSVAL_NULL;
+        return JS_NULL;
     }
 }
 
 - (BOOL)evaluateWithContext:(JSContext*)context
-                      scope:(JSObject*)jsThis
-                       argc:(uintN)argc
-                       argv:(jsval*)argv
-                     result:(jsval*)result
+                      scope:(JSValueConst)jsThis
+                       argc:(int)argc
+                       argv:(JSValueConst*)argv
+                     result:(JSValue*)result
 {
+    NSParameterAssert(result != NULL);
+
+    if (EXPECT_NOT(![self isValid])) {
+        *result = JS_UNDEFINED;
+        return NO;
+    }
+
+    // As with JS_CallFunction(), a missing this means the global object.
+    JSValue global = JS_UNDEFINED;
+    if (!JS_IsObject(jsThis)) {
+        global = JS_GetGlobalObject(context);
+        jsThis = global;
+    }
+
     [OOJSScript pushScript:nil];
     OOJSStartTimeLimiter();
-    BOOL OK = JS_CallFunction(context, jsThis, _function, argc, argv, result);
+    JSValue rval = JS_Call(context, _function, jsThis, argc, argv);
     OOJSStopTimeLimiter();
     [OOJSScript popScript:nil];
 
-    return OK;
+    JS_FreeValue(context, global);
+
+    if (JS_IsException(rval)) {
+        *result = JS_UNDEFINED;
+        return NO;
+    }
+    *result = rval;
+    return YES;
 }
 
-// Semi-raw evaluation shared by convenience methods below.
+// Semi-raw evaluation shared by convenience methods below. *result is owned on success; exceptions are reported.
 - (BOOL)evaluateWithContext:(JSContext*)context
                       scope:(id)jsThis
                   arguments:(NSArray*)arguments
-                     result:(jsval*)result
+                     result:(JSValue*)result
 {
     NSUInteger i, argc = [arguments count];
-    assert(argc < UINT32_MAX);
-    jsval argv[argc];
+    assert(argc < INT_MAX);
+    JSValue argv[argc + 1]; // + 1 avoids a zero-length array.
 
     for (i = 0; i < argc; i++) {
         argv[i] = [[arguments objectAtIndex:i] oo_jsValueInContext:context];
-        OOJSAddGCValueRoot(context, &argv[i], "OOJSFunction argv");
     }
 
-    JSObject* scopeObj = NULL;
+    JSValue scopeObj = JS_UNDEFINED;
     BOOL OK = YES;
-    if (jsThis != nil)
-        OK = JS_ValueToObject(context, [jsThis oo_jsValueInContext:context], &scopeObj);
+    if (jsThis != nil) {
+        JSValue thisValue = [jsThis oo_jsValueInContext:context];
+        // As with JS_ValueToObject(), null and undefined give no object (the global object is used).
+        if (!JS_IsNull(thisValue) && !JS_IsUndefined(thisValue)) {
+            scopeObj = JS_ToObject(context, thisValue);
+            if (JS_IsException(scopeObj)) {
+                scopeObj = JS_UNDEFINED;
+                OK = NO;
+            }
+        }
+        JS_FreeValue(context, thisValue);
+    }
     if (OK)
         OK = [self evaluateWithContext:context
                                  scope:scopeObj
-                                  argc:(uint32_t)argc
+                                  argc:(int)argc
                                   argv:argv
                                 result:result];
+    if (!OK) {
+        /*	SpiderMonkey reported uncaught exceptions automatically when
+                control returned from JS; QuickJS leaves them pending.
+        */
+        if (JS_HasException(context))
+            OOJSReportPendingException(context);
+        *result = JS_UNDEFINED;
+    }
 
+    JS_FreeValue(context, scopeObj);
     for (i = 0; i < argc; i++) {
-        JS_RemoveValueRoot(context, &argv[i]);
+        JS_FreeValue(context, argv[i]);
     }
 
     return OK;
@@ -212,7 +290,7 @@ MA 02110-1301, USA.
                     scope:(id)jsThis
                 arguments:(NSArray*)arguments
 {
-    jsval result;
+    JSValue result;
     BOOL OK = [self evaluateWithContext:context
                                   scope:jsThis
                               arguments:arguments
@@ -220,21 +298,29 @@ MA 02110-1301, USA.
     if (!OK)
         return nil;
 
-    return OOJSNativeObjectFromJSValue(context, result);
+    id object = OOJSNativeObjectFromJSValue(context, result);
+    JS_FreeValue(context, result);
+    return object;
 }
 
 - (BOOL)evaluatePredicateWithContext:(JSContext*)context
                                scope:(id)jsThis
                            arguments:(NSArray*)arguments
 {
-    jsval result;
+    JSValue result;
     BOOL OK = [self evaluateWithContext:context
                                   scope:jsThis
                               arguments:arguments
                                  result:&result];
-    JSBool retval = NO;
-    if (OK)
-        OK = JS_ValueToBoolean(context, result, &retval);
+    int retval = NO;
+    if (OK) {
+        retval = JS_ToBool(context, result);
+        JS_FreeValue(context, result);
+        if (retval < 0) {
+            OOJSReportPendingException(context);
+            OK = NO;
+        }
+    }
     return OK && retval;
 }
 

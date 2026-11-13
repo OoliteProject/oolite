@@ -5320,7 +5320,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
         return;
     }
 
-    if (!JSVAL_IS_OBJECT(rval)) {
+    // As with SpiderMonkey, null is accepted as an object.
+    if (!JS_IsObject(rval) && !JS_IsNull(rval)) {
         OOLog(@"ai.error", @"Invalid return value of scriptedAI in ship script of %@, reverting to idle", self);
         behaviour = BEHAVIOUR_IDLE;
         OOJSFreeValue(context, rval);
@@ -5328,7 +5329,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
         return;
     }
 
-    result = OOJSNativeObjectFromJSObject(context, JSVAL_TO_OBJECT(rval));
+    result = OOJSNativeObjectFromJSObject(context, rval);
     OOJSFreeValue(context, rval);
     OOJSRelinquishContext(context);
 
@@ -12808,7 +12809,6 @@ static BOOL AuthorityPredicate(Entity* entity, void* parameter)
         if (argv != NULL) {
             for (i = 0; i != argc; ++i) {
                 argv[i] = [[arguments objectAtIndex:i] oo_jsValueInContext:context];
-                OOJSAddGCValueRoot(context, &argv[i], "event parameter");
             }
         } else
             argc = 0;
@@ -12816,10 +12816,10 @@ static BOOL AuthorityPredicate(Entity* entity, void* parameter)
 
     [self doScriptEvent:message inContext:context withArguments:argv count:argc];
 
-    // Re-garbage-collectibalize (or, with QuickJS, release) the arguments and free the array.
+    // Release the arguments and free the array.
     if (argv != NULL) {
         for (i = 0; i != argc; ++i) {
-            JS_RemoveValueRoot(context, &argv[i]);
+            OOJSFreeValue(context, argv[i]);
         }
         free(argv);
     }
