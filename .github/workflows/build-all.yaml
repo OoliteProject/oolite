@@ -541,10 +541,9 @@ jobs:
           path: build/.ccache
           key: ccache-unit-tests-windows-${{ github.sha }}
           restore-keys: ccache-unit-tests-windows-
-      # Without LTO: 74 core tests link the whole game, and with ThinLTO each of those links
-      # re-optimises all of it (most of the job's time). The test flavour's macros are unchanged;
-      # build-fedora still builds the test flavour with LTO.
-      - name: Build Oolite (test flavour, no LTO)
+      # The dev flavour, as tests/run.sh expects: 74 core tests link the whole game, and the dev
+      # flavour compiles and links fastest (no LTO). build-fedora still builds the test flavour.
+      - name: Build Oolite (dev flavour)
         shell: msys2 {0}
         env:
           MSYSTEM: UCRT64
@@ -553,7 +552,7 @@ jobs:
           CCACHE_MAXSIZE: 1G
         run: |
           ccache --zero-stats
-          ./mk.sh build test --ccache --setup-flags="-Db_lto=false"
+          ./mk.sh build dev --ccache
           ccache --show-stats
       - name: Save the compiler cache
         if: always() && steps.ccache-restore.outputs.cache-hit != 'true'
@@ -569,7 +568,7 @@ jobs:
         env:
           MSYSTEM: UCRT64
         run: |
-          cp "$MINGW_PREFIX/bin/opengl32.dll" build/meson_test/tests/unit/core/
+          cp "$MINGW_PREFIX/bin/opengl32.dll" build/meson_dev/tests/unit/core/
       - name: Unit tests (oofnd, core, headers)
         shell: msys2 {0}
         env:
