@@ -39,6 +39,7 @@
 
 #include <cmath>
 #include <string>
+#include "EntityManualRefs.h"  // the tests' manual entity references (T095)
 
 
 // The player's data members are private: the test reaches each one it reads or sets through
@@ -282,8 +283,7 @@ OO_TEST(sharedPlayer)
 		OO_CHECK(PlayerEntity::sharedPlayer() == player);
 		OO_CHECK(!player->getIsPlayer() && player->status() == OOEntityStatus::kCockpitDisplay);
 	}
-	gOOPlayer = nullptr;
-	Release(player);
+	gOOPlayer = nullptr;	// the next case makes its own; this one stays in the never-deleted holder
 }
 
 
@@ -337,7 +337,7 @@ OO_TEST(deallocReleasesWhatThePlayerHeld)
 	{
 		oo::AutoreleaseScope scope;
 		SetUp();
-		missile = oo::NewShipObject(oo::makeRef<TestMissile>(), "missile", oo::PList());
+		missile = oo::RetainedEntity(oo::NewShipObject(oo::makeRef<TestMissile>(), "missile", oo::PList()));
 		TestPlayer *player = NewTestPlayer<TestPlayer>();
 		PlayerEntityTestAccess::missile_entity(player)[2] = oo::AdoptHold(oo::RetainEntity(missile));	// held by oo::EntityHold
 		OO_CHECK(missile->retainCount() == 2);
@@ -365,7 +365,7 @@ OO_TEST(playerObjectIsAShipWhosePartIsThePlayer)
 		OO_CHECK(oo::EntityRespondsToName(player, "credits_number"));
 		OO_CHECK(!oo::EntityRespondsToName(player, "noSuchPlayerSelector"));
 
-		::ShipEntity *ship = static_cast<TestMissile *>(oo::ToShip(oo::NewShipObject(oo::makeRef<TestMissile>(), "missile", oo::PList())));
+		::ShipEntity *ship = static_cast<TestMissile *>(oo::ToShip(oo::RetainedEntity(oo::NewShipObject(oo::makeRef<TestMissile>(), "missile", oo::PList()))));
 		OO_CHECK(ship != nullptr && !oo::EntityRespondsToName(ship, "commanderName_string"));
 		oo::ReleaseEntity(ship);
 		Release(player);
@@ -790,7 +790,7 @@ OO_TEST(slice11CountMissiles)
 	{
 		oo::AutoreleaseScope scope;
 		SetUp();
-		missile = static_cast<TestMissile *>(oo::ToShip(oo::NewShipObject(oo::makeRef<TestMissile>(), "missile", oo::PList())));
+		missile = static_cast<TestMissile *>(oo::ToShip(oo::RetainedEntity(oo::NewShipObject(oo::makeRef<TestMissile>(), "missile", oo::PList()))));
 		TestPlayer *player = MakePlayer();
 		player->max_missiles = 4;
 		OO_CHECK(player->countMissiles() == 0);

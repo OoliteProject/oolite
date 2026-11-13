@@ -232,11 +232,11 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(
     // A station is made in C++ (the universe picked its class).
     if ((UNIVERSE != nullptr ? UNIVERSE->isStationShipDictionary(mergedPlist)
                              : false))
-      ship = oo::ToShip(oo::AutoreleaseEntity(
-          StationEntity::newStationObject(shipKey, mergedPlist)));
+      ship = oo::autorelease(
+          StationEntity::newStationObject(shipKey, mergedPlist));
     else
-      ship = oo::ToShip(oo::AutoreleaseEntity(oo::NewShipObject(
-          oo::makeShared<::ShipEntity>(), shipKey, mergedPlist)));
+      ship = oo::autorelease(oo::NewShipObject(oo::makeShared<::ShipEntity>(),
+                                               shipKey, mergedPlist));
 
     // FIXME: restore AI.
     if (ship != nullptr)
@@ -255,10 +255,9 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(
         OptionalStringForKey(dict, KEY_PRIMARY_ROLE);
     if (!fallback || !shipPrimaryRole.has_value()) return nullptr;
 
-    ship = oo::ToShip(oo::AutoreleaseEntity(
-        (UNIVERSE != nullptr
-             ? oo::RetainedEntity(UNIVERSE->newShipWithRole(*shipPrimaryRole))
-             : static_cast<::ShipEntity*>(nullptr))));
+    ship = oo::ToShip(oo::autorelease(
+        (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(*shipPrimaryRole)
+                             : nullptr)));
     if (ship == nullptr) return nullptr;
   }
 

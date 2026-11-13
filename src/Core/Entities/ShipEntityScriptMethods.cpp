@@ -36,10 +36,8 @@ MA 02110-1301, USA.
   ::ShipEntity* item = nullptr;
 
   if (shipKey.has_value()) {
-    item = oo::ToShip(oo::AutoreleaseEntity(
-        (UNIVERSE != nullptr
-             ? oo::RetainedEntity(UNIVERSE->newShipWithName(*shipKey))
-             : static_cast<::ShipEntity*>(nullptr))));
+    item = oo::ToShip(oo::autorelease(
+        (UNIVERSE != nullptr ? UNIVERSE->newShipWithName(*shipKey) : nullptr)));
     if (item != nullptr) dumpItem(item);
   }
 
@@ -51,10 +49,8 @@ MA 02110-1301, USA.
   ::ShipEntity* item = nullptr;
 
   if (role.has_value()) {
-    item = oo::ToShip(oo::AutoreleaseEntity(
-        (UNIVERSE != nullptr
-             ? oo::RetainedEntity(UNIVERSE->newShipWithRole(*role))
-             : static_cast<::ShipEntity*>(nullptr))));
+    item = oo::ToShip(oo::autorelease(
+        (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(*role) : nullptr)));
     if (item != nullptr) dumpItem(item);
   }
 

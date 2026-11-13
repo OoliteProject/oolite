@@ -25,11 +25,11 @@ MA 02110-1301, USA.
 
 #include "ProxyPlayerEntity.h"
 
-::ShipEntity* ProxyPlayerEntity::newProxyObject(const std::string& key,
-                                                const oo::PList& dict) {
+std::shared_ptr<::ShipEntity> ProxyPlayerEntity::newProxyObject(
+    const std::string& key, const oo::PList& dict) {
   const std::shared_ptr<ProxyPlayerEntity> proxy =
       oo::makeShared<ProxyPlayerEntity>();
-  ::ShipEntity* ship = oo::ToShip(oo::NewShipObject(proxy, key, dict));
+  std::shared_ptr<::ShipEntity> ship = oo::NewShipObject(proxy, key, dict);
   if (ship != nullptr) proxy->initProxyDefaults();
   return ship;
 }

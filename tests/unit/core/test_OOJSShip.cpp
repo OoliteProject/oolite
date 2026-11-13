@@ -35,6 +35,7 @@
 #include "oo_test.hpp"
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/String.hpp"
+#include "EntityManualRefs.h"  // the tests' manual entity references (T095)
 
 // What UNIVERSE and PLAYER read (Universe.mm, PlayerEntity.mm).
 extern Universe* gSharedUniverse;
@@ -259,7 +260,7 @@ void SetUp() {
   gOOPlayer = NewTestPlayer<TestPlayer>();
 
   sShip = static_cast<PlainShip*>(oo::ToShip(
-      oo::NewShipObject(oo::makeRef<PlainShip>(), "jsship", ShipDefinition())));
+      oo::RetainedEntity(oo::NewShipObject(oo::makeRef<PlainShip>(), "jsship", ShipDefinition()))));
   OO_CHECK(sShip != nullptr);
   if (sShip != nullptr) sShip->setTemperature(64.0f);
   if (sShip != nullptr) sShip->setDestination(make_HPvector(1, 2, 3));
@@ -275,9 +276,9 @@ void SetUp() {
   if (sShip != nullptr) sShip->setTrackCloseContacts(true);
   if (sShip != nullptr) sShip->setAIScriptWakeTime(12.5);
   if (sShip != nullptr) sShip->setBounty(25, OOLegalStatusReason::kSetup);
-  sOther = static_cast<PlainShip*>(oo::ToShip(oo::NewShipObject(
+  sOther = static_cast<PlainShip*>(oo::ToShip(oo::RetainedEntity(oo::NewShipObject(
       oo::makeRef<PlainShip>(), "other",
-      oo::PList(oo::PList::Dict{{"name", oo::PList(std::string("Other"))}}))));
+      oo::PList(oo::PList::Dict{{"name", oo::PList(std::string("Other"))}})))));
   OO_CHECK(sOther != nullptr);
 }
 
@@ -859,9 +860,9 @@ OO_TEST(methodsRemoveAndExplode) {
   sPlayerDocked = false;
 
   // A ship still in a launch queue (docked) is only marked dead.
-  PlainShip* queued = static_cast<PlainShip*>(oo::ToShip(oo::NewShipObject(
+  PlainShip* queued = static_cast<PlainShip*>(oo::ToShip(oo::RetainedEntity(oo::NewShipObject(
       oo::makeRef<PlainShip>(), "queued",
-      oo::PList(oo::PList::Dict{{"name", oo::PList(std::string("Queued"))}}))));
+      oo::PList(oo::PList::Dict{{"name", oo::PList(std::string("Queued"))}})))));
   if (queued != nullptr) queued->setStatus(OOEntityStatus::kDocked);
   JSContext* context = OOJSAcquireContext();
   JS_SetPropertyStr(context, OOJavaScriptEngine::sharedEngine()->globalObject(),

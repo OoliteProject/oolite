@@ -3294,16 +3294,15 @@ Entity* Universe::addVisualEffectAt(HPVector pos, const std::string& key) {
 
   // minimise the time between creating ship & assigning position.
 
-  Entity* vis =
-      newVisualEffectWithName(key);  // is retained (the effect's object)
+  const std::shared_ptr<Entity> created =
+      newVisualEffectWithName(key);  // owned until the universe holds it
+  Entity* vis = created.get();
   bool success = false;
   if (vis != nullptr) {
     vis->setPosition(pos);
     vis->setOrientation(OORandomQuaternion());
 
-    success = addEntity(vis);  // retained globally now
-
-    oo::ReleaseEntity(vis);
+    success = addEntity(vis);  // retained globally now (created goes on return)
   }
   return success ? vis : nullptr;
 
@@ -4488,11 +4487,12 @@ std::shared_ptr<::ShipEntity> Universe::newShipWithRole(
   OOJS_PROFILE_EXIT
 }
 
-Entity* Universe::newVisualEffectWithName(const std::string& effectKey) {
+std::shared_ptr<Entity> Universe::newVisualEffectWithName(
+    const std::string& effectKey) {
   OOJS_PROFILE_ENTER
 
   oo::PList effectDict;
-  Entity* effect = nullptr;  // the effect, its object +1
+  std::shared_ptr<Entity> effect;  // the effect, owned
 
   effectDict = OOShipRegistry::sharedRegistry()->effectInfoForKey(effectKey);
   if (effectDict.isNull()) return nullptr;
@@ -4538,7 +4538,7 @@ std::shared_ptr<::ShipEntity> Universe::newShipWithName(
   OOJS_PROFILE_ENTER
 
   oo::PList shipDict;
-  ::ShipEntity* ship = nullptr;
+  std::shared_ptr<::ShipEntity> ship;
 
   shipDict = OOShipRegistry::sharedRegistry()->shipInfoForKey(shipKey);
   if (shipDict.isNull()) return nullptr;
@@ -4563,8 +4563,8 @@ std::shared_ptr<::ShipEntity> Universe::newShipWithName(
     } else if (makeStation) {
       ship = ::StationEntity::newStationObject(shipKey, shipDict);
     } else {
-      ship = oo::ToShip(
-          oo::NewShipObject(oo::makeShared<::ShipEntity>(), shipKey, shipDict));
+      ship =
+          oo::NewShipObject(oo::makeShared<::ShipEntity>(), shipKey, shipDict);
     }
   } catch (...) {
     const auto exception = oo::CurrentOOException();
@@ -4585,7 +4585,7 @@ std::shared_ptr<::ShipEntity> Universe::newShipWithName(
     if (ship != nullptr) ship->setPrimaryRole(shipKey);
   }
 
-  return oo::AdoptHold(ship);  // the +1 the object maker gave
+  return ship;
 
   OOJS_PROFILE_EXIT
 }
@@ -4595,7 +4595,7 @@ std::shared_ptr<::ShipEntity> Universe::newDockWithName(
   OOJS_PROFILE_ENTER
 
   oo::PList shipDict;
-  ::ShipEntity* dock = nullptr;  // its object
+  std::shared_ptr<::ShipEntity> dock;  // its object
 
   shipDict = OOShipRegistry::sharedRegistry()->shipInfoForKey(shipDataKey);
   if (shipDict.isNull()) return nullptr;
@@ -4626,7 +4626,7 @@ std::shared_ptr<::ShipEntity> Universe::newDockWithName(
     if (dock != nullptr) dock->setPrimaryRole(shipDataKey);
   }
 
-  return oo::AdoptHold(dock);  // the +1 newDockObject() gave
+  return dock;
 
   OOJS_PROFILE_EXIT
 }
@@ -5314,8 +5314,8 @@ void Universe::drawUniverse() {
          * occasionally be inefficient. - CIM */
         Entity* e = sortedEntities[i];  // ordered NEAREST -> FURTHEST AWAY
         if (e->isVisible()) {
-          my_entities[draw_count++] =
-              oo::AutoreleaseEntity(oo::RetainEntity(e));
+          (void)oo::autorelease(oo::Hold(e));  // retained, autoreleased
+          my_entities[draw_count++] = e;
         }
       }
 
@@ -6166,8 +6166,9 @@ bool Universe::isVectorClearFromEntity(Entity* e1, double dist, HPVector p2) {
   int i;
   int ent_count = n_entities;
   std::vector<Entity*> my_entities(ent_count);  // each one's object retained
+  std::vector<oo::EntityHold> my_holds;         // each one's object, held
   for (i = 0; i < ent_count; i++)
-    my_entities[i] = oo::RetainEntity(sortedEntities[i]);  //	retained
+    my_entities[i] = oo::HoldIn(my_holds, sortedEntities[i]);  //	retained
 
   if (v1.x || v1.y || v1.z)
     f1 = HPvector_normal(v1);  // unit vector in direction of p2 from p1
@@ -6201,15 +6202,13 @@ bool Universe::isVectorClearFromEntity(Entity* e1, double dist, HPVector p2) {
         // compare with center of incident object
         double dist2 = p0.x * p0.x + p0.y * p0.y + p0.z * p0.z;
         if (dist2 < cr * cr) {
-          for (i = 0; i < ent_count; i++)
-            oo::ReleaseEntity(my_entities[i]);  //	released
+          my_holds.clear();  //	released
           return false;
         }
       }
     }
   }
-  for (i = 0; i < ent_count; i++)
-    oo::ReleaseEntity(my_entities[i]);  //	released
+  my_holds.clear();  //	released
   return true;
 }
 
@@ -6234,8 +6233,9 @@ Entity* Universe::hazardOnRouteFromEntity(Entity* e1, double dist,
   int i;
   int ent_count = n_entities;
   std::vector<Entity*> my_entities(ent_count);  // each one's object retained
+  std::vector<oo::EntityHold> my_holds;         // each one's object, held
   for (i = 0; i < ent_count; i++)
-    my_entities[i] = oo::RetainEntity(sortedEntities[i]);  //	retained
+    my_entities[i] = oo::HoldIn(my_holds, sortedEntities[i]);  //	retained
 
   if (v1.x || v1.y || v1.z)
     f1 = HPvector_normal(v1);  // unit vector in direction of p2 from p1
@@ -6272,8 +6272,7 @@ Entity* Universe::hazardOnRouteFromEntity(Entity* e1, double dist,
       }
     }
   }
-  for (i = 0; i < ent_count; i++)
-    oo::ReleaseEntity(my_entities[i]);  //	released
+  my_holds.clear();  //	released
   return result;
 }
 
@@ -6294,8 +6293,9 @@ HPVector Universe::getSafeVectorFromEntity(Entity* e1, double dist,
   int i;
   int ent_count = n_entities;
   std::vector<Entity*> my_entities(ent_count);  // each one's object retained
+  std::vector<oo::EntityHold> my_holds;         // each one's object, held
   for (i = 0; i < ent_count; i++)
-    my_entities[i] = oo::RetainEntity(sortedEntities[i]);  // retained
+    my_entities[i] = oo::HoldIn(my_holds, sortedEntities[i]);  // retained
   HPVector p1 = e1->position;
   HPVector v1 = p2;
   v1.x -= p1.x;
@@ -6405,8 +6405,7 @@ HPVector Universe::getSafeVectorFromEntity(Entity* e1, double dist,
       }
     }
   }
-  for (i = 0; i < ent_count; i++)
-    oo::ReleaseEntity(my_entities[i]);  //	released
+  my_holds.clear();  //	released
   return result;
 }
 
@@ -6520,15 +6519,15 @@ void Universe::addLaserHitEffectsAt(HPVector pos, ::ShipEntity* target,
   int ent_count = n_entities;
   int ship_count = 0;
   std::vector<::ShipEntity*> my_entities(ent_count);
+  std::vector<oo::EntityHold> my_holds;  // each one's object, held
 
   for (i = 0; i < ent_count; i++) {
     Entity* ent = sortedEntities[i];
     if (ent != srcEntity && ent != parent && oo::EntityIsShip(ent) &&
         ent->canCollide()) {
       my_entities[ship_count++] =
-          (oo::ToShip(ent) != nullptr
-               ? oo::ToShip(oo::RetainEntity(oo::ToShip(ent)))
-               : static_cast<::ShipEntity*>(nullptr));
+          (oo::ToShip(ent) != nullptr ? oo::HoldIn(my_holds, oo::ToShip(ent))
+                                      : static_cast<::ShipEntity*>(nullptr));
     }
   }
 
@@ -6605,9 +6604,7 @@ void Universe::addLaserHitEffectsAt(HPVector pos, ::ShipEntity* target,
     }
   }
 
-  for (i = 0; i < ship_count; i++) {
-    if (my_entities[i] != nullptr) oo::ReleaseEntity(my_entities[i]);
-  }  //	released
+  my_holds.clear();  //	released
 
   return hit_entity;
 }
@@ -6625,12 +6622,13 @@ Entity* Universe::firstEntityTargetedByPlayer() {
   int ent_count = n_entities;
   int ship_count = 0;
   std::vector<Entity*> my_entities(ent_count);  // each one's object retained
+  std::vector<oo::EntityHold> my_holds;         // each one's object, held
 
   for (i = 0; i < ent_count; i++) {
     if ((oo::EntityIsShip(sortedEntities[i]) &&
          !oo::EntityIsPlayer(sortedEntities[i])) ||
         sortedEntities[i]->getIsWormhole()) {
-      my_entities[ship_count++] = oo::RetainEntity(sortedEntities[i]);
+      my_entities[ship_count++] = oo::HoldIn(my_holds, sortedEntities[i]);
     }
   }
 
@@ -6690,9 +6688,7 @@ Entity* Universe::firstEntityTargetedByPlayer() {
     }
   }
 
-  for (i = 0; i < ship_count; i++) {
-    oo::ReleaseEntity(my_entities[i]);
-  }
+  my_holds.clear();
 
   return hit_entity;
 }
@@ -6945,8 +6941,8 @@ Entity* Universe::nearestEntityMatchingPredicate(
     }
   }
 
-  return oo::AutoreleaseEntity(
-      oo::RetainEntity(result));  // [[result retain] autorelease]
+  (void)oo::autorelease(oo::Hold(result));  // [[result retain] autorelease]
+  return result;
 }
 
 Entity* Universe::nearestShipMatchingPredicate(EntityFilterPredicate predicate,
@@ -7441,13 +7437,14 @@ void Universe::update(OOTimeDelta inDeltaT) {
 
     unsigned i, ent_count = n_entities;
     std::vector<Entity*> my_entities(ent_count);  // each one's object retained
+    std::vector<oo::EntityHold> my_holds;         // each one's object, held
 
     verifyEntitySessionIDs();
 
     // use a retained copy so this can't be changed under us.
     for (i = 0; i < ent_count; i++) {
-      my_entities[i] =
-          oo::RetainEntity(sortedEntities[i]);  // explicitly retain each one
+      my_entities[i] = oo::HoldIn(
+          my_holds, sortedEntities[i]);  // explicitly retain each one
     }
 
     const char* volatile update_stage = "initialisation";
@@ -7504,10 +7501,15 @@ void Universe::update(OOTimeDelta inDeltaT) {
                 demo_ship_subindex =
                     (demo_ship_subindex + 1) %
                     DemoClassCount(demo_ships, demo_ship_index);
-                demo_ship = oo::RetainedEntity(newShipWithName(
-                    OptionalStringIn(demoShipData(), kOODemoShipKey)
-                        .value_or(std::string()),
-                    false));  // a missing key asked for "", as nil did
+                // The creator's reference until the entity list holds the
+                // ship; one that cannot be added is destroyed with it (it was
+                // leaked before).
+                const std::shared_ptr<::ShipEntity> newDemoShip =
+                    newShipWithName(
+                        OptionalStringIn(demoShipData(), kOODemoShipKey)
+                            .value_or(std::string()),
+                        false);  // a missing key asked for "", as nil did
+                demo_ship = newDemoShip.get();
 
                 if (demo_ship != nullptr) {
                   if (demo_ship != nullptr)
@@ -7529,9 +7531,8 @@ void Universe::update(OOTimeDelta inDeltaT) {
                   if (demo_ship != nullptr)
                     demo_ship->setDemoStartTime(universal_time);
                   if (addEntity(demo_ship)) {
-                    if (demo_ship != nullptr)
-                      oo::ReleaseEntity(demo_ship);  // We now own a reference
-                                                     // through the entity list.
+                    // We now own a reference through the entity list (the
+                    // creator's goes with newDemoShip).
                     if (demo_ship != nullptr)
                       demo_ship->setStatus(OOEntityStatus::kCockpitDisplay);
                     demo_start_z =
@@ -7705,9 +7706,7 @@ void Universe::update(OOTimeDelta inDeltaT) {
     // dispose of the non-mutable copy and everything it references neatly
     update_stage = "clean up";
     OO_LOG("universe.profile.update", "{}", std::string_view(update_stage));
-    for (i = 0; i < ent_count; i++) {
-      oo::ReleaseEntity(my_entities[i]);  // explicitly release each one
-    }
+    my_holds.clear();  // explicitly release each one
     /* Garbage collection is going to result in a significant
      * pause when it happens. Doing it here is better than doing
      * it in the middle of the update when it might slow a
@@ -9530,9 +9529,11 @@ oo::PList Universe::shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL,
       std::string shortExtrasKey = "shipyard-first-extra";
 
       // for testing condition scripts
-      ::ShipEntity* testship = ::ProxyPlayerEntity::newProxyObject(
-          ship_key, shipDict);  // customise the ship (if chance = 1, then ship
-                                // will get all possible add
+      std::shared_ptr<::ShipEntity> testshipHold =
+          ::ProxyPlayerEntity::newProxyObject(ship_key, shipDict);
+      ::ShipEntity* testship =
+          testshipHold.get();  // customise the ship (if chance = 1, then ship
+                               // will get all possible add
       // ons)
       while ((randf() < chance) && (options.size())) {
         chance *= chance;  // decrease the chance of a further customisation
@@ -9747,7 +9748,7 @@ oo::PList Universe::shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL,
           RemoveOption(options, equipmentKey);
         }
       }  // end adding optional equipment
-      if (testship != nullptr) oo::ReleaseEntity(testship);
+      testshipHold.reset();
       // i18n: Some languages require that no conversion to lower case string
       // takes place.
       bool lowercaseIgnore = descriptions()->get<bool>("lowercase_ignore");
@@ -10333,10 +10334,11 @@ void Universe::allShipsDoScriptEvent(
   int ent_count = n_entities;
   int ship_count = 0;
   std::vector<::ShipEntity*> my_ships(ent_count);
+  std::vector<oo::EntityHold> ship_holds;  // my_ships[i]'s object, held
   for (i = 0; i < ent_count; i++) {
     if (sortedEntities[i]->isShip) {
       my_ships[ship_count++] = oo::ToShip(
-          oo::RetainEntity(sortedEntities[i]));  // retained (its object)
+          oo::HoldIn(ship_holds, sortedEntities[i]));  // retained (its object)
     }
   }
 
@@ -10347,7 +10349,7 @@ void Universe::allShipsDoScriptEvent(
       if (se != nullptr && se->getAI() != nullptr)
         se->getAI()->reactToMessage(*message, "global message");
     }
-    if (se != nullptr) oo::ReleaseEntity(se);  //	released
+    ship_holds[i].reset();  //	released
   }
 }
 

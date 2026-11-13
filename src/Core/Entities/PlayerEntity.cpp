@@ -448,9 +448,9 @@ PlayerEntity::~PlayerEntity() = default;
 
 PlayerEntity* PlayerEntity::sharedPlayer() {
   if (EXPECT_NOT(gOOPlayer == nullptr)) {
-    // kept for the process, by a +1 of its own (the tests give it back)
-    gOOPlayer =
-        static_cast<PlayerEntity*>(oo::RetainedEntity(newPlayerObject()));
+    // kept for the process: a heap std::shared_ptr that is never deleted
+    gOOPlayer = static_cast<PlayerEntity*>(
+        (*new std::shared_ptr<::ShipEntity>(newPlayerObject())).get());
   }
   return gOOPlayer;
 }
@@ -2230,8 +2230,7 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
         if (amiss) {
           missile_list[missileCount] =
               OOEquipmentType::equipmentTypeWithIdentifier(*missile_desc).get();
-          missile_entity[missileCount] =
-              oo::AdoptHold(amiss.get());  // retain count = 1
+          missile_entity[missileCount] = amiss;
           missileCount++;
         } else {
           OO_LOG_WARN(
@@ -2300,9 +2299,10 @@ bool PlayerEntity::setCommanderDataFromDictionary(const oo::PList& dict) {
   for (const oo::PList& whCurrDict :
        (whList != nullptr) ? *whList : oo::PList::Array()) {
     std::shared_ptr<WormholeEntity> whRef = oo::makeShared<WormholeEntity>();
-    Entity* wh = oo::RetainEntity(
-        oo::MadeEntity(whRef));  // its object (the +1 of the old +alloc is
-                                 // still never released, as before)
+    Entity* wh = oo::MadeEntity(whRef);  // its object
+    // The +1 of the old +alloc is still never released, as before: a holder
+    // that is never deleted.
+    (void)new oo::EntityHold(oo::Hold(wh));
     whRef->initWithDict(whCurrDict);
     scannedWormholes.push_back(oo::Hold(wh));
     /* TODO - add to Universe if the wormhole hasn't expired yet; but in this
@@ -2817,10 +2817,9 @@ bool PlayerEntity::setUpShipFromDictionary(const oo::PList& shipDict) {
   for (i = 0; i < missiles; i++) {
     missile_list[i] =
         OOEquipmentType::equipmentTypeWithIdentifier("EQ_MISSILE").get();
-    missile_entity[i] = oo::AdoptHold(
-        (UNIVERSE != nullptr
-             ? oo::RetainedEntity(UNIVERSE->newShipWithRole("EQ_MISSILE"))
-             : static_cast<::ShipEntity*>(nullptr)));  // retain count = 1
+    missile_entity[i] =
+        (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("EQ_MISSILE")
+                             : nullptr);
   }
 
   _primaryTarget.reset();
@@ -3411,9 +3410,7 @@ void PlayerEntity::doBookkeeping(double delta_t) {
         // FIXME: this should use OOShipType, which should exist. -- Ahruman
         setMesh((player_ship != nullptr ? player_ship->mesh()
                                         : static_cast<OOMesh*>(nullptr)));
-        if (player_ship != nullptr)
-          oo::ReleaseEntity(
-              player_ship.get());  // we only wanted it for its polygons!
+        player_ship.reset();  // we only wanted it for its polygons!
       }
       if (UNIVERSE != nullptr) UNIVERSE->setViewDirection(OOViewID::kForward);
       if (UNIVERSE != nullptr)
@@ -3610,9 +3607,10 @@ void PlayerEntity::updateAlertConditionForNearbyEntities() {
       UNIVERSE->sortedEntities;  // grab the public sorted list
   std::vector<Entity*> my_entities(
       ent_count);  // the C++ entities, their objects retained
+  std::vector<oo::EntityHold> my_holds;  // each one's object, held
   Entity* scannedEntity = nullptr;
   for (i = 0; i < ent_count; i++) {
-    my_entities[i] = oo::RetainEntity(uni_entities[i]);  // retained
+    my_entities[i] = oo::HoldIn(my_holds, uni_entities[i]);  // retained
   }
   bool massLocked = false;
   bool foundHostiles = false;
@@ -3696,9 +3694,7 @@ void PlayerEntity::updateAlertConditionForNearbyEntities() {
 
   setAlertFlag(OOAlertFlags::kHostiles, foundHostiles);
 
-  for (i = 0; i < ent_count; i++) {
-    oo::ReleaseEntity(my_entities[i]);  //	released
-  }
+  my_holds.clear();
 
   bool energyCritical = false;
   if (energy < 64 && energy < maxEnergy * 0.8) {
@@ -4447,9 +4443,10 @@ void PlayerEntity::showShipModelWithKey(
     demoShip = nullptr;
   }
 
-  ::ShipEntity* ship = ::ProxyPlayerEntity::newProxyObject(
+  std::shared_ptr<::ShipEntity> shipHold = ::ProxyPlayerEntity::newProxyObject(
       shipKey, shipData);  // [[ProxyPlayerEntity alloc]
                            // cxx_initWithKey:definition:]
+  ::ShipEntity* ship = shipHold.get();
   if (personality != ENTITY_PERSONALITY_INVALID) {
     if (ship != nullptr) ship->setEntityPersonalityInt(personality);
   }
@@ -4488,7 +4485,7 @@ void PlayerEntity::showShipModelWithKey(
 
   if (ship != nullptr) ship->setStatus(OOEntityStatus::kCockpitDisplay);
 
-  if (ship != nullptr) oo::ReleaseEntity(ship);
+  shipHold.reset();
 }
 
 // Check for lost targeting - both on the ships' main target as well as each
@@ -6010,9 +6007,8 @@ bool PlayerEntity::mountMissile(::ShipEntity* missile) {
 
 bool PlayerEntity::mountMissileWithRole(const std::string& role) {
   if (missileCount() >= missileCapacity()) return false;
-  return mountMissile(oo::ToShip(oo::AutoreleaseEntity(
-      (UNIVERSE != nullptr ? oo::RetainedEntity(UNIVERSE->newShipWithRole(role))
-                           : static_cast<::ShipEntity*>(nullptr)))));
+  return mountMissile(oo::ToShip(oo::autorelease(
+      (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(role) : nullptr))));
 }
 
 ::ShipEntity* PlayerEntity::fireMissile() {
@@ -6117,7 +6113,7 @@ bool PlayerEntity::assignToActivePylon(const std::string& equipmentKey) {
   if (!amiss) return false;
 
   // replace the missile now.
-  missile_entity[activeMissile] = oo::AdoptHold(amiss.get());
+  missile_entity[activeMissile] = amiss;
   missile_list[activeMissile] = eqType;
 
   // make sure the new missile is properly activated.
@@ -6418,8 +6414,8 @@ void PlayerEntity::takeEnergyDamage(double amount, Entity* entPart,
   // make sure ent (& its position) is the attacking _ship_/missile !
   if (ent && oo::EntityIsSubEntity(ent)) ent = oo::LiveOwner(ent);
 
-  oo::AutoreleaseEntity(oo::RetainEntity(ent));
-  oo::AutoreleaseEntity(oo::RetainEntity(other));
+  oo::AutoreleaseHold(ent);
+  oo::AutoreleaseHold(other);
 
   rel_pos = (ent != nullptr) ? ent->getPosition() : kZeroHPVector;
   rel_pos = HPvector_subtract(rel_pos, position);
@@ -6520,7 +6516,7 @@ void PlayerEntity::takeScrapeDamage(double amount, Entity* ent) {
   OO_LOG("player.ship.damage", "Player took {:.3f} scrape damage from {}",
          amount, oo::EntityDescription(ent));
 
-  oo::AutoreleaseEntity(oo::RetainEntity(ent));
+  oo::AutoreleaseHold(ent);
   rel_pos = (ent != nullptr) ? ent->getPosition() : kZeroHPVector;
   rel_pos = HPvector_subtract(rel_pos, position);
   // rel_pos is now small
@@ -6589,10 +6585,10 @@ void PlayerEntity::takeHeatDamage(double amount) {
 }
 
 ::ShipEntity* PlayerEntity::createDoppelganger() {
-  ::ShipEntity* result = oo::ToShip(oo::AutoreleaseEntity(
-      (UNIVERSE != nullptr ? oo::RetainedEntity(UNIVERSE->newShipWithName(
-                                 shipDataKey().value_or(""), true))
-                           : static_cast<::ShipEntity*>(nullptr))));
+  ::ShipEntity* result = oo::ToShip(oo::autorelease(
+      (UNIVERSE != nullptr
+           ? UNIVERSE->newShipWithName(shipDataKey().value_or(""), true)
+           : nullptr)));
 
   if (result != nullptr) {
     if (result != nullptr) result->setPosition(getPosition());
@@ -6787,7 +6783,8 @@ void PlayerEntity::rotateCargo() {
   std::ptrdiff_t i, n_cargo = cargo.size();
   if (n_cargo == 0) return;
 
-  ::ShipEntity* pod = oo::ToShip(oo::RetainEntity(cargo[0].get()));
+  ::ShipEntity* pod = oo::ToShip(cargo[0].get());
+  oo::EntityHold podHold = cargo[0];  // pod, retained
   const std::optional<std::string> current_contents =
       (pod != nullptr ? pod->commodityType() : std::optional<std::string>());
   std::optional<std::string> contents;
@@ -6802,13 +6799,13 @@ void PlayerEntity::rotateCargo() {
   do {
     cargo.erase(cargo.begin());         // take it from the eject position
     cargo.emplace_back(oo::Hold(pod));  // move it to the last position
-    if (pod != nullptr) oo::ReleaseEntity(pod);
-    pod = oo::ToShip(oo::RetainEntity(cargo[0].get()));
+    pod = oo::ToShip(cargo[0].get());
+    podHold = cargo[0];  // the old pod released, the new one retained
     contents =
         (pod != nullptr ? pod->commodityType() : std::optional<std::string>());
     rotates++;
   } while (sameContents(contents) && (rotates < n_cargo));
-  if (pod != nullptr) oo::ReleaseEntity(pod);
+  podHold.reset();
 
   const std::string commodity =
       (UNIVERSE != nullptr
@@ -6829,10 +6826,10 @@ void PlayerEntity::rotateCargo() {
     pod = oo::ToShip(cargo[i].get());
     if (sameContents((pod != nullptr ? pod->commodityType()
                                      : std::optional<std::string>()))) {
-      if (pod != nullptr) oo::ToShip(oo::RetainEntity(pod));
+      podHold = oo::Hold(pod);  // retained while it moves
       cargo.erase(cargo.begin() + i--);
       cargo.emplace_back(oo::Hold(pod));
-      if (pod != nullptr) oo::ReleaseEntity(pod);
+      podHold.reset();
       rotates++;
     }
   }
@@ -7117,10 +7114,11 @@ void PlayerEntity::loseTargetStatus() {
   Entity** uni_entities =
       UNIVERSE->sortedEntities;  // grab the public sorted list
   std::vector<Entity*> my_entities(ent_count);
+  std::vector<oo::EntityHold> my_holds;  // each one's object, held
   int i;
   for (i = 0; i < ent_count; i++)
     my_entities[i] =
-        oo::RetainEntity(uni_entities[i]);  //	retained (its object)
+        oo::HoldIn(my_holds, uni_entities[i]);  //	retained (its object)
   for (i = 0; i < ent_count; i++) {
     Entity* thing = my_entities[i];
     if (thing->isShip) {
@@ -7131,9 +7129,7 @@ void PlayerEntity::loseTargetStatus() {
       }
     }
   }
-  for (i = 0; i < ent_count; i++) {
-    oo::ReleaseEntity(my_entities[i]);  //	released
-  }
+  my_holds.clear();
 }
 
 bool PlayerEntity::endScenario(const std::string& key) {
@@ -11138,10 +11134,8 @@ bool PlayerEntity::tryBuyingItem(const std::string& eqKey) {
 
   if (oo::str::hasSuffix(eqKey, "MISSILE") ||
       oo::str::hasSuffix(eqKey, "MINE")) {
-    ::ShipEntity* weapon = oo::ToShip(oo::AutoreleaseEntity(
-        (UNIVERSE != nullptr
-             ? oo::RetainedEntity(UNIVERSE->newShipWithRole(eqKey))
-             : static_cast<::ShipEntity*>(nullptr))));
+    ::ShipEntity* weapon = oo::ToShip(oo::autorelease(
+        (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(eqKey) : nullptr)));
     if (weapon)
       OO_LOG("equip.buy.mounted", "Got ship for mounted weapon role {}", eqKey);
     else

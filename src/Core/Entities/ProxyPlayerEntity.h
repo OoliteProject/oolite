@@ -44,8 +44,8 @@ class ProxyPlayerEntity : public ShipEntity {
           retained (+1) as +alloc/-init's was, or nullptr when the set-up
           fails.
   */
-  static ::ShipEntity* newProxyObject(const std::string& key,
-                                      const oo::PList& dict);
+  static std::shared_ptr<::ShipEntity> newProxyObject(const std::string& key,
+                                                      const oo::PList& dict);
 
   // -cxx_initWithKey:definition:'s body after [super
   // cxx_initWithKey:definition:].

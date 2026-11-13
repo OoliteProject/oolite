@@ -35,6 +35,7 @@
 #include "oofnd/PListParsing.hpp"
 #include "oofnd/ResourcePaths.hpp"
 #include "oofnd/String.hpp"
+#include "EntityManualRefs.h"  // the tests' manual entity references (T095)
 extern PlayerEntity* gOOPlayer;
 
 #include <process.h>

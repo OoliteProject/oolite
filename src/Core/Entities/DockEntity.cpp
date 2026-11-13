@@ -95,12 +95,13 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value) {
 
 // Class shell, flags, geometry and lifecycle.
 
-::ShipEntity* DockEntity::newDockObject(const std::string& key,
-                                        const oo::PList& dict) {
-  ::ShipEntity* object = oo::ToShip(
-      oo::NewShipObject(oo::makeShared<DockEntity>(), key,
-                        dict));  // [super cxx_initWithKey:key definition:dict]
-  if (object != nullptr) static_cast<DockEntity*>(object)->initDockDefaults();
+std::shared_ptr<::ShipEntity> DockEntity::newDockObject(const std::string& key,
+                                                        const oo::PList& dict) {
+  std::shared_ptr<::ShipEntity> object =
+      (oo::NewShipObject(oo::makeShared<DockEntity>(), key,
+                         dict));  // [super cxx_initWithKey:key definition:dict]
+  if (object != nullptr)
+    static_cast<DockEntity*>(object.get())->initDockDefaults();
   return object;
 }
 
@@ -1302,6 +1303,7 @@ bool DockEntity::dockingCorridorIsEmpty() {
   Entity** uni_entities =
       UNIVERSE->sortedEntities;                 // grab the public sorted list
   std::vector<Entity*> my_entities(ent_count);  // each one's object retained
+  std::vector<oo::EntityHold> my_holds;         // each one's object, held
   int i;
   int ship_count = 0;
 
@@ -1314,7 +1316,7 @@ bool DockEntity::dockingCorridorIsEmpty() {
          !oo::EntityIsPlayer(uni_entities[i])) &&
         uni_entities[i]->getMass() > 1000) {
       my_entities[ship_count++] =
-          oo::RetainEntity(uni_entities[i]);  //	retained
+          oo::HoldIn(my_holds, uni_entities[i]);  //	retained
     }
   }
 
@@ -1357,9 +1359,7 @@ bool DockEntity::dockingCorridorIsEmpty() {
     }
   }
 
-  for (i = 0; i < ship_count; i++) {
-    oo::ReleaseEntity(my_entities[i]);  // released
-  }
+  my_holds.clear();
 
   return isEmpty;
 }
@@ -1372,13 +1372,14 @@ void DockEntity::clearDockingCorridor() {
   Entity** uni_entities =
       UNIVERSE->sortedEntities;                 // grab the public sorted list
   std::vector<Entity*> my_entities(ent_count);  // each one's object retained
+  std::vector<oo::EntityHold> my_holds;         // each one's object, held
   int i;
   int ship_count = 0;
 
   for (i = 0; i < ent_count; i++) {
     if (uni_entities[i]->isShip) {
       my_entities[ship_count++] =
-          oo::RetainEntity(uni_entities[i]);  //	retained
+          oo::HoldIn(my_holds, uni_entities[i]);  //	retained
     }
   }
 
@@ -1436,7 +1437,5 @@ void DockEntity::clearDockingCorridor() {
     }
   }
 
-  for (i = 0; i < ship_count; i++) {
-    oo::ReleaseEntity(my_entities[i]);  // released
-  }
+  my_holds.clear();
 }

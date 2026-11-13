@@ -27,6 +27,7 @@
 #include "StationEntity.h"
 #include "Universe.h"
 #include "oo_test.hpp"
+#include "EntityManualRefs.h"  // the tests' manual entity references (T095)
 
 // The player's system ids are private: the test sets them through this friend.
 struct PlayerEntityTestAccess {

@@ -27,6 +27,7 @@
 
 #include <format>
 #include <string>
+#include "EntityManualRefs.h"  // the tests' manual entity references (T095)
 
 
 #define OO_PLAYER_MEMBER(name)	static auto &name(PlayerEntity *player)	{ return player->name; }

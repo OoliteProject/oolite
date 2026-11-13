@@ -1442,10 +1442,11 @@ void HeadUpDisplay::drawScanner(const oo::PList& info) {
       UNIVERSE->sortedEntities;  // grab the public sorted list
   std::vector<Entity*> my_entities(
       ent_count);  // the C++ entities, their objects retained
+  std::vector<oo::EntityHold> my_holds;  // each one's object, held
   Entity* scannedEntity = nullptr;
 
   for (i = 0; i < ent_count; i++) {
-    my_entities[i] = oo::RetainEntity(uni_entities[i]);  // retained
+    my_entities[i] = oo::HoldIn(my_holds, uni_entities[i]);  // retained
   }
 
   if (!emptyDial) {
@@ -1720,9 +1721,7 @@ void HeadUpDisplay::drawScanner(const oo::PList& info) {
     }
   }
 
-  for (i = 0; i < ent_count; i++) {
-    oo::ReleaseEntity(my_entities[i]);  //	released
-  }
+  my_holds.clear();
 
   OOVerifyOpenGLState();
 }
