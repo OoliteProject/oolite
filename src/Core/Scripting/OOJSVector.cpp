@@ -35,6 +35,8 @@ MA 02110-1301, USA.
 
 #include <cstring>
 #include <format>
+#include <memory>
+#include <new>
 
 #include "oofnd/String.hpp"
 
@@ -180,19 +182,13 @@ bool VectorToJSValue(JSContext* context, Vector vector, JSValue* outValue) {
 JSValue JSVectorWithHPVector(JSContext* context, HPVector vector) {
   OOJS_PROFILE_ENTER
 
-  HPVector* priv = nullptr;
-
-  priv = static_cast<HPVector*>(malloc(sizeof *priv));
+  // The object's private data, deleted by the class finaliser.
+  std::unique_ptr<HPVector> priv(new (std::nothrow) HPVector(vector));
   if (EXPECT_NOT(priv == nullptr)) return JS_ThrowOutOfMemory(context);
 
-  *priv = vector;
-
   JSValue result = JS_NewObjectClass(context, sVectorClassID);
-  if (EXPECT_NOT(JS_IsException(result))) {
-    free(priv);
-    return result;
-  }
-  JS_SetOpaque(result, priv);
+  if (EXPECT_NOT(JS_IsException(result))) return result;
+  JS_SetOpaque(result, priv.release());
 
   return result;
 
@@ -502,7 +498,7 @@ static JSValue VectorSetProperty(JSContext* context, JSValueConst thisObj,
 static void VectorFinalize(JSRuntime* runtime, JSValueConst thisObj) {
   OOJS_PROFILE_ENTER
 
-  free(JS_GetOpaque(thisObj, sVectorClassID));
+  delete static_cast<HPVector*>(JS_GetOpaque(thisObj, sVectorClassID));
 
   OOJS_PROFILE_EXIT_VOID
 }
