@@ -39,7 +39,7 @@ bool OOWriteXMLPListToFile(const oo::PList& plist, const std::string& path,
   }
 
   if (!oo::fs::writeFile(oo::fs::pathFromUTF8(path), *data,
-                         oo::fs::WriteMode::atomic)) {
+                         oo::fs::WriteMode::kAtomic)) {
     if (outError != nullptr) {
       *outError = "could not write data to " + path + ".";
     }

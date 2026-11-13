@@ -128,39 +128,39 @@ class OldStyleWriter {
   // -oldSchoolPListFormatWithIndentation:errorDescription:. False on failure.
   bool format(const PList& v, unsigned indent, std::string& out) {
     switch (v.type()) {
-      case PList::Type::String:
+      case PList::Type::kString:
         return formatString(*v.getIf<std::string>(), out);
-      case PList::Type::Bool:
+      case PList::Type::kBool:
         out += *v.getIf<bool>() ? "true" : "false";
         return true;
-      case PList::Type::Integer: {
+      case PList::Type::kInteger: {
         const PList::Integer& i = *v.getIf<PList::Integer>();
         out += i.isUnsigned ? std::format("{}", i.unsignedValue())
                             : std::format("{}", i.value);
         return true;
       }
-      case PList::Type::Real: {
+      case PList::Type::kReal: {
         out += std::format("{:.8g}", *v.getIf<double>());
         return true;
       }
-      case PList::Type::Data:
+      case PList::Type::kData:
         formatData(*v.getIf<Data>(), indent, out);
         return true;
-      case PList::Type::Array:
+      case PList::Type::kArray:
         return formatArray(*v.getIf<PList::Array>(), indent, out);
-      case PList::Type::Dict:
+      case PList::Type::kDict:
         return formatDict(*v.getIf<PList::Dict>(), indent, out);
-      case PList::Type::Date:
+      case PList::Type::kDate:
         error =
             "Class NSCalendarDate does not support "
             "OldSchoolPropertyListWriting";
         return false;
-      case PList::Type::Object:
+      case PList::Type::kObject:
         // NSObject's -oldSchoolPListFormatWithIndentation:errorDescription:
         error = "Class " + v.getIf<PList::Object>()->get()->className() +
                 " does not support OldSchoolPropertyListWriting";
         return false;
-      case PList::Type::Null:
+      case PList::Type::kNull:
         break;
     }
     nilResult = true;  // [nil oldSchoolPList...] is nil
@@ -426,15 +426,15 @@ inline std::string_view xmlIndent(unsigned index) noexcept {
 inline void appendXML(std::string& out, const PList& v, unsigned level) {
   constexpr unsigned step = 2;
   switch (v.type()) {
-    case PList::Type::String:
+    case PList::Type::kString:
       out += "<string>";
       appendXMLString(out, *v.getIf<std::string>());
       out += "</string>\n";
       return;
-    case PList::Type::Bool:
+    case PList::Type::kBool:
       out += *v.getIf<bool>() ? "<true/>\n" : "<false/>\n";
       return;
-    case PList::Type::Integer: {
+    case PList::Type::kInteger: {
       const PList::Integer& i = *v.getIf<PList::Integer>();
       out += "<integer>";
       out += i.isUnsigned ? std::format("{}", i.unsignedValue())
@@ -442,7 +442,7 @@ inline void appendXML(std::string& out, const PList& v, unsigned level) {
       out += "</integer>\n";
       return;
     }
-    case PList::Type::Real:
+    case PList::Type::kReal:
       out += "<real>";
       out += v.isSinglePrecision()
                  ? std::format("{:.7g}",
@@ -451,12 +451,12 @@ inline void appendXML(std::string& out, const PList& v, unsigned level) {
                  : std::format("{:.16g}", *v.getIf<double>());
       out += "</real>\n";
       return;
-    case PList::Type::Data:
+    case PList::Type::kData:
       out += "<data>\n";
       appendBase64(out, *v.getIf<Data>());
       out += "</data>\n";
       return;
-    case PList::Type::Date: {
+    case PList::Type::kDate: {
       long y;
       int mo, d, h, mi, s;
       breakDate(v.getIf<PList::Date>()->sinceReferenceDate, y, mo, d, h, mi, s);
@@ -466,7 +466,7 @@ inline void appendXML(std::string& out, const PList& v, unsigned level) {
       out += "</date>\n";
       return;
     }
-    case PList::Type::Array: {
+    case PList::Type::kArray: {
       const std::string_view base = xmlIndent(level * step);
       const std::string_view size = xmlIndent((level + 1) * step);
       out += "<array>\n";
@@ -478,7 +478,7 @@ inline void appendXML(std::string& out, const PList& v, unsigned level) {
       out += "</array>\n";
       return;
     }
-    case PList::Type::Dict: {
+    case PList::Type::kDict: {
       const std::string_view base = xmlIndent(level * step);
       const std::string_view size = xmlIndent((level + 1) * step);
       std::vector<std::pair<std::u16string, const PList::Dict::value_type*>>
@@ -500,10 +500,10 @@ inline void appendXML(std::string& out, const PList& v, unsigned level) {
       out += "</dict>\n";
       return;
     }
-    case PList::Type::Null:
+    case PList::Type::kNull:
       out += "<string>(nil)</string>";  // OAppend's nil branch (no newline)
       return;
-    case PList::Type::Object:
+    case PList::Type::kObject:
       // Not property-list data (the foreign-object carrier): its -description
       // in a <string>, with NO line break after it (captured from
       // gnustep-base 1.31.1: GNUstep's XML writer falls through to the

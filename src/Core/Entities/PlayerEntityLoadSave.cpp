@@ -1046,7 +1046,7 @@ void PlayerEntity::lsCommanders(
   // only built the paths.
   std::vector<std::string> cdrArray;
   const oo::fs::Path directoryPath = oo::fs::pathFromUTF8(directory);
-  if (oo::fs::fileType(directoryPath) == oo::fs::FileType::directory) {
+  if (oo::fs::fileType(directoryPath) == oo::fs::FileType::kDirectory) {
     const auto names = oo::fs::directoryContents(directoryPath);
     if (names) {
       for (const std::string& entry : *names)
@@ -1069,8 +1069,8 @@ void PlayerEntity::lsCommanders(
   for (const std::string& path : cdrArray) {
     const oo::fs::FileType type = oo::fs::fileType(oo::fs::pathFromUTF8(path));
 
-    if (type != oo::fs::FileType::none) {
-      if (type != oo::fs::FileType::directory &&
+    if (type != oo::fs::FileType::kNone) {
+      if (type != oo::fs::FileType::kDirectory &&
           oo::str::lowercase(oo::str::pathExtension(path)) == "oolite-save") {
         oo::PList cdr = cxx_OOPropertyListFromFile(path);
         if (!cdr.isDict())
@@ -1085,7 +1085,7 @@ void PlayerEntity::lsCommanders(
           cdrDetailArray.push_back(std::move(cdr));
         }
       }
-      if (type == oo::fs::FileType::directory &&
+      if (type == oo::fs::FileType::kDirectory &&
           !oo::str::hasPrefix(oo::str::lastPathComponent(path), ".")) {
         cdrDetailArray.push_back(
             oo::PList(oo::PList::Dict{{"isFolder", oo::PList("YES")},

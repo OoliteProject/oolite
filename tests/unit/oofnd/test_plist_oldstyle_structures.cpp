@@ -28,7 +28,7 @@ std::string failure(std::string_view detail) {
 }
 
 oo::PListFormat formatOf(std::string_view in) {
-  oo::PListFormat f = oo::PListFormat::XML;
+  oo::PListFormat f = oo::PListFormat::kXML;
   (void)oo::parseOldStylePList(in, &f);
   return f;
 }
@@ -105,7 +105,7 @@ OO_TEST(hexData) {
   OO_CHECK_EQ(parsed("< 01 02 >"), "D<0102>");
   // Comments count as the space between octets.
   OO_CHECK_EQ(parsed("<01 // x\n 02>"), "D<0102>");
-  OO_CHECK(formatOf("<01>") == oo::PListFormat::OpenStep);
+  OO_CHECK(formatOf("<01>") == oo::PListFormat::kOpenStep);
 }
 
 OO_TEST(hexDataErrors) {
@@ -139,8 +139,8 @@ OO_TEST(typedValueExtension) {
   OO_CHECK_EQ(parsed("{ key = <*D2001-01-01 00:00:00 +0000>; }"),
               "{\"key\"=T0.000;}");
   // Using an extension makes the format GNUstep rather than OpenStep.
-  OO_CHECK(formatOf("<*I1>") == oo::PListFormat::GNUstep);
-  OO_CHECK(formatOf("(a)") == oo::PListFormat::OpenStep);
+  OO_CHECK(formatOf("<*I1>") == oo::PListFormat::kGNUstep);
+  OO_CHECK(formatOf("(a)") == oo::PListFormat::kOpenStep);
   // Signedness is kept for the writers.
   OO_CHECK(
       oo::parseOldStylePList("<*I5>")->getIf<oo::PList::Integer>()->isUnsigned);
@@ -170,7 +170,7 @@ OO_TEST(base64Extension) {
       parsed("(<[AAEC]>, <[]>, <[AAE=]>, <[AA==]>, <[ A A E C ]>, <[=]>)"),
       "[D<000102>,D<>,D<0001>,D<00>,D<000102>,D<00>]");
   OO_CHECK_EQ(parsed("(<[!!]>)"), "[D<>]");
-  OO_CHECK(formatOf("<[AA==]>") == oo::PListFormat::GNUstep);
+  OO_CHECK(formatOf("<[AA==]>") == oo::PListFormat::kGNUstep);
   OO_CHECK_EQ(
       parsed("<[AA"),
       failure("line 1 (char 5) - unexpected end of string when parsing data"));

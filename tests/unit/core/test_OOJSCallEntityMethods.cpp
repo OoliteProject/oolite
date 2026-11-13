@@ -60,24 +60,24 @@ std::optional<OracleRow> Oracle(const OOEntityByNameRow& row) {
   const bool plistResult =
       std::strcmp(row.result, kOOTypeEncoding<oo::PList>) == 0;
   switch (row.argument) {
-    case OOEntityByNameArgument::None:
+    case OOEntityByNameArgument::kNone:
       if (voidResult)
-        return OracleRow{OOJSCallEntityMethodForm::VoidVoid,
+        return OracleRow{OOJSCallEntityMethodForm::kVoidVoid,
                          kOOShaderUniformTypeInvalid};
       if (plistResult)
-        return OracleRow{OOJSCallEntityMethodForm::PListVoid,
+        return OracleRow{OOJSCallEntityMethodForm::kPListVoid,
                          kOOShaderUniformTypeInvalid};
-      return OracleRow{OOJSCallEntityMethodForm::Typed,
+      return OracleRow{OOJSCallEntityMethodForm::kTyped,
                        OOShaderUniformTypeFromEncoding(row.result)};
-    case OOEntityByNameArgument::String:
+    case OOEntityByNameArgument::kString:
       if (voidResult)
-        return OracleRow{OOJSCallEntityMethodForm::VoidString,
+        return OracleRow{OOJSCallEntityMethodForm::kVoidString,
                          kOOShaderUniformTypeInvalid};
       if (plistResult)
-        return OracleRow{OOJSCallEntityMethodForm::PListString,
+        return OracleRow{OOJSCallEntityMethodForm::kPListString,
                          kOOShaderUniformTypeInvalid};
       return std::nullopt;  // called with its argument missing
-    case OOEntityByNameArgument::PList:
+    case OOEntityByNameArgument::kPList:
       return std::nullopt;  // an argument the templates do not take
   }
   return std::nullopt;
@@ -117,7 +117,7 @@ OO_TEST(tableIsTheMatchersSafeSet) {
       }
       const OOJSCallEntityMethodRow& entry = *found->second;
       bool same = (entry.form == row.form);
-      if (same && row.form == OOJSCallEntityMethodForm::Typed)
+      if (same && row.form == OOJSCallEntityMethodForm::kTyped)
         same = (OOShaderUniformTypeFromEncoding(entry.encoding) == row.type);
       if (!same) different += " " + name;
     }
@@ -141,12 +141,12 @@ OO_TEST(tableLeavesOutUnsafeNames) {
   }
   for (const OOJSCallEntityMethodRow& row : kOOJSCallEntityMethods) {
     const bool takesString =
-        (row.form == OOJSCallEntityMethodForm::VoidString ||
-         row.form == OOJSCallEntityMethodForm::PListString);
+        (row.form == OOJSCallEntityMethodForm::kVoidString ||
+         row.form == OOJSCallEntityMethodForm::kPListString);
     const bool endsWithColon = (std::strlen(row.name) > 0 &&
                                 row.name[std::strlen(row.name) - 1] == ':');
     OO_CHECK(takesString == endsWithColon);
-    OO_CHECK((row.form == OOJSCallEntityMethodForm::Typed) ==
+    OO_CHECK((row.form == OOJSCallEntityMethodForm::kTyped) ==
              (row.encoding != nullptr));
   }
 }
@@ -170,7 +170,7 @@ OO_TEST(everyNameIsAnsweredByTheCxxEntity) {
         uncovered += std::string(" ") + row.name;
       if (byName && facade != nullptr) twice += std::string(" ") + row.name;
       if (facade == nullptr) continue;
-      if (row.form != OOJSCallEntityMethodForm::Typed) {
+      if (row.form != OOJSCallEntityMethodForm::kTyped) {
         if (facade->typed == nullptr)
           typedMismatch += std::string(" ") + row.name;
         continue;

@@ -55,7 +55,7 @@ OO_TEST(fontPListLatin1) {
                   Substitutions({{"\xE2\x98\x85", "\b"}, {"q", "Q"}})));
     OO_CHECK(converter != nullptr);
     OO_CHECK(converter->encoding() == std::optional<oo::str::Encoding>(
-                                          oo::str::Encoding::windowsCP1252));
+                                          oo::str::Encoding::kWindowsCP1252));
     OO_CHECK_EQ(Bytes(converter->convertString("abc")), std::string("abc"));
     OO_CHECK_EQ(Bytes(converter->convertString("\xE2\x98\x85 q")),
                 std::string("\b Q"));
@@ -95,7 +95,7 @@ OO_TEST(otherEncodings) {
     std::shared_ptr<OOEncodingConverter> converter =
         ConverterForFont(FontPList("windows-cyrillic", oo::PList()));
     OO_CHECK(converter->encoding() == std::optional<oo::str::Encoding>(
-                                          oo::str::Encoding::windowsCP1251));
+                                          oo::str::Encoding::kWindowsCP1251));
     // U+0416 (Zhe) is 0xC6 in code page 1251.
     OO_CHECK_EQ(Bytes(converter->convertString("\xD0\x96")),
                 std::string("\xC6"));
@@ -103,15 +103,15 @@ OO_TEST(otherEncodings) {
              std::optional<std::string>("encoding: 11"));
 
     converter = oo::makeShared<OOEncodingConverter>(
-        oo::str::Encoding::windowsCP1253, Substitutions({{"a", "b"}}));
+        oo::str::Encoding::kWindowsCP1253, Substitutions({{"a", "b"}}));
     OO_CHECK(converter->encoding() == std::optional<oo::str::Encoding>(
-                                          oo::str::Encoding::windowsCP1253));
+                                          oo::str::Encoding::kWindowsCP1253));
     OO_CHECK_EQ(Bytes(converter->convertString("aa")), std::string("bb"));
     OO_CHECK(converter->descriptionComponents() ==
              std::optional<std::string>("encoding: 13"));
 
     converter = oo::makeShared<OOEncodingConverter>(
-        oo::str::Encoding::windowsCP1254, oo::PList());
+        oo::str::Encoding::kWindowsCP1254, oo::PList());
     OO_CHECK_EQ(Bytes(converter->convertString("abc")), std::string("abc"));
   }
 }

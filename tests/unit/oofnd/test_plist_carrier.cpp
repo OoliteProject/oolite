@@ -1,6 +1,6 @@
 /*	test_plist_carrier.cpp
         oo::PList as the carrier for mixed configuration
-   dictionaries: Type::Object (a foreign object,
+   dictionaries: Type::kObject (a foreign object,
    by identity) and single-precision reals
         (+numberWithFloat:).
 
@@ -50,7 +50,7 @@ OO_TEST(an_object_node_compares_by_identity_and_is_owned) {
     const oo::PList a = foreign("red");
     const oo::PList b = foreign("red");
     OO_CHECK(a.isObject());
-    OO_CHECK(a.type() == oo::PList::Type::Object);
+    OO_CHECK(a.type() == oo::PList::Type::kObject);
     OO_CHECK(a == a);
     OO_CHECK(!(a == b));  // equal descriptions, different objects
     oo::PList::Dict d{{"diffuse_color", a}, {"name", oo::PList("hull.png")}};

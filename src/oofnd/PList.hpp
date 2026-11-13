@@ -8,20 +8,20 @@
             Foundation (what the GNUstep parsers produce)       oo::PList
             --------------------------------------------------
    --------------------------------------- nil (no plist, or the parse produced
-   nothing)        PList()                 Type::Null [NSNumber numberWithBool:]
-   (the boolY/boolN          PList(true)             Type::Bool singletons: XML
-   <true/>, old-style <*BY>) NSNumber of a signed integer type (XML <integer>
-   PList(std::int64_t)     Type::Integer with a '-', old-style <*I-...>)
-            NSNumber of an unsigned type (XML <integer> PList(std::uint64_t)
-   Type::Integer, without '-', old-style <*I...>) isUnsigned NSNumber of
-   double/float (XML <real>, <*R...>)       PList(double)           Type::Real
+   nothing)        PList()                 Type::kNull [NSNumber
+   numberWithBool:] (the boolY/boolN          PList(true) Type::kBool
+   singletons: XML <true/>, old-style <*BY>) NSNumber of a signed integer type
+   (XML <integer> PList(std::int64_t)     Type::kInteger with a '-', old-style
+   <*I-...>) NSNumber of an unsigned type (XML <integer> PList(std::uint64_t)
+   Type::kInteger, without '-', old-style <*I...>) isUnsigned NSNumber of
+   double/float (XML <real>, <*R...>)       PList(double)           Type::kReal
             NSString                                             PList("text")
-   Type::String NSData PList(oo::Data(..))     Type::Data NSDate /
-   NSCalendarDate                              PList(PList::Date{..}) Type::Date
-            NSArray PList(PList::Array{..}) Type::Array NSDictionary
-   PList(PList::Dict{..})  Type::Dict +numberWithFloat: (single precision)
-   PList::singleReal(f)    Type::Real, isSinglePrecision any other object (a
-   colour, a texture, a             PList(PList::Object)    Type::Object
+   Type::kString NSData PList(oo::Data(..))     Type::kData NSDate /
+   NSCalendarDate                              PList(PList::Date{..})
+   Type::kDate NSArray PList(PList::Array{..}) Type::kArray NSDictionary
+   PList(PList::Dict{..})  Type::kDict +numberWithFloat: (single precision)
+   PList::singleReal(f)    Type::kReal, isSinglePrecision any other object (a
+   colour, a texture, a             PList(PList::Object)    Type::kObject
                 placeholder) inside a configuration dictionary
 
         The last two rows are the typed carrier for
@@ -107,16 +107,16 @@ class PListForeign : public Object {
 class PList {
  public:
   enum class Type {
-    Null,
-    Bool,
-    Integer,
-    Real,
-    String,
-    Data,
-    Date,
-    Array,
-    Dict,
-    Object,
+    kNull,
+    kBool,
+    kInteger,
+    kReal,
+    kString,
+    kData,
+    kDate,
+    kArray,
+    kDict,
+    kObject,
   };
 
   struct Integer {
@@ -191,19 +191,19 @@ class PList {
   // ---------------------------------------------------------------------
 
   Type type() const noexcept { return static_cast<Type>(v_.index()); }
-  bool isNull() const noexcept { return type() == Type::Null; }
-  bool isBool() const noexcept { return type() == Type::Bool; }
-  bool isInteger() const noexcept { return type() == Type::Integer; }
-  bool isReal() const noexcept { return type() == Type::Real; }
+  bool isNull() const noexcept { return type() == Type::kNull; }
+  bool isBool() const noexcept { return type() == Type::kBool; }
+  bool isInteger() const noexcept { return type() == Type::kInteger; }
+  bool isReal() const noexcept { return type() == Type::kReal; }
   bool isNumber() const noexcept {
     return isBool() || isInteger() || isReal();
   }  // NSNumber
-  bool isString() const noexcept { return type() == Type::String; }
-  bool isData() const noexcept { return type() == Type::Data; }
-  bool isDate() const noexcept { return type() == Type::Date; }
-  bool isArray() const noexcept { return type() == Type::Array; }
-  bool isDict() const noexcept { return type() == Type::Dict; }
-  bool isObject() const noexcept { return type() == Type::Object; }
+  bool isString() const noexcept { return type() == Type::kString; }
+  bool isData() const noexcept { return type() == Type::kData; }
+  bool isDate() const noexcept { return type() == Type::kDate; }
+  bool isArray() const noexcept { return type() == Type::kArray; }
+  bool isDict() const noexcept { return type() == Type::kDict; }
+  bool isObject() const noexcept { return type() == Type::kObject; }
   bool isSinglePrecision() const noexcept { return isReal() && single_; }
   explicit operator bool() const noexcept { return !isNull(); }  // "!= nil"
 
@@ -321,18 +321,18 @@ class PList {
   std::variant<std::monostate, bool, Integer, double, std::string, Data, Date,
                Array, Dict, Object>
       v_;
-  bool single_ = false;  // meaningful for Type::Real only (see singleReal)
+  bool single_ = false;  // meaningful for Type::kReal only (see singleReal)
 };
 
 // NSPropertyListFormat, with GNUstep's numeric values: what a parser found
 // (GNUstep reports GNUstep for an old-style plist that uses a <*...> or <[...]>
 // extension).
 enum class PListFormat {
-  OpenStep = 1,
-  XML = 100,
-  Binary = 200,
-  GNUstep = 1000,
-  GNUstepBinary = 1001,
+  kOpenStep = 1,
+  kXML = 100,
+  kBinary = 200,
+  kGNUstep = 1000,
+  kGNUstepBinary = 1001,
 };
 
 // Why a parse failed. `message` is GNUstep's own text (the error string of
@@ -352,25 +352,25 @@ struct PListError {
 
 inline std::string_view typeName(PList::Type t) noexcept {
   switch (t) {
-    case PList::Type::Null:
+    case PList::Type::kNull:
       return "null";
-    case PList::Type::Bool:
+    case PList::Type::kBool:
       return "bool";
-    case PList::Type::Integer:
+    case PList::Type::kInteger:
       return "integer";
-    case PList::Type::Real:
+    case PList::Type::kReal:
       return "real";
-    case PList::Type::String:
+    case PList::Type::kString:
       return "string";
-    case PList::Type::Data:
+    case PList::Type::kData:
       return "data";
-    case PList::Type::Date:
+    case PList::Type::kDate:
       return "date";
-    case PList::Type::Array:
+    case PList::Type::kArray:
       return "array";
-    case PList::Type::Dict:
+    case PList::Type::kDict:
       return "dict";
-    case PList::Type::Object:
+    case PList::Type::kObject:
       return "object";
   }
   return "?";

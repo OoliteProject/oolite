@@ -658,8 +658,8 @@ inline std::expected<PList, PListError> parseOldStylePList(
   plist_detail::OldStyleScanner scanner(bytes);
   std::optional<PList> result = scanner.parseItem();
   if (format != nullptr)
-    *format = scanner.usedGNUstepExtensions() ? PListFormat::GNUstep
-                                              : PListFormat::OpenStep;
+    *format = scanner.usedGNUstepExtensions() ? PListFormat::kGNUstep
+                                              : PListFormat::kOpenStep;
   if (scanner.error() != nullptr)
     return std::unexpected(PListError{scanner.errorMessage()});
   return result ? std::move(*result) : PList();

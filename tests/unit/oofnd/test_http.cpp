@@ -79,20 +79,20 @@ Transcript run(Download& download) {
     }
     if (t.finished || t.failed) t.eventAfterEnd = true;
     switch (event->kind) {
-      case Event::Kind::response:
+      case Event::Kind::kResponse:
         t.responses++;
         t.status = event->status;
         t.expected = event->expectedLength;
         t.body.clear();
         break;
-      case Event::Kind::data:
+      case Event::Kind::kData:
         if (t.responses == 0) t.dataBeforeResponse = true;
         t.body += event->bytes;
         break;
-      case Event::Kind::finished:
+      case Event::Kind::kFinished:
         t.finished = true;
         break;
-      case Event::Kind::failed:
+      case Event::Kind::kFailed:
         t.failed = true;
         t.error = event->error;
         break;
@@ -122,14 +122,14 @@ std::string bigBody() {
 OO_TEST(parse_http_urls) {
   auto u = parseUrl("https://addons.oolite.space/api/1.0/overview");
   OO_CHECK(u.has_value());
-  OO_CHECK(u->scheme == Url::Scheme::https);
+  OO_CHECK(u->scheme == Url::Scheme::kHttps);
   OO_CHECK_EQ(u->host, std::string("addons.oolite.space"));
   OO_CHECK_EQ(u->port, 443);
   OO_CHECK_EQ(u->target, std::string("/api/1.0/overview"));
 
   u = parseUrl("http://127.0.0.1:18432");
   OO_CHECK(u.has_value());
-  OO_CHECK(u->scheme == Url::Scheme::http);
+  OO_CHECK(u->scheme == Url::Scheme::kHttp);
   OO_CHECK_EQ(u->port, 18432);
   OO_CHECK_EQ(u->target, std::string("/"));
 
@@ -148,7 +148,7 @@ OO_TEST(parse_http_urls) {
 
   u = parseUrl("HTTP://127.0.0.1/a%20b");
   OO_CHECK(u.has_value());
-  OO_CHECK(u->scheme == Url::Scheme::http);
+  OO_CHECK(u->scheme == Url::Scheme::kHttp);
   OO_CHECK_EQ(u->port, 80);
   OO_CHECK_EQ(u->target, std::string("/a%20b"));
 
@@ -161,7 +161,7 @@ OO_TEST(parse_http_urls) {
 OO_TEST(parse_file_urls) {
   auto u = parseUrl("file:///C:/Windows/win.ini");
   OO_CHECK(u.has_value());
-  OO_CHECK(u->scheme == Url::Scheme::file);
+  OO_CHECK(u->scheme == Url::Scheme::kFile);
 #if defined(_WIN32)
   OO_CHECK_EQ(u->path, std::string("C:/Windows/win.ini"));
 #else
@@ -571,8 +571,8 @@ OO_TEST(cancel_interrupts_a_stalled_body) {
         std::this_thread::sleep_for(std::chrono::milliseconds(2));
         continue;
       }
-      if (event->kind == Event::Kind::response) response = true;
-      if (event->kind == Event::Kind::data) body += event->bytes;
+      if (event->kind == Event::Kind::kResponse) response = true;
+      if (event->kind == Event::Kind::kData) body += event->bytes;
     }
     OO_CHECK(response);
     OO_CHECK_EQ(body, std::string("part"));

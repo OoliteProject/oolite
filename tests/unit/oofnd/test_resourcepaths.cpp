@@ -55,7 +55,7 @@ oo::ResourcePaths windowsGame(std::map<std::string, std::string> extra = {}) {
       {"LOCALAPPDATA", "C:/Users/commander/AppData/Local"},
   };
   for (auto& [k, v] : extra) vars[k] = v;
-  return make(Platform::windows, vars, fs::pathFromUTF8(kExeDir));
+  return make(Platform::kWindows, vars, fs::pathFromUTF8(kExeDir));
 }
 
 }  // namespace
@@ -64,7 +64,7 @@ OO_TEST(windowsHomeIsHomepathWhenItHasADrive) {
   OO_CHECK(same(windowsGame().homeDirectory(), "C:/Games/Oolite/oolite.app"));
   // Spelled as GNUstep spells NSHomeDirectory() (probed on gnustep-base 1.31),
   // even from a backslashed HOMEPATH.
-  auto p = make(Platform::windows, {{"HOMEPATH", "C:\\Games\\X"}}, "C:/x");
+  auto p = make(Platform::kWindows, {{"HOMEPATH", "C:\\Games\\X"}}, "C:/x");
   OO_CHECK_EQ(fs::utf8String(p.homeDirectory()), std::string("C:/Games/X"));
   OO_CHECK_EQ(fs::utf8String(p.saveDirectory()),
               std::string("C:/Games/X/oolite-saves"));
@@ -74,25 +74,25 @@ OO_TEST(windowsHomeIsHomepathWhenItHasADrive) {
 
 OO_TEST(windowsHomeGetsHomedrivePrefixedWhenHomepathHasNoDrive) {
   auto p =
-      make(Platform::windows,
+      make(Platform::kWindows,
            {{"HOMEPATH", "\\Users\\commander"}, {"HOMEDRIVE", "D:"}}, "C:/x");
   OO_CHECK_EQ(fs::utf8String(p.homeDirectory()),
               std::string("D:/Users/commander"));  // GNUstep's spelling
 }
 
 OO_TEST(windowsHomeFallsBackToUserprofileThenCwd) {
-  OO_CHECK(same(make(Platform::windows, {{"USERPROFILE", "C:/Users/c"}}, "C:/x")
+  OO_CHECK(same(make(Platform::kWindows, {{"USERPROFILE", "C:/Users/c"}}, "C:/x")
                     .homeDirectory(),
                 "C:/Users/c"));
-  OO_CHECK(same(make(Platform::windows, {}, "C:/x").homeDirectory(), "C:/x"));
+  OO_CHECK(same(make(Platform::kWindows, {}, "C:/x").homeDirectory(), "C:/x"));
 }
 
 OO_TEST(posixHomeIsHomeThenCwd) {
-  OO_CHECK(same(make(Platform::posix,
+  OO_CHECK(same(make(Platform::kPosix,
                      {{"HOME", "/home/c"}, {"HOMEPATH", "/ignored"}}, "/cwd")
                     .homeDirectory(),
                 "/home/c"));
-  OO_CHECK(same(make(Platform::posix, {}, "/cwd").homeDirectory(), "/cwd"));
+  OO_CHECK(same(make(Platform::kPosix, {}, "/cwd").homeDirectory(), "/cwd"));
 }
 
 OO_TEST(windowsUserDirectoriesLiveNextToTheExecutable) {
@@ -113,7 +113,7 @@ OO_TEST(windowsExtractDirectoryIsRelativeUnlessGameDataGoesToTheUserFolder) {
   OO_CHECK_EQ(fs::utf8String(windowsGame().extractAddOnsDirectory()),
               std::string("../AddOns"));
   auto userFolder =
-      make(Platform::windows, {{"LOCALAPPDATA", "C:/Users/c/AppData/Local"}},
+      make(Platform::kWindows, {{"LOCALAPPDATA", "C:/Users/c/AppData/Local"}},
            "C:/x", true);
   OO_CHECK(same(userFolder.extractAddOnsDirectory(),
                 "C:/Users/c/AppData/Local/Oolite/AddOns"));
@@ -121,7 +121,7 @@ OO_TEST(windowsExtractDirectoryIsRelativeUnlessGameDataGoesToTheUserFolder) {
 
 OO_TEST(posixUserDirectories) {
   const auto p =
-      make(Platform::posix, {{"HOME", "/home/c"}}, "/opt/oolite/bin");
+      make(Platform::kPosix, {{"HOME", "/home/c"}}, "/opt/oolite/bin");
   OO_CHECK(same(p.saveDirectory(), "/home/c/oolite-saves"));
   OO_CHECK(same(p.snapshotDirectory(), "/home/c/oolite-saves/snapshots"));
   OO_CHECK(same(p.logDirectory(), "/home/c/.Oolite/Logs"));
@@ -182,7 +182,7 @@ OO_TEST(builtInResourcesPreferCwdResourcesThenShare) {
   const fs::Path cwd = base / "bin";
   std::filesystem::create_directories(cwd, ec);
 
-  const auto p = make(Platform::windows, {}, cwd);
+  const auto p = make(Platform::kWindows, {}, cwd);
   OO_CHECK(same(p.builtInResourcesDirectory(),
                 base / "share" / "oolite" / "Resources"));
 
@@ -207,10 +207,10 @@ OO_TEST(rootDirectoriesAreBuiltInThenManagedThenUserRoots) {
 OO_TEST(processEnvironmentReadsTheRealEnvironment) {
   const oo::PathEnvironment env = oo::PathEnvironment::process();
 #if defined(_WIN32)
-  OO_CHECK(env.platform == Platform::windows);
+  OO_CHECK(env.platform == Platform::kWindows);
   OO_CHECK(env.getenv("SystemRoot").has_value());  // always set on Windows
 #else
-  OO_CHECK(env.platform == Platform::posix);
+  OO_CHECK(env.platform == Platform::kPosix);
 #endif
   OO_CHECK(env.getenv("OOFND_SURELY_UNSET_VARIABLE_1f3a") == std::nullopt);
   OO_CHECK(!env.currentDirectory.empty());

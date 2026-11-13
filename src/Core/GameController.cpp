@@ -752,7 +752,7 @@ std::optional<std::string> GameController::playerFileDirectory() {
       const oo::ResourcePaths paths = oo::ResourcePaths::current();
       const oo::fs::Path savedir = paths.saveDirectory();
       const oo::fs::FileType type = oo::fs::fileType(savedir);
-      if (type == oo::fs::FileType::none) {
+      if (type == oo::fs::FileType::kNone) {
         if (oo::fs::createDirectories(savedir)) {
           _playerFileDirectory = oo::fs::utf8String(savedir);
         } else {
@@ -762,7 +762,7 @@ std::optional<std::string> GameController::playerFileDirectory() {
                      oo::fs::utf8String(savedir));
           _playerFileDirectory = oo::fs::utf8String(paths.homeDirectory());
         }
-      } else if (type != oo::fs::FileType::directory) {
+      } else if (type != oo::fs::FileType::kDirectory) {
         OO_LOG_ERR("savedGame.defaultPath.notDirectory",
                    "'{}' is not a directory, saved games will go to the home "
                    "directory.",

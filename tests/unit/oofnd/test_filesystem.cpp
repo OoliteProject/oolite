@@ -52,7 +52,7 @@ class Scratch {
 };
 
 bool writeText(const fs::Path& p, std::string_view text) {
-  return fs::writeFile(p, oo::Data::fromString(text), fs::WriteMode::direct)
+  return fs::writeFile(p, oo::Data::fromString(text), fs::WriteMode::kDirect)
       .has_value();
 }
 
@@ -93,10 +93,10 @@ OO_TEST(utf8PathsRoundTrip) {
 OO_TEST(fileTypeDistinguishesFilesDirectoriesAndNothing) {
   Scratch s;
   OO_CHECK(writeText(s / "f.txt", "hello"));
-  OO_CHECK(fs::fileType(s / "f.txt") == fs::FileType::regular);
-  OO_CHECK(fs::fileType(s.root()) == fs::FileType::directory);
-  OO_CHECK(fs::fileType(s / "missing") == fs::FileType::none);
-  OO_CHECK(fs::fileType(s / "missing" / "deeper") == fs::FileType::none);
+  OO_CHECK(fs::fileType(s / "f.txt") == fs::FileType::kRegular);
+  OO_CHECK(fs::fileType(s.root()) == fs::FileType::kDirectory);
+  OO_CHECK(fs::fileType(s / "missing") == fs::FileType::kNone);
+  OO_CHECK(fs::fileType(s / "missing" / "deeper") == fs::FileType::kNone);
   OO_CHECK(fs::fileExists(s / "f.txt"));
   OO_CHECK(!fs::isDirectory(s / "f.txt"));
   OO_CHECK(fs::isDirectory(s.root()));
@@ -111,7 +111,7 @@ OO_TEST(readFileReturnsTheBytes) {
       "end",
       9);
   OO_CHECK(fs::writeFile(s / "b.bin", oo::Data::fromString(binary),
-                         fs::WriteMode::direct)
+                         fs::WriteMode::kDirect)
                .has_value());
   auto r = fs::readFile(s / "b.bin");
   OO_CHECK(r.has_value());
@@ -152,7 +152,7 @@ OO_TEST(writeFileDirectAndAtomicBothReplaceExistingContents) {
   OO_CHECK_EQ(readText(s / "a"), std::string("second"));
 
   OO_CHECK(fs::writeFile(s / "a", oo::Data::fromString("third"),
-                         fs::WriteMode::atomic)
+                         fs::WriteMode::kAtomic)
                .has_value());
   OO_CHECK_EQ(readText(s / "a"), std::string("third"));
   OO_CHECK(fs::writeFile(s / "new", oo::Data::fromString("fresh"))
@@ -167,10 +167,10 @@ OO_TEST(writeFileDirectAndAtomicBothReplaceExistingContents) {
 OO_TEST(writeFileIntoAMissingDirectoryFails) {
   Scratch s;
   OO_CHECK(!fs::writeFile(s / "no" / "such" / "dir.txt",
-                          oo::Data::fromString("x"), fs::WriteMode::direct)
+                          oo::Data::fromString("x"), fs::WriteMode::kDirect)
                 .has_value());
   OO_CHECK(!fs::writeFile(s / "no" / "such" / "dir.txt",
-                          oo::Data::fromString("x"), fs::WriteMode::atomic)
+                          oo::Data::fromString("x"), fs::WriteMode::kAtomic)
                 .has_value());
   auto names = fs::directoryContents(s.root());
   OO_CHECK(names && names->empty());

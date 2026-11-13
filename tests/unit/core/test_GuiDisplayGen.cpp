@@ -163,7 +163,7 @@ void StartJavaScript()
 	OO_CHECK(::_putenv_s("HOMEPATH", root.string().c_str()) == 0);
 	stdfs::current_path(root);
 	const std::string info = "{ CFBundleVersion = \"9.9.9-test\"; }";
-	OO_CHECK(oo::fs::writeFile(root / "Resources" / "Info-gnustep.plist", oo::Data(info.data(), info.size()), oo::fs::WriteMode::direct).has_value());
+	OO_CHECK(oo::fs::writeFile(root / "Resources" / "Info-gnustep.plist", oo::Data(info.data(), info.size()), oo::fs::WriteMode::kDirect).has_value());
 	(void)OOJavaScriptEngine::sharedEngine();
 }
 

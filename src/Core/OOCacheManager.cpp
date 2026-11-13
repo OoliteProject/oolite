@@ -465,7 +465,7 @@ bool OOCacheManager::writeDict(const oo::PList& inDict) {
 #endif
 
   bool result = oo::fs::writeFile(oo::fs::pathFromUTF8(*path), *plist,
-                                  oo::fs::WriteMode::direct)
+                                  oo::fs::WriteMode::kDirect)
                     .has_value();
 
 #if PROFILE_WRITES
@@ -516,9 +516,9 @@ oo::PList OOCacheManager::dictionaryOfCaches() {
 bool OOCacheManager::directoryExists(const std::string& inPath, bool inCreate) {
   const oo::fs::Path path = oo::fs::pathFromUTF8(inPath);
   const oo::fs::FileType type = oo::fs::fileType(path);
-  const bool exists = type != oo::fs::FileType::none;
+  const bool exists = type != oo::fs::FileType::kNone;
 
-  if (exists && type != oo::fs::FileType::directory) {
+  if (exists && type != oo::fs::FileType::kDirectory) {
     OO_LOG("dataCache.write.buildPath.failed",
            "Expected {} to be a folder, but it is a file.", inPath);
     return false;

@@ -33,7 +33,7 @@ oo::Data bytes(std::initializer_list<std::uint8_t> b) {
 OO_TEST(defaultIsNull) {
   PList p;
   OO_CHECK(p.isNull());
-  OO_CHECK(p.type() == PList::Type::Null);
+  OO_CHECK(p.type() == PList::Type::kNull);
   OO_CHECK(!p);
   OO_CHECK(PList(nullptr).isNull());
   OO_CHECK_EQ(p.count(), 0u);
@@ -44,23 +44,23 @@ OO_TEST(defaultIsNull) {
 }
 
 OO_TEST(eachKindHasItsType) {
-  OO_CHECK(PList(true).type() == PList::Type::Bool);
-  OO_CHECK(PList(42).type() == PList::Type::Integer);
-  OO_CHECK(PList(std::uint64_t{42}).type() == PList::Type::Integer);
-  OO_CHECK(PList(1.5).type() == PList::Type::Real);
-  OO_CHECK(PList(1.5f).type() == PList::Type::Real);
-  OO_CHECK(PList("s").type() == PList::Type::String);
-  OO_CHECK(PList(std::string("s")).type() == PList::Type::String);
-  OO_CHECK(PList(std::string_view("s")).type() == PList::Type::String);
-  OO_CHECK(PList(bytes({1, 2})).type() == PList::Type::Data);
-  OO_CHECK(PList(PList::Date{3.0}).type() == PList::Type::Date);
-  OO_CHECK(PList(PList::Array{}).type() == PList::Type::Array);
-  OO_CHECK(PList(PList::Dict{}).type() == PList::Type::Dict);
+  OO_CHECK(PList(true).type() == PList::Type::kBool);
+  OO_CHECK(PList(42).type() == PList::Type::kInteger);
+  OO_CHECK(PList(std::uint64_t{42}).type() == PList::Type::kInteger);
+  OO_CHECK(PList(1.5).type() == PList::Type::kReal);
+  OO_CHECK(PList(1.5f).type() == PList::Type::kReal);
+  OO_CHECK(PList("s").type() == PList::Type::kString);
+  OO_CHECK(PList(std::string("s")).type() == PList::Type::kString);
+  OO_CHECK(PList(std::string_view("s")).type() == PList::Type::kString);
+  OO_CHECK(PList(bytes({1, 2})).type() == PList::Type::kData);
+  OO_CHECK(PList(PList::Date{3.0}).type() == PList::Type::kDate);
+  OO_CHECK(PList(PList::Array{}).type() == PList::Type::kArray);
+  OO_CHECK(PList(PList::Dict{}).type() == PList::Type::kDict);
   OO_CHECK(PList(true).isNumber() && PList(1).isNumber() &&
            PList(1.0).isNumber());
   OO_CHECK(!PList("1").isNumber());
-  OO_CHECK_EQ(std::string(oo::typeName(PList::Type::Dict)), "dict");
-  OO_CHECK_EQ(std::string(oo::typeName(PList::Type::Null)), "null");
+  OO_CHECK_EQ(std::string(oo::typeName(PList::Type::kDict)), "dict");
+  OO_CHECK_EQ(std::string(oo::typeName(PList::Type::kNull)), "null");
 }
 
 OO_TEST(getIfReturnsPayloadOnlyForItsType) {
@@ -258,9 +258,9 @@ OO_TEST(errorDescriptionIsNSErrorsWording) {
               "Error Domain=NSPropertyListSerialization Code=0 \"Parse failed "
               "at line 1 (char 9) - reached end of string\"");
   OO_CHECK(e == oo::PListError{e.message});
-  OO_CHECK_EQ(static_cast<int>(oo::PListFormat::OpenStep), 1);
-  OO_CHECK_EQ(static_cast<int>(oo::PListFormat::XML), 100);
-  OO_CHECK_EQ(static_cast<int>(oo::PListFormat::GNUstep), 1000);
+  OO_CHECK_EQ(static_cast<int>(oo::PListFormat::kOpenStep), 1);
+  OO_CHECK_EQ(static_cast<int>(oo::PListFormat::kXML), 100);
+  OO_CHECK_EQ(static_cast<int>(oo::PListFormat::kGNUstep), 1000);
 }
 
 namespace {

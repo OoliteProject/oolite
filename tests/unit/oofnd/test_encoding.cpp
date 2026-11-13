@@ -26,8 +26,8 @@ namespace {
 using oo::str::Encoding;
 
 constexpr Encoding kPages[5] = {
-    Encoding::windowsCP1250, Encoding::windowsCP1251, Encoding::windowsCP1252,
-    Encoding::windowsCP1253, Encoding::windowsCP1254};
+    Encoding::kWindowsCP1250, Encoding::kWindowsCP1251, Encoding::kWindowsCP1252,
+    Encoding::kWindowsCP1253, Encoding::kWindowsCP1254};
 
 std::string U(std::initializer_list<char16_t> units) {
   return oo::utf16ToUtf8(std::u16string(units));
@@ -83,23 +83,23 @@ struct Corpus {
 
 OO_TEST(namesAreOOEncodingConvertersFixedList) {
   OO_CHECK(oo::str::encodingFromName("windows-latin-1") ==
-           Encoding::windowsCP1252);
+           Encoding::kWindowsCP1252);
   OO_CHECK(oo::str::encodingFromName("windows-latin-2") ==
-           Encoding::windowsCP1250);
+           Encoding::kWindowsCP1250);
   OO_CHECK(oo::str::encodingFromName("windows-cyrillic") ==
-           Encoding::windowsCP1251);
+           Encoding::kWindowsCP1251);
   OO_CHECK(oo::str::encodingFromName("windows-greek") ==
-           Encoding::windowsCP1253);
+           Encoding::kWindowsCP1253);
   OO_CHECK(oo::str::encodingFromName("windows-turkish") ==
-           Encoding::windowsCP1254);
+           Encoding::kWindowsCP1254);
   OO_CHECK(!oo::str::encodingFromName("Windows-Latin-1"));
   OO_CHECK(!oo::str::encodingFromName("utf-8"));
   OO_CHECK(!oo::str::encodingFromName(""));
   for (Encoding e : kPages)
     OO_CHECK(oo::str::encodingFromName(oo::str::encodingName(e)) == e);
-  OO_CHECK_EQ(static_cast<unsigned>(Encoding::windowsCP1252),
+  OO_CHECK_EQ(static_cast<unsigned>(Encoding::kWindowsCP1252),
               12u);  // NSWindowsCP1252StringEncoding
-  OO_CHECK_EQ(static_cast<unsigned>(Encoding::windowsCP1250), 15u);
+  OO_CHECK_EQ(static_cast<unsigned>(Encoding::kWindowsCP1250), 15u);
 }
 
 OO_TEST(everyBMPUnitMatchesGNUstep) {
@@ -165,36 +165,36 @@ OO_TEST(corpusStringsMatchGNUstep) {
 
 OO_TEST(readableCases) {
   using oo::str::encodeLossy;
-  OO_CHECK_EQ(bytes(encodeLossy("plain ASCII", Encoding::windowsCP1252)),
+  OO_CHECK_EQ(bytes(encodeLossy("plain ASCII", Encoding::kWindowsCP1252)),
               std::string("plain ASCII"));
-  OO_CHECK_EQ(bytes(encodeLossy("", Encoding::windowsCP1252)), std::string(""));
-  OO_CHECK_EQ(bytes(encodeLossy(U({0xE9, 0x20AC}), Encoding::windowsCP1252)),
+  OO_CHECK_EQ(bytes(encodeLossy("", Encoding::kWindowsCP1252)), std::string(""));
+  OO_CHECK_EQ(bytes(encodeLossy(U({0xE9, 0x20AC}), Encoding::kWindowsCP1252)),
               std::string("\xE9\x80"));
-  OO_CHECK_EQ(bytes(encodeLossy(U({0x416}), Encoding::windowsCP1251)),
+  OO_CHECK_EQ(bytes(encodeLossy(U({0x416}), Encoding::kWindowsCP1251)),
               std::string("\xC6"));
-  OO_CHECK_EQ(bytes(encodeLossy(U({0x106}), Encoding::windowsCP1250)),
+  OO_CHECK_EQ(bytes(encodeLossy(U({0x106}), Encoding::kWindowsCP1250)),
               std::string("\xC6"));  // native
-  OO_CHECK_EQ(bytes(encodeLossy(U({0x106}), Encoding::windowsCP1252)),
+  OO_CHECK_EQ(bytes(encodeLossy(U({0x106}), Encoding::kWindowsCP1252)),
               std::string("\xB4"
                           "C"));  // acute + C
-  OO_CHECK_EQ(bytes(encodeLossy(U({0x106}), Encoding::windowsCP1251)),
+  OO_CHECK_EQ(bytes(encodeLossy(U({0x106}), Encoding::kWindowsCP1251)),
               std::string("'C"));  // no acute there
-  OO_CHECK_EQ(bytes(encodeLossy(U({0x2047}), Encoding::windowsCP1252)),
+  OO_CHECK_EQ(bytes(encodeLossy(U({0x2047}), Encoding::kWindowsCP1252)),
               std::string("??"));  // a transliteration
-  OO_CHECK_EQ(bytes(encodeLossy(U({0x4E2D}), Encoding::windowsCP1252)),
+  OO_CHECK_EQ(bytes(encodeLossy(U({0x4E2D}), Encoding::kWindowsCP1252)),
               std::string("?"));  // none
-  OO_CHECK_EQ(bytes(encodeLossy(U({0xD83D, 0xDE00}), Encoding::windowsCP1252)),
+  OO_CHECK_EQ(bytes(encodeLossy(U({0xD83D, 0xDE00}), Encoding::kWindowsCP1252)),
               std::string(":-D"));
-  OO_CHECK_EQ(bytes(encodeLossy(U({0xD83C, 0xDF00}), Encoding::windowsCP1252)),
+  OO_CHECK_EQ(bytes(encodeLossy(U({0xD83C, 0xDF00}), Encoding::kWindowsCP1252)),
               std::string("??"));  // per unit
   OO_CHECK_EQ(
-      bytes(encodeLossy(U({0x61, 0xDC00, 0x7A}), Encoding::windowsCP1252)),
+      bytes(encodeLossy(U({0x61, 0xDC00, 0x7A}), Encoding::kWindowsCP1252)),
       std::string("a?z"));
   OO_CHECK_EQ(
-      bytes(encodeLossy(U({0x61, 0xD83D, 0x7A}), Encoding::windowsCP1252)),
+      bytes(encodeLossy(U({0x61, 0xD83D, 0x7A}), Encoding::kWindowsCP1252)),
       std::string("a?z"));
-  OO_CHECK(!encodeLossy(U({0x61, 0xD83D}), Encoding::windowsCP1252));  // nil
-  OO_CHECK_EQ(bytes(encodeLossy(U({0xD835, 0xDC00}), Encoding::windowsCP1252)),
+  OO_CHECK(!encodeLossy(U({0x61, 0xD83D}), Encoding::kWindowsCP1252));  // nil
+  OO_CHECK_EQ(bytes(encodeLossy(U({0xD835, 0xDC00}), Encoding::kWindowsCP1252)),
               std::string("A"));  // MATHEMATICAL BOLD A
 }
 
@@ -210,20 +210,20 @@ OO_TEST(convertForFontAppliesTheShippedSubstitutions) {
       {U({0x200A}), "\037"},
   };
   OO_CHECK_EQ(bytes(oo::str::convertForFont(U({0x20A2, 0x31, 0x30, 0x30}),
-                                            Encoding::windowsCP1252, subs)),
+                                            Encoding::kWindowsCP1252, subs)),
               std::string("\x80"
                           "100"));
   OO_CHECK_EQ(bytes(oo::str::convertForFont(U({0x2605, 0x20, 0x2606}),
-                                            Encoding::windowsCP1252, subs)),
+                                            Encoding::kWindowsCP1252, subs)),
               std::string("\b \030"));
   OO_CHECK_EQ(bytes(oo::str::convertForFont(U({0x2318, 0x51}),
-                                            Encoding::windowsCP1252, subs)),
+                                            Encoding::kWindowsCP1252, subs)),
               std::string("(Command)Q"));
   OO_CHECK_EQ(bytes(oo::str::convertForFont(U({0x43, 0x266F, 0x200A, 0x78}),
-                                            Encoding::windowsCP1252, subs)),
+                                            Encoding::kWindowsCP1252, subs)),
               std::string("C#\037x"));
   OO_CHECK_EQ(bytes(oo::str::convertForFont(U({0x2605, 0x301}),
-                                            Encoding::windowsCP1252, subs)),
+                                            Encoding::kWindowsCP1252, subs)),
               std::string("??"));
 }
 

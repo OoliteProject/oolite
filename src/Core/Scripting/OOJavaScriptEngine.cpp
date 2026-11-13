@@ -1183,14 +1183,14 @@ static JSValue JSObjectValueFromPList(JSContext* context,
 
 JSValue OOJSValueFromPList(JSContext* context, const oo::PList& plist) {
   switch (plist.type()) {
-    case oo::PList::Type::Null:
+    case oo::PList::Type::kNull:
       return JS_NULL;
 
-    case oo::PList::Type::Bool:
+    case oo::PList::Type::kBool:
       // +numberWithBool: is not a float type: an int32.
       return JS_NewInt32(context, *plist.getIf<bool>() ? 1 : 0);
 
-    case oo::PList::Type::Integer: {
+    case oo::PList::Type::kInteger: {
       // The Foundation number's glue: JS_NewNumber() of the integer, an int32
       // when it is in range.
       const oo::PList::Integer& integer = *plist.getIf<oo::PList::Integer>();
@@ -1207,7 +1207,7 @@ JSValue OOJSValueFromPList(JSContext* context, const oo::PList& plist) {
       return JS_NewNumber(context, static_cast<double>(v));
     }
 
-    case oo::PList::Type::Real: {
+    case oo::PList::Type::kReal: {
       // The Foundation number's glue: a float type is always a double.
       double d = *plist.getIf<double>();
       if (plist.isSinglePrecision())
@@ -1216,22 +1216,22 @@ JSValue OOJSValueFromPList(JSContext* context, const oo::PList& plist) {
       return JS_NewFloat64(context, d);
     }
 
-    case oo::PList::Type::String: {
+    case oo::PList::Type::kString: {
       const std::string& string = *plist.getIf<std::string>();
       return JS_NewStringLen(context, string.data(), string.size());
     }
 
-    case oo::PList::Type::Data:
-    case oo::PList::Type::Date:
+    case oo::PList::Type::kData:
+    case oo::PList::Type::kDate:
       return JS_UNDEFINED;  // Foundation data and dates: the root class's glue
 
-    case oo::PList::Type::Array:
+    case oo::PList::Type::kArray:
       return JSArrayValueFromPList(context, *plist.getIf<oo::PList::Array>());
 
-    case oo::PList::Type::Dict:
+    case oo::PList::Type::kDict:
       return JSObjectValueFromPList(context, *plist.getIf<oo::PList::Dict>());
 
-    case oo::PList::Type::Object: {
+    case oo::PList::Type::kObject: {
       // A C++ object that is its own JS glue (OOJSPrivateObject.h), else a
       // foreign object.
       if (const oo::PList::Object* node = plist.getIf<oo::PList::Object>()) {

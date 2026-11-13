@@ -170,7 +170,7 @@ void Capture(std::string_view line)
 void WriteText(const stdfs::path &path, const std::string &text)
 {
 	stdfs::create_directories(path.parent_path());
-	OO_CHECK(oo::fs::writeFile(path, oo::Data(text.data(), text.size()), oo::fs::WriteMode::direct).has_value());
+	OO_CHECK(oo::fs::writeFile(path, oo::Data(text.data(), text.size()), oo::fs::WriteMode::kDirect).has_value());
 }
 
 

@@ -221,7 +221,7 @@ oo::PList OOFileScannerVerifierStage::plistNamed(
     const std::optional<std::string>& file,
     const std::optional<std::string>& folder,
     const std::optional<std::string>& context, bool checkBuiltIn) {
-  oo::PListFormat format = oo::PListFormat::OpenStep;
+  oo::PListFormat format = oo::PListFormat::kOpenStep;
   oo::PList plist;
   std::optional<std::string> errorString, displayName;
   std::string errorKey;
@@ -340,7 +340,7 @@ void OOFileScannerVerifierStage::scanForFiles() {
     const oo::fs::FileType type = dirEnum.entryType();
     lcName = oo::str::lowercase(name);
 
-    if (type == oo::fs::FileType::directory) {
+    if (type == oo::fs::FileType::kDirectory) {
       dirEnum.skipDescendents();
 
       if (_skipDirectoryNames.contains(name)) {
@@ -359,7 +359,7 @@ void OOFileScannerVerifierStage::scanForFiles() {
                "(OXPs must work on case-insensitive file systems!)",
                "directory", name, existingType, existing);
       }
-    } else if (type == oo::fs::FileType::regular) {
+    } else if (type == oo::fs::FileType::kRegular) {
       if (_junkFileNames.contains(name)) {
         OO_LOG("verifyOXP.scanFiles.skipJunk", "NOTE: skipping junk file {}.",
                name);
@@ -379,7 +379,7 @@ void OOFileScannerVerifierStage::scanForFiles() {
                "(OXPs must work on case-insensitive file systems!)",
                "file", name, existingType, existing);
       }
-    } else if (type == oo::fs::FileType::symbolic_link) {
+    } else if (type == oo::fs::FileType::kSymbolicLink) {
       OO_LOG("verifyOXP.scanFiles.symLink",
              "----- WARNING: \"{}\" is a symbolic link, ignoring.", name);
     } else {
@@ -519,7 +519,7 @@ OOFileScannerVerifierStage::scanDirectory(const std::string& path) {
     if (_junkFileNames.contains(name)) {
       OO_LOG("verifyOXP.scanFiles.skipJunk", "NOTE: skipping junk file {}/{}.",
              dirName, name);
-    } else if (type == oo::fs::FileType::regular) {
+    } else if (type == oo::fs::FileType::kRegular) {
       lcName = oo::str::lowercase(name);
       const auto existing = result.find(lcName);
 
@@ -534,7 +534,7 @@ OOFileScannerVerifierStage::scanDirectory(const std::string& path) {
                oo::str::appendingPathComponent(dirName, existing->second));
       }
     } else {
-      if (type == oo::fs::FileType::directory) {
+      if (type == oo::fs::FileType::kDirectory) {
         dirEnum.skipDescendents();
         if (!_skipDirectoryNames.contains(name)) {
           OO_LOG("verifyOXP.scanFiles.directory",
@@ -544,7 +544,7 @@ OOFileScannerVerifierStage::scanDirectory(const std::string& path) {
           OO_LOG("verifyOXP.verbose.listFiles", "- Skipping {}/{}/", dirName,
                  name);
         }
-      } else if (type == oo::fs::FileType::symbolic_link) {
+      } else if (type == oo::fs::FileType::kSymbolicLink) {
         OO_LOG("verifyOXP.scanFiles.symLink",
                "----- WARNING: \"{}\" is a symbolic link, ignoring.",
                relativeName);
@@ -566,7 +566,7 @@ void OOFileScannerVerifierStage::checkPListFormat(
   std::string formatDesc;
   std::optional<std::string> displayPath;
 
-  if (format != oo::PListFormat::OpenStep && format != oo::PListFormat::XML) {
+  if (format != oo::PListFormat::kOpenStep && format != oo::PListFormat::kXML) {
     displayPath = displayNameForFile(file, folder);
     weirdnessKey = oo::str::lowercase(*displayPath);
 
@@ -575,15 +575,15 @@ void OOFileScannerVerifierStage::checkPListFormat(
       _badPLists.insert(weirdnessKey);
 
       switch (format) {
-        case oo::PListFormat::Binary:
+        case oo::PListFormat::kBinary:
           formatDesc = "Apple binary format";
           break;
 
-        case oo::PListFormat::GNUstep:
+        case oo::PListFormat::kGNUstep:
           formatDesc = "GNUstep text format";
           break;
 
-        case oo::PListFormat::GNUstepBinary:
+        case oo::PListFormat::kGNUstepBinary:
           formatDesc = "GNUstep binary format";
           break;
 

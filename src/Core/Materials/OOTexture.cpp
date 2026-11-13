@@ -704,7 +704,7 @@ bool cxx_OOInterpretTextureSpecifier(const oo::PList& specifier,
     if (!specifier.isNull())
       OO_LOG(cxx_kOOLogParameterError,
              "{}: expected string or dictionary, got {}.", __PRETTY_FUNCTION__,
-             (specifier.type() == oo::PList::Type::Object)
+             (specifier.type() == oo::PList::Type::kObject)
                  ? std::string("(null)")
                  : std::string(oo::typeName(specifier.type())));
     return false;

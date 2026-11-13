@@ -241,7 +241,7 @@ oo::PList OODebugMonitor::configurationValueForKey(const std::string& key) {
   // Object node but the null's reads as nil.
   const auto isNil = [](const oo::PList* v) {
     return v == nullptr || v->isNull() ||
-           (v->type() == oo::PList::Type::Object && !OOIsNullObjectNode(*v));
+           (v->type() == oo::PList::Type::kObject && !OOIsNullObjectNode(*v));
   };
   const oo::PList* result = _configOverrides.find(key);
   if (isNil(result)) result = _configFromOXPs.find(key);
@@ -255,17 +255,17 @@ long long OODebugMonitor::configurationIntValueForKey(const std::string& key,
   // default.
   const oo::PList object = configurationValueForKey(key);
   switch (object.type()) {
-    case oo::PList::Type::String:
+    case oo::PList::Type::kString:
       return oo::str::longLongValue(*object.getIf<std::string>());
-    case oo::PList::Type::Bool:
+    case oo::PList::Type::kBool:
       return *object.getIf<bool>() ? 1 : 0;
-    case oo::PList::Type::Integer: {
+    case oo::PList::Type::kInteger: {
       const oo::PList::Integer& integer = *object.getIf<oo::PList::Integer>();
       return integer.isUnsigned
                  ? static_cast<long long>(integer.unsignedValue())
                  : integer.value;
     }
-    case oo::PList::Type::Real:
+    case oo::PList::Type::kReal:
       return static_cast<long long>(*object.getIf<double>());
     default:
       return value;

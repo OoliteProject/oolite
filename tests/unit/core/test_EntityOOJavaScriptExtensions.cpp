@@ -344,7 +344,7 @@ OO_TEST(entityObjectNodeHoldsTheEntity) {
     part->_jsSelf = object;
 
     const oo::PList node = oo::EntityObjectNode(part);
-    OO_CHECK(node.type() == oo::PList::Type::Object);
+    OO_CHECK(node.type() == oo::PList::Type::kObject);
     OO_CHECK(oo::EntityIn(node) == part);
     const oo::PList::Object* payload = node.getIf<oo::PList::Object>();
     OO_CHECK(payload != nullptr && (*payload)->className() == "Entity");

@@ -47,9 +47,9 @@ OO_TEST(case01_unquotedStrings) {
                      "abc\r\n"),
               "S\"abc\"");
 
-  oo::PListFormat format = oo::PListFormat::XML;
+  oo::PListFormat format = oo::PListFormat::kXML;
   OO_CHECK(oo::parseOldStylePList("abc", &format).has_value());
-  OO_CHECK(format == oo::PListFormat::OpenStep);
+  OO_CHECK(format == oo::PListFormat::kOpenStep);
 }
 
 OO_TEST(case02_quotableCharactersEndAnUnquotedString) {

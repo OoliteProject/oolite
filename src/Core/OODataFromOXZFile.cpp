@@ -49,8 +49,8 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path) {
     const oo::fs::Path filePath = oo::fs::pathFromUTF8(path);
     const oo::fs::FileType type = oo::fs::fileType(filePath);
 
-    if (type != oo::fs::FileType::none) {
-      if (type != oo::fs::FileType::directory) {
+    if (type != oo::fs::FileType::kNone) {
+      if (type != oo::fs::FileType::kDirectory) {
         if (oo::fs::fileSize(filePath).value_or(0) == 0) {
           OO_LOG(cxx_kOOLogFileNotFound,
                  "Expected file but found empty file at {}", path);
@@ -156,10 +156,10 @@ bool OOOxzFileExistsAtPath(const std::string& path) {
   // if i == cl then the path is entirely uncompressed
   if (i == cl) {
     const oo::fs::FileType type = oo::fs::fileType(oo::fs::pathFromUTF8(path));
-    if (type == oo::fs::FileType::directory) {
+    if (type == oo::fs::FileType::kDirectory) {
       return false;
     }
-    return type != oo::fs::FileType::none;
+    return type != oo::fs::FileType::kNone;
   }
 
   const std::string zipFile =

@@ -272,16 +272,16 @@ inline void appendOpenStep(std::string& out, const PList& v, unsigned level,
                            const SinglePrecision& single) {
   std::array<char, 48> buf{};
   switch (v.type()) {
-    case PList::Type::Null:
+    case PList::Type::kNull:
       out += "\"<null>\"";
       return;
-    case PList::Type::Object:
+    case PList::Type::kObject:
       appendOpenStepString(out, v.getIf<PList::Object>()->get()->description());
       return;  // not captured; never written by the game
-    case PList::Type::Bool:
+    case PList::Type::kBool:
       out += *v.getIf<bool>() ? "1" : "0";
       return;
-    case PList::Type::Integer: {
+    case PList::Type::kInteger: {
       const PList::Integer& i = *v.getIf<PList::Integer>();
       appendOpenStepString(
           out, i.isUnsigned
@@ -290,7 +290,7 @@ inline void appendOpenStep(std::string& out, const PList& v, unsigned level,
                    : std::format("{}", static_cast<long long>(i.value)));
       return;
     }
-    case PList::Type::Real: {
+    case PList::Type::kReal: {
       const double d = *v.getIf<double>();
       std::string text;
       if (std::isnan(d))
@@ -305,10 +305,10 @@ inline void appendOpenStep(std::string& out, const PList& v, unsigned level,
       appendOpenStepString(out, text);
       return;
     }
-    case PList::Type::String:
+    case PList::Type::kString:
       appendOpenStepString(out, *v.getIf<std::string>());
       return;
-    case PList::Type::Data: {
+    case PList::Type::kData: {
       const Data& data = *v.getIf<Data>();
       out += '<';
       for (std::size_t i = 0; i < data.length(); ++i) {
@@ -318,7 +318,7 @@ inline void appendOpenStep(std::string& out, const PList& v, unsigned level,
       out += '>';
       return;
     }
-    case PList::Type::Date: {
+    case PList::Type::kDate: {
       // -[NSDate description]: local time, whole seconds.
       const std::time_t t = static_cast<std::time_t>(
           std::floor(v.getIf<PList::Date>()->sinceReferenceDate + 978307200.0));
@@ -332,7 +332,7 @@ inline void appendOpenStep(std::string& out, const PList& v, unsigned level,
       appendOpenStepString(out, buf.data());
       return;
     }
-    case PList::Type::Array: {
+    case PList::Type::kArray: {
       const PList::Array& a = *v.getIf<PList::Array>();
       out += "(\n";
       for (std::size_t i = 0; i < a.size(); ++i) {
@@ -344,7 +344,7 @@ inline void appendOpenStep(std::string& out, const PList& v, unsigned level,
       out += ')';
       return;
     }
-    case PList::Type::Dict: {
+    case PList::Type::kDict: {
       // Keys in UTF-16 order (GNUstep: -compare:, which also folds canonical
       // decompositions).
       std::vector<std::pair<std::u16string, const PList::Dict::value_type*>>
@@ -421,7 +421,7 @@ inline std::string applicationDomainName(const PList& infoDictionary,
 }
 
 inline fs::Path userDefaultsDirectory(const ResourcePaths& paths) {
-  if (paths.environment().platform == PathEnvironment::Platform::posix &&
+  if (paths.environment().platform == PathEnvironment::Platform::kPosix &&
       paths.environment().getenv) {
     if (std::optional<std::string> dir =
             paths.environment().getenv("OO_GNUSTEPDEFAULTSDIR"))

@@ -724,10 +724,10 @@ bool oo::CallEntityByNameTyped(Entity* entity, const std::string& name,
 namespace {
 
 enum class Kind : std::uint8_t {
-  Void,    // a void result, or a scalar result the call ignores
-  PList,   // an oo::PList result
-  Object,  // an object result, ignored
-  Unsupported
+  kVoid,    // a void result, or a scalar result the call ignores
+  kPList,   // an oo::PList result
+  kObject,  // an object result, ignored
+  kUnsupported
 };
 
 // Classifies a method's return type encoding as the Objective-C dispatcher did.
@@ -736,14 +736,14 @@ Kind ResultKind(std::string_view encoding) {
   while (!type.empty() && std::string_view("rnNoORV").find(type.front()) !=
                               std::string_view::npos)
     type.remove_prefix(1);
-  if (type == "v") return Kind::Void;
-  if (type == "@") return Kind::Object;
-  if (encoding == kOOTypeEncoding<oo::PList>) return Kind::PList;
+  if (type == "v") return Kind::kVoid;
+  if (type == "@") return Kind::kObject;
+  if (encoding == kOOTypeEncoding<oo::PList>) return Kind::kPList;
   if (type.size() == 1 &&
       std::string_view("cCsSiIlLqQfdB").find(type.front()) !=
           std::string_view::npos)
-    return Kind::Void;
-  return Kind::Unsupported;
+    return Kind::kVoid;
+  return Kind::kUnsupported;
 }
 
 // The tabled row the name names, if it applies to the entity; null for any
@@ -761,19 +761,19 @@ std::optional<oo::PList> CallRow(const OOEntityByNameRow& row, Entity* entity,
                                  const oo::PList* plist) {
   const Kind result = ResultKind(row.result);
   const bool hasArgument = (string != nullptr || plist != nullptr);
-  if (hasArgument != (row.argument != OOEntityByNameArgument::None) ||
-      result == Kind::Unsupported)
+  if (hasArgument != (row.argument != OOEntityByNameArgument::kNone) ||
+      result == Kind::kUnsupported)
     return std::nullopt;
 
   // A string reaches a PList parameter as a string PList; a PList reaches a
   // string parameter only when it is a string.
   oo::PList stringAsPList;
-  if (row.argument == OOEntityByNameArgument::String && plist != nullptr) {
+  if (row.argument == OOEntityByNameArgument::kString && plist != nullptr) {
     string = plist->getIf<std::string>();
     if (string == nullptr) return std::nullopt;
   }
-  if (row.argument == OOEntityByNameArgument::PList) {
-    if (result != Kind::Void && result != Kind::Object) return std::nullopt;
+  if (row.argument == OOEntityByNameArgument::kPList) {
+    if (result != Kind::kVoid && result != Kind::kObject) return std::nullopt;
     if (string != nullptr) {
       stringAsPList = oo::PList(*string);
       plist = &stringAsPList;
@@ -783,7 +783,7 @@ std::optional<oo::PList> CallRow(const OOEntityByNameRow& row, Entity* entity,
   oo::PList answer = row.call(entity, string, plist);
   // only a PList result is the call's result; a void, scalar or object result
   // is ignored
-  return (result == Kind::PList) ? std::move(answer) : oo::PList();
+  return (result == Kind::kPList) ? std::move(answer) : oo::PList();
 }
 
 /*	The class OOCallByName's lines name: the entity's object's, of class
@@ -800,9 +800,9 @@ std::string_view ObjectClassName(Entity*) { return "Entity"; }
 void LogBadSignature(Entity* entity, const OOEntityByNameRow& row) {
   std::string encoding = std::string(row.result) + kOOTypeEncoding<OOObjCId> +
                          kOOTypeEncoding<OOObjCSelector>;
-  if (row.argument == OOEntityByNameArgument::String)
+  if (row.argument == OOEntityByNameArgument::kString)
     encoding += kOOTypeEncoding<const std::string&>;
-  if (row.argument == OOEntityByNameArgument::PList)
+  if (row.argument == OOEntityByNameArgument::kPList)
     encoding += kOOTypeEncoding<const oo::PList&>;
   OO_LOG_ERR(
       "callByName.badSignature",

@@ -14,7 +14,7 @@
    length)   (clamped, see below) [d isEqualToData:e]                         d
    == e [NSData dataWithContentsOfFile:p]           oo::fs::readFile(p)
    (oofnd/FileSystem.hpp) [d writeToFile:p atomically:YES] oo::fs::writeFile(p,
-   d, oo::fs::WriteMode::atomic)
+   d, oo::fs::WriteMode::kAtomic)
 
         SEMANTICS:
 
