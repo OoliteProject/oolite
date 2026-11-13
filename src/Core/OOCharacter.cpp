@@ -26,7 +26,6 @@ MA 02110-1301, USA.
 
 #include <quickjs.h>
 
-#include <cstddef>
 #include <format>
 #include <memory>
 #include <optional>

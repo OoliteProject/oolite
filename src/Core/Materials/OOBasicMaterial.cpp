@@ -27,7 +27,6 @@ SOFTWARE.
 
 #include "OOBasicMaterial.h"
 
-#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <optional>

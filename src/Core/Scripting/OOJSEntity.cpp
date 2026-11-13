@@ -24,7 +24,6 @@ MA 02110-1301, USA.
 
 #include "OOJSEntity.h"
 
-#include <cstddef>
 #include <optional>
 #include <string>
 

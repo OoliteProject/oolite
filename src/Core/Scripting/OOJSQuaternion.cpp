@@ -28,7 +28,6 @@ MA 02110-1301, USA.
 #if !OOJS_POC_HARNESS
 #include "OOJSEntity.h"
 #endif
-#include <cstring>
 #include <memory>
 #include <new>
 

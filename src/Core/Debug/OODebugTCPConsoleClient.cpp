@@ -67,7 +67,7 @@ SOFTWARE.
 #endif
 #include <math.h>
 
-#include <thread>
+#include <thread>  // IWYU pragma: keep (std::this_thread, off Windows)
 
 #include "OOTCPStreamDecoder.h"
 #include "oofnd/PListWriting.hpp"

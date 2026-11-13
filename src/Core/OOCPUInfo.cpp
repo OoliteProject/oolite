@@ -34,7 +34,7 @@ MA 02110-1301, USA.
 #if !OOLITE_HAVE_CLANG
 #define __block __glibc_block
 #endif
-#include <unistd.h>
+#include <unistd.h>  // IWYU pragma: keep (sysconf, off Windows)
 
 #include <format>
 #if !OOLITE_HAVE_CLANG
@@ -191,8 +191,9 @@ std::string operatingSystemFullVersion(void) {
                     KEY_READ, &hKey) == ERROR_SUCCESS) {
     DWORD dwUBRSize = sizeof(DWORD);
     DWORD dwUBR = 0;
-    if (RegQueryValueEx(hKey, "UBR", NULL, NULL, (BYTE*)&dwUBR, &dwUBRSize) ==
-        ERROR_SUCCESS) {
+    if (RegQueryValueEx(hKey, "UBR", NULL, NULL,
+                        reinterpret_cast<BYTE*>(&dwUBR),
+                        &dwUBRSize) == ERROR_SUCCESS) {
       outUBRString = "." + std::to_string(dwUBR);
     }
   }

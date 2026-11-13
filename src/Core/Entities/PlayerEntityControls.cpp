@@ -3687,8 +3687,8 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
                 : oo::PList();
         // -indexOfObject: with the %d string: only string elements ever
         // matched; not found was oo::kNotFound narrowed to int
-        const std::string currentBrightness = std::to_string(
-            (int)(gameView != nullptr ? gameView->hdrMaxBrightness() : 0.0f));
+        const std::string currentBrightness = std::to_string(static_cast<int>(
+            gameView != nullptr ? gameView->hdrMaxBrightness() : 0.0f));
         int brightnessIdx = static_cast<int>(oo::kNotFound);
         for (std::size_t i = 0; i < brightnesses.count(); i++) {
           const oo::PList* element = brightnesses.at(i);
@@ -3725,7 +3725,7 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
               direction == 1 ? MIN_HDR_MAXBRIGHTNESS : MAX_HDR_MAXBRIGHTNESS;
 
         if (gameView != nullptr)
-          gameView->setHDRMaxBrightness((float)brightnessValue);
+          gameView->setHDRMaxBrightness(static_cast<float>(brightnessValue));
         const std::string maxBrightnessString =
             OOExpandKey("gameoptions-hdr-maxbrightness", brightnessValue)
                 .value_or(std::string());
@@ -4169,8 +4169,9 @@ void PlayerEntity::handleGameOptionsScreenKeys() {
         if (paperWhite < MIN_HDR_PAPERWHITE) paperWhite = MIN_HDR_PAPERWHITE;
         if (gameView != nullptr)
           gameView->setHDRPaperWhiteBrightness(paperWhite);
-        int paperWhiteNorm = (int)((paperWhite - MIN_HDR_PAPERWHITE) * 20 /
-                                   (MAX_HDR_PAPERWHITE - MIN_HDR_PAPERWHITE));
+        int paperWhiteNorm =
+            static_cast<int>((paperWhite - MIN_HDR_PAPERWHITE) * 20 /
+                             (MAX_HDR_PAPERWHITE - MIN_HDR_PAPERWHITE));
         const std::string paperWhiteWordDesc =
             OO_DESC("gameoptions-hdr-paperwhite");
         std::string v1_string = "|||||||||||||||||||||||||";

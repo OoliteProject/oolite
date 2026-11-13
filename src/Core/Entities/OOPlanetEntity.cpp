@@ -27,7 +27,6 @@ A leaf of Entity. The class is global.
 #include "OOPlanetEntity.h"
 
 #include <array>
-#include <cstddef>
 #include <format>
 #include <map>
 #include <optional>

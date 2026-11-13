@@ -25,7 +25,6 @@ MA 02110-1301, USA.
 
 #include "OOJSTimer.h"
 
-#include <cstddef>
 #include <format>
 #include <optional>
 #include <string>

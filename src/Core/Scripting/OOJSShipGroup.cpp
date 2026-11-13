@@ -25,7 +25,6 @@ MA 02110-1301, USA.
 
 #include "OOJSShipGroup.h"
 
-#include <cstddef>
 #include <format>
 #include <optional>
 #include <string>
