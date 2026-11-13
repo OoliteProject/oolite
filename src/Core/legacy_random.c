@@ -217,7 +217,10 @@ int gen_rnd_number(void)
     return a;
 }
 
+#ifndef NDEBUG
+// Only read by assert(), so builds without assertions leave it out.
 static bool sReallyRandomInited = false;
+#endif
 static RANROTSeed sReallyRandomSeed;
 
 uint32_t OOReallyRandom(void)
@@ -232,7 +235,9 @@ void OOInitReallyRandom(uint64_t seed)
     seed ^= 0xA471D52AEF3B6322ULL;
     sReallyRandomSeed.high = (seed >> 32) & 0xFFFFFFFF;
     sReallyRandomSeed.low = seed & 0xFFFFFFFF;
+#ifndef NDEBUG
     sReallyRandomInited = true;
+#endif
     OOReallyRandom();
 }
 
