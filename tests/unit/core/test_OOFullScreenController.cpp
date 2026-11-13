@@ -13,6 +13,7 @@
 */
 
 #include <cstdlib>
+#include "EntityManualRefs.h"  // the tests' manual references (T096)
 
 #include "OOFullScreenController.h"
 #include "OOLogging.h"
@@ -82,13 +83,13 @@ class TestFullScreenController final : public OOFullScreenController {
 
 OO_TEST(baseDefaults) {
   {
-    MyOpenGLView* view = new MyOpenGLView();
-    const std::size_t viewRetains = view->retainCount();
+    MyOpenGLView* view = oo::test::NewRetained<MyOpenGLView>();
+    const std::size_t viewRetains = view->weak_from_this().use_count();
     std::shared_ptr<OOFullScreenController> controller =
         oo::makeRef<OOFullScreenController>(view);
     OO_CHECK(controller != nullptr);
     OO_CHECK(controller->gameView() == view);
-    OO_CHECK(view->retainCount() == viewRetains + 1);
+    OO_CHECK(view->weak_from_this().use_count() == viewRetains + 1);
 
     gSubclassResponsibilities = 0;
     OO_CHECK(!controller->inFullScreenMode());
@@ -115,8 +116,8 @@ OO_TEST(baseDefaults) {
     OO_CHECK(gSubclassResponsibilities == 7);
 
     controller = nullptr;
-    OO_CHECK(view->retainCount() == viewRetains);
-    view->release();
+    OO_CHECK(view->weak_from_this().use_count() == viewRetains);
+    oo::test::Release(view);
   }
 }
 

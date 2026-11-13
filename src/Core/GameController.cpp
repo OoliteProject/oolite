@@ -261,9 +261,7 @@ GameController::GameController() {
   }
 }
 
-GameController::~GameController() {
-  if (_gameView != nullptr) _gameView->release();
-}
+GameController::~GameController() = default;
 
 bool GameController::isGamePaused() { return gameIsPaused; }
 
@@ -359,14 +357,12 @@ void GameController::setMouseInteractionModeForUIWithMouseInteraction(
                               : OOMouseInteractionMode::kUiScreenNoInteraction);
 }
 
-::MyOpenGLView* GameController::gameView() { return _gameView; }
+::MyOpenGLView* GameController::gameView() { return _gameView.get(); }
 
 void GameController::setGameView(::MyOpenGLView* view) {
-  if (_gameView != nullptr) _gameView->release();
-  if (view != nullptr) view->retain();
-  _gameView = view;
+  _gameView = oo::share(view);
   if (_gameView != nullptr) _gameView->setGameController(this);
-  if (UNIVERSE != nullptr) UNIVERSE->setGameView(_gameView);
+  if (UNIVERSE != nullptr) UNIVERSE->setGameView(_gameView.get());
 }
 
 bool GameController::finishedLaunching() { return _finishedLaunching; }
@@ -569,7 +565,8 @@ void GameController::applicationDidFinishLaunching() {
     // context logProgress(OO_DESC("Initialising universe")); // DESC expansions
     // only possible after Universe init
     _universe = Universe::newUniverse(
-        _gameView);  // also gSharedUniverse; destroyed with the controller
+        _gameView
+            .get());  // also gSharedUniverse; destroyed with the controller
 
     loadPlayerIfRequired();
 
@@ -621,11 +618,8 @@ void GameController::beginSplashScreen() {
        dangling; it is null now, and the sends below are skipped as messages to
        nil.
     */
-    _gameView = new ::MyOpenGLView();
-    if (!_gameView->init()) {
-      _gameView->release();
-      _gameView = nullptr;
-    }
+    _gameView = oo::makeShared<::MyOpenGLView>();
+    if (!_gameView->init()) _gameView.reset();
     if (_gameView != nullptr) _gameView->setGameController(this);
     if (_gameView != nullptr) _gameView->initSplashScreen();
   }

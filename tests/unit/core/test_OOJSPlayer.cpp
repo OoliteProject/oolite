@@ -25,6 +25,7 @@
 #include "OODescription.h"
 #include "oofnd/StdLib.hpp"
 #include "EntityPListForeign.h"	// an entity's node
+#include "EntityManualRefs.h"  // the tests' manual references (T096)
 
 
 // MARK: The classes, as far as the binding sees them ----------------------------------------------
@@ -81,7 +82,7 @@ public:
 // PLAYER: the members the code under test calls, declared as the game headers
 // declare them (the test imports none that defines the classes), with the
 // stand-in's answers.
-class Entity : public oo::RefCounted
+class Entity : public oo::Object
 {
 public:
 	virtual ~Entity();
@@ -269,7 +270,7 @@ public:
 
 ::TestEntityObject *NewPlayerObject()
 {
-	return oo::makeRef<TestPlayerObject>().leakRef();
+	return oo::test::NewRetained<TestPlayerObject>();
 }
 
 ::TestEntityObject *TestObjectOf(Entity *entity)  { return entity != nullptr ? sPlayerObject : nullptr; }	// only the player crosses
@@ -605,7 +606,7 @@ void SetUpContext()
 	// Kept for the life of the test.
 	sUniverse = new StandInUniverse();
 	gSharedUniverse = sUniverse;
-	sPlayer = new PlayerEntity;
+	sPlayer = oo::test::NewRetained<PlayerEntity>();
 	gOOPlayer = sPlayer;
 	sPlayerObject = NewPlayerObject();
 	sPlayer->_commanderName = "Jameson";
@@ -623,11 +624,11 @@ void SetUpContext()
 	sPlayer->_roleWeights = { "trader", "pirate", "trader" };
 	sPlayer->_status = OOEntityStatus::kDocked;
 	sPlayer->_targetSystem = -1;
-	sStation = oo::makeRef<TestEntityObject>().leakRef();
+	sStation = oo::test::NewRetained<TestEntityObject>();
 	sStation->_cxxEntity = oo::makeRef<ShipEntity>();
 	sStationShip = static_cast<ShipEntity *>(sStation->_cxxEntity.get());
 	sStation->_isStation = true;
-	sNonStation = oo::makeRef<TestEntityObject>().leakRef();
+	sNonStation = oo::test::NewRetained<TestEntityObject>();
 	sNonStation->_cxxEntity = oo::makeRef<ShipEntity>();
 
 	InitOOJSPlayer(sContext, sGlobal);

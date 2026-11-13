@@ -375,7 +375,7 @@ void OOTexture::setTrace(bool trace) {
   if (trace && !_trace) {
     OO_LOG("texture.allocTrace.begin",
            "Started tracing texture {} with retain count {}.",
-           oo::str::pointerDescription(this), retainCount());
+           oo::str::pointerDescription(this), weak_from_this().use_count());
   }
   _trace = trace;
 }

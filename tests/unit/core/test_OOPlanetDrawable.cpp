@@ -16,6 +16,7 @@
 */
 
 #include <cmath>
+#include "EntityManualRefs.h"  // the tests' manual references (T096)
 
 #include "MyOpenGLView.h"  // the game view is C++
 #include "OOBasicMaterial.h"
@@ -57,8 +58,8 @@ TestUniverse* sUniverse = nullptr;
 void SetUp() {
   if (sUniverse == nullptr) {
     sUniverse = new TestUniverse();          // never released
-    sUniverse->_view = new TestView();       // never released
-    sUniverse->gameView = sUniverse->_view;  // what -gameView answers
+    sUniverse->_view = oo::test::NewRetained<TestView>();       // never released
+    sUniverse->gameView = oo::share(sUniverse->_view);  // what -gameView answers
   }
   sUniverse->_reduced = false;
   sUniverse->_view->_size = NSMakeSize(800, 600);

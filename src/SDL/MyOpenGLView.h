@@ -246,7 +246,7 @@ constexpr std::string_view OOEnumName(OOSDRToneMapper value) noexcept {
 extern int debug;
 
 // The game view.
-class MyOpenGLView : public oo::RefCounted {
+class MyOpenGLView : public oo::Object {
  public:
   MyOpenGLView() = default;  // the object -init fills; see init()
   // The members marked virtual are the ones the whole-game tests' recording

@@ -26,6 +26,7 @@
 #include "OODescription.h"
 #include "oofnd/StdLib.hpp"
 #include "EntityPListForeign.h"	// an entity's node
+#include "EntityManualRefs.h"  // the tests' manual references (T096)
 
 
 // MARK: The classes, as far as the binding sees them ----------------------------------------------
@@ -143,7 +144,7 @@ JSValue TestEntityObject::oo_jsValueInContext(JSContext *context)
 
 OONull *OONull::null()
 {
-	static OONull *null = oo::makeRef<OONull>().leakRef();
+	static OONull *null = oo::test::NewRetained<OONull>();
 	return null;
 }
 
@@ -395,7 +396,7 @@ void Define(const char *name, JSValue value)
 // A ship and its object (kept for the life of the test), defined by name.
 ShipEntity *NewShip(const char *name)
 {
-	::TestEntityObject *object = oo::makeRef<::TestEntityObject>().leakRef();
+	::TestEntityObject *object = oo::test::NewRetained<::TestEntityObject>();
 	std::shared_ptr<ShipEntity> ship = oo::makeRef<ShipEntity>();
 	ship->_object = object;
 	ship->_name = name;

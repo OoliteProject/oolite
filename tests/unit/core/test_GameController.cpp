@@ -247,23 +247,23 @@ OO_TEST(gameViewIsKeptAndToldOfTheController) {
   SetUp();
   {
     GameController* controller = ::GameController::sharedController();
-    TestView* first = new TestView();
-    TestView* second = new TestView();
+    TestView* first = oo::test::NewRetained<TestView>();
+    TestView* second = oo::test::NewRetained<TestView>();
 
     controller->setGameView(first);
     OO_CHECK(controller->gameView() == first);
     OO_CHECK(first->_controller == controller);
-    OO_CHECK(first->retainCount() == 2);  // the controller retains its view
+    OO_CHECK(first->weak_from_this().use_count() == 2);  // the controller retains its view
 
     controller->setGameView(second);
     OO_CHECK(controller->gameView() == second);
     OO_CHECK(second->_controller == controller);
-    OO_CHECK(first->retainCount() == 1);  // and releases the one it replaces
-    OO_CHECK(second->retainCount() == 2);
+    OO_CHECK(first->weak_from_this().use_count() == 1);  // and releases the one it replaces
+    OO_CHECK(second->weak_from_this().use_count() == 2);
 
     controller->setGameView(first);
-    second->release();
-    first->release();
+    oo::test::Release(second);
+    oo::test::Release(first);
   }
 }
 
@@ -452,7 +452,7 @@ OO_TEST(fullScreenMembers) {
     OO_CHECK(!GameControllerTestAccess::stayInFullScreenMode(controller));
     OO_CHECK(!oo::Defaults::standard().boolForKey("fullscreen"));
 
-    TestTarget* target = oo::makeRef<TestTarget>().leakRef();
+    TestTarget* target = oo::test::NewRetained<TestTarget>();
     GameControllerTestAccess::stayInFullScreenMode(controller) = true;
     controller->pauseFullScreenModeToPerform("record:", target);
     OO_CHECK(GameControllerTestAccess::pauseSelector(controller) == "record:");
@@ -497,24 +497,24 @@ OO_TEST(deferredCalls) {
   SetUp();
   {
     GameController* controller = ::GameController::sharedController();
-    TestTarget* target = oo::makeRef<TestTarget>().leakRef();
-    TestArgument* argument = oo::makeRef<TestArgument>().leakRef();
+    TestTarget* target = oo::test::NewRetained<TestTarget>();
+    TestArgument* argument = oo::test::NewRetained<TestArgument>();
 
     Call(target, &TestTarget::record, argument, 0.0);
     Call(target, &TestTarget::record, nullptr, -1.0);
-    OO_CHECK(target->retainCount() == 3);
-    OO_CHECK(argument->retainCount() == 2);
+    OO_CHECK(target->weak_from_this().use_count() == 3);
+    OO_CHECK(argument->weak_from_this().use_count() == 2);
     OO_CHECK(target->_calls.empty());
 
     // Not due until 0.0001 s have passed.
     std::this_thread::sleep_for(std::chrono::milliseconds(5));
     controller->fireDueTimers();
     OO_CHECK(target->_calls == std::vector<std::string>({"arg"}));
-    OO_CHECK(argument->retainCount() == 1);
-    OO_CHECK(target->retainCount() == 2);
+    OO_CHECK(argument->weak_from_this().use_count() == 1);
+    OO_CHECK(target->weak_from_this().use_count() == 2);
     controller->fireDueTimers();
     OO_CHECK(target->_calls == std::vector<std::string>({"arg", "nil"}));
-    OO_CHECK(target->retainCount() == 1);
+    OO_CHECK(target->weak_from_this().use_count() == 1);
     controller->fireDueTimers();  // nothing left
     OO_CHECK(target->_calls.size() == 2);
 
@@ -528,7 +528,7 @@ OO_TEST(deferredCalls) {
     std::this_thread::sleep_for(std::chrono::milliseconds(5));
     controller->fireDueTimers();
     OO_CHECK(target->_calls.size() == 3 && target->_calls.back() == "raise");
-    OO_CHECK(target->retainCount() ==
+    OO_CHECK(target->weak_from_this().use_count() ==
              3);  // the leaked +1 and the pending 60 s call's
 
     // A C++ deferred call shares the performs' queue -
@@ -536,7 +536,7 @@ OO_TEST(deferredCalls) {
     // kept until it has run, and an OOException from it is swallowed and the
     // call kept (its captures stay, as the performer leaked its target). (The
     // pending 60 s call above is not due.)
-    TestTarget* cxxTarget = oo::makeRef<TestTarget>().leakRef();
+    TestTarget* cxxTarget = oo::test::NewRetained<TestTarget>();
     std::vector<std::string> order;
     std::shared_ptr<int> kept = std::make_shared<int>(1);
 
@@ -646,15 +646,15 @@ OO_TEST(cxxAPI) {
 
     // The members tell the view of the controller.
     TestView* view = static_cast<TestView*>(controller->gameView());
-    view->retain();  // only the controller holds it
-    TestView* other = new TestView();
+    oo::test::Retain(view);  // only the controller holds it
+    TestView* other = oo::test::NewRetained<TestView>();
     controller->setGameView(other);
     OO_CHECK(other->_controller == controller);
     OO_CHECK(controller->gameView() == other);
     controller->setGameView(view);
-    OO_CHECK(other->retainCount() == 1);
-    other->release();
-    view->release();
+    OO_CHECK(other->weak_from_this().use_count() == 1);
+    oo::test::Release(other);
+    oo::test::Release(view);
 
     controller->setMouseInteractionMode(OOMouseInteractionMode::kUiScreenWithInteraction);
     OO_CHECK(controller->mouseInteractionMode() ==

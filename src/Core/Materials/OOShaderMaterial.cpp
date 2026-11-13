@@ -300,16 +300,7 @@ bool OOShaderMaterial::initWithName(const std::optional<std::string>& name,
 
 // The shader program is an std::shared_ptr. (The uniforms hold the binding
 // target.)
-OOShaderMaterial::~OOShaderMaterial() {
-  uint32_t i;
-
-  if (textures != nullptr) {
-    for (i = 0; i != texCount; ++i) {
-      oo::release(textures[i]);
-    }
-    free(textures);
-  }
-}
+OOShaderMaterial::~OOShaderMaterial() = default;
 
 bool OOShaderMaterial::bindUniform(const std::string& uniformName,
                                    Entity* source, const char* property,
@@ -685,7 +676,7 @@ std::vector<std::shared_ptr<OOTexture>> OOShaderMaterial::allTextures() {
   std::vector<std::shared_ptr<OOTexture>> result;
   result.reserve(texCount);
   for (uint32_t i = 0; i < texCount; i++) {
-    result.emplace_back(oo::share(textures[i]));
+    result.emplace_back(textures[i]);
   }
   return result;
 }
@@ -715,7 +706,7 @@ void OOShaderMaterial::addTexturesFromArray(
       MIN(textureObjects.size(), static_cast<size_t>(max)));
   if (texCount == 0) return;
 
-  textures = static_cast<OOTexture**>(malloc(texCount * sizeof *textures));
+  textures = std::make_unique<std::shared_ptr<OOTexture>[]>(texCount);
   if (textures == nullptr) {
     texCount = 0;
     return;
@@ -724,8 +715,7 @@ void OOShaderMaterial::addTexturesFromArray(
   // Set up texture object names and appropriate uniforms
   unsigned i;
   for (i = 0; i != texCount; ++i) {
-    textures[i] =
-        oo::retain(textureObjects[i].get());  // released in the destructor
+    textures[i] = textureObjects[i];
   }
 }
 

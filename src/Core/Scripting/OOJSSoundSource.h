@@ -54,7 +54,7 @@ std::optional<std::string> OOJSSoundSourceJSClassName(void);
    source's components. Defined in OOJSSoundSource.cpp; only the binding makes
    one.
 */
-class OOJSSoundSourceHolder final : public oo::RefCounted,
+class OOJSSoundSourceHolder final : public oo::Object,
                                     public OOJSPrivateObject {
  public:
   explicit OOJSSoundSourceHolder(OOSoundSource* inSource);

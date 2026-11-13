@@ -59,7 +59,7 @@ std::optional<std::string> OOJSSoundJSClassName(void);
    (OOJSCxxObjectWrapperFinalize). Its toString() is the sound's. Defined in
    OOJSSound.cpp; only the binding makes one.
 */
-class OOJSSoundHolder final : public oo::RefCounted, public OOJSPrivateObject {
+class OOJSSoundHolder final : public oo::Object, public OOJSPrivateObject {
  public:
   explicit OOJSSoundHolder(OOSound* inSound);
   ~OOJSSoundHolder() override;

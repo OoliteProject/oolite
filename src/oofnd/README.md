@@ -19,7 +19,7 @@ Rules that hold for every component:
 
 | Path | What |
 |---|---|
-| `src/oofnd/Ref.hpp` | `oo::RefCounted`, `oo::Ref<T>`, `oo::WeakRef<T>`, `oo::AutoreleaseScope`: ObjC retain/release/autorelease and `OOWeakReference` 1:1; the banner maps each ObjC idiom |
+| `src/oofnd/Ref.hpp` | `oo::Object`, `std::shared_ptr<T>`, `std::weak_ptr<T>`, `oo::AutoreleaseScope`: ObjC retain/release/autorelease and `OOWeakReference` 1:1; the banner maps each ObjC idiom |
 | `src/oofnd/WeakSet.hpp` | `oo::WeakSet<T>`: `OOWeakSet` |
 | `src/oofnd/PList.hpp` | `oo::PList`: the property-list value (null/bool/integer/real/string/data/date/array/dict) replacing the Foundation plist object graph; UTF-16 <-> UTF-8 helpers |
 | `src/oofnd/PListOldStyle.hpp` | `oo::parseOldStylePList`: GNUstep's old-style (OpenStep) scanner, `parsePlItem`, ported quirk-for-quirk |

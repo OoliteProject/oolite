@@ -60,7 +60,13 @@ static JSValue MissionSetInstructionsInternal(JSContext* context, int argc,
 */
 static JSValue sCallbackFunction;
 static JSValue sCallbackThis;
-static OOJSScript* sCallbackScript = nullptr;  // retained
+// The script that set the callback, shared. The holder is never deleted, so
+// exit(0) runs no script's destructor after the engine has gone.
+static std::shared_ptr<OOJSScript>& CallbackScript() {
+  static std::shared_ptr<OOJSScript>& script =
+      *new std::shared_ptr<OOJSScript>();
+  return script;
+}
 
 // Borrowed: owned by the global object's read-only, permanent "mission"
 // property. Reset by InitOOJSMission().
@@ -118,8 +124,7 @@ static void ClearPendingCallback() {
   JSContext* context = OOJSAcquireContext();
   SetOwnedValue(context, &sCallbackFunction, JS_NULL);
   SetOwnedValue(context, &sCallbackThis, JS_NULL);
-  if (sCallbackScript != nullptr) sCallbackScript->release();
-  sCallbackScript = nullptr;
+  CallbackScript().reset();
   OOJSRelinquishContext(context);
 }
 
@@ -167,7 +172,8 @@ void MissionRunCallback() {
   */
   JSValue cbFunction = sCallbackFunction;
   JSValue cbThis = JS_NULL;
-  OOJSScript* cbScript = sCallbackScript;
+  std::shared_ptr<OOJSScript> cbScriptHold = std::move(CallbackScript());
+  OOJSScript* cbScript = cbScriptHold.get();
 
   // As with JS_ValueToObject(), null and undefined give no object (and so the
   // global object as this).
@@ -184,7 +190,7 @@ void MissionRunCallback() {
     cbThis = JS_GetGlobalObject(context);
   }
 
-  sCallbackScript = nullptr;
+  // (CallbackScript() is empty: cbScriptHold took it.)
   sCallbackFunction = JS_NULL;  // Ownership moved to cbFunction.
   SetOwnedValue(context, &sCallbackThis, JS_NULL);
 
@@ -217,7 +223,7 @@ void MissionRunCallback() {
   OOJSScript::popScript(cbScript);
 
   // Manage that memory.
-  if (cbScript != nullptr) cbScript->release();
+  cbScriptHold.reset();
   JS_FreeValue(context, rval);
   JS_FreeValue(context, argval);
   JS_FreeValue(context, argval2);
@@ -632,15 +638,14 @@ static JSValue MissionRunScreen(OOJS_NATIVE_ARGS) {
      * multi-world-script mission screens. (Though, since no-one has
      * complained yet, perhaps I'm the only one who uses them?) */
 
-    if (sCallbackScript != nullptr)
-      sCallbackScript->release();  // (Leaked by the SpiderMonkey version if
-                                   // runScreen() was called twice.)
-    sCallbackScript = OOJSScript::currentlyRunningScript();
-    if (sCallbackScript != nullptr) sCallbackScript->retain();
+    // (Leaked by the SpiderMonkey version if
+    // runScreen() was called twice.)
+    CallbackScript() = oo::share(OOJSScript::currentlyRunningScript());
     if (argc > 2) {
       SetOwnedValue(context, &sCallbackThis, OOJS_ARGV[2]);
     } else {
-      JSValue scriptValue = OOJSValueFromCxxObject(context, sCallbackScript);
+      JSValue scriptValue =
+          OOJSValueFromCxxObject(context, CallbackScript().get());
       SetOwnedValue(context, &sCallbackThis, scriptValue);
       JS_FreeValue(context, scriptValue);
     }

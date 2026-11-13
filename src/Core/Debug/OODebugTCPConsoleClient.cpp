@@ -245,7 +245,8 @@ std::shared_ptr<OODebugTCPConsoleClient>
 OODebugTCPConsoleClient::clientWithAddress(
     const std::optional<std::string>& address, uint16_t port) {
   std::shared_ptr<OODebugTCPConsoleClient> client =
-      oo::adopt(new OODebugTCPConsoleClient);
+      std::shared_ptr<OODebugTCPConsoleClient>(new OODebugTCPConsoleClient(),
+                                               oo::Dispose{});
   if (!client->initWithAddress(address, port))
     return std::shared_ptr<OODebugTCPConsoleClient>();
   return client;

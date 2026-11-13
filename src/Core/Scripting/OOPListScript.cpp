@@ -41,7 +41,7 @@ constexpr const char* kCacheName = "sanitized legacy scripts";
 }  // namespace
 
 /*	A C++ subclass of OOScript: the class's own factories below make the
-   scripts with oo::makeRef and hand them back. -displayName, which OOScript
+   scripts with oo::makeShared and hand them back. -displayName, which OOScript
    implements, is the inherited member. The cache manager is C++ and is called
    directly.
 */

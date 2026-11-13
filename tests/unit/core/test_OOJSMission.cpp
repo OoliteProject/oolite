@@ -27,6 +27,7 @@
 #include "oofnd/String.hpp"
 #include "OOConstToJSString.h"
 #include "OOStringExpander.h"
+#include "EntityManualRefs.h"  // the tests' manual references (T096)
 
 
 // MARK: The classes, as far as the binding sees them ----------------------------------------------
@@ -831,12 +832,12 @@ void SetUpContext()
 	sPlayer->_exitScreen = OOGUIScreenID::kStatus;
 	gOOPlayer = sPlayer;
 	sUniverse = new StandInUniverse();
-	sUniverse->_gui = (*new std::shared_ptr<GuiDisplayGen>(oo::makeShared<GuiDisplayGen>())).get();	// kept for the life of the test
+	sUniverse->_gui = oo::test::NewRetained<GuiDisplayGen>();	// kept for the life of the test
 	sUniverse->_demoShip = new ShipEntity;
-	sDemoShipObject = oo::makeRef<TestEntityObject>().leakRef();
+	sDemoShipObject = oo::test::NewRetained<TestEntityObject>();
 	gSharedUniverse = sUniverse;
 	sEngine = new OOJavaScriptEngine;
-	sRunningScript = oo::makeRef<OOJSScript>().leakRef();
+	sRunningScript = oo::test::NewRetained<OOJSScript>();
 	sRunningScript->_name = "oolite-test-mission";
 	sScriptObject = JS_NewObject(sContext);
 	JS_SetPropertyStr(sContext, sGlobal, "theScript", JS_DupValue(sContext, sScriptObject));

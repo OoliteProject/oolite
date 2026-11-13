@@ -218,13 +218,13 @@ OO_TEST(holdsALiveObject) {
   {
     oo::AutoreleaseScope pool;
     cache->setPList(oo::PList(oo::PList::Object(object)), "texture");
-    OO_CHECK(object->retainCount() == 2);  // the cache retains it
+    OO_CHECK(object->weak_from_this().use_count() == 2);  // the cache retains it
     const oo::PList held = cache->pListForKey("texture");
     const oo::PList::Object* node = held.getIf<oo::PList::Object>();
     OO_CHECK(node != nullptr && node->get() == object.get());
   }
   cache->removePListForKey("texture");
-  OO_CHECK(object->retainCount() == 1);
+  OO_CHECK(object->weak_from_this().use_count() == 1);
   cache = nullptr;
 }
 

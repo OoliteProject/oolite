@@ -34,7 +34,7 @@ MA 02110-1301, USA.
 #include "OOJavaScriptEngine.h"
 #include "oofnd/Ref.hpp"
 
-class OOJSScript : public oo::RefCounted {
+class OOJSScript : public oo::Object {
  public:
   // Null (after logging) if the script cannot be loaded or its top level
   // throws.

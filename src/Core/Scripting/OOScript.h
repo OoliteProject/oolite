@@ -16,11 +16,12 @@ the order of precedence is:
 The methods a subclass overrides (name, scriptDescription, version,
 requiresTickle, runWithTarget, and the description's components) are virtual.
 The class is global, a script is held as std::shared_ptr<OOScript> (weakly as
-oo::WeakRef), the class methods that load scripts answer oo::Ref, and the
-following are members here: -callMethod:... (OOScript (JavaScriptEvents); false
-but for a JS script), the plist payload (oo::PListForeign: a script travels in
-plist data as a PList::Object node) and the JS glue (OOJSPrivateObject: a JS
-script's Script object, undefined for any other script).
+std::weak_ptr), the class methods that load scripts answer std::shared_ptr, and
+the following are members here: -callMethod:... (OOScript (JavaScriptEvents);
+false but for a JS script), the plist payload (oo::PListForeign: a script
+travels in plist data as a PList::Object node) and the JS glue
+(OOJSPrivateObject: a JS script's Script object, undefined for any other
+script).
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors

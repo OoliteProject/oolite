@@ -172,8 +172,8 @@ class GameController : public oo::Object {
  private:
   // Internal: the state, read and written by the members above.
 
-  ::MyOpenGLView* _gameView =
-      {};  // retained; was gameView, named like its getter
+  std::shared_ptr<::MyOpenGLView>
+      _gameView;                          // was gameView, named like its getter
   std::unique_ptr<::Universe> _universe;  // the game's universe (UNIVERSE)
 
   double last_timeInterval = {};

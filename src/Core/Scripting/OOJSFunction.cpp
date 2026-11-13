@@ -47,7 +47,8 @@ std::shared_ptr<OOJSFunction> OOJSFunction::initWithFunction(
     return nullptr;
   }
 
-  return oo::adopt(new OOJSFunction(function, context));
+  return std::shared_ptr<OOJSFunction>(new OOJSFunction(function, context),
+                                       oo::Dispose{});
 }
 
 OOJSFunction::OOJSFunction(JSValueConst function, JSContext* context) {

@@ -101,7 +101,7 @@ std::shared_ptr<OOTexture> LoadTexture(const std::optional<std::string>& name,
 void SetUp() {
   if (sUniverse == nullptr) {
     sUniverse = new TestUniverse();                 // never released
-    sTexture = oo::makeRef<OOTexture>().leakRef();  // never released
+    sTexture = oo::test::NewRetained<OOTexture>();  // never released
     OOTexture::nameFactory = &LoadTexture;
   }
   sUniverse->_removed = nullptr;

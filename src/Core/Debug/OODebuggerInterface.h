@@ -42,9 +42,9 @@ SOFTWARE.
 class OODebugMonitor;
 
 // Interface for debugger. Reference counted: the monitor keeps its debugger
-// (oo::Ref).
+// (std::shared_ptr).
 
-class OODebuggerInterface : public oo::RefCounted {
+class OODebuggerInterface : public oo::Object {
  public:
   // Configuration and console text use oo::PList / std::string.
 

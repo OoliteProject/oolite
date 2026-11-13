@@ -119,7 +119,7 @@ void OOJSExcludeTimeFromLimiter(OOTimeDelta time);
 
 class OOTimeProfileEntry;
 
-class OOTimeProfile : public oo::RefCounted {
+class OOTimeProfile : public oo::Object {
  public:
   std::optional<std::string> description();
 
@@ -154,7 +154,7 @@ class OOTimeProfile : public oo::RefCounted {
   std::vector<std::shared_ptr<OOTimeProfileEntry>> _profileEntries;
 };
 
-class OOTimeProfileEntry : public oo::RefCounted {
+class OOTimeProfileEntry : public oo::Object {
  public:
   // The profiler's (the old private category): only while profiling.
   explicit OOTimeProfileEntry(const char* name);

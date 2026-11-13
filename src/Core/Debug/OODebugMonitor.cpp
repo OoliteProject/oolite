@@ -468,7 +468,7 @@ void OODebugMonitor::dumpMemoryStatistics() {
 
   for (const std::shared_ptr<OOTexture>& tex : allTextures) {
     // We subtract one because allTextures retains the textures.
-    textureRefCounts[tex.get()] = tex->retainCount() - 1;
+    textureRefCounts[tex.get()] = static_cast<std::size_t>(tex.use_count() - 1);
   }
 
   size_t totalSize = 0;

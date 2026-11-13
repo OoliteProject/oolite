@@ -73,7 +73,7 @@ MA 02110-1301, USA.
 /*	The engine: the singleton that owns the JS runtime and the main thread
    context. A global class; it is the sender of its reset notifications.
 */
-class OOJavaScriptEngine : public oo::RefCounted {
+class OOJavaScriptEngine : public oo::Object {
  public:
   // The shared engine, made on first use; borrowed, never released.
   static OOJavaScriptEngine* sharedEngine();

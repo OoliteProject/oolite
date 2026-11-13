@@ -576,7 +576,7 @@ static JSValue GlobalSetExtraGuiScreenKeys(OOJS_NATIVE_ARGS) {
     return JS_EXCEPTION;
   }
 
-  // The player keeps it (oo::Ref).
+  // The player keeps it (std::shared_ptr).
   const std::shared_ptr<OOJSGuiScreenKeyDefinition> definition =
       oo::makeShared<OOJSGuiScreenKeyDefinition>();
   OOJSGuiScreenKeyDefinition* cxxDefinition = definition.get();

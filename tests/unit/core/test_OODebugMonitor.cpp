@@ -24,6 +24,7 @@
 #include "oofnd/StdLib.hpp"
 #include "OODescription.h"
 #include "OOEntityHold.h"	// the universe's entity list holds C++ entities
+#include "EntityManualRefs.h"  // the tests' manual references (T096)
 
 #include "oofnd/Defaults.hpp"
 #include "oofnd/FileSystem.hpp"
@@ -213,7 +214,7 @@ public:
 
 OONull *OONull::null()
 {
-	static OONull *sNull = oo::makeRef<OONull>().leakRef();
+	static OONull *sNull = oo::test::NewRetained<OONull>();
 	return sNull;
 }
 
