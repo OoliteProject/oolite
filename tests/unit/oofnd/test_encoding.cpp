@@ -9,7 +9,6 @@
    test recomputes the same FNV-1a digest from oo::str::encodeLossy.
 */
 
-#include <type_traits>
 
 #include "oofnd/Encoding.hpp"
 

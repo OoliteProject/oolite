@@ -14,7 +14,6 @@
    when every one of the 40,000 lines matches.
 */
 
-#include <type_traits>
 
 #include "oofnd/String.hpp"
 

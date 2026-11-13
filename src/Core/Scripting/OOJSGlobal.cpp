@@ -35,13 +35,10 @@ MA 02110-1301, USA.
 #include "OOJavaScriptEngine.h"
 #include "OOStringExpander.h"
 #include "OOSystemDescriptionManager.h"
-#include "OOTexture.h"
-#include "PlayerEntityScriptMethods.h"
 #include "ResourceManager.h"
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/ResourcePaths.hpp"
 #include "oofnd/Scanner.hpp"
-#include "oofnd/String.hpp"
 
 static const char* const kOOLogDebugMessage = "script.debug.message";
 

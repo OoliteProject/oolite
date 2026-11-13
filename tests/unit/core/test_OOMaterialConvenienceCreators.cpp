@@ -24,7 +24,6 @@
 #include "MyOpenGLView.h"
 #include "OOBasicMaterial.h"
 #include "OOCombinedEmissionMapGenerator.h"
-#include "OODescription.h"
 #include "OOMaterialConvenienceCreators.h"
 #include "OOMultiTextureMaterial.h"
 #include "OOOpenGLExtensionManager.h"

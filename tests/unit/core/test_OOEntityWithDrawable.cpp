@@ -21,7 +21,6 @@
 
 #include <cstring>
 
-#include "OODescription.h"
 #include "OODrawable.h"
 #include "OOEntityWithDrawable.h"
 #include "PlayerEntity.h"

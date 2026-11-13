@@ -35,14 +35,11 @@ MA 02110-1301, USA.
 #include <vector>
 
 #include "AI.h"
-#include "OODescription.h"
 #include "OOJSWormhole.h"
 #include "OOLogging.h"
 #include "OOPListGameTypes.h"
 #include "OOPlanetEntity.h"
-#include "OORoleSet.h"
 #include "OOShipGroup.h"
-#include "OOShipRegistry.h"
 #include "OOStringParsing.h"
 #include "OOSunEntity.h"
 #include "OOSystemDescriptionManager.h"

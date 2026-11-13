@@ -27,7 +27,6 @@ MA 02110-1301, USA.
 
 #include "MyOpenGLView.h"
 #include "OOColor.h"
-#include "OOFunctionAttributes.h"
 #include "OOGraphicsResetManager.h"
 #include "OOMacroOpenGL.h"
 #include "OOTexture.h"

@@ -27,7 +27,6 @@
 #include <vector>
 #include "EntityManualRefs.h"  // the tests' manual references (T096)
 
-#include "OODescription.h"
 #include "OOProbabilisticTextureManager.h"
 #include "OOTexture.h"
 #include "OOTypes.h"

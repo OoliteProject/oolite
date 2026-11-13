@@ -33,7 +33,6 @@ SOFTWARE.
 
 #include "OOConstToString.h"
 #include "OOFunctionAttributes.h"
-#include "OOLogging.h"
 #include "OORegExpMatcher.h"
 #include "ResourceManager.h"
 #include "oofnd/Log.hpp"

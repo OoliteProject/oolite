@@ -34,10 +34,7 @@ MA 02110-1301, USA.
 #include "GuiDisplayGen.h"
 #include "OOConstToString.h"
 #include "OOFullScreenController.h"
-#include "OOGraphicsResetManager.h"
 #include "OOSDLJoystickManager.h"
-#include "OOSound.h"
-#include "OOStellarBody.h"
 #include "OOVersion.h"
 #include "PlayerEntity.h"
 #include "ResourceManager.h"
@@ -48,7 +45,6 @@ MA 02110-1301, USA.
 #include "oofnd/Process.hpp"
 #include "oofnd/ResourcePaths.hpp"
 #include "oofnd/String.hpp"
-#include "png.h"
 #include "stb_image_write.h"
 
 // The save and snapshot directory names.
@@ -57,8 +53,6 @@ MA 02110-1301, USA.
 
 int SaveEXRSnapshot(const char* outfilename, int width, int height,
                     const float* rgb);
-
-#include <ctype.h>
 
 #include <cstddef>
 #include <format>

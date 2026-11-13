@@ -24,11 +24,15 @@ MA 02110-1301, USA.
 
 #include "PlayerEntityControls.h"
 
+#include <quickjs.h>
+
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <format>
 #include <initializer_list>
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -37,49 +41,66 @@ MA 02110-1301, USA.
 
 #include "AI.h"
 #include "DockEntity.h"
+#include "Entity.h"
+#include "EntityHelpers.h"
+#include "EntityPListForeign.h"
 #include "GameController.h"
+#include "GuiDisplayGen.h"
 #include "HeadUpDisplay.h"
 #include "MyOpenGLView.h"
+#include "OOCommodityMarket.h"
+#include "OOCompassMode.h"
 #include "OOConstToJSString.h"
 #include "OOConstToString.h"
 #include "OODebugFlags.h"
 #include "OODebugMonitor.h"
 #include "OODebugSupport.h"
 #include "OODescription.h"
+#include "OOEntityStatus.h"
+#include "OOEnumFlags.h"
 #include "OOEquipmentType.h"
+#include "OOFastArithmetic.h"
+#include "OOFoundation.h"
+#include "OOFullScreenController.h"
+#include "OOFunctionAttributes.h"
+#include "OOGUIScreenID.h"
+#include "OOJSEngineCore.h"
 #include "OOJSGuiScreenKeyDefinition.h"
-#include "OOJSScript.h"
+#include "OOJSPropID.h"
 #include "OOJoystickManager.h"
 #include "OOLoggingExtended.h"
+#include "OOLongRangeChartMode.h"
+#include "OOMathsBase.h"
+#include "OOMouseInteractionMode.h"
 #include "OOMusicController.h"
 #include "OOOXZManager.h"
 #include "OOPlanetEntity.h"
-#include "OOSound.h"
+#include "OOQuaternion.h"
 #include "OOStringExpander.h"
-#include "OOStringParsing.h"
 #include "OOSunEntity.h"
 #include "OOSystemDescriptionManager.h"
-#include "OOTexture.h"
+#include "OOTypes.h"
+#include "OOVector.h"
+#include "OOViewID.h"
+#include "PlayerEntity.h"
 #include "PlayerEntityContracts.h"
 #include "PlayerEntityKeyMapper.h"
-#include "PlayerEntityLegacyScriptEngine.h"
-#include "PlayerEntityLoadSave.h"
-#include "PlayerEntityScriptMethods.h"
-#include "PlayerEntitySound.h"
 #include "PlayerEntityStickMapper.h"
 #include "PlayerEntityStickProfile.h"
 #include "ResourceManager.h"
+#include "ShipEntity.h"
 #include "ShipEntityAI.h"
 #include "StationEntity.h"
 #include "Universe.h"
+#include "legacy_random.h"
 #include "oofnd/Date.hpp"
 #include "oofnd/Defaults.hpp"
+#include "oofnd/Log.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/PListGet.hpp"
 #include "oofnd/String.hpp"
-#include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"
-
+#include "oofnd/objc/OOFoundationTypes.h"
 #define CUSTOM_VIEW_ROTATE_SPEED 1.0
 #define CUSTOM_VIEW_ZOOM_SPEED 5.0
 #define CUSTOM_VIEW_SPEED_REDUCTION_FACTOR 0.3

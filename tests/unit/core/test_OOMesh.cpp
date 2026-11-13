@@ -36,7 +36,6 @@
 #include "Entity.h"
 #include "OOBasicMaterial.h"
 #include "OOCacheManager.h"
-#include "OODescription.h"
 #include "OOGraphicsResetManager.h"
 #include "OOMesh.h"
 #include "Octree.h"

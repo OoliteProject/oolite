@@ -27,8 +27,6 @@ SOFTWARE.
 
 #include <format>
 
-#include "OOLogging.h"
-#include "OOMaths.h"
 #include "OOSoundInternal.h"
 #include "oofnd/String.hpp"
 

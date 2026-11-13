@@ -31,9 +31,7 @@
 #include "oo_test.hpp"
 #include "oofnd/Date.hpp"
 #include "oofnd/Defaults.hpp"
-#include "oofnd/FileSystem.hpp"
 #include "oofnd/PListParsing.hpp"
-#include "oofnd/ResourcePaths.hpp"
 #include "oofnd/String.hpp"
 #include "EntityManualRefs.h"  // the tests' manual entity references (T095)
 extern PlayerEntity* gOOPlayer;

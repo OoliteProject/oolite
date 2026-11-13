@@ -14,9 +14,7 @@
 	category answers the engine. Run: tests/run.sh unit
 */
 
-#include "OOFoundation.h"
 #include "OOColor.h"
-#include "OOMaths.h"
 #include "OOStellarBody.h"
 #include "OOJSEngineCore.h"
 #include "oofnd/objc/OOException.h"
@@ -143,7 +141,6 @@ public:
 #include <map>
 #include <stdexcept>
 #include <string>
-#include <vector>
 
 
 

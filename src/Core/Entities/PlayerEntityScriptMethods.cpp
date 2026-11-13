@@ -28,8 +28,6 @@ MA 02110-1301, USA.
 #include <string_view>
 
 #include "OOCommodities.h"
-#include "OOConstToString.h"
-#include "OOStringExpander.h"
 #include "OOStringParsing.h"
 #include "OOSystemDescriptionManager.h"
 #include "PlayerEntityLoadSave.h"
@@ -37,7 +35,6 @@ MA 02110-1301, USA.
 #include "Universe.h"
 #include "oofnd/Defaults.hpp"
 #include "oofnd/PListGet.hpp"
-#include "oofnd/String.hpp"
 
 namespace {
 

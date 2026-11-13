@@ -34,7 +34,6 @@ SOFTWARE.
 #include "OOFunctionAttributes.h"
 #include "OOLogging.h"
 #include "OOMaterialState.h"
-#include "oofnd/Ref.hpp"  // oo::autorelease
 #include "oofnd/String.hpp"
 
 namespace {

@@ -25,7 +25,6 @@ MA 02110-1301, USA.
 #include "GuiDisplayGen.h"
 
 #include <cstddef>
-#include <cstdint>
 #include <cstring>
 #include <format>
 #include <map>
@@ -37,17 +36,12 @@ MA 02110-1301, USA.
 
 #include "GameController.h"
 #include "HeadUpDisplay.h"
-#include "OODescription.h"
 #include "OOJavaScriptEngine.h"
-#include "OOSound.h"
 #include "OOStringExpander.h"
-#include "OOStringParsing.h"
 #include "OOSystemDescriptionManager.h"
 #include "OOTexture.h"
 #include "OOTextureSprite.h"
 #include "PlayerEntity.h"
-#include "PlayerEntityControls.h"
-#include "PlayerEntityStickProfile.h"
 #include "ResourceManager.h"
 #include "Universe.h"
 #include "oofnd/Log.hpp"

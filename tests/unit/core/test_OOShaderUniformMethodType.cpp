@@ -11,7 +11,6 @@
 #include <string>
 #include <vector>
 
-#include "OOOpenGLExtensionManager.h"
 #include "OORegExpMatcher.h"
 #include "OOShaderUniformMethodType.h"
 #include "OOTypeEncodings.h"  // @encode()'s measured literals

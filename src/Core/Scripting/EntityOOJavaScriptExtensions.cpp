@@ -30,20 +30,13 @@ MA 02110-1301, USA.
 
 #include <format>
 
-#include "DockEntity.h"
-#include "OOJSDock.h"
 #include "OOJSEntity.h"
 #include "OOJSPrivateObject.h"
 #include "OOJSShip.h"
-#include "OOJSStation.h"
 #include "OOJSVisualEffect.h"
-#include "OOJSWormhole.h"
 #include "OOPlanetEntity.h"
-#include "OOVisualEffectEntity.h"
-#include "StationEntity.h"
 #include "WormholeEntity.h"
 #include "oofnd/Notification.hpp"
-#include "oofnd/String.hpp"
 
 // MARK: Entity (OOJavaScriptExtensions)
 

@@ -37,7 +37,6 @@ MA 02110-1301, USA.
 #include "Universe.h"
 #include "oofnd/Log.hpp"
 #include "oofnd/String.hpp"
-#include "oofnd/objc/OOException.h"
 
 // basic alloc/ dealloc routines
 //

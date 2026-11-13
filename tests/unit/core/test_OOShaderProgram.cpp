@@ -15,7 +15,6 @@
 
 #include "OOShaderProgram.h"
 #include "OORegExpMatcher.h"
-#include "OODescription.h"
 #include "MyOpenGLView.h"
 
 #include "oo_gl_test_context.hpp"

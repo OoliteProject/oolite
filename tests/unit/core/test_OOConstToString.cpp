@@ -18,7 +18,6 @@
 
 #include <cstdlib>
 #include <string>
-#include <vector>
 
 #include "OOCommodityMarket.h"
 #include "OOConstToString.h"

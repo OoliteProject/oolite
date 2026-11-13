@@ -28,7 +28,6 @@ MA 02110-1301, USA.
 #if OO_OXP_VERIFIER_ENABLED
 
 #include "OOFileScannerVerifierStage.h"
-#include "OOStringParsing.h"
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/PListParsing.hpp"
 #include "oofnd/ResourcePaths.hpp"

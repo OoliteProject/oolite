@@ -15,7 +15,6 @@
 
 #include <string>
 
-#include "OODescription.h"
 #include "OORingEffectEntity.h"
 #include "PlayerEntity.h"  // PLAYER is C++
 #include "Universe.h"

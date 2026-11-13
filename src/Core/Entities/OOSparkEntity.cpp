@@ -26,7 +26,6 @@ MA 02110-1301, USA.
 #include "OOSparkEntity.h"
 
 #include "OOColor.h"
-#include "PlayerEntity.h"
 #include "Universe.h"
 
 std::shared_ptr<OOSparkEntity> OOSparkEntity::sparkWithPosition(

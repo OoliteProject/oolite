@@ -15,9 +15,7 @@
 	and what the category answers the engine. Run: tests/run.sh unit
 */
 
-#include "OOFoundation.h"
 #include "OOMaths.h"
-#include "OOTypes.h"
 #include <quickjs.h>
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"
@@ -145,7 +143,6 @@ public:
 #include <map>
 #include <stdexcept>
 #include <string>
-#include <vector>
 
 
 

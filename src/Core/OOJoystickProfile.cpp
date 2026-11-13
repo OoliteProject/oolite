@@ -24,11 +24,16 @@ MA 02110-1301, USA.
 
 #include "OOJoystickProfile.h"
 
-#include "OOJoystickManager.h"
-#include "OOLoggingExtended.h"
-#include "OOMaths.h"
-#include "Universe.h"
+#include <cmath>
+#include <cstddef>
+#include <memory>
+#include <utility>
+#include <vector>
 
+#include "OOFastArithmetic.h"
+#include "OOJoystickManager.h"
+#include "oofnd/Object.hpp"
+#include "oofnd/objc/OOFoundationTypes.h"
 #define SPLINE_POINT_MIN_SPACING 0.02
 
 class OOJoystickSplineSegment : public oo::Object {

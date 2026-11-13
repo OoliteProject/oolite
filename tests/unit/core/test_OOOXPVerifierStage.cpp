@@ -12,7 +12,6 @@
    tests/run.sh unit
 */
 
-#include "OODescription.h"
 #include "OOLogging.h"
 #include "OOOXPVerifierStage.h"
 #include "oo_test.hpp"

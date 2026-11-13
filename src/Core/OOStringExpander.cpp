@@ -40,7 +40,6 @@ MA 02110-1301, USA.
 #include "OOJavaScriptEngine.h"
 #include "OOStringParsing.h"
 #include "PlayerEntity.h"
-#include "PlayerEntityScriptMethods.h"
 #include "ResourceManager.h"
 #include "Universe.h"
 #include "oofnd/PrintfFormat.h"

@@ -29,22 +29,18 @@ MA 02110-1301, USA.
 
 #include "AI.h"
 #include "MyOpenGLView.h"
-#include "OOCharacter.h"
 #include "OOColor.h"
 #include "OODebugFlags.h"
 #include "OOJSSun.h"
 #include "OOMacroOpenGL.h"
-#include "OOOpenGLExtensionManager.h"
 #include "OOPlanetEntity.h"
 #include "OOStringExpander.h"
-#include "OOStringParsing.h"
 #include "PlayerEntity.h"
 #include "ShipEntityAI.h"
 #include "Universe.h"
 #include "oofnd/Defaults.hpp"
 #include "oofnd/Log.hpp"
 #include "oofnd/PListGet.hpp"
-#include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 
 bool OOSunEntity::setSunColor(OOColor* sun_colorIn) {

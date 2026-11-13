@@ -31,8 +31,6 @@ SOFTWARE.
 #include <cstring>
 #include <format>
 
-#include "oofnd/String.hpp"
-
 const OOPixMap kOONullPixMap = {.pixels = nullptr,
                                 .width = 0,
                                 .height = 0,

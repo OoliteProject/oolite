@@ -31,7 +31,6 @@ MA 02110-1301, USA.
 
 #include "OOFileScannerVerifierStage.h"
 #include "oofnd/Log.hpp"
-#include "oofnd/String.hpp"
 
 static const char* const kStageName = "Testing models";
 

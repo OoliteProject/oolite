@@ -23,7 +23,8 @@ Checks: >
   cppcoreguidelines-no-malloc,
   cppcoreguidelines-use-enum-class,
   readability-identifier-naming,
-  google-readability-casting
+  google-readability-casting,
+  misc-include-cleaner
 WarningsAsErrors: >
   bugprone-*,
   performance-*,
@@ -31,6 +32,7 @@ WarningsAsErrors: >
   cppcoreguidelines-use-enum-class,
   readability-identifier-naming,
   google-readability-casting,
+  misc-include-cleaner,
   -bugprone-assignment-in-if-condition,
   -bugprone-branch-clone,
   -bugprone-command-processor,
@@ -74,6 +76,10 @@ WarningsAsErrors: >
 # constants, google-readability-casting) report but do not fail a run until their category reaches
 # zero; each joins WarningsAsErrors then (all three have).
 CheckOptions:
+  # Spec 009 T108: an unused #include is an error; a missing direct include is not reported (the
+  # umbrella headers export what they gather, IWYU pragma: export). An include that only a
+  # platform's #if code or a complete-type conversion needs says so with IWYU pragma: keep.
+  misc-include-cleaner.MissingIncludes: false
   # A deliberate (void) discard is accepted; a result dropped silently is still reported. Spec 009
   # T030: std::expected is a checked return type where oo::Expected was not, and the game's nine
   # (void) discards of oo::fs results were already explicit.

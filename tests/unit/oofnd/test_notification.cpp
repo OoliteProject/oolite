@@ -7,7 +7,6 @@
    and addition during a post, nested posts, and posting from another thread.
 */
 
-#include <type_traits>
 
 #include "oofnd/Notification.hpp"
 

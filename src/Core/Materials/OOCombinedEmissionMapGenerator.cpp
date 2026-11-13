@@ -30,13 +30,11 @@ SOFTWARE.
 #include <format>
 
 #include "OOColor.h"
-#include "OOMaterialSpecifier.h"
 #include "OOPixMapChannelOperations.h"
 #include "OOTextureInternal.h"
 #include "OOTextureLoader.h"
 #include "OOTextureScaling.h"
 #include "oofnd/Log.hpp"
-#include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 
 #define DUMP_COMBINER 0

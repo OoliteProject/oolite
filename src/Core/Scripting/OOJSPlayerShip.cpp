@@ -34,12 +34,10 @@ MA 02110-1301, USA.
 #include <utility>
 #include <vector>
 
-#include "EntityOOJavaScriptExtensions.h"
 #include "GuiDisplayGen.h"
 #include "HeadUpDisplay.h"
 #include "OOConstToJSString.h"
 #include "OOConstToString.h"
-#include "OODescription.h"
 #include "OOEquipmentType.h"
 #include "OOFunctionAttributes.h"
 #include "OOJSEntity.h"
@@ -51,11 +49,7 @@ MA 02110-1301, USA.
 #include "OOJavaScriptEngine.h"
 #include "OOSystemDescriptionManager.h"
 #include "PlayerEntity.h"
-#include "PlayerEntityContracts.h"
-#include "PlayerEntityControls.h"
-#include "PlayerEntityLegacyScriptEngine.h"
 #include "PlayerEntityScriptMethods.h"
-#include "PlayerEntitySound.h"
 #include "StationEntity.h"
 #include "Universe.h"
 #include "oofnd/Notification.hpp"

@@ -13,10 +13,8 @@
 	Run: tests/run.sh unit
 */
 
-#include "oofnd/objc/OOObject.h"
 #include <quickjs.h>
 #include "oofnd/objc/OOException.h"
-#include "oofnd/objc/OOFoundationTypes.h"	// BOOL
 #include "oofnd/PList.hpp"
 #include "oofnd/Object.hpp"
 #include "oofnd/String.hpp"

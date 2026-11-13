@@ -39,11 +39,9 @@ SOFTWARE.
 
 #include "OOColor.h"
 #include "OOMaterialSpecifier.h"
-#include "OOMesh.h"
 #include "OOTexture.h"
 #include "ResourceManager.h"
 #include "oofnd/Log.hpp"
-#include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"
 

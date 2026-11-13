@@ -28,14 +28,9 @@ MA 02110-1301, USA.
 #include <format>
 #include <string_view>
 
-#include "HeadUpDisplay.h"
 #include "OOFunctionAttributes.h"
 #include "OOJSEngineTimeManagement.h"
 #include "OOJavaScriptEngine.h"
-#include "OOLogging.h"
-#include "PlayerEntity.h"
-#include "PlayerEntityLegacyScriptEngine.h"
-#include "ResourceManager.h"
 #include "Universe.h"
 #include "legacy_random.h"
 #include "oofnd/Scanner.hpp"

@@ -29,7 +29,6 @@ MA 02110-1301, USA.
 
 #include "OOColor.h"
 #include "OOPlasmaBurstEntity.h"
-#include "PlayerEntity.h"
 #include "Universe.h"
 
 #define kPlasmaShotSize 12.0f

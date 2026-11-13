@@ -10,7 +10,6 @@
         same strings.
 */
 
-#include <type_traits>
 
 #include "oofnd/LogFile.hpp"
 

@@ -19,7 +19,6 @@
 #include <vector>
 
 #include "OOColor.h"
-#include "OODescription.h"
 #include "OORegExpMatcher.h"
 #include "OOShaderUniform.h"
 #include "OOShaderUniformMethodType.h"

@@ -31,7 +31,6 @@ SOFTWARE.
 #include <new>
 #include <vector>
 
-#include "OOJSEngineTimeManagement.h"
 #include "oofnd/Date.hpp"
 #include "oofnd/Log.hpp"
 #include "oofnd/objc/OOAssert.h"

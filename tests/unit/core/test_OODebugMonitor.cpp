@@ -19,26 +19,15 @@
 */
 
 #include "OODebugMonitor.h"
-#include "OOColor.h"
 #include "oofnd/PList.hpp"
-#include <algorithm>
-#include <chrono>
-#include <condition_variable>
 #include <cstddef>
 #include <cstdint>
-#include <functional>
-#include <map>
 #include <memory>
-#include <mutex>
 #include <optional>
-#include <set>
 #include <string>
 #include <string_view>
-#include <unordered_map>
-#include <unordered_set>
 #include <utility>
 #include <vector>
-#include "OODescription.h"
 #include "OOEntityHold.h"	// the universe's entity list holds C++ entities
 #include "EntityManualRefs.h"  // the tests' manual references (T096)
 
@@ -50,7 +39,6 @@
 #include "oofnd/objc/OOException.h"
 #include "oo_test.hpp"
 
-#include <climits>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>

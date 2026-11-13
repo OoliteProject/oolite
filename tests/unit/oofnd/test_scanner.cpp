@@ -16,7 +16,6 @@
    diff.
 */
 
-#include <type_traits>
 
 #include "oofnd/Scanner.hpp"
 

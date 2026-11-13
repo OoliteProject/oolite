@@ -22,7 +22,6 @@
 
 #include "OOJSPropID.h"
 #include "PlayerEntity.h"
-#include "PlayerEntityLoadSave.h"
 #include "ShipEntity.h"
 #include "StationEntity.h"
 #include "Universe.h"

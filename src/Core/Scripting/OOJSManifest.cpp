@@ -26,13 +26,10 @@ MA 02110-1301, USA.
 
 #include "OOCommodities.h"
 #include "OOCommodityMarket.h"
-#include "OOIsNumberLiteral.h"
 #include "OOJSPlayer.h"
 #include "OOJSPlayerShip.h"
 #include "OOJavaScriptEngine.h"
 #include "PlayerEntity.h"
-#include "PlayerEntityContracts.h"
-#include "PlayerEntityScriptMethods.h"
 #include "Universe.h"
 
 static JSValue ManifestComment(OOJS_NATIVE_ARGS);

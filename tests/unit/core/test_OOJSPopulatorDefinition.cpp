@@ -15,7 +15,6 @@
 
 #include "OOJSPopulatorDefinition.h"
 #include "oofnd/Notification.hpp"
-#include "oofnd/String.hpp"
 
 #include "oo_test.hpp"
 

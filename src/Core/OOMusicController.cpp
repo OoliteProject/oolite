@@ -24,10 +24,8 @@ MA 02110-1301, USA.
 
 #include "OOMusicController.h"
 
-#include "OOSound.h"
 #include "ResourceManager.h"
 #include "oofnd/Defaults.hpp"
-#include "oofnd/Log.hpp"
 
 namespace {
 

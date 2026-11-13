@@ -44,8 +44,6 @@ MA 02110-1301, USA.
 #include "Entity.h"
 #include "GameController.h"  // OOScheduleDeferredCall (oo::ScheduleEntityCall, the player's selectors called by name)
 #include "OOCallByName.h"
-#include "OODescription.h"
-#include "OOEntityWithDrawable.h"
 #include "OOPlanetEntity.h"  // the root-entity rows
 #include "OOQuiriumCascadeEntity.h"
 #include "OOTypeEncodings.h"  // the rows' measured encodings
@@ -55,7 +53,6 @@ MA 02110-1301, USA.
 #include "ProxyPlayerEntity.h"
 #include "ShipEntity.h"
 #include "ShipEntityAI.h"
-#include "ShipEntityScriptMethods.h"
 #include "StationEntity.h"
 #include "Universe.h"
 #include "oofnd/Log.hpp"

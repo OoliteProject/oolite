@@ -26,7 +26,11 @@ SOFTWARE.
 
 #include "OOALSound.h"
 
+#include <cstddef>
 #include <format>
+#include <memory>
+#include <optional>
+#include <string>
 #include <string_view>
 #include <typeinfo>
 
@@ -35,12 +39,12 @@ SOFTWARE.
 #include "OOALSoundMixer.h"
 #include "OOALStreamedSound.h"
 #include "OODemangle.h"
+#include "OOFastArithmetic.h"
 #include "OOLogging.h"
-#include "OOMaths.h"
 #include "OOOpenALController.h"
 #include "oofnd/Defaults.hpp"
+#include "oofnd/Log.hpp"
 #include "oofnd/String.hpp"
-
 static constexpr std::string_view KEY_VOLUME_CONTROL = "volume_control";
 
 static const size_t kMaxBufferedSoundSize = 1 << 20;  // 1 MB

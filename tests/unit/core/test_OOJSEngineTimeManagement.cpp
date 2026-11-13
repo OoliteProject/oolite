@@ -13,7 +13,6 @@
 */
 
 #include "OOJSEngineTimeManagement.h"
-#include "OODescription.h"
 #include "oofnd/PList.hpp"
 
 #include "oo_test.hpp"

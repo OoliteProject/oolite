@@ -13,7 +13,6 @@
 	tests/run.sh unit
 */
 
-#include "oofnd/objc/OOObject.h"
 #include <quickjs.h>
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"
@@ -54,7 +53,6 @@ public:
 #include <map>
 #include <stdexcept>
 #include <string>
-#include <vector>
 
 
 oo::PList PlayerEntity::missionVariables()  { return oo::PList(_missionVariables); }

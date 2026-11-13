@@ -29,10 +29,10 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include "OOBoundingBox.h"
-#include "OOHPVector.h"
-#include "OOMathsBase.h"
-#include "OOMatrix.h"
-#include "OOTriangle.h"
-#include "OOVoxel.h"
-#include "legacy_random.h"
+#include "OOBoundingBox.h"  // IWYU pragma: export
+#include "OOHPVector.h"     // IWYU pragma: export
+#include "OOMathsBase.h"    // IWYU pragma: export
+#include "OOMatrix.h"       // IWYU pragma: export
+#include "OOTriangle.h"     // IWYU pragma: export
+#include "OOVoxel.h"        // IWYU pragma: export
+#include "legacy_random.h"  // IWYU pragma: export

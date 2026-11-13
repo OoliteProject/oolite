@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include <quickjs.h>
+#include <quickjs.h>  // IWYU pragma: export
 
 #include <algorithm>
 #include <chrono>
@@ -62,7 +62,7 @@ MA 02110-1301, USA.
 /*	The plain C++ part of the engine API: reporters, converters, argument
    and return macros, the native wrappers. A binding includes only that header.
 */
-#include "OOJSEngineCore.h"
+#include "OOJSEngineCore.h"  // IWYU pragma: export
 
 #define OOJSENGINE_MONITOR_SUPPORT OO_DEBUG_MONITOR_ENABLED
 

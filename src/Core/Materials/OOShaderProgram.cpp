@@ -25,7 +25,7 @@ SOFTWARE.
 
 */
 
-#include "OOOpenGLExtensionManager.h"
+#include "OOOpenGLExtensionManager.h"  // IWYU pragma: keep: defines OO_SHADERS, which guards this file
 
 #if OO_SHADERS
 
@@ -46,12 +46,9 @@ SOFTWARE.
 #include "OODebugFlags.h"
 #include "OOFunctionAttributes.h"
 #include "OOMacroOpenGL.h"
-#include "OOOpenGLExtensionManager.h"
 #include "OOShaderProgram.h"
-#include "OOStringParsing.h"
 #include "ResourceManager.h"
 #include "Universe.h"
-#include "oofnd/PListGet.hpp"
 #include "oofnd/String.hpp"
 
 namespace {

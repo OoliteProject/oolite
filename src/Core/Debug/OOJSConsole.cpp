@@ -41,21 +41,17 @@ SOFTWARE.
 #include <string_view>
 #include <utility>
 
-#include "Entity.h"                        // an entity's -inspect
-#include "EntityOOJavaScriptExtensions.h"  // callObjC()'s class name of an entity
+#include "Entity.h"  // an entity's -inspect
 #include "OOConstToString.h"
 #include "OODebugFlags.h"
 #include "OODebugMonitor.h"
-#include "OODescription.h"
 #include "OOJSCall.h"
 #include "OOJSEngineTimeManagement.h"
 #include "OOJSEntity.h"
 #include "OOJSScript.h"
-#include "OOJSVector.h"
 #include "OOLogHeader.h"  // OOPlatformDescription()
 #include "OOLoggingExtended.h"
 #include "OOOpenGLExtensionManager.h"
-#include "ResourceManager.h"
 #include "oofnd/PList.hpp"
 #if OO_DEBUG
 #include "OOShaderUniformMethodType.h"  // callObjC()'s scalar results on the console

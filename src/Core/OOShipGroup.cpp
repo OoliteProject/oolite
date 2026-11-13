@@ -36,7 +36,6 @@ MA 02110-1301, USA.
 
 #include <format>
 
-#include "OOMaths.h"
 #include "ShipEntity.h"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"

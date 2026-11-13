@@ -30,7 +30,6 @@ MA 02110-1301, USA.
 #include "OOJavaScriptEngine.h"
 #include "OOStringParsing.h"
 #include "PlayerEntity.h"
-#include "PlayerEntityScriptMethods.h"
 #include "Universe.h"
 
 static JSValue ClockGetProperty(OOJS_GETTER_ARGS);

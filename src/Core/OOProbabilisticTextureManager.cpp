@@ -27,13 +27,23 @@ SOFTWARE.
 
 #include "OOProbabilisticTextureManager.h"
 
+#include <cstddef>
 #include <format>
+#include <memory>
+#include <optional>
+#include <string>
+#include <string_view>
 
 #include "OOTexture.h"
-#include "PlayerEntityScriptMethods.h"
+#include "OOTextureFlags.h"
+#include "OOTypes.h"
+#include "PlayerEntity.h"
 #include "ResourceManager.h"
+#include "legacy_random.h"
+#include "oofnd/Log.hpp"
+#include "oofnd/Object.hpp"
+#include "oofnd/PListDescription.hpp"
 #include "oofnd/String.hpp"
-
 namespace {
 
 // oo_stringForKey: a string, a number's string value, or nil.

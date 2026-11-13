@@ -39,8 +39,6 @@ SOFTWARE.
 #include "OODebugStandards.h"
 #include "OODemangle.h"
 #include "OOFunctionAttributes.h"
-#include "OOMaths.h"
-#include "OOOpenGLExtensionManager.h"
 #include "OOPNGTextureLoader.h"
 #include "OOPixMapChannelOperations.h"
 #include "OOTexture.h"

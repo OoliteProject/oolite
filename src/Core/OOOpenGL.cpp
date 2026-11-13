@@ -29,7 +29,6 @@ MA 02110-1301, USA.
 #include "OOFunctionAttributes.h"
 #include "OOLogging.h"
 #include "OOMacroOpenGL.h"
-#include "OOMaths.h"
 #include "OOOpenGLExtensionManager.h"
 #include "oofnd/Log.hpp"
 #include "oofnd/String.hpp"

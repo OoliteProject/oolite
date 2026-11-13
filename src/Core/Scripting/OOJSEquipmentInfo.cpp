@@ -35,7 +35,6 @@ MA 02110-1301, USA.
 #include <vector>
 
 #include "OODebugStandards.h"
-#include "OODescription.h"
 #include "OOEquipmentType.h"
 #include "OOJSPlayer.h"
 #include "OOJavaScriptEngine.h"

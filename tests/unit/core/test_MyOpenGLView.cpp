@@ -39,7 +39,6 @@
 #include "GameController.h"
 #include "MyOpenGLView.h"
 #include "OOFullScreenController.h"
-#include "OOOpenGLMatrixManager.h"
 #include "oo_gl_test_context.hpp"
 #include "oo_test.hpp"
 #include "oofnd/Defaults.hpp"

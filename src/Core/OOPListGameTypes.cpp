@@ -31,7 +31,6 @@ MA 02110-1301, USA.
 #include <string>
 #include <string_view>
 
-#include "OODescription.h"
 #include "OOStringParsing.h"
 #include "OOVector.h"
 #include "legacy_random.h"

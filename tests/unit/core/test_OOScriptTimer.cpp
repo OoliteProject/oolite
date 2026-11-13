@@ -15,11 +15,9 @@
 #include <string>
 #include <vector>
 
-#include "OODescription.h"
 #include "OOLogging.h"
 #include "OOScriptTimer.h"
 #include "oo_test.hpp"
-#include "oofnd/objc/OOObject.h"
 
 /*	The game's OOLogging.mm reaches the resource manager, so it is not
    linked. The functions of it that the class calls are defined here instead,

@@ -30,7 +30,7 @@ SOFTWARE.
 
 #pragma once
 
-#include "OOLogging.h"
+#include "OOLogging.h"  // IWYU pragma: export
 
 void OOLoggingInit(void);
 void OOLoggingTerminate(void);

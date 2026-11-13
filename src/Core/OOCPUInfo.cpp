@@ -26,11 +26,8 @@ MA 02110-1301, USA.
 
 #include <stdlib.h>
 
-#include <array>
 #include <bit>
 #include <cstring>
-
-#include "oofnd/String.hpp"
 
 #if (OOLITE_LINUX || OOLITE_WINDOWS || OOLITE_MACOS)
 // Workaround for clang/glibc incompatibility.

@@ -56,11 +56,9 @@ sets that will then be immutablized.
 #include <utility>
 #include <vector>
 
-#include "OODescription.h"
 #include "OOFunctionAttributes.h"
 #include "legacy_random.h"
 #include "oofnd/PList.hpp"
-#include "oofnd/String.hpp"
 #include "oofnd/objc/OOException.h"
 
 namespace {

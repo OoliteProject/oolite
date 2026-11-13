@@ -18,7 +18,6 @@
 #include "OOFullScreenController.h"
 #include "OOLogging.h"
 #include "oo_test.hpp"
-#include "oofnd/objc/OOObject.h"
 
 /*	The game's OOLogging.mm reaches the resource manager, so it is not
    linked. The one function of it that the base calls is defined here instead,

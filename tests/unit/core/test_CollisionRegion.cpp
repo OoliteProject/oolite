@@ -20,7 +20,6 @@
 extern PlayerEntity* gOOPlayer;
 #include <string>
 
-#include "OODescription.h"
 #include "oo_test.hpp"
 #include "EntityManualRefs.h"  // the tests' manual entity references (T095)
 

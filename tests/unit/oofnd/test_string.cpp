@@ -13,7 +13,6 @@
    failure, rebuild that program and diff its lines against these.
 */
 
-#include <type_traits>
 
 #include "oofnd/String.hpp"
 

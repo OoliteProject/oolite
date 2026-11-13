@@ -33,8 +33,6 @@ SOFTWARE.
 #include "OOCPUInfo.h"
 #include "OOFunctionAttributes.h"
 #include "OOLogging.h"
-#include "OOMaths.h"
-#include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 #include "oofnd/objc/OOException.h"
 

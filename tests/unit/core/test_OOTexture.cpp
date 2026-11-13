@@ -27,7 +27,6 @@
 #include "EntityManualRefs.h"  // the tests' manual references (T096)
 
 #include "OOConcreteTexture.h"
-#include "OODescription.h"
 #include "OONullTexture.h"
 #include "OOTexture.h"
 #include "OOTextureGenerator.h"

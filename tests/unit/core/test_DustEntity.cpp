@@ -17,11 +17,9 @@
    Run: bash tools/check-core-tests.sh
 */
 
-#include <cmath>
 
 #include "DustEntity.h"
 #include "OOColor.h"
-#include "OODescription.h"
 #include "PlayerEntity.h"
 #include "Universe.h"
 #include "oo_gl_test_context.hpp"

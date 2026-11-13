@@ -25,40 +25,55 @@ MA 02110-1301, USA.
 
 #include "OOVisualEffectEntity.h"
 
+#include <quickjs.h>
+
 #include <algorithm>
+#include <cassert>
+#include <cmath>
 #include <cstddef>
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
 
+#include "Entity.h"
+#include "EntityHelpers.h"
+#include "EntityPListForeign.h"
 #include "HeadUpDisplay.h"
 #include "MyOpenGLView.h"
 #include "OOColor.h"
-#include "OOConstToJSString.h"
-#include "OOConstToString.h"
-#include "OODebugFlags.h"
-#include "OODebugGLDrawing.h"
 #include "OODescription.h"
+#include "OOEntityHold.h"
+#include "OOEntityStatus.h"
+#include "OOEntityWithDrawable.h"
+#include "OOFastArithmetic.h"
 #include "OOFlasherEntity.h"
-#include "OOJSScript.h"
+#include "OOFoundation.h"
+#include "OOJSEngineCore.h"
+#include "OOJSEngineNativeWrappers.h"
+#include "OOJSPropID.h"
 #include "OOJSVisualEffect.h"
 #include "OOMaths.h"
 #include "OOMesh.h"
-#include "OOOpenGLExtensionManager.h"
+#include "OOOpenGLMatrixManager.h"
 #include "OOPListGameTypes.h"
 #include "OOPolygonSprite.h"
+#include "OOQuaternion.h"
+#include "OOScanClass.h"
+#include "OOScript.h"
 #include "OOShaderMaterial.h"
 #include "OOStringExpander.h"
-#include "OOStringParsing.h"
-#include "ResourceManager.h"
+#include "OOTypes.h"
+#include "OOVector.h"
+#include "ShipEntity.h"
 #include "Universe.h"
+#include "oofnd/Log.hpp"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
-#include "oofnd/PListGet.hpp"
 #include "oofnd/String.hpp"
-
 namespace {
 
 // -objectForKey: as plist data (a null PList when absent), for

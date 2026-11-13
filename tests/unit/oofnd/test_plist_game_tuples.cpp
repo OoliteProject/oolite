@@ -21,8 +21,6 @@
 #include "oofnd/PListGet.hpp"
 
 #include <array>
-#include <cmath>
-#include <string>
 #include <string_view>
 
 #include "oo_test.hpp"

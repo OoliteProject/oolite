@@ -13,9 +13,7 @@
    dynamic_cast of the C++ texture. Run: tests/run.sh unit
 */
 
-#include "OODescription.h"
 #include "OONullTexture.h"
-#include "OOTextureInternal.h"
 #include "oo_gl_test_context.hpp"
 #include "oo_test.hpp"
 

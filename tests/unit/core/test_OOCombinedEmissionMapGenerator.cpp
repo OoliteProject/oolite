@@ -28,7 +28,6 @@
 #include "OOColor.h"
 #include "OOCombinedEmissionMapGenerator.h"
 #include "OOConcreteTexture.h"
-#include "OODescription.h"
 #include "OOTextureInternal.h"
 #include "ResourceManager.h"
 #include "oo_gl_test_context.hpp"

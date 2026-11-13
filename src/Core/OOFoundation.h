@@ -33,8 +33,8 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#include <math.h>
-#include <stdbool.h>
+#include <math.h>     // IWYU pragma: export
+#include <stdbool.h>  // IWYU pragma: export
 
 #ifdef NDEBUG
 #define OOLITE_DEBUG 0
@@ -60,9 +60,9 @@ MA 02110-1301, USA.
 #define OO_DEBUG 0
 #endif
 
-#include <assert.h>
+#include <assert.h>  // IWYU pragma: export
 
-#include "oofnd/objc/OOFoundationTypes.h"
+#include "oofnd/objc/OOFoundationTypes.h"  // IWYU pragma: export
 
 #ifdef __clang__
 #define OOLITE_HAVE_CLANG 1
@@ -77,8 +77,8 @@ MA 02110-1301, USA.
   (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #endif
 
-#include <limits.h>  // to get UINT_MAX
-#include <stdint.h>
+#include <limits.h>  // IWYU pragma: export
+#include <stdint.h>  // IWYU pragma: export
 
 #define OOLITE_SDL 1
 
@@ -147,14 +147,14 @@ MA 02110-1301, USA.
 #define OOLITE_64_BIT 0
 #endif
 
-#include "OOLogging.h"
-#include "oofnd/objc/OOObject.h"
+#include "OOLogging.h"            // IWYU pragma: export
+#include "oofnd/objc/OOObject.h"  // IWYU pragma: export
 
 /*	The description family (-descriptionComponents & co.,
  * oo::DescriptionOf), Foundation-free.
  */
-#include "OODescription.h"
-#include "OOEnumFlags.h"
+#include "OODescription.h"  // IWYU pragma: export
+#include "OOEnumFlags.h"    // IWYU pragma: export
 
 /*	The ordering type and values: an std::ptrdiff_t enum with Foundation's
    NSComparisonResult values.

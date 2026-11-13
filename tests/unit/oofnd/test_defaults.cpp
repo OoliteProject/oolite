@@ -7,7 +7,6 @@
 */
 
 
-#include <type_traits>
 
 #include "oofnd/Defaults.hpp"
 

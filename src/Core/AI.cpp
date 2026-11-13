@@ -33,16 +33,13 @@ MA 02110-1301, USA.
 #include "OOCacheManager.h"
 #include "OOCallByName.h"
 #include "OOPListParsing.h"
-#include "OOStringParsing.h"
 #include "ResourceManager.h"
 #include "ShipEntity.h"
 #include "ShipEntityAI.h"
 #include "oofnd/Log.hpp"
-#include "oofnd/Ref.hpp"  // oo::autorelease
 #include "oofnd/Scanner.hpp"
 #include "oofnd/String.hpp"
 #include "oofnd/objc/OOException.h"
-#include "oofnd/objc/OOObject.h"
 
 constexpr int kRecursionLimiter = 32;  // reactToMethod: recursion
 constexpr int kStackLimiter = 32;      // setAITo: stack overflow

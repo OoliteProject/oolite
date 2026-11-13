@@ -17,7 +17,6 @@
 #include <utility>
 #include <vector>
 
-#include "OODescription.h"
 #include "OOLogging.h"
 #include "OOMaterial.h"
 #include "oo_test.hpp"

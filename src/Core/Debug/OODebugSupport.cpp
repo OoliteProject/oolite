@@ -29,13 +29,10 @@ SOFTWARE.
 
 #include "OODebugSupport.h"
 
-#include "GameController.h"
 #include "OODebugMonitor.h"
 #include "OODebugTCPConsoleClient.h"
 #include "OOJavaScriptEngine.h"
 #include "ResourceManager.h"
-#include "oofnd/Log.hpp"
-#include "oofnd/PListGet.hpp"
 
 void OOInitDebugSupport() {
   std::optional<std::string> debugOXPPath;

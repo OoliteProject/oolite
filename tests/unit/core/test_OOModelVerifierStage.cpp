@@ -15,7 +15,6 @@
 #include <filesystem>
 #include <fstream>
 
-#include "OODescription.h"
 #include "OOModelVerifierStage.h"
 #include "OOOXPVerifierStage.h"
 #include "OOPixMap.h"

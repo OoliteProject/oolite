@@ -25,7 +25,6 @@ MA 02110-1301, USA.
 #include "OOTextureSprite.h"
 
 #include "OOMacroOpenGL.h"
-#include "OOMaths.h"
 #include "OOTexture.h"
 
 std::shared_ptr<OOTextureSprite> OOTextureSprite::initWithTexture(

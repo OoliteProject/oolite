@@ -17,9 +17,7 @@
 #include <cstring>
 
 #include "OOConcreteTexture.h"
-#include "OODescription.h"
 #include "OOTextureGenerator.h"
-#include "OOTextureInternal.h"
 #include "oo_gl_test_context.hpp"
 #include "oo_test.hpp"
 

@@ -31,7 +31,6 @@ MA 02110-1301, USA.
 #include "OOJSEngineTimeManagement.h"
 #include "OOJSScript.h"
 #include "oofnd/Notification.hpp"
-#include "oofnd/String.hpp"
 #include "oofnd/objc/OOAssert.h"
 
 /*	OOJSFunction. The initialisers are static factories answering null for

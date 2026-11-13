@@ -33,7 +33,6 @@ MA 02110-1301, USA.
 #include "PlayerEntity.h"
 #include "ShipEntity.h"
 #include "Universe.h"
-#include "oofnd/PListGet.hpp"
 
 #define kOverallAlpha 1.0f
 #define kTimeStep 0.05f

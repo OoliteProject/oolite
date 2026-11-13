@@ -15,7 +15,6 @@
 // clang-format on
 // oofnd-link-windows: -lws2_32
 
-#include <type_traits>
 
 #include "oofnd/Http.hpp"
 
@@ -35,10 +34,8 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #else
-#include <arpa/inet.h>
 #include <netinet/in.h>
 #include <signal.h>
-#include <sys/select.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #endif

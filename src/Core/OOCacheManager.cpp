@@ -24,7 +24,6 @@ MA 02110-1301, USA.
 
 #include "OOCacheManager.h"
 
-#include "OOJavaScriptEngine.h"
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/PListParsing.hpp"
 #include "oofnd/PListWriting.hpp"

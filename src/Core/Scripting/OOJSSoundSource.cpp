@@ -30,9 +30,6 @@ MA 02110-1301, USA.
 #include "OOJSSound.h"
 #include "OOJSVector.h"
 #include "OOJavaScriptEngine.h"
-#include "OOSound.h"
-#include "ResourceManager.h"
-#include "oofnd/String.hpp"
 
 /*
         The SoundSource class, in the design of upstream #768's

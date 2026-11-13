@@ -25,7 +25,6 @@
 
 #include "EntityOOJavaScriptExtensions.h"
 #include "OOColor.h"
-#include "OODescription.h"
 #include "OOJSEntity.h"
 #include "OOJSSun.h"
 #include "OOSunEntity.h"

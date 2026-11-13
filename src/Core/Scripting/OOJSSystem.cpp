@@ -26,11 +26,14 @@ OOJSSystem.m (QuickJS-ng)
 #include "OOJSSystem.h"
 
 #include <algorithm>
+#include <cassert>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <format>
 #include <functional>
 #include <map>
+#include <memory>
 #include <optional>
 #include <set>
 #include <string>
@@ -38,30 +41,42 @@ OOJSSystem.m (QuickJS-ng)
 #include <utility>
 #include <vector>
 
+#include "Entity.h"
 #include "EntityOOJavaScriptExtensions.h"
+#include "EntityPListForeign.h"
 #include "OOConstToJSString.h"
-#include "OOConstToString.h"
 #include "OODebugStandards.h"
 #include "OODescription.h"
 #include "OOEntityFilterPredicate.h"
+#include "OOEntityHold.h"
+#include "OOFoundation.h"
+#include "OOFunctionAttributes.h"
+#include "OOHPVector.h"
+#include "OOJSEngineNativeWrappers.h"
 #include "OOJSEntity.h"
 #include "OOJSPlayer.h"
 #include "OOJSPopulatorDefinition.h"
+#include "OOJSPrivateObject.h"
 #include "OOJSQuaternion.h"
 #include "OOJSScript.h"
 #include "OOJSSystemInfo.h"
 #include "OOJSVector.h"
 #include "OOJavaScriptEngine.h"
 #include "OOPlanetEntity.h"
+#include "OOQuaternion.h"
+#include "OOScanClass.h"
+#include "OOShipGroup.h"
 #include "OOSunEntity.h"  // the sun is C++
-#include "PlayerEntityLegacyScriptEngine.h"
-#include "PlayerEntityScriptMethods.h"
+#include "OOSystemDescriptionManager.h"
+#include "OOTypes.h"
+#include "OOVector.h"
 #include "ShipEntity.h"
-#include "StationEntity.h"
+#include "StationEntity.h"  // IWYU pragma: keep: converting StationEntity* to Entity* needs the complete type
 #include "Universe.h"
+#include "oofnd/Object.hpp"
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
-
+#include "oofnd/objc/OOFoundationTypes.h"
 static JSClassID sSystemClassID;
 
 // Support functions for entity search methods.

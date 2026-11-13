@@ -28,7 +28,6 @@ MA 02110-1301, USA.
 #if OO_OXP_VERIFIER_ENABLED
 
 #include "OOFileScannerVerifierStage.h"
-#include "OOMaths.h"
 #include "OOTexture.h"
 #include "OOTextureLoader.h"
 #include "oofnd/Log.hpp"

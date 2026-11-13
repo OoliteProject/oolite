@@ -26,7 +26,6 @@
 #include "OOJSInterfaceDefinition.h"
 #include "oo_test.hpp"
 #include "oofnd/Notification.hpp"
-#include "oofnd/String.hpp"
 
 // MARK: What the rest of the engine provides
 // ------------------------------------------------------
