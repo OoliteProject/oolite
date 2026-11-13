@@ -452,7 +452,7 @@ class PlayerEntity : public ShipEntity {
   // A new player, retained (+1), as the universe
   // makes one when its entity list is empty; sharedPlayer() keeps the first
   // one.
-  static ::ShipEntity* newPlayerObject();
+  static std::shared_ptr<::ShipEntity> newPlayerObject();
   void deferredInit();
   // Run first when the player is destroyed, before the ship's teardown.
   void willDealloc();

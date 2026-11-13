@@ -2050,16 +2050,15 @@ void ShipEntity::setUpMixedEscorts() {
       }
       if (!escortRole.empty()) {
         HPVector ex_pos = coordinatesForEscortPosition(currentEscortCount);
-        ::ShipEntity* escorter =
-            (UNIVERSE != nullptr
-                 ? oo::RetainedEntity(UNIVERSE->newShipWithRole(escortRole))
-                 : nullptr);  // retained
+        std::shared_ptr<::ShipEntity> escorter =
+            (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(escortRole)
+                                 : nullptr);  // retained
         if (escorter == nullptr) {
           break;
         }
-        setUpOneEscort(escorter, escortGroup, escortRole, ex_pos,
+        setUpOneEscort(escorter.get(), escortGroup, escortRole, ex_pos,
                        currentEscortCount);
-        if (escorter != nullptr) oo::ReleaseEntity(escorter);
+        escorter.reset();
       }
       currentEscortCount++;
       _maxEscortCount++;
@@ -2443,9 +2442,10 @@ void ShipEntity::addSubentityToCollisionRadius(Entity* subent) {
     if (pod != nullptr) pod->switchAITo("oolite-shuttleAI.js");
     dumpItem(pod.get());  // OOScanClass::kCargo, OOEntityStatus::kInFlight, AI
                           // state GLOBAL
-    pod.reset();  // release
   }
 
+  // The creator's reference goes with pod (on return): the universe holds the
+  // pod by now.
   return pod.get();
 }
 
@@ -8789,8 +8789,9 @@ void ShipEntity::becomeExplosion() {
                   if (rock != nullptr) rock->setIsBoulder(true);
                 }
                 if (UNIVERSE != nullptr)
-                  UNIVERSE->addEntity(rock.get());  // OOEntityStatus::kInFlight,
-                                                    // AI state GLOBAL
+                  UNIVERSE->addEntity(
+                      rock.get());  // OOEntityStatus::kInFlight,
+                                    // AI state GLOBAL
                 rock.reset();
               }
             }
@@ -11443,7 +11444,7 @@ Vector ShipEntity::missileLaunchPosition() {
   std::optional<std::string> identifier = requestedIdentifier;
   // both players and NPCs!
   //
-  ::ShipEntity* missile = nullptr;
+  std::shared_ptr<::ShipEntity> missile;
   ::ShipEntity* target_ship = nullptr;
 
   Vector vel;
@@ -11484,8 +11485,7 @@ Vector ShipEntity::missileLaunchPosition() {
     identifier = (missile_list[i] != nullptr ? missile_list[i]->identifier()
                                              : std::optional<std::string>());
     missile = (UNIVERSE != nullptr
-                   ? oo::RetainedEntity(
-                         UNIVERSE->newShipWithRole(identifier.value_or("")))
+                   ? UNIVERSE->newShipWithRole(identifier.value_or(""))
                    : nullptr);
     if (EXPECT_NOT(missile == nullptr))  // invalid missile role.
     {
@@ -11494,9 +11494,8 @@ Vector ShipEntity::missileLaunchPosition() {
       missiles--;
     }
   } else
-    missile = (UNIVERSE != nullptr
-                   ? oo::RetainedEntity(UNIVERSE->newShipWithRole(*identifier))
-                   : nullptr);
+    missile = (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(*identifier)
+                                   : nullptr);
 
   if (EXPECT_NOT(missile == nullptr)) return nullptr;
 
@@ -11507,7 +11506,7 @@ Vector ShipEntity::missileLaunchPosition() {
           (identifier.has_value()
                ? OOEquipmentType::equipmentTypeWithIdentifier(*identifier).get()
                : nullptr))) {
-    if (missile != nullptr) oo::ReleaseEntity(missile);
+    missile.reset();
     return nullptr;
   }
 
@@ -11579,17 +11578,17 @@ Vector ShipEntity::missileLaunchPosition() {
       missile_load_time;  // set minimum launchtime for the next missile.
 
   if (UNIVERSE != nullptr)
-    UNIVERSE->addEntity(missile);  // OOEntityStatus::kInFlight, AI state GLOBAL
-  if (missile != nullptr) oo::ReleaseEntity(missile);  // release
-
-  // missile lives on after UNIVERSE addEntity
+    UNIVERSE->addEntity(
+        missile.get());  // OOEntityStatus::kInFlight, AI state GLOBAL
+  // missile lives on after UNIVERSE addEntity; the creator's reference goes
+  // with missile
   if ((missile != nullptr ? missile->getIsMissile() : false) &&
       oo::EntityIsShip(target)) {
-    doScriptEvent(OOJSID("shipFiredMissile"), missile, target_ship);
+    doScriptEvent(OOJSID("shipFiredMissile"), missile.get(), target_ship);
     if (target_ship != nullptr) target_ship->setPrimaryAggressor(this);
     if (target_ship != nullptr)
-      target_ship->doScriptEvent(OOJSID("shipAttackedWithMissile"), missile,
-                                 this);
+      target_ship->doScriptEvent(OOJSID("shipAttackedWithMissile"),
+                                 missile.get(), this);
     if (target_ship != nullptr)
       target_ship->reactToAIMessage("INCOMING_MISSILE",
                                     "someone's shooting at me!");
@@ -11598,10 +11597,10 @@ Vector ShipEntity::missileLaunchPosition() {
       deactivateCloakingDevice();
     }
   } else {
-    doScriptEvent(OOJSID("shipReleasedEquipment"), missile);
+    doScriptEvent(OOJSID("shipReleasedEquipment"), missile.get());
   }
 
-  return missile;
+  return missile.get();
 }
 
 bool ShipEntity::isMissileFlagSet() {
@@ -11704,7 +11703,7 @@ bool ShipEntity::launchCascadeMine() {
   if (UNIVERSE != nullptr)
     UNIVERSE->addEntity(
         bomb.get());  // OOEntityStatus::kInFlight, AI state GLOBAL
-  bomb.reset();
+  // The creator's reference goes with bomb, which is still read below.
 
   if (cloaking_device_active && cloakPassive) {
     deactivateCloakingDevice();

@@ -672,7 +672,8 @@ oo::PList StationEntity::launchPolice()  // called by name
     if (escort_ship != nullptr) escort_ship->switchAITo("oolite-escortAI.js");
     addShipToLaunchQueue(escort_ship.get(), false);
   }
-  escort_ship.reset();
+  // The creator's reference goes with escort_ship (on return); the launch queue
+  // holds the escort.
   return escort_ship.get();
 }
 
