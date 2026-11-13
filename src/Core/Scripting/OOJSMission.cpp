@@ -117,7 +117,7 @@ static const JSCFunctionListEntry sMissionMethods[] = {
 // the script gets a native exception.
 static oo::PList MarkerFromJSObject(JSContext* context, JSValueConst value,
                                     const char* method) {
-  oo::PList marker = cxx_OOJSPListFromJSObject(context, value);
+  oo::PList marker = OOJSPListFromJSObject(context, value);
   if (!marker.isNull() && !marker.isDict()) {
     OORaiseException(OOInvalidArgumentException,
                      "Mission.%s: the marker is not a dictionary", method);
