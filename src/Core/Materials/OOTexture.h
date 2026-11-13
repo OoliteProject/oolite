@@ -176,7 +176,7 @@ class OOTexture : public oo::PListForeign {
   virtual NSSize originalDimensions();  // Default: dimensions()
   virtual bool isMipMapped();           // Subclass responsibility
 
-  // A new pixmap with a copy of the texture data; the caller free()s it.
+  // A new pixmap with a copy of the texture data, owning its buffer.
   // Default: kOONullPixMap.
   virtual OOPixMap copyPixMapRepresentation();
 

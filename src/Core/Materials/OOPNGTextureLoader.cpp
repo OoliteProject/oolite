@@ -67,7 +67,6 @@ OOPNGTextureLoader::~OOPNGTextureLoader() {
 }
 
 void OOPNGTextureLoader::doLoadTexture() {
-  png_bytepp rows = nullptr;
   png_uint_32 pngWidth, pngHeight;
   int depth, colorType;
   uint32_t i;
@@ -85,10 +84,7 @@ void OOPNGTextureLoader::doLoadTexture() {
 
   if (EXPECT_NOT(setjmp(png_jmpbuf(png)))) {
     // libpng will jump here on error.
-    if (_data) {
-      free(_data);
-      _data = nullptr;
-    }
+    _data = nullptr;
     goto FAIL;
   }
 
@@ -134,31 +130,17 @@ void OOPNGTextureLoader::doLoadTexture() {
   _rowBytes = png_get_rowbytes(png, pngInfo);
 
   // png_read_png
-  rows = static_cast<png_bytepp>(malloc(sizeof *rows * _height));
-  _data = malloc(_rowBytes * _height);
-  if (EXPECT_NOT(rows == nullptr || _data == nullptr)) {
-    if (rows != nullptr) {
-      free(static_cast<void*>(rows));
-      rows = nullptr;
-    }
-    if (_data != nullptr) {
-      free(_data);
-      _data = nullptr;
-    }
-    OO_LOG(cxx_kOOLogAllocationFailure,
-           "Failed to allocate space ({} bytes) for texture {}",
-           _rowBytes * _height, _path);
-    goto FAIL;
-  }
+  rows.resize(_height);
+  _data = OOMakePixelBuffer(_rowBytes * _height);
 
   for (i = 0; i != _height; ++i) {
-    rows[i] = (static_cast<png_bytep>(_data)) + i * _rowBytes;
+    rows[i] = _data->data() + i * _rowBytes;
   }
-  png_read_image(png, rows);
+  png_read_image(png, rows.data());
   png_read_end(png, pngEndInfo);
 
 FAIL:
-  free(static_cast<void*>(rows));
+  rows = {};
   png_destroy_read_struct(&png, &pngInfo, &pngEndInfo);
 }
 

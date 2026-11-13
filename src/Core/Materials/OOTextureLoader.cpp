@@ -196,10 +196,7 @@ bool OOTextureLoader::initWithPath(const std::optional<std::string>& inPath,
   return true;
 }
 
-OOTextureLoader::~OOTextureLoader() {
-  free(_data);
-  _data = nullptr;
-}
+OOTextureLoader::~OOTextureLoader() = default;
 
 std::optional<std::string> OOTextureLoader::descriptionComponents() const {
   std::string_view state;
@@ -276,7 +273,7 @@ bool OOTextureLoader::getResult(OOPixMap* result,
 
   if (OK) {
     *result = OOMakePixMap(
-        _data, _width, _height,
+        std::move(_data), _width, _height,
         static_cast<OOPixMapFormat>(OOTextureComponentsForFormat(_format)), 0,
         0);
     _data = nullptr;
@@ -341,7 +338,6 @@ void OOTextureLoader::performAsyncTask() {
              "Texture loader internal error for {}: data is non-null but data "
              "format is invalid ({}).",
              _path, static_cast<unsigned>(_format));
-      free(_data);
       _data = nullptr;
     }
 
@@ -356,7 +352,6 @@ void OOTextureLoader::performAsyncTask() {
            exception->name(), exception->reason());
 
     // Be sure to signal load failure.
-    free(_data);
     _data = nullptr;
   }
 }
@@ -373,25 +368,18 @@ void OOTextureLoader::generateMipMapsForCubeMap() {
   newSideSize = (newSideSize + 15) & ~15;  // Round up to multiple of 16 bytes.
   size_t newSize = newSideSize * 6;        // Space for all six sides.
 
-  void* newData = malloc(newSize);
-  if (EXPECT_NOT(newData == nullptr)) {
-    _generateMipMaps = false;
-    _options = (_options & ~OOTextureFlags::kMinFilterMask) |
-               OOTextureFlags::kMinFilterLinear;
-    return;
-  }
+  OOPixelBuffer newData = OOMakePixelBuffer(newSize);
 
   unsigned i;
   for (i = 0; i < 6; i++) {
-    void* srcBytes = (static_cast<uint8_t*>(_data)) + srcSideSize * i;
-    void* dstBytes = (static_cast<uint8_t*>(newData)) + newSideSize * i;
+    void* srcBytes = _data->data() + srcSideSize * i;
+    void* dstBytes = newData->data() + newSideSize * i;
 
     memcpy(dstBytes, srcBytes, srcSideSize);
     OOGenerateMipMaps(dstBytes, _width, _width, _format);
   }
 
-  free(_data);
-  _data = newData;
+  _data = std::move(newData);
 }
 
 void OOTextureLoader::applySettings() {
@@ -409,7 +397,8 @@ void OOTextureLoader::applySettings() {
   if (_rowBytes == 0) _rowBytes = _width * components;
 
   pixMap = OOMakePixMap(_data, _width, _height,
-                        static_cast<OOPixMapFormat>(components), _rowBytes, 0);
+                        static_cast<OOPixMapFormat>(components), _rowBytes,
+                        _rowBytes * _height);
 
   if (_extractChannel) {
     if (OOExtractPixMapChannel(&pixMap, _extractChannelIndex, false)) {
@@ -467,7 +456,9 @@ void OOTextureLoader::applySettings() {
                            leaveSpaceForMipMaps);
     if (EXPECT_NOT(!OOIsValidPixMap(pixMap))) return;
 
-    _data = pixMap.pixels;
+    _data = OOPixMapOwnedBuffer(pixMap);
+    pixMap.buffer = _data;
+    pixMap.pixels = _data->data();
     _width = pixMap.width;
     _height = pixMap.height;
     _rowBytes = pixMap.rowBytes;
@@ -490,13 +481,13 @@ void OOTextureLoader::applySettings() {
     // +1 to fix overrun valgrind spotted - CIM
     _generateMipMaps = OOExpandPixMap(&pixMap, newSize + 1);
 
-    _data = pixMap.pixels;
+    _data = OOPixMapOwnedBuffer(pixMap);
     _width = pixMap.width;
     _height = pixMap.height;
     _rowBytes = pixMap.rowBytes;
   }
   if (_generateMipMaps) {
-    OOGenerateMipMaps(_data, _width, _height, _format);
+    OOGenerateMipMaps(_data->data(), _width, _height, _format);
   }
 
   // All done.

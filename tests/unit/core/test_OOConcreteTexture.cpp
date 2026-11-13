@@ -36,9 +36,10 @@ class TestGenerator : public OOTextureGenerator {
     _width = 4;
     _height = 2;
     _format = kOOPixMapRGBA;
-    uint8_t* bytes = (uint8_t*)malloc(4 * 2 * 4);
+    OOPixelBuffer buffer = OOMakePixelBuffer(4 * 2 * 4);
+    uint8_t* bytes = buffer->data();
     for (unsigned i = 0; i < 4 * 2 * 4; i++) bytes[i] = (uint8_t)(i + 1);
-    _data = bytes;
+    _data = buffer;
   }
 
   bool _empty = false;

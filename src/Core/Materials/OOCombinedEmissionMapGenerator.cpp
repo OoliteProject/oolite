@@ -418,13 +418,13 @@ void OOCombinedEmissionMapGenerator::loadTexture() {
   // Done: emissionPx now contains combined emission map.
   OOCompactPixMap(&_emissionPx);
   if (OOIsValidPixMap(_emissionPx)) {
-    _data = _emissionPx.pixels;
+    _data = OOPixMapOwnedBuffer(_emissionPx);
     _width = _emissionPx.width;
     _height = _emissionPx.height;
     _rowBytes = _emissionPx.rowBytes;
     _format = _emissionPx.format;
 
-    _emissionPx.pixels = nullptr;  // So it won't be freed by the destructor.
+    OOFreePixMap(&_emissionPx);  // the pixels' ownership passes to _data
   }
   if (_data == nullptr) {
     OO_LOG_ERR("texture.combinedEmissionMap.error", "Unknown error loading {}",

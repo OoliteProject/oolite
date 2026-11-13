@@ -44,7 +44,7 @@ void SetUpLoaders() {
   }
 }
 
-// An 8 x 8 RGBA pixmap whose bytes count up from 1, allocated with malloc().
+// An 8 x 8 RGBA pixmap whose bytes count up from 1, allocated with OOAllocatePixMap().
 OOPixMap TestPixMap() {
   OOPixMap pixMap = OOAllocatePixMap(8, 8, kOOPixMapRGBA, 0, 0);
   uint8_t* bytes = (uint8_t*)pixMap.pixels;
@@ -188,7 +188,7 @@ OO_TEST(cxxApi) {
     OO_CHECK(loader->_data != nullptr && loader->_width == 8 &&
              loader->_height == 8 && loader->_rowBytes == 32);
     OO_CHECK(loader->_format == kOOPixMapRGBA &&
-             ((const uint8_t*)loader->_data)[0] == 1);
+             loader->_data->data()[0] == 1);
   }
 }
 

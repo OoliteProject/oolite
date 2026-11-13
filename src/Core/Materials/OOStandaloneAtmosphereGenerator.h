@@ -28,6 +28,8 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#include <vector>
+
 #include "OOMaths.h"
 #include "OOTextureGenerator.h"
 #include "oofnd/PList.hpp"
@@ -46,9 +48,9 @@ typedef struct OOStandaloneAtmosphereGeneratorInfo {
   FloatRGB paleCloudColor;
 
   // Noise generation stuff.
-  float* fbmBuffer;
+  std::vector<float> fbmBuffer;
 
-  uint16_t* permutations;
+  std::vector<uint16_t> permutations;
 
   unsigned planetAspectRatio;
   unsigned planetScaleOffset;

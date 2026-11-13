@@ -62,12 +62,23 @@ inline constexpr OOPixMapFormat kOOPixMapGrayscale = 1;
 inline constexpr OOPixMapFormat kOOPixMapGrayscaleAlpha = 2;
 inline constexpr OOPixMapFormat kOOPixMapRGBA = 4;
 
+/*	OOPixelBuffer
+        The bytes a pixmap's pixels point into. A pixmap is a value: its copies
+        share its buffer, which goes with the last of them. A pixmap made over
+        memory it does not own (OOMakePixMap() with a pointer) has no buffer.
+*/
+using OOPixelBuffer = std::shared_ptr<std::vector<std::uint8_t>>;
+
+// A new zero-filled buffer of size bytes.
+OOPixelBuffer OOMakePixelBuffer(size_t size);
+
 typedef struct OOPixMap {
   void* pixels;
   OOPixMapDimension width, height;
   OOPixMapFormat format;
   size_t rowBytes;
   size_t bufferSize;
+  OOPixelBuffer buffer;  // owns pixels, or null (see OOPixelBuffer)
 } OOPixMap;
 
 extern const OOPixMap kOONullPixMap;
@@ -87,6 +98,20 @@ OOPixMap OOMakePixMap(void* pixels, OOPixMapDimension width,
                       OOPixMapDimension height, OOPixMapFormat format,
                       size_t rowBytes, size_t bufferSize);
 
+/*	As above, over the start of buffer and owning it. If bufferSize is zero,
+        the buffer's size is used.
+*/
+OOPixMap OOMakePixMap(OOPixelBuffer buffer, OOPixMapDimension width,
+                      OOPixMapDimension height, OOPixMapFormat format,
+                      size_t rowBytes, size_t bufferSize);
+
+/*	OOPixMapOwnedBuffer()
+        The buffer that owns pixMap's pixels and starts at them; a copy of the
+        pixels in a new buffer where the pixmap has none, or points into the
+        middle of one. Null for a null pixmap.
+*/
+OOPixelBuffer OOPixMapOwnedBuffer(const OOPixMap& pixMap);
+
 /*	OOAllocatePixMap()
         Create an OOPixMap, allocating storage. If rowBytes or bufferSize are
    zero, minimum valid values will be used.
@@ -96,7 +121,8 @@ OOPixMap OOAllocatePixMap(OOPixMapDimension width, OOPixMapDimension height,
                           size_t bufferSize);
 
 /*	OOFreePixMap()
-        Deallocate a pixmap's buffer (with free()), and clear out the struct.
+        Let go of a pixmap's buffer (freed with the last pixmap that shares
+        it), and clear out the struct.
 */
 void OOFreePixMap(OOPixMap* ioPixMap);
 
@@ -110,7 +136,8 @@ OOPixMap OODuplicatePixMap(OOPixMap srcPixMap, size_t desiredSize);
 
 /*	OOResizePixMap()
         Set the size of a pixmap's buffer. Fails if specified size is smaller
-   than required to fit the current pixels.
+   than required to fit the current pixels. A pixmap without a buffer of its
+   own gets one, holding a copy of its pixels.
 */
 bool OOResizePixMap(OOPixMap* ioPixMap, size_t desiredSize);
 
