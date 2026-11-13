@@ -47,12 +47,12 @@ OOSoundMixer* sSingleton = nullptr;
 */
 OOSoundMixer* OOSoundMixer::sharedMixer() {
   if (nullptr == sSingleton) {
-    sSingleton = new OOSoundMixer();
-    if (!sSingleton->init()) {
-      OOSoundMixer* failed = sSingleton;
-      sSingleton = nullptr;
-      oo::release(failed);
-    }
+    auto mixer = std::make_unique<OOSoundMixer>();
+    sSingleton = mixer.get();
+    if (sSingleton->init())
+      (void)mixer.release();  // never destroyed
+    else
+      sSingleton = nullptr;  // the failed mixer is destroyed with mixer
   }
   return sSingleton;
 }
@@ -73,8 +73,7 @@ bool OOSoundMixer::init() {
         channel = nullptr;  // [[OOSoundChannel alloc] init] answered nil
       if (nullptr != channel) {
         pushChannel(channel.get());
-        _channels[idx++] =
-            oo::leakRef(channel);  // the reference alloc/init gave
+        _channels[idx++] = channel;  // the reference alloc/init gave
       }
     } while (--count);
   }
@@ -86,8 +85,7 @@ bool OOSoundMixer::init() {
 void OOSoundMixer::shutdown() {
   uint32_t i;
   for (i = 0; i < kMixerGeneralChannels; ++i) {
-    if (_channels[i] != nullptr) oo::release(_channels[i]);  // DESTROY
-    _channels[i] = nullptr;
+    _channels[i].reset();  // DESTROY
   }
 }
 

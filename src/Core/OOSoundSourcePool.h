@@ -61,7 +61,7 @@ SOFTWARE.
 
 struct OOSoundSourcePoolElement;  // OOSoundSourcePool.cpp
 
-class OOSoundSourcePool : public oo::RefCounted {
+class OOSoundSourcePool : public oo::Object {
  public:
   /*	Was +poolWithCount:minRepeatTime:, alloc and
      -initWithCount:minRepeatTime:, which answered nil when the sources could
@@ -97,7 +97,7 @@ class OOSoundSourcePool : public oo::RefCounted {
   bool initWithCount(uint8_t count, OOTimeDelta minRepeat);
   uint8_t selectSlotForPriority(float priority);
 
-  ::OOSoundSourcePoolElement* _sources = {};
+  std::unique_ptr<::OOSoundSourcePoolElement[]> _sources;
   uint8_t _count = {};
   uint8_t _latest = {};
   uint8_t _reserved = {};

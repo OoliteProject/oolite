@@ -395,13 +395,13 @@ OO_TEST(registration)
 	sound->_name = std::nullopt;
 	OO_CHECK(OOJSSoundJSDescription(sound.get()) == std::optional<std::string>("[Sound \"(null)\"]"));
 	// -oo_jsValueInContext: makes a new Sound object each time, holding the sound retained.
-	const std::uint32_t before = sound->retainCount();
+	const long before = sound->weak_from_this().use_count();
 	JSValue a = OOJSSoundJSValueInContext(sound.get(), sContext);
 	JSValue b = OOJSSoundJSValueInContext(sound.get(), sContext);
 	OO_CHECK(JS_IsObject(a) && JS_IsObject(b) && JS_VALUE_GET_PTR(a) != JS_VALUE_GET_PTR(b));
 	OO_CHECK(SoundFromJSValue(sContext, a) == sound.get());	// the slot's holder holds the sound
 	sLimiterPauses = 0;
-	OO_CHECK_EQ(sound->retainCount(), before + 2);
+	OO_CHECK_EQ(sound->weak_from_this().use_count(), before + 2);
 	JS_FreeValue(sContext, a);
 	JS_FreeValue(sContext, b);
 }

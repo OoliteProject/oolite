@@ -57,7 +57,7 @@ static unsigned gMixerUpdates = 0;
 // The mixer (a C++ stand-in): one, never released, counting the updates the
 // root sends it.
 OOSoundMixer* OOSoundMixer::sharedMixer() {
-  static OOSoundMixer* mixer = oo::makeRef<OOSoundMixer>().leakRef();
+  static OOSoundMixer* mixer = (*new std::shared_ptr<OOSoundMixer>(oo::makeShared<OOSoundMixer>())).get();
   return mixer;
 }
 

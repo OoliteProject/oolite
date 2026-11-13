@@ -79,7 +79,7 @@ inline constexpr int OO_SYSTEMCONCEALMENT_NOTHING = 300;
 /*	OOSystemDescriptionEntry is used only by the manager. The universe holds
    the manager as oo::Ref.
 */
-class OOSystemDescriptionEntry : public oo::RefCounted {
+class OOSystemDescriptionEntry : public oo::Object {
  public:
   OOSystemDescriptionEntry();  // -init
 
@@ -102,7 +102,7 @@ class OOSystemDescriptionEntry : public oo::RefCounted {
  * forSystemKey calculates the values - but is necessary for
  * interstellar space
  */
-class OOSystemDescriptionManager : public oo::RefCounted {
+class OOSystemDescriptionManager : public oo::Object {
  public:
   OOSystemDescriptionManager();  // -init
 

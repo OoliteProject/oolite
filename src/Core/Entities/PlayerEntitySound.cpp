@@ -42,42 +42,38 @@ constexpr int kWeaponPoolSize = 3;
 constexpr int kDamagePoolSize = 4;
 constexpr int kMiscPoolSize = 2;
 
-static OOSoundSourcePool* sWarningSoundPool;
-static OOSoundSourcePool* sWeaponSoundPool;
-static OOSoundSourcePool* sDamageSoundPool;
-static OOSoundSourcePool* sMiscSoundPool;
 namespace {
-::OOSoundSource* sHyperspaceSoundSource;
-::OOSoundSource* sInterfaceBeepSource;
-::OOSoundSource* sEcmSource;
-::OOSoundSource* sBreakPatternSource;
+// The player's sound sources and pools, each shared until destroySound(). The
+// holder is never deleted, so exit(0) runs none of their destructors (the
+// mixer and the logger are gone by then), as the statics' references before
+// were never given up at exit either.
+struct PlayerSounds {
+  std::shared_ptr<OOSoundSourcePool> warningPool, weaponPool, damagePool,
+      miscPool, buySellPool;
+  std::shared_ptr<::OOSoundSource> hyperspace, interfaceBeep, ecm, breakPattern;
+  std::shared_ptr<::OOSoundSource> afterburner[2];
+};
+
+PlayerSounds& Sounds() {
+  static PlayerSounds& sounds = *new PlayerSounds();
+  return sounds;
+}
 }  // namespace
-static OOSoundSourcePool* sBuySellSourcePool;
+
+// Each pool static shares its pool until ReleasePool. A message to a nil pool
+// did nothing, so each play checks for none.
 namespace {
-::OOSoundSource* sAfterburnerSources[2];
-}  // namespace
+void ReleasePool(std::shared_ptr<OOSoundSourcePool>& pool) { pool.reset(); }
 
-// Each pool static holds one retain, given up by ReleasePool. A message to a
-// nil pool did nothing, so each play checks for none.
-namespace {
-void ReleasePool(OOSoundSourcePool*& pool) {
-  if (pool != nullptr) pool->release();
-  pool = nullptr;
+// Each source static owns its source until ReleaseSource. A message to a nil
+// source did nothing and -isPlaying answered NO, so each use checks for none.
+std::shared_ptr<::OOSoundSource> NewSource(::OOSound* sound = nullptr) {
+  return oo::makeShared<::OOSoundSource>(sound);
 }
 
-// Each source static holds the retain alloc/init gave it, given up by
-// ReleaseSource. A message to a nil source did nothing and -isPlaying answered
-// NO, so each use checks for none.
-::OOSoundSource* NewSource(::OOSound* sound = nullptr) {
-  return new ::OOSoundSource(sound);
-}
+void ReleaseSource(std::shared_ptr<::OOSoundSource>& source) { source.reset(); }
 
-void ReleaseSource(::OOSoundSource*& source) {
-  if (source != nullptr) source->release();
-  source = nullptr;
-}
-
-bool IsPlaying(::OOSoundSource* source) {
+bool IsPlaying(const std::shared_ptr<::OOSoundSource>& source) {
   return source != nullptr && source->isPlaying();
 }
 }  // namespace
@@ -117,40 +113,38 @@ std::string WeaponSoundKey(const OOWeaponSoundMap& sounds,
 void PlayerEntity::setUpSound() {
   destroySound();
 
-  sInterfaceBeepSource = NewSource();
-  sInterfaceBeepSource->setPosition(kInterfaceBeepPosition);
+  Sounds().interfaceBeep = NewSource();
+  Sounds().interfaceBeep->setPosition(kInterfaceBeepPosition);
 
-  sBreakPatternSource = NewSource();
-  sBreakPatternSource->setPosition(kBreakPatternPosition);
+  Sounds().breakPattern = NewSource();
+  Sounds().breakPattern->setPosition(kBreakPatternPosition);
 
-  sEcmSource = NewSource();
-  sEcmSource->setPosition(kEcmPosition);
+  Sounds().ecm = NewSource();
+  Sounds().ecm->setPosition(kEcmPosition);
 
-  sHyperspaceSoundSource = NewSource();
-  sHyperspaceSoundSource->setPosition(kWitchspacePosition);
+  Sounds().hyperspace = NewSource();
+  Sounds().hyperspace->setPosition(kWitchspacePosition);
 
-  sBuySellSourcePool = oo::leakRef(
-      OOSoundSourcePool::poolWithCount(kBuySellSourcePoolSize, 0.0));
-  sWarningSoundPool =
-      oo::leakRef(OOSoundSourcePool::poolWithCount(kWarningPoolSize, 0.0));
-  sWeaponSoundPool =
-      oo::leakRef(OOSoundSourcePool::poolWithCount(kWeaponPoolSize, 0.0));
-  sDamageSoundPool = oo::leakRef(OOSoundSourcePool::poolWithCount(
-      kDamagePoolSize, 0.1));  // Repeat time limit is to avoid playing a scrape
-                               // sound every frame on glancing scrapes. This
-                               // does limit the number of laser hits that can
-                               // be played in a furrball, though; maybe lasers
-                               // and scrapes should use different pools.
-  sMiscSoundPool =
-      oo::leakRef(OOSoundSourcePool::poolWithCount(kMiscPoolSize, 0.0));
+  Sounds().buySellPool =
+      OOSoundSourcePool::poolWithCount(kBuySellSourcePoolSize, 0.0);
+  Sounds().warningPool =
+      OOSoundSourcePool::poolWithCount(kWarningPoolSize, 0.0);
+  Sounds().weaponPool = OOSoundSourcePool::poolWithCount(kWeaponPoolSize, 0.0);
+  Sounds().damagePool = OOSoundSourcePool::poolWithCount(
+      kDamagePoolSize, 0.1);  // Repeat time limit is to avoid playing a scrape
+                              // sound every frame on glancing scrapes. This
+                              // does limit the number of laser hits that can
+                              // be played in a furrball, though; maybe lasers
+                              // and scrapes should use different pools.
+  Sounds().miscPool = OOSoundSourcePool::poolWithCount(kMiscPoolSize, 0.0);
 
   // Two sources with the same sound are used to simulate looping.
   ::OOSound* afterburnerSound =
       ResourceManager::ooSoundNamed("afterburner1.ogg", std::string("Sounds"));
-  sAfterburnerSources[0] = NewSource(afterburnerSound);
-  sAfterburnerSources[0]->setPosition(kAfterburner1Position);
-  sAfterburnerSources[1] = NewSource(afterburnerSound);
-  sAfterburnerSources[1]->setPosition(kAfterburner2Position);
+  Sounds().afterburner[0] = NewSource(afterburnerSound);
+  Sounds().afterburner[0]->setPosition(kAfterburner1Position);
+  Sounds().afterburner[1] = NewSource(afterburnerSound);
+  Sounds().afterburner[1]->setPosition(kAfterburner2Position);
 }
 
 // sets up the sound key dictionaries for all the available
@@ -228,19 +222,19 @@ void PlayerEntity::setUpWeaponSounds() {
 }
 
 void PlayerEntity::destroySound() {
-  ReleaseSource(sInterfaceBeepSource);
-  ReleaseSource(sBreakPatternSource);
-  ReleaseSource(sEcmSource);
-  ReleaseSource(sHyperspaceSoundSource);
+  ReleaseSource(Sounds().interfaceBeep);
+  ReleaseSource(Sounds().breakPattern);
+  ReleaseSource(Sounds().ecm);
+  ReleaseSource(Sounds().hyperspace);
 
-  ReleaseSource(sAfterburnerSources[0]);
-  ReleaseSource(sAfterburnerSources[1]);
+  ReleaseSource(Sounds().afterburner[0]);
+  ReleaseSource(Sounds().afterburner[1]);
 
-  ReleasePool(sBuySellSourcePool);
-  ReleasePool(sWarningSoundPool);
-  ReleasePool(sWeaponSoundPool);
-  ReleasePool(sDamageSoundPool);
-  ReleasePool(sMiscSoundPool);
+  ReleasePool(Sounds().buySellPool);
+  ReleasePool(Sounds().warningPool);
+  ReleasePool(Sounds().weaponPool);
+  ReleasePool(Sounds().damagePool);
+  ReleasePool(Sounds().miscPool);
 
   weaponShotMiss.clear();
   weaponShotHit.clear();
@@ -255,11 +249,11 @@ void PlayerEntity::playInterfaceBeep(const std::string& beepKey) {
     return;
   }
 #endif
-  if (sInterfaceBeepSource != nullptr)
-    sInterfaceBeepSource->playOOSound(OOSoundWithCustomSoundKey(beepKey));
+  if (Sounds().interfaceBeep != nullptr)
+    Sounds().interfaceBeep->playOOSound(OOSoundWithCustomSoundKey(beepKey));
 }
 
-bool PlayerEntity::isBeeping() { return IsPlaying(sInterfaceBeepSource); }
+bool PlayerEntity::isBeeping() { return IsPlaying(Sounds().interfaceBeep); }
 
 void PlayerEntity::boop() { playInterfaceBeep("[general-boop]"); }
 
@@ -402,7 +396,7 @@ void PlayerEntity::updateFuelScoopSoundWithInterval(OOTimeDelta delta_t) {
   static double scoopSoundPlayTime = 0.0;
   scoopSoundPlayTime -= delta_t;
   if (scoopSoundPlayTime < 0.0) {
-    if (!IsPlaying(sInterfaceBeepSource)) {
+    if (!IsPlaying(Sounds().interfaceBeep)) {
       /* TODO: this should use the scoop position, not the standard
        * interface beep position */
       playInterfaceBeep("[scoop]");
@@ -428,8 +422,8 @@ void PlayerEntity::updateAfterburnerSound() {
   }
 
   if (afterburnerSoundLooping) {
-    if (sAfterburnerSources[which] != nullptr)
-      sAfterburnerSources[which]->play();
+    if (Sounds().afterburner[which] != nullptr)
+      Sounds().afterburner[which]->play();
     which = !which;
 
     // and swap sounds in 1.25s time (a deferred call on the player)
@@ -459,145 +453,147 @@ void PlayerEntity::playCloakingDeviceInsufficientEnergy() {
 }
 
 void PlayerEntity::playBuyCommodity() {
-  if (sBuySellSourcePool != nullptr)
-    sBuySellSourcePool->playSoundWithKey("[buy-commodity]");
+  if (Sounds().buySellPool != nullptr)
+    Sounds().buySellPool->playSoundWithKey("[buy-commodity]");
 }
 
 void PlayerEntity::playBuyShip() {
-  if (sBuySellSourcePool != nullptr)
-    sBuySellSourcePool->playSoundWithKey("[buy-ship]");
+  if (Sounds().buySellPool != nullptr)
+    Sounds().buySellPool->playSoundWithKey("[buy-ship]");
 }
 
 void PlayerEntity::playSellCommodity() {
-  if (sBuySellSourcePool != nullptr)
-    sBuySellSourcePool->playSoundWithKey("[sell-commodity]");
+  if (Sounds().buySellPool != nullptr)
+    Sounds().buySellPool->playSoundWithKey("[sell-commodity]");
 }
 
 void PlayerEntity::playCantBuyCommodity() {
-  if (sBuySellSourcePool != nullptr)
-    sBuySellSourcePool->playSoundWithKey("[could-not-buy-commodity]");
+  if (Sounds().buySellPool != nullptr)
+    Sounds().buySellPool->playSoundWithKey("[could-not-buy-commodity]");
 }
 
 void PlayerEntity::playCantSellCommodity() {
-  if (sBuySellSourcePool != nullptr)
-    sBuySellSourcePool->playSoundWithKey("[could-not-sell-commodity]");
+  if (Sounds().buySellPool != nullptr)
+    Sounds().buySellPool->playSoundWithKey("[could-not-sell-commodity]");
 }
 
 void PlayerEntity::playCantBuyShip() {
-  if (sBuySellSourcePool != nullptr)
-    sBuySellSourcePool->playSoundWithKey("[could-not-buy-ship]");
+  if (Sounds().buySellPool != nullptr)
+    Sounds().buySellPool->playSoundWithKey("[could-not-buy-ship]");
 }
 
 void PlayerEntity::playStandardHyperspace() {
-  OOSoundSourcePlayCustomSoundWithKey(sHyperspaceSoundSource,
+  OOSoundSourcePlayCustomSoundWithKey(Sounds().hyperspace.get(),
                                       "[hyperspace-countdown-begun]");
 }
 
 void PlayerEntity::playGalacticHyperspace() {
-  OOSoundSourcePlayCustomSoundWithKey(sHyperspaceSoundSource,
+  OOSoundSourcePlayCustomSoundWithKey(Sounds().hyperspace.get(),
                                       "[galactic-hyperspace-countdown-begun]");
 }
 
 void PlayerEntity::playHyperspaceAborted() {
-  OOSoundSourcePlayCustomSoundWithKey(sHyperspaceSoundSource,
+  OOSoundSourcePlayCustomSoundWithKey(Sounds().hyperspace.get(),
                                       "[hyperspace-countdown-aborted]");
 }
 
 void PlayerEntity::playHitByECMSound() {
-  if (!IsPlaying(sEcmSource))
-    OOSoundSourcePlayCustomSoundWithKey(sEcmSource, "[player-hit-by-ecm]");
+  if (!IsPlaying(Sounds().ecm))
+    OOSoundSourcePlayCustomSoundWithKey(Sounds().ecm.get(),
+                                        "[player-hit-by-ecm]");
 }
 
 void PlayerEntity::playFiredECMSound() {
-  if (!IsPlaying(sEcmSource))
-    OOSoundSourcePlayCustomSoundWithKey(sEcmSource, "[player-fired-ecm]");
+  if (!IsPlaying(Sounds().ecm))
+    OOSoundSourcePlayCustomSoundWithKey(Sounds().ecm.get(),
+                                        "[player-fired-ecm]");
 }
 
 void PlayerEntity::playLaunchFromStation() {
-  OOSoundSourcePlayCustomSoundWithKey(sBreakPatternSource,
+  OOSoundSourcePlayCustomSoundWithKey(Sounds().breakPattern.get(),
                                       "[player-launch-from-station]");
 }
 
 void PlayerEntity::playDockWithStation() {
-  OOSoundSourcePlayCustomSoundWithKey(sBreakPatternSource,
+  OOSoundSourcePlayCustomSoundWithKey(Sounds().breakPattern.get(),
                                       "[player-dock-with-station]");
 }
 
 void PlayerEntity::playExitWitchspace() {
-  OOSoundSourcePlayCustomSoundWithKey(sBreakPatternSource,
+  OOSoundSourcePlayCustomSoundWithKey(Sounds().breakPattern.get(),
                                       "[player-exit-witchspace]");
 }
 
 void PlayerEntity::playHostileWarning() {
-  if (sWarningSoundPool != nullptr)
-    sWarningSoundPool->playSoundWithKey("[hostile-warning]", 1.0f,
-                                        kInterfaceWarningPosition);
+  if (Sounds().warningPool != nullptr)
+    Sounds().warningPool->playSoundWithKey("[hostile-warning]", 1.0f,
+                                           kInterfaceWarningPosition);
 }
 
 void PlayerEntity::playAlertConditionRed() {
-  if (sWarningSoundPool != nullptr)
-    sWarningSoundPool->playSoundWithKey("[alert-condition-red]", 2.0f,
-                                        kInterfaceWarningPosition);
+  if (Sounds().warningPool != nullptr)
+    Sounds().warningPool->playSoundWithKey("[alert-condition-red]", 2.0f,
+                                           kInterfaceWarningPosition);
 }
 
 void PlayerEntity::playIncomingMissile(Vector missileVector) {
-  if (sWarningSoundPool != nullptr)
-    sWarningSoundPool->playSoundWithKey("[incoming-missile]", 3.0f,
-                                        missileVector);
+  if (Sounds().warningPool != nullptr)
+    Sounds().warningPool->playSoundWithKey("[incoming-missile]", 3.0f,
+                                           missileVector);
 }
 
 void PlayerEntity::playEnergyLow() {
-  if (sWarningSoundPool != nullptr)
-    sWarningSoundPool->playSoundWithKey("[energy-low]", 0.5f,
-                                        kInterfaceWarningPosition);
+  if (Sounds().warningPool != nullptr)
+    Sounds().warningPool->playSoundWithKey("[energy-low]", 0.5f,
+                                           kInterfaceWarningPosition);
 }
 
 void PlayerEntity::playDockingDenied() {
-  if (sWarningSoundPool != nullptr)
-    sWarningSoundPool->playSoundWithKey("[autopilot-denied]", 1.0f,
-                                        kInterfaceWarningPosition);
+  if (Sounds().warningPool != nullptr)
+    Sounds().warningPool->playSoundWithKey("[autopilot-denied]", 1.0f,
+                                           kInterfaceWarningPosition);
 }
 
 void PlayerEntity::playWitchjumpFailure() {
-  if (sWarningSoundPool != nullptr)
-    sWarningSoundPool->playSoundWithKey("[witchdrive-failure]", 1.5f,
-                                        kWitchspacePosition);
+  if (Sounds().warningPool != nullptr)
+    Sounds().warningPool->playSoundWithKey("[witchdrive-failure]", 1.5f,
+                                           kWitchspacePosition);
 }
 
 void PlayerEntity::playWitchjumpMisjump() {
-  if (sWarningSoundPool != nullptr)
-    sWarningSoundPool->playSoundWithKey("[witchdrive-malfunction]", 1.5f,
-                                        kWitchspacePosition);
+  if (Sounds().warningPool != nullptr)
+    Sounds().warningPool->playSoundWithKey("[witchdrive-malfunction]", 1.5f,
+                                           kWitchspacePosition);
 }
 
 void PlayerEntity::playWitchjumpBlocked() {
-  if (sWarningSoundPool != nullptr)
-    sWarningSoundPool->playSoundWithKey("[witch-blocked-by-@]", 1.3f,
-                                        kWitchspacePosition);
+  if (Sounds().warningPool != nullptr)
+    Sounds().warningPool->playSoundWithKey("[witch-blocked-by-@]", 1.3f,
+                                           kWitchspacePosition);
 }
 
 void PlayerEntity::playWitchjumpDistanceTooGreat() {
-  if (sWarningSoundPool != nullptr)
-    sWarningSoundPool->playSoundWithKey("[witch-too-far]", 1.3f,
-                                        kWitchspacePosition);
+  if (Sounds().warningPool != nullptr)
+    Sounds().warningPool->playSoundWithKey("[witch-too-far]", 1.3f,
+                                           kWitchspacePosition);
 }
 
 void PlayerEntity::playWitchjumpInsufficientFuel() {
-  if (sWarningSoundPool != nullptr)
-    sWarningSoundPool->playSoundWithKey("[witch-no-fuel]", 1.3f,
-                                        kWitchspacePosition);
+  if (Sounds().warningPool != nullptr)
+    Sounds().warningPool->playSoundWithKey("[witch-no-fuel]", 1.3f,
+                                           kWitchspacePosition);
 }
 
 void PlayerEntity::playFuelLeak() {
-  if (sWarningSoundPool != nullptr)
-    sWarningSoundPool->playSoundWithKey("[fuel-leak]", 0.5f,
-                                        kWitchspacePosition);
+  if (Sounds().warningPool != nullptr)
+    Sounds().warningPool->playSoundWithKey("[fuel-leak]", 0.5f,
+                                           kWitchspacePosition);
 }
 
 void PlayerEntity::playShieldHit(Vector attackVector,
                                  const std::string& weaponIdentifier) {
-  if (sDamageSoundPool != nullptr)
-    sDamageSoundPool->playSoundWithKey(
+  if (Sounds().damagePool != nullptr)
+    Sounds().damagePool->playSoundWithKey(
         WeaponSoundKey(weaponShieldHit, weaponIdentifier,
                        "[player-hit-by-weapon]"),
         attackVector);
@@ -605,28 +601,29 @@ void PlayerEntity::playShieldHit(Vector attackVector,
 
 void PlayerEntity::playDirectHit(Vector attackVector,
                                  const std::string& weaponIdentifier) {
-  if (sDamageSoundPool != nullptr)
-    sDamageSoundPool->playSoundWithKey(
+  if (Sounds().damagePool != nullptr)
+    Sounds().damagePool->playSoundWithKey(
         WeaponSoundKey(weaponUnshieldedHit, weaponIdentifier,
                        "[player-direct-hit]"),
         attackVector);
 }
 
 void PlayerEntity::playScrapeDamage(Vector attackVector) {
-  if (sDamageSoundPool != nullptr)
-    sDamageSoundPool->playSoundWithKey("[player-scrape-damage]", attackVector);
+  if (Sounds().damagePool != nullptr)
+    Sounds().damagePool->playSoundWithKey("[player-scrape-damage]",
+                                          attackVector);
 }
 
 void PlayerEntity::playLaserHit(bool hit, Vector weaponOffset,
                                 const std::string& weaponIdentifier) {
   if (hit) {
-    if (sWeaponSoundPool != nullptr)
-      sWeaponSoundPool->playSoundWithKey(
+    if (Sounds().weaponPool != nullptr)
+      Sounds().weaponPool->playSoundWithKey(
           WeaponSoundKey(weaponShotHit, weaponIdentifier, "[player-laser-hit]"),
           1.0f, 0.05, static_cast<bool>(true), weaponOffset);
   } else {
-    if (sWeaponSoundPool != nullptr)
-      sWeaponSoundPool->playSoundWithKey(
+    if (Sounds().weaponPool != nullptr)
+      Sounds().weaponPool->playSoundWithKey(
           WeaponSoundKey(weaponShotMiss, weaponIdentifier,
                          "[player-laser-miss]"),
           1.0f, 0.05, static_cast<bool>(true), weaponOffset);
@@ -634,48 +631,51 @@ void PlayerEntity::playLaserHit(bool hit, Vector weaponOffset,
 }
 
 void PlayerEntity::playWeaponOverheated(Vector weaponOffset) {
-  if (sWeaponSoundPool != nullptr)
-    sWeaponSoundPool->playSoundWithKey("[weapon-overheat]",
-                                       static_cast<bool>(false), weaponOffset);
+  if (Sounds().weaponPool != nullptr)
+    Sounds().weaponPool->playSoundWithKey(
+        "[weapon-overheat]", static_cast<bool>(false), weaponOffset);
 }
 
 void PlayerEntity::playMissileLaunched(Vector weaponOffset,
                                        const std::string& weaponIdentifier) {
-  if (sWeaponSoundPool != nullptr)
-    sWeaponSoundPool->playSoundWithKey(
+  if (Sounds().weaponPool != nullptr)
+    Sounds().weaponPool->playSoundWithKey(
         WeaponSoundKey(weaponLaunched, weaponIdentifier, "[missile_launched]"),
         weaponOffset);
 }
 
 void PlayerEntity::playMineLaunched(Vector weaponOffset,
                                     const std::string& weaponIdentifier) {
-  if (sWeaponSoundPool != nullptr)
-    sWeaponSoundPool->playSoundWithKey(
+  if (Sounds().weaponPool != nullptr)
+    Sounds().weaponPool->playSoundWithKey(
         WeaponSoundKey(weaponLaunched, weaponIdentifier, "[mine_launched]"),
         weaponOffset);
 }
 
 void PlayerEntity::playEscapePodScooped() {
-  if (sMiscSoundPool != nullptr)
-    sMiscSoundPool->playSoundWithKey("[escape-pod-scooped]",
-                                     kInterfaceBeepPosition);
+  if (Sounds().miscPool != nullptr)
+    Sounds().miscPool->playSoundWithKey("[escape-pod-scooped]",
+                                        kInterfaceBeepPosition);
 }
 
 void PlayerEntity::playAegisCloseToPlanet() {
-  if (sMiscSoundPool != nullptr)
-    sMiscSoundPool->playSoundWithKey("[aegis-planet]", kInterfaceBeepPosition);
+  if (Sounds().miscPool != nullptr)
+    Sounds().miscPool->playSoundWithKey("[aegis-planet]",
+                                        kInterfaceBeepPosition);
 }
 
 void PlayerEntity::playAegisCloseToStation() {
-  if (sMiscSoundPool != nullptr)
-    sMiscSoundPool->playSoundWithKey("[aegis-station]", kInterfaceBeepPosition);
+  if (Sounds().miscPool != nullptr)
+    Sounds().miscPool->playSoundWithKey("[aegis-station]",
+                                        kInterfaceBeepPosition);
 }
 
 void PlayerEntity::playGameOver() {
-  if (sMiscSoundPool != nullptr)
-    sMiscSoundPool->playSoundWithKey("[game-over]");
+  if (Sounds().miscPool != nullptr)
+    Sounds().miscPool->playSoundWithKey("[game-over]");
 }
 
 void PlayerEntity::playLegacyScriptSound(const std::string& key) {
-  if (sMiscSoundPool != nullptr) sMiscSoundPool->playSoundWithKey(key, 1.1f);
+  if (Sounds().miscPool != nullptr)
+    Sounds().miscPool->playSoundWithKey(key, 1.1f);
 }

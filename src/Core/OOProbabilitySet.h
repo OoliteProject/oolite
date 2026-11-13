@@ -64,7 +64,7 @@ SOFTWARE.
 */
 class OOMutableProbabilitySet;
 
-class OOProbabilitySet : public oo::RefCounted {
+class OOProbabilitySet : public oo::Object {
  public:
   // The elements are oo::PList values: ship keys are strings; an
   // Object node (oo::PListObject) carries an object. Two elements

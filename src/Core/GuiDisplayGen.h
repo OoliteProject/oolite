@@ -267,7 +267,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
    (test_OOOXZManager, test_OOJSPlayerShip) stand in for with C++ subclasses
    that override them. The game makes no subclass.
 */
-class GuiDisplayGen : public oo::RefCounted {
+class GuiDisplayGen : public oo::Object {
  public:
   GuiDisplayGen();  // -init
   /*	Titles, row texts and row keys are UTF-8 std::strings, std::optional

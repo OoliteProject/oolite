@@ -254,7 +254,6 @@ GameController::GameController() {
 
 GameController::~GameController() {
   if (_gameView != nullptr) _gameView->release();
-  if (UNIVERSE != nullptr) UNIVERSE->release();
 }
 
 bool GameController::isGamePaused() { return gameIsPaused; }
@@ -560,8 +559,8 @@ void GameController::applicationDidFinishLaunching() {
     // moved here to try to avoid initialising this before having an Open GL
     // context logProgress(OO_DESC("Initialising universe")); // DESC expansions
     // only possible after Universe init
-    Universe::newUniverse(_gameView);  // +1, kept in gSharedUniverse and
-                                       // released by the destructor
+    _universe = Universe::newUniverse(
+        _gameView);  // also gSharedUniverse; destroyed with the controller
 
     loadPlayerIfRequired();
 

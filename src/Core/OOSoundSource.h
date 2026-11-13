@@ -49,7 +49,7 @@ OUT OF OR
 class OOSoundReferencePoint;  // C++ (OOBasicSoundReferencePoint.h)
 struct OOSoundSourceTestAccess;
 
-class OOSoundSource : public oo::RefCounted, public ::OOSoundChannelDelegate {
+class OOSoundSource : public oo::Object, public ::OOSoundChannelDelegate {
  public:
   OOSoundSource();                           // was -init
   explicit OOSoundSource(OOSound* inSound);  // was -initWithSound:
@@ -112,6 +112,8 @@ class OOSoundSource : public oo::RefCounted, public ::OOSoundChannelDelegate {
   std::shared_ptr<OOSound> _sound;  // retained
   ::OOSoundChannel* _channel =
       {};  // borrowed from the mixer, not retained, as before
+  std::shared_ptr<OOSoundSource>
+      _playingHold;  // the source's own while a channel plays it (was retain)
   bool _loop = {};
   uint8_t _repeatCount = {}, _remainingCount = {};
   Vector _position = {};

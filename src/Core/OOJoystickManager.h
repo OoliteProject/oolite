@@ -347,7 +347,7 @@ inline constexpr std::string_view STICK_YAW_AXIS_PROFILE_SETTING =
 #include "OOJoystickProfile.h"
 #include "oofnd/String.hpp"
 
-class OOJoystickManager : public oo::RefCounted {
+class OOJoystickManager : public oo::Object {
  public:
   OOJoystickManager() = default;
 

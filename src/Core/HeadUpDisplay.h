@@ -269,7 +269,7 @@ class GuiDisplayGen;
         pointers (HeadUpDisplay.cpp, kDials). Getters named after their state
    are get + the name.
 */
-class HeadUpDisplay : public oo::RefCounted {
+class HeadUpDisplay : public oo::Object {
  public:
   HeadUpDisplay();
   ~HeadUpDisplay() override;

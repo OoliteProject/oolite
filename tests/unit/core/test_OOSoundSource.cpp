@@ -122,14 +122,16 @@ static int gChannelsAvailable = 8;
 // The mixer (a C++ stand-in): one, never released, handing out at most
 // gChannelsAvailable channels.
 OOSoundMixer* OOSoundMixer::sharedMixer() {
-  static OOSoundMixer* mixer = oo::makeRef<OOSoundMixer>().leakRef();
+  static OOSoundMixer* mixer =
+      (*new std::shared_ptr<OOSoundMixer>(oo::makeShared<OOSoundMixer>())).get();
   return mixer;
 }
 
 ::OOSoundChannel* OOSoundMixer::popChannel() {
   if (gChannelsOut == gChannelsAvailable) return nullptr;
   gChannelsOut++;
-  return oo::makeRef<OOSoundChannel>().leakRef();  // leaked: a few per run
+  return (*new std::shared_ptr<OOSoundChannel>(oo::makeShared<OOSoundChannel>()))
+      .get();  // leaked: a few per run
 }
 
 void OOSoundMixer::pushChannel(::OOSoundChannel* channel) {

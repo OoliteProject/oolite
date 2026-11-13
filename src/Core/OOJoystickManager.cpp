@@ -49,7 +49,9 @@ OOJoystickManager* OOJoystickManager::sharedStickHandler() {
         (sStickHandlerFactory != nullptr) ? sStickHandlerFactory()
                                           : oo::makeShared<OOJoystickManager>();
     handler->init();
-    sSharedStickHandler = oo::leakRef(handler);
+    // Never destroyed: a heap std::shared_ptr that is never deleted.
+    sSharedStickHandler =
+        (*new std::shared_ptr<OOJoystickManager>(std::move(handler))).get();
   }
   return sSharedStickHandler;
 }

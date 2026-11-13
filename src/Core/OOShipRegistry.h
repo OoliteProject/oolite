@@ -55,7 +55,7 @@ SOFTWARE.
 class OOProbabilitySet;
 class OOMutableProbabilitySet;
 
-class OOShipRegistry : public oo::RefCounted {
+class OOShipRegistry : public oo::Object {
  public:
   static OOShipRegistry* sharedRegistry();  // the one instance, made on first
                                             // use and never released; borrowed

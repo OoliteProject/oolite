@@ -122,7 +122,8 @@ void SetUp() {
     manager->setProperties(
         oo::PList(oo::PList::Dict{{"coordinates", oo::PList("13 24")}}), "0 9");
     manager->buildRouteCache();    // fills the coordinates cache
-    sManager = oo::leakRef(manager);  // never released
+    sManager = (*new std::shared_ptr<OOSystemDescriptionManager>(std::move(manager)))
+                   .get();  // never released
     // The universe's own manager and descriptions (the game's clock format, for
     // the description's arrival time).
     sUniverse->systemManager = oo::share(sManager);

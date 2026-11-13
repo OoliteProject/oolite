@@ -64,7 +64,7 @@ struct OOMeshToOctreeConverterInternalData {
   std::vector<Triangle> heap;  // the storage once smallData is outgrown
 };
 
-class OOMeshToOctreeConverter : public oo::RefCounted {
+class OOMeshToOctreeConverter : public oo::Object {
  public:
   explicit OOMeshToOctreeConverter(std::size_t capacity);  // -initWithCapacity:
   static std::shared_ptr<OOMeshToOctreeConverter> converterWithCapacity(

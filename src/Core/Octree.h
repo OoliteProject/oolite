@@ -42,7 +42,7 @@ MA 02110-1301, USA.
 class OOOctreeBuilder;
 struct Octree_details;
 
-class Octree : public oo::RefCounted {
+class Octree : public oo::Object {
  public:
   /*
           initWithDictionary()
@@ -110,7 +110,7 @@ class Octree : public oo::RefCounted {
 
 inline constexpr int kMaxOctreeDepth = 7;  // 128x128x128
 
-class OOOctreeBuilder : public oo::RefCounted {
+class OOOctreeBuilder : public oo::Object {
  public:
   OOOctreeBuilder();  // -init; raises OOMallocException if it cannot allocate
   ~OOOctreeBuilder() override;

@@ -55,7 +55,7 @@ SOFTWARE.
 
 class OOCache;
 
-class OOEncodingConverter : public oo::RefCounted {
+class OOEncodingConverter : public oo::Object {
  public:
   // [[OOEncodingConverter alloc] initWithEncoding:substitutions:] and
   // -initWithFontPList:.

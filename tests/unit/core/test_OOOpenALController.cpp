@@ -26,7 +26,7 @@ static unsigned sMixerShutdowns = 0;
 // The mixer (a C++ stand-in): one, never released, counting the shutdowns the
 // controller sends it.
 OOSoundMixer* OOSoundMixer::sharedMixer() {
-  static OOSoundMixer* mixer = oo::makeRef<OOSoundMixer>().leakRef();
+  static OOSoundMixer* mixer = (*new std::shared_ptr<OOSoundMixer>(oo::makeShared<OOSoundMixer>())).get();
   return mixer;
 }
 

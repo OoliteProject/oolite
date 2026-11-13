@@ -273,14 +273,14 @@ Universe::Universe() {}
 // The body, then the members go.
 Universe::~Universe() { dealloc(); }
 
-Universe* Universe::newUniverse(::MyOpenGLView* inGameView) {
-  /*	The universe first: one refused below is released at once, and its
+std::unique_ptr<Universe> Universe::newUniverse(::MyOpenGLView* inGameView) {
+  /*	The universe first: one refused below is destroyed at once, and its
      teardown runs the whole body.
   */
-  Universe* universe = new Universe();
+  auto universe = std::make_unique<Universe>();
 
   if (gSharedUniverse != nullptr) {
-    universe->release();
+    universe.reset();
     OORaiseException(OOInternalInconsistencyException,
                      "%s: expected only one Universe to exist at a time.",
                      "-[Universe(OOObjCBridge) initWithGameView:]");
@@ -8709,7 +8709,7 @@ OOSystemID Universe::findSystemAtCoords(NSPoint coords, OOGalaxyID g) {
 */
 namespace {
 
-class RouteElement : public oo::RefCounted {
+class RouteElement : public oo::Object {
  public:
   static std::shared_ptr<RouteElement> elementWithLocation(
       OOSystemID location, OOSystemID parent, double cost, double distance,

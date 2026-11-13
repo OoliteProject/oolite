@@ -282,7 +282,14 @@ static void GLDrawNonlinearCascadeWeapon(GLfloat x, GLfloat y, GLfloat z,
                                          GLfloat alpha);
 
 static OOTexture* sFontTexture = nullptr;
-static OOEncodingConverter* sEncodingCoverter = nullptr;
+// The text engine's encoding converter, made by the first text drawn. The
+// holder is never deleted, so exit(0) runs no destructor for it after the
+// logger has gone.
+static std::unique_ptr<OOEncodingConverter>& EncodingConverter() {
+  static std::unique_ptr<OOEncodingConverter>& converter =
+      *new std::unique_ptr<OOEncodingConverter>();
+  return converter;
+}
 static std::string distance_unit;
 
 constexpr OOTextureFlags kFontTextureOptions =
@@ -4206,7 +4213,7 @@ static void InitTextEngine() {
   sF6KernGovt = fontSpec.get<float>("f6KernGovernment", 1.0);
   sF6KernTL = fontSpec.get<float>("f6KernTechLevel", 2.0);
 
-  sEncodingCoverter = new OOEncodingConverter(fontSpec);
+  EncodingConverter() = std::make_unique<OOEncodingConverter>(fontSpec);
   widths = fontSpec.find("widths");  // used only if it is an array, as before
   count = (widths != nullptr && widths->isArray()) ? widths->count() : 0;
   if (count > 256) count = 256;
@@ -4221,8 +4228,8 @@ namespace {
    before the font is loaded: a message to nil).
 */
 oo::Data ConvertedString(const std::string& text) {
-  if (sEncodingCoverter == nullptr) return oo::Data();
-  return sEncodingCoverter->convertString(text);
+  if (EncodingConverter() == nullptr) return oo::Data();
+  return EncodingConverter()->convertString(text);
 }
 
 }  // namespace
@@ -4232,10 +4239,9 @@ void OOHUDResetTextEngine() {
       sFontTexture;  // DESTROY(): cleared before the release
   sFontTexture = nullptr;
   oo::release(fontTexture);
-  OOEncodingConverter* encodingConverter =
-      sEncodingCoverter;  // DESTROY(): cleared before the release
-  sEncodingCoverter = nullptr;
-  oo::release(encodingConverter);
+  // DESTROY(): cleared before the release
+  const std::unique_ptr<OOEncodingConverter> encodingConverter =
+      std::move(EncodingConverter());
 }
 
 static GLfloat drawCharacterQuad(uint8_t chr, GLfloat x, GLfloat y, GLfloat z,

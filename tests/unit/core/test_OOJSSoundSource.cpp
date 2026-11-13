@@ -359,9 +359,9 @@ void SetUpContext()
 	OOJSInitClass(sContext, sGlobal, sFakeSoundClassID, JS_UNDEFINED, nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0);
 	InitOOJSSoundSource(sContext, sGlobal);
 
-	sSound = oo::makeRef<TestSound>().leakRef();	// kept for the life of the test
+	sSound = (*new std::shared_ptr<TestSound>(oo::makeShared<TestSound>())).get();	// kept for the life of the test
 	sSound->_name = "ping";
-	sSourceObject = oo::makeRef<OOSoundSource>().leakRef();	// kept for the life of the test
+	sSourceObject = (*new std::shared_ptr<OOSoundSource>(oo::makeShared<OOSoundSource>())).get();	// kept for the life of the test
 	sSource = &sRecords[sSourceObject];
 	sSource->_sound = oo::share(sSound);
 	sSource->_repeatCount = 1;
@@ -410,14 +410,14 @@ OO_TEST(registration)
 	OO_CHECK_EQ(sConverters.size(), 1u);
 	OO_CHECK(OOJSSoundSourceJSClassName() == std::optional<std::string>("SoundSource"));
 	// -oo_jsValueInContext: makes a new SoundSource object each time, holding the source retained.
-	const std::uint32_t before = sSourceObject->retainCount();
+	const long before = sSourceObject->weak_from_this().use_count();
 	JSValue a = OOJSSoundSourceJSValueInContext(sSourceObject, sContext);
 	JSValue b = OOJSSoundSourceJSValueInContext(sSourceObject, sContext);
 	OO_CHECK(JS_IsObject(a) && JS_IsObject(b) && JS_VALUE_GET_PTR(a) != JS_VALUE_GET_PTR(b));
 	JS_FreeValue(sContext, b);	// the stand-in finalizer keeps its holder
 	Define("sourceA", a);	// the slot's holder holds the source: the object answers its record
 	OO_CHECK_EVAL("sourceA.volume", "0.5");
-	OO_CHECK_EQ(sSourceObject->retainCount(), before + 2);
+	OO_CHECK_EQ(sSourceObject->weak_from_this().use_count(), before + 2);
 	OO_CHECK_EVAL("source instanceof SoundSource", "true");
 	OO_CHECK_EVAL("String(source)", "[SoundSource]");
 }

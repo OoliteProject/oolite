@@ -64,7 +64,7 @@ class OOGraphicsResetClient {
   virtual void resetGraphicsState() = 0;
 };
 
-class OOGraphicsResetManager : public oo::RefCounted {
+class OOGraphicsResetManager : public oo::Object {
  public:
   // The shared manager, made on first use; borrowed, never released.
   static OOGraphicsResetManager* sharedManager();

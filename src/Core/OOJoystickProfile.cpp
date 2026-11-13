@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 
 #define SPLINE_POINT_MIN_SPACING 0.02
 
-class OOJoystickSplineSegment : public oo::RefCounted {
+class OOJoystickSplineSegment : public oo::Object {
  public:
   OOJoystickSplineSegment();  // -init
 

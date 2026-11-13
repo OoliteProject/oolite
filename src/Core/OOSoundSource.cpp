@@ -136,7 +136,7 @@ void OOSoundSource::play() {
     _channel->setPosition(_position);
     _channel->setGain(_gain);
     _channel->playSound(sound(), loop());
-    retain();
+    _playingHold = oo::share(this);
   }
 
   if (EXPECT_NOT(sPlayingSoundSources == nullptr)) {
@@ -172,7 +172,9 @@ void OOSoundSource::stop() {
                             [](const auto& owner) { return owner.get(); });
       if (it != sPlayingSoundSources->end()) sPlayingSoundSources->erase(it);
     }
-    release();  // may free this source: nothing after it touches the object
+    // The playing hold goes at the end of this block and may free this source:
+    // nothing after it touches the object.
+    const std::shared_ptr<OOSoundSource> lastHold = std::move(_playingHold);
   }
 
   OOSoundReleaseLock();
@@ -273,8 +275,10 @@ void OOSoundSource::channel(::OOSoundChannel* channel, OOSound* /*sound*/) {
     if (::OOSoundMixer* mixer = ::OOSoundMixer::sharedMixer())
       mixer->pushChannel(_channel);
     _channel = nullptr;
+    // The playing hold goes at the return and may free this source: nothing
+    // after it touches the object.
+    const std::shared_ptr<OOSoundSource> lastHold = std::move(_playingHold);
     OOSoundReleaseLock();
-    release();  // may free this source: nothing after it touches the object
     return;
   }
   OOSoundReleaseLock();

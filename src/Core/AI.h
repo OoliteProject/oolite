@@ -61,7 +61,7 @@ class OOPreservedAIStateMachine;  // private to AI.cpp; global
 
 /*	A ship's AI. Held as std::shared_ptr<AI>; a ship's shipAI owns it.
  */
-class AI : public oo::RefCounted {
+class AI : public oo::Object {
  public:
   AI();            // -init
   ~AI() override;  // -dealloc

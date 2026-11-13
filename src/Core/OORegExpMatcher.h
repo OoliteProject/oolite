@@ -66,7 +66,7 @@ enum class OORegExpFlags : std::size_t {
 };
 constexpr std::true_type OOEnableFlagOperators(OORegExpFlags);
 
-class OORegExpMatcher : public oo::RefCounted {
+class OORegExpMatcher : public oo::Object {
  public:
   /*	Pseudo-singleton: a single instance exists at a given time, but can be
      released. While one is alive (held by a Ref) this returns it; otherwise a

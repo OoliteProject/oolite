@@ -115,7 +115,7 @@ OOINLINE OOHighResTimeValue OOGetHighResTime(void) {
 OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime,
                                         OOHighResTimeValue endTime);
 
-class OOProfilingStopwatch : public oo::RefCounted {
+class OOProfilingStopwatch : public oo::Object {
  public:
   OOProfilingStopwatch();
   ~OOProfilingStopwatch() override;

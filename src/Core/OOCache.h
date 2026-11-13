@@ -68,7 +68,7 @@ inline constexpr unsigned kOOCacheMinimumPruneThreshold = 25U;
 inline constexpr unsigned kOOCacheDefaultPruneThreshold = 200U;
 inline constexpr unsigned kOOCacheNoPrune = 0xFFFFFFFFU;
 
-class OOCache : public oo::RefCounted {
+class OOCache : public oo::Object {
  public:
   // [[OOCache alloc] init] is cacheWithPList(oo::PList()), as -init was.
   // An array of {key = string; value = plist;} entries, oldest first (a null

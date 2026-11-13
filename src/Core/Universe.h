@@ -228,16 +228,16 @@ inline constexpr std::string_view PLANETINFO_INTERSTELLAR_KEY =
         Game classes are named ::X here where a C++ class of the same
    name is in namespace cxx.
 */
-class Universe : public oo::RefCounted {
+class Universe : public oo::Object {
  public:
   Universe();
   ~Universe();
 
-  /*	The new universe, +1 (the game controller keeps it in gSharedUniverse
-     and releases it). A second universe while one exists is released (its
+  /*	The new universe, owned by the caller (the game controller; it is also
+     gSharedUniverse). A second universe while one exists is destroyed (its
      teardown runs) and raises.
   */
-  static Universe* newUniverse(::MyOpenGLView* inGameView);
+  static std::unique_ptr<Universe> newUniverse(::MyOpenGLView* inGameView);
 
   // The set-up of a new universe.
   void initWithGameView(::MyOpenGLView* inGameView);

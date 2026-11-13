@@ -123,7 +123,7 @@ static_assert(
 static_assert(
     static_cast<std::int32_t>(OXZInstallableState::kUninstallableManual) == 7);
 
-class OOOXZManager : public oo::RefCounted {
+class OOOXZManager : public oo::Object {
  public:
   // The shared manager, made on first use; borrowed, never released.
   static OOOXZManager* sharedManager();

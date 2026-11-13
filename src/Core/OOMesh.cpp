@@ -135,7 +135,7 @@ void OOCacheManagerSetMeshData(const oo::PList& inData,
 
 // One mesh buffer: the bytes _vertices & co. point into, shared (refcounted) by
 // a mesh and its mutable copies as the retained data object was.
-class OOMeshBuffer : public oo::RefCounted {
+class OOMeshBuffer : public oo::Object {
  public:
   explicit OOMeshBuffer(oo::Data bytes) : data_(std::move(bytes)) {}
   oo::Data& data() noexcept { return data_; }

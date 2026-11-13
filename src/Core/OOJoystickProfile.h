@@ -64,7 +64,7 @@ inline constexpr int STICKPROFILE_TYPE_SPLINE = 2;
 
 class OOJoystickSplineSegment;  // private to OOJoystickProfile.cpp
 
-class OOJoystickAxisProfile : public oo::RefCounted {
+class OOJoystickAxisProfile : public oo::Object {
  public:
   OOJoystickAxisProfile();                                // -init
   virtual std::shared_ptr<OOJoystickAxisProfile> copy();  // -copyWithZone:

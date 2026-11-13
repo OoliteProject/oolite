@@ -59,13 +59,14 @@ MA 02110-1301, USA.
 // 1.0 / (desired framerate cap)
 
 class MyOpenGLView;
+class Universe;
 
 /*	The application controller: the class shell, its state and accessors;
    the frame loop and deferred calls; start-up, splash and progress messages,
         exit and the player file; the SDL full-screen members
         (SDL/GameController+SDLFullScreen.cpp), the former FullScreen category.
 */
-class GameController : public oo::RefCounted {
+class GameController : public oo::Object {
  public:
   // The shared controller, made on first use; borrowed, never released.
   static GameController* sharedController();
@@ -174,6 +175,7 @@ class GameController : public oo::RefCounted {
 
   ::MyOpenGLView* _gameView =
       {};  // retained; was gameView, named like its getter
+  std::unique_ptr<::Universe> _universe;  // the game's universe (UNIVERSE)
 
   double last_timeInterval = {};
   double delta_t = {};

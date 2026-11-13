@@ -58,7 +58,7 @@ class Entity;
 class Entity;  // the regions list the entities' C++ parts
 class OOSunEntity;
 
-class CollisionRegion : public oo::RefCounted {
+class CollisionRegion : public oo::Object {
  public:
   struct AsUniverse {};
   explicit CollisionRegion(AsUniverse);  // -initAsUniverse

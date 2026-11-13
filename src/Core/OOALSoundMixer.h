@@ -42,7 +42,7 @@ class OOSoundChannel;
 
 inline constexpr int kMixerGeneralChannels = 32;
 
-class OOSoundMixer : public oo::RefCounted {
+class OOSoundMixer : public oo::Object {
  public:
   /*	Singleton accessor: the one mixer, made on
      first use; borrowed. Null while sound cannot be set up, and then the next
@@ -61,10 +61,8 @@ class OOSoundMixer : public oo::RefCounted {
  private:
   bool init();
 
-  // _channels holds one reference to each channel the mixer made (+1 from
-  // oo::makeRef, released by shutdown(), as alloc/init and DESTROY did: the
-  // mixer is never destroyed, so no oo::Ref member, whose destructor would need
-  // the complete class in every includer); the free list is borrowed.
-  OOSoundChannel* _channels[kMixerGeneralChannels] = {};
+  // _channels shares each channel the mixer made until shutdown() (as
+  // alloc/init and DESTROY did); the free list is borrowed.
+  std::shared_ptr<OOSoundChannel> _channels[kMixerGeneralChannels];
   OOSoundChannel* _freeList = {};
 };

@@ -831,7 +831,7 @@ void SetUpContext()
 	sPlayer->_exitScreen = OOGUIScreenID::kStatus;
 	gOOPlayer = sPlayer;
 	sUniverse = new StandInUniverse();
-	sUniverse->_gui = oo::makeRef<GuiDisplayGen>().leakRef();	// kept for the life of the test
+	sUniverse->_gui = (*new std::shared_ptr<GuiDisplayGen>(oo::makeShared<GuiDisplayGen>())).get();	// kept for the life of the test
 	sUniverse->_demoShip = new ShipEntity;
 	sDemoShipObject = oo::makeRef<TestEntityObject>().leakRef();
 	gSharedUniverse = sUniverse;
