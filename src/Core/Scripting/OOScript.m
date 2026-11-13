@@ -24,13 +24,15 @@ MA 02110-1301, USA.
 
 #import "OOScript.h"
 #import "OODebugStandards.h"
-#import "OOJSScript.h"
-#import "OOJavaScriptEngine.h"
+// Angle brackets so the engine-specific headers come from the include path
+// (QuickJS/ first when building with QuickJS-ng), not this directory.
 #import "OOLogging.h"
 #import "OOPListParsing.h"
 #import "OOPListScript.h"
 #import "ResourceManager.h"
 #import "Universe.h"
+#import <OOJSScript.h>
+#import <OOJavaScriptEngine.h>
 
 static NSString* const kOOLogLoadScriptJavaScript = @"script.load.javaScript";
 static NSString* const kOOLogLoadScriptPList = @"script.load.pList";

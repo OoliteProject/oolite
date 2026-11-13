@@ -1040,6 +1040,18 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
 
     NSDictionary* result = nil;
 
+#if OOJS_QUICKJS
+    // Null may be used to indicate no texture.
+    if (JS_IsNull(value))
+        return [NSDictionary dictionary];
+
+    if (JS_IsObject(value)) {
+        // String objects are converted to NSStrings; anything else is treated as a dictionary.
+        if (JS_GetClassID(value) != gOOJSStringClassID) {
+            result = OOJSDictionaryFromJSObject(context, value);
+        }
+    }
+#else
     if (JSVAL_IS_OBJECT(value)) {
         // Null may be used to indicate no texture.
         if (JSVAL_IS_NULL(value))
@@ -1051,6 +1063,7 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
             result = OOJSDictionaryFromJSObject(context, objValue);
         }
     }
+#endif
 
     if (result == nil) {
         NSString* name = OOStringFromJSValue(context, value);
