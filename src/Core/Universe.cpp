@@ -1749,7 +1749,8 @@ void Universe::setUpWitchspaceBetweenSystem(OOSystemID s1, OOSystemID s2) {
 void Universe::setUpSpace() {
   Entity* thing;  // its object retained by hand where +alloc's was
   //	ShipEntity			*nav_buoy;
-  ::ShipEntity* stationObject;  // the station's object, retained
+  std::shared_ptr<::ShipEntity>
+      stationObject;  // the station's object, retained
   ::StationEntity* a_station;
   ::OOSunEntity* a_sun;
   ::OOPlanetEntity* a_planet;
@@ -2019,9 +2020,8 @@ void Universe::setUpSpace() {
 #endif
 
   // a missing role (the unset default) gives no ship, as a nil role did
-  stationObject = stationDesc.has_value()
-                      ? oo::RetainedEntity(newShipWithRole(*stationDesc))
-                      : nullptr;  // retain count = 1
+  stationObject = stationDesc.has_value() ? newShipWithRole(*stationDesc)
+                                          : nullptr;  // retain count = 1
 
   /*	Sanity check: ensure that only stations are generated here. This is an
           attempt to fix exceptions of the form:
@@ -2053,11 +2053,10 @@ void Universe::setUpSpace() {
              stationDesc.value_or("(null)"),
              defaultStationDesc.value_or("(null)"));
     }
-    if (stationObject != nullptr) oo::ReleaseEntity(stationObject);
+    stationObject.reset();
     stationDesc = defaultStationDesc;
-    stationObject = stationDesc.has_value()
-                        ? oo::RetainedEntity(newShipWithRole(*stationDesc))
-                        : nullptr;  // retain count = 1
+    stationObject = stationDesc.has_value() ? newShipWithRole(*stationDesc)
+                                            : nullptr;  // retain count = 1
 
     if (!(stationObject != nullptr ? stationObject->getIsStation() : false) ||
         !(stationObject != nullptr ? stationObject->validForAddToUniverse()
@@ -2077,21 +2076,21 @@ void Universe::setUpSpace() {
                    .value_or("(null)"),
                stationDesc.value_or("(null)"));
       }
-      if (stationObject != nullptr) oo::ReleaseEntity(stationObject);
+      stationObject.reset();
 
-      stationObject = oo::RetainedEntity(newShipWithName("coriolis-station"));
+      stationObject = newShipWithName("coriolis-station");
       if (!(stationObject != nullptr ? stationObject->getIsStation() : false) ||
           !(stationObject != nullptr ? stationObject->validForAddToUniverse()
                                      : false)) {
         OO_LOG("universe.setup.badStation", "{}",
                "Could not create built-in Coriolis station! Generating a "
                "stationless system.");
-        oo::ReleaseEntity(stationObject);  // DESTROY(stationObject)
+        stationObject.reset();  // DESTROY(stationObject)
         stationObject = nullptr;
       }
     }
   }
-  a_station = oo::ToStation(stationObject);
+  a_station = oo::ToStation(stationObject.get());
 
   if (a_station != nullptr) {
     if (a_station != nullptr)
@@ -2102,7 +2101,8 @@ void Universe::setUpSpace() {
     if (a_station != nullptr) a_station->setScanClass(OOScanClass::kStation);
     //[a_station setPlanet:[self planet]];	// done inside addEntity.
     if (a_station != nullptr) a_station->setEquivalentTechLevel(techlevel);
-    addEntity(stationObject);  // OOEntityStatus::kInFlight, AI state GLOBAL
+    addEntity(
+        stationObject.get());  // OOEntityStatus::kInFlight, AI state GLOBAL
     if (a_station != nullptr)
       a_station->setStatus(
           OOEntityStatus::kActive);  // For backward compatibility. Might not be
@@ -2126,7 +2126,7 @@ void Universe::setUpSpace() {
   OO_DEBUG_POP_PROGRESS();
 
   oo::ReleaseEntity(a_sun);
-  if (stationObject != nullptr) oo::ReleaseEntity(stationObject);
+  stationObject.reset();
 }
 
 void Universe::populateNormalSpace() {
@@ -3121,13 +3121,13 @@ bool Universe::spawnShip(const std::string& shipdesc) {
       "'spawn' via legacy script is deprecated as a way of adding ships for {}",
       shipdesc));
 
-  ::ShipEntity* ship;
+  std::shared_ptr<::ShipEntity> ship;
   oo::PList shipdict;
 
   shipdict = OOShipRegistry::sharedRegistry()->shipInfoForKey(shipdesc);
   if (shipdict.isNull()) return false;
 
-  ship = oo::RetainedEntity(newShipWithName(shipdesc));  // retain count is 1
+  ship = newShipWithName(shipdesc);  // retain count is 1
 
   if (ship == nullptr) return false;
 
@@ -3193,8 +3193,8 @@ bool Universe::spawnShip(const std::string& shipdesc) {
     }
   }
 
-  addEntity(ship);  // OOEntityStatus::kInFlight, AI state GLOBAL
-  if (ship != nullptr) oo::ReleaseEntity(ship);
+  addEntity(ship.get());  // OOEntityStatus::kInFlight, AI state GLOBAL
+  ship.reset();
 
   return true;
 }
@@ -4700,7 +4700,7 @@ OOCreditsQuantity Universe::getEquipmentPriceForKey(const std::string& eq_key) {
 }
 
 ::ShipEntity* Universe::cargoPodFromTemplate(::ShipEntity* cargoObj) {
-  ::ShipEntity* container = nullptr;
+  std::shared_ptr<::ShipEntity> container;
   // this is a template container, so we need to make a real one
   const std::optional<std::string> co_type =
       (cargoObj != nullptr ? cargoObj->commodityType()
@@ -4713,23 +4713,19 @@ OOCreditsQuantity Universe::getEquipmentPriceForKey(const std::string& eq_key) {
           : 0;
   if (randf() < 0.5)  // stops OXP monopolising pods for commodities
   {
-    container =
-        co_type.has_value()
-            ? (UNIVERSE != nullptr
-                   ? oo::RetainedEntity(UNIVERSE->newShipWithRole(*co_type))
-                   : static_cast<::ShipEntity*>(nullptr))
-            : nullptr;  // newShipWithRole returns retained object
+    container = co_type.has_value()
+                    ? (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(*co_type)
+                                           : nullptr)
+                    : nullptr;  // newShipWithRole returns retained object
   }
   if (container == nullptr) {
-    container = (UNIVERSE != nullptr
-                     ? oo::RetainedEntity(UNIVERSE->newShipWithRole("cargopod"))
-                     : static_cast<::ShipEntity*>(nullptr));
+    container =
+        (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("cargopod") : nullptr);
   }
   if (co_type.has_value()) {
     if (container != nullptr) container->setCommodity(*co_type, co_amount);
   }  // nil: no change, as before
-  return (container != nullptr ? oo::ToShip(oo::AutoreleaseEntity(container))
-                               : static_cast<::ShipEntity*>(nullptr));
+  return (container != nullptr ? oo::autorelease(container) : nullptr);
 }
 
 std::vector<oo::EntityHold> Universe::getContainersOfGoods(
@@ -6417,10 +6413,9 @@ HPVector Universe::getSafeVectorFromEntity(Entity* e1, double dist,
                                         const std::string& wreckRole,
                                         HPVector rpos, GLfloat scale,
                                         GLfloat lifetime) {
-  ::ShipEntity* wreck =
-      (UNIVERSE != nullptr
-           ? oo::RetainedEntity(UNIVERSE->newShipWithRole(wreckRole))
-           : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
+  std::shared_ptr<::ShipEntity> wreck =
+      (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole(wreckRole)
+                           : nullptr);  // retain count = 1
   Quaternion q;
   if (wreck) {
     GLfloat expected_mass = 0.1f * (ship != nullptr ? ship->getMass() : 0.0f) *
@@ -6447,12 +6442,13 @@ HPVector Universe::getSafeVectorFromEntity(Entity* e1, double dist,
     if (wreck != nullptr) wreck->setIsWreckage(true);
 
     if (UNIVERSE != nullptr)
-      UNIVERSE->addEntity(wreck);  // OOEntityStatus::kInFlight, AI state GLOBAL
+      UNIVERSE->addEntity(
+          wreck.get());  // OOEntityStatus::kInFlight, AI state GLOBAL
     if (wreck != nullptr) wreck->performTumble();
     //	[wreck rescaleBy: 1.0/scale_factor];
-    if (wreck != nullptr) oo::ReleaseEntity(wreck);
+    wreck.reset();
   }
-  return wreck;
+  return wreck.get();
 }
 
 void Universe::addLaserHitEffectsAt(HPVector pos, ::ShipEntity* target,

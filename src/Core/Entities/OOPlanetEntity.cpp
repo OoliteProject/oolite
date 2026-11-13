@@ -962,10 +962,9 @@ void OOPlanetEntity::launchShuttle() {
       position, vectorToHPVector(vector_multiply_scalar(
                     vector_forward_from_quaternion(q1), start_distance)));
 
-  ::ShipEntity* shuttle_ship =
-      (UNIVERSE != nullptr
-           ? oo::RetainedEntity(UNIVERSE->newShipWithRole("shuttle"))
-           : static_cast<::ShipEntity*>(nullptr));  // retain count = 1
+  std::shared_ptr<::ShipEntity> shuttle_ship =
+      (UNIVERSE != nullptr ? UNIVERSE->newShipWithRole("shuttle")
+                           : nullptr);  // retain count = 1
   if (shuttle_ship) {
     if ((shuttle_ship != nullptr
              ? shuttle_ship->getCrew()
@@ -987,11 +986,11 @@ void OOPlanetEntity::launchShuttle() {
       shuttle_ship->switchAITo("oolite-shuttleAI.js");
     if (UNIVERSE != nullptr)
       UNIVERSE->addEntity(
-          shuttle_ship);  // OOEntityStatus::kInFlight, AI state GLOBAL
+          shuttle_ship.get());  // OOEntityStatus::kInFlight, AI state GLOBAL
     _shuttlesOnGround--;
     _lastLaunchTime = (UNIVERSE != nullptr ? UNIVERSE->getTime() : 0.0);
 
-    if (shuttle_ship != nullptr) oo::ReleaseEntity(shuttle_ship);
+    shuttle_ship.reset();
   }
 }
 
