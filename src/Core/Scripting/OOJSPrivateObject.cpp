@@ -73,10 +73,10 @@ bool OOJSGetCxxPrivateImpl(JSContext* context, JSValueConst object,
   JSClassID actualClassID = JS_GetClassID(object);
   if (EXPECT_NOT(!OOJSIsSubclass(actualClassID, requiredClassID))) {
     const char* className = OOJSClassName(requiredClassID);
-    std::optional<std::string> got = cxx_OOStringFromJSValue(context, object);
-    cxx_OOJSReportError(context, "Native method expected %s, got %s.",
-                        className != nullptr ? className : "(null)",
-                        got ? got->c_str() : "(null)");
+    std::optional<std::string> got = OOStringFromJSValue(context, object);
+    OOJSReportError(context, "Native method expected %s, got %s.",
+                    className != nullptr ? className : "(null)",
+                    got ? got->c_str() : "(null)");
     return false;
   }
 
@@ -108,7 +108,7 @@ void OOJSCxxObjectWrapperFinalize(JSRuntime* /*runtime*/,
   OOJS_PROFILE_EXIT_VOID
 }
 
-// OOJSObjectWrapperToString(): the object's -cxx_oo_jsDescription, else
+// OOJSObjectWrapperToString(): the object's -oo_jsDescription, else
 // "[object <JS class name>]".
 JSValue OOJSCxxObjectWrapperToString(JSContext* context, JSValueConst thisVal,
                                      JSClassID jsClassID) {

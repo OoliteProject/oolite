@@ -135,7 +135,7 @@ OO_TEST(namesAndEmptyGroups)
 		named->setName(std::nullopt);
 		OO_CHECK(!named->name().has_value());
 
-		std::shared_ptr<OOShipGroup> made = OOShipGroup::groupWithName(std::string("ship group"));	// -cxx_initWithName:
+		std::shared_ptr<OOShipGroup> made = OOShipGroup::groupWithName(std::string("ship group"));	// -initWithName:
 		OO_CHECK(made->name() == std::optional<std::string>("ship group") && made->isEmpty());
 	}
 }

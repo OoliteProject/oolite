@@ -164,22 +164,22 @@ void PlayerEntity::setGuiToStickMapperScreen(unsigned skip,
     // for more than 2 sticks, the stick name rows are populated by more than
     // one name if needed
     std::optional<std::string> stickNameAdditional;
-    if (stickCount > 2 && cxx_OOStringWidthInEm(stickNameForThisRow) > 18.0) {
+    if (stickCount > 2 && OOStringWidthInEm(stickNameForThisRow) > 18.0) {
       // string is too long, truncate it until its length gets below threshold
       do {
         stickNameForThisRow = TruncatedByFive(stickNameForThisRow);
-      } while (cxx_OOStringWidthInEm(stickNameForThisRow) > 18.0);
+      } while (OOStringWidthInEm(stickNameForThisRow) > 18.0);
     }
     unsigned j = i + 2;
     if (j < stickCount) {
       stickNameAdditional =
           std::format("{} {} {}", OO_DESC("stickmapper-stick").c_str(),
                       static_cast<int>(j + 1), stickList[j]);
-      if (cxx_OOStringWidthInEm(*stickNameAdditional) > 11.0) {
+      if (OOStringWidthInEm(*stickNameAdditional) > 11.0) {
         // string is too long, truncate it until its length gets below threshold
         do {
           stickNameAdditional = TruncatedByFive(*stickNameAdditional);
-        } while (cxx_OOStringWidthInEm(*stickNameAdditional) > 11.0);
+        } while (OOStringWidthInEm(*stickNameAdditional) > 11.0);
       }
     }
     gui->setArray(ColumnsUpToNil({stickNameForThisRow,

@@ -143,8 +143,8 @@ void OOSunEntity::initSunWithColor(OOColor* sun_color, const oo::PList& dict) {
   setSunColor(sun_color);
 
   // A nil dictionary read nil for the name (messaging nil), not the default.
-  setName(dict ? cxx_OOExpand(dict.get<std::string>(
-                     std::string(KEY_SUNNAME), "[oolite-default-star-name]"))
+  setName(dict ? OOExpand(dict.get<std::string>(std::string(KEY_SUNNAME),
+                                                "[oolite-default-star-name]"))
                : std::nullopt);
 
   corona_blending = OOClamp_0_1_f(dict.get<float>("corona_hues", 1.0f));
@@ -214,7 +214,7 @@ std::optional<std::string> OOSunEntity::descriptionComponents() const {
   OOSunEntity* sun = const_cast<OOSunEntity*>(this);
   std::string result =
       std::format("ID: {} position: {} radius: {:.3f}km", universalID,
-                  cxx_HPVectorDescription(position), 0.001 * sun->radius());
+                  HPVectorDescription(position), 0.001 * sun->radius());
   if (sun->goneNova()) {
     result += " (gone nova)";
   } else if (sun->willGoNova()) {
@@ -432,7 +432,7 @@ void OOSunEntity::drawOpaqueParts() {
   }
 
   OOVerifyOpenGLState();
-  cxx_OOCheckOpenGLErrors([&]() -> std::string {
+  OOCheckOpenGLErrors([&]() -> std::string {
     return "SunEntity after drawing " + oo::EntityDescription(this);
   });
 }

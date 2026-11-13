@@ -62,7 +62,7 @@ class OOSound : public oo::Object {
   static void setMasterVolume(float fraction);
   static float masterVolume();
 
-  /*	Was -cxx_initWithContentsOfFile:, a class cluster's initialiser: it
+  /*	Was -initWithContentsOfFile:, a class cluster's initialiser: it
      answered, in place of the receiver, an OOALBufferedSound for up to 1 MB of
      decoded data, else an OOALStreamedSound. Null
      where it answered nil: sound not OK, no decoder for the path, or the

@@ -36,7 +36,7 @@
 // OOLogging.mm's (it would bring the resource manager into the link).
 void OOLogIndent(void)  {}
 void OOLogOutdent(void)  {}
-const char *const cxx_kOOLogFileNotFound = "files.notFound";
+const char *const kOOLogFileNotFound = "files.notFound";
 
 
 // The resource manager: the extension manager's two class methods, and shader files from a table.
@@ -65,7 +65,7 @@ bool OORegExpMatcher::string(const std::string &, const std::string &)  { return
 OORegExpMatcher::~OORegExpMatcher()  {}
 
 
-OOShaderSetting cxx_OOShaderSettingFromString(const std::string &string)
+OOShaderSetting OOShaderSettingFromString(const std::string &string)
 {
 	return string == "SHADERS_FULL" ? OOShaderSetting::kFull : OOShaderSetting::kNotSupported;
 }

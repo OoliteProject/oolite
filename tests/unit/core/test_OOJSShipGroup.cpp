@@ -87,7 +87,7 @@ class TestEntityObject final : public oo::Object
 {
 public:
 	const char *className() const  { return "Entity"; }	// the class's runtime name
-	std::optional<std::string> cxx_descriptionComponents();
+	std::optional<std::string> descriptionComponents();
 	JSValue oo_jsValueInContext(JSContext *context);	// owned by the caller
 
 	std::shared_ptr<Entity> _cxxEntity;
@@ -145,7 +145,7 @@ bool ShipEntity::acceptAsEscort(::ShipEntity *other_ship)
 #include "EntityHelpersStandIn.h"	// EntityHelpers.mm's, on the test's objects
 
 
-std::optional<std::string> TestEntityObject::cxx_descriptionComponents()  { return _name; }
+std::optional<std::string> TestEntityObject::descriptionComponents()  { return _name; }
 
 JSValue TestEntityObject::oo_jsValueInContext(JSContext *context)
 {
@@ -173,18 +173,18 @@ std::string OONull::description() const	{ return "<null>"; }
 JSContext *gOOJSMainThreadContext = nullptr;
 
 
-void cxx_OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
+void OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
 {
 	std::string msg = oo::str::vformat(format, args);
 	JS_ThrowPlainError(context, "%s", msg.c_str());
 }
 
 
-void cxx_OOJSReportError(JSContext *context, const char *format, ...)
+void OOJSReportError(JSContext *context, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
-	cxx_OOJSReportErrorWithArguments(context, format, args);
+	OOJSReportErrorWithArguments(context, format, args);
 	va_end(args);
 }
 
@@ -193,7 +193,7 @@ namespace {
 std::string sLastWarning;
 }
 
-void cxx_OOJSReportWarningForCaller(JSContext *, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, const char *format, ...)
+void OOJSReportWarningForCaller(JSContext *, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
@@ -202,13 +202,13 @@ void cxx_OOJSReportWarningForCaller(JSContext *, const std::optional<std::string
 }
 
 
-void cxx_OOJSReportBadArguments(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, int argc, JSValueConst *, const std::optional<std::string> &message, const std::optional<std::string> &expectedArgsDescription)
+void OOJSReportBadArguments(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, int argc, JSValueConst *, const std::optional<std::string> &message, const std::optional<std::string> &expectedArgsDescription)
 {
-	cxx_OOJSReportError(context, "bad arguments: %s.%s(%d) %s / %s", scriptClass.value_or("-").c_str(), function.value_or("-").c_str(), argc, message.value_or("-").c_str(), expectedArgsDescription.value_or("-").c_str());
+	OOJSReportError(context, "bad arguments: %s.%s(%d) %s / %s", scriptClass.value_or("-").c_str(), function.value_or("-").c_str(), argc, message.value_or("-").c_str(), expectedArgsDescription.value_or("-").c_str());
 }
 
 
-std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueConst value)
+std::optional<std::string> OOStringFromJSValue(JSContext *context, JSValueConst value)
 {
 	if (JS_IsNull(value) || JS_IsUndefined(value))  return std::nullopt;
 	std::size_t length = 0;
@@ -224,16 +224,16 @@ std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueCo
 }
 
 
-std::optional<std::string> cxx_OOStringFromJSValueEvenIfNull(JSContext *context, JSValueConst value)
+std::optional<std::string> OOStringFromJSValueEvenIfNull(JSContext *context, JSValueConst value)
 {
 	if (JS_IsNull(value))  return std::string("null");
 	if (JS_IsUndefined(value))  return std::string("undefined");
-	return cxx_OOStringFromJSValue(context, value);
+	return OOStringFromJSValue(context, value);
 }
 
 
 // The atom cache and the pending-exception reporter, which the class registry calls.
-JSAtom cxx_OOJSIDFromString(const std::string &string)
+JSAtom OOJSIDFromString(const std::string &string)
 {
 	return JS_NewAtomLen(gOOJSMainThreadContext, string.data(), string.size());
 }
@@ -306,13 +306,13 @@ std::map<JSClassID, int> sConverters;
 
 void OOJSReportBadPropertySelector(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t)
 {
-	cxx_OOJSReportError(context, "bad property selector");
+	OOJSReportError(context, "bad property selector");
 }
 
 
 void OOJSReportBadPropertyValue(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t, JSValueConst)
 {
-	cxx_OOJSReportError(context, "bad property value");
+	OOJSReportError(context, "bad property value");
 }
 
 
@@ -448,7 +448,7 @@ std::string Eval(const char *src)
 		JS_FreeValue(sContext, JS_GetException(sContext));
 		return "<evaluation failed>";
 	}
-	std::string text = cxx_OOStringFromJSValue(sContext, result).value_or("<not a string>");
+	std::string text = OOStringFromJSValue(sContext, result).value_or("<not a string>");
 	JS_FreeValue(sContext, result);
 	return text;
 }

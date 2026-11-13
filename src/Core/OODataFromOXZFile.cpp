@@ -52,16 +52,16 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path) {
     if (type != oo::fs::FileType::kNone) {
       if (type != oo::fs::FileType::kDirectory) {
         if (oo::fs::fileSize(filePath).value_or(0) == 0) {
-          OO_LOG(cxx_kOOLogFileNotFound,
-                 "Expected file but found empty file at {}", path);
+          OO_LOG(kOOLogFileNotFound, "Expected file but found empty file at {}",
+                 path);
         } else {
           auto data = oo::fs::readFile(filePath);
           if (data) return std::move(*data);
           return std::nullopt;
         }
       } else {
-        OO_LOG(cxx_kOOLogFileNotFound,
-               "Expected file but found directory at {}", path);
+        OO_LOG(kOOLogFileNotFound, "Expected file but found directory at {}",
+               path);
       }
     }
     return std::nullopt;
@@ -81,7 +81,7 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path) {
   if (uf == nullptr) {
     // This is not necessarily an error - the OXZ manager tries to
     // do this as a test for the presence of managed OXZs
-    //		OO_LOG(cxx_kOOLogFileNotFound, "Could not unzip OXZ at {}",
+    //		OO_LOG(kOOLogFileNotFound, "Could not unzip OXZ at {}",
     // zipFile);
     return std::nullopt;
   }
@@ -92,7 +92,7 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path) {
      * expectation that the file may not necessarily exist -
      * e.g. on plist merges, config scans, etc. So don't add log
      * entries for this failure mode */
-    //		OO_LOG(cxx_kOOLogFileNotFound, "Could not find {} within OXZ at
+    //		OO_LOG(kOOLogFileNotFound, "Could not find {} within OXZ at
     //{}", containedFile, zipFile);
     return std::nullopt;
   }
@@ -103,7 +103,7 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path) {
                                 0);
   if (err != UNZ_OK) {
     unzClose(uf);
-    OO_LOG(cxx_kOOLogFileNotFound,
+    OO_LOG(kOOLogFileNotFound,
            "Could not get properties of {} within OXZ at {}", containedFile,
            zipFile);
     return std::nullopt;
@@ -112,7 +112,7 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path) {
   err = unzOpenCurrentFile(uf);
   if (err != UNZ_OK) {
     unzClose(uf);
-    OO_LOG(cxx_kOOLogFileNotFound, "Could not read {} within OXZ at {}",
+    OO_LOG(kOOLogFileNotFound, "Could not read {} within OXZ at {}",
            containedFile, zipFile);
     return std::nullopt;
   }
@@ -122,9 +122,8 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path) {
   do {
     err = unzReadCurrentFile(uf, buf.data(), ZIP_BUFFER_SIZE);
     if (err < 0) {
-      OO_LOG(cxx_kOOLogFileNotFound,
-             "Could not read {} within OXZ at {} (err {})", containedFile,
-             zipFile, err);
+      OO_LOG(kOOLogFileNotFound, "Could not read {} within OXZ at {} (err {})",
+             containedFile, zipFile, err);
       break;
     }
     if (err == 0) {
@@ -136,7 +135,7 @@ std::optional<oo::Data> OODataFromOXZFile(const std::string& path) {
   err = unzCloseCurrentFile(uf);
   if (err != UNZ_OK) {
     unzClose(uf);
-    OO_LOG(cxx_kOOLogFileNotFound, "Could not close {} within OXZ at {}",
+    OO_LOG(kOOLogFileNotFound, "Could not close {} within OXZ at {}",
            containedFile, zipFile);
     return std::nullopt;
   }

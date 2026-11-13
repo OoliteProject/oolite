@@ -257,8 +257,8 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS) {
   switch (static_cast<PlanetProperty>(magic)) {
     using enum PlanetProperty;
     case kAirColor:
-      colorForScript = OOColor::colorWithDescription(
-          cxx_OOJSPListFromJSValue(context, value));
+      colorForScript =
+          OOColor::colorWithDescription(OOJSPListFromJSValue(context, value));
       if (colorForScript != nullptr || JS_IsNull(value)) {
         if (planet != nullptr) planet->setAirColor(colorForScript.get());
         return JS_UNDEFINED;
@@ -280,8 +280,8 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS) {
       break;
 
     case kIlluminationColor:
-      colorForScript = OOColor::colorWithDescription(
-          cxx_OOJSPListFromJSValue(context, value));
+      colorForScript =
+          OOColor::colorWithDescription(OOJSPListFromJSValue(context, value));
       if (colorForScript != nullptr || JS_IsNull(value)) {
         if (planet != nullptr)
           planet->setIlluminationColor(colorForScript.get());
@@ -290,21 +290,20 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS) {
       break;
 
     case kName:
-      sValue = cxx_OOStringFromJSValue(context, value);
+      sValue = OOStringFromJSValue(context, value);
       if (planet != nullptr) planet->setName(sValue);
       return JS_UNDEFINED;
 
     case kTexture: {
       bool OK = false;
-      sValue = cxx_OOStringFromJSValue(context, value);
+      sValue = OOStringFromJSValue(context, value);
 
       OOJSPauseTimeLimiter();
 
       if (planet != nullptr)  // false only for null
       {
         if (!sValue.has_value()) {
-          cxx_OOJSReportWarning(context,
-                                "Expected texture string. Value not set.");
+          OOJSReportWarning(context, "Expected texture string. Value not set.");
         } else {
           OK = true;
         }
@@ -314,9 +313,9 @@ static JSValue PlanetSetProperty(OOJS_SETTER_ARGS) {
         OK = (planet != nullptr ? planet->setUpPlanetFromTexture(sValue)
                                 : false);  // has a value here
         if (!OK)
-          cxx_OOJSReportWarning(context,
-                                "Cannot find texture \"%s\". Value not set.",
-                                sValue->c_str());
+          OOJSReportWarning(context,
+                            "Cannot find texture \"%s\". Value not set.",
+                            sValue->c_str());
       }
 
       OOJSResumeTimeLimiter();

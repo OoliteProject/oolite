@@ -143,9 +143,9 @@ std::optional<std::string> OOCommodityMarket::nameForGood(
     const std::string& good) {
   const oo::PList* definition = definitionPointerForGood(good);
   if (definition == nullptr) {
-    return cxx_OOExpand("[oolite-unknown-commodity-name]");
+    return OOExpand("[oolite-unknown-commodity-name]");
   }
-  return cxx_OOExpand(
+  return OOExpand(
       definition->get<std::string>(kName, "[oolite-unknown-commodity-name]"));
 }
 
@@ -153,9 +153,9 @@ std::optional<std::string> OOCommodityMarket::commentForGood(
     const std::string& good) {
   const oo::PList* definition = definitionPointerForGood(good);
   if (definition == nullptr) {
-    return cxx_OOExpand("[oolite-unknown-commodity-name]");
+    return OOExpand("[oolite-unknown-commodity-name]");
   }
-  return cxx_OOExpand(
+  return OOExpand(
       definition->get<std::string>(kComment, "[oolite-commodity-no-comment]"));
 }
 
@@ -163,9 +163,9 @@ std::optional<std::string> OOCommodityMarket::shortCommentForGood(
     const std::string& good) {
   const oo::PList* definition = definitionPointerForGood(good);
   if (definition == nullptr) {
-    return cxx_OOExpand("[oolite-unknown-commodity-name]");
+    return OOExpand("[oolite-unknown-commodity-name]");
   }
-  return cxx_OOExpand(definition->get<std::string>(
+  return OOExpand(definition->get<std::string>(
       kShortComment, "[oolite-commodity-no-short-comment]"));
 }
 

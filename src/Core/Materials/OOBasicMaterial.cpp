@@ -89,21 +89,21 @@ void OOBasicMaterial::initWithName(const std::optional<std::string>& name,
 
   // The specifier answers the colour; OOColor::colorWithDescription() of its
   // Object node is the colour itself.
-  colorDesc = cxx_OOMaterialDiffuseColor(config);
+  colorDesc = OOMaterialDiffuseColor(config);
   if (colorDesc != nullptr) setDiffuseColor(colorDesc.get());
 
-  colorDesc = cxx_OOMaterialAmbientColor(config);
+  colorDesc = OOMaterialAmbientColor(config);
   if (colorDesc != nullptr)
     setAmbientColor(colorDesc.get());
   else
     setAmbientColor(diffuseColor().get());
 
-  colorDesc = cxx_OOMaterialEmissionColor(config);
+  colorDesc = OOMaterialEmissionColor(config);
   if (colorDesc != nullptr) setEmissionColor(colorDesc.get());
 
-  specularExponent = cxx_OOMaterialSpecularExponent(config);
+  specularExponent = OOMaterialSpecularExponent(config);
   if (specularExponent != 0 && permitSpecular()) {
-    colorDesc = cxx_OOMaterialSpecularColor(config);
+    colorDesc = OOMaterialSpecularColor(config);
     setShininess(specularExponent);
     if (colorDesc != nullptr) setSpecularColor(colorDesc.get());
   }

@@ -114,16 +114,16 @@ std::shared_ptr<OOTextureLoader> OOTextureLoader::loaderWithTextureSpecifier(
   std::optional<std::string> path;
   OOTextureFlags options = OOTextureFlags::kNone;
 
-  if (!cxx_OOInterpretTextureSpecifier(specifier, &name, &options, nullptr,
-                                       nullptr, false))
+  if (!OOInterpretTextureSpecifier(specifier, &name, &options, nullptr, nullptr,
+                                   false))
     return nullptr;
   options |= extraOptions;
   path = ResourceManager::pathForFileNamed(name, folder);
   if (!path.has_value()) {
     if (!oo::Any(options & OOTextureFlags::kNoFNFMessage)) {
-      OO_LOG_WARN(cxx_kOOLogFileNotFound, "Could not find texture file \"{}\".",
+      OO_LOG_WARN(kOOLogFileNotFound, "Could not find texture file \"{}\".",
                   name);
-      cxx_OOStandardsError("Texture file not found");
+      OOStandardsError("Texture file not found");
     }
     return nullptr;
   }
@@ -133,7 +133,7 @@ std::shared_ptr<OOTextureLoader> OOTextureLoader::loaderWithTextureSpecifier(
 
 OOTextureLoader::OOTextureLoader() {}
 
-/*	The part of -cxx_initWithPath:options: after [super init]; false where
+/*	The part of -initWithPath:options: after [super init]; false where
    it released the receiver and answered nil.
 */
 bool OOTextureLoader::initWithPath(const std::optional<std::string>& inPath,

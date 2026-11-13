@@ -700,7 +700,7 @@ bool OOShipRegistry::applyLikeShips(oo::PList& ioData,
                    CaseInsensitiveSortedList(std::move(
                        reportedBadShips)));  // FIXME: distinguish shipdata and
                                              // effectdata
-        cxx_OOStandardsError("Likely missing a dependency in a manifest.plist");
+        OOStandardsError("Likely missing a dependency in a manifest.plist");
       }
       break;
     }
@@ -902,7 +902,7 @@ bool OOShipRegistry::removeUnusableEntries(oo::PList& ioData, bool shipMode) {
                  "the shipdata.plist entry \"{}\" specifies no {}.", shipKey,
                  "roles");
       remove = true;
-      cxx_OOStandardsError("Error in shipdata.plist");
+      OOStandardsError("Error in shipdata.plist");
     } else {
       const std::string modelName =
           StringForKey(&shipEntry, "model").value_or("");
@@ -910,7 +910,7 @@ bool OOShipRegistry::removeUnusableEntries(oo::PList& ioData, bool shipMode) {
         OO_LOG_ERR("shipData.load.error",
                    "the shipdata.plist entry \"{}\" specifies no {}.", shipKey,
                    "model");
-        cxx_OOStandardsError("Error in shipdata.plist");
+        OOStandardsError("Error in shipdata.plist");
         remove = true;
       } else if (!modelName.empty() &&
                  !ResourceManager::pathForFileNamed(modelName, "Models")
@@ -919,7 +919,7 @@ bool OOShipRegistry::removeUnusableEntries(oo::PList& ioData, bool shipMode) {
                    "the shipdata.plist entry \"{}\" specifies non-existent "
                    "model \"{}\".",
                    shipKey, modelName);
-        cxx_OOStandardsError("Error in shipdata.plist");
+        OOStandardsError("Error in shipdata.plist");
         remove = true;
       }
     }
@@ -979,7 +979,7 @@ bool OOShipRegistry::sanitizeConditions(oo::PList& ioData) {
       continue;
 
     if (!conditions.isNull()) {
-      cxx_OOStandardsDeprecated(std::format(
+      OOStandardsDeprecated(std::format(
           "The 'conditions' key is deprecated in shipdata entry {}", key));
       if (!OOEnforceStandards()) {
         if (conditions.isArray()) {
@@ -1006,7 +1006,7 @@ bool OOShipRegistry::sanitizeConditions(oo::PList& ioData) {
           hasShipyard,
           std::format("<shipdata.plist entry \"{}\" hasShipyard conditions>",
                       key));
-      cxx_OOStandardsDeprecated(
+      OOStandardsDeprecated(
           std::format("Use of legacy script conditions in the 'has_shipyard' "
                       "key is deprecated in shipyard entry {}",
                       key));
@@ -1021,7 +1021,7 @@ bool OOShipRegistry::sanitizeConditions(oo::PList& ioData) {
     }
 
     if (!shipyardConditions.isNull()) {
-      cxx_OOStandardsDeprecated(std::format(
+      OOStandardsDeprecated(std::format(
           "The 'conditions' key is deprecated in shipyard entry {}", key));
       if (!OOEnforceStandards()) {
         oo::PList mutableShipyard =
@@ -1090,7 +1090,7 @@ bool OOShipRegistry::canonicalizeAndTagSubentities(oo::PList& ioData) {
 
         // If entry is broken, we need to kill this ship.
         if (fatal) {
-          cxx_OOStandardsError("Bad subentity definition found");
+          OOStandardsError("Bad subentity definition found");
           remove = true;
         } else if (!subentityDict.isNull()) {
           // Tag subentities.
@@ -1136,7 +1136,7 @@ bool OOShipRegistry::canonicalizeAndTagSubentities(oo::PList& ioData) {
               "shipData.load.error",
               "the shipdata.plist entry \"{}\" has unresolved subentit{} {}.",
               shipKey, (badCount == 1) ? "y" : "ies", badSubentitiesList);
-          cxx_OOStandardsError("Bad subentity definition found");
+          OOStandardsError("Bad subentity definition found");
         }
         remove = true;
       }
@@ -1197,7 +1197,7 @@ oo::PList OOShipRegistry::canonicalizeSubentityDeclaration(
 
   if (declaration.isString()) {
     // Update old-style string-based declaration.
-    cxx_OOStandardsDeprecated(std::format(
+    OOStandardsDeprecated(std::format(
         "Old style sub-entity declarations are deprecated in {}", shipKey));
     if (!OOEnforceStandards()) {
       result = translateOldStyleSubentityDeclaration(

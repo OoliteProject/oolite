@@ -109,7 +109,7 @@ void OOSystemDescriptionManager::buildRouteCache() {
   // firstly, cache all coordinates
   for (i = 0; i < OO_SYSTEM_CACHE_LENGTH; i++) {
     // (nil and "" both have no tokens: the zero point)
-    coordinatesCache[i] = cxx_PointFromString(
+    coordinatesCache[i] = PointFromString(
         StringForKey(propertyCache[i], "coordinates").value_or(""));
   }
   // now for each system find its neighbours
@@ -605,7 +605,7 @@ Random_Seed OOSystemDescriptionManager::getRandomSeedForCurrentSystem() {
       return kNilRandomSeed;
     }
     // (nullopt reads as nil did)
-    return cxx_RandomSeedFromString(
+    return RandomSeedFromString(
         StringForKey(propertyCache[index], "random_seed"));
   }
 }
@@ -627,7 +627,7 @@ Random_Seed OOSystemDescriptionManager::getRandomSeedForSystem(OOSystemID s,
            static_cast<int>(g), static_cast<int>(s));
     return kNilRandomSeed;
   }
-  return cxx_RandomSeedFromString(
+  return RandomSeedFromString(
       StringForKey(propertyCache[index], "random_seed"));
 }
 

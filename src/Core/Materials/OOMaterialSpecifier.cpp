@@ -47,12 +47,12 @@ std::shared_ptr<OOColor> ColorFor(const oo::PList& configuration,
   return OOColor::colorWithDescription(ValueFor(configuration, key));
 }
 
-// cxx_OOTextureSpecFromObject() applied to the value for key, as
+// OOTextureSpecFromObject() applied to the value for key, as
 // -oo_textureSpecifierForKey:defaultName: did.
 oo::PList TextureSpecifierFor(const oo::PList& configuration,
                               std::string_view key,
                               const std::optional<std::string>& defaultName) {
-  return cxx_OOTextureSpecFromObject(ValueFor(configuration, key), defaultName);
+  return OOTextureSpecFromObject(ValueFor(configuration, key), defaultName);
 }
 
 // PList dict with extract_channel set (nil stays nil).
@@ -65,195 +65,190 @@ oo::PList AddingExtractChannelA(oo::PList specifier) {
 // Internal. Used to avoid mutual recusion between the specular exponent map
 // specifier and the specular exponent.
 int RawSpecularExponentValue(const oo::PList& configuration) {
-  const oo::PList* value =
-      configuration.find(cxx_kOOMaterialSpecularExponentName);
+  const oo::PList* value = configuration.find(kOOMaterialSpecularExponentName);
   if (value == nullptr)
-    value = configuration.find(cxx_kOOMaterialSpecularExponentLegacyName);
+    value = configuration.find(kOOMaterialSpecularExponentLegacyName);
   return oo::PListGet<int>::from(value, -1);
 }
 
 }  // namespace
 
-std::shared_ptr<OOColor> cxx_OOMaterialDiffuseColor(
+std::shared_ptr<OOColor> OOMaterialDiffuseColor(
     const oo::PList& configuration) {
   std::shared_ptr<OOColor> result =
-      ColorFor(configuration, cxx_kOOMaterialDiffuseColorName);
+      ColorFor(configuration, kOOMaterialDiffuseColorName);
   if (result == nullptr)
-    result = ColorFor(configuration, cxx_kOOMaterialDiffuseColorLegacyName);
+    result = ColorFor(configuration, kOOMaterialDiffuseColorLegacyName);
 
   if (result != nullptr && result->isWhite())
     result = nullptr;  // -isWhite of nil was NO
   return result;
 }
 
-std::shared_ptr<OOColor> cxx_OOMaterialAmbientColor(
+std::shared_ptr<OOColor> OOMaterialAmbientColor(
     const oo::PList& configuration) {
   std::shared_ptr<OOColor> result =
-      ColorFor(configuration, cxx_kOOMaterialAmbientColorName);
+      ColorFor(configuration, kOOMaterialAmbientColorName);
   if (result == nullptr)
-    result = ColorFor(configuration, cxx_kOOMaterialAmbientColorLegacyName);
+    result = ColorFor(configuration, kOOMaterialAmbientColorLegacyName);
   return result;
 }
 
-std::shared_ptr<OOColor> cxx_OOMaterialSpecularColor(
+std::shared_ptr<OOColor> OOMaterialSpecularColor(
     const oo::PList& configuration) {
   std::shared_ptr<OOColor> result =
-      ColorFor(configuration, cxx_kOOMaterialSpecularColorName);
+      ColorFor(configuration, kOOMaterialSpecularColorName);
   if (result == nullptr)
-    result = ColorFor(configuration, cxx_kOOMaterialSpecularColorLegacyName);
+    result = ColorFor(configuration, kOOMaterialSpecularColorLegacyName);
   if (result == nullptr) {
     result = OOColor::colorWithWhite(0.2f, 1.0f);
   }
   return result;
 }
 
-std::shared_ptr<OOColor> cxx_OOMaterialSpecularModulateColor(
+std::shared_ptr<OOColor> OOMaterialSpecularModulateColor(
     const oo::PList& configuration) {
   std::shared_ptr<OOColor> result =
-      ColorFor(configuration, cxx_kOOMaterialSpecularModulateColorName);
+      ColorFor(configuration, kOOMaterialSpecularModulateColorName);
   if (result == nullptr) result = OOColor::whiteColor();
 
   return result;
 }
 
-std::shared_ptr<OOColor> cxx_OOMaterialEmissionColor(
+std::shared_ptr<OOColor> OOMaterialEmissionColor(
     const oo::PList& configuration) {
   std::shared_ptr<OOColor> result =
-      ColorFor(configuration, cxx_kOOMaterialEmissionColorName);
+      ColorFor(configuration, kOOMaterialEmissionColorName);
   if (result == nullptr)
-    result = ColorFor(configuration, cxx_kOOMaterialEmissionColorLegacyName);
+    result = ColorFor(configuration, kOOMaterialEmissionColorLegacyName);
 
   if (result != nullptr && result->isBlack())
     result = nullptr;  // -isBlack of nil was NO
   return result;
 }
 
-std::shared_ptr<OOColor> cxx_OOMaterialEmissionModulateColor(
+std::shared_ptr<OOColor> OOMaterialEmissionModulateColor(
     const oo::PList& configuration) {
   std::shared_ptr<OOColor> result =
-      ColorFor(configuration, cxx_kOOMaterialEmissionModulateColorName);
+      ColorFor(configuration, kOOMaterialEmissionModulateColorName);
 
   if (result != nullptr && result->isWhite())
     result = nullptr;  // -isWhite of nil was NO
   return result;
 }
 
-std::shared_ptr<OOColor> cxx_OOMaterialIlluminationModulateColor(
+std::shared_ptr<OOColor> OOMaterialIlluminationModulateColor(
     const oo::PList& configuration) {
   std::shared_ptr<OOColor> result =
-      ColorFor(configuration, cxx_kOOMaterialIlluminationModulateColorName);
+      ColorFor(configuration, kOOMaterialIlluminationModulateColorName);
 
   if (result != nullptr && result->isWhite())
     result = nullptr;  // -isWhite of nil was NO
   return result;
 }
 
-oo::PList cxx_OOMaterialDiffuseMapSpecifier(
+oo::PList OOMaterialDiffuseMapSpecifier(
     const oo::PList& configuration,
     const std::optional<std::string>& defaultName) {
-  return TextureSpecifierFor(configuration, cxx_kOOMaterialDiffuseMapName,
+  return TextureSpecifierFor(configuration, kOOMaterialDiffuseMapName,
                              defaultName);
 }
 
-oo::PList cxx_OOMaterialCombinedSpecularMapSpecifier(
+oo::PList OOMaterialCombinedSpecularMapSpecifier(
     const oo::PList& configuration) {
   if (RawSpecularExponentValue(configuration) == 0) return oo::PList();
-  return TextureSpecifierFor(
-      configuration, cxx_kOOMaterialCombinedSpecularMapName, std::nullopt);
-}
-
-oo::PList cxx_OOMaterialSpecularColorMapSpecifier(
-    const oo::PList& configuration) {
-  if (RawSpecularExponentValue(configuration) == 0) return oo::PList();
-  oo::PList result = TextureSpecifierFor(
-      configuration, cxx_kOOMaterialSpecularColorMapName, std::nullopt);
-  if (result.isNull())
-    result = cxx_OOMaterialCombinedSpecularMapSpecifier(configuration);
-  return result;
-}
-
-oo::PList cxx_OOMaterialSpecularExponentMapSpecifier(
-    const oo::PList& configuration) {
-  if (RawSpecularExponentValue(configuration) == 0) return oo::PList();
-  oo::PList result = TextureSpecifierFor(
-      configuration, cxx_kOOMaterialSpecularExponentMapName, std::nullopt);
-  if (result.isNull())
-    result = AddingExtractChannelA(
-        cxx_OOMaterialCombinedSpecularMapSpecifier(configuration));
-  return result;
-}
-
-oo::PList cxx_OOMaterialNormalMapSpecifier(const oo::PList& configuration) {
-  if (!cxx_OOMaterialNormalAndParallaxMapSpecifier(configuration).isNull())
-    return oo::PList();
-  return TextureSpecifierFor(configuration, cxx_kOOMaterialNormalMapName,
+  return TextureSpecifierFor(configuration, kOOMaterialCombinedSpecularMapName,
                              std::nullopt);
 }
 
-oo::PList cxx_OOMaterialParallaxMapSpecifier(const oo::PList& configuration) {
+oo::PList OOMaterialSpecularColorMapSpecifier(const oo::PList& configuration) {
+  if (RawSpecularExponentValue(configuration) == 0) return oo::PList();
+  oo::PList result = TextureSpecifierFor(
+      configuration, kOOMaterialSpecularColorMapName, std::nullopt);
+  if (result.isNull())
+    result = OOMaterialCombinedSpecularMapSpecifier(configuration);
+  return result;
+}
+
+oo::PList OOMaterialSpecularExponentMapSpecifier(
+    const oo::PList& configuration) {
+  if (RawSpecularExponentValue(configuration) == 0) return oo::PList();
+  oo::PList result = TextureSpecifierFor(
+      configuration, kOOMaterialSpecularExponentMapName, std::nullopt);
+  if (result.isNull())
+    result = AddingExtractChannelA(
+        OOMaterialCombinedSpecularMapSpecifier(configuration));
+  return result;
+}
+
+oo::PList OOMaterialNormalMapSpecifier(const oo::PList& configuration) {
+  if (!OOMaterialNormalAndParallaxMapSpecifier(configuration).isNull())
+    return oo::PList();
+  return TextureSpecifierFor(configuration, kOOMaterialNormalMapName,
+                             std::nullopt);
+}
+
+oo::PList OOMaterialParallaxMapSpecifier(const oo::PList& configuration) {
   oo::PList spec = TextureSpecifierFor(
-      configuration, cxx_kOOMaterialParallaxMapName, std::nullopt);
+      configuration, kOOMaterialParallaxMapName, std::nullopt);
   if (spec.isNull()) {
     // Default is alpha channel of normal_and_parallax_map.
     spec = AddingExtractChannelA(
-        cxx_OOMaterialNormalAndParallaxMapSpecifier(configuration));
+        OOMaterialNormalAndParallaxMapSpecifier(configuration));
   }
 
   return spec;
 }
 
-oo::PList cxx_OOMaterialNormalAndParallaxMapSpecifier(
+oo::PList OOMaterialNormalAndParallaxMapSpecifier(
     const oo::PList& configuration) {
-  return TextureSpecifierFor(
-      configuration, cxx_kOOMaterialNormalAndParallaxMapName, std::nullopt);
-}
-
-oo::PList cxx_OOMaterialEmissionMapSpecifier(const oo::PList& configuration) {
-  return TextureSpecifierFor(configuration, cxx_kOOMaterialEmissionMapName,
+  return TextureSpecifierFor(configuration, kOOMaterialNormalAndParallaxMapName,
                              std::nullopt);
 }
 
-oo::PList cxx_OOMaterialIlluminationMapSpecifier(
-    const oo::PList& configuration) {
-  return TextureSpecifierFor(configuration, cxx_kOOMaterialIlluminationMapName,
+oo::PList OOMaterialEmissionMapSpecifier(const oo::PList& configuration) {
+  return TextureSpecifierFor(configuration, kOOMaterialEmissionMapName,
                              std::nullopt);
 }
 
-oo::PList cxx_OOMaterialEmissionAndIlluminationMapSpecifier(
+oo::PList OOMaterialIlluminationMapSpecifier(const oo::PList& configuration) {
+  return TextureSpecifierFor(configuration, kOOMaterialIlluminationMapName,
+                             std::nullopt);
+}
+
+oo::PList OOMaterialEmissionAndIlluminationMapSpecifier(
     const oo::PList& configuration) {
-  if (!cxx_OOMaterialEmissionMapSpecifier(configuration).isNull() ||
-      !cxx_OOMaterialIlluminationMapSpecifier(configuration).isNull())
+  if (!OOMaterialEmissionMapSpecifier(configuration).isNull() ||
+      !OOMaterialIlluminationMapSpecifier(configuration).isNull())
     return oo::PList();
-  return TextureSpecifierFor(configuration,
-                             cxx_kOOMaterialEmissionAndIlluminationMapName,
-                             std::nullopt);
+  return TextureSpecifierFor(
+      configuration, kOOMaterialEmissionAndIlluminationMapName, std::nullopt);
 }
 
-float cxx_OOMaterialParallaxScale(const oo::PList& configuration) {
-  return configuration.get<float>(cxx_kOOMaterialParallaxScaleName,
+float OOMaterialParallaxScale(const oo::PList& configuration) {
+  return configuration.get<float>(kOOMaterialParallaxScaleName,
                                   kOOMaterialDefaultParallaxScale);
 }
 
-float cxx_OOMaterialParallaxBias(const oo::PList& configuration) {
-  return configuration.get<float>(cxx_kOOMaterialParallaxBiasName);
+float OOMaterialParallaxBias(const oo::PList& configuration) {
+  return configuration.get<float>(kOOMaterialParallaxBiasName);
 }
 
-bool cxx_OOMaterialGammaCorrect(const oo::PList& configuration) {
+bool OOMaterialGammaCorrect(const oo::PList& configuration) {
   return configuration.get<bool>(
-      cxx_kOOMaterialGammaCorrectName,
+      kOOMaterialGammaCorrectName,
       !oo::Defaults::standard().boolForKey("no-gamma-correct"));
 }
 
-float cxx_OOMaterialGloss(const oo::PList& configuration) {
-  return OOClamp_0_1_f(
-      configuration.get<float>(cxx_kOOMaterialGlossName, 0.375f));
+float OOMaterialGloss(const oo::PList& configuration) {
+  return OOClamp_0_1_f(configuration.get<float>(kOOMaterialGlossName, 0.375f));
 }
 
-int cxx_OOMaterialSpecularExponent(const oo::PList& configuration) {
+int OOMaterialSpecularExponent(const oo::PList& configuration) {
   int result = RawSpecularExponentValue(configuration);
   if (result < 0) {
     if ((UNIVERSE != nullptr ? UNIVERSE->useShaders() : false) &&
-        !cxx_OOMaterialSpecularExponentMapSpecifier(configuration).isNull()) {
+        !OOMaterialSpecularExponentMapSpecifier(configuration).isNull()) {
       result = 128;
     } else {
       result = 10;

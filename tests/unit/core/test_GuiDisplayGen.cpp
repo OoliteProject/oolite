@@ -23,8 +23,8 @@
    selection and its skip rows, the colours and the colour settings, the fades'
    alpha, the tab-stop override, clearing and the two resizes); the last
    (cxxAPIAnswersTheSame) pins the C++ API. The units they reach (-clear's
-   -clearBackground, -cxx_getLastLines, -cxx_setArray:forRow:,
-   -cxx_printLineNoScroll:...) run as
+   -clearBackground, -getLastLines, -setArray:forRow:,
+   -printLineNoScroll:...) run as
    they are. The settings -init reads (gui-settings.plist, through the real
    ResourceManager) depend on where the test runs, so the tests that need them
    check that they are a dictionary first and pin nothing of their content. Run:
@@ -273,7 +273,7 @@ OO_TEST(rowTextsAndKeys)
 		OO_CHECK(gui->objectForRow(4).isArray());
 		OO_CHECK_EQ(gui->objectForRow(4).count(), 2u);
 
-		// The last two rows' text, colour and fade time (-cxx_getLastLines) show
+		// The last two rows' text, colour and fade time (-getLastLines) show
     // the colour.
 		gui->setColor(OOColor::redColor().get(), 3);
 		gui->setColor(OOColor::greenColor().get(), 7);	// ignored

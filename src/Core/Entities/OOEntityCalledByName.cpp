@@ -526,12 +526,11 @@ const OOEntityFacadeRow kOOEntityFacadeRows[] = {
     {"canCollide", nullptr, &OOEntityByNameTyped<&Facade_canCollide>},
     {"collisionRadius", nullptr, &OOEntityByNameTyped<&Facade_collisionRadius>},
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    {"cxx_allTextures", nullptr, nullptr},
+    {"allTextures", nullptr, nullptr},
 #endif
-    {"cxx_collidingEntities", nullptr, nullptr},
-    {"cxx_description", nullptr, nullptr},
-    {"cxx_descriptionComponents", nullptr, nullptr},
-    {"cxx_oo_jsClassName", nullptr, nullptr},
+    {"collidingEntities", nullptr, nullptr},
+    {"descriptionComponents", nullptr, nullptr},
+    {"oo_jsClassName", nullptr, nullptr},
     {"deleteJSSelf", nullptr, &OOEntityByNameTyped<&Facade_deleteJSSelf>},
 #ifdef OO_DEBUG_MONITOR_ENABLED
     {"descriptionForObjDump", nullptr, nullptr},

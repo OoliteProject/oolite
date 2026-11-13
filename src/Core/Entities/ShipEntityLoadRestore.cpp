@@ -102,10 +102,10 @@ oo::PList ShipEntity::savedShipDictionaryWithContext(
   updatedShipInfo[KEY_FUEL] = oo::PList::unsignedInteger(fuel);
   updatedShipInfo[KEY_BOUNTY] = oo::PList::unsignedInteger(bounty);
   updatedShipInfo[KEY_FORWARD_WEAPON] =
-      cxx_OOStringFromWeaponType(forward_weapon_type).value_or("");
+      OOStringFromWeaponType(forward_weapon_type).value_or("");
   updatedShipInfo[KEY_AFT_WEAPON] =
-      cxx_OOStringFromWeaponType(aft_weapon_type).value_or("");
-  updatedShipInfo[KEY_SCAN_CLASS] = cxx_OOStringFromScanClass(scanClass);
+      OOStringFromWeaponType(aft_weapon_type).value_or("");
+  updatedShipInfo[KEY_SCAN_CLASS] = OOStringFromScanClass(scanClass);
 
   std::vector<std::string> deletes;
   simplifyShipdata(updatedShipInfo, &deletes);

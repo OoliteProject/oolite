@@ -87,23 +87,23 @@ JSContext *sContext;
 }
 
 
-void cxx_OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
+void OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
 {
 	std::string msg = oo::str::vformat(format, args);
 	JS_ThrowPlainError(context, "%s", msg.c_str());
 }
 
 
-void cxx_OOJSReportError(JSContext *context, const char *format, ...)
+void OOJSReportError(JSContext *context, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
-	cxx_OOJSReportErrorWithArguments(context, format, args);
+	OOJSReportErrorWithArguments(context, format, args);
 	va_end(args);
 }
 
 
-std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueConst value)
+std::optional<std::string> OOStringFromJSValue(JSContext *context, JSValueConst value)
 {
 	if (JS_IsNull(value) || JS_IsUndefined(value))  return std::nullopt;
 	std::size_t length = 0;
@@ -120,10 +120,10 @@ std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueCo
 
 
 // As the engine's: the atom's string value.
-std::optional<std::string> cxx_OOStringFromJSID(JSAtom propID)
+std::optional<std::string> OOStringFromJSID(JSAtom propID)
 {
 	JSValue value = JS_AtomToString(sContext, propID);
-	std::optional<std::string> result = cxx_OOStringFromJSValue(sContext, value);
+	std::optional<std::string> result = OOStringFromJSValue(sContext, value);
 	JS_FreeValue(sContext, value);
 	return result;
 }
@@ -136,13 +136,13 @@ void OOJSReportPendingException(JSContext *context)
 }
 
 
-JSAtom cxx_OOJSIDFromString(const std::string &string)
+JSAtom OOJSIDFromString(const std::string &string)
 {
 	return JS_NewAtom(OOJSAcquireContext(), string.c_str());
 }
 
 
-std::string cxx_OOJSEscapedForJavaScriptLiteral(std::string_view string)
+std::string OOJSEscapedForJavaScriptLiteral(std::string_view string)
 {
 	return "<" + std::string(string) + ">";
 }
@@ -238,7 +238,7 @@ std::string Eval(const char *src)
 		JS_FreeValue(sContext, JS_GetException(sContext));
 		return "<evaluation failed>";
 	}
-	std::string text = cxx_OOStringFromJSValue(sContext, result).value_or("<not a string>");
+	std::string text = OOStringFromJSValue(sContext, result).value_or("<not a string>");
 	JS_FreeValue(sContext, result);
 	return text;
 }

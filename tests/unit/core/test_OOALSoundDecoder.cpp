@@ -1,7 +1,7 @@
 /*	test_OOALSoundDecoder.mm
         Unit tests for OOALSoundDecoder (src/Core/OOALSoundDecoder.h).
 
-        The decoder is a class cluster: -cxx_initWithPath: and +codecWithPath:
+        The decoder is a class cluster: -initWithPath: and +codecWithPath:
    answer the private Vorbis codec for a path ending in "ogg" (a file, or a file
    inside an OXZ) and nil otherwise; the public class's own answers are a
    decoder of nothing. The codec reads the whole sound into a buffer, or streams
@@ -29,7 +29,7 @@ namespace stdfs = std::filesystem;
 
 // The game's OOLogging.mm reaches the resource manager, so it is not linked;
 // the decoder's one message class from it is defined here.
-const char* const cxx_kOOLogFileNotFound = "files.notFound";
+const char* const kOOLogFileNotFound = "files.notFound";
 
 namespace {
 

@@ -61,7 +61,7 @@ std::string HandlerToken(const std::string& state, const std::string& handler,
   if (found != stateDict.end()) return found->second;
 
   std::string result = std::format("{}_h_{}", state, handler);
-  result = cxx_GraphVizTokenString(result, &uniqueSet);
+  result = GraphVizTokenString(result, &uniqueSet);
 
   stateDict[handler] = result;
 
@@ -73,10 +73,10 @@ void AddSimpleSpecialNodeLink(std::string& graphViz,
                               const std::string& name, std::string_view shape,
                               std::string_view color,
                               std::set<std::string>& specialNodes) {
-  std::string identifier = cxx_GraphVizTokenString("special_" + name, nullptr);
+  std::string identifier = GraphVizTokenString("special_" + name, nullptr);
   std::string declaration =
       std::format("\t{} [label=\"{}\" color=\"#{}\" shape={}]\n", identifier,
-                  cxx_EscapedGraphVizString(name), color, shape);
+                  EscapedGraphVizString(name), color, shape);
   specialNodes.insert(declaration);
 
   graphViz += std::format("\t{} -> {} [color=\"#{}\"]\n", handlerToken,
@@ -92,8 +92,8 @@ void AddExitAINode(std::string& graphViz, const std::string& handlerToken,
     token = "exitAI";
     label = "exitAI";
   } else {
-    token = cxx_GraphVizTokenString("exitAI_" + *message, nullptr);
-    label = cxx_EscapedGraphVizString("exitAIWithMessage:\n" + *message);
+    token = GraphVizTokenString("exitAI_" + *message, nullptr);
+    label = EscapedGraphVizString("exitAIWithMessage:\n" + *message);
   }
 
   specialNodes.insert(std::format(
@@ -132,8 +132,8 @@ void AddChangeAINode(std::string& graphViz, const std::string& handlerToken,
       label = std::format("{} ({})", label, *targetState);
     }
 
-    token = cxx_GraphVizTokenString(token, nullptr);
-    label = cxx_EscapedGraphVizString(label);
+    token = GraphVizTokenString(token, nullptr);
+    label = EscapedGraphVizString(label);
 
     specialNodes.insert(std::format(
         "\t{} [label=\"{}\" color=\"#408000\" shape=ellipse]\n", token, label));
@@ -238,7 +238,7 @@ void GenerateGraphVizForAIStateMachine(const oo::PList& stateMachine,
       "color=\"#808080\"]\n\t\n\tspecial_start [shape=ellipse "
       "color=\"#0000C0\" label=\"Start\"]\n\tspecial_start -> {} "
       "[lhead=\"cluster_GLOBAL\" color=\"#0000A0\"]\n",
-      cxx_EscapedGraphVizString(smName),
+      EscapedGraphVizString(smName),
       HandlerToken("GLOBAL", "ENTER", handlerKeys, uniqueSet));
 
   std::set<std::string> specialNodes;
@@ -250,7 +250,7 @@ void GenerateGraphVizForAIStateMachine(const oo::PList& stateMachine,
       {
         graphViz +=
             std::format("\t\n\tsubgraph cluster_{}\n\t{{\n\t\tlabel=\"{}\"\n",
-                        stateKey, cxx_EscapedGraphVizString(stateKey));
+                        stateKey, EscapedGraphVizString(stateKey));
 
         const oo::PList::Dict* state = stateValue.getIf<oo::PList::Dict>();
         if (state != nullptr) {
@@ -258,7 +258,7 @@ void GenerateGraphVizForAIStateMachine(const oo::PList& stateMachine,
             graphViz += std::format(
                 "\t\t{} [label=\"{}\"]\n",
                 HandlerToken(stateKey, handlerKey, handlerKeys, uniqueSet),
-                cxx_EscapedGraphVizString(handlerKey));
+                EscapedGraphVizString(handlerKey));
           }
         }
 

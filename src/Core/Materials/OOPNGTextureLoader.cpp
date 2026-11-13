@@ -176,7 +176,7 @@ void OOPNGTextureLoader::readBytes(png_bytep bytes, png_size_t count) {
 
 namespace {
 
-// The path in a message, as [loader cxx_path] printed it: "(null)" before
+// The path in a message, as [loader path] printed it: "(null)" before
 // libpng has the loader as its I/O pointer (errors while it is set up).
 std::string LoaderPath(OOPNGTextureLoader* loader) {
   return loader != nullptr ? loader->path().value_or("(null)")

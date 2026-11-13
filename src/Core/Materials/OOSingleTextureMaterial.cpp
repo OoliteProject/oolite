@@ -56,7 +56,7 @@ bool OOSingleTextureMaterial::initWithName(
   if (!configuration.isNull()) {
     // -oo_textureSpecifierForKey:@"diffuse_map" defaultName:name.
     const oo::PList* diffuseMap = configuration.find("diffuse_map");
-    texSpec = cxx_OOTextureSpecFromObject(
+    texSpec = OOTextureSpecFromObject(
         (diffuseMap != nullptr) ? *diffuseMap : oo::PList(), name);
   } else if (name.has_value()) {
     texSpec = oo::PList(*name);
@@ -81,7 +81,7 @@ bool OOSingleTextureMaterial::initWithName(
 
 std::optional<std::string> OOSingleTextureMaterial::descriptionComponents()
     const {
-  // The texture's "%@" (-cxx_description; nil answered nullopt).
+  // The texture's "%@" (-description; nil answered nullopt).
   if (_texture == nullptr) return std::nullopt;
   return _texture->description();
 }

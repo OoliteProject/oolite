@@ -314,7 +314,7 @@ void OOJSScript::popScript(OOJSScript *)  { std::abort(); }
 // MARK: What the rest of the game provides --------------------------------------------------------
 
 // The expander: "<string>", with each override "{key=value}" after it, in key order.
-std::optional<std::string> cxx_OOExpandDescriptionString(Random_Seed, const std::string &string, const oo::PList &overrides, const oo::PList &, const std::optional<std::string> &, OOExpandOptions options)
+std::optional<std::string> OOExpandDescriptionString(Random_Seed, const std::string &string, const oo::PList &overrides, const oo::PList &, const std::optional<std::string> &, OOExpandOptions options)
 {
 	std::string result = "<" + string + ">";
 	if (const oo::PList::Dict *dict = overrides.getIf<oo::PList::Dict>())
@@ -332,7 +332,7 @@ Random_Seed OOStringExpanderDefaultRandomSeed(void)
 }
 
 
-std::string cxx_CommodityDisplayNameForSymbolicName(const std::string &symbolicName)
+std::string CommodityDisplayNameForSymbolicName(const std::string &symbolicName)
 {
 	return "Name(" + symbolicName + ")";
 }
@@ -340,18 +340,18 @@ std::string cxx_CommodityDisplayNameForSymbolicName(const std::string &symbolicN
 
 // MARK: What the rest of the engine provides ------------------------------------------------------
 
-void cxx_OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
+void OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
 {
 	std::string msg = oo::str::vformat(format, args);
 	JS_ThrowPlainError(context, "%s", msg.c_str());
 }
 
 
-void cxx_OOJSReportError(JSContext *context, const char *format, ...)
+void OOJSReportError(JSContext *context, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
-	cxx_OOJSReportErrorWithArguments(context, format, args);
+	OOJSReportErrorWithArguments(context, format, args);
 	va_end(args);
 }
 
@@ -360,7 +360,7 @@ namespace {
 std::string sLastWarning;
 }
 
-void cxx_OOJSReportWarning(JSContext *, const char *format, ...)
+void OOJSReportWarning(JSContext *, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
@@ -369,9 +369,9 @@ void cxx_OOJSReportWarning(JSContext *, const char *format, ...)
 }
 
 
-void cxx_OOJSReportBadArguments(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, int argc, JSValueConst *, const std::optional<std::string> &message, const std::optional<std::string> &expectedArgsDescription)
+void OOJSReportBadArguments(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, int argc, JSValueConst *, const std::optional<std::string> &message, const std::optional<std::string> &expectedArgsDescription)
 {
-	cxx_OOJSReportError(context, "bad arguments: %s.%s(%d) %s / %s", scriptClass.value_or("-").c_str(), function.value_or("-").c_str(), argc, message.value_or("-").c_str(), expectedArgsDescription.value_or("-").c_str());
+	OOJSReportError(context, "bad arguments: %s.%s(%d) %s / %s", scriptClass.value_or("-").c_str(), function.value_or("-").c_str(), argc, message.value_or("-").c_str(), expectedArgsDescription.value_or("-").c_str());
 }
 
 
@@ -381,7 +381,7 @@ void OOJSReportPendingException(JSContext *context)
 }
 
 
-std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueConst value)
+std::optional<std::string> OOStringFromJSValue(JSContext *context, JSValueConst value)
 {
 	if (JS_IsNull(value) || JS_IsUndefined(value))  return std::nullopt;
 	std::size_t length = 0;
@@ -397,16 +397,16 @@ std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueCo
 }
 
 
-std::optional<std::string> cxx_OOStringFromJSValueEvenIfNull(JSContext *context, JSValueConst value)
+std::optional<std::string> OOStringFromJSValueEvenIfNull(JSContext *context, JSValueConst value)
 {
 	if (JS_IsNull(value))  return std::string("null");
 	if (JS_IsUndefined(value))  return std::string("undefined");
-	return cxx_OOStringFromJSValue(context, value);
+	return OOStringFromJSValue(context, value);
 }
 
 
 // Property IDs are interned for the life of the process (never freed): the GUI screen names'.
-JSAtom cxx_OOJSIDFromString(const std::string &string)
+JSAtom OOJSIDFromString(const std::string &string)
 {
 	return JS_NewAtomLen(OOJSAcquireContext(), string.data(), string.size());
 }
@@ -436,10 +436,10 @@ JSValue OOJSValueFromPList(JSContext *context, const oo::PList &plist)
 
 
 // A JS value's plist form: a string, a number, an array of those, or null.
-oo::PList cxx_OOJSPListFromJSValue(JSContext *context, JSValueConst value)
+oo::PList OOJSPListFromJSValue(JSContext *context, JSValueConst value)
 {
 	double number = 0;
-	if (JS_IsString(value))  return oo::PList(cxx_OOStringFromJSValue(context, value).value_or(""));
+	if (JS_IsString(value))  return oo::PList(OOStringFromJSValue(context, value).value_or(""));
 	if (JS_IsNumber(value) && JS_ToFloat64(context, &number, value) == 0)  return oo::PList(number);
 	if (JS_IsArray(value))
 	{
@@ -449,7 +449,7 @@ oo::PList cxx_OOJSPListFromJSValue(JSContext *context, JSValueConst value)
 		for (std::int64_t i = 0; i < length; i++)
 		{
 			JSValue element = JS_GetPropertyUint32(context, value, static_cast<std::uint32_t>(i));
-			if (!JS_IsException(element))  array.push_back(cxx_OOJSPListFromJSValue(context, element));
+			if (!JS_IsException(element))  array.push_back(OOJSPListFromJSValue(context, element));
 			JS_FreeValue(context, element);
 		}
 		return oo::PList(std::move(array));
@@ -459,11 +459,11 @@ oo::PList cxx_OOJSPListFromJSValue(JSContext *context, JSValueConst value)
 
 
 // An object's "keys" property, as far as the test registers keys: {keys: [names]} -> {keys: [...]}.
-oo::PList cxx_OOJSPListFromJSObject(JSContext *context, JSValueConst object)
+oo::PList OOJSPListFromJSObject(JSContext *context, JSValueConst object)
 {
 	oo::PList::Dict dict;
 	JSValue value = JS_GetPropertyStr(context, object, "keys");
-	if (!JS_IsException(value) && !JS_IsUndefined(value))  dict["keys"] = cxx_OOJSPListFromJSValue(context, value);
+	if (!JS_IsException(value) && !JS_IsUndefined(value))  dict["keys"] = OOJSPListFromJSValue(context, value);
 	JS_FreeValue(context, value);
 	return oo::PList(std::move(dict));
 }
@@ -476,7 +476,7 @@ oo::PList OOJSDictionaryFromStringTable(JSContext *context, JSValueConst value)
 	if (JS_IsObject(value))
 	{
 		JSValue name = JS_GetPropertyStr(context, value, "name");
-		if (!JS_IsException(name) && !JS_IsUndefined(name))  dict["name"] = oo::PList(cxx_OOStringFromJSValue(context, name).value_or(""));
+		if (!JS_IsException(name) && !JS_IsUndefined(name))  dict["name"] = oo::PList(OOStringFromJSValue(context, name).value_or(""));
 		JS_FreeValue(context, name);
 	}
 	return oo::PList(std::move(dict));
@@ -511,13 +511,13 @@ void OOScheduleDeferredCall(std::function<void()> call, double delay)
 
 void OOJSReportBadPropertySelector(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t)
 {
-	cxx_OOJSReportError(context, "bad property selector");
+	OOJSReportError(context, "bad property selector");
 }
 
 
 void OOJSReportBadPropertyValue(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t, JSValueConst)
 {
-	cxx_OOJSReportError(context, "bad property value");
+	OOJSReportError(context, "bad property value");
 }
 
 
@@ -614,7 +614,7 @@ std::string Eval(const char *src)
 		JS_FreeValue(sContext, JS_GetException(sContext));
 		return "<evaluation failed>";
 	}
-	std::string text = cxx_OOStringFromJSValue(sContext, result).value_or("<not a string>");
+	std::string text = OOStringFromJSValue(sContext, result).value_or("<not a string>");
 	JS_FreeValue(sContext, result);
 	return text;
 }

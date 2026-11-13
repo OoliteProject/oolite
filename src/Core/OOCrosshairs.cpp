@@ -73,7 +73,7 @@ void OOCrosshairs::render() {
     OOGL(glPopAttrib());
 
     OOVerifyOpenGLState();
-    cxx_OOCheckOpenGLErrors("OOCrosshairs after rendering");
+    OOCheckOpenGLErrors("OOCrosshairs after rendering");
   }
 }
 

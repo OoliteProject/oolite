@@ -39,7 +39,7 @@ SOFTWARE.
 
 class OOMusic : public OOSound {
  public:
-  /*	Was -cxx_initWithContentsOfFile:, OOSound's designated initialiser
+  /*	Was -initWithContentsOfFile:, OOSound's designated initialiser
      overridden: a music that wraps the sound the root's class cluster loads for
      the path. Null where it answered nil. It hides the root's factory of the
      same name.

@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 
 namespace {
 
-/*	cxx_OOExpandKey(cxx_OOExpand("<pattern>[category]", category)): the
+/*	OOExpandKey(OOExpand("<pattern>[category]", category)): the
    category is handed to the expander as the one-entry argument dictionary the
    macro builds from the variable's name. A key that expanded to nothing expands
    to nothing (""), as a nil key did.
@@ -38,8 +38,8 @@ namespace {
 std::string ExpandCategoryKey(std::string_view pattern,
                               const std::string& category) {
   const std::optional<std::string> key =
-      cxx_OOExpand(std::string(pattern), category);
-  return key.has_value() ? cxx_OOExpandKey(*key).value_or(std::string())
+      OOExpand(std::string(pattern), category);
+  return key.has_value() ? OOExpandKey(*key).value_or(std::string())
                          : std::string();
 }
 

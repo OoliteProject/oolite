@@ -75,7 +75,7 @@ std::optional<std::string> OptionalStringValue(const oo::PList* value) {
 
 }  // namespace
 
-oo::PList cxx_OOMakeDockingInstructions(
+oo::PList OOMakeDockingInstructions(
     StationEntity* station, HPVector coords, float speed, float range,
     const std::optional<std::string>& ai_message,
     const std::optional<std::string>& comms_message, bool match_rotation,
@@ -778,7 +778,7 @@ std::shared_ptr<::ShipEntity> StationEntity::newStationObject(
     const std::string& key, const oo::PList& dict) {
   std::shared_ptr<::ShipEntity> object =
       (oo::NewShipObject(oo::makeShared<StationEntity>(), key,
-                         dict));  // [super cxx_initWithKey:key definition:dict]
+                         dict));  // [super initWithKey:key definition:dict]
   if (object != nullptr)
     static_cast<StationEntity*>(object.get())->initStationDefaults();
   return object;
@@ -1008,7 +1008,7 @@ bool StationEntity::setUpShipFromDictionary(const oo::PList& dict) {
   const std::optional<std::string> portDimensionsStr =
       OptionalStringValue(dict.find("port_dimensions"));  // -oo_stringForKey:
   if (portDimensionsStr) {
-    cxx_OOStandardsDeprecated("The port_dimensions key is deprecated");
+    OOStandardsDeprecated("The port_dimensions key is deprecated");
     if (!OOEnforceStandards()) {
       const std::vector<std::string> tokens =
           oo::str::split(*portDimensionsStr, "x");
@@ -1137,7 +1137,7 @@ bool StationEntity::setUpSubEntities() {
     return true;
   }
 
-  cxx_OOStandardsDeprecated(
+  OOStandardsDeprecated(
       std::format("No docks set up for {}", oo::EntityDescription(self)));
   OO_LOG("ship.setup.docks", "No docks set up for {}, making virtual dock",
          oo::EntityDescription(self));
@@ -1533,7 +1533,7 @@ oo::PList StationEntity::dockingInstructionsForShip(::ShipEntity* ship) {
           50)  // note: non-player fugitives dock as normal
   {
     // refuse docking to the fugitive player
-    return cxx_OOMakeDockingInstructions(
+    return OOMakeDockingInstructions(
         this, (ship != nullptr ? ship->getPosition() : HPVector{}), 0, 100,
         "DOCKING_REFUSED", "[station-docking-refused-to-fugitive]", false, -1);
   }
@@ -1621,7 +1621,7 @@ oo::PList StationEntity::dockingInstructionsForShip(::ShipEntity* ship) {
       docking = "TRY_AGAIN_LATER";
     }
     // no docks accept this ship (or the player is blocking them)
-    return cxx_OOMakeDockingInstructions(
+    return OOMakeDockingInstructions(
         this, (ship != nullptr ? ship->getPosition() : HPVector{}), 200, 100,
         docking, std::nullopt, false, -1);
   }
@@ -1651,7 +1651,7 @@ oo::PList StationEntity::holdPositionInstructionForShip(::ShipEntity* ship) {
     _shipsOnHold.add(ship);
   }
 
-  return cxx_OOMakeDockingInstructions(
+  return OOMakeDockingInstructions(
       this, (ship != nullptr ? ship->getPosition() : HPVector{}), 0, 100,
       "HOLD_POSITION", std::nullopt, false, -1);
 }
@@ -1804,10 +1804,9 @@ void StationEntity::update(OOTimeDelta delta_t) {
                 {(dock != nullptr ? dock->getDisplayName()
                                   : std::optional<std::string>())
                      .value_or("(null)"),
-                 cxx_ClockToString(
-                     (player != nullptr ? player->clockTime() : 0.0) +
-                         DOCKING_CLEARANCE_WINDOW,
-                     false)}),
+                 ClockToString((player != nullptr ? player->clockTime() : 0.0) +
+                                   DOCKING_CLEARANCE_WINDOW,
+                               false)}),
             player);
       } else {
         const std::string grantedFormat = OO_DESC(
@@ -1819,10 +1818,9 @@ void StationEntity::update(OOTimeDelta delta_t) {
         sendExpandedMessage(
             oo::str::formatRuntime(
                 grantedFormat,
-                {cxx_ClockToString(
-                    (player != nullptr ? player->clockTime() : 0.0) +
-                        DOCKING_CLEARANCE_WINDOW,
-                    false)}),
+                {ClockToString((player != nullptr ? player->clockTime() : 0.0) +
+                                   DOCKING_CLEARANCE_WINDOW,
+                               false)}),
             player);
       }
       player_reserved_dock = dock;
@@ -2380,7 +2378,7 @@ std::optional<std::string> StationEntity::acceptDockingClearanceRequestFrom(
           sendExpandedMessage(
               oo::str::formatRuntime(
                   extendedFormat,
-                  {cxx_ClockToString(
+                  {ClockToString(
                       (player != nullptr ? player->clockTime() : 0.0) +
                           DOCKING_CLEARANCE_WINDOW,
                       false)}),
@@ -2568,10 +2566,9 @@ std::optional<std::string> StationEntity::acceptDockingClearanceRequestFrom(
                     ? player_reserved_dock->getDisplayName()
                     : std::optional<std::string>())
                    .value_or("(null)"),
-               cxx_ClockToString(
-                   (player != nullptr ? player->clockTime() : 0.0) +
-                       DOCKING_CLEARANCE_WINDOW,
-                   false)}),
+               ClockToString((player != nullptr ? player->clockTime() : 0.0) +
+                                 DOCKING_CLEARANCE_WINDOW,
+                             false)}),
           other);
     } else {
       const std::string grantedFormat = OO_DESC(
@@ -2583,10 +2580,9 @@ std::optional<std::string> StationEntity::acceptDockingClearanceRequestFrom(
       sendExpandedMessage(
           oo::str::formatRuntime(
               grantedFormat,
-              {cxx_ClockToString(
-                  (player != nullptr ? player->clockTime() : 0.0) +
-                      DOCKING_CLEARANCE_WINDOW,
-                  false)}),
+              {ClockToString((player != nullptr ? player->clockTime() : 0.0) +
+                                 DOCKING_CLEARANCE_WINDOW,
+                             false)}),
           other);
     }
 

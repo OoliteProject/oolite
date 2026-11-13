@@ -236,7 +236,7 @@ void OOPolygonSprite::drawWithData(GLfloat* data, size_t count, GLuint* vbo) {
 #endif
 
   OOVerifyOpenGLState();
-  cxx_OOCheckOpenGLErrors([&]() -> std::string {
+  OOCheckOpenGLErrors([&]() -> std::string {
     return "OOPolygonSprite after rendering " + description();
   });
 }

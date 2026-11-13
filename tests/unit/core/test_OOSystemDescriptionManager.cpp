@@ -71,14 +71,14 @@ oo::PList ResourceManager::manifestForIdentifier(
    point (anything else the zero point), and "1 2 3 4 5 6" is that seed
    (anything else, nil included, is all zeroes, as kNilRandomSeed).
 */
-NSPoint cxx_PointFromString(const std::string& xyString) {
+NSPoint PointFromString(const std::string& xyString) {
   double x = 0, y = 0;
   if (std::sscanf(xyString.c_str(), "%lf %lf", &x, &y) != 2)
     return NSMakePoint(0, 0);
   return NSMakePoint(x, y);
 }
 
-Random_Seed cxx_RandomSeedFromString(
+Random_Seed RandomSeedFromString(
     const std::optional<std::string>& abcdefString) {
   if (abcdefString == "1 2 3 4 5 6") return Random_Seed{1, 2, 3, 4, 5, 6};
   return Random_Seed{};

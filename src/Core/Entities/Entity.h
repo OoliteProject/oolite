@@ -437,11 +437,11 @@ class OOSubEntityInterface {
 // C++ forms, defined in OOConstToString.cpp: std::string results (never nil),
 // const std::string & parameters (nil arrived as "" and matched nothing: the
 // defaults).
-std::string cxx_OOStringFromEntityStatus(OOEntityStatus status);
-OOEntityStatus cxx_OOEntityStatusFromString(const std::string& string);
+std::string OOStringFromEntityStatus(OOEntityStatus status);
+OOEntityStatus OOEntityStatusFromString(const std::string& string);
 
-std::string cxx_OOStringFromScanClass(OOScanClass scanClass);
-OOScanClass cxx_OOScanClassFromString(const std::string& string);
+std::string OOStringFromScanClass(OOScanClass scanClass);
+OOScanClass OOScanClassFromString(const std::string& string);
 
 /*	The entities' shader binding member table (EntityShaderBindings.cpp):
    the binding a uniform bound to the property name on this entity makes,

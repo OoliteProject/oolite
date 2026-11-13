@@ -244,10 +244,10 @@ bool EntityFromArgumentList(JSContext* context,
       // The argument described as +stringWithJavaScriptParameters:count:1
       // described it: "(value)".
       const std::string parameters =
-          "(" + cxx_OOJSDescribeValue(context, argv[0], false) + ")";
-      cxx_OOJSReportWarning(context, "%s.%s(): expected entity, got %s.",
-                            scriptClass->c_str(), function->c_str(),
-                            parameters.c_str());
+          "(" + OOJSDescribeValue(context, argv[0], false) + ")";
+      OOJSReportWarning(context, "%s.%s(): expected entity, got %s.",
+                        scriptClass->c_str(), function->c_str(),
+                        parameters.c_str());
       return false;
     }
   }
@@ -417,7 +417,7 @@ static JSValue EntitySetProperty(OOJS_SETTER_ARGS) {
     case kMaxEnergy:
       if (JS_ToFloat64(context, &fValue, value) == 0) {
         if (fValue <= 0.0) {
-          cxx_OOJSReportError(context, "entity.maxEnergy must be positive.");
+          OOJSReportError(context, "entity.maxEnergy must be positive.");
           return JS_EXCEPTION;
         }
         cxxEntity->setMaxEnergy(fValue);
@@ -435,15 +435,15 @@ static JSValue EntitySetProperty(OOJS_SETTER_ARGS) {
             newClass == OOScanClass::kWormhole ||
             newClass == OOScanClass::kPlayer ||
             newClass == OOScanClass::kVisualEffect) {
-          cxx_OOJSReportError(context,
-                              "entity.scanClass cannot be set to that value.");
+          OOJSReportError(context,
+                          "entity.scanClass cannot be set to that value.");
           return JS_EXCEPTION;
         }
         cxxEntity->setScanClass(newClass);
         return JS_UNDEFINED;
       } else {
-        cxx_OOJSReportError(
-            context, "entity.scanClass is read-only except on NPC ships.");
+        OOJSReportError(context,
+                        "entity.scanClass is read-only except on NPC ships.");
         return JS_EXCEPTION;
       }
     default:

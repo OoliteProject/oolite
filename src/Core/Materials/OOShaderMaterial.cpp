@@ -783,9 +783,8 @@ bool GetShaderSource(
       }
     }
     if (!result.has_value()) {
-      OO_LOG(cxx_kOOLogFileNotFound,
-             "GLSL ERROR: failed to find {} program {}.", shaderType,
-             *fileName);
+      OO_LOG(kOOLogFileNotFound, "GLSL ERROR: failed to find {} program {}.",
+             shaderType, *fileName);
       return false;
     }
   }

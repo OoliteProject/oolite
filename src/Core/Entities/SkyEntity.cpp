@@ -53,7 +53,7 @@ MA 02110-1301, USA.
 namespace {
 
 // -objectForKey: as plist data (a null PList when absent), for
-// +cxx_colorWithDescription:.
+// +colorWithDescription:.
 oo::PList ValueForKey(const oo::PList& dict, std::string_view key) {
   const oo::PList* value = dict.find(key);
   return value != nullptr ? *value : oo::PList();
@@ -69,7 +69,7 @@ std::optional<std::string> OptionalStringForKey(const oo::PList& dict,
   return dict.get<std::string>(key);
 }
 
-// [[OOColor cxx_colorWithDescription:description] premultipliedColor]: null
+// [[OOColor colorWithDescription:description] premultipliedColor]: null
 // where the colour was nil.
 std::shared_ptr<OOColor> PremultipliedColorWithDescription(
     const oo::PList& description) {
@@ -209,7 +209,7 @@ void SkyEntity::drawImmediate(bool immediate, bool translucent) {
 
   OOEntityWithDrawable::drawImmediate(immediate, translucent);
 
-  cxx_OOCheckOpenGLErrors([&]() -> std::string {
+  OOCheckOpenGLErrors([&]() -> std::string {
     return "SkyEntity after drawing " + oo::EntityDescription(this);
   });
 }

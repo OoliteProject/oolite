@@ -60,8 +60,7 @@ OOJSFunction::OOJSFunction(JSValueConst function, JSContext* context) {
     if (JS_IsException(nameValue)) {
       JS_FreeValue(context, JS_GetException(context));
     } else {
-      std::optional<std::string> name =
-          cxx_OOStringFromJSValue(context, nameValue);
+      std::optional<std::string> name = OOStringFromJSValue(context, nameValue);
       if (name.has_value() && !name->empty()) _name = name;
     }
     JS_FreeValue(context, nameValue);

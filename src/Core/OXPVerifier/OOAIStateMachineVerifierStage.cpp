@@ -44,7 +44,7 @@ namespace {
 // property list when it is a dictionary, a null PList otherwise (its
 // plist.wrongType log line, which named the Foundation class, is not kept).
 oo::PList PListDictionaryFromFile(const std::string& path) {
-  oo::PList result = cxx_OOPropertyListFromFile(path);
+  oo::PList result = OOPropertyListFromFile(path);
   return result.isDict() ? result : oo::PList();
 }
 

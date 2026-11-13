@@ -129,7 +129,7 @@ class OOShaderUniform : public oo::Object {
       const std::string& uniformName, OOShaderProgram* shaderProgram,
       Entity* target, const char* property, OOUniformConvertOptions options);
 
-  // The whole of what -cxx_description printed.
+  // The whole of what -description printed.
   std::optional<std::string> description();
 
   void apply();

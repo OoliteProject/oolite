@@ -12,7 +12,7 @@
 	`this` falls back to) is the smallest stand-in that does the same thing. The cases pin what
 	replaced each selector the engine sent an id: -oo_jsValueInContext: (one JS object per object,
 	null for null), the getter's class check and its error text, the finalizer's -oo_clearJSSelf:
-	and release, and toString()'s -cxx_oo_jsDescription with its fallbacks and a native's exception.
+	and release, and toString()'s -oo_jsDescription with its fallbacks and a native's exception.
 	Run: tests/run.sh unit
 */
 
@@ -122,23 +122,23 @@ public:
 JSContext *gOOJSMainThreadContext = nullptr;
 
 
-void cxx_OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
+void OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
 {
 	std::string msg = oo::str::vformat(format, args);
 	JS_ThrowPlainError(context, "%s", msg.c_str());
 }
 
 
-void cxx_OOJSReportError(JSContext *context, const char *format, ...)
+void OOJSReportError(JSContext *context, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
-	cxx_OOJSReportErrorWithArguments(context, format, args);
+	OOJSReportErrorWithArguments(context, format, args);
 	va_end(args);
 }
 
 
-std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueConst value)
+std::optional<std::string> OOStringFromJSValue(JSContext *context, JSValueConst value)
 {
 	if (JS_IsNull(value) || JS_IsUndefined(value))  return std::nullopt;
 	std::size_t length = 0;
@@ -155,7 +155,7 @@ std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueCo
 
 
 // The atom cache and the pending-exception reporter, which the class registry calls.
-JSAtom cxx_OOJSIDFromString(const std::string &string)
+JSAtom OOJSIDFromString(const std::string &string)
 {
 	return JS_NewAtomLen(gOOJSMainThreadContext, string.data(), string.size());
 }
@@ -261,7 +261,7 @@ std::string Eval(const char *src)
 		JS_FreeValue(sContext, JS_GetException(sContext));
 		return "<evaluation failed>";
 	}
-	std::string text = cxx_OOStringFromJSValue(sContext, result).value_or("<not a string>");
+	std::string text = OOStringFromJSValue(sContext, result).value_or("<not a string>");
 	JS_FreeValue(sContext, result);
 	return text;
 }
@@ -364,7 +364,7 @@ OO_TEST(toString)
 	Define("delta", OOJSValueFromCxxObject(sContext, described.get()));
 	Define("epsilon", OOJSValueFromCxxObject(sContext, plain.get()));
 	Define("zeta", OOJSValueFromCxxObject(sContext, sub.get()));
-	// -cxx_oo_jsDescription, else "[object <JS class name>]" (the JS object's own class).
+	// -oo_jsDescription, else "[object <JS class name>]" (the JS object's own class).
 	OO_CHECK_EVAL("String(delta)", "[Thing delta, caf\xC3\xA9]");
 	OO_CHECK_EVAL("String(epsilon)", "[object Thing]");
 	OO_CHECK_EVAL("String(zeta)", "[object SubThing]");

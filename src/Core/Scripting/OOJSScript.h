@@ -80,7 +80,7 @@ class OOJSScript : public OOScript {
   bool callMethod(JSAtom methodID, JSContext* context, JSValueConst* argv,
                   int argc, JSValue* outResult) override;
 
-  // The property as cxx_OOJSPListFromJSValue() converts it; null when there is
+  // The property as OOJSPListFromJSValue() converts it; null when there is
   // no script object or it could not be read.
   oo::PList propertyWithID(JSAtom propID, JSContext* context);
   // Set a property which can be modified or deleted by the script.
@@ -93,8 +93,8 @@ class OOJSScript : public OOScript {
   bool setProperty(const oo::PList& value, const std::string& name);
   bool defineProperty(const oo::PList& value, const std::string& name);
 
-  // The JS glue (OOJSPrivateObject; -cxx_oo_jsClassName, -oo_jsValueInContext:
-  // and the -cxx_oo_jsDescription toString() answered).
+  // The JS glue (OOJSPrivateObject; -oo_jsClassName, -oo_jsValueInContext:
+  // and the -oo_jsDescription toString() answered).
   std::optional<std::string> jsClassName();
   JSValue jsValueInContext(JSContext* context) override;  // owned
   std::optional<std::string> jsDescription() override;

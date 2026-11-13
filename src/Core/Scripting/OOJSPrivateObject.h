@@ -59,7 +59,7 @@ class OOJSPrivateObject {
   // the object's. selfVal is borrowed and must not be freed.
   virtual void clearJSSelf(JSValueConst selfVal) = 0;
 
-  // -cxx_oo_jsDescription: what toString() answers; nullopt for "[object <JS
+  // -oo_jsDescription: what toString() answers; nullopt for "[object <JS
   // class name>]".
   virtual std::optional<std::string> jsDescription() { return std::nullopt; }
 };

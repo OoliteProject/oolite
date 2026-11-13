@@ -41,8 +41,8 @@ MA 02110-1301, USA.
 #include "oofnd/Scanner.hpp"
 #include "oofnd/String.hpp"
 
-bool cxx_ScanVectorFromString(const std::optional<std::string>& xyzString,
-                              Vector* outVector) {
+bool ScanVectorFromString(const std::optional<std::string>& xyzString,
+                          Vector* outVector) {
   GLfloat xyz[] = {0.0, 0.0, 0.0};
   int i = 0;
   std::string_view error;
@@ -67,11 +67,11 @@ bool cxx_ScanVectorFromString(const std::optional<std::string>& xyzString,
   }
 }
 
-bool cxx_ScanHPVectorFromString(const std::optional<std::string>& xyzString,
-                                HPVector* outVector) {
+bool ScanHPVectorFromString(const std::optional<std::string>& xyzString,
+                            HPVector* outVector) {
   Vector scanVector;
   assert(outVector != nullptr);
-  bool result = cxx_ScanVectorFromString(xyzString, &scanVector);
+  bool result = ScanVectorFromString(xyzString, &scanVector);
   if (!result) {
     return false;
   }
@@ -79,8 +79,8 @@ bool cxx_ScanHPVectorFromString(const std::optional<std::string>& xyzString,
   return true;
 }
 
-bool cxx_ScanQuaternionFromString(const std::optional<std::string>& wxyzString,
-                                  Quaternion* outQuaternion) {
+bool ScanQuaternionFromString(const std::optional<std::string>& wxyzString,
+                              Quaternion* outQuaternion) {
   GLfloat wxyz[] = {1.0, 0.0, 0.0, 0.0};
   int i = 0;
   std::string_view error;
@@ -109,7 +109,7 @@ bool cxx_ScanQuaternionFromString(const std::optional<std::string>& wxyzString,
   }
 }
 
-bool cxx_ScanVectorAndQuaternionFromString(
+bool ScanVectorAndQuaternionFromString(
     const std::optional<std::string>& xyzwxyzString, Vector* outVector,
     Quaternion* outQuaternion) {
   GLfloat xyzwxyz[] = {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0};
@@ -145,25 +145,25 @@ bool cxx_ScanVectorAndQuaternionFromString(
   return true;
 }
 
-Vector cxx_VectorFromString(const std::optional<std::string>& xyzString,
-                            Vector defaultValue) {
+Vector VectorFromString(const std::optional<std::string>& xyzString,
+                        Vector defaultValue) {
   Vector result;
-  if (!cxx_ScanVectorFromString(xyzString, &result)) result = defaultValue;
+  if (!ScanVectorFromString(xyzString, &result)) result = defaultValue;
   return result;
 }
 
-Quaternion cxx_QuaternionFromString(
-    const std::optional<std::string>& wxyzString, Quaternion defaultValue) {
+Quaternion QuaternionFromString(const std::optional<std::string>& wxyzString,
+                                Quaternion defaultValue) {
   Quaternion result;
-  if (!cxx_ScanQuaternionFromString(wxyzString, &result)) result = defaultValue;
+  if (!ScanQuaternionFromString(wxyzString, &result)) result = defaultValue;
   return result;
 }
 
-std::string cxx_StringFromPoint(NSPoint point) {
+std::string StringFromPoint(NSPoint point) {
   return std::format("{:f} {:f}", point.x, point.y);
 }
 
-NSPoint cxx_PointFromString(const std::string& xyString) {
+NSPoint PointFromString(const std::string& xyString) {
   const std::vector<std::string> tokens = oo::str::tokens(xyString);
   NSPoint result = NSZeroPoint;
 
@@ -174,7 +174,7 @@ NSPoint cxx_PointFromString(const std::string& xyString) {
   return result;
 }
 
-Random_Seed cxx_RandomSeedFromString(
+Random_Seed RandomSeedFromString(
     const std::optional<std::string>& abcdefString) {
   Random_Seed result;
   int abcdef[] = {0, 0, 0, 0, 0, 0};
@@ -206,32 +206,31 @@ Random_Seed cxx_RandomSeedFromString(
   return result;
 }
 
-std::string cxx_StringFromRandomSeed(Random_Seed seed) {
+std::string StringFromRandomSeed(Random_Seed seed) {
   return std::format("{} {} {} {} {} {}", static_cast<int8_t>(seed.a),
                      static_cast<int8_t>(seed.b), static_cast<int8_t>(seed.c),
                      static_cast<int8_t>(seed.d), static_cast<int8_t>(seed.e),
                      static_cast<int8_t>(seed.f));
 }
 
-std::string cxx_OOPadStringToEms(const std::string& string, float padEms) {
+std::string OOPadStringToEms(const std::string& string, float padEms) {
   std::string result = string;
-  float numEms = padEms - cxx_OOStringWidthInEm(result);
+  float numEms = padEms - OOStringWidthInEm(result);
   if (numEms > 0) {
-    numEms /= cxx_OOStringWidthInEm(" ");  // start with wide space
+    numEms /= OOStringWidthInEm(" ");  // start with wide space
     result = std::string(static_cast<std::size_t>(numEms), ' ') + result;
   }
   // most of the way there, so switch to narrow space
-  numEms = padEms - cxx_OOStringWidthInEm(result);
+  numEms = padEms - OOStringWidthInEm(result);
   if (numEms > 0) {
-    numEms /= cxx_OOStringWidthInEm("\037");  // 037 is narrow space
+    numEms /= OOStringWidthInEm("\037");  // 037 is narrow space
     result = std::string(static_cast<std::size_t>(numEms), '\037') + result;
   }
   return result;
 }
 
-std::string cxx_OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits,
-                                        bool includeDecimal,
-                                        bool includeSymbol) {
+std::string OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits,
+                                    bool includeDecimal, bool includeSymbol) {
   JSContext* context = OOJSAcquireContext();
   JSValueConst global = OOJavaScriptEngine::sharedEngine()->globalObject();
   JSValue exception = JS_UNDEFINED;
@@ -264,7 +263,7 @@ std::string cxx_OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits,
       OOJSReportPendingException(context);
     else
       // nullopt (was nil) for null or undefined
-      result = cxx_OOStringFromJSValue(context, rval);
+      result = OOStringFromJSValue(context, rval);
     JS_FreeValue(context, rval);
   } else {
     OOJSReportPendingException(context);
@@ -283,20 +282,19 @@ std::string cxx_OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits,
   return *result;
 }
 
-std::vector<unsigned> cxx_ComponentsFromVersionString(
-    const std::string& string) {
+std::vector<unsigned> ComponentsFromVersionString(const std::string& string) {
   return oo::str::versionComponents(string);
 }
 
-OOComparisonResult cxx_CompareVersions(const std::vector<unsigned>& version1,
-                                       const std::vector<unsigned>& version2) {
+OOComparisonResult CompareVersions(const std::vector<unsigned>& version1,
+                                   const std::vector<unsigned>& version2) {
   const int order = oo::str::compareVersions(version1, version2);
   if (order < 0) return OOComparisonResult::kAscending;
   if (order > 0) return OOComparisonResult::kDescending;
   return OOComparisonResult::kSame;
 }
 
-std::string cxx_ClockToString(double clock, bool adjusting) {
+std::string ClockToString(double clock, bool adjusting) {
   int days, hrs, mins, secs;
   std::string format;
 
@@ -319,7 +317,7 @@ std::string cxx_ClockToString(double clock, bool adjusting) {
 
 #if DEBUG_GRAPHVIZ
 
-std::string cxx_EscapedGraphVizString(const std::string& string) {
+std::string EscapedGraphVizString(const std::string& string) {
   static constexpr std::array<std::string_view, 6> srcStrings = {
       // Note: backslash must be first.
       "\\", "\"", "\'", "\r", "\n", "\t"};
@@ -356,8 +354,8 @@ bool NameIsTaken(const std::string& name,
 
 }  // namespace
 
-std::string cxx_GraphVizTokenString(const std::string& string,
-                                    std::set<std::string>* uniqueSet) {
+std::string GraphVizTokenString(const std::string& string,
+                                std::set<std::string>* uniqueSet) {
   std::string token;
   bool lastWasUnderscore = false;
   // UTF-16 units, as -characterAtIndex: read them

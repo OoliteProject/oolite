@@ -8,10 +8,10 @@
 #ifdef __cplusplus
 #include <string>
 std::string OOHarnessCredits(OOCreditsQuantity tenths, bool decimal);
-static inline std::string cxx_OOCredits(OOCreditsQuantity tenthsOfCredits) {
+static inline std::string OOCredits(OOCreditsQuantity tenthsOfCredits) {
   return OOHarnessCredits(tenthsOfCredits, true);
 }
-static inline std::string cxx_OOIntCredits(OOCreditsQuantity integerCredits) {
+static inline std::string OOIntCredits(OOCreditsQuantity integerCredits) {
   return OOHarnessCredits(integerCredits * 10, false);
 }
 #endif

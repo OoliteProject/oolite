@@ -57,9 +57,9 @@ void OOLogOutputHandlerFlushIfDue(void);
 
 // This will attempt to ensure the containing directory exists. If it fails, it
 // will return nullopt.
-std::optional<std::string> cxx_OOLogHandlerGetLogPath(void);
-std::optional<std::string> cxx_OOLogHandlerGetLogBasePath(void);
-void cxx_OOLogOutputHandlerChangeLogFile(const std::string& newLogName);
+std::optional<std::string> OOLogHandlerGetLogPath(void);
+std::optional<std::string> OOLogHandlerGetLogBasePath(void);
+void OOLogOutputHandlerChangeLogFile(const std::string& newLogName);
 
 void OOLogOutputHandlerStartLoggingToStdout(void);
 void OOLogOutputHandlerStopLoggingToStdout(void);

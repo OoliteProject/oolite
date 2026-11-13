@@ -886,7 +886,7 @@ class Universe : public oo::Object {
   void loadStationMarkets(const oo::PList& marketData);
   oo::PList getStationMarkets();
 
-  // Ships for sale (cxx_shipsForSaleForSystem:withTL:atTime:).
+  // Ships for sale (shipsForSaleForSystem:withTL:atTime:).
   oo::PList shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL,
                                   OOTimeAbsolute current_time);
 
@@ -1009,17 +1009,17 @@ OOINLINE Universe* OOGetUniverse(void) {
 
 // Only for use with string literals, and only for looking up strings: the
 // description, or the key itself when there is none. OO_DESC() is deprecated in
-// favour of cxx_OOExpandKey() except in known performance-critical contexts.
-#define OO_DESC(key) (cxx_OOLookUpDescriptionPRIV(key ""))
+// favour of OOExpandKey() except in known performance-critical contexts.
+#define OO_DESC(key) (OOLookUpDescriptionPRIV(key ""))
 #define OO_DESC_PLURAL(key, count) \
-  (cxx_OOLookUpPluralDescriptionPRIV(key "", count))
+  (OOLookUpPluralDescriptionPRIV(key "", count))
 
 // Not for direct use.
 // The lookups behind OO_DESC() / OO_DESC_PLURAL(): the description, or the key
 // itself when there is none.
-std::string cxx_OOLookUpDescriptionPRIV(const std::string& key);
-std::string cxx_OOLookUpPluralDescriptionPRIV(const std::string& key,
-                                              std::ptrdiff_t count);
+std::string OOLookUpDescriptionPRIV(const std::string& key);
+std::string OOLookUpPluralDescriptionPRIV(const std::string& key,
+                                          std::ptrdiff_t count);
 
 /*	The bodies of the custom-sound categories of OOSound and OOSoundSource
    The sound for a customsounds.plist key (borrowed: the resource
@@ -1032,10 +1032,9 @@ void OOSoundSourcePlayCustomSoundWithKey(::OOSoundSource* source,
 
 // C++ forms, defined in OOConstToString.cpp: nullopt where the
 // old Foundation forms gave nil.
-std::optional<std::string> cxx_OODisplayStringFromGovernmentID(
+std::optional<std::string> OODisplayStringFromGovernmentID(
     OOGovernmentID government);
-std::optional<std::string> cxx_OODisplayStringFromEconomyID(
-    OOEconomyID economy);
+std::optional<std::string> OODisplayStringFromEconomyID(OOEconomyID economy);
 
 /*	The look-ups behind the description and custom-sound keys: a
    call to the universe when there is one, else what the message to nil

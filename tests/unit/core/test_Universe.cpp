@@ -1029,7 +1029,7 @@ OO_TEST(slice19Descriptions) {
     OO_CHECK(!u->descriptionForArrayKey("slice19-text", 0).has_value());
     OO_CHECK(u->descriptionBooleanForKey("slice19-flag"));
     OO_CHECK(!u->descriptionBooleanForKey("slice19-missing"));
-    OO_CHECK(cxx_OOLookUpDescriptionPRIV("slice19-text") == "Hello");
+    OO_CHECK(OOLookUpDescriptionPRIV("slice19-text") == "Hello");
   }
 }
 
@@ -1410,11 +1410,11 @@ OO_TEST(slice26PluralDescriptions) {
         {"slice26-apple%1", oo::PList("apples")},
         {"slice26-word", oo::PList("word")},
     });
-    OO_CHECK(cxx_OOLookUpPluralDescriptionPRIV("slice26-apple", 1) == "apple");
-    OO_CHECK(cxx_OOLookUpPluralDescriptionPRIV("slice26-apple", 3) == "apples");
-    OO_CHECK(cxx_OOLookUpPluralDescriptionPRIV("slice26-apple", 0) == "apples");
-    OO_CHECK(cxx_OOLookUpDescriptionPRIV("slice26-word") == "word");
-    OO_CHECK(cxx_OOLookUpDescriptionPRIV("slice26-none") ==
+    OO_CHECK(OOLookUpPluralDescriptionPRIV("slice26-apple", 1) == "apple");
+    OO_CHECK(OOLookUpPluralDescriptionPRIV("slice26-apple", 3) == "apples");
+    OO_CHECK(OOLookUpPluralDescriptionPRIV("slice26-apple", 0) == "apples");
+    OO_CHECK(OOLookUpDescriptionPRIV("slice26-word") == "word");
+    OO_CHECK(OOLookUpDescriptionPRIV("slice26-none") ==
              "slice26-none");  // the key itself
   }
 }

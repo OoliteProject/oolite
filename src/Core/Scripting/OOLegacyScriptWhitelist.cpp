@@ -287,7 +287,7 @@ static oo::PList SanitizeCondition(const std::string& condition,
                "***** SCRIPT ERROR: in {} (\"{}\"), comparison operator \"{}\" "
                "is not valid for {}.",
                StringFromStack(stack), condition,
-               cxx_OOComparisonTypeToString(comparatorValue), "booleans");
+               OOComparisonTypeToString(comparatorValue), "booleans");
         return oo::PList();
     }
   }

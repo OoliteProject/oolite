@@ -274,7 +274,7 @@ void OOLaserShotEntity::drawImmediate(bool /*immediate*/, bool translucent) {
   OOGL(glDisable(GL_TEXTURE_2D));
 
   OOVerifyOpenGLState();
-  cxx_OOCheckOpenGLErrors([&]() -> std::string {
+  OOCheckOpenGLErrors([&]() -> std::string {
     return "OOLaserShotEntity after drawing " + oo::EntityDescription(this);
   });
 }

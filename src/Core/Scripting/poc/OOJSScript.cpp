@@ -190,8 +190,7 @@ std::optional<std::string> OOJSScript::stringPropertyNamed(const char* name,
                                                            JSContext* context) {
   JSValue value = JS_GetPropertyStr(context, _jsSelf, name);
   std::optional<std::string> result =
-      JS_IsString(value) ? cxx_OOStringFromJSValue(context, value)
-                         : std::nullopt;
+      JS_IsString(value) ? OOStringFromJSValue(context, value) : std::nullopt;
   JS_FreeValue(context, value);
   return result;
 }

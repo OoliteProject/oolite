@@ -285,7 +285,7 @@ bool StationEntity::getMarketMonitored()						{ std::abort(); }
 
 
 // The expander: "<string>".
-std::optional<std::string> cxx_OOExpandDescriptionString(Random_Seed, const std::string &string, const oo::PList &, const oo::PList &, const std::optional<std::string> &, OOExpandOptions)
+std::optional<std::string> OOExpandDescriptionString(Random_Seed, const std::string &string, const oo::PList &, const oo::PList &, const std::optional<std::string> &, OOExpandOptions)
 {
 	return "<" + string + ">";
 }
@@ -297,7 +297,7 @@ Random_Seed OOStringExpanderDefaultRandomSeed(void)
 
 
 // The system manager's parsers, for the inputs the test uses (as test_OOSystemDescriptionManager.mm).
-NSPoint cxx_PointFromString(const std::string &xyString)
+NSPoint PointFromString(const std::string &xyString)
 {
 	double x = 0, y = 0;
 	if (std::sscanf(xyString.c_str(), "%lf %lf", &x, &y) != 2)  return NSMakePoint(0, 0);
@@ -305,14 +305,14 @@ NSPoint cxx_PointFromString(const std::string &xyString)
 }
 
 
-Random_Seed cxx_RandomSeedFromString(const std::optional<std::string> &)
+Random_Seed RandomSeedFromString(const std::optional<std::string> &)
 {
 	return Random_Seed{};
 }
 
 
 // A route type by name: the two the test names.
-OORouteType cxx_StringToRouteType(const std::string &string)
+OORouteType StringToRouteType(const std::string &string)
 {
 	if (string == "OPTIMIZED_BY_TIME")  return OORouteType::kTime;
 	if (string == "OPTIMIZED_BY_NONE")  return OORouteType::kNone;
@@ -332,23 +332,23 @@ Vector OOGalacticCoordinatesFromInternal(
 JSContext *gOOJSMainThreadContext = nullptr;	// the engine's
 
 
-void cxx_OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
+void OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
 {
 	std::string msg = oo::str::vformat(format, args);
 	JS_ThrowPlainError(context, "%s", msg.c_str());
 }
 
 
-void cxx_OOJSReportError(JSContext *context, const char *format, ...)
+void OOJSReportError(JSContext *context, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
-	cxx_OOJSReportErrorWithArguments(context, format, args);
+	OOJSReportErrorWithArguments(context, format, args);
 	va_end(args);
 }
 
 
-void cxx_OOJSReportErrorForCaller(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, const char *format, ...)
+void OOJSReportErrorForCaller(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
@@ -362,7 +362,7 @@ namespace {
 std::string sLastWarning;
 }
 
-void cxx_OOJSReportWarning(JSContext *, const char *format, ...)
+void OOJSReportWarning(JSContext *, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
@@ -371,9 +371,9 @@ void cxx_OOJSReportWarning(JSContext *, const char *format, ...)
 }
 
 
-void cxx_OOJSReportBadArguments(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, int argc, JSValueConst *, const std::optional<std::string> &message, const std::optional<std::string> &expectedArgsDescription)
+void OOJSReportBadArguments(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, int argc, JSValueConst *, const std::optional<std::string> &message, const std::optional<std::string> &expectedArgsDescription)
 {
-	cxx_OOJSReportError(context, "bad arguments: %s.%s(%d) %s / %s", scriptClass.value_or("-").c_str(), function.value_or("-").c_str(), argc, message.value_or("-").c_str(), expectedArgsDescription.value_or("-").c_str());
+	OOJSReportError(context, "bad arguments: %s.%s(%d) %s / %s", scriptClass.value_or("-").c_str(), function.value_or("-").c_str(), argc, message.value_or("-").c_str(), expectedArgsDescription.value_or("-").c_str());
 }
 
 
@@ -384,7 +384,7 @@ void OOJSReportPendingException(JSContext *context)
 }
 
 
-JSAtom cxx_OOJSIDFromString(const std::string &string)
+JSAtom OOJSIDFromString(const std::string &string)
 {
 	return JS_NewAtomLen(OOJSAcquireContext(), string.data(), string.size());
 }
@@ -401,7 +401,7 @@ JSValue OOJSNativeFailure(JSContext *context)
 }
 
 
-std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueConst value)
+std::optional<std::string> OOStringFromJSValue(JSContext *context, JSValueConst value)
 {
 	if (JS_IsNull(value) || JS_IsUndefined(value))  return std::nullopt;
 	std::size_t length = 0;
@@ -425,7 +425,7 @@ bool OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
 	number = std::floor(number + 0.5);
 	if (std::isnan(number) || number < INT32_MIN || number > INT32_MAX)
 	{
-		cxx_OOJSReportError(context, "can't convert %s to an integer", cxx_OOStringFromJSValue(context, value).value_or("(null)").c_str());
+		OOJSReportError(context, "can't convert %s to an integer", OOStringFromJSValue(context, value).value_or("(null)").c_str());
 		return false;
 	}
 	*outValue = static_cast<int32_t>(number);
@@ -467,17 +467,17 @@ JSValue OOJSValueFromPList(JSContext *context, const oo::PList &plist)
 
 
 // A JS value's plist form, as far as the test sets one: a string, a number, or null.
-oo::PList cxx_OOJSPListFromJSValue(JSContext *context, JSValueConst value)
+oo::PList OOJSPListFromJSValue(JSContext *context, JSValueConst value)
 {
 	double number = 0;
-	if (JS_IsString(value))  return oo::PList(cxx_OOStringFromJSValue(context, value).value_or(""));
+	if (JS_IsString(value))  return oo::PList(OOStringFromJSValue(context, value).value_or(""));
 	if (JS_IsNumber(value) && JS_ToFloat64(context, &number, value) == 0)  return oo::PList(number);
 	return oo::PList();
 }
 
 
 // Link stubs: the commodity classes' script path, which the test never takes.
-oo::PList cxx_OOJSPListFromJSObject(JSContext *, JSValueConst)	{ std::abort(); }
+oo::PList OOJSPListFromJSObject(JSContext *, JSValueConst)	{ std::abort(); }
 JSAtom OOJSInternAtomPRIVATE(const char *)	{ std::abort(); }
 
 
@@ -491,7 +491,7 @@ Universe *gSharedUniverse = nullptr;
 
 void OOJSReportBadPropertySelector(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t)
 {
-	cxx_OOJSReportError(context, "bad property selector");
+	OOJSReportError(context, "bad property selector");
 }
 
 
@@ -517,7 +517,7 @@ void OOJSObjectWrapperFinalize(JSRuntime *runtime, JSValueConst thisObj)
 
 JSValue OOJSUnconstructableConstruct(JSContext *context, JSValueConst, int, JSValueConst *)
 {
-	cxx_OOJSReportError(context, "unconstructable");
+	OOJSReportError(context, "unconstructable");
 	return JS_EXCEPTION;
 }
 
@@ -636,7 +636,7 @@ std::string Eval(const char *src)
 		JS_FreeValue(sContext, JS_GetException(sContext));
 		return "<evaluation failed>";
 	}
-	std::string text = cxx_OOStringFromJSValue(sContext, result).value_or("<not a string>");
+	std::string text = OOStringFromJSValue(sContext, result).value_or("<not a string>");
 	JS_FreeValue(sContext, result);
 	return text;
 }
@@ -778,7 +778,7 @@ OO_TEST(interstellar)
 }
 
 
-// -cxx_currentSystemData answers a PList by value, so a pointer into it taken
+// -currentSystemData answers a PList by value, so a pointer into it taken
 // in an if-init dangled while the keys were read. Long keys (no small-string
 // optimisation) make the copies pushed while iterating allocate, so freed
 // dictionary nodes are reused under the loop.

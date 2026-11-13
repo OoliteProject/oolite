@@ -242,7 +242,7 @@ bool JSEquipmentInfoGetEquipmentType(JSContext* context, JSValueConst inObject,
 }
 
 // OOJSBasicPrivateObjectConverter for the C++ type the slot holds: the type
-// itself as an Object node, for the callers of cxx_OOJSPListFromJSValue (null
+// itself as an Object node, for the callers of OOJSPListFromJSValue (null
 // for the prototype).
 oo::PList EquipmentInfoConverter(JSContext* /*context*/, JSValueConst object) {
   OOEquipmentType* type = static_cast<OOEquipmentType*>(
@@ -276,7 +276,7 @@ OOEquipmentType* JSValueToEquipmentType(JSContext* context,
     }
   }
 
-  std::optional<std::string> string = cxx_OOStringFromJSValue(context, value);
+  std::optional<std::string> string = OOStringFromJSValue(context, value);
   if (string.has_value())
     return OOEquipmentType::equipmentTypeWithIdentifier(*string)
         .get();  // borrowed: the registry holds it
@@ -298,7 +298,7 @@ std::optional<std::string> JSValueToEquipmentKeyRelaxed(JSContext* context,
 
   std::optional<std::string> result;
   bool exists = false;
-  const oo::PList plistValue = cxx_OOJSPListFromJSValue(context, value);
+  const oo::PList plistValue = OOJSPListFromJSValue(context, value);
 
   if (OOEquipmentType* typeValue = OOEquipmentTypeInObjectNode(plistValue)) {
     result = typeValue->identifier();
@@ -545,8 +545,8 @@ static JSValue EquipmentInfoSetProperty(OOJS_SETTER_ARGS) {
   switch (static_cast<EquipmentInfoProperty>(magic)) {
     using enum EquipmentInfoProperty;
     case kDisplayColor:
-      colorForScript = OOColor::colorWithDescription(
-          cxx_OOJSPListFromJSValue(context, value));
+      colorForScript =
+          OOColor::colorWithDescription(OOJSPListFromJSValue(context, value));
       if (colorForScript != nullptr || JS_IsNull(value)) {
         if (type != nullptr)
           type->setDisplayColor(
@@ -555,7 +555,7 @@ static JSValue EquipmentInfoSetProperty(OOJS_SETTER_ARGS) {
       }
       break;
     case kEffectiveTechLevel:
-      cxx_OOStandardsDeprecated(std::format(
+      OOStandardsDeprecated(std::format(
           "TL99 for variable tech level is deprecated for {}",
           Ask(type, &OOEquipmentType::identifier).value_or("(null)")));
       if (!OOEnforceStandards() &&
@@ -580,7 +580,7 @@ static JSValue EquipmentInfoSetProperty(OOJS_SETTER_ARGS) {
           return JS_UNDEFINED;
         }
       } else {
-        cxx_OOJSReportWarning(
+        OOJSReportWarning(
             context,
             "Cannot modify effective tech level for %s, because its base tech "
             "level is not 99.",
@@ -667,10 +667,10 @@ static JSValue EquipmentInfoStaticInfoForKey(OOJS_NATIVE_ARGS) {
 
   std::optional<std::string> key;
 
-  if (argc > 0) key = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
+  if (argc > 0) key = OOStringFromJSValue(context, OOJS_ARGV[0]);
   if (!key.has_value()) {
-    cxx_OOJSReportBadArguments(context, "EquipmentInfo", "infoForKey",
-                               MIN(argc, 1), OOJS_ARGV, std::nullopt, "string");
+    OOJSReportBadArguments(context, "EquipmentInfo", "infoForKey", MIN(argc, 1),
+                           OOJS_ARGV, std::nullopt, "string");
     return OOJSNativeFailure(context);
   }
 

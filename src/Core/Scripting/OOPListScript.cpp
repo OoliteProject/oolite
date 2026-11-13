@@ -55,7 +55,7 @@ OOPListScript::scriptsInPListFile(const std::string& filePath) {
   if (cachedScripts) {
     return loadCachedScripts(cachedScripts);
   } else {
-    oo::PList dict = cxx_OOPropertyListFromFile(filePath);
+    oo::PList dict = OOPropertyListFromFile(filePath);
     if (!dict.isDict())
       dict = oo::PList();  // a dictionary or nothing, as OODictionaryFromFile
                            // answered (its plist.wrongType line, which named

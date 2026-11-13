@@ -96,7 +96,7 @@ OOSound::OOSound() {
   if (!sIsSetUp) setUp();
 }
 
-/*	The body of -cxx_initWithContentsOfFile: after the receiver's release:
+/*	The body of -initWithContentsOfFile: after the receiver's release:
    the concrete sound it makes. The decoder is released at the end of the
    scope, as [decoder release] did.
 */

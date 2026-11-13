@@ -110,7 +110,7 @@ OOTextureGenerator* Kept(std::shared_ptr<OOTextureGenerator> generator) {
 
 // OOCombinedEmissionMapGenerator::generatorWithEmissionMapSpec(), kept (it was
 // autoreleased; null for null), as the facade initialiser
-// cxx_initWithEmissionMapSpec:... answered it.
+// initWithEmissionMapSpec:... answered it.
 OOTextureGenerator* NewGenerator(const oo::PList& emission,
                                  OOColor* emissionColor, OOTexture* diffuseMap,
                                  OOColor* diffuseColor,
@@ -138,7 +138,7 @@ OOTextureGenerator* NewCombinedGenerator(const oo::PList& map,
 // A map named by a string spec, as the generator keys it (it sets extra_shrink
 // only in a dictionary).
 std::string KeyOf(const char* name) {
-  return cxx_OOTextureCacheKeyForSpecifier(oo::PList(name));
+  return OOTextureCacheKeyForSpecifier(oo::PList(name));
 }
 
 struct Baked {
@@ -195,7 +195,7 @@ OO_TEST(settingsFromTheOptionsSpecifier) {
                         {"texture_LOD_bias", oo::PList(-0.25)}});
     OOTextureFlags expected = OOTextureFlags::kNone;
     float anisotropy = 0, lodBias = 0;
-    OO_CHECK(cxx_OOInterpretTextureSpecifier(options, NULL, &expected,
+    OO_CHECK(OOInterpretTextureSpecifier(options, NULL, &expected,
                                              &anisotropy, &lodBias, true));
     OOTextureGenerator* generator = NewGenerator(
         oo::PList("e.png"), nullptr, nullptr, nullptr, oo::PList(), nullptr, options);

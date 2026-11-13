@@ -50,7 +50,7 @@ namespace {
 // The class cluster's one concrete decoder, private to this file.
 class OOALSoundVorbisCodec final : public OOALSoundDecoder {
  public:
-  // Was [[OOALSoundVorbisCodec alloc] cxx_initWithPath:]: null where it
+  // Was [[OOALSoundVorbisCodec alloc] initWithPath:]: null where it
   // answered nil.
   static std::shared_ptr<OOALSoundDecoder> createWithPath(
       const std::optional<std::string>& path);
@@ -135,7 +135,7 @@ std::shared_ptr<OOALSoundDecoder> OOALSoundVorbisCodec::createWithPath(
   return codec;
 }
 
-/*	The body of -cxx_initWithPath:. [super init] could not fail, so its
+/*	The body of -initWithPath:. [super init] could not fail, so its
    block stays as it was; each
         "[self release]; self = nil;" is return false (the factory drops the
    object, as the release did).
@@ -192,7 +192,7 @@ bool OOALSoundVorbisCodec::initWithPath(
 
       uf = unzOpen64(zipFile.c_str());
       if (uf == nullptr) {
-        OO_LOG(cxx_kOOLogFileNotFound, "Could not unzip OXZ at {}", zipFile);
+        OO_LOG(kOOLogFileNotFound, "Could not unzip OXZ at {}", zipFile);
         return false;
       } else {
         // unzLocateFile(*, *, 1) = case-sensitive extract
@@ -206,7 +206,7 @@ bool OOALSoundVorbisCodec::initWithPath(
                                         nullptr, 0);
           if (err != UNZ_OK) {
             unzClose(uf);
-            OO_LOG(cxx_kOOLogFileNotFound,
+            OO_LOG(kOOLogFileNotFound,
                    "Could not get properties of {} within OXZ at {}",
                    containedFile, zipFile);
             return false;
@@ -214,9 +214,8 @@ bool OOALSoundVorbisCodec::initWithPath(
             err = unzOpenCurrentFile(uf);
             if (err != UNZ_OK) {
               unzClose(uf);
-              OO_LOG(cxx_kOOLogFileNotFound,
-                     "Could not read {} within OXZ at {}", containedFile,
-                     zipFile);
+              OO_LOG(kOOLogFileNotFound, "Could not read {} within OXZ at {}",
+                     containedFile, zipFile);
               return false;
             } else {
               ov_callbacks _callbacks = {

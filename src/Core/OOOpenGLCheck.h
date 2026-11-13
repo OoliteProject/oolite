@@ -2,7 +2,7 @@
 
 OOOpenGLCheck.h
 
-OpenGL error checking (cxx_OOCheckOpenGLErrors(), OOGL() and friends),
+OpenGL error checking (OOCheckOpenGLErrors(), OOGL() and friends),
 split out of OOOpenGL.h so that a plain C++ translation unit can use it:
 this header includes only OOOpenGLOnly.h and oofnd headers (no Cocoa
 compatibility header).
@@ -40,7 +40,7 @@ MA 02110-1301, USA.
 #define OO_GL_STATE_VERIFICATION 1
 #endif
 
-/*	cxx_OOCheckOpenGLErrors()
+/*	OOCheckOpenGLErrors()
         Check for and log OpenGL errors, and returns true if an error occurred.
         NOTE: this is controlled by the log message class
    rendering.opengl.error. If logging is disabled, no error checking will occur.
@@ -70,8 +70,8 @@ MA 02110-1301, USA.
 #include <vector>
 
 #include "oofnd/PrintfFormat.h"
-bool cxx_OOCheckOpenGLErrors(const char* format, ...) OO_PRINTF_FORMAT(1, 2);
-bool cxx_OOCheckOpenGLErrors(const std::function<std::string()>& context);
+bool OOCheckOpenGLErrors(const char* format, ...) OO_PRINTF_FORMAT(1, 2);
+bool OOCheckOpenGLErrors(const std::function<std::string()>& context);
 
 /*	OO_CHECK_GL_HEAVY and error-checking stuff
 
@@ -80,7 +80,7 @@ bool cxx_OOCheckOpenGLErrors(const std::function<std::string()>& context);
    performing the statement foo. OOGLBEGIN(mode) checks for GL errors, then
    calls glBegin(mode). OOGLEND() calls glEnd(), then checks for GL errors.
         CheckOpenGLErrorsHeavy() checks for errors exactly like
-   cxx_OOCheckOpenGLErrors().
+   OOCheckOpenGLErrors().
 
         If OO_CHECK_GL_HEAVY is zero, these macros don't perform error checking,
         but otherwise continue to work as before, so:
@@ -105,10 +105,10 @@ void OOGLNoteCurrentFunction(const char* func, unsigned line);
 #endif
 
 #include "oofnd/Log.hpp"  // oo::log::abbreviatedFileName()
-#define OOGL_PERFORM_CHECK(label, code)                                   \
-  cxx_OOCheckOpenGLErrors("%s %s:%u (%s)%s", label,                       \
-                          oo::log::abbreviatedFileName(__FILE__).c_str(), \
-                          __LINE__, __PRETTY_FUNCTION__, code)
+#define OOGL_PERFORM_CHECK(label, code)                               \
+  OOCheckOpenGLErrors("%s %s:%u (%s)%s", label,                       \
+                      oo::log::abbreviatedFileName(__FILE__).c_str(), \
+                      __LINE__, __PRETTY_FUNCTION__, code)
 #define OOGL(statement)                              \
   do {                                               \
     OOGLNoteCurrentFunction(__FUNCTION__, __LINE__); \
@@ -116,7 +116,7 @@ void OOGLNoteCurrentFunction(const char* func, unsigned line);
     statement;                                       \
     OOGL_PERFORM_CHECK("POST", " -- " #statement);   \
   } while (0)
-#define CheckOpenGLErrorsHeavy cxx_OOCheckOpenGLErrors
+#define CheckOpenGLErrorsHeavy OOCheckOpenGLErrors
 #define OOGLBEGIN(mode)                              \
   do {                                               \
     OOGLNoteCurrentFunction(__FUNCTION__, __LINE__); \

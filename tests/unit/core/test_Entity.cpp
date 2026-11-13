@@ -731,7 +731,7 @@ OO_TEST(cxxEntityBehindItsFacade) {
 }
 
 // PlayerEntity's -deferredInit sends -init again (through -[ShipEntity
-// cxx_initWithKey:...]) to an entity that is already initialised and has a
+// initWithKey:...]) to an entity that is already initialised and has a
 // script object: the body runs again over the same state, and what it does not
 // set stays.
 OO_TEST(initSentAgain) {

@@ -152,7 +152,7 @@ OO_TEST(externalPathsAreTheSearchPathsWithoutAScan) {
     OO_CHECK(ResourceManager::useAddOns() ==
              std::nullopt);  // no scan, so no selection
 
-    // -reset forgets them (the next -cxx_paths would scan again, which the test
+    // -reset forgets them (the next -paths would scan again, which the test
     // does not do).
     ResourceManager::reset();
     OO_CHECK(ResourceManager::useAddOns() == std::nullopt);

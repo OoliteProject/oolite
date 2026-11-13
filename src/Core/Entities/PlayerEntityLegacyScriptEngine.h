@@ -90,4 +90,4 @@ static_assert(oo::ToUnderlying(OOOperationType::kLocalVar) == 4);
 static_assert(oo::ToUnderlying(OOOperationType::kFalse) == 5);
 static_assert(oo::ToUnderlying(OOOperationType::kInvalid) == 6);
 
-std::string cxx_OOComparisonTypeToString(OOComparisonType type);
+std::string OOComparisonTypeToString(OOComparisonType type);

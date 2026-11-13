@@ -17,8 +17,8 @@ class OOHarnessSystemManager {
 };
 // The universe is C++: the bridge calls the members of the same names, as
 // OOStringExpander.mm calls them in the game:
-//   [UNIVERSE cxx_descriptions]                  -> descriptions()
-//   [UNIVERSE cxx_getSystemName:s (forGalaxy:g)] -> getSystemName(s (, g))
+//   [UNIVERSE descriptions]                  -> descriptions()
+//   [UNIVERSE getSystemName:s (forGalaxy:g)] -> getSystemName(s (, g))
 //   [UNIVERSE systemManager]                     -> getSystemManager()
 class Universe {
  public:

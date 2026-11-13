@@ -243,7 +243,7 @@ void PlayerEntity::setGuiToScenarioScreen(int page) {
                               : std::nullopt;
       const std::string scenarioName =
           " " + scenarioTitle.value_or("(null)") + " ";  // @" %@ "
-      gui->setText(cxx_OOExpand(scenarioName).value_or(std::string()), row);
+      gui->setText(OOExpand(scenarioName).value_or(std::string()), row);
       gui->setKey(std::format("Scenario:{}", i), row);
       ++row;
     }
@@ -292,7 +292,7 @@ void PlayerEntity::showScenarioDetails() {
       const std::optional<std::string> scenarioDescription =
           OptionalStringValue(scenario->find("description"));
       const std::optional<std::string> expandedDescription =
-          scenarioDescription.has_value() ? cxx_OOExpand(*scenarioDescription)
+          scenarioDescription.has_value() ? OOExpand(*scenarioDescription)
                                           : std::nullopt;
       gui->addLongText(expandedDescription, GUI_ROW_SCENARIOS_DETAIL,
                        OOGUIAlignment::kLeft);
@@ -644,7 +644,7 @@ bool PlayerEntity::loadPlayerFromFile(const std::string& fileToOpen,
 
   if (loadedOK) {
     OO_LOG("load.progress", "{}", "Reading file");
-    fileDic = cxx_OOPropertyListFromFile(fileToOpen);
+    fileDic = OOPropertyListFromFile(fileToOpen);
     if (!fileDic.isDict())
       fileDic =
           oo::PList();  // a dictionary or nothing, as OODictionaryFromFile
@@ -1072,7 +1072,7 @@ void PlayerEntity::lsCommanders(
     if (type != oo::fs::FileType::kNone) {
       if (type != oo::fs::FileType::kDirectory &&
           oo::str::lowercase(oo::str::pathExtension(path)) == "oolite-save") {
-        oo::PList cdr = cxx_OOPropertyListFromFile(path);
+        oo::PList cdr = OOPropertyListFromFile(path);
         if (!cdr.isDict())
           cdr =
               oo::PList();  // a dictionary or nothing, as OODictionaryFromFile
@@ -1178,7 +1178,7 @@ void PlayerEntity::lsCommanders(
   for (i = firstIndex; i < lastIndex; i++) {
     const oo::PList& cdr = cdrDetailArray[i];
     if (cdr.get<bool>("isSavedGame")) {
-      const std::string ratingDesc = cxx_OODisplayRatingStringFromKillCount(
+      const std::string ratingDesc = OODisplayRatingStringFromKillCount(
                                          cdr.get<unsigned int>("ship_kills"))
                                          .value_or("(null)");
       const std::optional<std::string> saveName = CommanderSaveName(cdr);
@@ -1309,11 +1309,10 @@ void PlayerEntity::showCommanderShip(int cdrArrayIndex) {
 
   // Make a short description of the commander
   const std::string legalDesc =
-      cxx_OODisplayStringFromLegalStatus(cdr.get<int>("legal_status"))
+      OODisplayStringFromLegalStatus(cdr.get<int>("legal_status"))
           .value_or("(null)");
 
-  rating =
-      cxx_KillCountToRatingAndKillString(cdr.get<unsigned int>("ship_kills"));
+  rating = KillCountToRatingAndKillString(cdr.get<unsigned int>("ship_kills"));
   const oo::PList* creditsNode = cdr.find("credits");
   OOCreditsQuantity money = OODeciCreditsFromPList(creditsNode);
 
@@ -1349,7 +1348,7 @@ void PlayerEntity::showCommanderShip(int cdrArrayIndex) {
         " {:c}", (7 - cdr.get<unsigned char>("current_system_economy")) + 16);
   }
 
-  timeStamp = cxx_ClockToString(
+  timeStamp = ClockToString(
       cdr.get<double>("ship_clock", PLAYER_SHIP_CLOCK_START), false);
 
   //-------------------------------------------------------------------------------------------------------------------------
@@ -1358,8 +1357,8 @@ void PlayerEntity::showCommanderShip(int cdrArrayIndex) {
       OO_DESC("loadsavescreen-commander-@-rated-@-has-@-legal-status-@-ship-@-"
               "location-@-g-@-eco-@-gov-@-tl-@-timestamp-@"),
       {TextArg(OptionalStringValue(cdr.find("player_name"))), rating,
-       cxx_OOCredits(money), legalDesc, TextArg(shipName), locationName,
-       galNumber, locationEco, locationGov, locationTL, timeStamp});
+       OOCredits(money), legalDesc, TextArg(shipName), locationName, galNumber,
+       locationEco, locationGov, locationTL, timeStamp});
 
   //-------------------------------------------------------------------------------------------------------------------------
 

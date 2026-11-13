@@ -22,7 +22,7 @@
         The test's stages are C++ subclasses of OOOXPVerifierStage, which the
    verifier makes by name through its test hook (OOOXPVerifierTestAccess), and
    the stages hand and compare the C++ stages with -registerStage: and
-   -cxx_stageWithName:. The test runs the verification through the static
+   -stageWithName:. The test runs the verification through the static
    OOOXPVerifier::runVerificationIfRequested(), as GameController does, and the
    stages call the C++ verifier they keep (verifier()). Run: bash
    meson test -C build/meson_test test_OOOXPVerifier

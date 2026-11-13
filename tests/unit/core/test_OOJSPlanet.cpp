@@ -103,7 +103,7 @@ class TestEntityObject final : public oo::Object
 {
 public:
 	JSClassID oo_jsClassID();
-	std::optional<std::string> cxx_oo_jsClassName();
+	std::optional<std::string> oo_jsClassName();
 	bool isVisibleToScripts();
 
 	std::shared_ptr<Entity> _cxxEntity;	// the planet's C++ part (oo::ToCxx reads it)
@@ -152,7 +152,7 @@ public:
 // The root's JS category, as the game's asks the C++ part (EntityOOJavaScriptExtensions.cpp): the
 // engine sends these selectors to the wrapped object.
 JSClassID TestEntityObject::oo_jsClassID()  { return _cxxEntity->jsClassID(); }
-std::optional<std::string> TestEntityObject::cxx_oo_jsClassName()  { return _cxxEntity->jsClassName(); }
+std::optional<std::string> TestEntityObject::oo_jsClassName()  { return _cxxEntity->jsClassName(); }
 bool TestEntityObject::isVisibleToScripts()  { return _cxxEntity->isVisibleToScripts(); }
 
 
@@ -229,18 +229,18 @@ OOPlanetEntity *NewPlanet()
 JSContext *gOOJSMainThreadContext = nullptr;
 
 
-void cxx_OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
+void OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
 {
 	std::string msg = oo::str::vformat(format, args);
 	JS_ThrowPlainError(context, "%s", msg.c_str());
 }
 
 
-void cxx_OOJSReportError(JSContext *context, const char *format, ...)
+void OOJSReportError(JSContext *context, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
-	cxx_OOJSReportErrorWithArguments(context, format, args);
+	OOJSReportErrorWithArguments(context, format, args);
 	va_end(args);
 }
 
@@ -264,7 +264,7 @@ void OOJSReportPendingException(JSContext *context)
 }
 
 
-JSAtom cxx_OOJSIDFromString(const std::string &string)
+JSAtom OOJSIDFromString(const std::string &string)
 {
 	return JS_NewAtomLen(OOJSAcquireContext(), string.data(), string.size());
 }
@@ -274,7 +274,7 @@ namespace {
 std::string sLastWarning;
 }
 
-void cxx_OOJSReportWarning(JSContext *, const char *format, ...)
+void OOJSReportWarning(JSContext *, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
@@ -283,7 +283,7 @@ void cxx_OOJSReportWarning(JSContext *, const char *format, ...)
 }
 
 
-std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueConst value)
+std::optional<std::string> OOStringFromJSValue(JSContext *context, JSValueConst value)
 {
 	if (JS_IsNull(value) || JS_IsUndefined(value))  return std::nullopt;
 	std::size_t length = 0;
@@ -318,10 +318,10 @@ JSValue OOJSValueFromPList(JSContext *context, const oo::PList &plist)
 
 // A JS value's plist form, as far as a colour description needs one: a string, a number, an array
 // of those, or null.
-oo::PList cxx_OOJSPListFromJSValue(JSContext *context, JSValueConst value)
+oo::PList OOJSPListFromJSValue(JSContext *context, JSValueConst value)
 {
 	double number = 0;
-	if (JS_IsString(value))  return oo::PList(cxx_OOStringFromJSValue(context, value).value_or(""));
+	if (JS_IsString(value))  return oo::PList(OOStringFromJSValue(context, value).value_or(""));
 	if (JS_IsNumber(value) && JS_ToFloat64(context, &number, value) == 0)  return oo::PList(number);
 	if (JS_IsArray(value))
 	{
@@ -331,7 +331,7 @@ oo::PList cxx_OOJSPListFromJSValue(JSContext *context, JSValueConst value)
 		for (std::int64_t i = 0; i < length; i++)
 		{
 			JSValue element = JS_GetPropertyUint32(context, value, static_cast<std::uint32_t>(i));
-			if (!JS_IsException(element))  array.push_back(cxx_OOJSPListFromJSValue(context, element));
+			if (!JS_IsException(element))  array.push_back(OOJSPListFromJSValue(context, element));
 			JS_FreeValue(context, element);
 		}
 		return oo::PList(std::move(array));
@@ -403,13 +403,13 @@ JSClassID JSEntityClassID(void)
 
 void OOJSReportBadPropertySelector(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t)
 {
-	cxx_OOJSReportError(context, "bad property selector");
+	OOJSReportError(context, "bad property selector");
 }
 
 
 void OOJSReportBadPropertyValue(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t, JSValueConst)
 {
-	cxx_OOJSReportError(context, "bad property value");
+	OOJSReportError(context, "bad property value");
 }
 
 
@@ -431,7 +431,7 @@ JSValue OOJSObjectWrapperToString(JSContext *context, JSValueConst, int, JSValue
 
 JSValue OOJSUnconstructableConstruct(JSContext *context, JSValueConst, int, JSValueConst *)
 {
-	cxx_OOJSReportError(context, "unconstructable");
+	OOJSReportError(context, "unconstructable");
 	return JS_EXCEPTION;
 }
 
@@ -566,7 +566,7 @@ std::string Eval(const char *src)
 		JS_FreeValue(sContext, JS_GetException(sContext));
 		return "<evaluation failed>";
 	}
-	std::string text = cxx_OOStringFromJSValue(sContext, result).value_or("<not a string>");
+	std::string text = OOStringFromJSValue(sContext, result).value_or("<not a string>");
 	JS_FreeValue(sContext, result);
 	return text;
 }
@@ -607,14 +607,14 @@ OO_TEST(category)
 {
 	SetUpContext();
 	// A planet or a moon is visible to scripts and says which it is; any other stellar body is not.
-	OO_CHECK(TestObjectOf(sPlanet)->cxx_oo_jsClassName() == std::optional<std::string>("Planet"));
+	OO_CHECK(TestObjectOf(sPlanet)->oo_jsClassName() == std::optional<std::string>("Planet"));
 	OO_CHECK(TestObjectOf(sPlanet)->isVisibleToScripts());
-	OO_CHECK(TestObjectOf(sMoon)->cxx_oo_jsClassName() == std::optional<std::string>("Moon"));
+	OO_CHECK(TestObjectOf(sMoon)->oo_jsClassName() == std::optional<std::string>("Moon"));
 	OO_CHECK(TestObjectOf(sMoon)->isVisibleToScripts());
 	OOPlanetEntity *mini = NewPlanet();
 	oo::autorelease(TestObjectOf(mini));
 	mini->_type = OOStellarBodyType::kMiniature;
-	OO_CHECK(TestObjectOf(mini)->cxx_oo_jsClassName() == std::optional<std::string>("Unknown"));
+	OO_CHECK(TestObjectOf(mini)->oo_jsClassName() == std::optional<std::string>("Unknown"));
 	OO_CHECK(!TestObjectOf(mini)->isVisibleToScripts());
 	mini->_type = OOStellarBodyType::kSun;
 	OO_CHECK(!TestObjectOf(mini)->isVisibleToScripts());

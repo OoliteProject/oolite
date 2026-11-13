@@ -154,7 +154,7 @@ void Octree::drawOctree() {
   OOGLEND();
 
   OODebugEndWireframe(state);
-  cxx_OOCheckOpenGLErrors([&]() -> std::string {
+  OOCheckOpenGLErrors([&]() -> std::string {
     return "Octree after drawing " +
            std::format("<Octree {}>", static_cast<const void*>(this));
   });
@@ -258,7 +258,7 @@ void Octree::drawOctreeCollisions() {
   _hasCollision = drawTestForCollisions;
 
   OODebugEndWireframe(state);
-  cxx_OOCheckOpenGLErrors([&]() -> std::string {
+  OOCheckOpenGLErrors([&]() -> std::string {
     return "Octree after drawing collisions for " +
            std::format("<Octree {}>", static_cast<const void*>(this));
   });

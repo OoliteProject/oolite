@@ -505,7 +505,7 @@ bool GetShaderSource(const std::optional<std::string>& fileName,
       }
     }
     if (!result.has_value()) {
-      OO_LOG(cxx_kOOLogFileNotFound,
+      OO_LOG(kOOLogFileNotFound,
              "GLSL ERROR: failed to find fragment program {}.", *fileName);
       return false;
     }

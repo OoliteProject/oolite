@@ -2,7 +2,7 @@
 
 OOStringWidth.h
 
-cxx_OOStringWidthInEm(), declared here, not in HeadUpDisplay.h, so a plain C++
+OOStringWidthInEm(), declared here, not in HeadUpDisplay.h, so a plain C++
 translation unit (OOJSFont) can call it without including HeadUpDisplay.h.
 HeadUpDisplay.h includes it back; the definition stays in HeadUpDisplay.cpp.
 double is the floor's C type.
@@ -34,4 +34,4 @@ MA 02110-1301, USA.
 
 #include "oofnd/objc/OOFoundationTypes.h"
 
-double cxx_OOStringWidthInEm(const std::string& text);
+double OOStringWidthInEm(const std::string& text);

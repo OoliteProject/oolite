@@ -143,7 +143,7 @@ void OOBreakPatternEntity::drawImmediate(bool immediate, bool translucent) {
     OOGL(glDisableClientState(GL_COLOR_ARRAY));
 
     OOVerifyOpenGLState();
-    cxx_OOCheckOpenGLErrors([&]() -> std::string {
+    OOCheckOpenGLErrors([&]() -> std::string {
       return "OOBreakPatternEntity after drawing " +
              oo::EntityDescription(this);
     });

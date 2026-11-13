@@ -334,13 +334,13 @@ std::shared_ptr<OOMaterial> OOMaterial::materialWithName(
          (UNIVERSE != nullptr
               ? UNIVERSE->getDetailLevel()
               : OOGraphicsDetail{}) >= OOGraphicsDetail::kShaders ||
-         !cxx_OOMaterialCombinedSpecularMapSpecifier(configuration).isNull() ||
-         !cxx_OOMaterialNormalMapSpecifier(configuration).isNull() ||
-         !cxx_OOMaterialParallaxMapSpecifier(configuration).isNull() ||
-         !cxx_OOMaterialNormalAndParallaxMapSpecifier(configuration).isNull() ||
-         !cxx_OOMaterialEmissionMapSpecifier(configuration).isNull() ||
-         !cxx_OOMaterialIlluminationMapSpecifier(configuration).isNull() ||
-         !cxx_OOMaterialEmissionAndIlluminationMapSpecifier(configuration)
+         !OOMaterialCombinedSpecularMapSpecifier(configuration).isNull() ||
+         !OOMaterialNormalMapSpecifier(configuration).isNull() ||
+         !OOMaterialParallaxMapSpecifier(configuration).isNull() ||
+         !OOMaterialNormalAndParallaxMapSpecifier(configuration).isNull() ||
+         !OOMaterialEmissionMapSpecifier(configuration).isNull() ||
+         !OOMaterialIlluminationMapSpecifier(configuration).isNull() ||
+         !OOMaterialEmissionAndIlluminationMapSpecifier(configuration)
               .isNull())) {
       result = defaultShaderMaterialWithName(name, cacheKey, configuration,
                                              macros, object);
@@ -350,9 +350,9 @@ std::shared_ptr<OOMaterial> OOMaterial::materialWithName(
 
 #if OO_MULTITEXTURE
   if (result == nullptr /*&& !(UNIVERSE != nullptr ? UNIVERSE->reducedDetail() : false)*/) {
-    if (!cxx_OOMaterialEmissionMapSpecifier(configuration).isNull() ||
-        !cxx_OOMaterialIlluminationMapSpecifier(configuration).isNull() ||
-        !cxx_OOMaterialEmissionAndIlluminationMapSpecifier(configuration)
+    if (!OOMaterialEmissionMapSpecifier(configuration).isNull() ||
+        !OOMaterialIlluminationMapSpecifier(configuration).isNull() ||
+        !OOMaterialEmissionAndIlluminationMapSpecifier(configuration)
              .isNull()) {
       result = OOMultiTextureMaterial::materialWithName(name, configuration);
     }
@@ -360,7 +360,7 @@ std::shared_ptr<OOMaterial> OOMaterial::materialWithName(
 #endif
 
   if (result == nullptr) {
-    if (cxx_OOMaterialDiffuseMapSpecifier(configuration, name).isNull()) {
+    if (OOMaterialDiffuseMapSpecifier(configuration, name).isNull()) {
       result = OOBasicMaterial::materialWithName(name, configuration);
     } else {
       result = OOSingleTextureMaterial::materialWithName(name, configuration);
@@ -436,7 +436,7 @@ void AddTexture(OOMaterialSynthContext* context, std::string_view uniformName,
   if (nonShaderKey.has_value()) {
     // Upstream always wrote kOOMaterialDiffuseMapName when nonShaderKey was
     // non-nil.
-    context->outConfig[cxx_kOOMaterialDiffuseMapName] = specifier;
+    context->outConfig[kOOMaterialDiffuseMapName] = specifier;
   }
   if (macroName.has_value()) {
     context->macros[std::string(*macroName)] = oo::PList("1");
@@ -472,10 +472,10 @@ void SynthDiffuse(OOMaterialSynthContext* context,
                   const std::optional<std::string>& name) {
   // Set up diffuse map if appropriate.
   oo::PList diffuseMapSpec =
-      cxx_OOMaterialDiffuseMapSpecifier(context->inConfig, name);
+      OOMaterialDiffuseMapSpecifier(context->inConfig, name);
   if (!diffuseMapSpec.isNull() &&
       context->texturesUsed < context->maxTextures) {
-    AddTexture(context, "uDiffuseMap", cxx_kOOMaterialDiffuseMapName,
+    AddTexture(context, "uDiffuseMap", kOOMaterialDiffuseMapName,
                "OOSTD_DIFFUSE_MAP", diffuseMapSpec);
 
     if (diffuseMapSpec.get<bool>("cube_map")) {
@@ -483,24 +483,23 @@ void SynthDiffuse(OOMaterialSynthContext* context,
     }
   } else {
     // No diffuse map must be specified explicitly.
-    context->outConfig[cxx_kOOMaterialDiffuseMapName] = oo::PList("");
+    context->outConfig[kOOMaterialDiffuseMapName] = oo::PList("");
   }
 
   // Set up diffuse colour if any.
   AddColorIfAppropriate(context,
-                        cxx_OOMaterialDiffuseColor(context->inConfig).get(),
-                        cxx_kOOMaterialDiffuseColorName, std::nullopt);
+                        OOMaterialDiffuseColor(context->inConfig).get(),
+                        kOOMaterialDiffuseColorName, std::nullopt);
 }
 
 void SynthEmissionAndIllumination(OOMaterialSynthContext* context) {
   // Read the various emission and illumination textures, and decide what to do
   // with them.
-  oo::PList emissionMapSpec =
-      cxx_OOMaterialEmissionMapSpecifier(context->inConfig);
+  oo::PList emissionMapSpec = OOMaterialEmissionMapSpecifier(context->inConfig);
   oo::PList illuminationMapSpec =
-      cxx_OOMaterialIlluminationMapSpecifier(context->inConfig);
+      OOMaterialIlluminationMapSpecifier(context->inConfig);
   oo::PList emissionAndIlluminationSpec =
-      cxx_OOMaterialEmissionAndIlluminationMapSpecifier(context->inConfig);
+      OOMaterialEmissionAndIlluminationMapSpecifier(context->inConfig);
   bool isCombinedSpec = false;
   bool haveIlluminationMap = false;
 
@@ -530,15 +529,15 @@ void SynthEmissionAndIllumination(OOMaterialSynthContext* context) {
             standard OpenGL emission colour attribute by OOBasicMaterial.
     */
     AddColorIfAppropriate(
-        context, cxx_OOMaterialEmissionModulateColor(context->inConfig).get(),
-        cxx_kOOMaterialEmissionColorName, "OOSTD_EMISSION");
+        context, OOMaterialEmissionModulateColor(context->inConfig).get(),
+        kOOMaterialEmissionColorName, "OOSTD_EMISSION");
 
     haveIlluminationMap = isCombinedSpec;
   } else {
     //	No emission map, use overall emission colour if specified.
     AddColorIfAppropriate(context,
-                          cxx_OOMaterialEmissionColor(context->inConfig).get(),
-                          cxx_kOOMaterialEmissionColorName, "OOSTD_EMISSION");
+                          OOMaterialEmissionColor(context->inConfig).get(),
+                          kOOMaterialEmissionColorName, "OOSTD_EMISSION");
   }
 
   if (!illuminationMapSpec.isNull() &&
@@ -550,8 +549,7 @@ void SynthEmissionAndIllumination(OOMaterialSynthContext* context) {
 
   if (haveIlluminationMap) {
     AddMacroColorIfAppropriate(
-        context,
-        cxx_OOMaterialIlluminationModulateColor(context->inConfig).get(),
+        context, OOMaterialIlluminationModulateColor(context->inConfig).get(),
         "OOSTD_ILLUMINATION_COLOR");
   }
 }
@@ -560,10 +558,10 @@ void SynthNormalMap(OOMaterialSynthContext* context) {
   if (context->texturesUsed < context->maxTextures) {
     bool hasParallax = true;
     oo::PList normalMapSpec =
-        cxx_OOMaterialNormalAndParallaxMapSpecifier(context->inConfig);
+        OOMaterialNormalAndParallaxMapSpecifier(context->inConfig);
     if (normalMapSpec.isNull()) {
       hasParallax = false;
-      normalMapSpec = cxx_OOMaterialNormalMapSpecifier(context->inConfig);
+      normalMapSpec = OOMaterialNormalMapSpecifier(context->inConfig);
     }
 
     if (!normalMapSpec.isNull()) {
@@ -573,45 +571,43 @@ void SynthNormalMap(OOMaterialSynthContext* context) {
       if (hasParallax) {
         context->macros["OOSTD_NORMAL_AND_PARALLAX_MAP"] = oo::PList("1");
         SetUniformFloat(context, "uParallaxScale",
-                        cxx_OOMaterialParallaxScale(context->inConfig));
+                        OOMaterialParallaxScale(context->inConfig));
         SetUniformFloat(context, "uParallaxBias",
-                        cxx_OOMaterialParallaxBias(context->inConfig));
+                        OOMaterialParallaxBias(context->inConfig));
       }
     }
   }
 }
 
 void SynthSpecular(OOMaterialSynthContext* context) {
-  GLint shininess = cxx_OOMaterialSpecularExponent(context->inConfig);
+  GLint shininess = OOMaterialSpecularExponent(context->inConfig);
   if (shininess <= 0) return;
 
-  GLfloat gloss = cxx_OOMaterialGloss(context->inConfig);
+  GLfloat gloss = OOMaterialGloss(context->inConfig);
   if (gloss < 0.0f || gloss > 1.0f) return;
 
-  bool gammaCorrect =
-      cxx_OOMaterialGammaCorrect(context->inConfig) ? true : false;
+  bool gammaCorrect = OOMaterialGammaCorrect(context->inConfig) ? true : false;
 
   oo::PList specularMapSpec;
   std::shared_ptr<OOColor> specularColor;
 
   if (context->texturesUsed < context->maxTextures) {
-    specularMapSpec =
-        cxx_OOMaterialCombinedSpecularMapSpecifier(context->inConfig);
+    specularMapSpec = OOMaterialCombinedSpecularMapSpecifier(context->inConfig);
   }
 
   if (!specularMapSpec.isNull())
-    specularColor = cxx_OOMaterialSpecularModulateColor(context->inConfig);
+    specularColor = OOMaterialSpecularModulateColor(context->inConfig);
   else
-    specularColor = cxx_OOMaterialSpecularColor(context->inConfig);
+    specularColor = OOMaterialSpecularColor(context->inConfig);
   if (specularColor->isBlack()) return;
 
   SetUniformFloat(context, "uGloss", gloss);
 
-  context->outConfig[cxx_kOOMaterialSpecularExponentLegacyName] =
+  context->outConfig[kOOMaterialSpecularExponentLegacyName] =
       oo::PList::unsignedInteger(static_cast<unsigned int>(shininess));
 
   if (!specularMapSpec.isNull()) {
-    AddTexture(context, "uSpecularMap", cxx_kOOMaterialDiffuseMapName,
+    AddTexture(context, "uSpecularMap", kOOMaterialDiffuseMapName,
                "OOSTD_SPECULAR_MAP", specularMapSpec);
   }
 
@@ -624,7 +620,7 @@ void SynthSpecular(OOMaterialSynthContext* context) {
     for (float component : specularColor->normalizedArray()) {
       components.push_back(oo::PList::singleReal(component));
     }
-    context->outConfig[cxx_kOOMaterialSpecularColorName] =
+    context->outConfig[kOOMaterialSpecularColorName] =
         oo::PList(std::move(components));
   }
   context->macros["OOSTD_SPECULAR"] = oo::PList("1");

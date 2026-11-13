@@ -53,7 +53,7 @@ static std::optional<std::string> NameForPropertyID(JSContext* context,
   // SpiderMonkey's hooks ignored integer IDs; QuickJS uses integer atoms for
   // names like "0".
   if (JS_IsString(idValue)) {
-    result = cxx_OOStringFromJSValue(context, idValue);
+    result = OOStringFromJSValue(context, idValue);
   }
   JS_FreeValue(context, idValue);
   return result;
@@ -296,15 +296,14 @@ static bool SetMissionVariable(JSContext* context, JSAtom propID,
   if (name.has_value()) {
     std::optional<std::string> key = KeyForPropertyName(name);
     if (!key.has_value()) {
-      cxx_OOJSReportError(context, "Invalid mission variable name \"%s\".",
-                          cxx_OOJSEscapedForJavaScriptLiteral(*name).c_str());
+      OOJSReportError(context, "Invalid mission variable name \"%s\".",
+                      OOJSEscapedForJavaScriptLiteral(*name).c_str());
       return false;
     }
 
     // nil (a value with no string form) clears the variable. (The old OONull
     // test could not match a string and is gone.)
-    std::optional<std::string> objValue =
-        cxx_OOStringFromJSValue(context, value);
+    std::optional<std::string> objValue = OOStringFromJSValue(context, value);
 
     if (player != nullptr)
       player->setMissionVariable(
@@ -334,12 +333,11 @@ static int MissionVariablesDefineOwnProperty(JSContext* context,
   */
   try {
     if (flags & (JS_PROP_HAS_GET | JS_PROP_HAS_SET)) {
-      const std::optional<std::string> badName = cxx_OOStringFromJSID(propID);
-      cxx_OOJSReportError(
-          context, "Invalid mission variable name \"%s\".",
-          badName.has_value()
-              ? cxx_OOJSEscapedForJavaScriptLiteral(*badName).c_str()
-              : "(null)");
+      const std::optional<std::string> badName = OOStringFromJSID(propID);
+      OOJSReportError(context, "Invalid mission variable name \"%s\".",
+                      badName.has_value()
+                          ? OOJSEscapedForJavaScriptLiteral(*badName).c_str()
+                          : "(null)");
       return -1;
     }
     if (!(flags & JS_PROP_HAS_VALUE)) return true;

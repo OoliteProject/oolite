@@ -82,7 +82,7 @@ class OOMusicController : public oo::Object {
 
   void setMissionMusic(
       const std::optional<std::string>&
-          missionMusicName);  // was -cxx_setMissionMusic:; nullopt: none
+          missionMusicName);  // was -setMissionMusic:; nullopt: none
   void playMissionMusic();
 
   void justStop();

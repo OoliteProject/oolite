@@ -35,7 +35,7 @@ void OOLogGenericParameterErrorForFunction(const char* inFunction) {
   ++sParameterErrors;
 }
 
-const char* const cxx_kOOLogParameterError =
+const char* const kOOLogParameterError =
     "general.error.parameterError";  // OOLogging.mm's
 Universe* gSharedUniverse =
     nullptr;  // OODumpPixMap's UNIVERSE (debug builds); never called here

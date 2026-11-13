@@ -32,7 +32,7 @@
 namespace stdfs = std::filesystem;
 
 // Link stubs for OOLogging.mm, which reaches the resource manager.
-const char* const cxx_kOOLogFileNotFound = "files.notFound";
+const char* const kOOLogFileNotFound = "files.notFound";
 
 void OOLogGenericSubclassResponsibilityForFunction(const char* inFunction) {
   (void)inFunction;

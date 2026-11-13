@@ -56,7 +56,7 @@ bool OORegExpMatcher::string(const std::string&, const std::string&) {
 }
 OORegExpMatcher::~OORegExpMatcher() {}
 
-OOShaderSetting cxx_OOShaderSettingFromString(const std::string& string) {
+OOShaderSetting OOShaderSettingFromString(const std::string& string) {
   return string == "SHADERS_FULL" ? OOShaderSetting::kFull : OOShaderSetting::kNotSupported;
 }
 

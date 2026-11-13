@@ -237,13 +237,13 @@ std::optional<std::string> Universe::displayNameForCommodity(
 Universe* gSharedUniverse = nullptr;
 
 // The savegame's point strings, as OOStringParsing.mm writes and reads them.
-std::string cxx_StringFromPoint(NSPoint point) {
+std::string StringFromPoint(NSPoint point) {
   char buffer[128];
   std::snprintf(buffer, sizeof buffer, "%f %f", point.x, point.y);
   return buffer;
 }
 
-NSPoint cxx_PointFromString(const std::string& xyString) {
+NSPoint PointFromString(const std::string& xyString) {
   NSPoint result = NSZeroPoint;
   double x, y;
   if (std::sscanf(xyString.c_str(), "%lf %lf", &x, &y) == 2)
@@ -251,7 +251,7 @@ NSPoint cxx_PointFromString(const std::string& xyString) {
   return result;
 }
 
-std::string cxx_OOLookUpDescriptionPRIV(const std::string& key) {
+std::string OOLookUpDescriptionPRIV(const std::string& key) {
   return (key == "trumbles-eat-@") ? "trumbles ate the %@" : "desc:" + key;
 }
 
@@ -262,7 +262,7 @@ void OOGLTranslateModelView(Vector) { std::abort(); }
 void OOGLMultModelView(OOMatrix) { std::abort(); }
 #if OO_CHECK_GL_HEAVY
 // OOGL()/OOGLBEGIN() in the debug flavour (OOOpenGLCheck.h).
-bool cxx_OOCheckOpenGLErrors(const char*, ...) { std::abort(); }
+bool OOCheckOpenGLErrors(const char*, ...) { std::abort(); }
 #if OO_GL_STATE_VERIFICATION
 void OOGLNoteCurrentFunction(const char*, unsigned) { std::abort(); }
 #endif

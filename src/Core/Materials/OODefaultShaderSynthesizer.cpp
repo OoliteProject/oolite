@@ -209,8 +209,7 @@ namespace {
 std::optional<std::string> GetExtractMode(const oo::PList& textureSpecifier) {
   std::optional<std::string> result;
 
-  const oo::PList* value =
-      textureSpecifier.find(cxx_kOOTextureSpecifierSwizzleKey);
+  const oo::PList* value = textureSpecifier.find(kOOTextureSpecifierSwizzleKey);
   const std::string* rawMode =
       (value != nullptr) ? value->getIf<std::string>() : nullptr;
   if (rawMode != nullptr) {
@@ -367,8 +366,8 @@ std::string KeyFromTextureSpec(const oo::PList& spec) {
   std::string texName;
   OOTextureFlags texOptions;
   float anisotropy, lodBias;
-  if (!cxx_OOInterpretTextureSpecifier(spec, &texName, &texOptions, &anisotropy,
-                                       &lodBias, true)) {
+  if (!OOInterpretTextureSpecifier(spec, &texName, &texOptions, &anisotropy,
+                                   &lodBias, true)) {
     // OOInterpretTextureSpecifier() will have logged something.
     OORaiseException(OOGenericException, "Invalid texture specifier");
   }
@@ -386,14 +385,14 @@ std::size_t OODefaultShaderSynthesizer::assignIDForTexture(
   // do actual extraction.
   oo::PList spec = textureSpec;
   if (oo::PList::Dict* dict = spec.getIf<oo::PList::Dict>()) {
-    dict->erase(cxx_kOOTextureSpecifierSwizzleKey);
+    dict->erase(kOOTextureSpecifierSwizzleKey);
   }
 
   std::string texName;
   OOTextureFlags texOptions;
   float anisotropy, lodBias;
-  if (!cxx_OOInterpretTextureSpecifier(spec, &texName, &texOptions, &anisotropy,
-                                       &lodBias, true)) {
+  if (!OOInterpretTextureSpecifier(spec, &texName, &texOptions, &anisotropy,
+                                   &lodBias, true)) {
     // OOInterpretTextureSpecifier() will have logged something.
     OORaiseException(OOGenericException, "Invalid texture specifier");
   }
@@ -422,8 +421,8 @@ std::size_t OODefaultShaderSynthesizer::assignIDForTexture(
     bool useInternalFormat = true;
 #endif
 
-    _textures.push_back(cxx_OOMakeTextureSpecifier(
-        texName, texOptions, anisotropy, lodBias, useInternalFormat));
+    _textures.push_back(OOMakeTextureSpecifier(texName, texOptions, anisotropy,
+                                               lodBias, useInternalFormat));
     _texturesByName[key] = spec;
     _textureIDs[key] = texID;
     oo::PList uniform(
@@ -458,7 +457,7 @@ void OODefaultShaderSynthesizer::setUpOneTexture(const oo::PList& textureSpec) {
     _fragmentTextureLookups += std::format(
         "\tvec4 tex{}Sample = texture2D(uTexture{}, texCoords);  // {}\n",
         texID, texID,
-        OptionalStringFor(textureSpec, cxx_kOOTextureSpecifierNameKey)
+        OptionalStringFor(textureSpec, kOOTextureSpecifierNameKey)
             .value_or("(null)"));
   }
 }
@@ -599,10 +598,10 @@ void OODefaultShaderSynthesizer::writeTextureCoordRead() {
   _vertexBody += "\tvTexCoords = gl_MultiTexCoord0.st;\n\t\n";
 
   bool haveTexCoords = false;
-  oo::PList parallaxMap = cxx_OOMaterialParallaxMapSpecifier(_configuration);
+  oo::PList parallaxMap = OOMaterialParallaxMapSpecifier(_configuration);
 
   if (!parallaxMap.isNull()) {
-    float parallaxScale = cxx_OOMaterialParallaxScale(_configuration);
+    float parallaxScale = OOMaterialParallaxScale(_configuration);
     if (parallaxScale != 0.0f) {
       /*
               We can’t call -getSampleName:... here because the standard
@@ -629,7 +628,7 @@ void OODefaultShaderSynthesizer::writeTextureCoordRead() {
                           FormatFloat(parallaxScale));
         }
 
-        float parallaxBias = cxx_OOMaterialParallaxBias(_configuration);
+        float parallaxBias = OOMaterialParallaxBias(_configuration);
         if (parallaxBias != 0.0) {
           _fragmentPreTextures +=
               std::format("\tparallax += {};  // Parallax bias\n",
@@ -656,9 +655,8 @@ void OODefaultShaderSynthesizer::writeTextureCoordRead() {
 
 void OODefaultShaderSynthesizer::writeDiffuseColorTermIfNeeded() {
   oo::PList diffuseMap =
-      cxx_OOMaterialDiffuseMapSpecifier(_configuration, materialKey());
-  std::shared_ptr<OOColor> diffuseColor(
-      cxx_OOMaterialDiffuseColor(_configuration));
+      OOMaterialDiffuseMapSpecifier(_configuration, materialKey());
+  std::shared_ptr<OOColor> diffuseColor(OOMaterialDiffuseColor(_configuration));
   if (diffuseColor == nullptr) diffuseColor = OOColor::whiteColor();
 
   if (diffuseColor->isBlack()) return;
@@ -764,11 +762,11 @@ void OODefaultShaderSynthesizer::writeNormalIfNeeded() {
   REQUIRE_STAGE(writeVertexPosition);
   REQUIRE_STAGE(writeVertexTangentBasis);
 
-  oo::PList normalMap = cxx_OOMaterialNormalMapSpecifier(_configuration);
+  oo::PList normalMap = OOMaterialNormalMapSpecifier(_configuration);
   if (normalMap.isNull()) {
     // FIXME: this stuff should be handled in OOMaterialSpecifier.m when
     // synthesizer takes over the world. -- Ahruman 2012-02-08
-    normalMap = cxx_OOMaterialNormalAndParallaxMapSpecifier(_configuration);
+    normalMap = OOMaterialNormalAndParallaxMapSpecifier(_configuration);
   }
   if (!normalMap.isNull()) {
     std::string sample, swizzle;
@@ -799,32 +797,32 @@ void OODefaultShaderSynthesizer::writeNormal() {
 }
 
 void OODefaultShaderSynthesizer::writeSpecularLighting() {
-  float specularExponent = cxx_OOMaterialSpecularExponent(_configuration);
+  float specularExponent = OOMaterialSpecularExponent(_configuration);
   if (specularExponent <= 0) return;
 
   oo::PList specularColorMap =
-      cxx_OOMaterialSpecularColorMapSpecifier(_configuration);
+      OOMaterialSpecularColorMapSpecifier(_configuration);
   oo::PList specularExponentMap =
-      cxx_OOMaterialSpecularExponentMapSpecifier(_configuration);
+      OOMaterialSpecularExponentMapSpecifier(_configuration);
   float scaleFactor = 1.0f;
 
   if (!specularColorMap.isNull()) {
-    scaleFactor = specularColorMap.get<double>(
-        cxx_kOOTextureSpecifierScaleFactorKey, 1.0f);
+    scaleFactor =
+        specularColorMap.get<double>(kOOTextureSpecifierScaleFactorKey, 1.0f);
   }
 
   std::shared_ptr<OOColor> specularColor;  // never null: both functions below
                                            // answer a default colour
   if (specularColorMap.isNull()) {
-    specularColor = cxx_OOMaterialSpecularColor(_configuration);
+    specularColor = OOMaterialSpecularColor(_configuration);
   } else {
-    specularColor = cxx_OOMaterialSpecularModulateColor(_configuration);
+    specularColor = OOMaterialSpecularModulateColor(_configuration);
   }
 
   if (specularColor->isBlack()) return;
 
   bool modulateWithDiffuse =
-      specularColorMap.get<bool>(cxx_kOOTextureSpecifierSelfColorKey);
+      specularColorMap.get<bool>(kOOTextureSpecifierSelfColorKey);
 
   REQUIRE_STAGE(writeTotalColor);
   REQUIRE_STAGE(writeNormalIfNeeded);
@@ -930,7 +928,7 @@ void OODefaultShaderSynthesizer::writeSpecularLighting() {
 
 void OODefaultShaderSynthesizer::writeLightMaps() {
   const oo::PList* lightMaps =
-      _configuration.get<oo::PList::Array>(cxx_kOOMaterialLightMapsName);
+      _configuration.get<oo::PList::Array>(kOOMaterialLightMapsName);
   std::size_t idx, count = (lightMaps != nullptr) ? lightMaps->count() : 0;
   if (count == 0) return;
 
@@ -940,7 +938,7 @@ void OODefaultShaderSynthesizer::writeLightMaps() {
   for (idx = 0; idx < count; idx++) {
     const oo::PList* lightMapSpec = lightMaps->at<oo::PList::Dict>(idx);
     if (lightMapSpec != nullptr &&
-        lightMapSpec->get<bool>(cxx_kOOTextureSpecifierIlluminationModeKey)) {
+        lightMapSpec->get<bool>(kOOTextureSpecifierIlluminationModeKey)) {
       REQUIRE_STAGE(writeDiffuseColorTerm);
       REQUIRE_STAGE(writeDiffuseLighting);
       break;
@@ -955,13 +953,12 @@ void OODefaultShaderSynthesizer::writeLightMaps() {
     const oo::PList* entry = lightMaps->at<oo::PList::Dict>(idx);
     const oo::PList& lightMapSpec =
         (entry != nullptr) ? *entry : notADictionary;
-    oo::PList textureSpec =
-        cxx_OOTextureSpecFromObject(lightMapSpec, std::nullopt);
-    const oo::PList* color = lightMapSpec.get<oo::PList::Array>(
-        cxx_kOOTextureSpecifierModulateColorKey);
+    oo::PList textureSpec = OOTextureSpecFromObject(lightMapSpec, std::nullopt);
+    const oo::PList* color =
+        lightMapSpec.get<oo::PList::Array>(kOOTextureSpecifierModulateColorKey);
     float rgba[4] = {1.0f, 1.0f, 1.0f, 1.0f};
     bool isIllumination =
-        lightMapSpec.get<bool>(cxx_kOOTextureSpecifierIlluminationModeKey);
+        lightMapSpec.get<bool>(kOOTextureSpecifierIlluminationModeKey);
 
     if (EXPECT_NOT(color == nullptr && textureSpec.isNull())) {
       _fragmentBody +=
@@ -1008,7 +1005,7 @@ void OODefaultShaderSynthesizer::writeLightMaps() {
     }
 
     const oo::PList* binding =
-        textureSpec.get<oo::PList::Dict>(cxx_kOOTextureSpecifierBindingKey);
+        textureSpec.get<oo::PList::Dict>(kOOTextureSpecifierBindingKey);
     if (binding != nullptr) {
       std::string bindingName = binding->get<std::string>("binding");
       oo::PList bindingTypes = ResourceManager::shaderBindingTypesDictionary();
@@ -1088,7 +1085,7 @@ namespace {
 // kOOTextureSpecifierNameKey.
 oo::PList NameSpecifier(const std::string& name) {
   return oo::PList(
-      oo::PList::Dict{{cxx_kOOTextureSpecifierNameKey, oo::PList(name)}});
+      oo::PList::Dict{{kOOTextureSpecifierNameKey, oo::PList(name)}});
 }
 
 // A string becomes a name specifier, a dictionary is kept, anything else (or no
@@ -1139,37 +1136,32 @@ oo::PList CanonicalizeMaterialSpecifier(
   oo::PList texSpec;
 
   // Colours.
-  col = ColorIn(spec, cxx_kOOMaterialDiffuseColorName);
-  if (col == nullptr)
-    col = ColorIn(spec, cxx_kOOMaterialDiffuseColorLegacyName);
+  col = ColorIn(spec, kOOMaterialDiffuseColorName);
+  if (col == nullptr) col = ColorIn(spec, kOOMaterialDiffuseColorLegacyName);
   if (col != nullptr)
-    result[cxx_kOOMaterialDiffuseColorName] = NormalizedArray(col.get());
+    result[kOOMaterialDiffuseColorName] = NormalizedArray(col.get());
 
-  col = ColorIn(spec, cxx_kOOMaterialAmbientColorName);
-  if (col == nullptr)
-    col = ColorIn(spec, cxx_kOOMaterialAmbientColorLegacyName);
+  col = ColorIn(spec, kOOMaterialAmbientColorName);
+  if (col == nullptr) col = ColorIn(spec, kOOMaterialAmbientColorLegacyName);
   if (col != nullptr)
-    result[cxx_kOOMaterialAmbientColorName] = NormalizedArray(col.get());
+    result[kOOMaterialAmbientColorName] = NormalizedArray(col.get());
 
-  col = ColorIn(spec, cxx_kOOMaterialSpecularColorName);
-  if (col == nullptr)
-    col = ColorIn(spec, cxx_kOOMaterialSpecularColorLegacyName);
+  col = ColorIn(spec, kOOMaterialSpecularColorName);
+  if (col == nullptr) col = ColorIn(spec, kOOMaterialSpecularColorLegacyName);
   if (col != nullptr)
-    result[cxx_kOOMaterialSpecularColorName] = NormalizedArray(col.get());
+    result[kOOMaterialSpecularColorName] = NormalizedArray(col.get());
 
-  col = ColorIn(spec, cxx_kOOMaterialSpecularModulateColorName);
+  col = ColorIn(spec, kOOMaterialSpecularModulateColorName);
   if (col != nullptr)
-    result[cxx_kOOMaterialSpecularModulateColorName] =
-        NormalizedArray(col.get());
+    result[kOOMaterialSpecularModulateColorName] = NormalizedArray(col.get());
 
-  col = ColorIn(spec, cxx_kOOMaterialEmissionColorName);
-  if (col == nullptr)
-    col = ColorIn(spec, cxx_kOOMaterialEmissionColorLegacyName);
+  col = ColorIn(spec, kOOMaterialEmissionColorName);
+  if (col == nullptr) col = ColorIn(spec, kOOMaterialEmissionColorLegacyName);
   if (col != nullptr)
-    result[cxx_kOOMaterialEmissionColorName] = NormalizedArray(col.get());
+    result[kOOMaterialEmissionColorName] = NormalizedArray(col.get());
 
   // Diffuse map.
-  const oo::PList* diffuseSpec = spec.find(cxx_kOOMaterialDiffuseMapName);
+  const oo::PList* diffuseSpec = spec.find(kOOMaterialDiffuseMapName);
   if (diffuseSpec != nullptr && diffuseSpec->isString()) {
     const std::string& name = *diffuseSpec->getIf<std::string>();
     texSpec = name.empty() ? *diffuseSpec : NameSpecifier(name);
@@ -1178,47 +1170,47 @@ oo::PList CanonicalizeMaterialSpecifier(
             name = materialKey, while name = "" is changed to no name.
     */
     texSpec = *diffuseSpec;
-    const oo::PList* name = diffuseSpec->find(cxx_kOOTextureSpecifierNameKey);
+    const oo::PList* name = diffuseSpec->find(kOOTextureSpecifierNameKey);
     if (name == nullptr) {
       if (materialKey.has_value())
-        texSpec = AddingValue(texSpec, cxx_kOOTextureSpecifierNameKey,
+        texSpec = AddingValue(texSpec, kOOTextureSpecifierNameKey,
                               oo::PList(*materialKey));
     } else if (name->isString() && name->getIf<std::string>()->empty()) {
-      texSpec.getIf<oo::PList::Dict>()->erase(cxx_kOOTextureSpecifierNameKey);
+      texSpec.getIf<oo::PList::Dict>()->erase(kOOTextureSpecifierNameKey);
     }
   } else {
     // Special case for unspecified diffuse map. (The one caller always has a
     // material key.)
     texSpec = NameSpecifier(materialKey.value_or(std::string()));
   }
-  result[cxx_kOOMaterialDiffuseMapName] = texSpec;
+  result[kOOMaterialDiffuseMapName] = texSpec;
 
   // Specular maps.
   {
     bool haveNewSpecular = false;
-    texSpec = StringOrDictionarySpecifier(
-        spec.find(cxx_kOOMaterialSpecularColorMapName));
+    texSpec =
+        StringOrDictionarySpecifier(spec.find(kOOMaterialSpecularColorMapName));
     if (!texSpec.isNull()) {
       haveNewSpecular = true;
-      result[cxx_kOOMaterialSpecularColorMapName] = texSpec;
+      result[kOOMaterialSpecularColorMapName] = texSpec;
     }
 
     texSpec = StringOrDictionarySpecifier(
-        spec.find(cxx_kOOMaterialSpecularExponentMapName));
+        spec.find(kOOMaterialSpecularExponentMapName));
     if (!texSpec.isNull()) {
       haveNewSpecular = true;
-      result[cxx_kOOMaterialSpecularExponentMapName] = texSpec;
+      result[kOOMaterialSpecularExponentMapName] = texSpec;
     }
 
     if (!haveNewSpecular) {
       // Fall back to legacy combined specular map if defined.
       texSpec = StringOrDictionarySpecifier(
-          spec.find(cxx_kOOMaterialCombinedSpecularMapName));
+          spec.find(kOOMaterialCombinedSpecularMapName));
       if (!texSpec.isNull()) {
-        result[cxx_kOOMaterialSpecularColorMapName] = texSpec;
-        texSpec = AddingValue(texSpec, cxx_kOOTextureSpecifierSwizzleKey,
-                              oo::PList("a"));
-        result[cxx_kOOMaterialSpecularExponentMapName] = texSpec;
+        result[kOOMaterialSpecularColorMapName] = texSpec;
+        texSpec =
+            AddingValue(texSpec, kOOTextureSpecifierSwizzleKey, oo::PList("a"));
+        result[kOOMaterialSpecularExponentMapName] = texSpec;
       }
     }
   }
@@ -1227,43 +1219,42 @@ oo::PList CanonicalizeMaterialSpecifier(
   {
     bool haveParallax = false;
     bool haveNewNormal = false;
-    texSpec =
-        StringOrDictionarySpecifier(spec.find(cxx_kOOMaterialNormalMapName));
+    texSpec = StringOrDictionarySpecifier(spec.find(kOOMaterialNormalMapName));
     if (!texSpec.isNull()) {
       haveNewNormal = true;
-      result[cxx_kOOMaterialNormalMapName] = texSpec;
+      result[kOOMaterialNormalMapName] = texSpec;
     }
 
     texSpec =
-        StringOrDictionarySpecifier(spec.find(cxx_kOOMaterialParallaxMapName));
+        StringOrDictionarySpecifier(spec.find(kOOMaterialParallaxMapName));
     if (!texSpec.isNull()) {
       haveNewNormal = true;
       haveParallax = true;
-      result[cxx_kOOMaterialParallaxMapName] = texSpec;
+      result[kOOMaterialParallaxMapName] = texSpec;
     }
 
     if (!haveNewNormal) {
       // Fall back to legacy combined normal and parallax map if defined.
       texSpec = StringOrDictionarySpecifier(
-          spec.find(cxx_kOOMaterialNormalAndParallaxMapName));
+          spec.find(kOOMaterialNormalAndParallaxMapName));
       if (!texSpec.isNull()) {
         haveParallax = true;
-        result[cxx_kOOMaterialNormalMapName] = texSpec;
-        texSpec = AddingValue(texSpec, cxx_kOOTextureSpecifierSwizzleKey,
-                              oo::PList("a"));
-        result[cxx_kOOMaterialParallaxMapName] = texSpec;
+        result[kOOMaterialNormalMapName] = texSpec;
+        texSpec =
+            AddingValue(texSpec, kOOTextureSpecifierSwizzleKey, oo::PList("a"));
+        result[kOOMaterialParallaxMapName] = texSpec;
       }
     }
 
     // Additional parallax parameters (-oo_setFloat:forKey: stores a double).
     if (haveParallax) {
-      float parallaxScale = spec.get<float>(cxx_kOOMaterialParallaxScaleName,
+      float parallaxScale = spec.get<float>(kOOMaterialParallaxScaleName,
                                             kOOMaterialDefaultParallaxScale);
-      result[cxx_kOOMaterialParallaxScaleName] =
+      result[kOOMaterialParallaxScaleName] =
           oo::PList(static_cast<double>(parallaxScale));
 
-      float parallaxBias = spec.get<float>(cxx_kOOMaterialParallaxBiasName);
-      result[cxx_kOOMaterialParallaxBiasName] =
+      float parallaxBias = spec.get<float>(kOOMaterialParallaxBiasName);
+      result[kOOMaterialParallaxBiasName] =
           oo::PList(static_cast<double>(parallaxBias));
     }
   }
@@ -1272,7 +1263,7 @@ oo::PList CanonicalizeMaterialSpecifier(
   {
     oo::PList::Array lightMaps;
     oo::PList::Array lightMapSpecs;
-    if (const oo::PList* value = spec.find(cxx_kOOMaterialLightMapsName)) {
+    if (const oo::PList* value = spec.find(kOOMaterialLightMapsName)) {
       if (const oo::PList::Array* array = value->getIf<oo::PList::Array>())
         lightMapSpecs = *array;
       else
@@ -1290,7 +1281,7 @@ oo::PList CanonicalizeMaterialSpecifier(
       }
       oo::PList::Dict& lmDict = *lmSpec.getIf<oo::PList::Dict>();
 
-      auto modulateColor = lmDict.find(cxx_kOOTextureSpecifierModulateColorKey);
+      auto modulateColor = lmDict.find(kOOTextureSpecifierModulateColorKey);
       if (modulateColor != lmDict.end() && !modulateColor->second.isArray()) {
         // Don't convert arrays here, because we specifically don't want the
         // behaviour of treating numbers greater than 1 as 0..255 components.
@@ -1303,7 +1294,7 @@ oo::PList CanonicalizeMaterialSpecifier(
           lmDict.erase(modulateColor);
       }
 
-      auto binding = lmDict.find(cxx_kOOTextureSpecifierBindingKey);
+      auto binding = lmDict.find(kOOTextureSpecifierBindingKey);
       if (binding != lmDict.end()) {
         if (const std::string* bindingName =
                 binding->second.getIf<std::string>()) {
@@ -1323,10 +1314,9 @@ oo::PList CanonicalizeMaterialSpecifier(
     if (lightMaps.empty()) {
       // If light_map isn't use, handle legacy emission_map, illumination_map
       // and emission_and_illumination_map.
-      const oo::PList* emissionValue =
-          spec.find(cxx_kOOMaterialEmissionMapName);
+      const oo::PList* emissionValue = spec.find(kOOMaterialEmissionMapName);
       const oo::PList* illuminationValue =
-          spec.find(cxx_kOOMaterialIlluminationMapName);
+          spec.find(kOOMaterialIlluminationMapName);
       oo::PList emissionSpec =
           (emissionValue != nullptr) ? *emissionValue : oo::PList();
       oo::PList illuminationSpec =
@@ -1336,11 +1326,11 @@ oo::PList CanonicalizeMaterialSpecifier(
         // Redundantish string check required because we want to modify this as
         // a dictionary to make illuminationSpec.
         emissionSpec = StringOrDictionarySpecifier(
-            spec.find(cxx_kOOMaterialEmissionAndIlluminationMapName));
+            spec.find(kOOMaterialEmissionAndIlluminationMapName));
 
         if (!emissionSpec.isNull()) {
           illuminationSpec = AddingValue(
-              emissionSpec, cxx_kOOTextureSpecifierSwizzleKey, oo::PList("a"));
+              emissionSpec, kOOTextureSpecifierSwizzleKey, oo::PList("a"));
         }
       }
 
@@ -1349,11 +1339,11 @@ oo::PList CanonicalizeMaterialSpecifier(
           emissionSpec = NameSpecifier(*name);
         }
         if (emissionSpec.isDict()) {
-          col = ColorIn(spec, cxx_kOOMaterialEmissionModulateColorName);
+          col = ColorIn(spec, kOOMaterialEmissionModulateColorName);
           if (col != nullptr)
-            emissionSpec = AddingValue(emissionSpec,
-                                       cxx_kOOTextureSpecifierModulateColorKey,
-                                       NormalizedArray(col.get()));
+            emissionSpec =
+                AddingValue(emissionSpec, kOOTextureSpecifierModulateColorKey,
+                            NormalizedArray(col.get()));
 
           lightMaps.push_back(emissionSpec);
         }
@@ -1364,22 +1354,22 @@ oo::PList CanonicalizeMaterialSpecifier(
           illuminationSpec = NameSpecifier(*name);
         }
         if (illuminationSpec.isDict()) {
-          col = ColorIn(spec, cxx_kOOMaterialIlluminationModulateColorName);
+          col = ColorIn(spec, kOOMaterialIlluminationModulateColorName);
           if (col != nullptr)
-            illuminationSpec = AddingValue(
-                illuminationSpec, cxx_kOOTextureSpecifierModulateColorKey,
-                NormalizedArray(col.get()));
+            illuminationSpec = AddingValue(illuminationSpec,
+                                           kOOTextureSpecifierModulateColorKey,
+                                           NormalizedArray(col.get()));
 
-          illuminationSpec = AddingValue(
-              illuminationSpec, cxx_kOOTextureSpecifierIlluminationModeKey,
-              oo::PList(true));
+          illuminationSpec = AddingValue(illuminationSpec,
+                                         kOOTextureSpecifierIlluminationModeKey,
+                                         oo::PList(true));
 
           lightMaps.push_back(illuminationSpec);
         }
       }
     }
 
-    result[cxx_kOOMaterialLightMapsName] = oo::PList(std::move(lightMaps));
+    result[kOOMaterialLightMapsName] = oo::PList(std::move(lightMaps));
   }
 
   oo::PList canonical(std::move(result));

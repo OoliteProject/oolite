@@ -79,8 +79,8 @@ class OOTextureLoader : public ::OOAsyncWorkTask {
   ~OOTextureLoader()
       override;  // was -dealloc: frees the pixels not handed over
 
-  /*	Were +cxx_loaderWithPath:options: and
-     +cxx_loaderWithTextureSpecifier:extraOptions:folder:. The loader they make
+  /*	Were +loaderWithPath:options: and
+     +loaderWithTextureSpecifier:extraOptions:folder:. The loader they make
      (the C++ OOPNGTextureLoader) is answered retained, already
           queued on the work manager; null where they answered nil.
   */
@@ -128,7 +128,7 @@ class OOTextureLoader : public ::OOAsyncWorkTask {
   /*** Subclass interface; do not use on pain of pain. Unless you're
    * subclassing. ***/
 
-  /*	Was -cxx_initWithPath:options:, after [super init] (subclasses shouldn't
+  /*	Was -initWithPath:options:, after [super init] (subclasses shouldn't
      do much on init, because of the whole asynchronous thing): false where it
      answered nil, for no path.
   */

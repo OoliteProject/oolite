@@ -83,7 +83,7 @@ class OOVisualEffectEntity
  public:
   ~OOVisualEffectEntity();
 
-  /*	-cxx_initWithKey:definition:'s body after [super init] (the constructor
+  /*	-initWithKey:definition:'s body after [super init] (the constructor
      ran Entity's): false where the initialiser released itself and answered
      nil. oo::NewVisualEffectObject() runs it once the object holds this effect.
   */
@@ -253,7 +253,7 @@ namespace oo {
 // A new effect after the effect's initialiser body
 // (OOVisualEffectEntity::initWithKey()), made as its object was
 // (oo::MadeEntityRetained()); null where the body failed, as
-// [[OOVisualEffectEntity alloc] cxx_initWithKey:definition:] answered nil. +1,
+// [[OOVisualEffectEntity alloc] initWithKey:definition:] answered nil. +1,
 // as +alloc gave.
 std::shared_ptr<Entity> NewVisualEffect(const std::string& key,
                                         const oo::PList& dict);

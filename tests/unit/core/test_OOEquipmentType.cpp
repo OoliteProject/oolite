@@ -225,7 +225,7 @@ oo::PList PlayerEntity::missionVariableForKey(const std::string& key) {
 
 PlayerEntity* gOOPlayer = nullptr;
 
-void cxx_OOStandardsDeprecated(const std::string& message) {
+void OOStandardsDeprecated(const std::string& message) {
   gLog.push_back("deprecated " + message);
 }
 

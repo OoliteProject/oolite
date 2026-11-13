@@ -67,13 +67,13 @@ namespace {
 // PList otherwise (no path: none; their plist.wrongType log line, which named
 // the Foundation class, is not kept).
 oo::PList PListDictionaryFromFile(const std::string& path) {
-  oo::PList result = cxx_OOPropertyListFromFile(path);
+  oo::PList result = OOPropertyListFromFile(path);
   return result.isDict() ? result : oo::PList();
 }
 
 oo::PList PListArrayFromFile(const std::optional<std::string>& path) {
   if (!path.has_value()) return oo::PList();
-  oo::PList result = cxx_OOPropertyListFromFile(*path);
+  oo::PList result = OOPropertyListFromFile(*path);
   return result.isArray() ? result : oo::PList();
 }
 
@@ -846,7 +846,7 @@ bool OOOXZManager::processDownloadedOXZ() {
   const std::optional<std::string> downloadPath = this->downloadPath();
   const oo::PList downloadedManifest =
       downloadPath.has_value()
-          ? cxx_OOPropertyListFromFile(oo::str::appendingPathComponent(
+          ? OOPropertyListFromFile(oo::str::appendingPathComponent(
                 *downloadPath, "manifest.plist"))
           : oo::PList();
   if (!downloadedManifest) {
@@ -1182,13 +1182,13 @@ OXZInstallableState OOOXZManager::installableState(const oo::PList& manifest) {
     // ComponentsFromVersionString(nil)).
     const std::vector<unsigned> installedComponents =
         installedVersion.has_value()
-            ? cxx_ComponentsFromVersionString(*installedVersion)
+            ? ComponentsFromVersionString(*installedVersion)
             : std::vector<unsigned>();
     const std::vector<unsigned> availableComponents =
         availableVersion.has_value()
-            ? cxx_ComponentsFromVersionString(*availableVersion)
+            ? ComponentsFromVersionString(*availableVersion)
             : std::vector<unsigned>();
-    if (cxx_CompareVersions(installedComponents, availableComponents) ==
+    if (CompareVersions(installedComponents, availableComponents) ==
         OOComparisonResult::kDescending) {
       // the installed copy is more recent than the server copy
       return OXZInstallableState::kUninstallableNoremote;
@@ -1432,12 +1432,11 @@ void OOOXZManager::gui() {
                                                           // the arguments: a
                                                           // description that is
                                                           // an array draws
-          gui->setText(
-              DescFormat(filterFormat,
-                         {cxx_OOExpand("[oolite_key_oxzmanager_setfilter]")
-                              .value_or("(null)"),
-                          _currentFilter}),
-              OXZ_GUI_ROW_LISTFILTER, OOGUIAlignment::kLeft);
+          gui->setText(DescFormat(filterFormat,
+                                  {OOExpand("[oolite_key_oxzmanager_setfilter]")
+                                       .value_or("(null)"),
+                                   _currentFilter}),
+                       OXZ_GUI_ROW_LISTFILTER, OOGUIAlignment::kLeft);
           gui->setColor(OOColor::greenColor().get(), OXZ_GUI_ROW_LISTFILTER);
         }
       }
@@ -1469,7 +1468,7 @@ void OOOXZManager::gui() {
 
       if (_downloadStatus == OXZDownloadStatus::kError) {
         if (gui != nullptr)
-          gui->addLongText(cxx_OOExpandKey("oolite-oxzmanager-progress-error"),
+          gui->addLongText(OOExpandKey("oolite-oxzmanager-progress-error"),
                            OXZ_GUI_ROW_PROGRESS, OOGUIAlignment::kLeft);
       } else {
         if (gui != nullptr) {
@@ -1547,7 +1546,7 @@ void OOOXZManager::gui() {
                            OOGUIAlignment::kLeft);
       } else {
         if (gui != nullptr)
-          gui->addLongText(cxx_OOExpandKey("oolite-oxzmanager-progress-error"),
+          gui->addLongText(OOExpandKey("oolite-oxzmanager-progress-error"),
                            OXZ_GUI_ROW_PROGRESS, OOGUIAlignment::kLeft);
       }
       if (gui != nullptr) {
@@ -1893,7 +1892,7 @@ void OOOXZManager::processShowInfoKey() {
       setOXPURL(infoURL);
       // instructions
       if (gui != nullptr) {
-        gui->setText(cxx_OOExpand(cxx_OOLookUpDescriptionPRIV(
+        gui->setText(OOExpand(OOLookUpDescriptionPRIV(
                          "oolite-oxzmanager-infopage-return")),
                      27, OOGUIAlignment::kCenter);
         gui->setColor(OOColor::greenColor().get(), 27);
@@ -2165,13 +2164,13 @@ OOGUIRow OOOXZManager::showInstallOptions() {
     if (_interfaceState == OXZInterfaceState::kPickInstalled) {
       // installeD
       if (gui != nullptr)
-        gui->addLongText(cxx_OOExpand(cxx_OOLookUpDescriptionPRIV(
+        gui->addLongText(OOExpand(OOLookUpDescriptionPRIV(
                              "oolite-oxzmanager-installed-nonepicked")),
                          OXZ_GUI_ROW_LISTDESC, OOGUIAlignment::kLeft);
     } else {
       // installeR
       if (gui != nullptr)
-        gui->addLongText(cxx_OOExpand(cxx_OOLookUpDescriptionPRIV(
+        gui->addLongText(OOExpand(OOLookUpDescriptionPRIV(
                              "oolite-oxzmanager-installer-nonepicked")),
                          OXZ_GUI_ROW_LISTDESC, OOGUIAlignment::kLeft);
     }

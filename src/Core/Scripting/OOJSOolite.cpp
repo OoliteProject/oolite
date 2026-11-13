@@ -214,7 +214,7 @@ static JSValue OoliteGetProperty(OOJS_GETTER_ARGS) {
       std::optional<std::string> toneMapperStr = "OOHDR_TONEMAPPER_UNDEFINED";
 #if OOLITE_WINDOWS
       if ((gameView != nullptr ? gameView->hdrOutput() : false)) {
-        toneMapperStr = cxx_OOStringFromHDRToneMapper(
+        toneMapperStr = OOStringFromHDRToneMapper(
             (gameView != nullptr ? gameView->hdrToneMapper()
                                  : OOHDRToneMapper{}));
       }
@@ -226,7 +226,7 @@ static JSValue OoliteGetProperty(OOJS_GETTER_ARGS) {
     case kSdrToneMapper: {
       std::optional<std::string> toneMapperStr = "OOSDR_TONEMAPPER_UNDEFINED";
       if (!(gameView != nullptr ? gameView->hdrOutput() : false)) {
-        toneMapperStr = cxx_OOStringFromSDRToneMapper(
+        toneMapperStr = OOStringFromSDRToneMapper(
             (gameView != nullptr ? gameView->sdrToneMapper()
                                  : OOSDRToneMapper{}));
       }
@@ -283,14 +283,14 @@ static JSValue OoliteSetProperty(OOJS_SETTER_ARGS) {
 
     case kHdrToneMapper:
       if (!JS_IsString(value)) break;  // non-string is not allowed
-      sValue = cxx_OOStringFromJSValue(context, value);
+      sValue = OOStringFromJSValue(context, value);
       if (sValue.has_value()) {
 #if OOLITE_WINDOWS
         if ((gameView != nullptr ? gameView->hdrOutput() : false)) {
           if (gameView != nullptr)
-            gameView->setHDRToneMapper(cxx_OOHDRToneMapperFromString(*sValue));
+            gameView->setHDRToneMapper(OOHDRToneMapperFromString(*sValue));
         } else
-          cxx_OOJSReportWarning(
+          OOJSReportWarning(
               context,
               "hdrToneMapper cannot be set if not running in HDR mode");
 #endif
@@ -300,13 +300,13 @@ static JSValue OoliteSetProperty(OOJS_SETTER_ARGS) {
 
     case kSdrToneMapper:
       if (!JS_IsString(value)) break;  // non-string is not allowed
-      sValue = cxx_OOStringFromJSValue(context, value);
+      sValue = OOStringFromJSValue(context, value);
       if (sValue.has_value()) {
         if (!(gameView != nullptr ? gameView->hdrOutput() : false)) {
           if (gameView != nullptr)
-            gameView->setSDRToneMapper(cxx_OOSDRToneMapperFromString(*sValue));
+            gameView->setSDRToneMapper(OOSDRToneMapperFromString(*sValue));
         } else
-          cxx_OOJSReportWarning(
+          OOJSReportWarning(
               context,
               "sdrToneMapper cannot be set if not running in SDR mode");
         return JS_UNDEFINED;
@@ -374,7 +374,7 @@ static JSValue OoliteCompareVersion(OOJS_NATIVE_ARGS) {
   if (argc == 0)
     OOJS_RETURN_VOID;  // Backwards-compatibility: be overly lenient.
 
-  components = cxx_OOJSPListFromJSValue(context, OOJS_ARGV[0]);
+  components = OOJSPListFromJSValue(context, OOJS_ARGV[0]);
   if (const oo::PList::Array* componentArray =
           components.getIf<oo::PList::Array>()) {
     // Require each element to be a number

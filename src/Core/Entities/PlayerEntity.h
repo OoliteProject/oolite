@@ -1604,7 +1604,7 @@ class PlayerEntity : public ShipEntity {
   int ship_trade_in_factor = {};
 
   std::vector<std::pair<std::string, std::shared_ptr<OOScript>>>
-      worldScripts;  // in load order (+cxx_loadScripts)
+      worldScripts;  // in load order (+loadScripts)
   std::optional<std::vector<std::pair<std::string, std::shared_ptr<OOScript>>>>
       worldScriptsRequiringTickle;  // PlayerEntityLegacyScriptEngine's cache;
                                     // nullopt: not built
@@ -1626,7 +1626,7 @@ class PlayerEntity : public ShipEntity {
 
   std::optional<std::string> specialCargo;
 
-  std::vector<std::string> commLog;  // trimmed by -cxx_commLog
+  std::vector<std::string> commLog;  // trimmed by -commLog
 
   std::vector<std::pair<std::string, std::shared_ptr<OOScript>>>
       eqScripts;  // (key, script), in insertion order
@@ -2106,17 +2106,16 @@ OOINLINE PlayerEntity* OOGetPlayer(void) {
 // C++ forms, defined in OOConstToString.cpp: std::string results
 // (never nil), const std::string & parameters (nil arrived as "" and matched
 // nothing: the defaults).
-std::string cxx_OOStringFromGUIScreenID(OOGUIScreenID screen);
-OOGUIScreenID cxx_OOGUIScreenIDFromString(const std::string& string);
+std::string OOStringFromGUIScreenID(OOGUIScreenID screen);
+OOGUIScreenID OOGUIScreenIDFromString(const std::string& string);
 
-OOGalacticHyperspaceBehaviour cxx_OOGalacticHyperspaceBehaviourFromString(
+OOGalacticHyperspaceBehaviour OOGalacticHyperspaceBehaviourFromString(
     const std::string& string);
-std::string cxx_OOStringFromGalacticHyperspaceBehaviour(
+std::string OOStringFromGalacticHyperspaceBehaviour(
     OOGalacticHyperspaceBehaviour behaviour);
 
 // Rating and legal-status names from descriptions.plist; nullopt: missing (was
 // nil).
-std::optional<std::string> cxx_OODisplayRatingStringFromKillCount(
-    unsigned kills);
-std::string cxx_KillCountToRatingAndKillString(unsigned kills);
-std::optional<std::string> cxx_OODisplayStringFromLegalStatus(int legalStatus);
+std::optional<std::string> OODisplayRatingStringFromKillCount(unsigned kills);
+std::string KillCountToRatingAndKillString(unsigned kills);
+std::optional<std::string> OODisplayStringFromLegalStatus(int legalStatus);

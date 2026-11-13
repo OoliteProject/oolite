@@ -70,16 +70,15 @@ static JSValue SpecialJSWarning(OOJS_NATIVE_ARGS) {
   OOJS_PROFILE_ENTER  // These functions are exception-safe
 
       if (EXPECT_NOT(argc < 1)) {
-    cxx_OOJSReportBadArguments(context, "special", "jsWarning", argc, OOJS_ARGV,
-                               std::nullopt, "string");
+    OOJSReportBadArguments(context, "special", "jsWarning", argc, OOJS_ARGV,
+                           std::nullopt, "string");
     return JS_EXCEPTION;
   }
 
   OOJSSetWarningOrErrorStackSkip(1);
-  cxx_OOJSReportWarning(context, "%s",
-                        cxx_OOStringFromJSValue(context, OOJS_ARGV[0])
-                            .value_or("(null)")
-                            .c_str());
+  OOJSReportWarning(
+      context, "%s",
+      OOStringFromJSValue(context, OOJS_ARGV[0]).value_or("(null)").c_str());
   OOJSSetWarningOrErrorStackSkip(0);
 
   OOJS_RETURN_VOID;

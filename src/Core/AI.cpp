@@ -55,7 +55,7 @@ AI* sCurrentlyRunningAI = nullptr;
 // property list when it is a dictionary, a null PList otherwise (its
 // plist.wrongType log line, which named the Foundation class, is not kept).
 oo::PList PListDictionaryFromFile(const std::string& path) {
-  oo::PList result = cxx_OOPropertyListFromFile(path);
+  oo::PList result = OOPropertyListFromFile(path);
   return result.isDict() ? result : oo::PList();
 }
 
@@ -504,7 +504,7 @@ void AI::reactToMessage(
     } catch (...) {
       const auto exception = oo::CurrentOOException();
       if (!exception) throw;  // not an OOException: it goes on up, as before
-      OO_LOG(cxx_kOOLogException,
+      OO_LOG(kOOLogException,
              "Squashing exception {}:{} in AI handler {}:{}.{}",
              exception->name(), exception->reason(), stateMachineName,
              currentState.value_or("(null)"), message);

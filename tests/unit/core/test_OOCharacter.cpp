@@ -91,7 +91,7 @@ Universe* gSharedUniverse = nullptr;
 // the species and planet overrides a description asks for.
 static int gExpansions = 0;
 
-std::optional<std::string> cxx_OOExpandDescriptionString(
+std::optional<std::string> OOExpandDescriptionString(
     Random_Seed /*seed*/, const std::string& string, const oo::PList& overrides,
     const oo::PList& /*legacyLocals*/,
     const std::optional<std::string>& /*systemName*/,
@@ -106,12 +106,12 @@ std::optional<std::string> cxx_OOExpandDescriptionString(
   return result + ">";
 }
 
-std::string cxx_OOLookUpDescriptionPRIV(const std::string& key) {
+std::string OOLookUpDescriptionPRIV(const std::string& key) {
   return "desc:" + key;
 }
 
 // "1 2 3 4 5 6" is that seed; anything else is kNilRandomSeed's zeroes.
-Random_Seed cxx_RandomSeedFromString(
+Random_Seed RandomSeedFromString(
     const std::optional<std::string>& abcdefString) {
   if (abcdefString == "1 2 3 4 5 6") return Random_Seed{1, 2, 3, 4, 5, 6};
   return Random_Seed{};

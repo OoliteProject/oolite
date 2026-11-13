@@ -9,7 +9,7 @@
    settings (gpu-settings.plist) come from this file's ResourceManager stub, so
    the matching is pinned exactly: precedence order, a regexp array ANDed, the
    first match wins, and what a match overrides. OORegExpMatcher and
-   cxx_OOShaderSettingFromString are stubs as well (the real ones reach the
+   OOShaderSettingFromString are stubs as well (the real ones reach the
    script engine and the Universe). Run: tests/run.sh unit
 */
 
@@ -69,7 +69,7 @@ void OOLogOutdent(void) {}
 
 OORegExpMatcher::~OORegExpMatcher() {}
 
-OOShaderSetting cxx_OOShaderSettingFromString(const std::string& string) {
+OOShaderSetting OOShaderSettingFromString(const std::string& string) {
   if (string == "SHADERS_OFF") return OOShaderSetting::kOff;
   if (string == "SHADERS_SIMPLE") return OOShaderSetting::kSimple;
   if (string == "SHADERS_FULL") return OOShaderSetting::kFull;

@@ -139,10 +139,9 @@ void Entity::willDispose() noexcept {
 std::optional<std::string> Entity::descriptionComponents() const {
   // The getters read these ivars.
   return std::format(
-      "position: {} scanClass: {} status: {}",
-      cxx_HPVectorDescription(position),
-      cxx_OOStringFromScanClass(const_cast<Entity*>(this)->getScanClass()),
-      cxx_OOStringFromEntityStatus(_status));
+      "position: {} scanClass: {} status: {}", HPVectorDescription(position),
+      OOStringFromScanClass(const_cast<Entity*>(this)->getScanClass()),
+      OOStringFromEntityStatus(_status));
 }
 
 std::size_t Entity::sessionID() { return _sessionID; }
@@ -816,10 +815,9 @@ void Entity::dumpSelfState() {
   OO_LOG("dumpState.entity", "Universal ID: {}",
          static_cast<unsigned>(universalID));
   OO_LOG("dumpState.entity", "Scan class: {}",
-         cxx_OOStringFromScanClass(scanClass));
-  OO_LOG("dumpState.entity", "Status: {}",
-         cxx_OOStringFromEntityStatus(status()));
-  OO_LOG("dumpState.entity", "Position: {}", cxx_HPVectorDescription(position));
+         OOStringFromScanClass(scanClass));
+  OO_LOG("dumpState.entity", "Status: {}", OOStringFromEntityStatus(status()));
+  OO_LOG("dumpState.entity", "Position: {}", HPVectorDescription(position));
   OO_LOG("dumpState.entity", "Orientation: {}",
          QuaternionDescription(orientation));
   OO_LOG("dumpState.entity", "Distance travelled: {:g}", distanceTravelled);
@@ -890,7 +888,7 @@ std::optional<std::string> Entity::descriptionForObjDumpBasic() {
   const std::optional<std::string> components = descriptionComponents();
   if (components.has_value())
     return std::format("{} {}", oo::EntityClassName(this), *components);
-  if (!hasObject()) return std::nullopt;  // -cxx_description sent to nil
+  if (!hasObject()) return std::nullopt;  // -description sent to nil
   return oo::EntityDescription(this);
 }
 

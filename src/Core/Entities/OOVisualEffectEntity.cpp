@@ -62,7 +62,7 @@ MA 02110-1301, USA.
 namespace {
 
 // -objectForKey: as plist data (a null PList when absent), for
-// +cxx_colorWithDescription:.
+// +colorWithDescription:.
 oo::PList ValueForKey(const oo::PList& dict, std::string_view key) {
   const oo::PList* value = dict.find(key);
   return value != nullptr ? *value : oo::PList();
@@ -116,7 +116,7 @@ std::shared_ptr<Entity> oo::NewVisualEffect(const std::string& key,
   return effect;
 }
 
-/*	-cxx_initWithKey:definition:'s body after [super init] (the constructor
+/*	-initWithKey:definition:'s body after [super init] (the constructor
    ran Entity's). oo::NewVisualEffect() runs it once the effect is made; false
    where the initialiser released itself and answered nil.
 */
@@ -784,7 +784,7 @@ void OOVisualEffectEntity::setBeaconLabel(
   if (label.has_value() && label->empty()) label.reset();
 
   if (label.has_value() || _beaconLabel.has_value()) {
-    _beaconLabel = label.has_value() ? cxx_OOExpand(*label) : std::nullopt;
+    _beaconLabel = label.has_value() ? OOExpand(*label) : std::nullopt;
   }
 }
 

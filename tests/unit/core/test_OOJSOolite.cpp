@@ -66,7 +66,7 @@ public:
 };
 
 
-/*	The universe. While _raise is set, -cxx_gameSettings raises, and while _throwCxx is set it
+/*	The universe. While _raise is set, -gameSettings raises, and while _throwCxx is set it
 	throws a C++ exception, so the test sees what an exception under a native becomes.
 */
 #include "UniverseStandIn.h"
@@ -175,7 +175,7 @@ std::vector<std::string> ResourceManager::maskUserNameInPathArray(const std::vec
 
 
 // The tone mappers' names, as OOConstToString.mm gives them, for the ones the test uses.
-std::string cxx_OOStringFromHDRToneMapper(OOHDRToneMapper toneMapper)
+std::string OOStringFromHDRToneMapper(OOHDRToneMapper toneMapper)
 {
 	switch (toneMapper)
 	{
@@ -186,14 +186,14 @@ std::string cxx_OOStringFromHDRToneMapper(OOHDRToneMapper toneMapper)
 	}
 }
 
-OOHDRToneMapper cxx_OOHDRToneMapperFromString(const std::string &string)
+OOHDRToneMapper OOHDRToneMapperFromString(const std::string &string)
 {
 	if (string == "OOHDR_TONEMAPPER_DICE")  return OOHDRToneMapper::kDice;
 	if (string == "OOHDR_TONEMAPPER_REINHARD")  return OOHDRToneMapper::kReinhard;
 	return OOHDRToneMapper::kAcesApprox;
 }
 
-std::string cxx_OOStringFromSDRToneMapper(OOSDRToneMapper toneMapper)
+std::string OOStringFromSDRToneMapper(OOSDRToneMapper toneMapper)
 {
 	switch (toneMapper)
 	{
@@ -204,7 +204,7 @@ std::string cxx_OOStringFromSDRToneMapper(OOSDRToneMapper toneMapper)
 	}
 }
 
-OOSDRToneMapper cxx_OOSDRToneMapperFromString(const std::string &string)
+OOSDRToneMapper OOSDRToneMapperFromString(const std::string &string)
 {
 	if (string == "OOSDR_TONEMAPPER_AGX")  return OOSDRToneMapper::kAgX;
 	if (string == "OOSDR_TONEMAPPER_REINHARD")  return OOSDRToneMapper::kReinhard;
@@ -217,18 +217,18 @@ OOSDRToneMapper cxx_OOSDRToneMapperFromString(const std::string &string)
 JSContext *gOOJSMainThreadContext = nullptr;
 
 
-void cxx_OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
+void OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
 {
 	std::string msg = oo::str::vformat(format, args);
 	JS_ThrowPlainError(context, "%s", msg.c_str());
 }
 
 
-void cxx_OOJSReportError(JSContext *context, const char *format, ...)
+void OOJSReportError(JSContext *context, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
-	cxx_OOJSReportErrorWithArguments(context, format, args);
+	OOJSReportErrorWithArguments(context, format, args);
 	va_end(args);
 }
 
@@ -237,7 +237,7 @@ namespace {
 std::string sLastWarning;
 }
 
-void cxx_OOJSReportWarning(JSContext *, const char *format, ...)
+void OOJSReportWarning(JSContext *, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
@@ -263,7 +263,7 @@ bool OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
 	number = std::floor(number + 0.5);
 	if (std::isnan(number) || number < INT32_MIN || number > INT32_MAX)
 	{
-		cxx_OOJSReportError(context, "can't convert to an integer");
+		OOJSReportError(context, "can't convert to an integer");
 		return false;
 	}
 	*outValue = static_cast<int32_t>(number);
@@ -281,13 +281,13 @@ JSValue OOJSNativeFailure(JSContext *context)
 
 
 // Property IDs are interned for the life of the process (never freed); the class registry calls it.
-JSAtom cxx_OOJSIDFromString(const std::string &string)
+JSAtom OOJSIDFromString(const std::string &string)
 {
 	return JS_NewAtomLen(OOJSAcquireContext(), string.data(), string.size());
 }
 
 
-std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueConst value)
+std::optional<std::string> OOStringFromJSValue(JSContext *context, JSValueConst value)
 {
 	if (JS_IsNull(value) || JS_IsUndefined(value))  return std::nullopt;
 	std::size_t length = 0;
@@ -305,9 +305,9 @@ std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueCo
 
 // A JS value as a property list, as far as compareVersion() hands one over: a string, a number, a
 // boolean, an array of those, or null for anything else.
-oo::PList cxx_OOJSPListFromJSValue(JSContext *context, JSValueConst value)
+oo::PList OOJSPListFromJSValue(JSContext *context, JSValueConst value)
 {
-	if (JS_IsString(value))  return oo::PList(cxx_OOStringFromJSValue(context, value).value_or(std::string()));
+	if (JS_IsString(value))  return oo::PList(OOStringFromJSValue(context, value).value_or(std::string()));
 	if (JS_IsBool(value))  return oo::PList(JS_ToBool(context, value) > 0);
 	if (JS_IsNumber(value))
 	{
@@ -323,7 +323,7 @@ oo::PList cxx_OOJSPListFromJSValue(JSContext *context, JSValueConst value)
 		for (int64_t i = 0; i < length; i++)
 		{
 			JSValue element = JS_GetPropertyUint32(context, value, static_cast<uint32_t>(i));
-			elements.push_back(cxx_OOJSPListFromJSValue(context, element));
+			elements.push_back(OOJSPListFromJSValue(context, element));
 			JS_FreeValue(context, element);
 		}
 		return oo::PList(std::move(elements));
@@ -360,19 +360,19 @@ Universe *gSharedUniverse = nullptr;
 
 void OOJSReportBadPropertySelector(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t)
 {
-	cxx_OOJSReportError(context, "bad property selector");
+	OOJSReportError(context, "bad property selector");
 }
 
 
 void OOJSReportBadPropertyValue(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t, JSValueConst)
 {
-	cxx_OOJSReportError(context, "bad property value");
+	OOJSReportError(context, "bad property value");
 }
 
 
 JSValue OOJSUnconstructableConstruct(JSContext *context, JSValueConst, int, JSValueConst *)
 {
-	cxx_OOJSReportError(context, "unconstructable");
+	OOJSReportError(context, "unconstructable");
 	return JS_EXCEPTION;
 }
 
@@ -457,7 +457,7 @@ std::string Eval(const char *src)
 		JS_FreeValue(sContext, JS_GetException(sContext));
 		return "<evaluation failed>";
 	}
-	std::string text = cxx_OOStringFromJSValue(sContext, result).value_or("<not a string>");
+	std::string text = OOStringFromJSValue(sContext, result).value_or("<not a string>");
 	JS_FreeValue(sContext, result);
 	return text;
 }

@@ -100,7 +100,7 @@ inline GLuint OOGLProgramName(Handle handle) {
           3. Draw
           4. Reverse state changes from stage 2
           5. Call OOVerifyOpenGLState()
-          6. Call cxx_OOCheckOpenGLErrors().
+          6. Call OOCheckOpenGLErrors().
 
 
         The states are:

@@ -77,7 +77,7 @@ static std::optional<std::string> ScriptNameForPropertyID(JSContext* context,
   std::optional<std::string> result;
   JSValue idValue = JS_AtomToValue(context, propID);
   if (JS_IsString(idValue)) {
-    result = cxx_OOStringFromJSValue(context, idValue);
+    result = OOStringFromJSValue(context, idValue);
   }
   JS_FreeValue(context, idValue);
   return result;

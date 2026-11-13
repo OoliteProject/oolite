@@ -45,7 +45,7 @@ void OOTexture::applyNone() { gTextureApplyNones++; }
 
 // Link stubs, never reached here:
 // OOMaterialSpecifier.mm's texture specifiers, and OOOpenGL.mm's GL state dump.
-oo::PList cxx_OOTextureSpecFromObject(const oo::PList&,
+oo::PList OOTextureSpecFromObject(const oo::PList&,
                                       const std::optional<std::string>&) {
   std::abort();
 }

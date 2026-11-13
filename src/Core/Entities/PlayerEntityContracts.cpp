@@ -151,8 +151,8 @@ PlayerEntity::processEscapePods()  // removes pods from cargo bay and treats
             OO_DESC("capture-reward-for-@@-@-credits-@-alt"),
             {rescuee->name().value_or("(null)"),
              rescuee->shortDescription().value_or("(null)"),
-             cxx_OOStringFromDeciCredits(reward, true, false),
-             cxx_OOStringFromDeciCredits(insurance, true, false)});
+             OOStringFromDeciCredits(reward, true, false),
+             OOStringFromDeciCredits(insurance, true, false)});
         doScriptEvent(
             OOJSID("playerRescuedEscapePod"),
             {oo::PList::unsignedInteger(static_cast<std::size_t>(reward)),
@@ -163,8 +163,8 @@ PlayerEntity::processEscapePods()  // removes pods from cargo bay and treats
             OO_DESC("rescue-reward-for-@@-@-credits-@-alt"),
             {rescuee->name().value_or("(null)"),
              rescuee->shortDescription().value_or("(null)"),
-             cxx_OOStringFromDeciCredits(insurance - reward, true, false),
-             cxx_OOStringFromDeciCredits(reward, true, false)});
+             OOStringFromDeciCredits(insurance - reward, true, false),
+             OOStringFromDeciCredits(reward, true, false)});
         reward = insurance - reward;
         doScriptEvent(
             OOJSID("playerRescuedEscapePod"),
@@ -179,8 +179,8 @@ PlayerEntity::processEscapePods()  // removes pods from cargo bay and treats
           OO_DESC("rescue-reward-for-@@-@-credits"),
           {rescuee->name().value_or("(null)"),
            rescuee->shortDescription().value_or("(null)"),
-           cxx_OOStringFromDeciCredits(rescuee->insuranceCredits() * 10, true,
-                                       false)});
+           OOStringFromDeciCredits(rescuee->insuranceCredits() * 10, true,
+                                   false)});
       credits += 10 * rescuee->insuranceCredits();
       doScriptEvent(OOJSID("playerRescuedEscapePod"),
                     {oo::PList::unsignedInteger(static_cast<std::size_t>(
@@ -195,7 +195,7 @@ PlayerEntity::processEscapePods()  // removes pods from cargo bay and treats
           OO_DESC("capture-reward-for-@@-@-credits"),
           {rescuee->name().value_or("(null)"),
            rescuee->shortDescription().value_or("(null)"),
-           cxx_OOStringFromDeciCredits(reward, true, false)});
+           OOStringFromDeciCredits(reward, true, false)});
       credits += reward;
       doScriptEvent(
           OOJSID("playerRescuedEscapePod"),
@@ -269,11 +269,11 @@ PlayerEntity::checkPassengerContracts()  // returns messages from any passengers
         }
         credits += 10 * fee;
 
-        result += oo::str::formatRuntime(
-                      OO_DESC("passenger-delivered-okay-@-@-@"),
-                      {TextArg(passenger_name), cxx_OOIntCredits(fee),
-                       TextArg(passenger_dest_name)}) +
-                  "\n";
+        result +=
+            oo::str::formatRuntime(OO_DESC("passenger-delivered-okay-@-@-@"),
+                                   {TextArg(passenger_name), OOIntCredits(fee),
+                                    TextArg(passenger_dest_name)}) +
+            "\n";
         if (passenger_info.get<unsigned int>(std::string(CONTRACT_KEY_RISK),
                                              0) > 0) {
           addRoleToPlayer("trader-courier+");
@@ -296,11 +296,11 @@ PlayerEntity::checkPassengerContracts()  // returns messages from any passengers
           fee /= 2;
         credits += 10 * fee;
 
-        result += oo::str::formatRuntime(
-                      OO_DESC("passenger-delivered-late-@-@-@"),
-                      {TextArg(passenger_name), cxx_OOIntCredits(fee),
-                       TextArg(passenger_dest_name)}) +
-                  "\n";
+        result +=
+            oo::str::formatRuntime(OO_DESC("passenger-delivered-late-@-@-@"),
+                                   {TextArg(passenger_name), OOIntCredits(fee),
+                                    TextArg(passenger_dest_name)}) +
+            "\n";
         if (passenger_info.get<unsigned int>(std::string(CONTRACT_KEY_RISK),
                                              0) > 0) {
           addRoleToPlayer("trader-courier+");
@@ -359,10 +359,10 @@ PlayerEntity::checkPassengerContracts()  // returns messages from any passengers
         }
         credits += 10 * fee;
 
-        result += oo::str::formatRuntime(
-                      OO_DESC("parcel-delivered-okay-@-@"),
-                      {TextArg(parcel_name), cxx_OOIntCredits(fee)}) +
-                  "\n";
+        result +=
+            oo::str::formatRuntime(OO_DESC("parcel-delivered-okay-@-@"),
+                                   {TextArg(parcel_name), OOIntCredits(fee)}) +
+            "\n";
 
         increaseParcelReputation(RepForRisk(
             parcel_info.get<unsigned int>(std::string(CONTRACT_KEY_RISK), 0)));
@@ -387,10 +387,10 @@ PlayerEntity::checkPassengerContracts()  // returns messages from any passengers
           fee /= 2;
         credits += 10 * fee;
 
-        result += oo::str::formatRuntime(
-                      OO_DESC("parcel-delivered-late-@-@"),
-                      {TextArg(parcel_name), cxx_OOIntCredits(fee)}) +
-                  "\n";
+        result +=
+            oo::str::formatRuntime(OO_DESC("parcel-delivered-late-@-@"),
+                                   {TextArg(parcel_name), OOIntCredits(fee)}) +
+            "\n";
         if (parcel_info.get<unsigned int>(std::string(CONTRACT_KEY_RISK), 0) >
             0) {
           addRoleToPlayer("trader-courier+");
@@ -477,7 +477,7 @@ PlayerEntity::checkPassengerContracts()  // returns messages from any passengers
           credits += fee;
           result += oo::str::formatRuntime(
                         OO_DESC("cargo-delivered-okay-@-@"),
-                        {TextArg(contract_cargo_desc), cxx_OOCredits(fee)}) +
+                        {TextArg(contract_cargo_desc), OOCredits(fee)}) +
                     "\n";
 
           contracts.erase(contracts.begin() + i--);
@@ -521,7 +521,7 @@ PlayerEntity::checkPassengerContracts()  // returns messages from any passengers
             result +=
                 oo::str::formatRuntime(OO_DESC("cargo-delivered-short-@-@-d"),
                                        {TextArg(contract_cargo_desc),
-                                        cxx_OOCredits(payment), shortfall}) +
+                                        OOCredits(payment), shortfall}) +
                 "\n";
 
             contracts.erase(contracts.begin() + i--);
@@ -1195,9 +1195,9 @@ std::vector<std::string> PlayerEntity::contractsListFromEntries(
     OOCreditsQuantity fee =
         contract_info.get<int>(std::string(CONTRACT_KEY_FEE));
     const std::optional<std::string> feeDesc =
-        std::optional<std::string>(cxx_OOIntCredits(fee));
+        std::optional<std::string>(OOIntCredits(fee));
 
-    // cxx_OOExpandKey(formatString, label, destination, deadline, feeDesc),
+    // OOExpandKey(formatString, label, destination, deadline, feeDesc),
     // spelled out: the macro names each argument after its expression, so the
     // dictionary of named values is built here.
     oo::PList::Dict arguments;
@@ -1205,12 +1205,12 @@ std::vector<std::string> PlayerEntity::contractsListFromEntries(
     if (destination) arguments["destination"] = oo::PList(*destination);
     if (deadline) arguments["deadline"] = oo::PList(*deadline);
     if (feeDesc) arguments["feeDesc"] = oo::PList(*feeDesc);
-    result.push_back(cxx_OOExpandDescriptionString(
-                         OOStringExpanderDefaultRandomSeed(),
-                         std::string(formatString),
-                         oo::PList(std::move(arguments)), oo::PList(),
-                         std::nullopt, OOExpandOptions::kKey)
-                         .value_or(std::string()));
+    result.push_back(
+        OOExpandDescriptionString(OOStringExpanderDefaultRandomSeed(),
+                                  std::string(formatString),
+                                  oo::PList(std::move(arguments)), oo::PList(),
+                                  std::nullopt, OOExpandOptions::kKey)
+            .value_or(std::string()));
   }
 
   return result;
@@ -1234,13 +1234,13 @@ void PlayerEntity::setGuiToManifestScreen() {
   {
     std::ptrdiff_t current, max;
     std::shared_ptr<OOColor> subheadColor = gui->colorFromSetting(
-        cxx_kGuiManifestSubheadColor, OOColor::greenColor().get());
+        kGuiManifestSubheadColor, OOColor::greenColor().get());
     std::shared_ptr<OOColor> entryColor =
-        gui->colorFromSetting(cxx_kGuiManifestEntryColor, nullptr);
+        gui->colorFromSetting(kGuiManifestEntryColor, nullptr);
     std::shared_ptr<OOColor> scrollColor = gui->colorFromSetting(
-        cxx_kGuiManifestScrollColor, OOColor::greenColor().get());
+        kGuiManifestScrollColor, OOColor::greenColor().get());
     std::shared_ptr<OOColor> noScrollColor = gui->colorFromSetting(
-        cxx_kGuiManifestNoScrollColor, OOColor::darkGrayColor().get());
+        kGuiManifestNoScrollColor, OOColor::darkGrayColor().get());
 
     const std::vector<std::string> cargoManifest = cargoList();
     const oo::PList missionsList =
@@ -1302,7 +1302,7 @@ void PlayerEntity::setGuiToManifestScreen() {
     OOGUITabSettings tab_stops;
     tab_stops[0] = 0;
     tab_stops[1] = 256;
-    gui->overrideTabs(tab_stops, cxx_kGuiManifestTabs, 3);
+    gui->overrideTabs(tab_stops, kGuiManifestTabs, 3);
     gui->setTabStops(tab_stops);
 
     // Cargo Manifest
@@ -1314,12 +1314,12 @@ void PlayerEntity::setGuiToManifestScreen() {
     current = current_cargo;
     max = maxAvailableCargoSpace();
     const std::string cargoString =
-        cxx_OOExpandKey("oolite-manifest-cargo", current, max)
+        OOExpandKey("oolite-manifest-cargo", current, max)
             .value_or(std::string());
     current = passengerList().size();
     max = max_passengers;
     const std::string cabinString =
-        cxx_OOExpandKey("oolite-manifest-cabins", current, max)
+        OOExpandKey("oolite-manifest-cabins", current, max)
             .value_or(std::string());
     const oo::PList manifestHeader(
         oo::PList::Array{oo::PList(cargoString), oo::PList(cabinString)});
@@ -1466,13 +1466,13 @@ void PlayerEntity::setGuiToDockingReportScreen() {
   // GUI stuff
   {
     gui->clearAndKeepBackground(!guiChanged);
-    gui->setTitle(cxx_OOExpandKey("arrival-report-title"));
+    gui->setTitle(OOExpandKey("arrival-report-title"));
 
     for (i = 1; i <= 18; i++) {
-      gui->setColor(gui->colorFromSetting(
-                           std::string(cxx_kGuiDockingReportColor), nullptr)
-                        .get(),
-                    21);
+      gui->setColor(
+          gui->colorFromSetting(std::string(kGuiDockingReportColor), nullptr)
+              .get(),
+          21);
     }
 
     // dockingReport might be a multi-line message
@@ -1499,19 +1499,19 @@ void PlayerEntity::setGuiToDockingReportScreen() {
             OO_DESC_PLURAL(
                 "contracts-cash-@-load-d-of-d-passengers-d-of-d-berths",
                 max_passengers),
-            {cxx_OOCredits(credits), current_cargo, maxAvailableCargoSpace(),
+            {OOCredits(credits), current_cargo, maxAvailableCargoSpace(),
              passengers.size(), max_passengers}),
         GUI_ROW_MARKET_CASH);
     gui->setColor(
-        gui->colorFromSetting(std::string(cxx_kGuiDockingSummaryColor), nullptr)
+        gui->colorFromSetting(std::string(kGuiDockingSummaryColor), nullptr)
             .get(),
         GUI_ROW_MARKET_CASH);
 
     gui->setText(OO_DESC("press-space-commander"), 21, OOGUIAlignment::kCenter);
-    gui->setColor(gui->colorFromSetting(
-                         std::string(cxx_kGuiDockingContinueColor), nullptr)
-                      .get(),
-                  21);
+    gui->setColor(
+        gui->colorFromSetting(std::string(kGuiDockingContinueColor), nullptr)
+            .get(),
+        21);
     gui->setShowTextCursor(false);
   }
   /* ends */
@@ -1568,13 +1568,13 @@ std::optional<std::string> OptionalStringAt(const oo::PList& array,
   return array.at<std::string>(index);
 }
 
-// cxx_OOExpandKey(key, ...) with the arguments it would have named after their
+// OOExpandKey(key, ...) with the arguments it would have named after their
 // variables; nothing expanded is "".
 std::string ExpandKey(std::string_view key, oo::PList::Dict arguments) {
-  return cxx_OOExpandDescriptionString(
-             OOStringExpanderDefaultRandomSeed(), std::string(key),
-             oo::PList(std::move(arguments)), oo::PList(), std::nullopt,
-             OOExpandOptions::kKey)
+  return OOExpandDescriptionString(OOStringExpanderDefaultRandomSeed(),
+                                   std::string(key),
+                                   oo::PList(std::move(arguments)), oo::PList(),
+                                   std::nullopt, OOExpandOptions::kKey)
       .value_or(std::string());
 }
 
@@ -1669,7 +1669,7 @@ void PlayerEntity::setGuiToShipyardScreen(std::size_t skip) {
     tab_stops[2] = 270;
     tab_stops[3] = 370;
     tab_stops[4] = 450;
-    gui->overrideTabs(tab_stops, cxx_kGuiShipyardTabs, 5);
+    gui->overrideTabs(tab_stops, kGuiShipyardTabs, 5);
     gui->setTabStops(tab_stops);
 
     int rowCount = MAX_ROWS_SHIPS_FOR_SALE;
@@ -1689,7 +1689,7 @@ void PlayerEntity::setGuiToShipyardScreen(std::size_t skip) {
     }
 
     if (shipCount > 0) {
-      gui->setColor(gui->colorFromSetting(cxx_kGuiShipyardHeadingColor,
+      gui->setColor(gui->colorFromSetting(kGuiShipyardHeadingColor,
                                           OOColor::greenColor().get())
                         .get(),
                     GUI_ROW_SHIPYARD_LABELS);
@@ -1699,7 +1699,7 @@ void PlayerEntity::setGuiToShipyardScreen(std::size_t skip) {
           GUI_ROW_SHIPYARD_LABELS);
 
       if (skip > 0) {
-        gui->setColor(gui->colorFromSetting(cxx_kGuiShipyardScrollColor,
+        gui->setColor(gui->colorFromSetting(kGuiShipyardScrollColor,
                                             OOColor::greenColor().get())
                           .get(),
                       GUI_ROW_SHIPYARD_START);
@@ -1719,16 +1719,16 @@ void PlayerEntity::setGuiToShipyardScreen(std::size_t skip) {
         if (!shipName && ship != nullptr)
           shipName = OptionalStringForKey(*ship, "name");  // KEY_NAME
         gui->setColor(
-            gui->colorFromSetting(cxx_kGuiShipyardEntryColor, nullptr).get(),
+            gui->colorFromSetting(kGuiShipyardEntryColor, nullptr).get(),
             startRow + i);
-        gui->setArray({" " + shipName.value_or("(null)") + " ",
-                       cxx_OOIntCredits(ship_price)},
-                      startRow + i);
+        gui->setArray(
+            {" " + shipName.value_or("(null)") + " ", OOIntCredits(ship_price)},
+            startRow + i);
         gui->setKey(OptionalStringForKey(ship_info, "id").value_or(""),
                     startRow + i);  // SHIPYARD_KEY_ID
       }
       if (i < shipCount - skip) {
-        gui->setColor(gui->colorFromSetting(cxx_kGuiShipyardScrollColor,
+        gui->setColor(gui->colorFromSetting(kGuiShipyardScrollColor,
                                             OOColor::greenColor().get())
                           .get(),
                       startRow + i);
@@ -1745,7 +1745,7 @@ void PlayerEntity::setGuiToShipyardScreen(std::size_t skip) {
     } else {
       gui->setText(OO_DESC("shipyard-no-ships-available-for-purchase"),
                    GUI_ROW_NO_SHIPS, OOGUIAlignment::kCenter);
-      gui->setColor(gui->colorFromSetting(cxx_kGuiShipyardNoshipColor,
+      gui->setColor(gui->colorFromSetting(kGuiShipyardNoshipColor,
                                           OOColor::greenColor().get())
                         .get(),
                     GUI_ROW_NO_SHIPS);
@@ -1785,7 +1785,7 @@ void PlayerEntity::showShipyardInfoForSelection() {
   row_info[3] = "";
   for (i = GUI_ROW_SHIPYARD_INFO_START; i < GUI_ROW_MARKET_CASH - 1; i++) {
     gui->setText("", i);
-    gui->setColor(gui->colorFromSetting(cxx_kGuiShipyardDescriptionColor,
+    gui->setColor(gui->colorFromSetting(kGuiShipyardDescriptionColor,
                                         OOColor::greenColor().get())
                       .get(),
                   i);
@@ -1816,9 +1816,9 @@ void PlayerEntity::showShipyardInfoForSelection() {
       }
     }
 
-    row_info[2] = cxx_OOExpandKey("shipyard-cargo-value", cargoRating)
+    row_info[2] = OOExpandKey("shipyard-cargo-value", cargoRating)
                       .value_or(std::string());
-    row_info[3] = cxx_OOExpandKey("shipyard-speed-value", speedRating)
+    row_info[3] = OOExpandKey("shipyard-speed-value", speedRating)
                       .value_or(std::string());
 
     // Show footer first. It'll be overwritten by the sales_pitch if that text
@@ -1827,11 +1827,11 @@ void PlayerEntity::showShipyardInfoForSelection() {
     i = gui->addLongText(salesPitch, GUI_ROW_SHIPYARD_INFO_START,
                          OOGUIAlignment::kLeft);
     if (i - 1 >= GUI_ROW_MARKET_CASH - 1) {
-      gui->setColor(gui->colorFromSetting(cxx_kGuiShipyardDescriptionColor,
+      gui->setColor(gui->colorFromSetting(kGuiShipyardDescriptionColor,
                                           OOColor::greenColor().get())
                         .get(),
                     i - 1);
-      gui->setColor(gui->colorFromSetting(cxx_kGuiShipyardDescriptionColor,
+      gui->setColor(gui->colorFromSetting(kGuiShipyardDescriptionColor,
                                           OOColor::greenColor().get())
                         .get(),
                     GUI_ROW_MARKET_CASH - 1);
@@ -1861,12 +1861,10 @@ void PlayerEntity::showTradeInInformationFooter() {
   OOCreditsQuantity total = tradeIn + credits;
   const oo::PList shipType = oo::PList(getDisplayName().value_or(""));
 
-  gui->setColor(
-      gui->colorFromSetting(cxx_kGuiShipyardTradeinColor, nullptr).get(),
-      GUI_ROW_MARKET_CASH - 1);
-  gui->setColor(
-      gui->colorFromSetting(cxx_kGuiShipyardTradeinColor, nullptr).get(),
-      GUI_ROW_MARKET_CASH);
+  gui->setColor(gui->colorFromSetting(kGuiShipyardTradeinColor, nullptr).get(),
+                GUI_ROW_MARKET_CASH - 1);
+  gui->setColor(gui->colorFromSetting(kGuiShipyardTradeinColor, nullptr).get(),
+                GUI_ROW_MARKET_CASH);
   gui->setText(ExpandKey("shipyard-trade-in-value",
                          {{"shipType", shipType},
                           {"tradeIn", oo::PList::unsignedInteger(tradeIn)}}),
@@ -1952,7 +1950,7 @@ bool PlayerEntity::buySelectedShip() {
     std::size_t i;
     for (i = GUI_ROW_SHIPYARD_INFO_START; i < GUI_ROW_MARKET_CASH - 1; i++) {
       gui->setText("", i);
-      gui->setColor(gui->colorFromSetting(cxx_kGuiShipyardDescriptionColor,
+      gui->setColor(gui->colorFromSetting(kGuiShipyardDescriptionColor,
                                           OOColor::greenColor().get())
                         .get(),
                     i);
@@ -2146,32 +2144,32 @@ void PlayerEntity::newShipCommonSetup(const std::string& shipKey,
   // not retained - weapon types are references to the objects in
   // OOEquipmentType's cache
   if (OOWeaponFacingIsIn(available_facings, OOWeaponFacing::kAft))
-    aft_weapon_type = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(
+    aft_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(
         OptionalStringForKey(shipDict, "aft_weapon_type").value_or(""));
   else
     aft_weapon_type =
-        cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_WEAPON_NONE");
+        OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_WEAPON_NONE");
 
   if (OOWeaponFacingIsIn(available_facings, OOWeaponFacing::kPort))
-    port_weapon_type = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(
+    port_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(
         OptionalStringForKey(shipDict, "port_weapon_type").value_or(""));
   else
     port_weapon_type =
-        cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_WEAPON_NONE");
+        OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_WEAPON_NONE");
 
   if (OOWeaponFacingIsIn(available_facings, OOWeaponFacing::kStarboard))
-    starboard_weapon_type = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(
+    starboard_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(
         OptionalStringForKey(shipDict, "starboard_weapon_type").value_or(""));
   else
     starboard_weapon_type =
-        cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_WEAPON_NONE");
+        OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_WEAPON_NONE");
 
   if (OOWeaponFacingIsIn(available_facings, OOWeaponFacing::kForward))
-    forward_weapon_type = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(
+    forward_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(
         OptionalStringForKey(shipDict, "forward_weapon_type").value_or(""));
   else
     forward_weapon_type =
-        cxx_OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_WEAPON_NONE");
+        OOWeaponTypeFromEquipmentIdentifierSloppy("EQ_WEAPON_NONE");
 
   // new ships start with weapons online
   weapons_online = 1;

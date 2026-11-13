@@ -47,7 +47,7 @@ namespace {
 // its plist.wrongType line, which named the Foundation class, is not kept).
 static std::optional<std::vector<std::string>> StringsFromArrayFile(
     const std::string& path) {
-  const oo::PList list = cxx_OOPropertyListFromFile(path);
+  const oo::PList list = OOPropertyListFromFile(path);
   const oo::PList::Array* array = list.getIf<oo::PList::Array>();
   if (array == nullptr) return std::nullopt;
   std::vector<std::string> result;
@@ -115,7 +115,7 @@ OOScript::worldScriptsAtPath(const std::string& path) {
   if (!result.has_value()) {
     filePath = oo::str::appendingPathComponent(path, "script.plist");
     if (OOOxzFileExistsAtPath(filePath)) {
-      cxx_OOStandardsDeprecated(
+      OOStandardsDeprecated(
           std::format("Legacy script {} is deprecated", filePath));
       if (!OOEnforceStandards()) {
         foundScript = true;
@@ -191,7 +191,7 @@ OOScript::scriptsFromFileAtPath(const std::string& filePath) {
       result = std::vector<std::shared_ptr<OOScript>>{script};
     return result;
   } else if (extension == "plist") {
-    cxx_OOStandardsDeprecated(
+    OOStandardsDeprecated(
         std::format("Legacy script {} is deprecated", filePath));
     if (OOEnforceStandards()) {
       return std::nullopt;
@@ -268,19 +268,19 @@ std::optional<std::string> OOScript::descriptionComponents() {
 }
 
 std::optional<std::string> OOScript::name() {
-  OO_LOG_ERR(cxx_kOOLogSubclassResponsibility, "{}",
+  OO_LOG_ERR(kOOLogSubclassResponsibility, "{}",
              "OOScript should not be used directly!");
   return std::nullopt;
 }
 
 std::optional<std::string> OOScript::scriptDescription() {
-  OO_LOG_ERR(cxx_kOOLogSubclassResponsibility, "{}",
+  OO_LOG_ERR(kOOLogSubclassResponsibility, "{}",
              "OOScript should not be used directly!");
   return std::nullopt;
 }
 
 std::optional<std::string> OOScript::version() {
-  OO_LOG_ERR(cxx_kOOLogSubclassResponsibility, "{}",
+  OO_LOG_ERR(kOOLogSubclassResponsibility, "{}",
              "OOScript should not be used directly!");
   return std::nullopt;
 }
@@ -298,7 +298,7 @@ std::optional<std::string> OOScript::displayName() {
 bool OOScript::requiresTickle() { return false; }
 
 void OOScript::runWithTarget(Entity*) {
-  OO_LOG_ERR(cxx_kOOLogSubclassResponsibility, "{}",
+  OO_LOG_ERR(kOOLogSubclassResponsibility, "{}",
              "OOScript should not be used directly!");
 }
 

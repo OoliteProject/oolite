@@ -51,7 +51,7 @@ MA 02110-1301, USA.
 
 /*	+waypointWithDictionary: takes an oo::PList; the beacon accessors are
    shared and keep id; the beacon strings are std::optional (nil stays nil). The
-   initializer is -cxx_initWithDictionary:.
+   initializer is -initWithDictionary:.
 */
 
 // The universe makes it with waypointWithDictionary(). It answers the
@@ -62,7 +62,7 @@ class OOWaypointEntity : public Entity {
   static std::shared_ptr<OOWaypointEntity> waypointWithDictionary(
       const oo::PList& info);
 
-  // -cxx_initWithDictionary:'s body after [super init] (the constructor ran
+  // -initWithDictionary:'s body after [super init] (the constructor ran
   // Entity's), run once right after construction: it
   // calls members a subclass overrides.
   void initWithDictionary(const oo::PList& info);

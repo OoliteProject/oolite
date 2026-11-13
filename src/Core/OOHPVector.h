@@ -170,8 +170,8 @@ OOINLINE HPVector HPnormal_to_surface(HPVector v1, HPVector v2,
 #include <unordered_set>
 #include <utility>
 #include <vector>
-std::string cxx_HPVectorDescription(HPVector vector);        // "(x, y, z)"
-std::vector<double> cxx_ArrayFromHPVector(HPVector vector);  // { x, y, z }
+std::string HPVectorDescription(HPVector vector);        // "(x, y, z)"
+std::vector<double> ArrayFromHPVector(HPVector vector);  // { x, y, z }
 
 #endif
 

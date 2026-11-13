@@ -266,7 +266,7 @@ void ReportJavaScriptWarning(JSContext* jsc, const char* format, ...)
 // MARK: -
 // MARK: Public functions
 
-std::optional<std::string> cxx_OOExpandDescriptionString(
+std::optional<std::string> OOExpandDescriptionString(
     Random_Seed seed, const std::string& string, const oo::PList& overrides,
     const oo::PList& legacyLocals, const std::optional<std::string>& systemName,
     OOExpandOptions options) {
@@ -322,12 +322,12 @@ std::optional<std::string> cxx_OOExpandDescriptionString(
   return result;
 }
 
-std::optional<std::string> cxx_OOGenerateSystemDescription(
+std::optional<std::string> OOGenerateSystemDescription(
     Random_Seed seed, const std::optional<std::string>& name) {
   seed_RNG_only_for_planet_description(seed);
-  return cxx_OOExpandDescriptionString(seed, "system-description-string",
-                                       oo::PList(), oo::PList(), name,
-                                       OOExpandOptions::kKey);
+  return OOExpandDescriptionString(seed, "system-description-string",
+                                   oo::PList(), oo::PList(), name,
+                                   OOExpandOptions::kKey);
 }
 
 Random_Seed OOStringExpanderDefaultRandomSeed() {
@@ -580,22 +580,22 @@ OOMaybeUnits UnitsFromUTF8(const std::string& string) {
 
 OOMaybeUnits Operator_cr(const OOMaybeUnits& string,
                          const OOMaybeUnits& /* param */) {
-  return oo::utf8ToUtf16(cxx_OOCredits(DoubleValue(string) * 10));
+  return oo::utf8ToUtf16(OOCredits(DoubleValue(string) * 10));
 }
 
 OOMaybeUnits Operator_dcr(const OOMaybeUnits& string,
                           const OOMaybeUnits& /* param */) {
-  return oo::utf8ToUtf16(cxx_OOCredits(LongLongValue(string)));
+  return oo::utf8ToUtf16(OOCredits(LongLongValue(string)));
 }
 
 OOMaybeUnits Operator_icr(const OOMaybeUnits& string,
                           const OOMaybeUnits& /* param */) {
-  return oo::utf8ToUtf16(cxx_OOIntCredits(LongLongValue(string)));
+  return oo::utf8ToUtf16(OOIntCredits(LongLongValue(string)));
 }
 
 OOMaybeUnits Operator_idcr(const OOMaybeUnits& string,
                            const OOMaybeUnits& /* param */) {
-  return oo::utf8ToUtf16(cxx_OOIntCredits(round(DoubleValue(string) / 10.0)));
+  return oo::utf8ToUtf16(OOIntCredits(round(DoubleValue(string) / 10.0)));
 }
 
 OOMaybeUnits Operator_precision(const OOMaybeUnits& string,
@@ -1402,7 +1402,7 @@ OOMaybeUnits GetSystemNameIan(OOStringExpansionContext* context) {
   OOCParameterAssert(context != nullptr);
 
   if (!context->systemNameWithIan.has_value()) {
-    const std::optional<std::string> name = cxx_OOExpandDescriptionString(
+    const std::optional<std::string> name = OOExpandDescriptionString(
         context->seed, "planetname-possessive", oo::PList(), oo::PList(),
         std::nullopt,
         OOExpandOptions::kDisallowPercentI | OOExpandOptions::kGoodRNG |
@@ -1614,12 +1614,12 @@ void SyntaxIssue(OOStringExpansionContext* context, const char* function,
   }
 }
 
-// cxx_OOJSReportWarningWithArguments with a printf format and its arguments
+// OOJSReportWarningWithArguments with a printf format and its arguments
 // (the engine's va_list entry).
 void ReportJavaScriptWarning(JSContext* jsc, const char* format, ...) {
   va_list args;
   va_start(args, format);
-  cxx_OOJSReportWarningWithArguments(jsc, format, args);
+  OOJSReportWarningWithArguments(jsc, format, args);
   va_end(args);
 }
 

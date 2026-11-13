@@ -51,7 +51,7 @@ MA 02110-1301, USA.
 #include "oofnd/Ref.hpp"
 
 /*	+flasherWithDictionary: takes the subentity configuration as an
-   oo::PList, as does the initializer -cxx_initWithDictionary:.
+   oo::PList, as does the initializer -initWithDictionary:.
 
         The ships and the visual effects make it with flasherWithDictionary().
    The engine's JS questions reach it through the root's virtual members, and an
@@ -65,7 +65,7 @@ class OOFlasherEntity : public OOLightParticleEntity,
   static std::shared_ptr<OOFlasherEntity> flasherWithDictionary(
       const oo::PList& dictionary);
 
-  // -cxx_initWithDictionary:'s body, run once right after construction.
+  // -initWithDictionary:'s body, run once right after construction.
   void initWithDictionary(const oo::PList& dictionary);
 
   bool isActive();

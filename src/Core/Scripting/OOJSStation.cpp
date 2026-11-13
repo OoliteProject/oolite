@@ -428,7 +428,7 @@ static JSValue StationSetProperty(OOJS_SETTER_ARGS) {
       break;
 
     case kAllegiance:
-      sValue = cxx_OOStringFromJSValue(context, value);
+      sValue = OOStringFromJSValue(context, value);
       if (sValue.has_value()) {
         if (entity != nullptr) entity->setAllegiance(sValue);
         return JS_UNDEFINED;
@@ -523,9 +523,9 @@ static JSValue StationAbortDockingForShip(OOJS_NATIVE_ARGS) {
   JSStationGetStationEntity(context, OOJS_THIS, &station);
   if (JS_HasException(context)) return JS_EXCEPTION;
   if (argc == 0) {
-    cxx_OOJSReportBadArguments(context, "Station", "abortDockingForShip",
-                               MIN(argc, 1), OOJS_ARGV, std::nullopt,
-                               "ship in docking queue");
+    OOJSReportBadArguments(context, "Station", "abortDockingForShip",
+                           MIN(argc, 1), OOJS_ARGV, std::nullopt,
+                           "ship in docking queue");
     return OOJSNativeFailure(context);
   }
   // (null was an object to SpiderMonkey, but passing it was not meaningful; it
@@ -559,8 +559,8 @@ static JSValue StationCanDockShip(OOJS_NATIVE_ARGS) {
     }
   }
   if (EXPECT_NOT(shipToCheck == nullptr)) {
-    cxx_OOJSReportBadArguments(context, "Station", "canDockShip", MIN(argc, 1),
-                               OOJS_ARGV, std::nullopt, "shipEntity");
+    OOJSReportBadArguments(context, "Station", "canDockShip", MIN(argc, 1),
+                           OOJS_ARGV, std::nullopt, "shipEntity");
     return OOJSNativeFailure(context);
   }
 
@@ -672,11 +672,11 @@ static JSValue StationLaunchShipWithRole(OOJS_NATIVE_ARGS) {
 
   GET_THIS_STATION(station);
 
-  if (argc > 0) shipRole = cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
+  if (argc > 0) shipRole = OOStringFromJSValue(context, OOJS_ARGV[0]);
   if (EXPECT_NOT(!shipRole.has_value())) {
-    cxx_OOJSReportBadArguments(context, "Station", "launchShipWithRole",
-                               MIN(argc, 1), OOJS_ARGV, std::nullopt,
-                               "string (role)");
+    OOJSReportBadArguments(context, "Station", "launchShipWithRole",
+                           MIN(argc, 1), OOJS_ARGV, std::nullopt,
+                           "string (role)");
     return OOJSNativeFailure(context);
   }
 
@@ -848,12 +848,11 @@ static JSValue StationSetInterface(OOJS_NATIVE_ARGS) {
   GET_THIS_STATION(station);
 
   if (argc < 1) {
-    cxx_OOJSReportBadArguments(context, "Station", "setInterface", MIN(argc, 1),
-                               OOJS_ARGV, std::nullopt, "key [, definition]");
+    OOJSReportBadArguments(context, "Station", "setInterface", MIN(argc, 1),
+                           OOJS_ARGV, std::nullopt, "key [, definition]");
     return OOJSNativeFailure(context);
   }
-  std::optional<std::string> key =
-      cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
+  std::optional<std::string> key = OOStringFromJSValue(context, OOJS_ARGV[0]);
 
   if (argc < 2 || JS_IsNull(OOJS_ARGV[1])) {
     if (station != nullptr)
@@ -894,7 +893,7 @@ static JSValue StationSetInterface(OOJS_NATIVE_ARGS) {
         "property.";
     goto fail;
   }
-  title = cxx_OOStringFromJSValue(context, value);
+  title = OOStringFromJSValue(context, value);
   JS_FreeValue(context, value);
   value = JS_UNDEFINED;
   if (!title.has_value() || title->empty()) {
@@ -909,7 +908,7 @@ static JSValue StationSetInterface(OOJS_NATIVE_ARGS) {
   if (JS_IsUndefined(value)) {
     category = OO_DESC("interfaces-category-uncategorised");
   } else {
-    category = cxx_OOStringFromJSValue(context, value);
+    category = OOStringFromJSValue(context, value);
     if (!category.has_value() || category->empty()) {
       category = OO_DESC("interfaces-category-uncategorised");
     }
@@ -925,7 +924,7 @@ static JSValue StationSetInterface(OOJS_NATIVE_ARGS) {
         "property.";
     goto fail;
   }
-  summary = cxx_OOStringFromJSValue(context, value);
+  summary = OOStringFromJSValue(context, value);
   JS_FreeValue(context, value);
   value = JS_UNDEFINED;
   if (!summary.has_value() || summary->empty()) {
@@ -987,8 +986,8 @@ fail:
   JS_FreeValue(context, callback);
   JS_FreeValue(context, value);
   JS_FreeValue(context, params);
-  cxx_OOJSReportBadArguments(context, "Station", "setInterface", MIN(argc, 1),
-                             OOJS_ARGV, std::nullopt, errorDescription);
+  OOJSReportBadArguments(context, "Station", "setInterface", MIN(argc, 1),
+                         OOJS_ARGV, std::nullopt, errorDescription);
   return OOJSNativeFailure(context);
 
   OOJS_NATIVE_EXIT
@@ -1001,32 +1000,31 @@ static JSValue StationSetMarketPrice(OOJS_NATIVE_ARGS) {
   GET_THIS_STATION(station);
 
   if (argc < 2) {
-    cxx_OOJSReportBadArguments(context, "Station", "setMarketPrice",
-                               MIN(argc, 2), OOJS_ARGV, std::nullopt,
-                               "commodity, credits");
+    OOJSReportBadArguments(context, "Station", "setMarketPrice", MIN(argc, 2),
+                           OOJS_ARGV, std::nullopt, "commodity, credits");
     return OOJSNativeFailure(context);
   }
 
   std::optional<std::string> commodity =
-      cxx_OOStringFromJSValue(context, OOJS_ARGV[0]);
+      OOStringFromJSValue(context, OOJS_ARGV[0]);
   OOCommodities* commodities =
       (UNIVERSE != nullptr
            ? UNIVERSE->getCommodities()
            : nullptr);  // null: no good is defined, as a message to nil
   if (EXPECT_NOT(commodities == nullptr ||
                  !commodities->goodDefined(commodity.value_or("")))) {
-    cxx_OOJSReportBadArguments(context, "Station", "setMarketPrice",
-                               MIN(argc, 2), OOJS_ARGV, std::nullopt,
-                               "Unrecognised commodity type");
+    OOJSReportBadArguments(context, "Station", "setMarketPrice", MIN(argc, 2),
+                           OOJS_ARGV, std::nullopt,
+                           "Unrecognised commodity type");
     return OOJSNativeFailure(context);
   }
 
   int32_t price;
   bool gotPrice = OOJSValueToInt32(context, OOJS_ARGV[1], &price);
   if (EXPECT_NOT(!gotPrice || price < 0)) {
-    cxx_OOJSReportBadArguments(context, "Station", "setMarketPrice",
-                               MIN(argc, 2), OOJS_ARGV, std::nullopt,
-                               "Price must be at least 0 decicredits");
+    OOJSReportBadArguments(context, "Station", "setMarketPrice", MIN(argc, 2),
+                           OOJS_ARGV, std::nullopt,
+                           "Price must be at least 0 decicredits");
     return OOJSNativeFailure(context);
   }
 
@@ -1054,23 +1052,23 @@ static JSValue StationSetMarketQuantity(OOJS_NATIVE_ARGS) {
   GET_THIS_STATION(station);
 
   if (argc < 2) {
-    cxx_OOJSReportBadArguments(context, "Station", "setMarketQuantity",
-                               MIN(argc, 2), OOJS_ARGV, std::nullopt,
-                               "commodity, units");
+    OOJSReportBadArguments(context, "Station", "setMarketQuantity",
+                           MIN(argc, 2), OOJS_ARGV, std::nullopt,
+                           "commodity, units");
     return OOJSNativeFailure(context);
   }
 
   const std::string commodity =
-      cxx_OOStringFromJSValue(context, OOJS_ARGV[0]).value_or("");
+      OOStringFromJSValue(context, OOJS_ARGV[0]).value_or("");
   OOCommodities* commodities =
       (UNIVERSE != nullptr
            ? UNIVERSE->getCommodities()
            : nullptr);  // null: no good is defined, as a message to nil
   if (EXPECT_NOT(commodities == nullptr ||
                  !commodities->goodDefined(commodity))) {
-    cxx_OOJSReportBadArguments(context, "Station", "setMarketQuantity",
-                               MIN(argc, 2), OOJS_ARGV, std::nullopt,
-                               "Unrecognised commodity type");
+    OOJSReportBadArguments(context, "Station", "setMarketQuantity",
+                           MIN(argc, 2), OOJS_ARGV, std::nullopt,
+                           "Unrecognised commodity type");
     return OOJSNativeFailure(context);
   }
 
@@ -1085,7 +1083,7 @@ static JSValue StationSetMarketQuantity(OOJS_NATIVE_ARGS) {
           !gotQuantity || quantity < 0 ||
           static_cast<OOCargoQuantity>(quantity) >
               ((market != nullptr) ? market->capacityForGood(commodity) : 0))) {
-    cxx_OOJSReportBadArguments(
+    OOJSReportBadArguments(
         context, "Station", "setMarketQuantity", MIN(argc, 2), OOJS_ARGV,
         std::nullopt,
         "Quantity must be between 0 and the station market capacity");
@@ -1162,16 +1160,16 @@ static JSValue StationAddShipToShipyard(OOJS_NATIVE_ARGS) {
           now rejected as bad arguments.
   */
   if (argc != 1 || (!JS_IsNull(OOJS_ARGV[0]) && !JS_IsObject(OOJS_ARGV[0]))) {
-    cxx_OOJSReportBadArguments(context, "Station", "addShipToShipyard",
-                               MIN(argc, 1), OOJS_ARGV, std::nullopt,
-                               "shipyard item definition");
+    OOJSReportBadArguments(context, "Station", "addShipToShipyard",
+                           MIN(argc, 1), OOJS_ARGV, std::nullopt,
+                           "shipyard item definition");
     return OOJSNativeFailure(context);
   }
 
   // make sure the station has a shipyard
   if (!(station != nullptr ? station->hasShipyard() : false)) {
-    cxx_OOJSReportWarningForCaller(context, "Station", "removeShipFromShipyard",
-                                   "Station does not have shipyard.");
+    OOJSReportWarningForCaller(context, "Station", "removeShipFromShipyard",
+                               "Station does not have shipyard.");
     return OOJSNativeFailure(context);
   }
   // make sure the shipyard has been generated
@@ -1188,25 +1186,25 @@ static JSValue StationAddShipToShipyard(OOJS_NATIVE_ARGS) {
 
   oo::PList::Dict result;
   const oo::PList shipyardDefinition =
-      cxx_OOJSPListFromJSObject(context, OOJS_ARGV[0]);
+      OOJSPListFromJSObject(context, OOJS_ARGV[0]);
   // validate each element of the dictionary
   if (shipyardDefinition.isNull()) {
-    cxx_OOJSReportBadArguments(context, "Station", "addShipToShipyard",
-                               MIN(argc, 1), OOJS_ARGV, std::nullopt,
-                               "valid dictionary object");
+    OOJSReportBadArguments(context, "Station", "addShipToShipyard",
+                           MIN(argc, 1), OOJS_ARGV, std::nullopt,
+                           "valid dictionary object");
     return OOJSNativeFailure(context);
   }
   // This first test is -objectForKey: on the converted object, as it was:
   // anything but a dictionary (a JavaScript array converts to an array) raised,
   // which OOJS_NATIVE_EXIT reported.
   if (!shipyardDefinition.isDict()) {
-    cxx_OOJSReportError(context, "Unidentified native exception");
+    OOJSReportError(context, "Unidentified native exception");
     return OOJSNativeFailure(context);
   }
   if (shipyardDefinition.find(KEY_SHORT_DESCRIPTION) == nullptr) {
-    cxx_OOJSReportBadArguments(context, "Station", "addShipToShipyard",
-                               MIN(argc, 1), OOJS_ARGV, std::nullopt,
-                               "'short_description' in dictionary");
+    OOJSReportBadArguments(context, "Station", "addShipToShipyard",
+                           MIN(argc, 1), OOJS_ARGV, std::nullopt,
+                           "'short_description' in dictionary");
     return OOJSNativeFailure(context);
   }
   result[std::string(KEY_SHORT_DESCRIPTION)] =
@@ -1214,9 +1212,9 @@ static JSValue StationAddShipToShipyard(OOJS_NATIVE_ARGS) {
                   KEY_SHORT_DESCRIPTION);
   if (!shipyardDefinition.get<oo::PList>(
           std::string(SHIPYARD_KEY_SHIPDATA_KEY))) {
-    cxx_OOJSReportBadArguments(context, "Station", "addShipToShipyard",
-                               MIN(argc, 1), OOJS_ARGV, std::nullopt,
-                               "'shipdata_key' in dictionary");
+    OOJSReportBadArguments(context, "Station", "addShipToShipyard",
+                           MIN(argc, 1), OOJS_ARGV, std::nullopt,
+                           "'shipdata_key' in dictionary");
     return OOJSNativeFailure(context);
   }
   // get the shipInfo and shipyardInfo for this key
@@ -1236,13 +1234,12 @@ static JSValue StationAddShipToShipyard(OOJS_NATIVE_ARGS) {
   // receiver: found at 0)
   const std::optional<std::string> roles = StringForKey(shipInfo, "roles");
   if (roles.has_value() && roles->find("player") == std::string::npos) {
-    cxx_OOJSReportWarningForCaller(
-        context, "Station", "addShipToShipyard",
-        "shipdata_key not suitable for player role.");
+    OOJSReportWarningForCaller(context, "Station", "addShipToShipyard",
+                               "shipdata_key not suitable for player role.");
     return OOJSNativeFailure(context);
   }
   if (!shipyardInfo) {
-    cxx_OOJSReportWarningForCaller(
+    OOJSReportWarningForCaller(
         context, "Station", "addShipToShipyard",
         "No shipyard information found for shipdata_key.");
     return OOJSNativeFailure(context);
@@ -1273,9 +1270,9 @@ static JSValue StationAddShipToShipyard(OOJS_NATIVE_ARGS) {
       result[std::string(SHIPYARD_KEY_PRICE)] =
           oo::PList::unsignedInteger(price);
     } else {
-      cxx_OOJSReportBadArguments(context, "Station", "addShipToShipyard",
-                                 MIN(argc, 1), OOJS_ARGV, std::nullopt,
-                                 "'price' in dictionary");
+      OOJSReportBadArguments(context, "Station", "addShipToShipyard",
+                             MIN(argc, 1), OOJS_ARGV, std::nullopt,
+                             "'price' in dictionary");
       return OOJSNativeFailure(context);
     }
   }
@@ -1325,10 +1322,10 @@ static JSValue StationAddShipToShipyard(OOJS_NATIVE_ARGS) {
                                        kOOValidWeaponFacings) &
         kOOValidWeaponFacings;
 
-    OOWeaponType fwdWeapon = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(
-        fwdWeaponString.value_or(""));
-    OOWeaponType aftWeapon = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(
-        aftWeaponString.value_or(""));
+    OOWeaponType fwdWeapon =
+        OOWeaponTypeFromEquipmentIdentifierSloppy(fwdWeaponString.value_or(""));
+    OOWeaponType aftWeapon =
+        OOWeaponTypeFromEquipmentIdentifierSloppy(aftWeaponString.value_or(""));
 
     unsigned int i;
     std::optional<std::string> equipmentKey;
@@ -1336,7 +1333,7 @@ static JSValue StationAddShipToShipyard(OOJS_NATIVE_ARGS) {
       equipmentKey = StringAtIndex(extras, i);
       if (equipmentKey.has_value() &&
           oo::str::hasPrefix(*equipmentKey, "EQ_WEAPON")) {
-        OOWeaponType new_weapon = cxx_OOWeaponTypeFromEquipmentIdentifierSloppy(
+        OOWeaponType new_weapon = OOWeaponTypeFromEquipmentIdentifierSloppy(
             equipmentKey.value_or(""));
         // fit best weapon forward
         if (OOWeaponFacingIsIn(availableFacings, OOWeaponFacing::kForward) &&
@@ -1393,8 +1390,8 @@ static JSValue StationRemoveShipFromShipyard(OOJS_NATIVE_ARGS) {
 
   // make sure the station has a shipyard
   if (!(station != nullptr ? station->hasShipyard() : false)) {
-    cxx_OOJSReportWarningForCaller(context, "Station", "removeShipFromShipyard",
-                                   "Station does not have shipyard.");
+    OOJSReportWarningForCaller(context, "Station", "removeShipFromShipyard",
+                               "Station does not have shipyard.");
     return OOJSNativeFailure(context);
   }
   // make sure the shipyard has been generated
@@ -1415,9 +1412,9 @@ static JSValue StationRemoveShipFromShipyard(OOJS_NATIVE_ARGS) {
   if (argc != 1 || (!JS_IsNull(OOJS_ARGV[0]) && !gotIndex) || shipIndex < 0 ||
       static_cast<std::size_t>(shipIndex) + 1 >
           (shipyard != nullptr ? shipyard->size() : 0)) {
-    cxx_OOJSReportBadArguments(context, "Station", "removeShipFromShipyard",
-                               MIN(argc, 1), OOJS_ARGV, std::nullopt,
-                               "valid ship index");
+    OOJSReportBadArguments(context, "Station", "removeShipFromShipyard",
+                           MIN(argc, 1), OOJS_ARGV, std::nullopt,
+                           "valid ship index");
     return OOJSNativeFailure(context);
   }
 

@@ -74,8 +74,8 @@ OO_TEST(conversionsToAndFromVector) {
 }
 
 OO_TEST(theDescriptionIsTheComponents) {
-	OO_CHECK_EQ(cxx_HPVectorDescription(make_HPvector(1, -2.5, 0)), std::string("(1, -2.5, 0)"));
-	const std::vector<double> parts = cxx_ArrayFromHPVector(make_HPvector(1, -2.5, 0));
+	OO_CHECK_EQ(HPVectorDescription(make_HPvector(1, -2.5, 0)), std::string("(1, -2.5, 0)"));
+	const std::vector<double> parts = ArrayFromHPVector(make_HPvector(1, -2.5, 0));
 	OO_CHECK(parts.size() == 3 && parts[0] == 1 && parts[1] == -2.5 && parts[2] == 0);
 }
 

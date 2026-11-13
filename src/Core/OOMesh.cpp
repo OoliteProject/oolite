@@ -212,7 +212,7 @@ std::shared_ptr<OOMaterial> OOMesh::placeholderMaterial() {
       nullptr;  // never released, as before
 
   if (placeholderMaterial == nullptr) {
-    // +cxx_materialDefaults answers a copy: keep it alive while noTextures
+    // +materialDefaults answers a copy: keep it alive while noTextures
     // points into it.
     const oo::PList materialDefaults = ResourceManager::materialDefaults();
     const oo::PList* noTextures = materialDefaults.find("no-textures-material");
@@ -432,7 +432,7 @@ void OOMesh::renderOpaqueParts() {
     const auto exception = oo::CurrentOOException();
     if (!exception) throw;  // not an OOException: it goes on up, as before
     if (!brokenInRender) {
-      OO_LOG(cxx_kOOLogException,
+      OO_LOG(kOOLogException,
              "***** {} for {} encountered exception: {} : {} *****",
              __PRETTY_FUNCTION__, description(), exception->name(),
              exception->reason());
@@ -453,7 +453,7 @@ void OOMesh::renderOpaqueParts() {
 #endif
 
   OOMaterial::applyNone();
-  cxx_OOCheckOpenGLErrors(
+  OOCheckOpenGLErrors(
       [&]() -> std::string { return "OOMesh after drawing " + description(); });
 
 #if OO_MULTITEXTURE
@@ -1016,7 +1016,7 @@ bool OOMesh::loadData(const std::string& filename, float scale) {
         // Model not found
         OO_LOG(kOOLogMeshDataNotFound, "***** ERROR: could not find {}",
                filename);
-        cxx_OOStandardsError("Model file not found");
+        OOStandardsError("Model file not found");
         return false;
       }
 
@@ -1073,7 +1073,7 @@ bool OOMesh::loadData(const std::string& filename, float scale) {
 
     if (!allocateVertexBuffersWithCount(vertexCount)) {
       OO_LOG(
-          cxx_kOOLogAllocationFailure,
+          kOOLogAllocationFailure,
           "***** ERROR: failed to allocate memory for model {} ({} vertices).",
           filename, static_cast<unsigned>(vertexCount));
       return false;
@@ -1099,7 +1099,7 @@ bool OOMesh::loadData(const std::string& filename, float scale) {
     VertexFaceRef* faceRefs = faceRefTable.data();
 
     if (!allocateFaceBuffersWithCount(faceCount)) {
-      OO_LOG(cxx_kOOLogAllocationFailure,
+      OO_LOG(kOOLogAllocationFailure,
              "***** ERROR: failed to allocate memory for model {} ({} "
              "vertices, {} faces).",
              filename, static_cast<unsigned>(vertexCount),
@@ -1310,7 +1310,7 @@ bool OOMesh::loadData(const std::string& filename, float scale) {
     if (scanner->scanString("NORMALS")) {
       _normalMode = oo::ToUnderlying(OOMeshNormalMode::kExplicit);
       if (!allocateNormalBuffersWithCount(vertexCount)) {
-        OO_LOG(cxx_kOOLogAllocationFailure,
+        OO_LOG(kOOLogAllocationFailure,
                "***** ERROR: failed to allocate memory for model {} ({} "
                "vertices).",
                filename, static_cast<unsigned>(vertexCount));
@@ -1368,7 +1368,7 @@ bool OOMesh::loadData(const std::string& filename, float scale) {
     // check for smooth shading and recalculate normals
     if (_normalMode == oo::ToUnderlying(OOMeshNormalMode::kSmooth)) {
       if (!allocateNormalBuffersWithCount(vertexCount)) {
-        OO_LOG(cxx_kOOLogAllocationFailure,
+        OO_LOG(kOOLogAllocationFailure,
                "***** ERROR: failed to allocate memory for model {} ({} "
                "vertices).",
                filename, static_cast<unsigned>(vertexCount));

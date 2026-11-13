@@ -869,8 +869,8 @@ oo::PList OOTrumble::dictionary() {
   result.emplace("rotation", oo::PList::singleReal(rotation));
   result.emplace("rotational_velocity",
                  oo::PList::singleReal(rotational_velocity));
-  result.emplace("position", oo::PList(cxx_StringFromPoint(position)));
-  result.emplace("movement", oo::PList(cxx_StringFromPoint(movement)));
+  result.emplace("position", oo::PList(StringFromPoint(position)));
+  result.emplace("movement", oo::PList(StringFromPoint(movement)));
   return oo::PList(std::move(result));
 }
 
@@ -882,8 +882,8 @@ void OOTrumble::setFromDictionary(const oo::PList& dict) {
   growth_rate = dict.get<float>("growth_rate");
   rotation = dict.get<float>("rotation");
   rotational_velocity = dict.get<float>("rotational_velocity");
-  position = cxx_PointFromString(dict.get<std::string>("position"));
-  movement = cxx_PointFromString(dict.get<std::string>("movement"));
+  position = PointFromString(dict.get<std::string>("position"));
+  movement = PointFromString(dict.get<std::string>("movement"));
 }
 
 // Each static holds one retain for the process, as alloc/init (and

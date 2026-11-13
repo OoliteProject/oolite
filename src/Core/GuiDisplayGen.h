@@ -109,147 +109,129 @@ inline constexpr std::string_view GUI_KEY_OK = "OK";
 inline constexpr std::string_view GUI_KEY_SKIP = "SKIP-ROW";
 
 // globals: the gui-settings.plist keys.
-inline constexpr const char* cxx_kGuiDefaultTextColor = "default_text_color";
-inline constexpr const char* cxx_kGuiScreenTitleColor = "screen_title_color";
-inline constexpr const char* cxx_kGuiScreenDividerColor =
-    "screen_divider_color";
-inline constexpr const char* cxx_kGuiSelectedRowBackgroundColor =
+inline constexpr const char* kGuiDefaultTextColor = "default_text_color";
+inline constexpr const char* kGuiScreenTitleColor = "screen_title_color";
+inline constexpr const char* kGuiScreenDividerColor = "screen_divider_color";
+inline constexpr const char* kGuiSelectedRowBackgroundColor =
     "selected_row_background_color";
-inline constexpr const char* cxx_kGuiSelectedRowColor = "selected_row_color";
-inline constexpr const char* cxx_kGuiTextInputCursorColor =
+inline constexpr const char* kGuiSelectedRowColor = "selected_row_color";
+inline constexpr const char* kGuiTextInputCursorColor =
     "text_input_cursor_color";
 // F3
-inline constexpr const char* cxx_kGuiEquipmentCashColor =
-    "equipment_cash_color";
-inline constexpr const char* cxx_kGuiEquipmentUnavailableColor =
+inline constexpr const char* kGuiEquipmentCashColor = "equipment_cash_color";
+inline constexpr const char* kGuiEquipmentUnavailableColor =
     "equipment_unavailable_color";
-inline constexpr const char* cxx_kGuiEquipmentScrollColor =
+inline constexpr const char* kGuiEquipmentScrollColor =
     "equipment_scroll_color";
-inline constexpr const char* cxx_kGuiEquipmentOptionColor =
+inline constexpr const char* kGuiEquipmentOptionColor =
     "equipment_option_color";
-inline constexpr const char* cxx_kGuiEquipmentRepairColor =
+inline constexpr const char* kGuiEquipmentRepairColor =
     "equipment_repair_color";
-inline constexpr const char* cxx_kGuiEquipmentDescriptionColor =
+inline constexpr const char* kGuiEquipmentDescriptionColor =
     "equipment_description_color";
-inline constexpr const char* cxx_kGuiEquipmentLaserColor =
-    "equipment_laser_color";
-inline constexpr const char* cxx_kGuiEquipmentLaserFittedColor =
+inline constexpr const char* kGuiEquipmentLaserColor = "equipment_laser_color";
+inline constexpr const char* kGuiEquipmentLaserFittedColor =
     "equipment_laser_fitted_color";
-inline constexpr const char* cxx_kGuiEquipmentTabs = "equipment_tabs";
+inline constexpr const char* kGuiEquipmentTabs = "equipment_tabs";
 // F3 F3
-inline constexpr const char* cxx_kGuiShipyardHeadingColor =
+inline constexpr const char* kGuiShipyardHeadingColor =
     "shipyard_heading_color";
-inline constexpr const char* cxx_kGuiShipyardScrollColor =
-    "shipyard_scroll_color";
-inline constexpr const char* cxx_kGuiShipyardEntryColor =
-    "shipyard_entry_color";
-inline constexpr const char* cxx_kGuiShipyardNoshipColor =
-    "shipyard_noship_color";
-inline constexpr const char* cxx_kGuiShipyardTradeinColor =
+inline constexpr const char* kGuiShipyardScrollColor = "shipyard_scroll_color";
+inline constexpr const char* kGuiShipyardEntryColor = "shipyard_entry_color";
+inline constexpr const char* kGuiShipyardNoshipColor = "shipyard_noship_color";
+inline constexpr const char* kGuiShipyardTradeinColor =
     "shipyard_tradein_color";
-inline constexpr const char* cxx_kGuiShipyardDescriptionColor =
+inline constexpr const char* kGuiShipyardDescriptionColor =
     "shipyard_description_color";
-inline constexpr const char* cxx_kGuiShipyardTabs = "shipyard_tabs";
+inline constexpr const char* kGuiShipyardTabs = "shipyard_tabs";
 // F4
-inline constexpr const char* cxx_kGuiInterfaceHeadingColor =
+inline constexpr const char* kGuiInterfaceHeadingColor =
     "interface_heading_color";
-inline constexpr const char* cxx_kGuiInterfaceScrollColor =
+inline constexpr const char* kGuiInterfaceScrollColor =
     "interface_scroll_color";
-inline constexpr const char* cxx_kGuiInterfaceEntryColor =
-    "interface_entry_color";
-inline constexpr const char* cxx_kGuiInterfaceDescriptionColor =
+inline constexpr const char* kGuiInterfaceEntryColor = "interface_entry_color";
+inline constexpr const char* kGuiInterfaceDescriptionColor =
     "interface_description_color";
-inline constexpr const char* cxx_kGuiInterfaceNoneColor =
-    "interface_none_color";
-inline constexpr const char* cxx_kGuiInterfaceTabs = "interface_tabs";
+inline constexpr const char* kGuiInterfaceNoneColor = "interface_none_color";
+inline constexpr const char* kGuiInterfaceTabs = "interface_tabs";
 // F5
-inline constexpr const char* cxx_kGuiStatusShipnameColor =
-    "status_shipname_color";
-inline constexpr const char* cxx_kGuiStatusDataColor = "status_data_color";
-inline constexpr const char* cxx_kGuiStatusEquipmentHeadingColor =
+inline constexpr const char* kGuiStatusShipnameColor = "status_shipname_color";
+inline constexpr const char* kGuiStatusDataColor = "status_data_color";
+inline constexpr const char* kGuiStatusEquipmentHeadingColor =
     "status_equipment_heading_color";
-inline constexpr const char* cxx_kGuiStatusEquipmentScrollColor =
+inline constexpr const char* kGuiStatusEquipmentScrollColor =
     "status_equipment_scroll_color";
-inline constexpr const char* cxx_kGuiStatusEquipmentOkColor =
+inline constexpr const char* kGuiStatusEquipmentOkColor =
     "status_equipment_ok_color";
-inline constexpr const char* cxx_kGuiStatusEquipmentDamagedColor =
+inline constexpr const char* kGuiStatusEquipmentDamagedColor =
     "status_equipment_damaged_color";
-inline constexpr const char* cxx_kGuiStatusTabs = "status_tabs";
-inline constexpr const char* cxx_kGuiStatusPrioritiseDamaged =
+inline constexpr const char* kGuiStatusTabs = "status_tabs";
+inline constexpr const char* kGuiStatusPrioritiseDamaged =
     "status_prioritise_damaged";
 // F5 F5
-inline constexpr const char* cxx_kGuiManifestSubheadColor =
+inline constexpr const char* kGuiManifestSubheadColor =
     "manifest_subhead_color";
-inline constexpr const char* cxx_kGuiManifestEntryColor =
-    "manifest_entry_color";
-inline constexpr const char* cxx_kGuiManifestScrollColor =
-    "manifest_scroll_color";
-inline constexpr const char* cxx_kGuiManifestNoScrollColor =
+inline constexpr const char* kGuiManifestEntryColor = "manifest_entry_color";
+inline constexpr const char* kGuiManifestScrollColor = "manifest_scroll_color";
+inline constexpr const char* kGuiManifestNoScrollColor =
     "manifest_no_scroll_color";
-inline constexpr const char* cxx_kGuiManifestTabs = "manifest_tabs";
+inline constexpr const char* kGuiManifestTabs = "manifest_tabs";
 // F6
-inline constexpr const char* cxx_kGuiChartLabelScale = "chart_label_scale";
-inline constexpr const char* cxx_kGuiChartCircleScale = "chart_circle_scale";
-inline constexpr const char* cxx_kGuiChartLabelColor = "chart_label_color";
-inline constexpr const char* cxx_kGuiChartLabelReachableColor =
+inline constexpr const char* kGuiChartLabelScale = "chart_label_scale";
+inline constexpr const char* kGuiChartCircleScale = "chart_circle_scale";
+inline constexpr const char* kGuiChartLabelColor = "chart_label_color";
+inline constexpr const char* kGuiChartLabelReachableColor =
     "chart_labelreachable_color";
-inline constexpr const char* cxx_kGuiChartRangeColor = "chart_range_color";
-inline constexpr const char* cxx_kGuiChartCrosshairColor =
-    "chart_crosshair_color";
-inline constexpr const char* cxx_kGuiChartCursorColor = "chart_cursor_color";
-inline constexpr const char* cxx_kGuiChartInfoMarkerColor =
+inline constexpr const char* kGuiChartRangeColor = "chart_range_color";
+inline constexpr const char* kGuiChartCrosshairColor = "chart_crosshair_color";
+inline constexpr const char* kGuiChartCursorColor = "chart_cursor_color";
+inline constexpr const char* kGuiChartInfoMarkerColor =
     "chart_info_marker_color";
-inline constexpr const char* cxx_kGuiChartMatchBoxColor =
-    "chart_match_box_color";
-inline constexpr const char* cxx_kGuiChartMatchLabelColor =
+inline constexpr const char* kGuiChartMatchBoxColor = "chart_match_box_color";
+inline constexpr const char* kGuiChartMatchLabelColor =
     "chart_match_label_color";
-inline constexpr const char* cxx_kGuiChartConnectionColor =
+inline constexpr const char* kGuiChartConnectionColor =
     "chart_connection_color";
-inline constexpr const char* cxx_kGuiChartCurrentJumpStartColor =
+inline constexpr const char* kGuiChartCurrentJumpStartColor =
     "chart_currentjumpstart_color";
-inline constexpr const char* cxx_kGuiChartCurrentJumpEndColor =
+inline constexpr const char* kGuiChartCurrentJumpEndColor =
     "chart_currentjumpend_color";
-inline constexpr const char* cxx_kGuiChartRouteShortColor =
+inline constexpr const char* kGuiChartRouteShortColor =
     "chart_route_short_color";
-inline constexpr const char* cxx_kGuiChartRouteQuickColor =
+inline constexpr const char* kGuiChartRouteQuickColor =
     "chart_route_quick_color";
-inline constexpr const char* cxx_kGuiChartTraveltimeTabs =
-    "chart_traveltime_tabs";
+inline constexpr const char* kGuiChartTraveltimeTabs = "chart_traveltime_tabs";
 
-inline constexpr const char* cxx_kGuiChartEconomyUColor =
-    "chart_economy_%zu_color";
-inline constexpr const char* cxx_kGuiChartGovernmentUColor =
+inline constexpr const char* kGuiChartEconomyUColor = "chart_economy_%zu_color";
+inline constexpr const char* kGuiChartGovernmentUColor =
     "chart_government_%zu_color";
-inline constexpr const char* cxx_kGuiChartTechColor = "chart_tech_color";
+inline constexpr const char* kGuiChartTechColor = "chart_tech_color";
 // F7
-inline constexpr const char* cxx_kGuiSystemdataFactsColor =
+inline constexpr const char* kGuiSystemdataFactsColor =
     "systemdata_facts_color";
-inline constexpr const char* cxx_kGuiSystemdataDescriptionColor =
+inline constexpr const char* kGuiSystemdataDescriptionColor =
     "systemdata_description_color";
-inline constexpr const char* cxx_kGuiSystemdataTabs = "systemdata_tabs";
+inline constexpr const char* kGuiSystemdataTabs = "systemdata_tabs";
 // F8
-inline constexpr const char* cxx_kGuiMarketHeadingColor =
-    "market_heading_color";
-inline constexpr const char* cxx_kGuiMarketCommodityColor =
+inline constexpr const char* kGuiMarketHeadingColor = "market_heading_color";
+inline constexpr const char* kGuiMarketCommodityColor =
     "market_commodity_color";
-inline constexpr const char* cxx_kGuiMarketScrollColor = "market_scroll_color";
-inline constexpr const char* cxx_kGuiMarketFilteredAllColor =
+inline constexpr const char* kGuiMarketScrollColor = "market_scroll_color";
+inline constexpr const char* kGuiMarketFilteredAllColor =
     "market_filtered_all_color";
-inline constexpr const char* cxx_kGuiMarketFilterInfoColor =
+inline constexpr const char* kGuiMarketFilterInfoColor =
     "market_filter_info_color";
-inline constexpr const char* cxx_kGuiMarketCashColor = "market_cash_color";
+inline constexpr const char* kGuiMarketCashColor = "market_cash_color";
 // F8 F8 extras
-inline constexpr const char* cxx_kGuiMarketContractedColor =
+inline constexpr const char* kGuiMarketContractedColor =
     "market_contracted_color";
-inline constexpr const char* cxx_kGuiMarketDescriptionColor =
+inline constexpr const char* kGuiMarketDescriptionColor =
     "market_description_color";
-inline constexpr const char* cxx_kGuiMarketTabs = "market_tabs";
+inline constexpr const char* kGuiMarketTabs = "market_tabs";
 // Docking report
-inline constexpr const char* cxx_kGuiDockingReportColor =
-    "docking_report_color";
-inline constexpr const char* cxx_kGuiDockingSummaryColor =
-    "docking_summary_color";
-inline constexpr const char* cxx_kGuiDockingContinueColor =
+inline constexpr const char* kGuiDockingReportColor = "docking_report_color";
+inline constexpr const char* kGuiDockingSummaryColor = "docking_summary_color";
+inline constexpr const char* kGuiDockingContinueColor =
     "docking_continue_color";
 
 class OOTexture;
@@ -277,7 +259,7 @@ class GuiDisplayGen : public oo::Object {
       NSSize gui_size, int gui_cols, int gui_rows, int gui_row_height,
       int gui_row_start,
       const std::optional<std::string>&
-          gui_title);  // -cxx_initWithPixelSize:columns:rows:rowHeight:rowStart:title:
+          gui_title);  // -initWithPixelSize:columns:rows:rowHeight:rowStart:title:
   ~GuiDisplayGen() override;
 
   void resizeWithPixelSize(NSSize gui_size, int gui_cols, int gui_rows,

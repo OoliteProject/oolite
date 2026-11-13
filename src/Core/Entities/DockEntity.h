@@ -44,8 +44,8 @@ class DockEntity : public ShipEntity {
   static std::shared_ptr<::ShipEntity> newDockObject(const std::string& key,
                                                      const oo::PList& dict);
 
-  // -cxx_initWithKey:definition:'s body after [super
-  // cxx_initWithKey:definition:].
+  // -initWithKey:definition:'s body after [super
+  // initWithKey:definition:].
   void initDockDefaults();
 
   // Run first when a dock is destroyed, before the ship's own teardown.

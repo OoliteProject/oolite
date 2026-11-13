@@ -31,9 +31,8 @@ MA 02110-1301, USA.
 #include "oofnd/Log.hpp"
 #include "oofnd/PListParsing.hpp"
 
-oo::PList cxx_OOPropertyListFromData(
-    const std::optional<oo::Data>& data,
-    const std::optional<std::string>& whereFrom) {
+oo::PList OOPropertyListFromData(const std::optional<oo::Data>& data,
+                                 const std::optional<std::string>& whereFrom) {
   oo::PList result;
 
   const std::string source = whereFrom.value_or("<data in memory>");
@@ -63,14 +62,14 @@ oo::PList cxx_OOPropertyListFromData(
   return result;
 }
 
-oo::PList cxx_OOPropertyListFromFile(const std::string& path) {
+oo::PList OOPropertyListFromFile(const std::string& path) {
   oo::PList result;
 
   // Load file, if it exists...
   const std::optional<oo::Data> data = OODataFromOXZFile(path);
   if (data.has_value()) {
     // ...and parse it
-    result = cxx_OOPropertyListFromData(data, path);
+    result = OOPropertyListFromData(data, path);
   }
   // Non-existent file is not an error.
 

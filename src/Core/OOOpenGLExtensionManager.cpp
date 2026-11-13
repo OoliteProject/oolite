@@ -352,9 +352,9 @@ void OOOpenGLExtensionManager::reset() {
   checkShadersSupported();
 
   if (shadersAvailable) {
-    defaultShaderSetting = cxx_OOShaderSettingFromString(
+    defaultShaderSetting = OOShaderSettingFromString(
         gpuConfig.get<std::string>("default_shader_level", "SHADERS_FULL"));
-    maximumShaderSetting = cxx_OOShaderSettingFromString(
+    maximumShaderSetting = OOShaderSettingFromString(
         gpuConfig.get<std::string>("maximum_shader_level", "SHADERS_FULL"));
     if (maximumShaderSetting <= OOShaderSetting::kOff) {
       shadersAvailable = false;

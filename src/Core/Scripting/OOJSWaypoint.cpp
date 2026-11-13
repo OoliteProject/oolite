@@ -192,7 +192,7 @@ static JSValue WaypointSetProperty(OOJS_SETTER_ARGS) {
   switch (static_cast<WaypointProperty>(magic)) {
     using enum WaypointProperty;
     case kBeaconCode:
-      sValue = cxx_OOStringFromJSValue(context, value);
+      sValue = OOStringFromJSValue(context, value);
       if (!sValue.has_value() || sValue->empty()) {
         if (waypoint->isBeacon()) {
           if (UNIVERSE != nullptr) UNIVERSE->clearBeacon(waypoint);
@@ -219,7 +219,7 @@ static JSValue WaypointSetProperty(OOJS_SETTER_ARGS) {
       break;
 
     case kBeaconLabel:
-      sValue = cxx_OOStringFromJSValue(context, value);
+      sValue = OOStringFromJSValue(context, value);
       if (sValue.has_value()) {
         waypoint->setBeaconLabel(sValue);
         return JS_UNDEFINED;

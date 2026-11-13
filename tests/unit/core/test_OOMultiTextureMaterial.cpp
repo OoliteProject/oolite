@@ -67,7 +67,7 @@ bool OORegExpMatcher::string(const std::string&, const std::string&) {
 }
 OORegExpMatcher::~OORegExpMatcher() {}
 
-OOShaderSetting cxx_OOShaderSettingFromString(const std::string& string) {
+OOShaderSetting OOShaderSettingFromString(const std::string& string) {
   return string == "SHADERS_FULL" ? OOShaderSetting::kFull : OOShaderSetting::kNotSupported;
 }
 
@@ -244,7 +244,7 @@ void OOCombinedEmissionMapGenerator::loadTexture() {}
 
 // OOTexture.mm's specifier of a map value: the value itself, or the default
 // name, or none.
-oo::PList cxx_OOTextureSpecFromObject(
+oo::PList OOTextureSpecFromObject(
     const oo::PList& object, const std::optional<std::string>& defaultName) {
   if (!object.isNull()) return object;
   return defaultName.has_value() ? oo::PList(*defaultName) : oo::PList();
