@@ -43,7 +43,7 @@ jobs:
       - name: Check OXPs
         id: corpus
         env:
-          # As in test_builds.yaml: the runner renders OpenGL in software.
+          # As in build-all.yaml: the runner renders OpenGL in software.
           OOLITE_TEST_WINDOW: 640x360
           OOLITE_TEST_TIMEOUT_SCALE: 2
         run: |
