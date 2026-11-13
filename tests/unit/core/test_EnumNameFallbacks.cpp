@@ -19,6 +19,11 @@
 #include "ShipEntity.h"
 #include "oo_test.hpp"
 
+// main.mm defines the debug flags, and the test has its own main.
+#ifndef NDEBUG
+uint32_t gDebugFlags = 0;
+#endif
+
 OO_TEST(OOStringFromEntityStatus) {
   OO_CHECK(OOStringFromEntityStatus(OOEntityStatus::kStartGame) == "STATUS_START_GAME");
   OO_CHECK(OOStringFromEntityStatus(OOEntityStatus::kRestartGame) == "STATUS_RESTART_GAME");

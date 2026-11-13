@@ -29,6 +29,9 @@ MA 02110-1301, USA.
 #include "OOFunctionAttributes.h"
 #include "OOLogging.h"
 #include "OOMacroOpenGL.h"
+// M_PI: Windows' <math.h> leaves it out unless _USE_MATH_DEFINES is set, and
+// OOMathsBase.h supplies it there.
+#include "OOMathsBase.h"  // IWYU pragma: keep
 #include "OOOpenGLExtensionManager.h"
 #include "oofnd/Log.hpp"
 #include "oofnd/String.hpp"
