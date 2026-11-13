@@ -37,7 +37,13 @@ MA 02110-1301, USA.
 #define PARTICLE_DISTANCE_SCALE_LOW 12.0
 #define PARTICLE_DISTANCE_SCALE_HIGH 36.0
 
-static OOTexture* sBlobTexture = nullptr;
+// The texture, made on first use and given up by a graphics reset. The holder
+// is never deleted, so exit(0) frees no texture after the GL context has gone.
+static std::shared_ptr<OOTexture>& BlobTexture() {
+  static std::shared_ptr<OOTexture>& texture =
+      *new std::shared_ptr<OOTexture>();
+  return texture;
+}
 
 namespace {
 
@@ -305,8 +311,8 @@ OOTexture* OOLightParticleEntity::texture() {
 }
 
 void OOLightParticleEntity::setUpTexture() {
-  if (sBlobTexture == nullptr) {
-    sBlobTexture = oo::leakRef(OOTexture::textureWithName(
+  if (BlobTexture() == nullptr) {
+    BlobTexture() = (OOTexture::textureWithName(
         "oolite-particle-blur.png", "Textures",
         OOTextureFlags::kMinFilterMipMap | OOTextureFlags::kMagFilterLinear |
             OOTextureFlags::kAlphaMask,
@@ -317,14 +323,11 @@ void OOLightParticleEntity::setUpTexture() {
 }
 
 OOTexture* OOLightParticleEntity::defaultParticleTexture() {
-  if (sBlobTexture == nullptr) setUpTexture();
-  return sBlobTexture;
+  if (BlobTexture() == nullptr) setUpTexture();
+  return BlobTexture().get();
 }
 
-void OOLightParticleEntity::resetGraphicsState() {
-  oo::release(sBlobTexture);
-  sBlobTexture = nullptr;
-}
+void OOLightParticleEntity::resetGraphicsState() { BlobTexture().reset(); }
 
 bool OOLightParticleEntity::isEffect() { return true; }
 

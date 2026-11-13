@@ -62,7 +62,8 @@ std::shared_ptr<OOECMBlastEntity> OOECMBlastEntity::initFromShip(
   if (ship == nullptr) {
     return nullptr;
   }
-  return oo::adopt(new OOECMBlastEntity(ship));
+  return std::shared_ptr<OOECMBlastEntity>(new OOECMBlastEntity(ship),
+                                           oo::Dispose{});
 }
 
 void OOECMBlastEntity::update(OOTimeDelta delta_t) {

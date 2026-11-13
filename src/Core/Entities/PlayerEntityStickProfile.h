@@ -40,9 +40,9 @@ MA 02110-1301, USA.
 class OOJoystickManager;  // OOJoystickManager.h
 
 /* The player is the screen's one caller (the category above drives it); the
- * player keeps it as an oo::Ref.
+ * player keeps it as a std::shared_ptr.
  */
-class StickProfileScreen : public oo::RefCounted {
+class StickProfileScreen : public oo::Object {
  public:
   StickProfileScreen();  // -init
   void startGui(GuiDisplayGen* gui_display_gen);

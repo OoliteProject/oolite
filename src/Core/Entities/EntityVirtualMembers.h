@@ -53,7 +53,7 @@ class Entity;
    answering a value: ";" and ";" in the class, "{}" and "{ return {}; }" in a
    stand-in. The parameters are named in comments, so a stand-in's default
    bodies use none. The three overrides of OOJSPrivateObject (the entity's JS
-   glue) keep their place: the class and a stand-in derive from oo::RefCounted
+   glue) keep their place: the class and a stand-in derive from oo::Object
         and ::OOJSPrivateObject, in that order.
 */
 // clang-format off

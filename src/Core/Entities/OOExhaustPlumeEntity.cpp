@@ -44,7 +44,13 @@ MA 02110-1301, USA.
 #define kScaleLevel2 0.8f
 #define kScaleLevel3 0.6f
 
-static OOTexture* sPlumeTexture = nullptr;
+// The texture, made on first use and given up by a graphics reset. The holder
+// is never deleted, so exit(0) frees no texture after the GL context has gone.
+static std::shared_ptr<OOTexture>& PlumeTexture() {
+  static std::shared_ptr<OOTexture>& texture =
+      *new std::shared_ptr<OOTexture>();
+  return texture;
+}
 
 namespace {
 
@@ -648,8 +654,8 @@ OOTexture* OOExhaustPlumeEntity::texture() {
 }
 
 void OOExhaustPlumeEntity::setUpTexture() {
-  if (sPlumeTexture == nullptr) {
-    sPlumeTexture = oo::leakRef(OOTexture::textureWithName(
+  if (PlumeTexture() == nullptr) {
+    PlumeTexture() = (OOTexture::textureWithName(
         "oolite-exhaust-blur.png", "Textures",
         OOTextureFlags::kMinFilterMipMap | OOTextureFlags::kMagFilterLinear |
             OOTextureFlags::kAlphaMask | OOTextureFlags::kRepeatT |
@@ -661,14 +667,11 @@ void OOExhaustPlumeEntity::setUpTexture() {
 }
 
 OOTexture* OOExhaustPlumeEntity::plumeTexture() {
-  if (sPlumeTexture == nullptr) setUpTexture();
-  return sPlumeTexture;
+  if (PlumeTexture() == nullptr) setUpTexture();
+  return PlumeTexture().get();
 }
 
-void OOExhaustPlumeEntity::resetGraphicsState() {
-  oo::release(sPlumeTexture);
-  sPlumeTexture = nullptr;
-}
+void OOExhaustPlumeEntity::resetGraphicsState() { PlumeTexture().reset(); }
 
 // The binding's bodies (OOJSExhaustPlume.cpp).
 JSClassID OOExhaustPlumeEntity::jsClassID() {

@@ -40,7 +40,7 @@
 	sees what an exception under a native becomes.
 */
 #include "EntityStandIn.h"
-class Entity : public oo::RefCounted, public ::OOJSPrivateObject	// the C++ root, with the game's
+class Entity : public oo::Object, public ::OOJSPrivateObject	// the C++ root, with the game's
                                            // vtable
 {
 public:

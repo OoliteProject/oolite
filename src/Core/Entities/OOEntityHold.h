@@ -3,9 +3,8 @@
 OOEntityHold.h
 
 How the universe and the entities' own lists (sub-entities, cargo, colliding
-entities, the player's missiles, ...) own an entity. The C++ entity owns itself
-(oo::RefCounted, its last release running willDispose()) and the holder is a
-strong reference to it.
+entities, the player's missiles, ...) own an entity: a std::shared_ptr. The C++
+entity is an oo::Object, its last owner's release running willDispose().
 
 An entity that has no object (Entity::hasObject(): never made by a creator, or
 in its last release) is held as null; the retain/release helpers do nothing for
@@ -47,12 +46,9 @@ namespace oo {
 
 namespace detail {
 
-// EntityHelpers.cpp (a narrow test's stand-in defines its own): a retain or
-// release of an entity that has its object, nothing otherwise; whether it has
-// one.
+// EntityHelpers.cpp (a narrow test's stand-in defines its own): whether the
+// entity has its object.
 bool EntityHasObject(const Entity* entity) noexcept;
-void EntityRetain(Entity* entity) noexcept;
-void EntityRelease(Entity* entity) noexcept;
 
 }  // namespace detail
 

@@ -67,12 +67,6 @@ Entity* oo::WithObject(Entity* entity) {
 bool oo::detail::EntityHasObject(const Entity* entity) noexcept {
   return entity != nullptr && entity->hasObject();
 }
-void oo::detail::EntityRetain(Entity* entity) noexcept {
-  if (entity != nullptr) entity->retain();
-}
-void oo::detail::EntityRelease(Entity* entity) noexcept {
-  if (entity != nullptr) entity->release();
-}
 
 std::shared_ptr<Entity> oo::MadeEntityRetained(const Ref<Entity>& entity) {
   if (entity == nullptr) return nullptr;

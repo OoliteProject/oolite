@@ -150,13 +150,13 @@ OO_TEST(objectNamesAnsweredWithoutTheObject) {
 
     // (b) answered, logged, never called: the entity is not released
     gLog.clear();
-    const auto references = ship.entity->retainCount();
+    const auto references = ship.entity->weak_from_this().use_count();
     for (const char* name : {"release", "autorelease", "dealloc", "retain",
                              "init", "weakRetain", "hash"}) {
       OO_CHECK(oo::EntityRespondsToName(ship.entity, name));
       OO_CHECK(oo::CallEntityByName(ship.entity, name).isNull());
     }
-    OO_CHECK_EQ(ship.entity->retainCount(), references);
+    OO_CHECK_EQ(ship.entity->weak_from_this().use_count(), references);
     OO_CHECK_EQ(
         LogLinesContaining("-[Entity release] has no signature a by-name call "
                            "can use (type encoding Vv16@0:8)."),

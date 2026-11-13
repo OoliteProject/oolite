@@ -53,8 +53,20 @@ MA 02110-1301, USA.
 #define kLaserFlareWidth (1.8f)
 #define kLaserHalfWidth (3.6f)
 
-static OOTexture* sShotTexture = nullptr;
-static OOTexture* sShotTexture2 = nullptr;
+// The texture, made on first use and given up by a graphics reset. The holder
+// is never deleted, so exit(0) frees no texture after the GL context has gone.
+static std::shared_ptr<OOTexture>& ShotTexture() {
+  static std::shared_ptr<OOTexture>& texture =
+      *new std::shared_ptr<OOTexture>();
+  return texture;
+}
+// The texture, made on first use and given up by a graphics reset. The holder
+// is never deleted, so exit(0) frees no texture after the GL context has gone.
+static std::shared_ptr<OOTexture>& ShotTexture2() {
+  static std::shared_ptr<OOTexture>& texture =
+      *new std::shared_ptr<OOTexture>();
+  return texture;
+}
 
 namespace {
 
@@ -280,8 +292,8 @@ OOTexture* OOLaserShotEntity::texture2() {
 }
 
 void OOLaserShotEntity::setUpTexture() {
-  if (sShotTexture == nullptr) {
-    sShotTexture = oo::leakRef(OOTexture::textureWithName(
+  if (ShotTexture() == nullptr) {
+    ShotTexture() = (OOTexture::textureWithName(
         "oolite-laser-blur.png", "Textures",
         OOTextureFlags::kMinFilterMipMap | OOTextureFlags::kMagFilterLinear |
             OOTextureFlags::kAlphaMask | OOTextureFlags::kRepeatT,
@@ -289,7 +301,7 @@ void OOLaserShotEntity::setUpTexture() {
     OOGraphicsResetManager::sharedManager()->registerCxxClient(
         new ShotTextureResetClient);
 
-    sShotTexture2 = oo::leakRef(OOTexture::textureWithName(
+    ShotTexture2() = (OOTexture::textureWithName(
         "oolite-laser-blur2.png", "Textures",
         OOTextureFlags::kMinFilterMipMap | OOTextureFlags::kMagFilterLinear |
             OOTextureFlags::kAlphaMask | OOTextureFlags::kRepeatT,
@@ -298,18 +310,16 @@ void OOLaserShotEntity::setUpTexture() {
 }
 
 OOTexture* OOLaserShotEntity::innerTexture() {
-  if (sShotTexture2 == nullptr) setUpTexture();
-  return sShotTexture2;
+  if (ShotTexture2() == nullptr) setUpTexture();
+  return ShotTexture2().get();
 }
 
 OOTexture* OOLaserShotEntity::outerTexture() {
-  if (sShotTexture == nullptr) setUpTexture();
-  return sShotTexture;
+  if (ShotTexture() == nullptr) setUpTexture();
+  return ShotTexture().get();
 }
 
 void OOLaserShotEntity::resetGraphicsState() {
-  oo::release(sShotTexture);
-  sShotTexture = nullptr;
-  oo::release(sShotTexture2);
-  sShotTexture2 = nullptr;
+  ShotTexture().reset();
+  ShotTexture2().reset();
 }

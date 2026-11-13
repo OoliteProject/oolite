@@ -60,12 +60,12 @@ class StationEntity;
 class OOMesh;
 #include "OOScript.h"  // std::shared_ptr<OOScript> members and results
 class WormholeEntity;
-#include "AI.h"               // shipAI is oo::Ref
-#include "OOCharacter.h"      // the crew is oo::Ref
-#include "OOColor.h"          // the colours are oo::Ref members
+#include "AI.h"               // shipAI is std::shared_ptr
+#include "OOCharacter.h"      // the crew is std::shared_ptr
+#include "OOColor.h"          // the colours are std::shared_ptr members
 #include "OOEquipmentType.h"  // OOWeaponType is a C++ pointer
-#include "OOPolygonSprite.h"  // OOHUDBeaconIcon: the beacon drawable is oo::Ref
-#include "OOShipGroup.h"      // the groups are oo::Ref
+#include "OOPolygonSprite.h"  // OOHUDBeaconIcon: the beacon drawable is std::shared_ptr
+#include "OOShipGroup.h"  // the groups are std::shared_ptr
 class OOFlasherEntity;
 class OOExhaustPlumeEntity;  // Universe.h's, for the members of
                              // ShipEntityAI.cpp's scans.

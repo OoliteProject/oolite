@@ -91,7 +91,7 @@ void Entity::init() {
 }
 
 /*	Teardown that runs before the entity is destroyed: the last release runs
-   it, with the entity whole (oo::RefCounted::willDispose()). An entity that
+   it, with the entity whole (oo::Object::willDispose()). An entity that
    never had its object runs none of it. From its first line the entity no
    longer has its object (hasObject()): holds and retains of it are null and
    nothing.
@@ -101,8 +101,9 @@ void Entity::willDispose() noexcept {
   _disposing = true;
 
   /*	A ship's teardown runs first. The player's, a station's or a dock's part
-     first; then the weak references, dropped before entityDestroyed (see
-     ShipEntity::shipWillDealloc()); then the ship's body.
+     first; then the ship's body. (The weak references to the entity are
+     already empty, as entityDestroyed expects: see
+     ShipEntity::shipWillDealloc().)
   */
   if (::ShipEntity* ship = dynamic_cast<::ShipEntity*>(this)) {
     if (::PlayerEntity* player = dynamic_cast<::PlayerEntity*>(ship))
@@ -111,7 +112,6 @@ void Entity::willDispose() noexcept {
       station->willDealloc();
     if (::DockEntity* dock = dynamic_cast<::DockEntity*>(ship))
       dock->willDealloc();
-    dropWeakReferences();
     ship->shipWillDealloc();
   }
 
@@ -134,9 +134,6 @@ void Entity::willDispose() noexcept {
   gLiveEntityCount--;
   gTotalEntityMemory -= oo::EntityObjectSize(this);
 #endif
-
-  // The weak references read null from here.
-  dropWeakReferences();
 }
 
 std::optional<std::string> Entity::descriptionComponents() const {
