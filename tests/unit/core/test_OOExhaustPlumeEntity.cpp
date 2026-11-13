@@ -57,7 +57,7 @@ class TestPlayer : public PlayerEntity {
 // the game's, retained (+1) as +alloc's object was.
 template <class T>
 T* NewTestPlayer() {
-  std::shared_ptr<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeShared<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -145,7 +145,7 @@ bool VectorIs(Vector v, float x, float y, float z) {
 // A ship's object (autoreleased, as the Objective-C stand-in was), holding the
 // stand-in ship.
 Entity* Ship() {
-  std::shared_ptr<TestShip> ship = oo::makeRef<TestShip>();
+  std::shared_ptr<TestShip> ship = oo::makeShared<TestShip>();
   Entity* object = oo::MadeEntity(ship);
   ship->isShip =
       true;  // a ship (its subentity plume asks it, as a set-up ship answers)

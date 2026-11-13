@@ -9,7 +9,7 @@
 #pragma once
 
 #include "UniverseVirtualMembers.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 
 #define OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS \
   OO_UNIVERSE_VIRTUAL_MEMBERS({}, { return {}; })

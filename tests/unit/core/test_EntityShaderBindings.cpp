@@ -64,7 +64,7 @@ class TestPlayer : public PlayerEntity {
 // the game's, retained (+1) as +alloc's object was.
 template <class T>
 T* NewTestPlayer() {
-  std::shared_ptr<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeShared<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -89,7 +89,7 @@ void SetUp() {
   sPlayer->_productivity = oo::PList();
 }
 
-Entity* AnEntity() { return oo::MadeEntity(oo::makeRef<Entity>()); }
+Entity* AnEntity() { return oo::MadeEntity(oo::makeShared<Entity>()); }
 
 // The binding a uniform bound to the name on the entity makes (the member
 // table).

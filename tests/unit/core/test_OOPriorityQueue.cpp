@@ -17,14 +17,14 @@
 namespace {
 
 // A C++ element: a key it is ordered by, and a tag that tells equal keys apart.
-class CxxItem : public oo::RefCounted {
+class CxxItem : public oo::Object {
  public:
   CxxItem(int inKey, int inTag) : key(inKey), tag(inTag) {}
   ~CxxItem() override { sLive--; }
 
   static std::shared_ptr<CxxItem> make(int key, int tag) {
     sLive++;
-    return oo::adopt(new CxxItem(key, tag));
+    return std::shared_ptr<CxxItem>(new CxxItem(key, tag), oo::Dispose{});
   }
 
   int key;

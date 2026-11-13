@@ -74,7 +74,7 @@ oo::PList Good(
 // The universe as the code under test sees it: a stand-in for the C++ class
 // with the header's names and signatures. It answers virtual members, so it has
 // the game's vtable (UniverseStandIn.h) and StandInUniverse overrides them.
-class Universe : public oo::RefCounted {
+class Universe : public oo::Object {
  public:
   OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
 
@@ -295,7 +295,7 @@ OO_TEST(massUnitOfACommodity) {
     OO_CHECK(cxx_DisplayStringForMassUnitForCommodity("gold") ==
              std::optional<std::string>("t"));
 
-    std::shared_ptr<OOCommodityMarket> market = oo::makeRef<OOCommodityMarket>();
+    std::shared_ptr<OOCommodityMarket> market = oo::makeShared<OOCommodityMarket>();
     market->setGood("gold", Good({{"name", oo::PList("Gold")},
                                   {"quantity_unit", oo::PList(1)}}));
     market->setGood("gems", Good({{"name", oo::PList("Gem-stones")},

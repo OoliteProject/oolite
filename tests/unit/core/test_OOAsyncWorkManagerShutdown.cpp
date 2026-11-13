@@ -53,7 +53,7 @@ bool WaitFor(const std::atomic<bool>& flag) {
 
 OO_TEST(shutdownWaitsForAStartedTaskThenStopsTheWorkers) {
   OOAsyncWorkManager* manager = OOAsyncWorkManager::sharedAsyncWorkManager();
-  const std::shared_ptr<SlowTask> slow = oo::makeRef<SlowTask>();
+  const std::shared_ptr<SlowTask> slow = oo::makeShared<SlowTask>();
   OO_CHECK(manager->addTask(slow.get(), OOAsyncWorkPriority::kMedium));
   OO_CHECK(WaitFor(slow->started));
 
@@ -63,7 +63,7 @@ OO_TEST(shutdownWaitsForAStartedTaskThenStopsTheWorkers) {
   OO_CHECK(std::chrono::steady_clock::now() - start < std::chrono::seconds(5));
 
   // No worker is left to perform a task added now.
-  const std::shared_ptr<FlagTask> late = oo::makeRef<FlagTask>();
+  const std::shared_ptr<FlagTask> late = oo::makeShared<FlagTask>();
   manager->addTask(late.get(), OOAsyncWorkPriority::kHigh);
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
   OO_CHECK(!late->performed);

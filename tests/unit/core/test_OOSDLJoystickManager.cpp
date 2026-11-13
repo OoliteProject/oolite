@@ -87,14 +87,14 @@ SDL_Event HatEvent(SDL_JoystickID which, Uint8 hat, Uint8 value) {
 // As +alloc then -init made it: the SDL constructor, then the superclass's
 // -init body.
 std::shared_ptr<OOSDLJoystickManager> NewManager() {
-  std::shared_ptr<OOSDLJoystickManager> manager = oo::makeRef<OOSDLJoystickManager>();
+  std::shared_ptr<OOSDLJoystickManager> manager = oo::makeShared<OOSDLJoystickManager>();
   manager->init();
   return manager;
 }
 
 // The factory the game registers (MyOpenGLView.mm).
 std::shared_ptr<OOJoystickManager> MakeSDLManager() {
-  return oo::makeRef<OOSDLJoystickManager>();
+  return oo::makeShared<OOSDLJoystickManager>();
 }
 
 }  // namespace

@@ -7,7 +7,7 @@
    volume, which it keeps in the "volume_control" default) and is the class
    cluster that initWithContentsOfFile() turns into a buffered or a streamed
    sound by the decoded size. The tests ask the C++ class (alloc/init as
-   oo::makeRef, the cluster as the factory, the class checks as dynamic_cast,
+   oo::makeShared, the cluster as the factory, the class checks as dynamic_cast,
    description()). After them come the C++ API and a C++ subclass, as
    test_OODrawable.mm does.
 
@@ -98,7 +98,7 @@ class TestDecoder final : public OOALSoundDecoder {
 std::shared_ptr<OOALSoundDecoder> OOALSoundDecoder::initWithPath(
     const std::optional<std::string>& inPath) {
   if (!inPath.has_value() || *inPath == "missing.ogg") return nullptr;
-  return oo::makeRef<TestDecoder>(*inPath);
+  return oo::makeShared<TestDecoder>(*inPath);
 }
 
 bool OOALSoundDecoder::readCreatingBuffer(char**, size_t*) { return false; }
@@ -117,7 +117,7 @@ std::optional<std::string> OOALSoundDecoder::descriptionComponents() const {
 std::shared_ptr<OOALBufferedSound> OOALBufferedSound::initWithDecoder(
     OOALSoundDecoder* inDecoder) {
   if (inDecoder->name() == "bad.ogg") return nullptr;
-  std::shared_ptr<OOALBufferedSound> sound = oo::adopt(new OOALBufferedSound);
+  std::shared_ptr<OOALBufferedSound> sound = std::shared_ptr<OOALBufferedSound>(new OOALBufferedSound(), oo::Dispose{});
   sound->_name = inDecoder->name();
   return sound;
 }
@@ -134,7 +134,7 @@ static std::map<const OOALStreamedSound*, int> gStreamedRewinds;
 
 std::shared_ptr<OOALStreamedSound> OOALStreamedSound::initWithDecoder(
     OOALSoundDecoder* inDecoder) {
-  std::shared_ptr<OOALStreamedSound> sound = oo::adopt(new OOALStreamedSound);
+  std::shared_ptr<OOALStreamedSound> sound = std::shared_ptr<OOALStreamedSound>(new OOALStreamedSound(), oo::Dispose{});
   sound->_name = inDecoder->name();
   return sound;
 }
@@ -165,7 +165,7 @@ class TestMusic final : public OOSound {
  public:
   static std::shared_ptr<TestMusic> initWithContentsOfFile(
       const std::optional<std::string>& inPath) {
-    std::shared_ptr<TestMusic> self = oo::adopt(new TestMusic);
+    std::shared_ptr<TestMusic> self = std::shared_ptr<TestMusic>(new TestMusic(), oo::Dispose{});
     self->_sound = OOSound::initWithContentsOfFile(inPath);
     if (nullptr == self->_sound) self = nullptr;
     return self;
@@ -236,7 +236,7 @@ OO_TEST(initSetsUpAtHalfVolume) {
   OO_CHECK(!OOSound::isSoundOK());
   OO_CHECK(oo::Defaults::standard().object("volume_control").isNull());
 
-  const std::shared_ptr<OOSound> sound = oo::makeRef<OOSound>();
+  const std::shared_ptr<OOSound> sound = oo::makeShared<OOSound>();
   OO_CHECK(sound != nullptr);
   OO_CHECK(OOSound::isSoundOK());
   OO_CHECK(OOSound::setUp());  // once only, and remembered
@@ -278,7 +278,7 @@ OO_TEST(updateAsksTheMixer) {
 
 OO_TEST(rootDefaults) {
   SetUp();
-  const std::shared_ptr<OOSound> sound = oo::makeRef<OOSound>();
+  const std::shared_ptr<OOSound> sound = oo::makeShared<OOSound>();
   const int before = gSubclassResponsibilities;
   OO_CHECK(sound->name() == std::optional<std::string>(std::string()));
   OO_CHECK(gSubclassResponsibilities == before + 1);
@@ -386,7 +386,7 @@ OO_TEST(cxxApi) {
     OO_CHECK(gLiveDecoders == 0);
   }
 
-  const std::shared_ptr<OOSound> root = oo::makeRef<OOSound>();
+  const std::shared_ptr<OOSound> root = oo::makeShared<OOSound>();
   const int before = gSubclassResponsibilities;
   OO_CHECK(root->name() == std::optional<std::string>(std::string()) &&
            root->soundBuffer() == 0);
@@ -400,7 +400,7 @@ OO_TEST(cxxApi) {
 // class.
 OO_TEST(cxxSoundBehindTheFacade) {
   SetUp();
-  const std::shared_ptr<TestCxxSound> sound = oo::makeRef<TestCxxSound>();
+  const std::shared_ptr<TestCxxSound> sound = oo::makeShared<TestCxxSound>();
   OOSound* root = sound.get();
 
   OO_CHECK(root->name() == std::optional<std::string>("cxx.ogg"));

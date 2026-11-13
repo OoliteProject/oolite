@@ -91,7 +91,7 @@ OO_TEST(nilIsRefused) {
 OO_TEST(waitPerformsThenCompletesOnTheWaitingThread) {
   {
     OOAsyncWorkManager* manager = OOAsyncWorkManager::sharedAsyncWorkManager();
-    const std::shared_ptr<TestTask> task = oo::makeRef<TestTask>();
+    const std::shared_ptr<TestTask> task = oo::makeShared<TestTask>();
     OO_CHECK(manager->addTask(task.get(), OOAsyncWorkPriority::kMedium));
     manager->waitForTaskToComplete(task.get());
     OO_CHECK(task->performed);
@@ -107,7 +107,7 @@ OO_TEST(waitPerformsThenCompletesOnTheWaitingThread) {
 OO_TEST(completePendingTasksCollectsReadyTasks) {
   {
     OOAsyncWorkManager* manager = OOAsyncWorkManager::sharedAsyncWorkManager();
-    const std::shared_ptr<TestTask> task = oo::makeRef<TestTask>();
+    const std::shared_ptr<TestTask> task = oo::makeShared<TestTask>();
     OO_CHECK_EQ(task.use_count(), 1);
     OO_CHECK(manager->addTask(task.get(), OOAsyncWorkPriority::kHigh));
     OO_CHECK(WaitFor(task->performed));
@@ -127,7 +127,7 @@ OO_TEST(completePendingTasksCollectsReadyTasks) {
 
 OO_TEST(waitForATaskNeverAddedReturns) {
   {
-    const std::shared_ptr<TestTask> task = oo::makeRef<TestTask>();
+    const std::shared_ptr<TestTask> task = oo::makeShared<TestTask>();
     OOAsyncWorkManager::sharedAsyncWorkManager()->waitForTaskToComplete(
         task.get());
     OO_CHECK(!task->performed);
@@ -139,7 +139,7 @@ OO_TEST(taskWithoutCompletionIsPerformed) {
   {
     OOAsyncWorkManager* manager = OOAsyncWorkManager::sharedAsyncWorkManager();
     const std::shared_ptr<TestFireAndForgetTask> task =
-        oo::makeRef<TestFireAndForgetTask>();
+        oo::makeShared<TestFireAndForgetTask>();
     OO_CHECK(manager->addTask(task.get(), OOAsyncWorkPriority::kLow));
     OO_CHECK(WaitFor(task->performed));
     manager
@@ -150,7 +150,7 @@ OO_TEST(taskWithoutCompletionIsPerformed) {
 OO_TEST(exceptionInPerformIsSwallowed) {
   {
     OOAsyncWorkManager* manager = OOAsyncWorkManager::sharedAsyncWorkManager();
-    const std::shared_ptr<TestTask> task = oo::makeRef<TestTask>();
+    const std::shared_ptr<TestTask> task = oo::makeShared<TestTask>();
     task->shouldThrow = true;
     OO_CHECK(manager->addTask(task.get(), OOAsyncWorkPriority::kMedium));
     manager->waitForTaskToComplete(task.get());
@@ -162,9 +162,9 @@ OO_TEST(exceptionInPerformIsSwallowed) {
 OO_TEST(everyPriorityIsPerformed) {
   {
     OOAsyncWorkManager* manager = OOAsyncWorkManager::sharedAsyncWorkManager();
-    const std::shared_ptr<TestTask> low = oo::makeRef<TestTask>();
-    const std::shared_ptr<TestTask> medium = oo::makeRef<TestTask>();
-    const std::shared_ptr<TestTask> high = oo::makeRef<TestTask>();
+    const std::shared_ptr<TestTask> low = oo::makeShared<TestTask>();
+    const std::shared_ptr<TestTask> medium = oo::makeShared<TestTask>();
+    const std::shared_ptr<TestTask> high = oo::makeShared<TestTask>();
     OO_CHECK(manager->addTask(low.get(), OOAsyncWorkPriority::kLow));
     OO_CHECK(manager->addTask(medium.get(), OOAsyncWorkPriority::kMedium));
     OO_CHECK(manager->addTask(high.get(), OOAsyncWorkPriority::kHigh));

@@ -148,7 +148,7 @@ OO_TEST(streamsAndStartsAgain) {
 
 // The public class's own answers: a decoder of nothing.
 OO_TEST(theRootDecodesNothing) {
-  const std::shared_ptr<OOALSoundDecoder> none = oo::makeRef<OOALSoundDecoder>();
+  const std::shared_ptr<OOALSoundDecoder> none = oo::makeShared<OOALSoundDecoder>();
   OO_CHECK(none != nullptr);
   char* buffer = reinterpret_cast<char*>(1);
   size_t size = 1;
@@ -190,7 +190,7 @@ OO_TEST(cxxApi) {
   streaming->reset();
   OO_CHECK(streaming->streamToBuffer(chunk.data()) == kBoopBytes);
 
-  const std::shared_ptr<OOALSoundDecoder> none = oo::makeRef<OOALSoundDecoder>();
+  const std::shared_ptr<OOALSoundDecoder> none = oo::makeShared<OOALSoundDecoder>();
   OO_CHECK(none->sizeAsBuffer() == 0 &&
            none->name() == std::optional<std::string>(std::string()));
   OO_CHECK(!none->descriptionComponents().has_value());

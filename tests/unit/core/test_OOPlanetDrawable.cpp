@@ -86,7 +86,7 @@ OOMaterial* NamedMaterial(const char* name) {
 
 using Planet = std::shared_ptr<OOPlanetDrawable>;
 
-Planet NewPlanet() { return oo::makeRef<OOPlanetDrawable>(); }
+Planet NewPlanet() { return oo::makeShared<OOPlanetDrawable>(); }
 Planet NewAtmosphere() { return OOPlanetDrawable::initAsAtmosphere(); }
 Planet AtmosphereWithRadius(float radius) {
   return OOPlanetDrawable::atmosphereWithRadius(radius);

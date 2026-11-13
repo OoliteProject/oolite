@@ -20,6 +20,7 @@
 #include "legacy_random.h"
 #include "oofnd/objc/OOException.h"
 #include "oofnd/String.hpp"
+#include "EntityManualRefs.h"  // the tests' manual references (T097)
 
 #include "oo_test.hpp"
 
@@ -189,7 +190,7 @@ void OOJSUnreachable(const char *function, const char *, unsigned)
    = -2 throws a C++ exception, so the test sees what an exception under a
    native becomes. Its selector is a member of the same name.
 */
-class FakeEntity final : public oo::RefCounted
+class FakeEntity final : public oo::Object
 {
 public:
 	Quaternion orientation();
@@ -239,7 +240,7 @@ JSValue MakeEntity(JSContext *context, JSValueConst, int argc, JSValueConst *arg
 	{
 		if (JS_ToFloat64(context, &q[i], argv[i]) < 0)  return JS_EXCEPTION;
 	}
-	FakeEntity *entity = oo::makeRef<FakeEntity>().leakRef();	// kept for the life of the test
+	FakeEntity *entity = oo::test::NewRetained<FakeEntity>();	// kept for the life of the test
 	entity->_orientation = make_quaternion(q[0], q[1], q[2], q[3]);
 	JSValue object = JS_NewObjectClass(context, static_cast<int>(sFakeEntityClassID));
 	if (JS_IsException(object))  return object;

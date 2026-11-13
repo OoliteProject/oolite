@@ -148,7 +148,7 @@ OO_TEST(stagesNameModels) {
   {
     OOOXPVerifier* verifier = MakeVerifier({{"Models/ship.dat", "model"}});
     const std::shared_ptr<OOModelVerifierStage> stage =
-        oo::makeRef<OOModelVerifierStage>();
+        oo::makeShared<OOModelVerifierStage>();
     stage->setVerifier(verifier);
     const oo::PList materials = *oo::parsePropertyListData("{ a = b; }");
 

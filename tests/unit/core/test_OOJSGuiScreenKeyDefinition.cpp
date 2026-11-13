@@ -206,7 +206,7 @@ void CollectGarbage() { JS_RunGC(JS_GetRuntime(Context())); }
 OO_TEST(initialState) {
   Context();
   const std::shared_ptr<OOJSGuiScreenKeyDefinition> definition =
-      oo::makeRef<OOJSGuiScreenKeyDefinition>();
+      oo::makeShared<OOJSGuiScreenKeyDefinition>();
   OO_CHECK(definition != nullptr);
   OO_CHECK(IsUndefined(definition->callback()));
   OO_CHECK(!IsObject(definition->callbackThis()));
@@ -225,10 +225,10 @@ OO_TEST(initialState) {
 
 OO_TEST(runCallback) {
   {
-    const std::shared_ptr<OOJSScript> owner = oo::makeRef<OOJSScript>();
+    const std::shared_ptr<OOJSScript> owner = oo::makeShared<OOJSScript>();
     sRunningScript = owner.get();
     const std::shared_ptr<OOJSGuiScreenKeyDefinition> definition =
-        oo::makeRef<OOJSGuiScreenKeyDefinition>();
+        oo::makeShared<OOJSGuiScreenKeyDefinition>();
     sRunningScript = nullptr;
 
     // Neither the function nor `this` has another reference: the definition
@@ -263,7 +263,7 @@ OO_TEST(runCallback) {
 namespace {
 std::shared_ptr<OOJSGuiScreenKeyDefinition> Keys(std::optional<std::string> name) {
   const std::shared_ptr<OOJSGuiScreenKeyDefinition> definition =
-      oo::makeRef<OOJSGuiScreenKeyDefinition>();
+      oo::makeShared<OOJSGuiScreenKeyDefinition>();
   definition->setName(name);
   return definition;
 }
@@ -291,7 +291,7 @@ OO_TEST(interfaceCompare) {
 OO_TEST(engineReset) {
   {
     const std::shared_ptr<OOJSGuiScreenKeyDefinition> definition =
-        oo::makeRef<OOJSGuiScreenKeyDefinition>();
+        oo::makeShared<OOJSGuiScreenKeyDefinition>();
     definition->setCallback(Evaluate("(function () {})"));
     definition->setCallbackThis(Evaluate("({})"));
     oo::NotificationCenter::defaultCenter().post(

@@ -111,7 +111,7 @@ OOOXPVerifier* MakeVerifier(
 OO_TEST(nameAndNeighbours) {
   {
     const std::shared_ptr<OOCheckDemoShipsPListVerifierStage> stage =
-        oo::makeRef<OOCheckDemoShipsPListVerifierStage>();
+        oo::makeShared<OOCheckDemoShipsPListVerifierStage>();
     stage->setVerifier(MakeVerifier({}));
     OO_CHECK(stage->name() ==
              std::optional<std::string>("Checking demoships.plist"));
@@ -132,7 +132,7 @@ OO_TEST(nameAndNeighbours) {
 OO_TEST(wrongTypes) {
   {
     const std::shared_ptr<OOCheckDemoShipsPListVerifierStage> stage =
-        oo::makeRef<OOCheckDemoShipsPListVerifierStage>();
+        oo::makeShared<OOCheckDemoShipsPListVerifierStage>();
     stage->setVerifier(MakeVerifier({{"demoships.plist", "{ a = b; }"},
                                      {"shipdata.plist", "{ a = {}; }"}}));
     stage->run();
@@ -161,7 +161,7 @@ OO_TEST(wrongTypes) {
 OO_TEST(entriesNameShips) {
   {
     const std::shared_ptr<OOCheckDemoShipsPListVerifierStage> stage =
-        oo::makeRef<OOCheckDemoShipsPListVerifierStage>();
+        oo::makeShared<OOCheckDemoShipsPListVerifierStage>();
     stage->setVerifier(MakeVerifier({
         {"demoships.plist", "( cobra, \"no such ship\", viper, ( x ), Cobra )"},
         {"shipdata.plist", "{ cobra = {}; viper = {}; }"},
@@ -191,7 +191,7 @@ OO_TEST(facade) {
   {
     OOOXPVerifier* verifier = MakeVerifier({});
     const std::shared_ptr<OOCheckDemoShipsPListVerifierStage> stage =
-        oo::makeRef<OOCheckDemoShipsPListVerifierStage>();
+        oo::makeShared<OOCheckDemoShipsPListVerifierStage>();
     OO_CHECK(stage->description().starts_with(
         "<OOCheckDemoShipsPListVerifierStage 0x"));
 

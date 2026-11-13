@@ -123,7 +123,7 @@ OO_TEST(oneTriangle) {
 OO_TEST(cubeGrowsPastInlineStorage) {
   {
     std::shared_ptr<OOMeshToOctreeConverter> cube =
-        oo::makeRef<OOMeshToOctreeConverter>(12);
+        oo::makeShared<OOMeshToOctreeConverter>(12);
     AddCube(*cube, 10);
     AddCube(*cube, 5);  // 24 triangles: past the sixteen inline slots
     OO_CHECK(Description(cube) == std::optional<std::string>("24 triangles"));
@@ -158,7 +158,7 @@ OO_TEST(cxxConverter) {
   OO_CHECK(Nodes(octree) == std::vector<int>({1, 0, 0, 0, 0, 0, 0, 0, -1}));
 
   std::shared_ptr<OOMeshToOctreeConverter> empty =
-      oo::makeRef<OOMeshToOctreeConverter>(0);
+      oo::makeShared<OOMeshToOctreeConverter>(0);
   OO_CHECK(empty->findOctreeToDepth(2)->volume() == 0.0f);
 }
 

@@ -125,7 +125,7 @@ class TestPlayer : public PlayerEntity {
 void SetUpTestPlayer() {
   static TestPlayer* player = nullptr;
   if (player == nullptr) {
-    std::shared_ptr<TestPlayer> made = oo::makeRef<TestPlayer>();
+    std::shared_ptr<TestPlayer> made = oo::makeShared<TestPlayer>();
     {
       oo::RetainEntity(oo::MadeEntity(
           made));  // +1, as PlayerEntity::sharedPlayer() makes the game's
@@ -806,7 +806,7 @@ class TestUniverse : public Universe {
   oo::PList testDescriptions = {};
 
   TestUniverse() {
-    testGui = oo::makeRef<TestGui>();
+    testGui = oo::makeShared<TestGui>();
     testGameView = new TestGameView();
     testDescriptions = oo::PList(oo::PList::Dict());
   }

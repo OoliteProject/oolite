@@ -9,7 +9,7 @@
    clamps, the dead zone, both curves at pinned sample points, the spline's
    control-point editing rules, and what a copy keeps (a copy does NOT keep the
    dead zone; the spline copy keeps the points). The cases use the C++ API
-   (makeRef, copy(), dynamic_cast/typeid for class checks). Run: bash
+   (oo::makeShared, copy(), dynamic_cast/typeid for class checks). Run: bash
    tests/run.sh unit
 */
 
@@ -40,7 +40,7 @@ bool IsExactly(OOJoystickAxisProfile* profile) {
 OO_TEST(axisProfileDeadzone) {
   {
     std::shared_ptr<OOJoystickAxisProfile> profile =
-        oo::makeRef<OOJoystickAxisProfile>();
+        oo::makeShared<OOJoystickAxisProfile>();
     OO_CHECK(Near(profile->deadzone(), STICK_DEADZONE));
     OO_CHECK(Near(profile->rawValue(0.3), 0.3));  // identity curve
     OO_CHECK(profile->value(STICK_DEADZONE / 2) == 0.0);
@@ -69,7 +69,7 @@ OO_TEST(axisProfileDeadzone) {
 OO_TEST(standardProfile) {
   {
     std::shared_ptr<OOJoystickStandardAxisProfile> profile =
-        oo::makeRef<OOJoystickStandardAxisProfile>();
+        oo::makeShared<OOJoystickStandardAxisProfile>();
     OO_CHECK(dynamic_cast<OOJoystickAxisProfile*>(profile.get()) != nullptr);
     OO_CHECK(profile->power() == 1.0 && profile->parameter() == 1.0);
     OO_CHECK(Near(profile->deadzone(), STICK_DEADZONE));
@@ -110,7 +110,7 @@ OO_TEST(standardProfile) {
 OO_TEST(splineProfileEditing) {
   {
     std::shared_ptr<OOJoystickSplineAxisProfile> profile =
-        oo::makeRef<OOJoystickSplineAxisProfile>();
+        oo::makeShared<OOJoystickSplineAxisProfile>();
     OO_CHECK(dynamic_cast<OOJoystickAxisProfile*>(profile.get()) != nullptr);
     OO_CHECK(profile->countPoints() == 0 && profile->controlPoints().empty());
     OO_CHECK(Near(profile->rawValue(0.3), 0.3) &&
@@ -157,7 +157,7 @@ OO_TEST(splineProfileEditing) {
 OO_TEST(splineProfileCurve) {
   {
     std::shared_ptr<OOJoystickSplineAxisProfile> profile =
-        oo::makeRef<OOJoystickSplineAxisProfile>();
+        oo::makeShared<OOJoystickSplineAxisProfile>();
     profile->addControl(NSMakePoint(0.5, 0.25));
     profile->addControl(NSMakePoint(0.8, 0.5));
 
@@ -195,7 +195,7 @@ OO_TEST(splineProfileCurve) {
 
 OO_TEST(cxxProfiles) {
   std::shared_ptr<OOJoystickStandardAxisProfile> standard =
-      oo::makeRef<OOJoystickStandardAxisProfile>();
+      oo::makeShared<OOJoystickStandardAxisProfile>();
   standard->setPower(3.0);
   standard->setParameter(0.5);
   OO_CHECK(Near(standard->rawValue(0.5), 0.5 * 0.125 + 0.5 * 0.5));
@@ -212,7 +212,7 @@ OO_TEST(cxxProfiles) {
   OO_CHECK(Near(copy->deadzone(), STICK_DEADZONE));  // not copied
 
   std::shared_ptr<OOJoystickSplineAxisProfile> spline =
-      oo::makeRef<OOJoystickSplineAxisProfile>();
+      oo::makeShared<OOJoystickSplineAxisProfile>();
   OO_CHECK(spline->addControl(NSMakePoint(0.5, 0.25)) == 0 &&
            spline->addControl(NSMakePoint(0.8, 0.5)) == 1);
   OO_CHECK(Near(spline->rawValue(0.65), 0.3421875) &&
@@ -222,7 +222,7 @@ OO_TEST(cxxProfiles) {
            nullptr);
   OO_CHECK(Near(splineCopy->rawValue(0.35), 0.161875));
   OO_CHECK(dynamic_cast<OOJoystickStandardAxisProfile*>(
-               oo::makeRef<OOJoystickAxisProfile>()->copy().get()) == nullptr);
+               oo::makeShared<OOJoystickAxisProfile>()->copy().get()) == nullptr);
 }
 
 OO_TEST_MAIN()

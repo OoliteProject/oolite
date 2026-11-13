@@ -73,7 +73,7 @@ class TestPlayer : public PlayerEntity {
 void SetUpTestPlayer() {
   static TestPlayer* player = nullptr;
   if (player == nullptr) {
-    std::shared_ptr<TestPlayer> made = oo::makeRef<TestPlayer>();
+    std::shared_ptr<TestPlayer> made = oo::makeShared<TestPlayer>();
     {
       oo::AutoreleaseScope scope;
       oo::RetainEntity(oo::MadeEntity(
@@ -103,7 +103,7 @@ void SetUp() {
 // A ship (the blast calls its members), under its object
 // (autoreleased), never set up.
 Entity* Ship() {
-  Entity* ship = oo::MadeEntity(oo::makeRef<::ShipEntity>());
+  Entity* ship = oo::MadeEntity(oo::makeShared<::ShipEntity>());
   ship->setPosition(make_HPvector(10, 20, 30));
   ship->setStatus(OOEntityStatus::kInFlight);
   return ship;
@@ -188,7 +188,7 @@ OO_TEST(deadShipEndsIt) {
     oo::AutoreleaseScope scope;
     SetUp();
     Entity* ship = oo::RetainEntity(
-        oo::MadeEntity(oo::makeRef<::ShipEntity>()));  // a ship
+        oo::MadeEntity(oo::makeShared<::ShipEntity>()));  // a ship
     blast = oo::RetainEntity(Blast(ship));
     oo::ReleaseEntity(ship);  // the blast holds it weakly
   }

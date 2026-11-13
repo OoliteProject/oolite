@@ -28,9 +28,10 @@
 #include <quickjs.h>
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 #include "oofnd/String.hpp"
 #include "OOConstToJSString.h"
+#include "EntityManualRefs.h"  // the tests' manual references (T097)
 
 
 // MARK: The classes, as far as the binding sees them ----------------------------------------------
@@ -90,7 +91,7 @@ public:
 };
 
 // Its selectors are members of the same names, its ivars zeroed members.
-class TestEntityObject final : public oo::RefCounted
+class TestEntityObject final : public oo::Object
 {
 public:
 	const char *className() const  { return "Entity"; }	// its Objective-C class's runtime name
@@ -351,7 +352,7 @@ JSValue JSValueForEntity(TestEntityObject *entity)
 	auto found = sEntityObjects.find(entity);
 	if (found == sEntityObjects.end())
 	{
-		if (entity->_cxxEntity == nullptr)  entity->_cxxEntity = oo::makeRef<TestEntityPart>();
+		if (entity->_cxxEntity == nullptr)  entity->_cxxEntity = oo::makeShared<TestEntityPart>();
 		sObjects[entity->_cxxEntity.get()] = entity;
 		JSValue object = JS_NewObjectClass(sContext, static_cast<int>(JSEntityClassID()));
 		if (JS_IsException(object) || !OOJSSetCxxPrivate(object, oo::makeShared<OOJSEntityHolder>(entity->_cxxEntity.get())))
@@ -600,15 +601,15 @@ void SetUpContext()
 	InitOOJSEntity(sContext, sGlobal);
 
 	// Kept for the life of the test.
-	sMother = oo::makeRef<TestEntityObject>().leakRef();
-	sMother->_cxxEntity = oo::makeRef<ShipEntity>();
+	sMother = oo::test::NewRetained<TestEntityObject>();
+	sMother->_cxxEntity = oo::makeShared<ShipEntity>();
 	sMother->_isShip = true;
 	sMother->_isStation = true;
 	sMother->_status = OOEntityStatus::kActive;
 	sMother->_scanClass = OOScanClass::kStation;
 
-	sShip = oo::makeRef<TestEntityObject>().leakRef();
-	sShip->_cxxEntity = oo::makeRef<ShipEntity>();
+	sShip = oo::test::NewRetained<TestEntityObject>();
+	sShip->_cxxEntity = oo::makeShared<ShipEntity>();
 	sShipPart = static_cast<ShipEntity *>(sShip->_cxxEntity.get());
 	sShip->_collisionRadius = 40.5f;
 	sShip->_position = make_HPvector(1000, -2000, 3000.5);
@@ -626,7 +627,7 @@ void SetUpContext()
 	sShip->_isVisible = true;
 	sShip->_isInSpace = true;
 
-	sRock = oo::makeRef<TestEntityObject>().leakRef();
+	sRock = oo::test::NewRetained<TestEntityObject>();
 	sRock->_status = OOEntityStatus::kActive;
 	sRock->_scanClass = OOScanClass::kRock;
 	sRock->_maxEnergy = 10;

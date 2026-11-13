@@ -39,7 +39,7 @@ class TestForeign final : public oo::PListForeign {
 };
 
 oo::PList foreign(const char* name) {
-  return oo::PList(oo::makeRef<TestForeign>(name));
+  return oo::PList(oo::makeShared<TestForeign>(name));
 }
 
 }  // namespace

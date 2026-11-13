@@ -42,7 +42,7 @@
 #include "Universe.h"
 #include "oofnd/FileSystem.hpp"
 #include "oofnd/PListParsing.hpp"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 #include "oofnd/String.hpp"
 
 namespace {

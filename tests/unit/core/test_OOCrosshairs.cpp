@@ -62,7 +62,7 @@ namespace {
 std::vector<float> Build(const oo::PList& points, float scale, OOColor* color,
                          float alpha) {
   return OOCrosshairsTestAccess::Buffer(
-      oo::makeRef<OOCrosshairs>(points, scale, color, alpha).get());
+      oo::makeShared<OOCrosshairs>(points, scale, color, alpha).get());
 }
 
 oo::PList Segment(double a1, double x1, double y1, double a2, double x2,

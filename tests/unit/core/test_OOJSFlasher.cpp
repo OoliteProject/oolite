@@ -25,12 +25,13 @@
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
+#include "EntityManualRefs.h"  // the tests' manual references (T097)
 
 
 // MARK: The entity classes, as far as the binding sees them ---------------------------------------
 
 // The C++ root, as far as the binding and the root's JS category reach it.
-class Entity : public oo::RefCounted
+class Entity : public oo::Object
 {
 public:
 	virtual ~Entity();
@@ -87,7 +88,7 @@ public:
 
 
 // Its selectors and its category's are members of the same names.
-class TestEntityObject final : public oo::RefCounted
+class TestEntityObject final : public oo::Object
 {
 public:
 	bool isShip();
@@ -420,7 +421,7 @@ OOVisualEffectEntity *sEffectPart = nullptr;
 JSValue JSValueForObject(JSClassID jsClass, TestEntityObject *entity)
 {
 	JSValue object = JS_NewObjectClass(sContext, static_cast<int>(jsClass));
-	if (entity->_cxxEntity == nullptr)  entity->_cxxEntity = oo::makeRef<Entity>();	// a plain entity's C++ part
+	if (entity->_cxxEntity == nullptr)  entity->_cxxEntity = oo::makeShared<Entity>();	// a plain entity's C++ part
 	if (JS_IsException(object) || !OOJSSetCxxPrivate(object, oo::makeShared<OOJSEntityHolder>(entity->_cxxEntity.get())))	// the slot holds the C++ entity
 	{
 		JS_FreeValue(sContext, object);
@@ -457,15 +458,15 @@ void SetUpContext()
 	OOJSInitClass(sContext, sGlobal, sFakeEntityClassID, JS_UNDEFINED, OOJSUnconstructableConstruct, 0, nullptr, 0, nullptr, 0, nullptr, 0);
 	InitOOJSFlasher(sContext, sGlobal);
 
-	sShip = oo::makeRef<TestEntityObject>().leakRef();	// kept for the life of the test
-	sShip->_cxxEntity = oo::makeRef<ShipEntity>();
+	sShip = oo::test::NewRetained<TestEntityObject>();	// kept for the life of the test
+	sShip->_cxxEntity = oo::makeShared<ShipEntity>();
 	sShipPart = static_cast<ShipEntity *>(sShip->_cxxEntity.get());
 	sShip->_isShip = true;
-	sEffect = oo::makeRef<TestEntityObject>().leakRef();
-	sEffect->_cxxEntity = oo::makeRef<OOVisualEffectEntity>();
+	sEffect = oo::test::NewRetained<TestEntityObject>();
+	sEffect->_cxxEntity = oo::makeShared<OOVisualEffectEntity>();
 	sEffectPart = static_cast<OOVisualEffectEntity *>(sEffect->_cxxEntity.get());
-	sFlasher = oo::makeRef<TestEntityObject>().leakRef();
-	const std::shared_ptr<OOFlasherEntity> part = oo::makeRef<OOFlasherEntity>();
+	sFlasher = oo::test::NewRetained<TestEntityObject>();
+	const std::shared_ptr<OOFlasherEntity> part = oo::makeShared<OOFlasherEntity>();
 	sFlasher->_cxxEntity = part;
 	sFlasherPart = part.get();
 	sFlasherPart->_active = true;

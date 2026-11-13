@@ -86,7 +86,7 @@ struct OOSkyDrawableTestAccess {
 // the game's, retained (+1).
 template <class T>
 T* NewTestPlayer() {
-  std::shared_ptr<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeShared<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -129,7 +129,7 @@ bool ColorIs(OOColor* color, float r, float g, float b, float a) {
 
 // The object first, then the initialiser's body, as the universe makes the sky.
 Entity* Sky(const oo::PList& info) {
-  const std::shared_ptr<SkyEntity> sky = oo::makeRef<SkyEntity>();
+  const std::shared_ptr<SkyEntity> sky = oo::makeShared<SkyEntity>();
   Entity* object = oo::MadeEntity(sky);
   sky->initWithColors(OOColor::redColor().get(), OOColor::blueColor().get(),
                       info);

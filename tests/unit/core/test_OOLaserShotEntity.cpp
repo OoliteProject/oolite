@@ -46,7 +46,7 @@ class TestPlayer : public PlayerEntity {
 // PlayerEntity::sharedPlayer() makes the game's, retained (+1).
 template <class T>
 T* NewTestPlayer() {
-  std::shared_ptr<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeShared<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -101,7 +101,7 @@ void SetUp() {
 // whose fields
 // give those answers.
 Entity* MakeShip() {
-  std::shared_ptr<::ShipEntity> part = oo::makeRef<::ShipEntity>();
+  std::shared_ptr<::ShipEntity> part = oo::makeShared<::ShipEntity>();
   Entity* ship = oo::MadeEntity(part);
   part->isShip = true;
   part->flightSpeed = 50.0f;

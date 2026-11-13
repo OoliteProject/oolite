@@ -23,12 +23,13 @@
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
+#include "EntityManualRefs.h"  // the tests' manual references (T097)
 
 
 // MARK: The entity classes, as far as the binding sees them ---------------------------------------
 
 // The C++ root, as far as the binding and the root's JS category reach it.
-class Entity : public oo::RefCounted
+class Entity : public oo::Object
 {
 public:
 	virtual ~Entity();
@@ -61,7 +62,7 @@ public:
 
 
 // Its category's selectors are members of the same names.
-class TestEntityObject final : public oo::RefCounted
+class TestEntityObject final : public oo::Object
 {
 public:
 	JSClassID oo_jsClassID();
@@ -341,7 +342,7 @@ ShipEntity *sShipPart = nullptr;
 JSValue JSValueForObject(JSClassID jsClass, TestEntityObject *entity)
 {
 	JSValue object = JS_NewObjectClass(sContext, static_cast<int>(jsClass));
-	if (entity->_cxxEntity == nullptr)  entity->_cxxEntity = oo::makeRef<Entity>();	// a plain entity's C++ part
+	if (entity->_cxxEntity == nullptr)  entity->_cxxEntity = oo::makeShared<Entity>();	// a plain entity's C++ part
 	if (JS_IsException(object) || !OOJSSetCxxPrivate(object, oo::makeShared<OOJSEntityHolder>(entity->_cxxEntity.get())))	// the slot holds the C++ entity
 	{
 		JS_FreeValue(sContext, object);
@@ -378,11 +379,11 @@ void SetUpContext()
 	OOJSInitClass(sContext, sGlobal, sFakeEntityClassID, JS_UNDEFINED, OOJSUnconstructableConstruct, 0, nullptr, 0, nullptr, 0, nullptr, 0);
 	InitOOJSExhaustPlume(sContext, sGlobal);
 
-	sShip = oo::makeRef<TestEntityObject>().leakRef();	// kept for the life of the test
-	sShip->_cxxEntity = oo::makeRef<ShipEntity>();
+	sShip = oo::test::NewRetained<TestEntityObject>();	// kept for the life of the test
+	sShip->_cxxEntity = oo::makeShared<ShipEntity>();
 	sShipPart = static_cast<ShipEntity *>(sShip->_cxxEntity.get());
-	sPlume = oo::makeRef<TestEntityObject>().leakRef();
-	const std::shared_ptr<OOExhaustPlumeEntity> part = oo::makeRef<OOExhaustPlumeEntity>();
+	sPlume = oo::test::NewRetained<TestEntityObject>();
+	const std::shared_ptr<OOExhaustPlumeEntity> part = oo::makeShared<OOExhaustPlumeEntity>();
 	sPlume->_cxxEntity = part;
 	sPlumePart = part.get();
 	sPlumePart->_scale = make_vector(1, 2, 3.5);

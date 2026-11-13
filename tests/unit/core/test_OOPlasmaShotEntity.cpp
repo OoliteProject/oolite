@@ -48,7 +48,7 @@ class TestPlayer : public PlayerEntity {
 // PlayerEntity::sharedPlayer() makes the game's, retained (+1).
 template <class T>
 T* NewTestPlayer() {
-  std::shared_ptr<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeShared<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -161,7 +161,7 @@ Entity* RedShot() {
 // A ship: C++ (its root ship entity is the C++ ship), never set up,
 // marked as a ship.
 Entity* Ship() {
-  Entity* ship = oo::MadeEntity(oo::makeRef<::ShipEntity>());
+  Entity* ship = oo::MadeEntity(oo::makeShared<::ShipEntity>());
   SetIsShip(ship);
   return ship;
 }
@@ -204,8 +204,8 @@ OO_TEST(collisions) {
   {
     SetUp(0.0);
     Entity* shot = RedShot();
-    Entity* plain = oo::MadeEntity(oo::makeRef<Entity>());
-    Entity* effect = oo::MadeEntity(oo::makeRef<TestEffect>());
+    Entity* plain = oo::MadeEntity(oo::makeShared<Entity>());
+    Entity* effect = oo::MadeEntity(oo::makeShared<TestEffect>());
 
     // No owner: a plain entity's root ship is nil too.
     OO_CHECK(!shot->checkCloseCollisionWith(plain));
@@ -234,7 +234,7 @@ OO_TEST(hitDamagesAndBursts) {
     OO_CHECK(sUniverse->_removed == nullptr && sUniverse->_added == nullptr);
 
     TestTarget* target =
-        static_cast<TestTarget*>(oo::MadeEntity(oo::makeRef<TestTarget>()));
+        static_cast<TestTarget*>(oo::MadeEntity(oo::makeShared<TestTarget>()));
     SetColliding(shot, target);
     shot->update(0.1);
     OO_CHECK(target->_hits == 1 && target->_amount == 7.0 &&

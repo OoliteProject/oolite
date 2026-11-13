@@ -78,7 +78,7 @@ void SetUpLoaders() {
 std::vector<std::shared_ptr<TestGenerator>> gKeptGenerators;
 
 TestGenerator* NewGenerator(OOTextureFlags options) {
-  const std::shared_ptr<TestGenerator> generator = oo::makeRef<TestGenerator>();
+  const std::shared_ptr<TestGenerator> generator = oo::makeShared<TestGenerator>();
   if (!generator->initWithPath(std::string("test generator"), options))
     return nullptr;
   gKeptGenerators.push_back(generator);

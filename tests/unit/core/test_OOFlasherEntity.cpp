@@ -50,7 +50,7 @@ class TestPlayer : public PlayerEntity {
 // the game's, retained (+1) as +alloc's object was.
 template <class T>
 T* NewTestPlayer() {
-  std::shared_ptr<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeShared<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -249,7 +249,7 @@ OO_TEST(frequencyZeroIsOpaque) {
 OO_TEST(drawsOnlyWhileActive) {
   {
     SetUp();
-    Entity* owner = oo::MadeEntity(oo::makeRef<Entity>());
+    Entity* owner = oo::MadeEntity(oo::makeShared<Entity>());
     SetCamZeroDistance(
         owner,
         1e30f);  // beyond any draw distance: the draw stops at the cut-off
@@ -283,10 +283,10 @@ OO_TEST(isFlasher) {
   {
     SetUp();
     // Callers ask the C++ part.
-    Entity* plain = oo::MadeEntity(oo::makeRef<Entity>());
+    Entity* plain = oo::MadeEntity(oo::makeShared<Entity>());
     OO_CHECK(dynamic_cast<OOFlasherEntity*>(plain) == nullptr);
     const std::shared_ptr<OOLightParticleEntity> lightParticle =
-        oo::makeRef<OOLightParticleEntity>();
+        oo::makeShared<OOLightParticleEntity>();
     Entity* particle = oo::MadeEntity(lightParticle);
     lightParticle->initWithDiameter(1.0f);
     OO_CHECK(dynamic_cast<OOFlasherEntity*>(particle) == nullptr);

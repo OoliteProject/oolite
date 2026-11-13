@@ -24,6 +24,7 @@
 
 #include <optional>
 #include <string>
+#include "EntityManualRefs.h"  // the tests' manual references (T097)
 
 #include "OODescription.h"
 
@@ -51,12 +52,12 @@ bool oo::detail::EntityHasObject(const Entity* entity) noexcept {
 void oo::detail::EntityRetain(Entity* entity) noexcept {
   if (::TestEntityObject* object =
           (entity != nullptr) ? TestObjectOf(entity) : nullptr)
-    object->retain();
+    oo::test::Retain(object);
 }
 void oo::detail::EntityRelease(Entity* entity) noexcept {
   if (::TestEntityObject* object =
           (entity != nullptr) ? TestObjectOf(entity) : nullptr)
-    object->release();
+    oo::test::Release(object);
 }
 Entity* oo::WithObject(Entity* entity) {
   return (entity != nullptr && TestObjectOf(entity) != nullptr) ? entity

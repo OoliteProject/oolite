@@ -81,7 +81,7 @@ std::vector<std::shared_ptr<OOTextureGenerator>> gKeptGenerators;
 
 template <class G>
 G* Generator(const char* path, OOTextureFlags options) {
-  const std::shared_ptr<G> made = oo::makeRef<G>();
+  const std::shared_ptr<G> made = oo::makeShared<G>();
   if (!made->initWithPath(std::string(path), options)) return nullptr;
   gKeptGenerators.push_back(made);
   return made.get();
@@ -112,7 +112,7 @@ OO_TEST(defaults) {
     OO_CHECK(dynamic_cast<OOTextureLoader*>(generator) != nullptr);
     OO_CHECK(
         generator->description().ends_with(">{{bare generator -- loading}}"));
-    OO_CHECK(!oo::makeRef<BareGenerator>()->initWithPath(std::nullopt, OOTextureFlags::kNone));
+    OO_CHECK(!oo::makeShared<BareGenerator>()->initWithPath(std::nullopt, OOTextureFlags::kNone));
   }
 }
 
@@ -197,7 +197,7 @@ OO_TEST(cxxApi) {
   SetUpLoaders();
   {
     oo::AutoreleaseScope pool;
-    const std::shared_ptr<TestCxxGenerator> generator = oo::makeRef<TestCxxGenerator>();
+    const std::shared_ptr<TestCxxGenerator> generator = oo::makeShared<TestCxxGenerator>();
     OO_CHECK(generator->initWithPath(std::string("cxx generator"), OOTextureFlags::kNone));
     OO_CHECK(generator->anisotropy() == (GLfloat)kOOTextureDefaultAnisotropy &&
              generator->lodBias() == (GLfloat)kOOTextureDefaultLODBias);
@@ -214,7 +214,7 @@ OO_TEST(cxxApi) {
     OO_CHECK(generator->loads == 1 && texture->dimensions().width == 8);
 
     // The bare class's own answers.
-    const std::shared_ptr<OOTextureGenerator> bare = oo::makeRef<OOTextureGenerator>();
+    const std::shared_ptr<OOTextureGenerator> bare = oo::makeShared<OOTextureGenerator>();
     OO_CHECK(bare->textureOptions() == OOTextureFlags::kDefaultOptions &&
              !bare->cacheKey().has_value());
   }

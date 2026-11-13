@@ -11,7 +11,7 @@
 
 #include "EntityVirtualMembers.h"
 #include "OOJSPrivateObject.h"
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 
 #define OO_ENTITY_STAND_IN_VIRTUAL_MEMBERS      \
   OO_ENTITY_VIRTUAL_MEMBERS({}, { return {}; }) \

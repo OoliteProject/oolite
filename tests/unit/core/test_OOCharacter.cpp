@@ -11,7 +11,7 @@
    expander and the description lookup return text that records what they were
    asked, and the JavaScript entry points are link stubs that abort. The RNG is
    the game's own (legacy_random.c), reseeded by each test. The tests ask the
-   C++ class (its factories' oo::Ref held), with the C++ class's own cases at
+   C++ class (its factories' std::shared_ptr held), with the C++ class's own cases at
         the end.
         Run: tests/run.sh unit
 */
@@ -39,7 +39,7 @@
 // The universe as the code under test sees it: a stand-in for the C++ class,
 // with the header's names and signatures. It answers virtual members, so it has
 // the game's vtable (UniverseStandIn.h) and StandInUniverse overrides them.
-class Universe : public oo::RefCounted {
+class Universe : public oo::Object {
  public:
   OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
 
@@ -381,7 +381,7 @@ OO_TEST(cxxClass) {
                 "colonials planet=System 3>|8|500|3|human colonials"));
   OO_CHECK(pirate->planetOfOrigin() == std::optional<std::string>("System 3"));
   Fake();
-  OO_CHECK(Same(Describe(oo::makeRef<OOCharacter>("pirate", 3).get()),
+  OO_CHECK(Same(Describe(oo::makeShared<OOCharacter>("pirate", 3).get()),
                 "R1 <nom>|<character-generic-description species=human "
                 "colonials planet=System 3>|8|500|3|human colonials"));
 
@@ -401,7 +401,7 @@ OO_TEST(cxxClass) {
   OO_CHECK(c->infoForScripting().count() == 6);
 
   // [[OOCharacter alloc] init]: every field zero.
-  std::shared_ptr<OOCharacter> blank = oo::makeRef<OOCharacter>();
+  std::shared_ptr<OOCharacter> blank = oo::makeShared<OOCharacter>();
   OO_CHECK(!blank->name().has_value() &&
            !blank->shortDescription().has_value());
   OO_CHECK(blank->legalStatus() == 0 && blank->insuranceCredits() == 0 &&
@@ -414,16 +414,16 @@ OO_TEST(facadeIdentity) {
   std::shared_ptr<OOCharacter> pilot =
       FromDictionary({{"origin", oo::PList(4)}, {"random_seed", kSeed}});
 
-  // A crew list (oo::Ref) keeps finding the same object.
+  // A crew list (std::shared_ptr) keeps finding the same object.
   std::vector<std::shared_ptr<OOCharacter>> crew{pilot};
   OO_CHECK(crew[0] == pilot);
 
   // Objects made as +alloc and an initialiser made them.
-  std::shared_ptr<OOCharacter> blank = oo::makeRef<OOCharacter>();
+  std::shared_ptr<OOCharacter> blank = oo::makeShared<OOCharacter>();
   OO_CHECK(!blank->name().has_value() && blank->legalStatus() == 0 &&
            blank->planetIDOfOrigin() == 0);
   Fake();
-  std::shared_ptr<OOCharacter> trader = oo::makeRef<OOCharacter>("pirate", 3);
+  std::shared_ptr<OOCharacter> trader = oo::makeShared<OOCharacter>("pirate", 3);
   OO_CHECK(Same(Describe(trader),
                 "R1 <nom>|<character-generic-description species=human "
                 "colonials planet=System 3>|8|500|3|human colonials"));

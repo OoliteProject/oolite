@@ -13,8 +13,8 @@
    channel's source is private, so the test reads it as a friend. The tests ask
    the C++ channel; what its destructor tells the delegate is pinned by
    releasedWhilePlayingTellsTheDelegate. The delegate is a C++
-   OOSoundChannelDelegate, and the sounds are made with oo::makeRef and
-   released by their oo::Ref.
+   OOSoundChannelDelegate, and the sounds are made with oo::makeShared and
+   released by their std::shared_ptr.
    Run: meson test -C build/meson_test test_OOSoundChannel
 */
 
@@ -161,7 +161,7 @@ ALuint SourceOf(OOSoundChannel* channel) {
 // What [[OOSoundChannel alloc] init] made: a new channel, null when OpenAL
 // would not make its source.
 std::shared_ptr<OOSoundChannel> NewChannel() {
-  std::shared_ptr<OOSoundChannel> channel = oo::makeRef<OOSoundChannel>();
+  std::shared_ptr<OOSoundChannel> channel = oo::makeShared<OOSoundChannel>();
   if (!channel->init()) channel = nullptr;
   return channel;
 }
@@ -233,7 +233,7 @@ OO_TEST(playsASoundToTheEnd) {
 
     OO_CHECK(!channel->playSound(nullptr, false));
 
-    std::shared_ptr<TestSound> made = oo::makeRef<TestSound>();
+    std::shared_ptr<TestSound> made = oo::makeShared<TestSound>();
     TestSound* sound = made.get();
     OO_CHECK(channel->playSound(sound, false));
     OO_CHECK(sound->_rewinds == 1 && sound->_made == 1);
@@ -261,9 +261,9 @@ OO_TEST(stopAndReplace) {
     const std::shared_ptr<OOSoundChannel> channel = NewChannel();
     channel->setDelegate(&delegate);
 
-    const std::shared_ptr<TestSound> first = oo::makeRef<TestSound>();
+    const std::shared_ptr<TestSound> first = oo::makeShared<TestSound>();
     first->_frames = 22050;  // a second: still playing when stopped
-    const std::shared_ptr<TestSound> second = oo::makeRef<TestSound>();
+    const std::shared_ptr<TestSound> second = oo::makeShared<TestSound>();
     second->_frames = 22050;
     OO_CHECK(channel->playSound(first.get(), false));
     OO_CHECK(channel->playSound(second.get(), false));
@@ -291,7 +291,7 @@ OO_TEST(streamsAnIncompleteSound) {
     const std::shared_ptr<OOSoundChannel> channel = NewChannel();
     channel->setDelegate(&delegate);
 
-    const std::shared_ptr<TestSound> sound = oo::makeRef<TestSound>();
+    const std::shared_ptr<TestSound> sound = oo::makeShared<TestSound>();
     sound->_chunks = 4;
     sound->_frames = 2205;  // a tenth of a second each
     OO_CHECK(channel->playSound(sound.get(), false));
@@ -307,7 +307,7 @@ OO_TEST(loopsASound) {
   SetUp();
   {
     const std::shared_ptr<OOSoundChannel> channel = NewChannel();
-    const std::shared_ptr<TestSound> sound = oo::makeRef<TestSound>();
+    const std::shared_ptr<TestSound> sound = oo::makeShared<TestSound>();
     sound->_frames = 2205;
     OO_CHECK(channel->playSound(sound.get(), true));
     for (int i = 0; i < 400 && sound->_rewinds < 3; i++) {
@@ -327,20 +327,20 @@ OO_TEST(cxxApi) {
   SetUp();
   TestDelegate delegate;
   {
-    const std::shared_ptr<OOSoundChannel> channel = oo::makeRef<OOSoundChannel>();
+    const std::shared_ptr<OOSoundChannel> channel = oo::makeShared<OOSoundChannel>();
     OO_CHECK(channel->init());
     const ALuint source = OOSoundChannelTestAccess::Source(channel.get());
     OO_CHECK(source != 0 && alIsSource(source) &&
              SourceInt(source, AL_SOURCE_RELATIVE) == AL_TRUE);
 
-    const std::shared_ptr<OOSoundChannel> other = oo::makeRef<OOSoundChannel>();
+    const std::shared_ptr<OOSoundChannel> other = oo::makeShared<OOSoundChannel>();
     OO_CHECK(other->init());
     channel->setNext(other.get());
     OO_CHECK(channel->next() == other.get() && other->next() == nullptr);
 
     channel->setDelegate(&delegate);
     OO_CHECK(!channel->playSound(nullptr, false));
-    const std::shared_ptr<TestSound> sound = oo::makeRef<TestSound>();
+    const std::shared_ptr<TestSound> sound = oo::makeShared<TestSound>();
     sound->_frames = 22050;
     OO_CHECK(channel->playSound(sound.get(), false) &&
              channel->sound() == sound.get());
@@ -362,7 +362,7 @@ OO_TEST(releasedWhilePlayingTellsTheDelegate) {
   TestSound* sound = nullptr;
   {
     const std::shared_ptr<TestSound> made =
-        oo::makeRef<TestSound>();  // was autoreleased in this pool
+        oo::makeShared<TestSound>();  // was autoreleased in this pool
     std::shared_ptr<OOSoundChannel> channel = NewChannel();
     sound = made.get();
     sound->_frames = 22050;

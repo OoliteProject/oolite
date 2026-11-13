@@ -14,7 +14,7 @@
    answers. The game around it is replaced: UNIVERSE, PLAYER and ResourceManager
    are fakes that answer the one
    question each is asked, and the two string parsers it calls are given here.
-   The tests ask the C++ class (held as oo::Ref). The C++ API and the
+   The tests ask the C++ class (held as a std::shared_ptr). The C++ API and the
    entry on its own follow. Run: tests/run.sh unit
 */
 
@@ -113,7 +113,7 @@ bool SameSeed(Random_Seed a, Random_Seed b) {
 }
 
 std::shared_ptr<OOSystemDescriptionManager> NewManager() {
-  return oo::makeRef<OOSystemDescriptionManager>();
+  return oo::makeShared<OOSystemDescriptionManager>();
 }
 
 }  // namespace
@@ -457,7 +457,7 @@ OO_TEST(cxxApi) {
   Fake();
   {
     std::shared_ptr<OOSystemDescriptionManager> manager =
-        oo::makeRef<OOSystemDescriptionManager>();
+        oo::makeShared<OOSystemDescriptionManager>();
     manager->setUniversalProperties(Dict({{"economy", oo::PList(3)}}));
     manager->setProperties(
         Dict({{"name", Str("Lave")}, {"coordinates", Str("100 100")}}), "0 7");
@@ -488,7 +488,7 @@ OO_TEST(cxxApi) {
 
 OO_TEST(entry) {
   std::shared_ptr<OOSystemDescriptionEntry> entry =
-      oo::makeRef<OOSystemDescriptionEntry>();
+      oo::makeShared<OOSystemDescriptionEntry>();
   OO_CHECK(entry->getProperty("name", OOSystemLayer::kCore).isNull());
   entry->setProperty("name", OOSystemLayer::kCore, Str("Lave"));
   entry->setProperty("name", OOSystemLayer::kOXPStatic, Str("Diso"));

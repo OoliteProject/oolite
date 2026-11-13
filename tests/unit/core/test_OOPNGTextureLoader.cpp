@@ -255,7 +255,7 @@ OO_TEST(cxxApi) {
   {
     const std::string path = WritePNG("cxx.png", 8, 8, PNG_FORMAT_RGBA);
     const std::shared_ptr<OOPNGTextureLoader> loader =
-        oo::makeRef<OOPNGTextureLoader>();
+        oo::makeShared<OOPNGTextureLoader>();
     OO_CHECK(!loader->initWithPath(std::nullopt, OOTextureFlags::kNone));
     OO_CHECK(loader->initWithPath(path, OOTextureFlags::kMinFilterLinear));
     OO_CHECK(loader->path() == std::optional<std::string>(path) &&
@@ -284,7 +284,7 @@ OO_TEST(cxxApi) {
     // Reading on its own (as libpng's read callback does): the loader reads its
     // file first.
     const std::shared_ptr<OOPNGTextureLoader> direct =
-        oo::makeRef<OOPNGTextureLoader>();
+        oo::makeShared<OOPNGTextureLoader>();
     OO_CHECK(
         direct->initWithPath(WritePNG("direct.png", 8, 8, PNG_FORMAT_GA), OOTextureFlags::kNone));
     direct->loadTexture();

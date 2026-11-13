@@ -47,7 +47,7 @@ class TestPlayer : public PlayerEntity {
 // object was.
 template <class T>
 T* NewTestPlayer() {
-  std::shared_ptr<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeShared<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -115,7 +115,7 @@ bool ComponentsAre(OOLightParticleEntity* e, GLfloat r, GLfloat g, GLfloat b,
 */
 template <class T>
 T* NewParticle(float diameter, Entity** outObject = nullptr) {
-  const std::shared_ptr<T> particle = oo::makeRef<T>();
+  const std::shared_ptr<T> particle = oo::makeShared<T>();
   Entity* object = oo::MadeEntity(particle);
   particle->initWithDiameter(diameter);
   if (outObject != nullptr) *outObject = object;
@@ -181,7 +181,7 @@ OO_TEST(drawSubEntity) {
     SetUp();
     Entity* object = nullptr;
     TestParticle* particle = NewParticle<TestParticle>(1.0f, &object);
-    Entity* owner = oo::MadeEntity(oo::makeRef<Entity>());
+    Entity* owner = oo::MadeEntity(oo::makeShared<Entity>());
     object->setOwner(owner);
 
     // Opaque pass: nothing.
@@ -219,7 +219,7 @@ OO_TEST(texturesListTheSubclassTexture) {
     Entity* object = nullptr;
     TestParticle* particle = NewParticle<TestParticle>(1.0f, &object);
     const std::shared_ptr<OOTexture> kept =
-        oo::makeRef<OOTexture>();  // a C++ texture; only retained and compared
+        oo::makeShared<OOTexture>();  // a C++ texture; only retained and compared
     OOTexture* texture = kept.get();
     particle->_texture = texture;
     const std::vector<std::shared_ptr<OOTexture>> textures = object->allTextures();
@@ -247,7 +247,7 @@ class TestCxxParticle : public OOLightParticleEntity {};
 OO_TEST(cxxSubclassFacade) {
   {
     SetUp();
-    const std::shared_ptr<TestCxxParticle> particle = oo::makeRef<TestCxxParticle>();
+    const std::shared_ptr<TestCxxParticle> particle = oo::makeShared<TestCxxParticle>();
     particle->initWithDiameter(6.0f);
     Entity* facade = oo::MadeEntity(particle);
     OO_CHECK(facade != nullptr);

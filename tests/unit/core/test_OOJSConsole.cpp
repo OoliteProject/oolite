@@ -453,7 +453,7 @@ Universe *gSharedUniverse = nullptr;
 // An entity, as the console's inspectEntity() sees it: one answers -inspect
 // (the Mac debug OXP's inspector), one does not.
 // answersInspect() is what -respondsToSelector: of -inspect answered.
-class TestEntityObject : public oo::RefCounted
+class TestEntityObject : public oo::Object
 {
 public:
 	virtual bool answersInspect()  { return false; }
@@ -478,19 +478,19 @@ TestEntityObject *sInspectableEntity = nullptr;
 
 // Each entity's C++ part (an entity's JS object holds it, JSValueToEntity() answers it and
 // TestObjectOf its object, which the console asks to -inspect). Kept for the life of the test.
-class Entity : public oo::RefCounted
+class Entity : public oo::Object
 {
 };
 
 namespace {
 Entity *PlainPart()
 {
-	static const std::shared_ptr<Entity> part = oo::makeRef<Entity>();
+	static const std::shared_ptr<Entity> part = oo::makeShared<Entity>();
 	return part.get();
 }
 Entity *InspectablePart()
 {
-	static const std::shared_ptr<Entity> part = oo::makeRef<Entity>();
+	static const std::shared_ptr<Entity> part = oo::makeShared<Entity>();
 	return part.get();
 }
 }	// namespace

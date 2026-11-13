@@ -47,7 +47,7 @@ oo::PList ResourceManager::dictionaryFromFilesNamed(
 
 // OORegExpMatcher stub: answers no match.
 std::shared_ptr<OORegExpMatcher> OORegExpMatcher::regExpMatcher() {
-  return oo::makeRef<OORegExpMatcher>();
+  return oo::makeShared<OORegExpMatcher>();
 }
 bool OORegExpMatcher::string(const std::string&, const std::string&) {
   return false;
@@ -114,7 +114,7 @@ namespace {
 TestTexture* Texture(float width, float height) {
   // What an autoreleased texture is: the texture, kept until the current
   // autorelease scope drains.
-  std::shared_ptr<TestTexture> texture = oo::makeRef<TestTexture>();
+  std::shared_ptr<TestTexture> texture = oo::makeShared<TestTexture>();
   texture->_dimensions = NSMakeSize(width, height);
   oo::autorelease(std::shared_ptr<TestTexture>(texture));
   return texture.get();

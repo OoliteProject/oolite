@@ -7,7 +7,7 @@
    mass unit, legality and trumble opinion read back, and the player's and a
    station's amounts saved and loaded, including 1.80-era saves that name goods
    by their display name. The string expander is replaced: it returns its input
-   in angle brackets. The tests ask the C++ class (held as oo::Ref); the last
+   in angle brackets. The tests ask the C++ class (held as a std::shared_ptr); the last
    tests pin the C++ API. Run: tests/run.sh unit
 */
 
@@ -42,7 +42,7 @@ oo::PList Good(
 // food (sort 1), furs and gems (both sort 2: key order), alloys (sort 0),
 // radioactives (no sort order: 0, and after alloys by key).
 std::shared_ptr<OOCommodityMarket> Market() {
-  std::shared_ptr<OOCommodityMarket> market = oo::makeRef<OOCommodityMarket>();
+  std::shared_ptr<OOCommodityMarket> market = oo::makeShared<OOCommodityMarket>();
   market->setGood("gems", Good({{"name", oo::PList("Gem-stones")},
                                 {"sort_order", oo::PList(2)},
                                 {"quantity_unit", oo::PList(2)},
@@ -231,7 +231,7 @@ OO_TEST(savedAmounts) {
 }
 
 OO_TEST(cxxClass) {
-  std::shared_ptr<OOCommodityMarket> m = oo::makeRef<OOCommodityMarket>();
+  std::shared_ptr<OOCommodityMarket> m = oo::makeShared<OOCommodityMarket>();
   OO_CHECK(m->count() == 0 && m->goods().empty() &&
            m->savePlayerAmounts() == oo::PList(oo::PList::Array{}));
   m->setGood("gems", Good({{"name", oo::PList("Gem-stones")},
@@ -261,14 +261,14 @@ OO_TEST(cxxClass) {
 OO_TEST(facadeIdentity) {
   {
     // A C++ market sees its goods.
-    std::shared_ptr<OOCommodityMarket> cxxMarket = oo::makeRef<OOCommodityMarket>();
+    std::shared_ptr<OOCommodityMarket> cxxMarket = oo::makeShared<OOCommodityMarket>();
     cxxMarket->setGood("food", Good({{"price", oo::PList(3)}}));
     OO_CHECK(cxxMarket->priceForGood("food") == 3);
     cxxMarket->setPrice(4, "food");
     OO_CHECK(cxxMarket->priceForGood("food") == 4);
 
-    OO_CHECK(oo::makeRef<OOCommodityMarket>() !=
-             oo::makeRef<OOCommodityMarket>());  // distinct objects, as before
+    OO_CHECK(oo::makeShared<OOCommodityMarket>() !=
+             oo::makeShared<OOCommodityMarket>());  // distinct objects, as before
   }
 }
 

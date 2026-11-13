@@ -69,8 +69,8 @@ class OOSoundSource;	// only handed on (OOSoundSource.h)
    OOSoundSource into this file) and defined below over this file's record of
    what was asked.
 */
-#include "oofnd/Ref.hpp"
-class OOMusicController : public oo::RefCounted
+#include "oofnd/Object.hpp"
+class OOMusicController : public oo::Object
 {
 public:
 	static OOMusicController *sharedController();
@@ -129,7 +129,7 @@ OOSoundSource *sMusicSource = reinterpret_cast<OOSoundSource *>(&sMusicSourceObj
 
 OOSound *MakeSound(const std::optional<std::string> &name)
 {
-	const std::shared_ptr<TestSound> sound = oo::makeRef<TestSound>();
+	const std::shared_ptr<TestSound> sound = oo::makeShared<TestSound>();
 	sound->_name = name;
 	sLoaded.push_back(sound);
 	return sound.get();
@@ -388,7 +388,7 @@ OO_TEST(registration)
 	OO_CHECK_EVAL("typeof Sound", "function");
 	OO_CHECK_EVAL("new Sound()", "threw: unconstructable");
 	OO_CHECK_EQ(sConverters.size(), 1u);
-	const std::shared_ptr<TestSound> sound = oo::makeRef<TestSound>();
+	const std::shared_ptr<TestSound> sound = oo::makeShared<TestSound>();
 	sound->_name = "a.ogg";
 	OO_CHECK(OOJSSoundJSClassName() == std::optional<std::string>("Sound"));
 	OO_CHECK(OOJSSoundJSDescription(sound.get()) == std::optional<std::string>("[Sound \"a.ogg\"]"));
@@ -449,7 +449,7 @@ OO_TEST(soundFromJSValue)
 	OO_CHECK(NameOf(SoundFromJSValue(sContext, name)) == std::optional<std::string>("Sounds/ping.ogg"));
 	OO_CHECK_EQ(sLimiterPauses, 0);	// a named sound pauses the time limiter and resumes it (upstream #768 balances the pause)
 	sLimiterPauses = 0;
-	const std::shared_ptr<TestSound> sound = oo::makeRef<TestSound>();
+	const std::shared_ptr<TestSound> sound = oo::makeShared<TestSound>();
 	sound->_name = "object.ogg";
 	JSValue object = OOJSSoundJSValueInContext(sound.get(), sContext);
 	OO_CHECK(SoundFromJSValue(sContext, object) == sound.get());

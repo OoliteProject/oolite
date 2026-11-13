@@ -65,7 +65,7 @@ class TestPlayer : public PlayerEntity {
 // the game's, retained (+1).
 template <class T>
 T* NewTestPlayer() {
-  std::shared_ptr<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeShared<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -117,7 +117,7 @@ void SetUp() {
     // Systems 7 at (10, 20) and 9 at (13, 24) of galaxy 0: 5 light-year units
     // apart, 2.0 LY.
     std::shared_ptr<OOSystemDescriptionManager> manager =
-        oo::makeRef<OOSystemDescriptionManager>();
+        oo::makeShared<OOSystemDescriptionManager>();
     manager->setProperties(
         oo::PList(oo::PList::Dict{{"coordinates", oo::PList("10 20")}}), "0 7");
     manager->setProperties(
@@ -156,7 +156,7 @@ bool Near(double a, double b) {
 
 // A ship: C++ (the wormhole calls its members), never set up.
 Entity* Ship(GLfloat mass) {
-  Entity* ship = oo::MadeEntity(oo::makeRef<::ShipEntity>());
+  Entity* ship = oo::MadeEntity(oo::makeShared<::ShipEntity>());
   SetMass(ship, mass);
   ship->setPosition(make_HPvector(1, 2, 3));
   return ship;
@@ -164,14 +164,14 @@ Entity* Ship(GLfloat mass) {
 
 // A new C++ wormhole.
 WormholeEntity* ToNine(Entity* ship) {
-  std::shared_ptr<WormholeEntity> wh = oo::makeRef<WormholeEntity>();
+  std::shared_ptr<WormholeEntity> wh = oo::makeShared<WormholeEntity>();
   (void)oo::MadeEntity(wh);
   wh->initWormholeTo(9, oo::ToShip(ship));
   return wh.get();
 }
 
 WormholeEntity* FromDict(const oo::PList& dict) {
-  std::shared_ptr<WormholeEntity> wh = oo::makeRef<WormholeEntity>();
+  std::shared_ptr<WormholeEntity> wh = oo::makeShared<WormholeEntity>();
   (void)oo::MadeEntity(wh);
   wh->initWithDict(dict);
   return wh.get();
@@ -307,7 +307,7 @@ OO_TEST(collisions) {
 
     OO_CHECK(wh->checkCloseCollisionWith(Ship(1.0f)));
     OO_CHECK(!wh->checkCloseCollisionWith(
-        oo::MadeEntity(oo::makeRef<TestEffect>())));
+        oo::MadeEntity(oo::makeShared<TestEffect>())));
   }
 }
 

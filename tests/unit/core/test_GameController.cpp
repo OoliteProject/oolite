@@ -72,7 +72,7 @@ class TestPlayer : public PlayerEntity {
 // the game's, retained (+1) as +alloc's object was.
 template <class T>
 T* NewTestPlayer() {
-  std::shared_ptr<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeShared<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -111,12 +111,12 @@ class TestView : public MyOpenGLView {
 // A deferred call's target: records the arguments it is sent, and raises on
 // request. A deferred C++ call holding it and the argument (Call below)
 // retains them until it runs.
-class TestTarget final : public oo::RefCounted {
+class TestTarget final : public oo::Object {
  public:
-  void record(oo::RefCounted* argument) {
+  void record(oo::Object* argument) {
     _calls.push_back(argument != nullptr ? "arg" : "nil");
   }
-  void raise(oo::RefCounted*) {
+  void raise(oo::Object* ) {
     _calls.push_back("raise");
     OORaiseException(OOGenericException, "%s", "deferred call failure");
   }
@@ -125,13 +125,13 @@ class TestTarget final : public oo::RefCounted {
 };
 
 // A deferred call's argument.
-class TestArgument final : public oo::RefCounted {};
+class TestArgument final : public oo::Object {};
 
 // OOScheduleDeferredCall(target, "record:" or "raise:", argument, delay): the
-// call holds target and argument (oo::Ref, as the performer retained them)
+// call holds target and argument (std::shared_ptr, as the performer retained them)
 // until it has run.
-void Call(TestTarget* target, void (TestTarget::*method)(oo::RefCounted*),
-          oo::RefCounted* argument, double delay) {
+void Call(TestTarget* target, void (TestTarget::*method)(oo::Object*),
+          oo::Object* argument, double delay) {
   OOScheduleDeferredCall(
       [target = oo::share(target), method,
        argument = oo::share(argument)]() {
@@ -461,7 +461,7 @@ OO_TEST(fullScreenMembers) {
     controller->pauseFullScreenModeToPerform("raise:", nullptr);
     OO_CHECK(GameControllerTestAccess::pauseSelector(controller) == "raise:");
     OO_CHECK(GameControllerTestAccess::pauseTarget(controller) == nullptr);
-    target->release();
+    oo::test::Release(target);
   }
 }
 
@@ -568,10 +568,10 @@ OO_TEST(deferredCalls) {
     OO_CHECK(order.size() == 2 && order.back() == "raise");
     OO_CHECK(leaked.use_count() == 2);  // the call was not destroyed
 
-    cxxTarget->release();
+    oo::test::Release(cxxTarget);
 
     controller->stopAnimationTimer();
-    argument->release();
+    oo::test::Release(argument);
   }
 }
 

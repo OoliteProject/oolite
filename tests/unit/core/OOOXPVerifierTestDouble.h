@@ -40,7 +40,7 @@ struct OOOXPVerifierTestAccess {
   static OOOXPVerifier* Make(const std::string& path,
                              const char* configuration) {
     static auto* kept = new std::vector<std::shared_ptr<OOOXPVerifier>>;
-    const std::shared_ptr<OOOXPVerifier> verifier = oo::adopt(new OOOXPVerifier());
+    const std::shared_ptr<OOOXPVerifier> verifier = std::shared_ptr<OOOXPVerifier>(new OOOXPVerifier(), oo::Dispose{});
     verifier->_basePath = path;
     verifier->_verifierPList = *oo::parsePropertyListData(configuration);
     verifier->_openForRegistration = true;

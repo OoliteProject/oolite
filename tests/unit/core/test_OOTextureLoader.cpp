@@ -86,7 +86,7 @@ std::vector<std::shared_ptr<TestLoader>> gKeptLoaders;
 
 TestLoader* Loader(const char* path, OOTextureFlags options, uint32_t width,
                    uint32_t height, OOTextureDataFormat format) {
-  const std::shared_ptr<TestLoader> made = oo::makeRef<TestLoader>();
+  const std::shared_ptr<TestLoader> made = oo::makeShared<TestLoader>();
   TestLoader* loader =
       made->initWithPath(std::string(path), options) ? made.get() : nullptr;
   if (loader != nullptr) {
@@ -130,7 +130,7 @@ OO_TEST(factoryRefusals) {
                  oo::PList(3.0), OOTextureFlags::kNone, std::string("Textures")) == nullptr);
     OO_CHECK(OOTextureLoader::loaderWithTextureSpecifier(
                  oo::PList(), OOTextureFlags::kNone, std::string("Textures")) == nullptr);
-    OO_CHECK(!oo::makeRef<TestLoader>()->initWithPath(std::nullopt, OOTextureFlags::kNone));
+    OO_CHECK(!oo::makeShared<TestLoader>()->initWithPath(std::nullopt, OOTextureFlags::kNone));
   }
 }
 
@@ -329,7 +329,7 @@ OO_TEST(cxxApi) {
     OO_CHECK(!OOTextureLoader::loaderWithTextureSpecifier(
         oo::PList(3.0), OOTextureFlags::kNone, std::string("Textures")));
 
-    const std::shared_ptr<TestCxxLoader> loader = oo::makeRef<TestCxxLoader>();
+    const std::shared_ptr<TestCxxLoader> loader = oo::makeShared<TestCxxLoader>();
     OO_CHECK(!loader->initWithPath(std::nullopt, OOTextureFlags::kNone));
     OO_CHECK(loader->initWithPath(std::string("dir/cxx.png"),
                                   OOTextureFlags::kMinFilterLinear));

@@ -162,7 +162,7 @@ SDL_JoyHatEvent Hat(int stick, int hat, int value) {
 // [[OOJoystickManager alloc] init]: made, then -init's body.
 std::shared_ptr<OOJoystickManager> NewManager() {
   Defaults();
-  std::shared_ptr<OOJoystickManager> manager = oo::makeRef<OOJoystickManager>();
+  std::shared_ptr<OOJoystickManager> manager = oo::makeShared<OOJoystickManager>();
   manager->init();
   return manager;
 }
@@ -170,13 +170,13 @@ std::shared_ptr<OOJoystickManager> NewManager() {
 // The decoding manager, made the same way.
 std::shared_ptr<DecodingStickManager> NewDecodingManager() {
   Defaults();
-  std::shared_ptr<DecodingStickManager> manager = oo::makeRef<DecodingStickManager>();
+  std::shared_ptr<DecodingStickManager> manager = oo::makeShared<DecodingStickManager>();
   manager->init();
   return manager;
 }
 
 std::shared_ptr<TestStickManager> NewTestStickManager() {
-  std::shared_ptr<TestStickManager> manager = oo::makeRef<TestStickManager>();
+  std::shared_ptr<TestStickManager> manager = oo::makeShared<TestStickManager>();
   manager->init();
   return manager;
 }
@@ -184,7 +184,7 @@ std::shared_ptr<TestStickManager> NewTestStickManager() {
 // The registered factory: it makes the manager; sharedStickHandler() runs
 // init().
 std::shared_ptr<OOJoystickManager> MakeTestStickManager() {
-  return oo::makeRef<TestStickManager>();
+  return oo::makeShared<TestStickManager>();
 }
 
 }  // namespace
@@ -441,7 +441,7 @@ OO_TEST(savesAndLoadsSettings) {
     manager->setFunction(BUTTON_ECM, StickFn(false, 2, 11));
 
     std::shared_ptr<OOJoystickStandardAxisProfile> standard =
-        oo::makeRef<OOJoystickStandardAxisProfile>();
+        oo::makeShared<OOJoystickStandardAxisProfile>();
     standard->setDeadzone(0.0625);
     standard->setPower(2.5);
     standard->setParameter(0.75);
@@ -449,7 +449,7 @@ OO_TEST(savesAndLoadsSettings) {
     OO_CHECK(manager->getProfileForAxis(AXIS_ROLL) == standard.get());
 
     std::shared_ptr<OOJoystickSplineAxisProfile> spline =
-        oo::makeRef<OOJoystickSplineAxisProfile>();
+        oo::makeShared<OOJoystickSplineAxisProfile>();
     spline->setDeadzone(0.03125);
     spline->addControl(NSMakePoint(0.25, 0.5));
     spline->addControl(NSMakePoint(0.5, 0.625));

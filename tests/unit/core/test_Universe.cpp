@@ -553,7 +553,7 @@ class UniverseTestPlayer : public PlayerEntity {
 // the game's, retained (+1).
 template <class T>
 T* NewTestPlayer() {
-  std::shared_ptr<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeShared<T>();
   {
     oo::AutoreleaseScope scope;
     oo::RetainEntity(oo::MadeEntity(player));
@@ -580,7 +580,7 @@ void SetSortedEntities(Universe* u, std::initializer_list<Entity*> list) {
 
 Entity* MakeEntity(HPVector position, GLfloat radius) {
   SetUpTestPlayer();
-  Entity* entity = oo::MadeEntity(oo::makeRef<Entity>());
+  Entity* entity = oo::MadeEntity(oo::makeShared<Entity>());
   entity->setPosition(position);
   entity->setCollisionRadius(radius);
   return entity;
@@ -637,7 +637,7 @@ OO_TEST(slice14ClearRoute) {
     OO_CHECK(HPvector_equal(u->getSafeVectorFromEntity(e1, 0, p2), p2));
 
     // An entity nothing collides with is no hazard either.
-    Entity* ghost = oo::MadeEntity(oo::makeRef<Slice14GhostEntity>());
+    Entity* ghost = oo::MadeEntity(oo::makeShared<Slice14GhostEntity>());
     ghost->setPosition(make_HPvector(0, 0, 500));
     ghost->setCollisionRadius(50);
     SetSortedEntities(u, {e1, ghost});
@@ -687,7 +687,7 @@ class Slice15ShipLike : public Entity {
 namespace {
 
 Entity* MakeShipLike(HPVector position, GLfloat radius) {
-  Entity* entity = oo::MadeEntity(oo::makeRef<Slice15ShipLike>());
+  Entity* entity = oo::MadeEntity(oo::makeShared<Slice15ShipLike>());
   entity->setPosition(position);
   entity->setCollisionRadius(radius);
   return entity;
@@ -913,7 +913,7 @@ OO_TEST(slice17UpdateOff) {
     Entity* dead = nullptr;
     {
       oo::AutoreleaseScope scope;  // the making's autoreleases drain here
-      dead = oo::RetainEntity(oo::MadeEntity(oo::makeRef<Entity>()));
+      dead = oo::RetainEntity(oo::MadeEntity(oo::makeShared<Entity>()));
       u->entitiesDeadThisUpdate.emplace_back(oo::Hold(dead));
     }
     oo::ReleaseEntity(dead);
@@ -977,7 +977,7 @@ OO_TEST(slice18FilterSortedLists) {
     oo::AutoreleaseScope scope;
     Universe* u = NewUniverse();
     Entity* a = MakeEntity(make_HPvector(0, 0, 0), 10);
-    Entity* ghost = oo::MadeEntity(oo::makeRef<Slice14GhostEntity>());
+    Entity* ghost = oo::MadeEntity(oo::makeShared<Slice14GhostEntity>());
     ghost->setPosition(make_HPvector(0, 0, 5));
     ghost->setCollisionRadius(10);
     Entity* b = MakeEntity(make_HPvector(0, 0, 15), 10);

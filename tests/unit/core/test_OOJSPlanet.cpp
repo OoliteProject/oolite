@@ -22,6 +22,7 @@
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
+#include "EntityManualRefs.h"  // the tests' manual references (T097)
 
 
 // MARK: The classes, as far as the binding sees them ----------------------------------------------
@@ -31,7 +32,7 @@ class TestEntityObject;
 
 // The C++ root, as far as the binding and the root's JS category reach it. _object stands in for the
 // game's peer table (oo::ToObjC, below).
-class Entity : public oo::RefCounted
+class Entity : public oo::Object
 {
 public:
 	virtual ~Entity();
@@ -98,7 +99,7 @@ public:
 
 
 // Its category's selectors are members of the same names.
-class TestEntityObject final : public oo::RefCounted
+class TestEntityObject final : public oo::Object
 {
 public:
 	JSClassID oo_jsClassID();
@@ -116,7 +117,7 @@ public:
 // The universe as the code under test sees it: a stand-in for the C++ class
 // with the header's names and signatures. It answers virtual members, so it
 // has the game's vtable (UniverseStandIn.h) and FakeUniverse overrides them.
-class Universe : public oo::RefCounted
+class Universe : public oo::Object
 {
 public:
 	OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
@@ -211,8 +212,8 @@ bool OOPlanetEntity::isVisibleToScripts()  { return ::OOJSPlanetIsVisibleToScrip
 // A new C++ planet and its object (as in the game); the object owns it.
 OOPlanetEntity *NewPlanet()
 {
-	std::shared_ptr<OOPlanetEntity> planet = oo::makeRef<OOPlanetEntity>();
-	TestEntityObject *object = oo::makeRef<TestEntityObject>().leakRef();
+	std::shared_ptr<OOPlanetEntity> planet = oo::makeShared<OOPlanetEntity>();
+	TestEntityObject *object = oo::test::NewRetained<TestEntityObject>();
 	object->_cxxEntity = planet;
 	planet->_object = object;
 	return planet.get();
@@ -497,7 +498,7 @@ JSValue JSValueForObject(JSClassID jsClass, TestEntityObject *entity)
 		JS_FreeValue(sContext, JS_GetException(sContext));
 		return JS_NULL;
 	}
-	if (entity->_cxxEntity == nullptr)  entity->_cxxEntity = oo::makeRef<Entity>();	// a plain entity's C++ part
+	if (entity->_cxxEntity == nullptr)  entity->_cxxEntity = oo::makeShared<Entity>();	// a plain entity's C++ part
 	OOJSSetCxxPrivate(object, oo::makeShared<OOJSEntityHolder>(entity->_cxxEntity.get()));	// the slot holds the C++ entity
 	return object;
 }
@@ -550,7 +551,7 @@ void SetUpContext()
 	gSharedUniverse = sUniverse;
 	Define("planet", JSValueForEntity(TestObjectOf(sPlanet)));
 	Define("moon", JSValueForEntity(TestObjectOf(sMoon)));
-	Define("plainEntity", JSValueForObject(sFakeEntityClassID, oo::makeRef<TestEntityObject>().leakRef()));
+	Define("plainEntity", JSValueForObject(sFakeEntityClassID, oo::test::NewRetained<TestEntityObject>()));
 }
 
 

@@ -69,7 +69,7 @@ public:
 // The universe as the code under test sees it: a stand-in for the C++ class
 // with the header's names and signatures. It answers virtual members, so it has
 // the game's vtable (UniverseStandIn.h) and StandInUniverse overrides them.
-class Universe : public oo::RefCounted
+class Universe : public oo::Object
 {
 public:
 	OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
@@ -106,7 +106,7 @@ public:
 
 // The game view: the member OOJSGlobal.mm calls is defined below (never run:
 // there is no view).
-class MyOpenGLView : public oo::RefCounted
+class MyOpenGLView : public oo::Object
 {
 public:
 	bool snapShot(const std::optional<std::string> &filename);
@@ -569,7 +569,7 @@ void SetUpContext()
 	sUniverse = new StandInUniverse();
 	sUniverse->_timeAcceleration = 1;
 	sUniverse->_view = OOViewID::kGUIDisplay;
-	sGui = oo::makeRef<GuiDisplayGen>();	// kept for the life of the test
+	sGui = oo::makeShared<GuiDisplayGen>();	// kept for the life of the test
 	sUniverse->_gui = sGui.get();
 	gSharedUniverse = sUniverse;
 }

@@ -216,7 +216,7 @@ OO_TEST(initialState)
 {
 	{
 		Context();
-		const std::shared_ptr<OOJSPopulatorDefinition> definition = oo::makeRef<OOJSPopulatorDefinition>();
+		const std::shared_ptr<OOJSPopulatorDefinition> definition = oo::makeShared<OOJSPopulatorDefinition>();
 		OO_CHECK(definition.get() != nullptr);
 		OO_CHECK(IsUndefined(definition->callback()));
 		OO_CHECK(!IsObject(definition->callbackThis()));
@@ -227,9 +227,9 @@ OO_TEST(initialState)
 OO_TEST(runCallback)
 {
 	{
-		const std::shared_ptr<OOJSScript> owner = oo::makeRef<OOJSScript>();
+		const std::shared_ptr<OOJSScript> owner = oo::makeShared<OOJSScript>();
 		sRunningScript = owner.get();
-		const std::shared_ptr<OOJSPopulatorDefinition> definition = oo::makeRef<OOJSPopulatorDefinition>();
+		const std::shared_ptr<OOJSPopulatorDefinition> definition = oo::makeShared<OOJSPopulatorDefinition>();
 		sRunningScript = nullptr;
 
 		// Neither the function nor `this` has another reference: the definition keeps them alive.
@@ -253,7 +253,7 @@ OO_TEST(runCallback)
 		OO_CHECK_EQ(String(Evaluate("globalThis.ran")), "second");
 
 		// A definition made with no running script pushes nil.
-		const std::shared_ptr<OOJSPopulatorDefinition> orphan = oo::makeRef<OOJSPopulatorDefinition>();
+		const std::shared_ptr<OOJSPopulatorDefinition> orphan = oo::makeShared<OOJSPopulatorDefinition>();
 		orphan->setCallback(Evaluate("(function () { globalThis.ran = 'orphan'; })"));
 		sPushed.clear();
 		orphan->runPopulatorCallback(make_HPvector(0, 0, 0));
@@ -266,7 +266,7 @@ OO_TEST(runCallback)
 OO_TEST(engineReset)
 {
 	{
-		const std::shared_ptr<OOJSPopulatorDefinition> definition = oo::makeRef<OOJSPopulatorDefinition>();
+		const std::shared_ptr<OOJSPopulatorDefinition> definition = oo::makeShared<OOJSPopulatorDefinition>();
 		definition->setCallback(Evaluate("(function () {})"));
 		definition->setCallbackThis(Evaluate("({})"));
 		oo::NotificationCenter::defaultCenter().post(kOOJavaScriptEngineWillResetNotificationName, OOJavaScriptEngine::sharedEngine());
@@ -283,7 +283,7 @@ OO_TEST(weakReference)
 {
 	std::weak_ptr<OOJSPopulatorDefinition> reference;
 	{
-		std::shared_ptr<OOJSPopulatorDefinition> definition = oo::makeRef<OOJSPopulatorDefinition>();
+		std::shared_ptr<OOJSPopulatorDefinition> definition = oo::makeShared<OOJSPopulatorDefinition>();
 		reference = definition;
 		OO_CHECK(reference.lock().get() == definition.get());
 	}
@@ -293,7 +293,7 @@ OO_TEST(weakReference)
 
 OO_TEST(plistCarrier)
 {
-	const std::shared_ptr<OOJSPopulatorDefinition> definition = oo::makeRef<OOJSPopulatorDefinition>();
+	const std::shared_ptr<OOJSPopulatorDefinition> definition = oo::makeShared<OOJSPopulatorDefinition>();
 	const oo::PList node = OOJSPopulatorDefinitionToPList(definition);
 	OO_CHECK(node.isObject());
 	OO_CHECK(OOJSPopulatorDefinitionIn(node) == definition.get());

@@ -72,7 +72,7 @@ std::shared_ptr<OOTexture> OOTexture::textureWithName(
   gLog.push_back("texture " + name.value_or("(nil)") + " in " +
                  directory.value_or("(nil)") + args);
   if (name == "missing.png") return nullptr;
-  std::shared_ptr<TestTexture> texture = oo::makeRef<TestTexture>();
+  std::shared_ptr<TestTexture> texture = oo::makeShared<TestTexture>();
   texture->_name = *name;
   return texture;
 }

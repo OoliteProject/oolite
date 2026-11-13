@@ -130,7 +130,7 @@ OO_TEST(abstractRoot) {
   {
     // The root's own answers: none, and an error logged for each subclass
     // responsibility.
-    const std::shared_ptr<OOScript> root = oo::makeRef<OOScript>();
+    const std::shared_ptr<OOScript> root = oo::makeShared<OOScript>();
     OO_CHECK(root != nullptr);
     OO_CHECK(!root->name().has_value());
     OO_CHECK(!root->scriptDescription().has_value());
@@ -146,7 +146,7 @@ OO_TEST(abstractRoot) {
 OO_TEST(objCSubclass) {
   SetUp();
   {
-    const std::shared_ptr<TestObjCScript> script = oo::makeRef<TestObjCScript>();
+    const std::shared_ptr<TestObjCScript> script = oo::makeShared<TestObjCScript>();
     OO_CHECK_EQ(script->name().value_or("<none>"), "objc");
     OO_CHECK_EQ(script->displayName().value_or("<none>"),
                 "objc");  // no version: just the name
@@ -165,7 +165,7 @@ OO_TEST(objCSubclass) {
     OO_CHECK(!script->superRequiresTickle());
     OO_CHECK(script->requiresTickle());
 
-    Entity* target = oo::MadeEntity(oo::makeRef<Entity>());
+    Entity* target = oo::MadeEntity(oo::makeShared<Entity>());
     script->runWithTarget(target);
     OO_CHECK_EQ(script->runs, 1);
     OO_CHECK(script->lastTarget == target);
@@ -285,7 +285,7 @@ OO_TEST(crossingCxxSubclass) {
   SetUp();
   {
     // A C++ subclass's overrides answer.
-    const std::shared_ptr<TestCxxScript> script = oo::makeRef<TestCxxScript>();
+    const std::shared_ptr<TestCxxScript> script = oo::makeShared<TestCxxScript>();
     OO_CHECK_EQ(script->name().value_or("<none>"), "cxx");
     OO_CHECK_EQ(script->version().value_or("<none>"), "2");
     OO_CHECK(!script->scriptDescription()
@@ -294,7 +294,7 @@ OO_TEST(crossingCxxSubclass) {
     OO_CHECK(script->requiresTickle());
     OO_CHECK(script->description().find("\"cxx\" version 2") !=
              std::string::npos);
-    Entity* target = oo::MadeEntity(oo::makeRef<Entity>());
+    Entity* target = oo::MadeEntity(oo::makeShared<Entity>());
     script->runWithTarget(target);
     OO_CHECK_EQ(script->runs, 1);
     OO_CHECK(script->lastTarget == target);

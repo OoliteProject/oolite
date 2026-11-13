@@ -17,6 +17,7 @@
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
+#include "EntityManualRefs.h"  // the tests' manual references (T097)
 
 #include <quickjs.h>
 
@@ -24,7 +25,7 @@
 // MARK: The entity classes, as far as the binding sees them ---------------------------------------
 
 // The C++ root, as far as the binding and the root's JS category reach it.
-class Entity : public oo::RefCounted
+class Entity : public oo::Object
 {
 public:
 	virtual ~Entity();
@@ -64,7 +65,7 @@ public:
 
 
 // Its category's selectors are members of the same names.
-class TestEntityObject final : public oo::RefCounted
+class TestEntityObject final : public oo::Object
 {
 public:
 	JSClassID oo_jsClassID();
@@ -318,7 +319,7 @@ OOSunEntity *sSun = nullptr;	// its C++ part
 JSValue JSValueForObject(JSClassID classID, TestEntityObject *entity)
 {
 	JSValue object = JS_NewObjectClass(sContext, static_cast<int>(classID));
-	if (entity->_cxxEntity == nullptr)  entity->_cxxEntity = oo::makeRef<Entity>();	// a plain entity's C++ part
+	if (entity->_cxxEntity == nullptr)  entity->_cxxEntity = oo::makeShared<Entity>();	// a plain entity's C++ part
 	if (JS_IsException(object) || !OOJSSetCxxPrivate(object, oo::makeShared<OOJSEntityHolder>(entity->_cxxEntity.get())))	// the slot holds the C++ entity
 	{
 		JS_FreeValue(sContext, object);
@@ -354,13 +355,13 @@ void SetUpContext()
 	OOJSInitClass(sContext, sGlobal, sFakeEntityClassID, JS_UNDEFINED, OOJSUnconstructableConstruct, 0, nullptr, 0, sFakeEntityMethods, OOJS_COUNT(sFakeEntityMethods), nullptr, 0);
 	InitOOJSSun(sContext, sGlobal);
 
-	sSunObject = oo::makeRef<TestEntityObject>().leakRef();	// kept for the life of the test
-	sSunObject->_cxxEntity = oo::makeRef<OOSunEntity>();
+	sSunObject = oo::test::NewRetained<TestEntityObject>();	// kept for the life of the test
+	sSunObject->_cxxEntity = oo::makeShared<OOSunEntity>();
 	sSun = static_cast<OOSunEntity *>(sSunObject->_cxxEntity.get());
 	sSun->_radius = 250000.5;
 	sSun->_name = "Lave";
 	Define("sun", JSValueForEntity(sSunObject));
-	Define("plainEntity", JSValueForObject(sFakeEntityClassID, oo::makeRef<TestEntityObject>().leakRef()));	// kept for the life of the test
+	Define("plainEntity", JSValueForObject(sFakeEntityClassID, oo::test::NewRetained<TestEntityObject>()));	// kept for the life of the test
 }
 
 

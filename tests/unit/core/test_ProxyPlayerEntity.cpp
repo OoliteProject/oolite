@@ -55,7 +55,7 @@ public:
 template <class T>
 T *NewTestPlayer()
 {
-	std::shared_ptr<T> player = oo::makeRef<T>();
+	std::shared_ptr<T> player = oo::makeShared<T>();
 	{
 		oo::RetainEntity(oo::MadeEntity(player));
 	}
@@ -262,7 +262,7 @@ OO_TEST(dialsAnsweredByNameForAProxy)
 		OO_CHECK(oo::CallEntityByNameTyped(proxy, "tradeInFactor", factor) && factor.integer == 42);
 		OO_CHECK(oo::CallEntityByNameTyped(proxy, "alertCondition", condition) && static_cast<OOAlertCondition>(condition.integer) == OOAlertCondition::kDocked);
 
-		ShipEntity *ship = oo::ToShip(oo::autorelease(oo::NewShipObject(oo::makeRef<::ShipEntity>(), "ship", oo::PList(oo::PList::Dict{ { "unpiloted", oo::PList(true) } }))));
+		ShipEntity *ship = oo::ToShip(oo::autorelease(oo::NewShipObject(oo::makeShared<::ShipEntity>(), "ship", oo::PList(oo::PList::Dict{ { "unpiloted", oo::PList(true) } }))));
 		OO_CHECK(ship != nullptr && !(ship != nullptr ? oo::EntityRespondsToName(ship, "dialForwardShield") : false));
 	}
 }
@@ -283,7 +283,7 @@ OO_TEST(playerAndProxyAreVisibleToScripts)
 		OO_CHECK(player->isVisibleToScripts());
 		OO_CHECK(OOJSEntityIsVisibleToScripts(player));
 
-		ShipEntity *ship = oo::ToShip(oo::autorelease(oo::NewShipObject(oo::makeRef<::ShipEntity>(), "ship", oo::PList(oo::PList::Dict{ { "unpiloted", oo::PList(true) } }))));
+		ShipEntity *ship = oo::ToShip(oo::autorelease(oo::NewShipObject(oo::makeShared<::ShipEntity>(), "ship", oo::PList(oo::PList::Dict{ { "unpiloted", oo::PList(true) } }))));
 		OO_CHECK(OOJSEntityIsVisibleToScripts(ship));
 	}
 }

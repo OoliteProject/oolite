@@ -74,7 +74,7 @@ void InstallStandIn() { OOSkyDrawableTestAccess::InstallStandIn(); }
 // A sky drawable: a new C++ drawable.
 std::shared_ptr<OODrawable> Sky(OOColor* color1, OOColor* color2, unsigned starCount,
                         unsigned nebulaCount) {
-  return oo::makeRef<OOSkyDrawable>(color1, color2, OOColor::greenColor().get(),
+  return oo::makeShared<OOSkyDrawable>(color1, color2, OOColor::greenColor().get(),
                                     OOColor::whiteColor().get(), starCount,
                                     nebulaCount, false, 0.5f, 1.0f, 1.0f);
 }

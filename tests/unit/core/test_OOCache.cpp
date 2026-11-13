@@ -213,7 +213,7 @@ class TestForeign final : public oo::PListForeign {
 }  // namespace
 
 OO_TEST(holdsALiveObject) {
-  std::shared_ptr<TestForeign> object = oo::makeRef<TestForeign>();
+  std::shared_ptr<TestForeign> object = oo::makeShared<TestForeign>();
   std::shared_ptr<OOCache> cache = OOCache::cacheWithPList(oo::PList());
   {
     oo::AutoreleaseScope pool;

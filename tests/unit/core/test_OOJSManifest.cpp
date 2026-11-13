@@ -8,7 +8,7 @@
 	(OOJSClasses.mm), the engine's exception translator
    (OOJSEngineNativeWrappers.mm) and the commodity classes it asks
    (OOCommodities and OOCommodityMarket, as test_OOCommodities.mm links them,
-   reading the trade goods below; the stand-ins hold them as oo::Ref). It stands
+   reading the trade goods below; the stand-ins hold them as a std::shared_ptr). It stands
    in for the player (its cargo and its manifest market), the universe (its
    commodities and its market), the resource manager and string expander the
    commodity classes call, the player ship's JS object, and the engine functions
@@ -420,7 +420,7 @@ void SetUpContext()
 	gSharedUniverse = sUniverse;
 	sPlayer = new PlayerEntity;
 	gOOPlayer = sPlayer;
-	sUniverse->_commodities = oo::makeRef<OOCommodities>();
+	sUniverse->_commodities = oo::makeShared<OOCommodities>();
 	sUniverse->_market = sUniverse->_commodities->generateBlankMarket();
 	sPlayer->_shipCommodityData = sUniverse->_commodities->generateManifestForPlayer();
 	sPlayer->_cargo["food"] = 3;

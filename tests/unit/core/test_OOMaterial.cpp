@@ -111,7 +111,7 @@ class TestCxxMaterial : public OOMaterial {
 namespace {
 
 std::shared_ptr<TestObjCMaterial> MakeMaterial(const char* name, bool applies = true) {
-  std::shared_ptr<TestObjCMaterial> material = oo::makeRef<TestObjCMaterial>();
+  std::shared_ptr<TestObjCMaterial> material = oo::makeShared<TestObjCMaterial>();
   material->_testName = name;
   material->_applies = applies;
   return material;
@@ -129,7 +129,7 @@ bool Unapplied(
 
 OO_TEST(rootDefaults) {
   {
-    const std::shared_ptr<OOMaterial> material = oo::makeRef<OOMaterial>();
+    const std::shared_ptr<OOMaterial> material = oo::makeShared<OOMaterial>();
     const int parameterErrors = gParameterErrors,
               responsibilities = gSubclassResponsibilities;
     OO_CHECK(
@@ -244,7 +244,7 @@ OO_TEST(willDeallocWhileCurrent) {
 OO_TEST(superCallsReachTheRoot) {
   {
     const std::shared_ptr<TestSuperCallingMaterial> material =
-        oo::makeRef<TestSuperCallingMaterial>();
+        oo::makeShared<TestSuperCallingMaterial>();
     material->_applies = false;
     const int responsibilities = gSubclassResponsibilities;
     OO_CHECK(material->doApply());  // false from TestObjCMaterial, then the
@@ -260,7 +260,7 @@ OO_TEST(description) {
     OO_CHECK(text.starts_with("<TestObjCMaterial 0x"));
     OO_CHECK(text.ends_with(">{\"Hull\"}"));
     OO_CHECK(
-        oo::makeRef<OOMaterial>()->description().ends_with(">{\"(null)\"}"));
+        oo::makeShared<OOMaterial>()->description().ends_with(">{\"(null)\"}"));
   }
 }
 
@@ -269,7 +269,7 @@ OO_TEST(description) {
 OO_TEST(cxxMaterial) {
   {
     const std::shared_ptr<TestCxxMaterial> material =
-        oo::makeRef<TestCxxMaterial>("Cxx");
+        oo::makeShared<TestCxxMaterial>("Cxx");
     OO_CHECK(material->name() == std::optional<std::string>("Cxx"));
     OO_CHECK(material->wantsNormalsAsTextureCoordinates());
     OO_CHECK(material->isFinishedLoading());
@@ -295,7 +295,7 @@ OO_TEST(cxxMaterial) {
 OO_TEST(currentRetainsACxxMaterial) {
   const int destroyed = gCxxDestroyed;
   {
-    oo::makeRef<TestCxxMaterial>("Cxx")->apply();
+    oo::makeShared<TestCxxMaterial>("Cxx")->apply();
   }
   OO_CHECK(gCxxDestroyed == destroyed);
   {

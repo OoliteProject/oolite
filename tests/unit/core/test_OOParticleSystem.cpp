@@ -54,7 +54,7 @@ class TestPlayer : public PlayerEntity {
 // object was.
 template <class T>
 T* NewTestPlayer() {
-  std::shared_ptr<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeShared<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -138,7 +138,7 @@ Entity* SizedCloud(Entity* source, float size, const oo::PList& settings) {
 // --------------------------------------------------------------------------------------------------
 
 Entity* Source(Vector velocity) {
-  Entity* source = oo::MadeEntity(oo::makeRef<Entity>());
+  Entity* source = oo::MadeEntity(oo::makeShared<Entity>());
   source->setCollisionRadius(10.0f);
   source->setPosition(make_HPvector(1, 2, 3));
   source->setVelocity(velocity);
@@ -206,7 +206,7 @@ OO_TEST(collisions) {
     SetUp();
     Entity* burst = SmallBurst(Source(kZeroVector));
     Entity* other = Source(kZeroVector);
-    Entity* effect = oo::MadeEntity(oo::makeRef<TestEffect>());
+    Entity* effect = oo::MadeEntity(oo::makeShared<TestEffect>());
     OO_CHECK(burst->checkCloseCollisionWith(other));
     OO_CHECK(!burst->checkCloseCollisionWith(effect));
     OO_CHECK(!burst->checkCloseCollisionWith(nullptr));  // nil is its (nil) owner

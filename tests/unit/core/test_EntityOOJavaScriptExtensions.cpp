@@ -79,7 +79,7 @@ class TestVisibleEntity : public Entity {
 // oo::MadeEntity).
 static TestVisibleEntity* NewVisibleEntity() {
   return static_cast<TestVisibleEntity*>(
-      oo::MadeEntity(oo::makeRef<TestVisibleEntity>()));
+      oo::MadeEntity(oo::makeShared<TestVisibleEntity>()));
 }
 
 extern JSContext* gOOJSMainThreadContext;  // the engine's
@@ -111,7 +111,7 @@ bool SameObject(JSValueConst a, JSValueConst b) {
 // never released), never set up from a definition, a ship (it answers -isShip,
 // as the Objective-C class did, so shipSubEntities() keeps it).
 TestShip* Ship(const char* name) {
-  std::shared_ptr<TestShip> ship = oo::makeRef<TestShip>();
+  std::shared_ptr<TestShip> ship = oo::makeShared<TestShip>();
   {
     oo::RetainEntity(oo::MadeEntity(ship));
   }
@@ -138,7 +138,7 @@ std::string Told(TestShip* ship) {
 
 OO_TEST(entityIsNotVisible) {
   {
-    Entity* entity = oo::MadeEntity(oo::makeRef<Entity>());
+    Entity* entity = oo::MadeEntity(oo::makeShared<Entity>());
     OO_CHECK(!OOJSEntityIsVisibleToScripts(entity));
     OO_CHECK(OOJSEntityJSClassName(entity) ==
              std::optional<std::string>("Entity"));
@@ -164,7 +164,7 @@ OO_TEST(existingJSObject) {
     OO_CHECK(JS_IsObject(object));
 
     // An entity that already has its JS object answers it, visible or not.
-    Entity* entity = oo::MadeEntity(oo::makeRef<Entity>());
+    Entity* entity = oo::MadeEntity(oo::makeShared<Entity>());
     entity->_jsSelf = object;
     JSValue value = OOJSEntityJSValue(entity, sContext);
     OO_CHECK(JS_IsObject(value));
@@ -281,7 +281,7 @@ OO_TEST(setTargetStopsAtSelfOwnedOrOwnerless) {
 OO_TEST(setTargetOnANonShipRootDoesNothing) {
   {
     // A subentity whose owner is not a ship: nothing is told.
-    Entity* notAShip = oo::MadeEntity(oo::makeRef<Entity>());
+    Entity* notAShip = oo::MadeEntity(oo::makeShared<Entity>());
     TestShip* sub = Ship("sub");
     SetSubEntityOf(sub, notAShip);
     TestShip* target = Ship("target");
@@ -314,7 +314,7 @@ OO_TEST(cxxEntityAnswersThroughItsJSMembers) {
     SetUpContext();
     OOJSRegisterClass(&sTestScriptedClassID, &sTestScriptedClass);
 
-    Entity* plain = oo::MadeEntity(oo::makeRef<Entity>());
+    Entity* plain = oo::MadeEntity(oo::makeShared<Entity>());
     OO_CHECK(plain != nullptr);
     OO_CHECK(!OOJSEntityIsVisibleToScripts(plain) &&
              !plain->isVisibleToScripts());
@@ -322,7 +322,7 @@ OO_TEST(cxxEntityAnswersThroughItsJSMembers) {
              std::optional<std::string>("Entity"));
     OO_CHECK(OOJSEntityJSClassID(plain) == JSEntityClassID());
 
-    Entity* scripted = oo::MadeEntity(oo::makeRef<TestScriptedEntity>());
+    Entity* scripted = oo::MadeEntity(oo::makeShared<TestScriptedEntity>());
     OO_CHECK(scripted != nullptr);
     OO_CHECK(OOJSEntityIsVisibleToScripts(scripted));
     OO_CHECK(OOJSEntityJSClassName(scripted) ==
@@ -339,7 +339,7 @@ OO_TEST(entityObjectNodeHoldsTheEntity) {
     SetUpContext();
     JSValue object = JS_NewObject(sContext);
     OO_CHECK(JS_IsObject(object));
-    Entity* entity = oo::MadeEntity(oo::makeRef<Entity>());
+    Entity* entity = oo::MadeEntity(oo::makeShared<Entity>());
     Entity* part = entity;
     part->_jsSelf = object;
 

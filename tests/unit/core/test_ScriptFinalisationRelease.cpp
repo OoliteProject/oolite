@@ -1,5 +1,5 @@
 /*	test_ScriptFinalisationRelease.cpp
-        Pins two ownership facts on today's code (oo::RefCounted and oo::Ref),
+        Pins two ownership facts on today's code (oo::Object and std::shared_ptr),
    so that the move to std::shared_ptr (spec 009 US2) can be shown to keep
    them:
 
@@ -67,7 +67,7 @@ class RecordingWaypoint : public OOWaypointEntity {
 namespace {
 
 TestPlayer* NewTestPlayer() {
-  std::shared_ptr<TestPlayer> player = oo::makeRef<TestPlayer>();
+  std::shared_ptr<TestPlayer> player = oo::makeShared<TestPlayer>();
   {
     oo::AutoreleaseScope scope;
     oo::RetainEntity(oo::MadeEntity(player));
@@ -133,7 +133,7 @@ OO_TEST(anEntityIsDisposedOnceAtItsLastReleaseAfterRemoval) {
     Entity* waypoint = nullptr;
     {
       oo::AutoreleaseScope made;
-      std::shared_ptr<RecordingWaypoint> part = oo::makeRef<RecordingWaypoint>();
+      std::shared_ptr<RecordingWaypoint> part = oo::makeShared<RecordingWaypoint>();
       part->initWithDictionary(
           oo::PList(oo::PList::Dict{{"beaconCode", oo::PList("R")}}));
       waypoint = oo::RetainEntity(oo::MadeEntity(part));

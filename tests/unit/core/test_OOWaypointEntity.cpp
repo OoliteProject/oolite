@@ -51,7 +51,7 @@ class TestPlayer : public PlayerEntity {
 // makes the game's, retained (+1).
 template <class T>
 T* NewTestPlayer() {
-  std::shared_ptr<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeShared<T>();
   {
     oo::AutoreleaseScope scope;
     oo::RetainEntity(oo::MadeEntity(player));
@@ -305,7 +305,7 @@ OO_TEST(beaconSelectorsForAWaypointOnly) {
   {
     oo::AutoreleaseScope scope;
     SetUp();
-    Entity* plain = oo::MadeEntity(oo::makeRef<Entity>());
+    Entity* plain = oo::MadeEntity(oo::makeShared<Entity>());
     OO_CHECK(!oo::EntityIsBeacon(plain) && !oo::BeaconCode(plain).has_value());
     OO_CHECK(oo::NextBeacon(plain) == nullptr);
   }

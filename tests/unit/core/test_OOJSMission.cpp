@@ -36,7 +36,7 @@ typedef std::ptrdiff_t OOGUIRow;	// as GuiDisplayGen.h declares it
 
 // The demo ship's object (the root's), which TestObjectOf answers for the demo
 // ship. Its selector is a member of the same name.
-class TestEntityObject final : public oo::RefCounted
+class TestEntityObject final : public oo::Object
 {
 public:
 	JSValue oo_jsValueInContext(JSContext *context);	// owned by the caller
@@ -53,7 +53,7 @@ public:
 // PLAYER: the members the code under test calls, declared as the game headers
 // declare them (the test imports none that defines the classes), with the
 // stand-in's answers.
-#include "oofnd/Ref.hpp"
+#include "oofnd/Object.hpp"
 #include "OOJSPrivateObject.h"
 
 class Entity : public oo::Object, public OOJSPrivateObject	// the game's root's bases (its JS glue)
@@ -137,7 +137,7 @@ public:
 // The universe as the code under test sees it: a stand-in for the C++ class
 // with the header's names and signatures. It answers virtual members, so it has
 // the game's vtable (UniverseStandIn.h) and StandInUniverse overrides them.
-class Universe : public oo::RefCounted
+class Universe : public oo::Object
 {
 public:
 	OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS

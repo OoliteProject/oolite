@@ -51,7 +51,7 @@ struct Sample {
 
 template <class T>
 Sample Make(const char* kind) {
-  std::shared_ptr<T> entity = oo::makeRef<T>();
+  std::shared_ptr<T> entity = oo::makeShared<T>();
   Entity* object = oo::RetainEntity(oo::MadeEntity(entity));
   return Sample{kind, entity.get(), object};
 }

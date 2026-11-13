@@ -140,7 +140,7 @@ public:
 template <class T>
 T *NewTestPlayer()
 {
-	std::shared_ptr<T> player = oo::makeRef<T>();
+	std::shared_ptr<T> player = oo::makeShared<T>();
 	{
 		oo::RetainEntity(oo::MadeEntity(player));
 	}
@@ -314,7 +314,7 @@ FakePlayer *sPlayer = nullptr;
 // Its object (the test keeps entities as their objects), +1 as +alloc's was.
 Entity *MakeEntity(double x, bool visible)
 {
-	std::shared_ptr<TestEntity> part = oo::makeRef<TestEntity>();
+	std::shared_ptr<TestEntity> part = oo::makeShared<TestEntity>();
 	Entity *entity = nullptr;
 	{
 		entity = oo::RetainEntity(oo::MadeEntity(part));	// kept for the life of the test
@@ -331,7 +331,7 @@ Entity *MakeEntity(double x, bool visible)
 // never set up.
 ::ShipEntity *MakeShip(double x)
 {
-	std::shared_ptr<::ShipEntity> ship = oo::makeRef<::ShipEntity>();
+	std::shared_ptr<::ShipEntity> ship = oo::makeShared<::ShipEntity>();
 	{
 		oo::RetainEntity(oo::MadeEntity(ship));
 	}

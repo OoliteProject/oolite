@@ -14,7 +14,7 @@
    records the actions it is sent. The log is captured.
 
         The owner stand-in is an object holding the ship, since the AI holds the
-   ship's C++ part weakly (oo::WeakRef): its actions, once found and called by
+   ship's C++ part weakly (std::weak_ptr): its actions, once found and called by
    selector, are a table of its members by the same names. Run: bash
    tests/run.sh unit
 */
@@ -25,6 +25,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "EntityManualRefs.h"  // the tests' manual references (T097)
 
 #include "AI.h"
 #include "GameController.h"  // OOScheduleDeferredCall, stood in below
@@ -131,7 +132,7 @@ void OOLogOutdent(void) { oo::log::outdent(); }
 */
 class TestEntityObject;
 
-class Entity : public oo::RefCounted {
+class Entity : public oo::Object {
  public:
   virtual ~Entity();
   OOUniversalID getUniversalID();
@@ -148,7 +149,7 @@ class ShipEntity : public Entity {
 };
 
 // The AI holds its owner's C++ part weakly.
-class TestEntityObject : public oo::RefCounted {
+class TestEntityObject : public oo::Object {
  public:
   virtual const char* className() const {
     return "Entity";
@@ -161,7 +162,7 @@ class TestShip final : public TestEntityObject {
  public:
   // Every test ship has its C++ part (the ship).
   TestShip() : TestEntityObject() {
-    _cxxEntity = oo::makeRef<ShipEntity>();
+    _cxxEntity = oo::makeShared<ShipEntity>();
     _cxxEntity->_object = this;
   }
 
@@ -365,7 +366,7 @@ void SetUp() {
 }
 
 TestShip* NewShip(OOUniversalID uid) {
-  TestShip* ship = oo::autorelease(oo::makeRef<TestShip>());
+  TestShip* ship = oo::autorelease(oo::makeShared<TestShip>());
   ship->_id = uid;
   return ship;
 }
@@ -378,7 +379,7 @@ AI* Autoreleased(std::shared_ptr<AI> ai) {
 }
 
 AI* NewAI(TestShip* ship) {
-  AI* ai = Autoreleased(oo::makeRef<AI>());
+  AI* ai = Autoreleased(oo::makeShared<AI>());
   if (ship != nullptr) {
     ship->_ai = ai;
     ai->setOwner(Part(ship));
@@ -420,10 +421,10 @@ OO_TEST(ownerIsWeak) {
   SetUp();
   {
     oo::AutoreleaseScope pool;
-    AI* ai = Autoreleased(oo::makeRef<AI>());
+    AI* ai = Autoreleased(oo::makeShared<AI>());
     {
       oo::AutoreleaseScope pool;
-      TestShip* ship = oo::makeRef<TestShip>().leakRef();
+      TestShip* ship = oo::test::NewRetained<TestShip>();
       ship->_id = 7;
       ai->setOwner(Part(ship));
       OO_CHECK(ai->owner() == Part(ship));
@@ -435,7 +436,7 @@ OO_TEST(ownerIsWeak) {
       OO_CHECK(ai->descriptionComponents() ==
                std::optional<std::string>(
                    "\"<no AI>\" in state: \"(null)\" for player autopilot"));
-      ship->release();
+      oo::test::Release(ship);
     }
     OO_CHECK(ai->owner() == nullptr);
     ai->setOwner(nullptr);
@@ -715,7 +716,7 @@ OO_TEST(deferredCalls) {
     OO_CHECK(ai->name() == std::optional<std::string>("test.plist"));
 
     // The call keeps the AI alive until it fires.
-    std::shared_ptr<AI> keptRef = oo::makeRef<AI>();
+    std::shared_ptr<AI> keptRef = oo::makeShared<AI>();
     AI* kept = keptRef.get();
     kept->setState("GLOBAL", 0.0);
     keptRef = nullptr;  // [kept release]
@@ -748,7 +749,7 @@ OO_TEST(cxxAPI) {
   {
     oo::AutoreleaseScope pool;
     TestShip* ship = NewShip(10);
-    std::shared_ptr<AI> ai = oo::makeRef<AI>();
+    std::shared_ptr<AI> ai = oo::makeShared<AI>();
     ship->_ai = ai.get();
     ai->setOwner(Part(ship));
     OO_CHECK(ai->owner() == Part(ship));
@@ -772,7 +773,7 @@ OO_TEST(cxxAPI) {
   OO_CHECK(kept->name() == std::optional<std::string>("test.plist"));
   {
     oo::AutoreleaseScope pool;
-    std::shared_ptr<AI> bare = oo::makeRef<AI>();
+    std::shared_ptr<AI> bare = oo::makeShared<AI>();
     OO_CHECK(bare->name() == std::optional<std::string>("<no AI>"));
   }
 }

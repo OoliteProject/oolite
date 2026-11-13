@@ -62,7 +62,7 @@ class StickProfileTestPlayer : public PlayerEntity {
 // makes the game's, retained (+1).
 template <class T>
 T* NewTestPlayer() {
-  std::shared_ptr<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeShared<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -97,7 +97,7 @@ OOJoystickManager* Handler() { return OOJoystickManager::sharedStickHandler(); }
 // A fresh standard profile on each axis, as a first run has.
 void ResetProfiles() {
   for (int axis : {AXIS_ROLL, AXIS_PITCH, AXIS_YAW}) {
-    Handler()->setProfile(oo::makeRef<OOJoystickStandardAxisProfile>().get(),
+    Handler()->setProfile(oo::makeShared<OOJoystickStandardAxisProfile>().get(),
                           axis);
   }
 }
@@ -125,8 +125,8 @@ Started Start() {
   SetUp();
   ResetProfiles();
   Started started;
-  started.gui = oo::makeRef<GuiDisplayGen>();
-  started.screen = oo::makeRef<StickProfileScreen>();
+  started.gui = oo::makeShared<GuiDisplayGen>();
+  started.screen = oo::makeShared<StickProfileScreen>();
   started.screen->startGui(started.gui.get());
   return started;
 }

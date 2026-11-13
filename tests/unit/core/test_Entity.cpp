@@ -57,7 +57,7 @@ class TestPlayer : public PlayerEntity {
 // retained (+1) as +alloc's object was.
 template <class T>
 T* NewTestPlayer() {
-  std::shared_ptr<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeShared<T>();
   {
     oo::AutoreleaseScope scope;
     oo::RetainEntity(oo::MadeEntity(player));
@@ -201,7 +201,7 @@ TestPlayer* SetUpPlayer(HPVector position, HPVector viewpoint) {
 }
 
 Entity* MakeEntity(HPVector position, GLfloat radius) {
-  Entity* entity = oo::MadeEntity(oo::makeRef<Entity>());
+  Entity* entity = oo::MadeEntity(oo::makeShared<Entity>());
   entity->setPosition(position);
   entity->setCollisionRadius(radius);
   return entity;
@@ -227,7 +227,7 @@ OO_TEST(defaults) {
     UniverseIvar<std::size_t>("_sessionID") = 7;
     UniverseIvar<OOTimeAbsolute>("universal_time") = 12.5;
 
-    Entity* entity = oo::MadeEntity(oo::makeRef<Entity>());
+    Entity* entity = oo::MadeEntity(oo::makeShared<Entity>());
     OO_CHECK(entity->sessionID() == 7);
     OO_CHECK(entity->getSpawnTime() == 12.5f);
     OO_CHECK(!entity->getIsShip() && !entity->isDock() &&
@@ -450,7 +450,7 @@ OO_TEST(ownersAndParents) {
     Entity* entity = MakeEntity(kZeroHPVector, 1.0f);
     {
       oo::AutoreleaseScope scope;
-      Entity* owner = oo::RetainEntity(oo::MadeEntity(oo::makeRef<Entity>()));
+      Entity* owner = oo::RetainEntity(oo::MadeEntity(oo::makeShared<Entity>()));
       entity->setOwner(owner);
       OO_CHECK(entity->owner() == owner);
       // Not a ship with this as a subentity: no parent, and not a ship itself.
@@ -595,7 +595,7 @@ OO_TEST(objCSubclassOverrides) {
     SetUpPlayer(kZeroHPVector, kZeroHPVector);
 
     TestObjCEntity* entity = static_cast<TestObjCEntity*>(
-        oo::MadeEntity(oo::makeRef<TestObjCEntity>()));
+        oo::MadeEntity(oo::makeShared<TestObjCEntity>()));
     entity->_frustumRadius = 1.5f;
     entity->_session = 3;
 
@@ -666,7 +666,7 @@ OO_TEST(liveEntityCount) {
     {
       oo::AutoreleaseScope scope;
       entity = oo::RetainEntity(oo::MadeEntity(
-          oo::makeRef<TestObjCEntity>()));  // +1, as +alloc's was
+          oo::makeShared<TestObjCEntity>()));  // +1, as +alloc's was
     }
     OO_CHECK(gLiveEntityCount == count + 1);
     OO_CHECK(gTotalEntityMemory ==
@@ -688,7 +688,7 @@ OO_TEST(cxxEntityBehindItsFacade) {
     oo::AutoreleaseScope scope;
     // The test's reference goes with the pool (the object's lifetime is the
     // entity's, so the live count below falls when the entity goes).
-    const std::shared_ptr<TestCxxEntity> entity = oo::makeRef<TestCxxEntity>();
+    const std::shared_ptr<TestCxxEntity> entity = oo::makeShared<TestCxxEntity>();
     SetUpUniverse();
     SetUpPlayer(kZeroHPVector, kZeroHPVector);
 
@@ -740,7 +740,7 @@ OO_TEST(initSentAgain) {
     SetUpUniverse();
     SetUpPlayer(kZeroHPVector, kZeroHPVector);
     TestObjCEntity* entity = static_cast<TestObjCEntity*>(
-        oo::MadeEntity(oo::makeRef<TestObjCEntity>()));
+        oo::MadeEntity(oo::makeShared<TestObjCEntity>()));
     entity->setPosition(make_HPvector(1, 2, 3));
     entity->setStatus(OOEntityStatus::kInFlight);
     entity->setEnergy(42);

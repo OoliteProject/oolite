@@ -255,7 +255,7 @@ void run() override {
 // K registers a substage when asked for its dependents, as the verifier allows.
 TEST_STAGE(OOTestStageK, "K")
 std::optional<std::vector<std::string>> dependents() override {
-  const std::shared_ptr<OOTestStageSub> sub = oo::makeRef<OOTestStageSub>();
+  const std::shared_ptr<OOTestStageSub> sub = oo::makeShared<OOTestStageSub>();
   verifier()->registerStage(sub.get());
   return std::nullopt;
 }
@@ -266,7 +266,7 @@ std::optional<std::vector<std::string>> dependents() override {
 TEST_STAGE(OOTestStageL, "L")
 void run() override {
   OOTestStage::run();
-  const std::shared_ptr<OOTestStageLate> late = oo::makeRef<OOTestStageLate>();
+  const std::shared_ptr<OOTestStageLate> late = oo::makeShared<OOTestStageLate>();
   verifier()->registerStage(late.get());
   gEvents.push_back(verifier()->stageWithName("Late") == nullptr
                         ? "Late refused"
@@ -280,7 +280,7 @@ namespace {
 
 template <class Stage>
 std::shared_ptr<OOOXPVerifierStage> Make() {
-  return std::shared_ptr<OOOXPVerifierStage>(oo::makeRef<Stage>());
+  return std::shared_ptr<OOOXPVerifierStage>(oo::makeShared<Stage>());
 }
 
 std::shared_ptr<OOOXPVerifierStage> MakeTestStage(const std::string& name) {

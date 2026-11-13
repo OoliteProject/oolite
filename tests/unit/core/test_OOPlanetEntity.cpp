@@ -64,7 +64,7 @@ public:
 template <class T>
 T *NewTestPlayer()
 {
-	std::shared_ptr<T> player = oo::makeRef<T>();
+	std::shared_ptr<T> player = oo::makeShared<T>();
 	{
 		oo::RetainEntity(oo::MadeEntity(player));
 	}
@@ -161,7 +161,7 @@ oo::PList PlanetDict(int radiusKm)
 OOPlanetEntity *Planet(bool atmosphere, int radiusKm = 5000)
 {
 	Random_Seed seed = { 1, 2, 3, 4, 5, 6 };
-	std::shared_ptr<OOPlanetEntity> planet = oo::makeRef<OOPlanetEntity>();
+	std::shared_ptr<OOPlanetEntity> planet = oo::makeShared<OOPlanetEntity>();
 	(void)oo::MadeEntity(planet);
 	planet->initFromDictionary(PlanetDict(radiusKm), atmosphere, seed, 7);
 	return planet.get();
@@ -363,7 +363,7 @@ OO_TEST(closeCollision)
 		SetUp();
 		OOPlanetEntity *moon = Planet(false);
 		OO_CHECK(!moon->checkCloseCollisionWith(nullptr));
-		Entity *rock = oo::MadeEntity(oo::makeRef<Entity>());
+		Entity *rock = oo::MadeEntity(oo::makeShared<Entity>());
 		OO_CHECK(moon->checkCloseCollisionWith(rock));
 	}
 }

@@ -117,7 +117,7 @@ std::vector<std::shared_ptr<TestGenerator>> gKeptGenerators;
 
 TestGenerator* MakeGenerator(const std::optional<std::string>& key,
                              bool accept) {
-  const std::shared_ptr<TestGenerator> made = oo::makeRef<TestGenerator>();
+  const std::shared_ptr<TestGenerator> made = oo::makeShared<TestGenerator>();
   if (!made->initWithPath(std::string("test generator"), OOTextureFlags::kNone)) return nullptr;
   gKeptGenerators.push_back(made);
   TestGenerator* generator = made.get();
@@ -153,7 +153,7 @@ bool Contains(const std::vector<std::shared_ptr<OOTexture>>& textures,
 OO_TEST(rootDefaults) {
   {
     oo::AutoreleaseScope pool;
-    OOTexture* bare = Autoreleased(oo::makeRef<BareTexture>());
+    OOTexture* bare = Autoreleased(oo::makeShared<BareTexture>());
     OO_CHECK(bare->isFinishedLoading());
     OO_CHECK(!bare->cacheKey().has_value());
     OO_CHECK(!bare->isRectangleTexture() && !bare->isCubeMap());
@@ -448,7 +448,7 @@ OO_TEST(cxxApi) {
   }
 
   // The root's own answers.
-  const std::shared_ptr<OOTexture> root = oo::makeRef<OOTexture>();
+  const std::shared_ptr<OOTexture> root = oo::makeShared<OOTexture>();
   OO_CHECK(root->isFinishedLoading() && !root->cacheKey().has_value());
   OO_CHECK(SameSize(root->dimensions(), 0, 0) &&
            SameSize(root->originalDimensions(), 0, 0));

@@ -76,7 +76,7 @@ OO_TEST(oneDeadzone) {
   OO_CHECK(STICK_DEADZONE == 0.05);
   OO_CHECK(STICK_MAX_DEADZONE == 0.1);
   std::shared_ptr<OOJoystickStandardAxisProfile> profile =
-      oo::makeRef<OOJoystickStandardAxisProfile>();
+      oo::makeShared<OOJoystickStandardAxisProfile>();
   OO_CHECK(profile->deadzone() == 0.05);
   profile->setDeadzone(1.0);
   OO_CHECK(profile->deadzone() == 0.1);

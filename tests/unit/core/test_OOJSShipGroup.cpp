@@ -1,7 +1,7 @@
 /*	test_OOJSShipGroup.mm
 	Unit tests for the ShipGroup JS binding (src/Core/Scripting/OOJSShipGroup.h/.mm) and the JS glue
 	of OOShipGroup: a group reaches the engine as a PList Object node holding the C++ group, and the
-	stand-in ship holds its groups as oo::Ref.
+	stand-in ship holds its groups as a std::shared_ptr.
 
 	As test_OOJSWormhole.mm does, it runs the JS class in a real QuickJS-ng context, links the
 	game's own objects for the binding, the engine's private-slot glue (OOJSPrivateObject.cpp), its
@@ -41,7 +41,7 @@
 */
 class TestEntityObject;
 
-class Entity : public oo::RefCounted
+class Entity : public oo::Object
 {
 public:
 	virtual ~Entity();
@@ -67,7 +67,7 @@ public:
 
 // The ship's object. Its selectors are members of the same names; the JS slot
 // holds it (not retained).
-class TestEntityObject final : public oo::RefCounted
+class TestEntityObject final : public oo::Object
 {
 public:
 	const char *className() const  { return "Entity"; }	// the class's runtime name
@@ -136,7 +136,7 @@ JSValue TestEntityObject::oo_jsValueInContext(JSContext *context)
 	if (!JS_IsObject(_jsSelf))
 	{
 		_jsSelf = JS_NewObjectClass(context, static_cast<int>(sFakeShipClassID));
-		JS_SetOpaque(_jsSelf, static_cast<oo::RefCounted *>(this));
+		JS_SetOpaque(_jsSelf, static_cast<oo::Object *>(this));
 	}
 	return JS_DupValue(context, _jsSelf);
 }
@@ -397,7 +397,7 @@ void Define(const char *name, JSValue value)
 ShipEntity *NewShip(const char *name)
 {
 	::TestEntityObject *object = oo::test::NewRetained<::TestEntityObject>();
-	std::shared_ptr<ShipEntity> ship = oo::makeRef<ShipEntity>();
+	std::shared_ptr<ShipEntity> ship = oo::makeShared<ShipEntity>();
 	ship->_object = object;
 	ship->_name = name;
 	object->_cxxEntity = ship;

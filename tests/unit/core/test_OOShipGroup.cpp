@@ -9,11 +9,12 @@
 	as a member, dropped when it dies), removing (the ship is told to leave), dead members leaving,
 	the two member arrays, the cursor (and its mutation check), and the description text. A dying
 	group lets go of its weak reference to its leader as it does of its members'. The cases ask the
-	C++ group, holding the factory's oo::Ref, and objectNode pins how a group travels in plist data.
+	C++ group, holding the factory's std::shared_ptr, and objectNode pins how a group travels in plist data.
 	Run: bash tests/run.sh unit
 */
 
 #include "OOShipGroup.h"
+#include "EntityManualRefs.h"  // the tests' manual references (T097)
 
 #include "oo_test.hpp"
 #include "oofnd/objc/OOException.h"
@@ -43,7 +44,7 @@ std::optional<std::string> OOShipGroup::jsDescription()  { return std::nullopt; 
 */
 class TestEntityObject;
 
-class Entity : public oo::RefCounted
+class Entity : public oo::Object
 {
 public:
 	virtual ~Entity();
@@ -63,11 +64,11 @@ public:
 };
 
 // The group holds its ships' C++ parts weakly.
-class TestEntityObject final : public oo::RefCounted
+class TestEntityObject final : public oo::Object
 {
 public:
 	// Every object the test makes holds its ship.
-	TestEntityObject() : _cxxEntity(oo::makeRef<ShipEntity>())  { _cxxEntity->_object = this; }
+	TestEntityObject() : _cxxEntity(oo::makeShared<ShipEntity>())  { _cxxEntity->_object = this; }
 	const char *className() const  { return "Entity"; }	// the class's runtime name
 
 	std::shared_ptr<Entity> _cxxEntity;
@@ -102,7 +103,7 @@ ShipEntity *Ship(::TestEntityObject *object)  { return static_cast<ShipEntity *>
 // A ship, its object autoreleased (as [[[ShipEntity alloc] init] autorelease] was).
 ShipEntity *NewShip()
 {
-	return Ship(oo::autorelease(oo::makeRef<::TestEntityObject>()));
+	return Ship(oo::autorelease(oo::makeShared<::TestEntityObject>()));
 }
 
 
@@ -205,8 +206,8 @@ OO_TEST(deadShipsLeave)
 		oo::AutoreleaseScope pool;
 		std::shared_ptr<OOShipGroup> group = OOShipGroup::groupWithName(std::nullopt);
 		ShipEntity *survivor = NewShip();
-		::TestEntityObject *doomedObject = oo::makeRef<::TestEntityObject>().leakRef();
-		::TestEntityObject *doomedLeaderObject = oo::makeRef<::TestEntityObject>().leakRef();
+		::TestEntityObject *doomedObject = oo::test::NewRetained<::TestEntityObject>();
+		::TestEntityObject *doomedLeaderObject = oo::test::NewRetained<::TestEntityObject>();
 		ShipEntity *doomed = Ship(doomedObject);
 		ShipEntity *doomedLeader = Ship(doomedLeaderObject);
 		group->addShip(survivor);
@@ -214,8 +215,8 @@ OO_TEST(deadShipsLeave)
 		group->setLeader(doomedLeader);
 		OO_CHECK(group->count() == 3);
 
-		doomedObject->release();
-		doomedLeaderObject->release();
+		oo::test::Release(doomedObject);
+		oo::test::Release(doomedLeaderObject);
 		OO_CHECK(group->leader() == nullptr);
 		OO_CHECK(group->count() == 1 && !group->isEmpty());
 		OO_CHECK(HasMembers(group->memberArray(), { survivor }));
@@ -318,10 +319,10 @@ OO_TEST(dyingGroupReleasesLeaderReference)
 {
 	// The group weak-retains its leader (setLeader) as it does each member
   // (addShip); its destructor must balance both, or every group that dies with
-  // a leader leaks one weak-reference proxy. The references are oo::WeakRef
+  // a leader leaks one weak-reference proxy. The references are std::weak_ptr
   // members, released with the group.
-	::TestEntityObject *leaderObject = oo::makeRef<::TestEntityObject>().leakRef();
-	::TestEntityObject *memberObject = oo::makeRef<::TestEntityObject>().leakRef();
+	::TestEntityObject *leaderObject = oo::test::NewRetained<::TestEntityObject>();
+	::TestEntityObject *memberObject = oo::test::NewRetained<::TestEntityObject>();
 	ShipEntity *leader = Ship(leaderObject), *member = Ship(memberObject);
 	{
 		oo::AutoreleaseScope pool;
@@ -330,8 +331,8 @@ OO_TEST(dyingGroupReleasesLeaderReference)
 		group->setLeader(leader);
 		OO_CHECK(group->leader() == leader && group->count() == 2);
 	}
-	leaderObject->release();
-	memberObject->release();
+	oo::test::Release(leaderObject);
+	oo::test::Release(memberObject);
 }
 
 

@@ -125,7 +125,7 @@ OO_TEST(cachedScripts) {
 
     // A run whose target is not a ship logs and does nothing (it never reaches
     // the player).
-    Entity* notAShip = oo::MadeEntity(oo::makeRef<Entity>());
+    Entity* notAShip = oo::MadeEntity(oo::makeShared<Entity>());
     zeta->runWithTarget(notAShip);
   }
 }

@@ -11,7 +11,7 @@
    too, with only a name (a C++ subclass of the root, with the root's
    members OOALSound.mm would define). The playing channel is private, so the
    test reads it as a friend. The tests ask the C++ source (alloc/init as
-   oo::makeRef, "%@" as descriptionComponents(), an autorelease pool as an
+   oo::makeShared, "%@" as descriptionComponents(), an autorelease pool as an
    oo::AutoreleaseScope); after them comes the C++ API. The mixer and the
    channel are C++ stand-ins, and the source is its channel's C++ delegate
    (OOSoundChannelDelegate). Run: tests/run.sh unit
@@ -145,7 +145,7 @@ namespace {
 // [[[OOSound alloc] init] autorelease] with a name: it lives until the
 // innermost scope ends.
 OOSound* MakeSound(const char* name) {
-  return oo::autorelease(oo::makeRef<TestSound>(name));
+  return oo::autorelease(oo::makeShared<TestSound>(name));
 }
 
 std::vector<std::string> TakeLog() {
@@ -174,7 +174,7 @@ OOSoundChannel* ChannelOf(OOSoundSource* source) {
 OO_TEST(defaults) {
   {
     oo::AutoreleaseScope scope;  // was @autoreleasepool
-    const std::shared_ptr<OOSoundSource> source = oo::makeRef<OOSoundSource>();
+    const std::shared_ptr<OOSoundSource> source = oo::makeShared<OOSoundSource>();
     OO_CHECK(source->sound() == nullptr);
     OO_CHECK(!source->loop() && source->repeatCount() == 1 &&
              !source->isPlaying());
@@ -245,7 +245,7 @@ OO_TEST(playsThroughAChannel) {
   {
     oo::AutoreleaseScope scope;  // was @autoreleasepool
     std::shared_ptr<OOSoundSource> source =
-        oo::makeRef<OOSoundSource>(MakeSound("beep"));
+        oo::makeShared<OOSoundSource>(MakeSound("beep"));
     source->setPosition(make_vector(4, 5, 6));
     source->setGain(0.25f);
     source->setLoop(true);
@@ -287,7 +287,7 @@ OO_TEST(repeats) {
   TakeLog();
   {
     oo::AutoreleaseScope scope;  // was @autoreleasepool
-    const std::shared_ptr<OOSoundSource> source = oo::makeRef<OOSoundSource>();
+    const std::shared_ptr<OOSoundSource> source = oo::makeShared<OOSoundSource>();
     source->playSound(MakeSound("beep"), 3);
     OO_CHECK(source->repeatCount() == 3);
     OOSoundChannel* channel = ChannelOf(source.get());

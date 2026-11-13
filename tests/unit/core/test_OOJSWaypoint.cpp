@@ -22,6 +22,7 @@
 #include "oofnd/objc/OOException.h"
 #include "oofnd/PList.hpp"
 #include "oofnd/String.hpp"
+#include "EntityManualRefs.h"  // the tests' manual references (T097)
 
 
 // MARK: The classes, as far as the binding sees them ----------------------------------------------
@@ -30,7 +31,7 @@ class Universe;
 class PlayerEntity;
 
 // The C++ root, as far as the binding and the root's JS category reach it.
-class Entity : public oo::RefCounted
+class Entity : public oo::Object
 {
 public:
 	virtual ~Entity();
@@ -72,7 +73,7 @@ public:
 
 
 // Its category's selectors are members of the same names.
-class TestEntityObject final : public oo::RefCounted
+class TestEntityObject final : public oo::Object
 {
 public:
 	JSClassID oo_jsClassID();
@@ -92,7 +93,7 @@ public:
 // answers virtual members, so it has the game's vtable (UniverseStandIn.h) and
 // FakeGame overrides them; FakeGame also answers the player's compass (the
 // player stand-in calls it).
-class Universe : public oo::RefCounted
+class Universe : public oo::Object
 {
 public:
 	OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
@@ -417,7 +418,7 @@ FakeGame *sGame = nullptr;
 JSValue JSValueForObject(JSClassID jsClass, TestEntityObject *entity)
 {
 	JSValue object = JS_NewObjectClass(sContext, static_cast<int>(jsClass));
-	if (entity->_cxxEntity == nullptr)  entity->_cxxEntity = oo::makeRef<Entity>();	// a plain entity's C++ part
+	if (entity->_cxxEntity == nullptr)  entity->_cxxEntity = oo::makeShared<Entity>();	// a plain entity's C++ part
 	if (JS_IsException(object) || !OOJSSetCxxPrivate(object, oo::makeShared<OOJSEntityHolder>(entity->_cxxEntity.get())))	// the slot holds the C++ entity
 	{
 		JS_FreeValue(sContext, object);
@@ -458,15 +459,15 @@ void SetUpContext()
 	gSharedUniverse = sGame;
 	gOOPlayer = new PlayerEntity;	// never deleted
 	gOOPlayer->_game = sGame;
-	sWaypoint = oo::makeRef<TestEntityObject>().leakRef();	// kept for the life of the test
-	sWaypoint->_cxxEntity = oo::makeRef<OOWaypointEntity>();
+	sWaypoint = oo::test::NewRetained<TestEntityObject>();	// kept for the life of the test
+	sWaypoint->_cxxEntity = oo::makeShared<OOWaypointEntity>();
 	sWaypointPart = static_cast<OOWaypointEntity *>(sWaypoint->_cxxEntity.get());
 	sWaypoint->_beaconLabel = "Label";
 	sWaypoint->_orientation = make_quaternion(0, 1, 0, 0);
 	sWaypointPart->_oriented = true;
 	sWaypointPart->_size = 20;
 	Define("waypoint", JSValueForEntity(sWaypoint));
-	Define("plainEntity", JSValueForObject(sFakeEntityClassID, oo::makeRef<TestEntityObject>().leakRef()));
+	Define("plainEntity", JSValueForObject(sFakeEntityClassID, oo::test::NewRetained<TestEntityObject>()));
 }
 
 

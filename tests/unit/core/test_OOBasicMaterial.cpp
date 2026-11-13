@@ -71,7 +71,7 @@ Universe* gSharedUniverse = nullptr;
 // The universe as the code under test sees it: a stand-in for the C++ class,
 // with the header's names and signatures. It answers virtual members, so it has
 // the game's vtable (UniverseStandIn.h) and TestUniverse overrides them.
-class Universe : public oo::RefCounted {
+class Universe : public oo::Object {
  public:
   OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
 
@@ -164,7 +164,7 @@ std::shared_ptr<OOBasicMaterial> Named(const char* name) {
 std::shared_ptr<TestSubMaterial> NamedSub(
     const std::optional<std::string>& name,
     const oo::PList& configuration = oo::PList()) {
-  std::shared_ptr<TestSubMaterial> result = oo::makeRef<TestSubMaterial>();
+  std::shared_ptr<TestSubMaterial> result = oo::makeShared<TestSubMaterial>();
   result->initWithName(name, configuration);
   return result;
 }
@@ -393,7 +393,7 @@ OO_TEST(unapplyFallsBackToTheDefaultMaterial) {
     OO_CHECK(GLShininess() == 0);
 
     m->doApply();
-    const std::shared_ptr<OOMaterial> plainMaterial = oo::makeRef<OOMaterial>();
+    const std::shared_ptr<OOMaterial> plainMaterial = oo::makeShared<OOMaterial>();
     m->unapplyWithNext(plainMaterial.get());
     OO_CHECK(gTextureApplyNones == applyNones + 3);
     OO_CHECK(Same(GLMaterial(GL_DIFFUSE).v, {1, 1, 1, 1}) &&

@@ -46,7 +46,7 @@ public:
 template <class T>
 T *NewTestPlayer()
 {
-	std::shared_ptr<T> player = oo::makeRef<T>();
+	std::shared_ptr<T> player = oo::makeShared<T>();
 	{
 		oo::RetainEntity(oo::MadeEntity(player));
 	}
@@ -124,8 +124,8 @@ OO_TEST(fromShip)
 		SetUp();
 		OO_CHECK(MakeCascade(nullptr) == nullptr);
 
-		Entity *ship = oo::MadeEntity(oo::makeRef<::ShipEntity>());	// a C++ ship under its object, never set up
-		Entity *shipOwner = oo::MadeEntity(oo::makeRef<Entity>());
+		Entity *ship = oo::MadeEntity(oo::makeShared<::ShipEntity>());	// a C++ ship under its object, never set up
+		Entity *shipOwner = oo::MadeEntity(oo::makeShared<Entity>());
 		ship->setPosition(make_HPvector(5, 6, 7));
 		ship->setOwner(shipOwner);
 
@@ -150,11 +150,11 @@ OO_TEST(update)
 {
 	{
 		SetUp();
-		Entity *ship = oo::MadeEntity(oo::makeRef<::ShipEntity>());	// a C++ ship under its object, never set up
-		Entity *shipOwner = oo::MadeEntity(oo::makeRef<Entity>());
+		Entity *ship = oo::MadeEntity(oo::makeShared<::ShipEntity>());	// a C++ ship under its object, never set up
+		Entity *shipOwner = oo::MadeEntity(oo::makeShared<Entity>());
 		ship->setOwner(shipOwner);
 		Entity *cascade = MakeCascade(oo::ToShip(ship));
-		TestVictim *victim = static_cast<TestVictim *>(oo::MadeEntity(oo::makeRef<TestVictim>()));
+		TestVictim *victim = static_cast<TestVictim *>(oo::MadeEntity(oo::makeShared<TestVictim>()));
 		cascade->getCollidingEntities()->emplace_back(oo::Hold(victim));
 
 		// A tenth of a second: past the collision delay, expanding, and dealing energy.

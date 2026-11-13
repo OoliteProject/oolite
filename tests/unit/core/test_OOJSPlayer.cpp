@@ -62,7 +62,7 @@ class Entity;
 // A ship's object: the root's, which holds the C++ part (oo::ToCxx reads it).
 // Its selectors are members of the same names, and className() answers its
 // Objective-C class's name.
-class TestEntityObject : public oo::RefCounted
+class TestEntityObject : public oo::Object
 {
 public:
 	virtual const char *className() const  { return "Entity"; }	// its runtime name
@@ -172,7 +172,7 @@ public:
 // The universe as the code under test sees it: a stand-in for the C++ class
 // with the header's names and signatures. It answers virtual members, so it has
 // the game's vtable (UniverseStandIn.h) and StandInUniverse overrides them.
-class Universe : public oo::RefCounted
+class Universe : public oo::Object
 {
 public:
 	OO_UNIVERSE_STAND_IN_VIRTUAL_MEMBERS
@@ -625,11 +625,11 @@ void SetUpContext()
 	sPlayer->_status = OOEntityStatus::kDocked;
 	sPlayer->_targetSystem = -1;
 	sStation = oo::test::NewRetained<TestEntityObject>();
-	sStation->_cxxEntity = oo::makeRef<ShipEntity>();
+	sStation->_cxxEntity = oo::makeShared<ShipEntity>();
 	sStationShip = static_cast<ShipEntity *>(sStation->_cxxEntity.get());
 	sStation->_isStation = true;
 	sNonStation = oo::test::NewRetained<TestEntityObject>();
-	sNonStation->_cxxEntity = oo::makeRef<ShipEntity>();
+	sNonStation->_cxxEntity = oo::makeShared<ShipEntity>();
 
 	InitOOJSPlayer(sContext, sGlobal);
 	Define("station", sFakeStationClassID, sStation);

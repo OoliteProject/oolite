@@ -41,7 +41,7 @@ class TestPlayer : public PlayerEntity {
 // object was.
 template <class T>
 T* NewTestPlayer() {
-  std::shared_ptr<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeShared<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -89,7 +89,7 @@ Entity* ShrinkingRing(Entity* source) {
 // --------------------------------------------------------------------------------------------------
 
 Entity* Source() {
-  Entity* source = oo::MadeEntity(oo::makeRef<Entity>());
+  Entity* source = oo::MadeEntity(oo::makeShared<Entity>());
   source->setCollisionRadius(8.0f);
   source->setPosition(make_HPvector(1, 2, 3));
   source->setOrientation(make_quaternion(0, 1, 0, 0));

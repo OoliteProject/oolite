@@ -44,7 +44,7 @@ class TestDockPlayer : public PlayerEntity {
 // object was.
 template <class T>
 T* NewTestPlayer() {
-  std::shared_ptr<T> player = oo::makeRef<T>();
+  std::shared_ptr<T> player = oo::makeShared<T>();
   {
     oo::RetainEntity(oo::MadeEntity(player));
   }
@@ -98,7 +98,7 @@ DockEntity* MakeDockOfStation(TestDockStation** outStation) {
   // as oo::RetainedEntity(StationEntity::newStationObject()) makes a station, its object (the
   // ship's facade) autoreleased.
   ::ShipEntity* object = oo::ToShip(oo::autorelease(oo::NewShipObject(
-      oo::makeRef<TestDockStation>(), "dock-station", Definition())));
+      oo::makeShared<TestDockStation>(), "dock-station", Definition())));
   TestDockStation* station = static_cast<TestDockStation*>(object);
   station->initStationDefaults();
   DockEntity* dock = MakeDock("dock");
@@ -249,7 +249,7 @@ namespace {
 
 // A ship with the universal ID the approach queue keys it by.
 ShipEntity* MakeQueuedShip(OOUniversalID shipID) {
-  ShipEntity* ship = oo::ToShip(oo::autorelease(oo::NewShipObject(oo::makeRef<::ShipEntity>(), "queued", Definition())));
+  ShipEntity* ship = oo::ToShip(oo::autorelease(oo::NewShipObject(oo::makeShared<::ShipEntity>(), "queued", Definition())));
   ship->universalID = shipID;
   return ship;
 }
