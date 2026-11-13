@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include "EntityManualRefs.h"  // the tests' manual references (T096)
 
 #include "OOConcreteTexture.h"
 #include "OODescription.h"
@@ -45,8 +46,13 @@ static int gTestDeallocs = 0;
 // uncaches itself.
 class TestTexture final : public OOTexture {
  public:
-  explicit TestTexture(std::optional<std::string> key) : _key(std::move(key)) {
-    addToCaches();
+  explicit TestTexture(std::optional<std::string> key) : _key(std::move(key)) {}
+  // Made, then cached under its key (an owner is needed first, as the game's
+  // OOConcreteTexture is cached after it is made).
+  static std::shared_ptr<TestTexture> make(std::optional<std::string> key) {
+    std::shared_ptr<TestTexture> texture = oo::makeShared<TestTexture>(std::move(key));
+    texture->addToCaches();
+    return texture;
   }
   ~TestTexture() override {
     gTestDeallocs++;
@@ -102,7 +108,7 @@ class TestGenerator : public OOTextureGenerator {
 namespace {
 
 TestTexture* MakeTexture(const std::optional<std::string>& key) {
-  return static_cast<TestTexture*>(Autoreleased(oo::makeRef<TestTexture>(key)));
+  return static_cast<TestTexture*>(Autoreleased(TestTexture::make(key)));
 }
 
 // The generators made, kept for the test's life (each was autoreleased in its
@@ -198,7 +204,7 @@ OO_TEST(cachesKeepAndForget) {
   {
     oo::AutoreleaseScope pool;
     texture = MakeTexture(std::string("test:cache"));
-    bare = oo::makeRef<BareTexture>().leakRef();
+    bare = oo::test::NewRetained<BareTexture>();
     OO_CHECK(OOTexture::existingTextureForKey(std::string("test:cache")) ==
              texture);
     OO_CHECK(OOTexture::existingTextureForKey(std::nullopt) == nullptr);
@@ -240,7 +246,7 @@ OO_TEST(cachesKeepAndForget) {
         }));
   }
 #endif
-  oo::release(bare);
+  oo::test::Release(bare);
 }
 
 OO_TEST(rebindAllTextures) {
@@ -390,8 +396,13 @@ OO_TEST(applyNone) {
 class TestCxxTexture final : public OOTexture {
  public:
   explicit TestCxxTexture(std::optional<std::string> key)
-      : _key(std::move(key)) {
-    addToCaches();
+      : _key(std::move(key)) {}
+  // Made, then cached under its key (an owner is needed first).
+  static std::shared_ptr<TestCxxTexture> make(std::optional<std::string> key) {
+    std::shared_ptr<TestCxxTexture> texture =
+        oo::makeShared<TestCxxTexture>(std::move(key));
+    texture->addToCaches();
+    return texture;
   }
   ~TestCxxTexture() override { removeFromCaches(); }
 
@@ -459,7 +470,7 @@ OO_TEST(cxxTextureBehindTheFacade) {
   {
     oo::AutoreleaseScope pool;
     const std::shared_ptr<TestCxxTexture> texture =
-        oo::makeRef<TestCxxTexture>(std::string("test:cxx"));
+        TestCxxTexture::make(std::string("test:cxx"));
     OOTexture* facade = texture.get();  // what the callers hold
 
     // The callers' calls reach the C++ overrides, and the root's defaults.

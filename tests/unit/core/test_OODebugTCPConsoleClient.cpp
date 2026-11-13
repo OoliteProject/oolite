@@ -25,6 +25,7 @@
 
 #include "OODebugMonitor.h"
 #include "OODebugTCPConsoleClient.h"
+#include "EntityManualRefs.h"  // the tests' manual references (T096)
 // The protocol's names as UTF-8 literals, as the client reads them.
 #define OOALSTR(x) "" x
 #include <winsock2.h>
@@ -73,7 +74,7 @@ std::string OODebugMonitor::description() const { return "<OODebugMonitor>"; }
 
 OODebugMonitor* OODebugMonitor::sharedDebugMonitor() {
   static OODebugMonitor* monitor = nullptr;
-  if (monitor == nullptr) monitor = oo::makeRef<OODebugMonitor>().leakRef();
+  if (monitor == nullptr) monitor = oo::test::NewRetained<OODebugMonitor>();
   return monitor;
 }
 

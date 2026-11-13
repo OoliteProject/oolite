@@ -50,14 +50,16 @@ std::vector<std::shared_ptr<OOScriptTimer>>* sDeferredTimers;
 
 std::shared_ptr<OOScriptTimer> OOScriptTimer::timerWithNextTime(
     OOTimeAbsolute nextTime, OOTimeDelta interval) {
-  std::shared_ptr<OOScriptTimer> timer = oo::adopt(new OOScriptTimer);
+  std::shared_ptr<OOScriptTimer> timer =
+      std::shared_ptr<OOScriptTimer>(new OOScriptTimer(), oo::Dispose{});
   if (!timer->initWithNextTime(nextTime, interval)) return nullptr;
   return timer;
 }
 
 std::shared_ptr<OOScriptTimer> OOScriptTimer::oneShotTimerWithDelay(
     OOTimeDelta delay) {
-  std::shared_ptr<OOScriptTimer> timer = oo::adopt(new OOScriptTimer);
+  std::shared_ptr<OOScriptTimer> timer =
+      std::shared_ptr<OOScriptTimer>(new OOScriptTimer(), oo::Dispose{});
   if (!timer->initOneShotTimerWithDelay(delay)) return nullptr;
   return timer;
 }

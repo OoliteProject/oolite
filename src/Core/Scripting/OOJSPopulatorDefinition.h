@@ -2,7 +2,7 @@
 
 OOJSPopulatorDefinition.h (QuickJS-ng)
 
-An oo::RefCounted: OOJSSystem makes it with oo::makeRef and Universe keeps it
+An oo::Object: OOJSSystem makes it with oo::makeShared and Universe keeps it
 as a PList::Object node (OOJSPopulatorDefinitionToPList /
 OOJSPopulatorDefinitionIn below).
 
@@ -41,7 +41,7 @@ class OOJSScript;  // included by the .cpp, so that a test can stand in for it
 /*	The definition owns references to its callback and callbackThis, which
    are released on destruction and when the JavaScript engine is reset.
 */
-class OOJSPopulatorDefinition : public oo::RefCounted {
+class OOJSPopulatorDefinition : public oo::Object {
  public:
   OOJSPopulatorDefinition();
   ~OOJSPopulatorDefinition() override;

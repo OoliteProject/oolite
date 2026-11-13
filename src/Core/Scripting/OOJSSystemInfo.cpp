@@ -277,7 +277,8 @@ std::shared_ptr<OOSystemInfo> OOSystemInfo::initWithGalaxy(OOGalaxyID galaxy,
     return nullptr;
   }
 
-  return oo::adopt(new OOSystemInfo(galaxy, system));
+  return std::shared_ptr<OOSystemInfo>(new OOSystemInfo(galaxy, system),
+                                       oo::Dispose{});
 }
 
 void OOSystemInfo::setNullAssigned(bool flag, const std::string& key) {

@@ -18,12 +18,12 @@
 
         SEMANTICS:
 
-          * A VALUE type over std::vector<std::uint8_t>, not a RefCounted
+          * A VALUE type over std::vector<std::uint8_t>, not a shared object
    object. NSData is immutable and shared by retain; in C++ a const Data& or a
    move gives the same no-copy hand-off without a count, and NSMutableData's
    "mutate my own copy" is simply a non-const Data. A Data that must be shared
-   by several owners goes in an oo::Ref of an owning class, as any other value
-   does.
+   by several owners goes in a std::shared_ptr of an owning class, as any other
+   value does.
           * subdata() clamps an out-of-range request to the bytes that exist
    instead of raising NSRangeException: oofnd does not throw (README). Callers
    that relied on the exception check the range first.

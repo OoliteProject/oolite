@@ -2,7 +2,8 @@
 
 OOJSInterfaceDefinition.h (QuickJS-ng)
 
-The station keeps its definitions as oo::Ref, and the player reads them as C++.
+The station keeps its definitions as a std::shared_ptr, and the player reads
+them as C++.
 
 
 Oolite
@@ -55,9 +56,9 @@ class OOJSScript;  // included by the .cpp, so that a test can stand in for it
 /*	The definition owns references to its callback and callbackThis, which
    are released on destruction and when the JavaScript engine is reset.
 */
-class OOJSInterfaceDefinition : public oo::RefCounted {
+class OOJSInterfaceDefinition : public oo::Object {
  public:
-  // The old -init after [super init] (oo::makeRef).
+  // The old -init after [super init] (oo::makeShared).
   OOJSInterfaceDefinition();
   ~OOJSInterfaceDefinition() override;
 

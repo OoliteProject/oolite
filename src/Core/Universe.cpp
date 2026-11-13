@@ -481,7 +481,7 @@ void Universe::dealloc() {
   replacedSystemManager = nullptr;
   demo_ships = oo::PList();
   screenBackgrounds = oo::PList();
-  if (gameView != nullptr) gameView->release();
+  gameView.reset();
   allPlanets.clear();
   allStations.clear();
 
@@ -4938,13 +4938,9 @@ std::optional<std::string> Universe::describeCommodity(
 
 ////////////////////////////////////////////////////
 
-void Universe::setGameView(::MyOpenGLView* view) {
-  if (gameView != nullptr) gameView->release();
-  if (view != nullptr) view->retain();
-  gameView = view;
-}
+void Universe::setGameView(::MyOpenGLView* view) { gameView = oo::share(view); }
 
-::MyOpenGLView* Universe::getGameView() { return gameView; }
+::MyOpenGLView* Universe::getGameView() { return gameView.get(); }
 
 ::GameController* Universe::gameController() {
   return (getGameView() != nullptr ? getGameView()->getGameController()

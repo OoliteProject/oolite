@@ -307,7 +307,7 @@ class Universe : public oo::Object {
 
   GLfloat airResistanceFactor = 0;
 
-  ::MyOpenGLView* gameView = nullptr;
+  std::shared_ptr<::MyOpenGLView> gameView;
 
   int next_universal_id = 0;
   Entity* entity_for_uid[MAX_ENTITY_UID] = {};  // C++ parts, borrowed

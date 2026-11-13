@@ -38,7 +38,7 @@ MA 02110-1301, USA.
 #include "OOJSPrivateObject.h"
 #include "oofnd/Ref.hpp"
 
-class OOJSEntityHolder final : public oo::RefCounted, public OOJSPrivateObject {
+class OOJSEntityHolder final : public oo::Object, public OOJSPrivateObject {
  public:
   explicit OOJSEntityHolder(Entity* entity) : _entity(oo::share(entity)) {}
 

@@ -20,6 +20,7 @@
 #include <cstdio>
 #include <string>
 #include <vector>
+#include "EntityManualRefs.h"  // the tests' manual references (T096)
 
 #include "OOOpenGLExtensionManager.h"
 #include "OORegExpMatcher.h"
@@ -268,12 +269,12 @@ OO_TEST(spriteKeepsItsTexture) {
     oo::AutoreleaseScope pool;
     texture = Texture(8, 8);
     sprite = OOTextureSprite::initWithTexture(texture);
-    oo::retain(texture);
+    oo::test::Retain(texture);
   }
-  OO_CHECK(texture->retainCount() == 2);  // the test's and the sprite's
+  OO_CHECK(texture->weak_from_this().use_count() == 2);  // the test's and the sprite's
   sprite = nullptr;
-  OO_CHECK(texture->retainCount() == 1);
-  oo::release(texture);
+  OO_CHECK(texture->weak_from_this().use_count() == 1);
+  oo::test::Release(texture);
 }
 
 OO_TEST(blitDrawsTheTexturedQuad) {

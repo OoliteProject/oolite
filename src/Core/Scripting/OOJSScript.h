@@ -6,9 +6,9 @@ JavaScript support for Oolite
 Copyright (C) 2007-2013 David Taylor and Jens Ayton.
 
 A subclass of OOScript: the script's identity is the C++ object. Holders keep it
-as oo::Ref (the timers and definitions as oo::WeakRef), the stack of running
-scripts holds it weakly, and the Script JS object's private slot holds a weak
-reference to it (OOJSPrivateObject glue).
+as a std::shared_ptr (the timers and definitions as std::weak_ptr), the stack of
+running scripts holds it weakly, and the Script JS object's private slot holds a
+weak reference to it (OOJSPrivateObject glue).
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

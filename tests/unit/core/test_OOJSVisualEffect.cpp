@@ -32,6 +32,7 @@
 #include "oofnd/StdLib.hpp"
 #include "EntityPListForeign.h"	// an entity's node
 #include "OOScript.h"
+#include "EntityManualRefs.h"  // the tests' manual references (T096)
 
 
 // MARK: The classes, as far as the binding sees them ----------------------------------------------
@@ -808,7 +809,7 @@ void SetUpContext()
 	sSubPart->_owner = sEffect;
 	Define("effect", JSValueForEntity(sEffect));
 	Define("sub", JSValueForEntity(sSub));
-	Define("plainEntity", JSValueForObject(sFakeEntityClassID, oo::makeRef<TestEntityObject>().leakRef()));
+	Define("plainEntity", JSValueForObject(sFakeEntityClassID, oo::test::NewRetained<TestEntityObject>()));
 }
 
 
@@ -894,9 +895,9 @@ OO_TEST(properties)
 	OO_CHECK_EVAL("effect.shaderInt1 + ' ' + effect.shaderInt2", "0 -3");
 	OO_CHECK_EVAL("effect.shaderVector1 + ';' + effect.shaderVector2", "1,2,3;0,0,0");
 	OO_CHECK_EVAL("effect.script", "null");
-	sEffectPart->_script = oo::makeRef<OOScript>().leakRef();
+	sEffectPart->_script = oo::test::NewRetained<OOScript>();
 	OO_CHECK_EVAL("effect.script", "[OOObject]");
-	sEffectPart->_script->release();
+	oo::test::Release(sEffectPart->_script);
 	sEffectPart->_script = nullptr;
 	OO_CHECK_EVAL("JSON.stringify(effect.scriptInfo)", "{\"note\":\"hello\"}");
 	OO_CHECK_EVAL("Object.keys(VisualEffect.prototype).join()", "beaconCode,beaconLabel,dataKey,isBreakPattern,scaleX,scaleY,scaleZ,scannerDisplayColor1,scannerDisplayColor2,hullHeatLevel,script,scriptInfo,shaderFloat1,shaderFloat2,shaderInt1,shaderInt2,shaderVector1,shaderVector2,subEntities,vectorForward,vectorRight,vectorUp");

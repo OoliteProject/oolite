@@ -2,7 +2,7 @@
 
 OOJSGuiScreenKeyDefinition.h (QuickJS-ng)
 
-The JS global object makes it and the player keeps it as oo::Ref.
+The JS global object makes it and the player keeps it as a std::shared_ptr.
 
 
 Oolite
@@ -56,9 +56,9 @@ class OOJSScript;  // included by the .cpp, so that a test can stand in for it
 /*	The definition owns references to its callback and callbackThis, which
    are released on destruction and when the JavaScript engine is reset.
 */
-class OOJSGuiScreenKeyDefinition : public oo::RefCounted {
+class OOJSGuiScreenKeyDefinition : public oo::Object {
  public:
-  // The old -init after [super init] (oo::makeRef).
+  // The old -init after [super init] (oo::makeShared).
   OOJSGuiScreenKeyDefinition();
   ~OOJSGuiScreenKeyDefinition() override;
 

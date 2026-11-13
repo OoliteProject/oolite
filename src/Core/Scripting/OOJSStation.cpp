@@ -949,7 +949,7 @@ static JSValue StationSetInterface(OOJS_NATIVE_ARGS) {
     goto fail;
   }
 
-  // C++ (its façade was deleted); the station keeps it (oo::Ref).
+  // C++ (its façade was deleted); the station keeps it (std::shared_ptr).
   definition = oo::makeShared<OOJSInterfaceDefinition>();
   cxxDefinition = definition.get();
   cxxDefinition->setTitle(title);

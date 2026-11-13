@@ -2,8 +2,8 @@
         oo::Object, the common base of every shared-owned game object, and the
    deleter and helpers that go with it (spec 009, contracts/ownership.md).
    Shared ownership is std::shared_ptr<T>, observation std::weak_ptr<T>.
-   While the game moves over, oofnd/Ref.hpp's oo::RefCounted is a subclass of
-   oo::Object that keeps the old retain/release names (the bridge).
+   Until the bridge (oofnd/Ref.hpp) is deleted, its reference-counted base is a
+   subclass of oo::Object that keeps the old retain/release names.
 */
 
 #pragma once
@@ -14,18 +14,18 @@
 
 namespace oo {
 
-// The common base of every shared-owned game object (was oo::RefCounted).
-// Objects are created with oo::makeShared, never std::make_shared, so that
-// willDispose() runs before the destructor.
+// The common base of every shared-owned game object (it replaced the
+// reference-counted base). Objects are created with oo::makeShared, never
+// std::make_shared, so that willDispose() runs before the destructor.
 class Object : public std::enable_shared_from_this<Object> {
  public:
   virtual ~Object() = default;
 
  protected:
   Object() noexcept = default;
-  // Copying gives a new, unowned object (as RefCounted's copy did); assignment
-  // leaves ownership alone. (enable_shared_from_this's own copy constructor
-  // leaves the copy's weak reference empty.)
+  // Copying gives a new, unowned object (as the reference-counted base's copy
+  // did); assignment leaves ownership alone. (enable_shared_from_this's own
+  // copy constructor leaves the copy's weak reference empty.)
   Object(const Object& other) noexcept
       : std::enable_shared_from_this<Object>(other) {}
   Object& operator=(const Object&) noexcept { return *this; }

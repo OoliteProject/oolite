@@ -190,7 +190,7 @@ class OOShaderMaterial : public OOBasicMaterial {
       uniforms;  // no `= {}` (GCC, incomplete T); by uniform name
 
   uint32_t texCount = {};
-  OOTexture** textures = {};
+  std::unique_ptr<std::shared_ptr<OOTexture>[]> textures;
 };
 
 /*	ID of vertex attribute used for tangents. A fixed ID is used for

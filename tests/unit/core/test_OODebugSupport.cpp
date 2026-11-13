@@ -23,6 +23,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include "EntityManualRefs.h"  // the tests' manual references (T096)
 
 #include "OODebugMonitor.h"
 #include "OODebugSupport.h"
@@ -109,7 +110,7 @@ std::string OODebugMonitor::description() const { return "<OODebugMonitor>"; }
 
 OODebugMonitor* OODebugMonitor::sharedDebugMonitor() {
   static OODebugMonitor* monitor = nullptr;
-  if (monitor == nullptr) monitor = oo::makeRef<OODebugMonitor>().leakRef();
+  if (monitor == nullptr) monitor = oo::test::NewRetained<OODebugMonitor>();
   return monitor;
 }
 

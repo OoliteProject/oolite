@@ -28,6 +28,7 @@
 */
 
 #include <process.h>
+#include "EntityManualRefs.h"  // the tests' manual references (T096)
 
 #include <cmath>
 #include <cstdlib>
@@ -67,10 +68,10 @@ MyOpenGLView* View() {
   stdfs::create_directories(root);
   OO_CHECK(::_putenv_s("HOMEPATH", root.string().c_str()) == 0);
   stdfs::current_path(root);
-  sView = new MyOpenGLView();  // [[MyOpenGLView alloc] init]: nil (released)
+  sView = oo::test::NewRetained<MyOpenGLView>();  // [[MyOpenGLView alloc] init]: nil (released)
                                // where init() fails
   if (!sView->init()) {
-    sView->release();
+    oo::test::Release(sView);
     sView = nullptr;
   }
   return sView;
@@ -515,7 +516,7 @@ OO_TEST(cxxSlice3API) {
 OO_TEST(zzDeallocReleasesTheView) {
   {
     MyOpenGLView* view = View();
-    if (view != nullptr) view->release();
+    if (view != nullptr) oo::test::Release(view);
     sView = nullptr;
   }
 }

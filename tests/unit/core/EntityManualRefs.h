@@ -21,6 +21,7 @@ instantiated where the entity's class is complete.
 #include <memory>
 #include <type_traits>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "OOEntityHold.h"
@@ -44,6 +45,53 @@ template <class E>
 constexpr bool kOnTheBridge = std::is_base_of_v<RefCounted, std::remove_const_t<E>>;
 
 }  // namespace test_detail
+
+// The same manual references for any object the tests own by hand (a view, a
+// texture, a script...): Retain() and Release() on the bridge's counter for a
+// class still on it, else on the list above; NewRetained<T>() is new T with its
+// +1 ([[T alloc] init]).
+namespace test {
+
+template <class T>
+T* Retain(T* object) {
+  if (object == nullptr) return object;
+  if constexpr (test_detail::kOnTheBridge<T>) {
+    object->retain();
+  } else {
+    test_detail::ManualHolds()[object].push_back(oo::share(object));
+  }
+  return object;
+}
+
+template <class T>
+void Release(T* object) {
+  if (object == nullptr) return;
+  if constexpr (test_detail::kOnTheBridge<T>) {
+    object->release();
+  } else {
+    auto found = test_detail::ManualHolds().find(object);
+    if (found == test_detail::ManualHolds().end() || found->second.empty())
+      std::abort();  // a release with no retain to give back, as before
+    std::shared_ptr<const void> last = std::move(found->second.back());
+    found->second.pop_back();
+    if (found->second.empty()) test_detail::ManualHolds().erase(found);
+    last.reset();  // may destroy the object
+  }
+}
+
+template <class T, class... Args>
+T* NewRetained(Args&&... args) {
+  if constexpr (test_detail::kOnTheBridge<T>) {
+    return new T(std::forward<Args>(args)...);  // the bridge's +1 from new
+  } else {
+    const std::shared_ptr<T> object =
+        oo::makeShared<T>(std::forward<Args>(args)...);
+    test_detail::ManualHolds()[object.get()].push_back(object);
+    return object.get();
+  }
+}
+
+}  // namespace test
 
 template <class E>
 E* RetainEntity(E* entity) {

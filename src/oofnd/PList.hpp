@@ -28,8 +28,8 @@
    configuration dictionaries that mix property-list data with live objects. No
    parser produces either; the game side makes an
    Object from a live Objective-C object and reads it back. An Object is an
-   oo::Ref to a PListForeign, which oofnd never looks into: it compares by
-   identity and describes itself.
+   std::shared_ptr to a PListForeign, which oofnd never looks into: it compares
+   by identity and describes itself.
 
         Representation choices:
 
@@ -97,7 +97,7 @@ struct PListGet;
 
 // A value inside a PList that is not property-list data: the game side wraps
 // an Objective-C object in a subclass. Compared by identity.
-class PListForeign : public RefCounted {
+class PListForeign : public Object {
  public:
   virtual std::string className()
       const = 0;  // for writer errors ("Class X does not support ...")

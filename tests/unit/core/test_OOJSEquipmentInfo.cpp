@@ -25,6 +25,7 @@
 #include "oofnd/String.hpp"
 #include "OODescription.h"
 #include "oofnd/StdLib.hpp"
+#include "EntityManualRefs.h"  // the tests' manual references (T096)
 
 
 
@@ -578,7 +579,7 @@ OO_TEST(categoryAnswersTheEngine)
 	JSValue first = fuel->jsValueInContext(sContext);
 	JSValue second = fuel->jsValueInContext(sContext);
 	OO_CHECK(JS_IsObject(first) && JS_VALUE_GET_PTR(first) == JS_VALUE_GET_PTR(second));
-	OO_CHECK(SlotOf(first) == static_cast<oo::RefCounted *>(fuel));
+	OO_CHECK(SlotOf(first) == static_cast<oo::Object *>(fuel));
 	const char *infoForFuel = "EquipmentInfo.infoForKey('EQ_FUEL')";
 	JSValue fromScript = JS_Eval(sContext, infoForFuel, std::strlen(infoForFuel), "test.js", JS_EVAL_TYPE_GLOBAL);
 	OO_CHECK(JS_IsObject(fromScript) && JS_VALUE_GET_PTR(fromScript) == JS_VALUE_GET_PTR(first));
@@ -589,7 +590,7 @@ OO_TEST(categoryAnswersTheEngine)
 	fuel->clearJSSelf(first);
 	JSValue third = fuel->jsValueInContext(sContext);
 	OO_CHECK(JS_IsObject(third) && JS_VALUE_GET_PTR(third) != JS_VALUE_GET_PTR(first));
-	OO_CHECK(SlotOf(third) == static_cast<oo::RefCounted *>(fuel));
+	OO_CHECK(SlotOf(third) == static_cast<oo::Object *>(fuel));
 	JS_FreeValue(sContext, third);
 	JS_FreeValue(sContext, again);
 	JS_FreeValue(sContext, fromScript);

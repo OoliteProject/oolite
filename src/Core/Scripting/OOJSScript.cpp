@@ -108,7 +108,7 @@ namespace {
    converter and toString() below ask the script, and answer what a dead
    reference did once it has gone).
 */
-class ScriptPrivate final : public oo::RefCounted {
+class ScriptPrivate final : public oo::Object {
  public:
   explicit ScriptPrivate(OOJSScript* script) : _script(oo::share(script)) {}
 

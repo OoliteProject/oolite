@@ -50,7 +50,7 @@ MA 02110-1301, USA.
 #include "OOFoundation.h"
 #include "oofnd/Ref.hpp"
 
-class OOJSFunction : public oo::RefCounted {
+class OOJSFunction : public oo::Object {
  public:
   // The initialisers' factories: null where the initialiser answered nil (not a
   // function; no code, missing argument names, or a compile error). function

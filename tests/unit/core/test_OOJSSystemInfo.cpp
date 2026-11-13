@@ -34,6 +34,7 @@
 #include "oofnd/String.hpp"
 #include "OODescription.h"
 #include "oofnd/StdLib.hpp"
+#include "EntityManualRefs.h"  // the tests' manual references (T096)
 
 
 // MARK: The classes, as far as the binding and the converted classes see them --------------------
@@ -602,7 +603,7 @@ void SetUpContext()
 	sUniverse->_systemManager->setProperty("name", "0 7", OOSystemLayer::kCore, oo::PList(std::string("Lave")), std::nullopt);
 	sUniverse->_systemManager->setProperty("population", "0 7", OOSystemLayer::kCore, oo::PList(std::string("2.5")), std::nullopt);
 	sUniverse->_systemManager->setProperty("techlevel", "0 7", OOSystemLayer::kCore, oo::PList(8.0), std::nullopt);
-	sScript = oo::makeRef<OOJSScript>().leakRef();
+	sScript = oo::test::NewRetained<OOJSScript>();
 	sScriptManifest = oo::PList(std::string("org.test.script"));
 	Define("lave", GetJSSystemInfoForSystem(sContext, 0, 7));
 }

@@ -80,7 +80,8 @@ std::shared_ptr<OOJSTimer> OOJSTimer::timerWithDelay(OOTimeAbsolute delay,
                                                      JSContext* context,
                                                      JSValueConst function,
                                                      JSValueConst jsThis) {
-  std::shared_ptr<OOJSTimer> timer = oo::adopt(new OOJSTimer);
+  std::shared_ptr<OOJSTimer> timer =
+      std::shared_ptr<OOJSTimer>(new OOJSTimer(), oo::Dispose{});
   if (!timer->initWithDelay(delay, interval, context, function, jsThis))
     return nullptr;
   return timer;

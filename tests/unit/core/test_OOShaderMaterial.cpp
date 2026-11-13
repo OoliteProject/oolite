@@ -26,6 +26,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "EntityManualRefs.h"  // the tests' manual references (T096)
 
 #include "OODescription.h"
 #include "oofnd/PList.hpp"
@@ -257,7 +258,7 @@ std::shared_ptr<OOTexture> OOTexture::textureWithConfiguration(
 std::shared_ptr<OOTexture> OOTexture::nullTexture() {
   static TestTexture* null = nullptr;  // never released
   if (null == nullptr) {
-    null = oo::makeRef<TestTexture>().leakRef();
+    null = oo::test::NewRetained<TestTexture>();
     null->_name = "null";
     null->_finished = true;
   }

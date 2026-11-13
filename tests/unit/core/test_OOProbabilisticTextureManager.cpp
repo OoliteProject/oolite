@@ -25,6 +25,7 @@
 #include <cstdio>
 #include <string>
 #include <vector>
+#include "EntityManualRefs.h"  // the tests' manual references (T096)
 
 #include "OODescription.h"
 #include "OOProbabilisticTextureManager.h"
@@ -313,7 +314,7 @@ OO_TEST(texturesAreLoadedAndKept) {
         for (TestTexture* t : textures) seen = seen || t == texture;
         if (!seen)
           textures.push_back(
-              oo::leakRef(oo::share(texture)));  // the test's reference
+              oo::test::Retain(texture));  // the test's reference
       }
     }
   }
@@ -322,12 +323,12 @@ OO_TEST(texturesAreLoadedAndKept) {
   manager->ensureTexturesLoaded();
   for (TestTexture* texture : textures) {
     OO_CHECK(texture->_loaded == 2);
-    OO_CHECK(texture->retainCount() == 2);  // the test's and the manager's
+    OO_CHECK(texture->weak_from_this().use_count() == 2);  // the test's and the manager's
   }
   manager = nullptr;
   for (TestTexture* texture : textures) {
-    OO_CHECK(texture->retainCount() == 1);
-    oo::release(texture);
+    OO_CHECK(texture->weak_from_this().use_count() == 1);
+    oo::test::Release(texture);
   }
 }
 

@@ -24,6 +24,7 @@
 #include "OODebugFlags.h"
 #include "oofnd/Log.hpp"
 #include "oofnd/String.hpp"
+#include "EntityManualRefs.h"  // the tests' manual references (T096)
 
 #include "oo_test.hpp"
 
@@ -59,7 +60,7 @@ MonitorRecord sMonitor;
 OODebugMonitor *OODebugMonitor::sharedDebugMonitor()
 {
 	static OODebugMonitor *monitor = nullptr;
-	if (monitor == nullptr)  monitor = oo::makeRef<OODebugMonitor>().leakRef();
+	if (monitor == nullptr)  monitor = oo::test::NewRetained<OODebugMonitor>();
 	return monitor;
 }
 
@@ -563,8 +564,8 @@ void SetUpContext()
 	gOOJSMainThreadContext = sContext;
 	sGlobal = JS_GetGlobalObject(sContext);
 	gSharedUniverse = new FakeUniverse();
-	sPlainEntity = oo::makeRef<TestEntityObject>().leakRef();
-	sInspectableEntity = oo::makeRef<InspectableEntity>().leakRef();
+	sPlainEntity = oo::test::NewRetained<TestEntityObject>();
+	sInspectableEntity = oo::test::NewRetained<InspectableEntity>();
 
 	sConsoleObject = DebugMonitorToJSConsole(sContext, OODebugMonitor::sharedDebugMonitor());
 	// The global holds the console; sConsoleObject borrows it.
