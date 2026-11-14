@@ -1,6 +1,6 @@
 /*
 
-OOJSWormhole.h
+OOJSWormhole.h (QuickJS-ng)
 
 JavaScript proxy for WormholeEntities.
 
@@ -26,18 +26,22 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#import "WormholeEntity.h"
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+#import "OOFoundation.h"
+#include <quickjs.h>
 
-@class WormholeEntity;
+#include <optional>
+#include <string>
 
-void InitOOJSWormhole(JSContext* context, JSObject* global);
+class WormholeEntity;
 
-@interface WormholeEntity (OOJavaScriptExtensions)
+void InitOOJSWormhole(JSContext* context, JSValueConst global);
 
-- (void)getJSClass:(JSClass**)outClass andPrototype:(JSObject**)outPrototype;
-- (NSString*)oo_jsClassName;
-- (BOOL)isVisibleToScripts;
+JSClassID JSWormholeClassID(void);
 
-@end
+/*	The bodies of WormholeEntity (OOJavaScriptExtensions), which the engine reaches by selector. Its
+        methods are one-line forwarders to these on the WormholeEntity facade, in
+        WormholeEntity+ObjCBridge.mm (bead oo-9ht.43), until that facade goes (oo-9ht.112; proposed
+        ADR-0056 amendments oo-ppc, oo-ykoy and oo-6ia4). (-oo_jsClassID answers JSWormholeClassID().)
+*/
+std::optional<std::string> OOJSWormholeJSClassName(void);
+bool OOJSWormholeIsVisibleToScripts(void);

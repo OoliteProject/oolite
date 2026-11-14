@@ -24,10 +24,20 @@ MA 02110-1301, USA.
 
 */
 
+#import "PlayerEntity.h"
+
+/*	The category PlayerEntity (KeyMapper) is members of
+        PlayerEntity, declared in PlayerEntity.h and defined in PlayerEntityKeyMapper.mm. Its Objective-C interface,
+        for the callers that remained, was the category of the same name in PlayerEntity+ObjCBridge.h (deleted),
+        which PlayerEntity.h imports. This header stays for the files that import it.
+*/
 #import "GuiDisplayGen.h"
 #import "MyOpenGLView.h"
-#import "PlayerEntity.h"
 #import "Universe.h"
+
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+#include <string_view>
 
 #define MAX_ROWS_KC_FUNCTIONS 12
 
@@ -55,39 +65,9 @@ MA 02110-1301, USA.
 #define GUI_ROW_KC_ENTRY_INFO 2
 
 // Dictionary keys
-#define KEY_KC_GUIDESC @"guiDesc"
-#define KEY_KC_DEFINITION @"keyDef"
-#define KEY_KC_HEADER @"header"
+inline constexpr std::string_view KEY_KC_GUIDESC = "guiDesc";
+inline constexpr std::string_view KEY_KC_DEFINITION = "keyDef";
+inline constexpr std::string_view KEY_KC_HEADER = "header";
 
 // Dictionary keys - used in the defaults file
-#define KEYCONFIG_OVERRIDES @"KeyConfigOverrides" // NSUserDefaults
-
-@interface PlayerEntity (KeyMapper)
-- (void)resetKeyFunctions;
-- (void)initCheckingDictionary;
-
-- (void)setGuiToKeyMapperScreen:(unsigned)skip resetCurrentRow:(BOOL)resetCurrentRow;
-- (void)setGuiToKeyMapperScreen:(unsigned)skip;
-- (void)keyMapperInputHandler:(GuiDisplayGen*)gui view:(MyOpenGLView*)gameView;
-
-- (void)setGuiToKeyConfigScreen;
-- (void)setGuiToKeyConfigScreen:(BOOL)resetSelectedRow;
-- (void)handleKeyConfigKeys:(GuiDisplayGen*)gui view:(MyOpenGLView*)gameView;
-- (void)outputKeyDefinition:(NSString*)key shift:(NSString*)shift mod1:(NSString*)mod1 mod2:(NSString*)mod2 skiprows:(NSUInteger)skiprows;
-
-- (void)setGuiToKeyConfigEntryScreen;
-- (void)handleKeyConfigEntryKeys:(GuiDisplayGen*)gui view:(MyOpenGLView*)gameView;
-
-- (void)setGuiToConfirmClearScreen;
-- (void)handleKeyMapperConfirmClearKeys:(GuiDisplayGen*)gui view:(MyOpenGLView*)gameView;
-
-- (void)setGuiToKeyboardLayoutScreen:(unsigned)skip;
-- (void)setGuiToKeyboardLayoutScreen:(unsigned)skip resetCurrentRow:(BOOL)resetCurrentRow;
-- (void)handleKeyboardLayoutEntryKeys:(GuiDisplayGen*)gui view:(MyOpenGLView*)gameView;
-
-- (NSString*)validateKey:(NSString*)key checkKeys:(NSArray*)check_keys;
-
-- (NSDictionary*)makeKeyGuiDict:(NSString*)what keyDef:(NSString*)keyDef;
-- (NSDictionary*)makeKeyGuiDictHeader:(NSString*)header;
-
-@end
+inline constexpr std::string_view KEYCONFIG_OVERRIDES = "KeyConfigOverrides"; // preferences key (oo::Defaults)
