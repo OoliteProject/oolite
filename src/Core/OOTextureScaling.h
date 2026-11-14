@@ -37,9 +37,9 @@ SOFTWARE.
 
         IMPORTANT: this will free() srcPixMap's pixels.
 */
-OOPixMap OOScalePixMap(OOPixMap srcPixMap, OOPixMapDimension dstWidth, OOPixMapDimension dstHeight, BOOL leaveSpaceForMipMaps);
+OOPixMap OOScalePixMap(OOPixMap srcPixMap, OOPixMapDimension dstWidth, OOPixMapDimension dstHeight, bool leaveSpaceForMipMaps);
 
 /*	Assumes 8 bits per sample, interleaved.
         Buffer must have space for (4 * width * height) / 3 pixels.
 */
-BOOL OOGenerateMipMaps(void* textureBytes, OOPixMapDimension width, OOPixMapDimension height, OOPixMapFormat format);
+bool OOGenerateMipMaps(void* textureBytes, OOPixMapDimension width, OOPixMapDimension height, OOPixMapFormat format);

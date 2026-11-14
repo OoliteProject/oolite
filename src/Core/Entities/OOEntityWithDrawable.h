@@ -4,6 +4,12 @@ OOEntityWithDrawable.h
 
 Abstract intermediate class for entities which use an OODrawable to render.
 
+C++20 since bead oo-bj8, with Entity the Entities pattern seam (proposed ADR-0056, amendment
+oo-bj8). The class is cxx::OOEntityWithDrawable while OOEntityWithDrawable+ObjCBridge.h, imported
+at the end of this header, keeps the Objective-C OOEntityWithDrawable that its unconverted
+subclasses (ShipEntity, SkyEntity, OOVisualEffectEntity) derive from; the bridge's deletion bead
+moves it out of namespace cxx.
+
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -28,23 +34,28 @@ MA 02110-1301, USA.
 
 @class OODrawable;
 
-// Methods that must be supported by subentities, regardless of type.
-@protocol OOSubEntity
+namespace cxx {
 
-- (void)rescaleBy:(GLfloat)factor;
-- (void)rescaleBy:(GLfloat)factor writeToCache:(BOOL)writeToCache;
+class OOEntityWithDrawable : public Entity {
+public:
+    ::OODrawable* getDrawable();
+    void setDrawable(::OODrawable* drawable);
 
-// Separate drawing path for subentities of ships.
-- (void)drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent;
+    double findCollisionRadius() override;
+    void drawImmediate(bool immediate, bool translucent) override;
 
-@end
+#ifdef OO_DEBUG_MONITOR_ENABLED
+    std::vector<oo::ObjCRef<::OOTexture*>> allTextures() override;
+#endif
 
-@interface OOEntityWithDrawable : Entity {
-@private
-    OODrawable* drawable;
-}
+private:
+    // The Objective-C drawable: OOMesh, a drawable still Objective-C, is kept alive by its own
+    // object, not by its C++ part (amendment oo-smy item 4).
+    oo::ObjCRef<::OODrawable*> drawable;
+};
 
-- (OODrawable*)drawable;
-- (void)setDrawable:(OODrawable*)drawable;
+} // namespace cxx
 
-@end
+// Transitional: the Objective-C OOEntityWithDrawable, for subclasses not yet converted. Deleted,
+// with namespace cxx above, by the bridge's deletion bead.
+#import "OOEntityWithDrawable+ObjCBridge.h"

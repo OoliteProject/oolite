@@ -1,6 +1,6 @@
 /*
 
-OOJSStation.h
+OOJSStation.h (QuickJS-ng)
 
 JavaScript proxy for StationEntities.
 
@@ -26,10 +26,21 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#import "StationEntity.h"
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+#import "OOFoundation.h"
+#include <quickjs.h>
+
+#include <optional>
+#include <string>
 
 @class StationEntity;
 
-void InitOOJSStation(JSContext* context, JSObject* global);
+void InitOOJSStation(JSContext* context, JSValueConst global);
+
+JSClassID JSStationClassID(void);
+
+/*	The bodies of StationEntity (OOJavaScriptExtensions), which the engine reaches by selector.
+        Its methods are one-line forwarders to these in OOJSStation+ObjCBridge.mm until
+        StationEntity converts (proposed ADR-0056 amendments oo-ppc and oo-ykoy). (-oo_jsClassID
+        answers JSStationClassID().)
+*/
+std::optional<std::string> OOJSStationJSClassName(void);

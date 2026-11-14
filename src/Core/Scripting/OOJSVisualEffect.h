@@ -1,6 +1,6 @@
 /*
 
-OOJSVisualEffect.h
+OOJSVisualEffect.h (QuickJS-ng)
 
 JavaScript proxy for OOVisualEffectEntities.
 
@@ -26,19 +26,23 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#import "OOFoundation.h"
 #import "OOVisualEffectEntity.h"
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+#include "oofnd/objc/OOObjCRef.h"
+#include <quickjs.h>
+#include <vector>
 
-@class OOVisualEffectEntity;
+@class Entity, OOVisualEffectEntity;
 
-void InitOOJSVisualEffect(JSContext* context, JSObject* global);
+void InitOOJSVisualEffect(JSContext* context, JSValueConst global);
 
-@interface OOVisualEffectEntity (OOJavaScriptExtensions)
+JSClassID JSVisualEffectClassID(void);
 
-- (void)getJSClass:(JSClass**)outClass andPrototype:(JSObject**)outPrototype;
-- (NSString*)oo_jsClassName;
-- (BOOL)isVisibleToScripts;
-- (NSArray*)subEntitiesForScript;
-
-@end
+/*	The bodies of OOVisualEffectEntity (OOJavaScriptExtensions), which the engine reaches by
+        selector. Its methods are one-line forwarders to these in OOJSVisualEffect+ObjCBridge.mm
+        until OOVisualEffectEntity converts (proposed ADR-0056 amendments oo-ppc and oo-ykoy). Its
+        -oo_jsClassID answers JSVisualEffectClassID().
+*/
+std::optional<std::string> OOJSVisualEffectJSClassName(void);
+bool OOJSVisualEffectIsVisibleToScripts(void);
+std::vector<oo::ObjCRef<Entity*>> OOJSVisualEffectSubEntitiesForScript(OOVisualEffectEntity* effect);

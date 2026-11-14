@@ -4,6 +4,10 @@ OOShaderUniform.h
 
 Manages a uniform variable for OOShaderMaterial.
 
+C++20 since bead oo-n99o (proposed ADR-0056). Its Objective-C facade was deleted by bead oo-9ht.55
+(ADR-0056 amendment "deleting a facade"): the class is global, and OOShaderMaterial and DustEntity
+hold its uniforms as oo::Ref<OOShaderUniform>.
+
 
 Copyright (C) 2007-2013 Jens Ayton
 
@@ -27,26 +31,73 @@ SOFTWARE.
 
 */
 
+#ifndef OOSHADERUNIFORM_H
+#define OOSHADERUNIFORM_H
+
 #import "OOShaderMaterial.h"
 
 #if OO_SHADERS
 
+#import "OOColor.h"
 #import "OOMaths.h"
 
-@class OOColor;
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
 
-@interface OOShaderUniform : NSObject {
-@private
-    NSString* name;
-    GLint location;
-    uint8_t isBinding : 1,
-        // flags that apply only to bindings:
-        isActiveBinding : 1,
-        convertClamp : 1,
-        convertNormalize : 1,
-        convertToMatrix : 1,
-        bindToSuper : 1;
-    uint8_t type;
+@class OOShaderProgram, OOWeakReference;
+
+class OOShaderUniform : public oo::RefCounted {
+public:
+    ~OOShaderUniform() override;
+
+    /*	The initialisers, as static factories of the same name (proposed ADR-0056 amendment
+            oo-novu): null where the initialiser answered nil (no program, no uniform of that name in
+            it, a nil colour, no selector).
+    */
+    static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram, GLint constValue); // intValue:
+    static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram, GLfloat constValue); // floatValue:
+    static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram, GLfloat constValue[4]); // vectorValue:
+    static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram, cxx::OOColor* constValue); // colorValue: Converted to vector
+    static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram, Quaternion constValue, bool asMatrix); // quaternionValue:asMatrix: Converted to vector (in xyzw order, not wxyz!) or rotation matrix.
+    static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram, OOMatrix constValue); // matrixValue:
+
+    /*	"Convert" has different meanings for different types.
+            For float and int types, it clamps to the range [0, 1].
+            For vector types, it normalizes.
+            For quaternions, it converts to rotation matrix (instead of vec4).
+    */
+    static oo::Ref<OOShaderUniform> initWithName(const std::string& uniformName,
+        ::OOShaderProgram* shaderProgram,
+        id<OOWeakReferenceSupport> target, // boundToObject:
+        SEL selector, // property:
+        OOUniformConvertOptions options); // convertOptions:
+
+    // The whole of what -cxx_description printed (amendment oo-3lj8 item 4).
+    std::optional<std::string> description();
+
+    void apply();
+
+    void setBindingTarget(id<OOWeakReferenceSupport> target);
+
+private:
+    OOShaderUniform() = default;
+
+    // Designated initializer (was private too).
+    bool initWithName(const std::string& uniformName, ::OOShaderProgram* shaderProgram);
+
+    void applySimple();
+    void applyBinding();
+
+    std::string name = { };
+    GLint location = { };
+    uint8_t isBinding : 1 = { },
+                        // flags that apply only to bindings:
+        isActiveBinding : 1 = { },
+                        convertClamp : 1 = { },
+                        convertNormalize : 1 = { },
+                        convertToMatrix : 1 = { },
+                        bindToSuper : 1 = { };
+    uint8_t type = { };
     union {
         GLint constInt;
         GLfloat constFloat;
@@ -54,35 +105,13 @@ SOFTWARE.
         OOMatrix constMatrix;
         struct
         {
-            OOWeakReference* object;
+            ::OOWeakReference* object;
             SEL selector;
             IMP method;
         } binding;
-    } value;
-}
-
-- (id)initWithName:(NSString*)uniformName shaderProgram:(OOShaderProgram*)shaderProgram intValue:(GLint)constValue;
-- (id)initWithName:(NSString*)uniformName shaderProgram:(OOShaderProgram*)shaderProgram floatValue:(GLfloat)constValue;
-- (id)initWithName:(NSString*)uniformName shaderProgram:(OOShaderProgram*)shaderProgram vectorValue:(GLfloat[4])constValue;
-- (id)initWithName:(NSString*)uniformName shaderProgram:(OOShaderProgram*)shaderProgram colorValue:(OOColor*)constValue; // Converted to vector
-- (id)initWithName:(NSString*)uniformName shaderProgram:(OOShaderProgram*)shaderProgram quaternionValue:(Quaternion)constValue asMatrix:(BOOL)asMatrix; // Converted to vector (in xyzw order, not wxyz!) or rotation matrix.
-- (id)initWithName:(NSString*)uniformName shaderProgram:(OOShaderProgram*)shaderProgram matrixValue:(OOMatrix)constValue;
-
-/*	"Convert" has different meanings for different types.
-        For float and int types, it clamps to the range [0, 1].
-        For vector types, it normalizes.
-        For quaternions, it converts to rotation matrix (instead of vec4).
-*/
-- (id)initWithName:(NSString*)uniformName
-     shaderProgram:(OOShaderProgram*)shaderProgram
-     boundToObject:(id<OOWeakReferenceSupport>)target
-          property:(SEL)selector
-    convertOptions:(OOUniformConvertOptions)options;
-
-- (void)apply;
-
-- (void)setBindingTarget:(id<OOWeakReferenceSupport>)target;
-
-@end
+    } value = { };
+};
 
 #endif // OO_SHADERS
+
+#endif // OOSHADERUNIFORM_H

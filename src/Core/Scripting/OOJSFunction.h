@@ -4,6 +4,12 @@ OOJSFunction.h
 
 Object encapsulating a runnable JavaScript function.
 
+C++20 since bead oo-3smy (proposed ADR-0056, the OOColor house style). The class is
+cxx::OOJSFunction while OOJSFunction+ObjCBridge.h, imported at the end of this header, keeps the
+Objective-C OOJSFunction that ShipEntityAI (alloc/init and -evaluatePredicateWithContext:...) and
+OORegExpMatcher (which names it ::OOJSFunction) message; the bridge's deletion bead moves it out
+of namespace cxx.
+
 
 JavaScript support for Oolite
 Copyright (C) 2007-2013 David Taylor and Jens Ayton.
@@ -25,44 +31,80 @@ MA 02110-1301, USA.
 
 */
 
+#ifndef OOJSFUNCTION_H
+#define OOJSFUNCTION_H
+
 #import "OOFoundation.h"
-#include <jsapi.h>
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
+#include <quickjs.h>
 
-@interface OOJSFunction : NSObject {
-@private
-    JSFunction* _function;
-    NSString* _name;
-}
+#include <optional>
+#include <string>
+#include <vector>
 
-- (id)initWithFunction:(JSFunction*)function context:(JSContext*)context;
-- (id)initWithName:(NSString*)name
-             scope:(JSObject*)scope // may be NULL, in which case global object is used.
-              code:(NSString*)code // full JS code for function, including function declaration.
-     argumentCount:(NSUInteger)argCount
-     argumentNames:(const char**)argNames
-          fileName:(NSString*)fileName
-        lineNumber:(NSUInteger)lineNumber
-           context:(JSContext*)context; // may be NULL. If not null, must be in a request.
+namespace cxx {
 
-- (NSString*)name;
-- (JSFunction*)function;
-- (jsval)functionValue;
+class OOJSFunction : public oo::RefCounted {
+public:
+    // The initialisers' factories (proposed ADR-0056 amendment oo-novu): null where the
+    // initialiser answered nil (not a function; no code, missing argument names, or a compile
+    // error).
+    // function must be a function value; the OOJSFunction takes its own reference.
+    static oo::Ref<OOJSFunction> initWithFunction(JSValueConst function, JSContext* context);
+    static oo::Ref<OOJSFunction> initWithName(const std::optional<std::string>& name,
+        JSValueConst scope, // Ignored; QuickJS compiles functions in the global scope. Pass JS_UNDEFINED.
+        const std::optional<std::string>& code, // Function body.
+        NSUInteger argCount,
+        const char** argNames,
+        const std::optional<std::string>& fileName,
+        NSUInteger lineNumber,
+        JSContext* context); // may be NULL.
 
-// Raw evaluation. Context may not be NULL and must be in a request.
-- (BOOL)evaluateWithContext:(JSContext*)context
-                      scope:(JSObject*)jsThis
-                       argc:(uintN)argc
-                       argv:(jsval*)argv
-                     result:(jsval*)result;
+    ~OOJSFunction() override;
 
-// Object-wrapper evaluation.
-- (id)evaluateWithContext:(JSContext*)context
-                    scope:(id)jsThis
-                arguments:(NSArray*)arguments;
+    std::optional<std::string> descriptionComponents() const;
 
-// As above, but converts result to a boolean.
-- (BOOL)evaluatePredicateWithContext:(JSContext*)context
-                               scope:(id)jsThis
-                           arguments:(NSArray*)arguments;
+    std::optional<std::string> name(); // nullopt: anonymous (bead oo-3rb.289.7)
+    // Borrowed; valid while the receiver is alive and the engine is not reset. JS_NULL if invalid.
+    JSValueConst function();
+    // Owned (caller must free). JS_NULL if invalid.
+    JSValue functionValue();
 
-@end
+    // Raw evaluation. *result is owned by the caller on success. On failure, any exception is left pending (not reported).
+    bool evaluateWithContext(JSContext* context,
+        JSValueConst jsThis,
+        int argc,
+        JSValueConst* argv,
+        JSValue* result);
+
+    // Object-wrapper evaluation, converting the result to a boolean.
+    bool evaluatePredicateWithContext(JSContext* context,
+        id jsThis,
+        const std::vector<oo::ObjCRef<id>>& arguments);
+
+private:
+    // The part of -initWithFunction:context: that cannot fail.
+    OOJSFunction(JSValueConst function, JSContext* context);
+
+    bool isValid() const;
+    void deleteJSValue();
+
+    // Semi-raw evaluation shared by convenience methods below. *result is owned on success; exceptions are reported.
+    bool evaluateWithContext(JSContext* context,
+        id jsThis,
+        const std::vector<oo::ObjCRef<id>>& arguments,
+        JSValue* result);
+
+    JSValue _function = JS_NULL; // Owned; JS_NULL when invalid.
+    std::optional<std::string> _name; // nullopt for an anonymous function (was nil)
+};
+
+} // namespace cxx
+
+// Transitional: the Objective-C OOJSFunction, for callers not yet converted. Deleted, with
+// namespace cxx above, by the bridge's deletion bead.
+#import "OOJSFunction+ObjCBridge.h"
+
+#endif // OOJSFUNCTION_H

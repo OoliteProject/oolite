@@ -25,8 +25,19 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+#import "OOFoundation.h"
+#include <quickjs.h>
 
-void CreateOOJSGlobal(JSContext* context, JSObject** outGlobal);
-void SetUpOOJSGlobal(JSContext* context, JSObject* global);
+/*	QuickJS's global object is an ordinary object created with the context,
+        so there is no CreateOOJSGlobal(). SetUpOOJSGlobal() defines Oolite's
+        global properties and functions on it.
+*/
+void SetUpOOJSGlobal(JSContext* context, JSValueConst global);
+
+/*	-[OOJavaScriptEngine sendMonitorLogMessage:withMessageClass:inContext:], which OOJSGlobal.mm
+        sends from log(); defined, with the category that declares the selector, in
+        OOJSGlobal+ObjCBridge.mm when OOJSENGINE_MONITOR_SUPPORT is on (proposed ADR-0056 amendments
+        oo-9ht.66 and oo-6ia4 item 6).
+*/
+#include "oofnd/StdLib.hpp"
+void OOJSGlobalSendMonitorLogMessage(const std::optional<std::string>& message, const std::optional<std::string>& messageClass, JSContext* context);
