@@ -43,6 +43,7 @@ oolite_sources += files(
     'OODrawable.m',
     'OOEncodingConverter.m',
     'OOEntityFilterPredicate.m',
+    'OOEnumerationShuffle.m',
     'OOEquipmentType.m',
     'OOExcludeObjectEnumerator.m',
     'OOFilteringEnumerator.m',

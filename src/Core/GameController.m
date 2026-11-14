@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OODebugFlags.h"
 #import "OODebugSupport.h"
+#import "OOEnumerationShuffle.h"
 #import "OOJSFrameCallbacks.h"
 #import "OOLogOutputHandler.h"
 #import "OOLoggingExtended.h"
@@ -43,6 +44,9 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "legacy_random.h"
 #include <stdlib.h>
+#ifndef NDEBUG
+#import "OOJavaScriptEngine.h"
+#endif
 
 #if OOLITE_MAC_COCOA_UI
 #import "JAPersistentFileReference.h"
@@ -90,7 +94,25 @@ static GameController* sSharedController = nil;
 
         // rather than seeding this with the date repeatedly, seed it
         // once here at startup
-        ranrot_srand((uint32_t)[[NSDate date] timeIntervalSince1970]); // reset randomiser with current time
+        // OO_RANDOM_SEED pins the seed so a run can be reproduced.
+        // Downstream component tests depend on it.
+        // Unset to keep wall-clock seeding.
+        const char* seedEnv = getenv("OO_RANDOM_SEED");
+        if (seedEnv != NULL && *seedEnv != '\0') {
+            ranrot_srand((uint32_t)strtoul(seedEnv, NULL, 10));
+            OOLog(@"rand.seed", @"RANROT seeded from OO_RANDOM_SEED=%s", seedEnv);
+        } else {
+            ranrot_srand((uint32_t)[[NSDate date] timeIntervalSince1970]); // reset randomiser with current time
+        }
+
+#if OO_DEBUG
+        /*	Force the enumeration shuffle to read its environment here rather than at the
+                first foreach(), so its seed is in the log above every line it could have
+                affected. Returns immediately and logs nothing when OO_SHUFFLE_ENUMERATION is
+                unset, which is the normal case. Debug builds only; see OOEnumerationShuffle.h.
+        */
+        (void)OOEnumerationShuffleEnabled();
+#endif
 
         _splashStart = [[NSDate alloc] init];
     }
@@ -786,6 +808,10 @@ static NSMutableArray* sMessageStack;
 #endif
     [[NSUserDefaults standardUserDefaults] synchronize];
     OOLog(@"gameController.exitApp", @"%@", @".GNUstepDefaults synchronized.");
+#ifndef NDEBUG
+    // Leak check: tears down the JavaScript runtime and logs any objects still alive.
+    [[OOJavaScriptEngine sharedEngine] shutDown];
+#endif
     OOLoggingTerminate();
     SDL_Quit();
     [[OOOpenALController sharedController] shutdown];
