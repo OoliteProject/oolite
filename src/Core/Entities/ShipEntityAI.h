@@ -29,48 +29,8 @@ MA 02110-1301, USA.
 
 @class AI, Universe, OOPlanetEntity;
 
-@interface ShipEntity (AI)
-
-//	AI methods also used in other code.
-
-- (void)setAITo:(NSString*)aiString;
-- (void)setAIScript:(NSString*)aiString;
-- (void)switchAITo:(NSString*)aiString;
-
-- (void)scanForHostiles;
-- (BOOL)performHyperSpaceToSpecificSystem:(OOSystemID)systemID;
-- (void)scanForNearestIncomingMissile;
-
-- (void)enterTargetWormhole;
-- (void)enterPlayerWormhole;
-
-- (void)wormholeEscorts;
-- (void)wormholeEntireGroup;
-
-- (BOOL)suggestEscortTo:(ShipEntity*)mother;
-
-- (void)groupAttackTarget;
-
-- (void)performAttack;
-- (void)performCollect;
-- (void)performEscort;
-- (void)performFaceDestination;
-- (void)performFlee;
-- (void)performFlyToRangeFromDestination;
-- (void)performHold;
-- (void)performIdle;
-- (void)performIntercept;
-- (void)performLandOnPlanet;
-- (void)performMining;
-- (void)performScriptedAI;
-- (void)performScriptedAttackAI;
-- (void)performStop;
-- (void)performTumble;
-
-- (void)broadcastDistressMessage;
-- (void)broadcastDistressMessageWithDumping:(BOOL)dumpCargo;
-
-- (void)requestDockingCoordinates;
-- (void)recallDockingInstructions;
-
-@end
+/*	The category ShipEntity (AI) is declared in ShipEntity+ObjCBridge.h since slice 1 of
+        docs/phases/3-slices/ShipEntityAI.md (bead oo-iebuz): its methods are members of cxx::ShipEntity,
+        defined in ShipEntityAI.mm, and the facade forwards them (ADR-0056 amendment oo-42dr). This
+        header stays for the files that import it.
+*/

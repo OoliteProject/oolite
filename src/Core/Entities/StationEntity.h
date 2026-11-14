@@ -4,6 +4,14 @@ StationEntity.h
 
 ShipEntity subclass representing a space station or dockable ship.
 
+The state is C++ since slice 1 of its slice plan (docs/phases/3-slices/StationEntity.md, bead
+oo-64ako; proposed ADR-0056, amendments oo-60fwo and oo-64ako): cxx::StationEntity, a
+cxx::ShipEntity, holds the ivars as public data members with the same names, and the class shell's
+methods (accessors, market, shipyard, flags, set-up, descriptions). StationEntity+ObjCBridge.h,
+imported at the end of this header, keeps the Objective-C StationEntity, whose methods of slices
+2-4 stay Objective-C until their slices move them. The bridge's deletion bead moves the class out
+of namespace cxx.
+
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -30,7 +38,11 @@ MA 02110-1301, USA.
 #import "ShipEntity.h"
 #import "Universe.h"
 
-@class OOWeakSet;
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
+
+@class OOWeakSet, StationEntity;
 
 typedef enum {
     STATION_ALERT_LEVEL_GREEN = ALERT_CONDITION_GREEN,
@@ -48,200 +60,202 @@ typedef enum {
 
 #define DOCKING_CLEARANCE_WINDOW 126.0
 
-@interface StationEntity : ShipEntity {
-@private
-    OOWeakSet* _shipsOnHold;
-    DockEntity* player_reserved_dock;
-    double last_launch_time;
-    double approach_spacing;
-    OOStationAlertLevel alertLevel;
+namespace cxx {
 
-    unsigned max_police; // max no. of police ships allowed
-    unsigned max_defense_ships; // max no. of defense ships allowed
-    unsigned defenders_launched;
+/*	The station's state, and the members its slices have moved (docs/phases/3-slices/StationEntity.md).
 
-    unsigned max_scavengers; // max no. of scavenger ships allowed
-    unsigned scavengers_launched;
+        The ivars are data members with the same names, every one zero-initialised as the runtime
+        zeroed them (amendment oo-bj8 item 1). The facade's unconverted methods reach them through the
+        facade's _cxxStation, by the same names (amendment oo-64ako), so each later slice gets its
+        bodies back verbatim by deleting "_cxxStation->". Pointers to Objective-C objects stay what
+        they were, retained by hand where they were (amendment oo-bj8 item 4).
+*/
+class StationEntity : public ShipEntity {
+public:
+    // Slice 1: class shell, market and shipyard, flags and accessors.
+    bool isUnpiloted() override;
+    OOTechLevelID getEquivalentTechLevel();
+    void setEquivalentTechLevel(OOTechLevelID value);
+    Vector virtualPortDimensions();
+    ::DockEntity* playerReservedDock();
+    HPVector beaconPosition();
+    float getEquipmentPriceFactor();
+    OOCargoQuantity getMarketCapacity();
+    oo::PList getMarketDefinition(); // null: none
+    std::optional<std::string> getMarketScriptName();
+    bool getMarketMonitored();
+    bool getMarketBroadcast();
+    OOCreditsQuantity legalStatusOfManifest(::OOCommodityMarket* manifest, bool isExport);
+    ::OOCommodityMarket* getLocalMarket();
+    void setLocalMarket(const oo::PList& some_market);
+    oo::PList localMarketForScripting();
+    void setPrice(OOCreditsQuantity price, const std::string& commodity);
+    void setQuantity(OOCargoQuantity quantity, const std::string& commodity);
+    std::vector<oo::PList>* getLocalShipyard();
+    void setLocalShipyard(const std::vector<oo::PList>& some_market);
+    std::map<std::string, oo::ObjCRef<::OOJSInterfaceDefinition*>, std::less<>>* getLocalInterfaces();
+    void setInterfaceDefinition(::OOJSInterfaceDefinition* definition, const std::string& key);
+    ::OOCommodityMarket* initialiseLocalMarket();
+    void setPlanet(::OOPlanetEntity* planet_entity);
+    ::OOPlanetEntity* getPlanet();
+    unsigned countOfDockedContractors();
+    unsigned countOfDockedPolice();
+    unsigned countOfDockedDefenders();
+    std::vector<oo::ObjCRef<::DockEntity*>> dockSubEntities();
+    bool setUpShipFromDictionary(const oo::PList& dict) override;
+    bool setUpSubEntities() override;
+    bool getInterstellarUndockingAllowed();
+    bool getHasNPCTraffic();
+    void setHasNPCTraffic(bool flag);
+    bool getRequiresDockingClearance();
+    void setRequiresDockingClearance(bool newValue);
+    bool getAllowsFastDocking();
+    void setAllowsFastDocking(bool newValue);
+    bool getAllowsAutoDocking();
+    void setAllowsAutoDocking(bool newValue);
+    bool getAllowsSaving();
+    bool isRotatingStation();
+    std::optional<std::string> marketOverrideName();
+    bool hasShipyard();
+    void generateShipyard();
+    void generateShipyard(OOTechLevelID stationTechLevel);
+    bool suppressArrivalReports();
+    void setSuppressArrivalReports(bool newValue);
+    bool getHasBreakPattern();
+    void setHasBreakPattern(bool newValue);
+    std::optional<std::string> descriptionComponents() const override;
+    void dumpSelfState() override;
 
-    OOTechLevelID equivalentTechLevel;
-    float equipmentPriceFactor;
+    // ShipEntityAI.mm slice 1 (bead oo-iebuz): the category StationEntity (OOAIPrivate).
+    void acceptDistressMessageFrom(::ShipEntity* other) override;
 
-    Vector port_dimensions;
-    double port_radius;
+    // Slice 2: docking traffic control and the launch queue.
+    void sanityCheckShipsOnApproach();
+    void launchShip(::ShipEntity* ship);
+    void abortAllDockings();
+    void autoDockShipsOnHold();
+    void autoDockShipsOnApproach();
+    Vector portUpVectorForShip(::ShipEntity* ship);
+    oo::PList dockingInstructionsForShip(::ShipEntity* ship);
+    oo::PList holdPositionInstructionForShip(::ShipEntity* ship);
+    void abortDockingForShip(::ShipEntity* ship);
+    bool shipIsInDockingCorridor(::ShipEntity* ship);
+    void pullInShipIfPermitted(::ShipEntity* ship);
+    bool dockingCorridorIsEmpty();
+    void clearDockingCorridor();
+    void update(OOTimeDelta delta_t) override;
+    void clear();
+    bool hasMultipleDocks();
+    bool hasClearDock();
+    bool hasEligibleDock();
+    bool hasLaunchDock();
+    ::DockEntity* selectDockForDocking();
+    void addShipToLaunchQueue(::ShipEntity* ship, bool priority);
+    unsigned countOfShipsInLaunchQueueWithPrimaryRole(const std::string& role);
+    bool fitsInDock(::ShipEntity* ship);
+    bool fitsInDock(::ShipEntity* ship, bool logNoFit);
+    void noteDockedShip(::ShipEntity* ship);
+    void addShipToStationCount(::ShipEntity* ship);
 
-    unsigned no_docking_while_launching : 1,
-        hasNPCTraffic : 1;
-    BOOL hasPatrolShips;
+    // Slice 3: docking clearance, damage, allegiance and alert level.
+    bool collideWithShip(::ShipEntity* other) override;
+    bool hasHostileTarget() override;
+    void takeEnergyDamage(double amount, cxx::Entity* ent, cxx::Entity* other, const std::string& weaponIdentifier) override;
+    void adjustVelocity(Vector xVel) override;
+    void takeScrapeDamage(double amount, ::Entity* ent) override;
+    void takeHeatDamage(double amount) override;
+    std::optional<std::string> getAllegiance();
+    void setAllegiance(const std::optional<std::string>& newAllegiance);
+    OOStationAlertLevel getAlertLevel();
+    void setAlertLevel(OOStationAlertLevel level, bool signallingScript);
+    void increaseAlertLevel();
+    void decreaseAlertLevel();
+    void becomeExplosion() override;
+    void becomeEnergyBlast() override;
+    void becomeLargeExplosion(double factor) override;
+    void acceptPatrolReportFrom(::ShipEntity* patrol_ship);
+    std::optional<std::string> acceptDockingClearanceRequestFrom(::ShipEntity* other);
+    unsigned currentlyInDockingQueues();
+    unsigned currentlyInLaunchingQueues();
 
-    OOUniversalID planet;
+    // Slice 4: NPC launchers. Not overrides: cxx::ShipEntity's same-named members are not virtual (the
+    // ship's answer "not a station" through its facade, which the station's facade overrides).
+    oo::PList launchIndependentShip(const std::string& role); // the ship launched, as an Object node (null: none)
+    oo::PList launchPolice(); // the ships launched, as Object nodes
+    ::ShipEntity* launchDefenseShip();
+    ::ShipEntity* launchScavenger();
+    ::ShipEntity* launchMiner();
+    ::ShipEntity* launchPirateShip();
+    ::ShipEntity* launchShuttle();
+    ::ShipEntity* launchEscort();
+    ::ShipEntity* launchPatrol();
+    void launchShipWithRole(const std::string& role);
 
-    NSString* allegiance;
+    // @private in Objective-C: private once StationEntity is converted; public while the facade's
+    // unconverted methods read them, since an Objective-C class cannot be a C++ friend
+    ::OOWeakSet* _shipsOnHold = { };
+    ::DockEntity* player_reserved_dock = { };
+    double last_launch_time = { };
+    double approach_spacing = { };
+    OOStationAlertLevel alertLevel = { };
 
-    OOCommodityMarket* localMarket;
-    OOCargoQuantity marketCapacity;
-    NSArray* marketDefinition;
-    NSString* marketScriptName;
-    //	NSMutableArray			*localPassengers;
-    //	NSMutableArray			*localContracts;
-    NSMutableArray* localShipyard;
+    unsigned max_police = { }; // max no. of police ships allowed
+    unsigned max_defense_ships = { }; // max no. of defense ships allowed
+    unsigned defenders_launched = { };
 
-    NSMutableDictionary* localInterfaces;
+    unsigned max_scavengers = { }; // max no. of scavenger ships allowed
+    unsigned scavengers_launched = { };
 
-    unsigned docked_shuttles;
-    double last_shuttle_launch_time;
-    double shuttle_launch_interval;
+    OOTechLevelID equivalentTechLevel = { };
+    float equipmentPriceFactor = { };
 
-    unsigned docked_traders;
-    double last_trader_launch_time;
-    double trader_launch_interval;
+    Vector port_dimensions = { };
+    double port_radius = { };
 
-    double last_patrol_report_time;
-    double patrol_launch_interval;
+    unsigned no_docking_while_launching : 1 = 0,
+                                          hasNPCTraffic : 1 = 0;
+    BOOL hasPatrolShips = { };
 
-    unsigned suppress_arrival_reports : 1,
-        requiresDockingClearance : 1,
-        interstellarUndockingAllowed : 1,
-        allowsFastDocking : 1,
-        allowsSaving : 1,
-        allowsAutoDocking : 1,
-        hasBreakPattern : 1,
-        marketMonitored : 1,
-        marketBroadcast : 1;
-}
+    OOUniversalID planet = { };
 
-- (OOCargoQuantity)marketCapacity;
-- (NSArray*)marketDefinition;
-- (NSString*)marketScriptName;
-- (BOOL)marketMonitored;
-- (BOOL)marketBroadcast;
-- (OOCreditsQuantity)legalStatusOfManifest:(OOCommodityMarket*)manifest export:(BOOL)export;
+    std::optional<std::string> allegiance; // nullopt: none (was nil)
 
-- (OOCommodityMarket*)localMarket;
-- (void)setLocalMarket:(NSArray*)market;
-- (NSDictionary*)localMarketForScripting;
-- (void)setPrice:(OOCreditsQuantity)price forCommodity:(OOCommodityType)commodity;
-- (void)setQuantity:(OOCargoQuantity)quantity forCommodity:(OOCommodityType)commodity;
+    ::OOCommodityMarket* localMarket = { };
+    OOCargoQuantity marketCapacity = { };
+    oo::PList marketDefinition; // an array; null: none (was nil)
+    std::optional<std::string> marketScriptName; // nullopt: none (was nil)
+    std::optional<std::vector<oo::PList>> localShipyard; // nullopt: not generated yet (was nil)
 
-/*- (NSMutableArray *) localPassengers;
-- (void) setLocalPassengers:(NSArray *)market;
-- (NSMutableArray *) localContracts;
-- (void) setLocalContracts:(NSArray *)market; */
-- (NSMutableArray*)localShipyard;
-- (void)setLocalShipyard:(NSArray*)market;
-- (void)generateShipyard;
-- (void)generateShipyard:(OOTechLevelID)stationTechLevel;
-- (NSMutableDictionary*)localInterfaces;
-- (void)setInterfaceDefinition:(OOJSInterfaceDefinition*)definition forKey:(NSString*)key;
+    std::map<std::string, oo::ObjCRef<::OOJSInterfaceDefinition*>, std::less<>> localInterfaces;
 
-- (OOCommodityMarket*)initialiseLocalMarket;
+    unsigned docked_shuttles = { };
+    double last_shuttle_launch_time = { };
+    double shuttle_launch_interval = { };
 
-- (OOTechLevelID)equivalentTechLevel;
-- (void)setEquivalentTechLevel:(OOTechLevelID)value;
+    unsigned docked_traders = { };
+    double last_trader_launch_time = { };
+    double trader_launch_interval = { };
 
-- (NSEnumerator*)dockSubEntityEnumerator;
-- (Vector)virtualPortDimensions;
-- (DockEntity*)playerReservedDock;
+    double last_patrol_report_time = { };
+    double patrol_launch_interval = { };
 
-- (HPVector)beaconPosition;
+    unsigned suppress_arrival_reports : 1 = 0,
+                                        requiresDockingClearance : 1 = 0,
+                                        interstellarUndockingAllowed : 1 = 0,
+                                        allowsFastDocking : 1 = 0,
+                                        allowsSaving : 1 = 0,
+                                        allowsAutoDocking : 1 = 0,
+                                        hasBreakPattern : 1 = 0,
+                                        marketMonitored : 1 = 0,
+                                        marketBroadcast : 1 = 0;
+};
 
-- (float)equipmentPriceFactor;
+} // namespace cxx
 
-- (void)setPlanet:(OOPlanetEntity*)planet;
+// A mixed configuration (proposed ADR-0043 Amendment 2): "station" is an Object node holding the
+// station's weak reference; ai_message / comms_message absent when nullopt.
+oo::PList cxx_OOMakeDockingInstructions(StationEntity* station, HPVector coords, float speed, float range, const std::optional<std::string>& ai_message, const std::optional<std::string>& comms_message, BOOL match_rotation, int docking_stage);
 
-- (OOPlanetEntity*)planet;
-
-- (void)setAllegiance:(NSString*)newAllegiance;
-- (NSString*)allegiance;
-
-- (unsigned)countOfDockedContractors;
-- (unsigned)countOfDockedPolice;
-- (unsigned)countOfDockedDefenders;
-
-- (void)sanityCheckShipsOnApproach;
-
-- (void)autoDockShipsOnApproach;
-
-- (Vector)portUpVectorForShip:(ShipEntity*)ship;
-
-- (NSDictionary*)dockingInstructionsForShip:(ShipEntity*)ship;
-
-- (BOOL)shipIsInDockingCorridor:(ShipEntity*)ship;
-
-- (BOOL)dockingCorridorIsEmpty;
-
-- (void)clearDockingCorridor;
-
-- (void)clear;
-
-- (void)abortAllDockings;
-
-- (void)abortDockingForShip:(ShipEntity*)ship;
-
-- (BOOL)hasMultipleDocks;
-- (BOOL)hasClearDock;
-- (BOOL)hasLaunchDock;
-- (DockEntity*)selectDockForDocking;
-- (unsigned)currentlyInLaunchingQueues;
-- (unsigned)currentlyInDockingQueues;
-
-- (void)launchShip:(ShipEntity*)ship;
-
-- (ShipEntity*)launchIndependentShip:(NSString*)role;
-
-- (void)noteDockedShip:(ShipEntity*)ship;
-
-- (BOOL)interstellarUndockingAllowed;
-- (BOOL)hasNPCTraffic;
-- (void)setHasNPCTraffic:(BOOL)flag;
-
-- (OOStationAlertLevel)alertLevel;
-- (void)setAlertLevel:(OOStationAlertLevel)level signallingScript:(BOOL)signallingScript;
-
-////////////////////////////////////////////////////////////// AI methods...
-
-- (void)increaseAlertLevel;
-- (void)decreaseAlertLevel;
-
-- (NSArray*)launchPolice;
-- (ShipEntity*)launchDefenseShip;
-- (ShipEntity*)launchScavenger;
-- (ShipEntity*)launchMiner;
-/**Lazygun** added the following line*/
-- (ShipEntity*)launchPirateShip;
-- (ShipEntity*)launchShuttle;
-- (ShipEntity*)launchEscort;
-- (ShipEntity*)launchPatrol;
-
-- (void)launchShipWithRole:(NSString*)role;
-
-- (void)acceptPatrolReportFrom:(ShipEntity*)patrol_ship;
-
-- (NSString*)acceptDockingClearanceRequestFrom:(ShipEntity*)other;
-- (BOOL)requiresDockingClearance;
-- (void)setRequiresDockingClearance:(BOOL)newValue;
-
-- (BOOL)allowsFastDocking;
-- (void)setAllowsFastDocking:(BOOL)newValue;
-
-- (BOOL)allowsAutoDocking;
-- (void)setAllowsAutoDocking:(BOOL)newValue;
-
-- (BOOL)allowsSaving;
-// no setting this after station creation
-
-- (NSString*)marketOverrideName;
-- (BOOL)isRotatingStation;
-- (BOOL)hasShipyard;
-
-- (BOOL)suppressArrivalReports;
-- (void)setSuppressArrivalReports:(BOOL)newValue;
-
-- (BOOL)hasBreakPattern;
-- (void)setHasBreakPattern:(BOOL)newValue;
-
-- (BOOL)fitsInDock:(ShipEntity*)ship;
-- (BOOL)fitsInDock:(ShipEntity*)ship andLogNoFit:(BOOL)logNoFit;
-
-@end
-
-NSDictionary* OOMakeDockingInstructions(StationEntity* station, HPVector coords, float speed, float range, NSString* ai_message, NSString* comms_message, BOOL match_rotation, int docking_stage);
+// Transitional: the Objective-C StationEntity, for its unconverted methods and its callers.
+// Deleted, with namespace cxx above, by the bridge's deletion bead.
+#import "StationEntity+ObjCBridge.h"

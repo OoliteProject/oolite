@@ -30,15 +30,26 @@ MA 02110-1301, USA.
 #pragma once
 
 #ifdef __cplusplus
+/* <tgmath.h> is <cmath> in C++, and libc++ declares templates there, which cannot have C
+   language linkage. Include it before the extern "C" block opens; its include guard makes the
+   include below a no-op. */
+#include <tgmath.h>
 extern "C" {
 #endif
 
 #ifdef __OBJC__
-#import <Foundation/Foundation.h>
+#import "OOFoundation.h"
 #endif
 
 #include "OOFunctionAttributes.h"
+#ifdef __OBJC__
 #include "OOOpenGL.h"
+#else
+/*	A plain C or C++ translation unit (OOVoxel.c, for one) needs only the GL types. OOOpenGL.h
+        imports OOFoundation.h, i.e. Foundation, which does not compile outside Objective-C.
+*/
+#include "OOOpenGLOnly.h"
+#endif
 #include <assert.h>
 #include <limits.h>
 #include <stdbool.h>
