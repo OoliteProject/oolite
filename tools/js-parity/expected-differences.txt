@@ -1,0 +1,16 @@
+# Probe lines (as in baseline-spidermonkey.txt) that are known, accepted
+# differences under QuickJS-ng. compare.sh ignores these lines on both sides.
+#
+# Assigning to a read-only property in strict mode: SpiderMonkey's message
+# quoted the source expression ("ship.isValid is read-only"); QuickJS says
+# "no setter for property". Same exception type, same behaviour.
+[oojs.probe]: set read-only property THREW
+
+# for..in order: SpiderMonkey enumerated integer-like keys in insertion order;
+# QuickJS (like modern engines and the ES2015+ spec) lists them first, in
+# ascending order.
+[oojs.probe]: for-in integer key order ->
+
+# Function source text: SpiderMonkey returned decompiled, reformatted source
+# (including an injected "use strict"); QuickJS returns the original text.
+[oojs.probe]: function toString ->

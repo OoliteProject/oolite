@@ -1,0 +1,8 @@
+# Meson subproject wraps are vendored as .wrap files (tracked). The source they fetch and the
+# download cache are build-time artifacts, not source: `meson subprojects download` (or a plain
+# `meson setup`) repopulates them, so they are not checked in.
+*
+!.gitignore
+!*.wrap
+!packagefiles/
+!packagefiles/**

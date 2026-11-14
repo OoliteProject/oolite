@@ -5,6 +5,8 @@ OOCommodityMarket.h
 Commodity price and quantity list for a particular station/system
 Also used for the player ship's docked manifest
 
+The universe, the player and the stations hold markets as oo::Ref.
+
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -25,47 +27,64 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOCommodities.h"
-#import "OOTypes.h"
+#pragma once
 
-@interface OOCommodityMarket : NSObject {
-@private
-    NSMutableDictionary* _commodityList;
-    NSArray* _sortedKeys;
-}
+#include "OOCommodities.h"
+#include "OOTypes.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
 
-- (NSUInteger)count;
+/*	Goods are keyed by UTF-8 std::strings
+        (the commodity keys); each good's definition is an oo::PList dictionary
+   (trade-goods.plist data, as OOCommodities and commodity scripts build it).
+   -goods returns std::vector<std::string>; -massUnitForGood: takes const
+   std::string &; -dictionaryForScripting hands JavaScript a PList dictionary.
+*/
+class OOCommodityMarket : public oo::RefCounted {
+ public:
+  NSUInteger count();
 
-- (void)setGood:(OOCommodityType)key withInfo:(NSDictionary*)info;
+  void setGood(const std::string& key, const oo::PList& info);
 
-- (NSArray*)goods;
-- (NSDictionary*)dictionaryForScripting;
+  std::vector<std::string> goods();  // good keys, in sort_order
+  oo::PList
+  dictionaryForScripting();  // a dictionary of the definitions, for JavaScript
 
-- (BOOL)setPrice:(OOCreditsQuantity)price forGood:(OOCommodityType)good;
-- (BOOL)setQuantity:(OOCargoQuantity)quantity forGood:(OOCommodityType)good;
-- (BOOL)addQuantity:(OOCargoQuantity)quantity forGood:(OOCommodityType)good;
-- (BOOL)removeQuantity:(OOCargoQuantity)quantity forGood:(OOCommodityType)good;
-- (void)removeAllGoods;
-- (BOOL)setComment:(NSString*)comment forGood:(OOCommodityType)good;
-- (BOOL)setShortComment:(NSString*)comment forGood:(OOCommodityType)good;
+  bool setPrice(OOCreditsQuantity price, const std::string& good);
+  bool setQuantity(OOCargoQuantity quantity, const std::string& good);
+  bool addQuantity(OOCargoQuantity quantity, const std::string& good);
+  bool removeQuantity(OOCargoQuantity quantity, const std::string& good);
+  void removeAllGoods();
+  bool setComment(const std::string& comment, const std::string& good);
+  bool setShortComment(const std::string& comment, const std::string& good);
 
-- (NSString*)nameForGood:(OOCommodityType)good;
-- (NSString*)commentForGood:(OOCommodityType)good;
-- (NSString*)shortCommentForGood:(OOCommodityType)good;
-- (OOCreditsQuantity)priceForGood:(OOCommodityType)good;
-- (OOCargoQuantity)quantityForGood:(OOCommodityType)good;
-- (OOMassUnit)massUnitForGood:(OOCommodityType)good;
-- (NSUInteger)exportLegalityForGood:(OOCommodityType)good;
-- (NSUInteger)importLegalityForGood:(OOCommodityType)good;
-- (OOCargoQuantity)capacityForGood:(OOCommodityType)good;
-- (float)trumbleOpinionForGood:(OOCommodityType)good;
+  std::optional<std::string> nameForGood(const std::string& good);
+  std::optional<std::string> commentForGood(const std::string& good);
+  std::optional<std::string> shortCommentForGood(const std::string& good);
+  OOCreditsQuantity priceForGood(const std::string& good);
+  OOCargoQuantity quantityForGood(const std::string& good);
+  OOMassUnit massUnitForGood(const std::string& good);
+  NSUInteger exportLegalityForGood(const std::string& good);
+  NSUInteger importLegalityForGood(const std::string& good);
+  OOCargoQuantity capacityForGood(const std::string& good);
+  float trumbleOpinionForGood(const std::string& good);
 
-- (NSDictionary*)definitionForGood:(OOCommodityType)good;
+  oo::PList definitionForGood(const std::string& good);  // null: no such good
 
-- (NSArray*)savePlayerAmounts;
-- (void)loadPlayerAmounts:(NSArray*)amounts;
+  oo::PList savePlayerAmounts();  // [[key, quantity], ...] in goods() order
+  void loadPlayerAmounts(const oo::PList& amounts);
 
-- (NSArray*)saveStationAmounts;
-- (void)loadStationAmounts:(NSArray*)amounts;
+  oo::PList
+  saveStationAmounts();  // [[key, quantity, price], ...] in goods() order
+  void loadStationAmounts(const oo::PList& amounts);
 
-@end
+ private:
+  // nullptr: no such good (a nil definition).
+  oo::PList* definitionPointerForGood(const std::string& good);
+  std::vector<std::string> sortedGoodKeys();
+
+  std::map<std::string, oo::PList, std::less<>> _commodityList;
+  std::optional<std::vector<std::string>>
+      _sortedKeys;  // goods(), built on first use
+};
