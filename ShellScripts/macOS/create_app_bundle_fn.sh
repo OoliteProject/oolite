@@ -51,6 +51,7 @@ bundle_dylibs() {
 
     local pending=("$exe")
     local processed=" "
+    local -A origin  # bundled copy -> the path it was copied from
     while ((${#pending[@]} > 0)); do
         local binary="${pending[0]}"
         pending=("${pending[@]:1}")
@@ -59,14 +60,21 @@ bundle_dylibs() {
 
         local dep
         while read -r dep; do
-            _is_bundleable_lib "$dep" || continue
+            # A sibling named relative to its dependent (ICU's libicui18n -> libicudata) is found
+            # next to the dependent's original, not next to the bundled copy.
+            local src="$dep"
+            if [[ "$dep" == @loader_path/* && -n "${origin[$binary]:-}" ]]; then
+                src="$(dirname "${origin[$binary]}")/${dep#@loader_path/}"
+            fi
+            _is_bundleable_lib "$src" || continue
             local name
-            name=$(basename "$dep")
+            name=$(basename "$src")
             local bundled="$frameworks/$name"
             if [[ ! -f "$bundled" ]]; then
-                cp -L "$dep" "$bundled" || { echo "❌ Failed to bundle $dep" >&2; return 1; }
+                cp -L "$src" "$bundled" || { echo "❌ Failed to bundle $src" >&2; return 1; }
                 chmod u+w "$bundled"
                 install_name_tool -id "@rpath/$name" "$bundled" 2> /dev/null || return 1
+                origin[$bundled]="$src"
                 pending+=("$bundled")
             fi
             install_name_tool -change "$dep" "@rpath/$name" "$binary" 2> /dev/null || return 1

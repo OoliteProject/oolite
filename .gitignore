@@ -28,6 +28,16 @@ doxygen/
 libobjc2/
 libs-base/
 tools-make/
+tests/__pycache__
 
 # Debug output
 /core
+
+# Meson subproject checkouts (wrap files are tracked)
+/subprojects/*/
+!/subprojects/packagefiles/
+/subprojects/packagecache/
+/subprojects/.wraplock
+
+# Node packages (tools/oxp-upgrade, eslint)
+node_modules/

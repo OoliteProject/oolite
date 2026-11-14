@@ -3,7 +3,7 @@
 OONullTexture.h
 
 Singleton subclass of OOTexture representing the empty texture. Applying
-OONullTexture is equivalent to [OOTexture applyNone].
+OONullTexture is equivalent to OOTexture::applyNone().
 
 
 Copyright (C) 2008-2013 Jens Ayton
@@ -28,10 +28,24 @@ SOFTWARE.
 
 */
 
-#import "OOTexture.h"
+#pragma once
 
-@interface OONullTexture : OOTexture
+#include "OOTexture.h"
 
-+ (OONullTexture*)sharedNullTexture;
+/*	OOTexture's nullTexture() answers the shared instance itself.
+ */
+class OONullTexture : public OOTexture {
+public:
+    /*	The one null texture, made on first use and never released (it was an
+       immortal singleton). Borrowed. NOTE: assumes single-threaded access.
+    */
+    static OONullTexture* sharedNullTexture();
 
-@end
+    void apply() override;
+    NSSize dimensions() override;
+    bool isMipMapped() override;
+    void forceRebind() override;
+#ifndef NDEBUG
+    std::optional<std::string> name() override;
+#endif
+};

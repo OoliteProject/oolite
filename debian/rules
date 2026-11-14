@@ -11,7 +11,6 @@
 GSMAKE                           = gs_make
 GSMAKE_FLAGS                     = use_deps=no ESPEAK=yes
 UPDATE_SCRIPTS_DIR               = deps/Cocoa-deps/scripts
-LIBJS_BUILD_DIR                  = deps/Cross-platform-deps/mozilla/js/src/build-release
 
 CFLAGS                           += -g
 ifeq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
@@ -28,27 +27,19 @@ export CFLAGS
 export GNUSTEP_INSTALLATION_DOMAIN = SYSTEM
 
 build: build-stamp
-build-stamp: build-libjs-stamp
+build-stamp:
 	dh_testdir
 	$(GSMAKE) $(GSMAKE_FLAGS)
 	touch $@
 
-build-libjs-stamp:
-	make -f libjs.make $(GSMAKE_FLAGS)
-	touch $@
-
 clean: clean-stamp
-clean-stamp: clean-libjs-stamp
+clean-stamp:
 	dh_testdir
 	rm -f build-stamp
 	$(GSMAKE) clean $(GSMAKE_FLAGS)
 	rm -rf oolite.app oolite.debug
 	rm -f http+_www.apple.com_DTDs_PropertyList-1.0.dtd
 	dh_clean
-
-clean-libjs-stamp:
-	make -f libjs.make $(GSMAKE_FLAGS) distclean
-	rm -f build-libjs-stamp
 
 install: build
 	dh_testdir

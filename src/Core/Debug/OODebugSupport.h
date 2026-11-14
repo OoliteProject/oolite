@@ -27,6 +27,8 @@ SOFTWARE.
 
 */
 
+#pragma once
+
 #ifdef OO_DEBUG_MONITOR_ENABLED
 
 void OOInitDebugSupport(void);

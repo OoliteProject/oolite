@@ -25,22 +25,16 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
-#import "OOMaths.h"
-#import "OOTypes.h"
-#import "OOWeakReference.h"
+#pragma once
 
-#ifndef NEW_PLANETS
-// not for 1.77/8
-#define NEW_PLANETS 1
-#endif
+#include "OOFoundation.h"
+#include "OOMaths.h"
+#include "OOTypes.h"
+#include "oofnd/objc/OOObject.h"
 
 typedef enum {
     STELLAR_TYPE_SUN,
     STELLAR_TYPE_NORMAL_PLANET, // Terrestrial planet with atmosphere and oceans
-#if !NEW_PLANETS
-    STELLAR_TYPE_ATMOSPHERE,
-#endif
     STELLAR_TYPE_MOON, // Rocky/airless planet
     STELLAR_TYPE_MINIATURE // Display proxy for a "normal" planet
 } OOStellarBodyType;
@@ -49,12 +43,10 @@ typedef enum {
 #define PLANET_MINIATURE_FACTOR 0.00185
 #define MAX_SUBDIVIDE 6
 
-@protocol OOStellarBody <NSObject, OOWeakReferenceSupport>
-
-- (double)radius;
-- (OOStellarBodyType)planetType;
-
-- (NSString*)name;
-- (void)setName:(NSString*)name;
-
-@end
+/*	The radius and planet type of a stellar body: the sun and the
+        planet are asked directly; any other body by
+        selector. Null answers 0. Defined in OOSunEntity.mm.
+*/
+class Entity;
+double OOStellarBodyRadius(Entity* body); // of the C++ entity
+OOStellarBodyType OOStellarBodyPlanetType(Entity* body); // the same

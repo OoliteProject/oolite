@@ -24,10 +24,19 @@ MA 02110-1301, USA.
 
 */
 
-#import "GuiDisplayGen.h"
-#import "MyOpenGLView.h"
-#import "PlayerEntity.h"
-#import "Universe.h"
+#pragma once
+
+#include "PlayerEntity.h"
+
+/* The category PlayerEntity (StickMapper) is members of PlayerEntity, declared
+ * in PlayerEntity.h. This header stays for the files that include it.
+ */
+#include "GuiDisplayGen.h"
+#include "MyOpenGLView.h"
+#include "Universe.h"
+
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 
 #define MAX_ROWS_FUNCTIONS 12
 
@@ -42,28 +51,9 @@ MA 02110-1301, USA.
 #define GUI_ROW_FUNCEND (GUI_ROW_FUNCSTART + MAX_ROWS_FUNCTIONS - 1)
 #define GUI_ROW_INSTRUCT 18
 
-// Dictionary keys
-#define KEY_HEADER @"header"
-#define KEY_GUIDESC @"guiDesc"
-#define KEY_ALLOWABLE @"allowable"
-#define KEY_AXISFN @"axisfunc"
-#define KEY_BUTTONFN @"buttonfunc"
-
-@interface PlayerEntity (StickMapper)
-
-- (void)resetStickFunctions;
-- (void)setGuiToStickMapperScreen:(unsigned)skip resetCurrentRow:(BOOL)resetCurrentRow;
-- (void)setGuiToStickMapperScreen:(unsigned)skip;
-- (void)stickMapperInputHandler:(GuiDisplayGen*)gui
-                           view:(MyOpenGLView*)gameView;
-// Callback method
-- (void)updateFunction:(NSDictionary*)hwDict;
-
-// Future: populate via plist
-- (NSDictionary*)makeStickGuiDictHeader:(NSString*)header;
-- (NSDictionary*)makeStickGuiDict:(NSString*)what
-                        allowable:(int)allowable
-                           axisfn:(int)axisfn
-                            butfn:(int)butfn;
-
-@end
+// Dictionary keys (of the oo::PList function entries)
+#define KEY_HEADER "header"
+#define KEY_GUIDESC "guiDesc"
+#define KEY_ALLOWABLE "allowable"
+#define KEY_AXISFN "axisfunc"
+#define KEY_BUTTONFN "buttonfunc"

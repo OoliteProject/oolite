@@ -26,34 +26,65 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOTextureVerifierStage.h"
+#pragma once
+
+#include "OOTextureVerifierStage.h"
 
 #if OO_OXP_VERIFIER_ENABLED
 
-@interface OOModelVerifierStage : OOTextureHandlingStage {
-@private
-    NSMutableSet* _modelsToCheck;
-}
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 
-// Returns name to be used in -dependents by other stages; also registers stage.
-+ (NSString*)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier;
+/*	The models to check
+   are a vector of distinct entries, in the order they were reported. Materials
+   and shaders are plist data (oo::PList, null for none).
+   nameForReverseDependencyForVerifier() is a shared name (the other stages
+   declare it) and returns a std::string.
 
-/*	This can be called by other stages *before* the model stage runs.
-        returns YES if the model is found, NO if it is not. Caller is responsible
-        for complaining if it is not.
+   A subclass of OOTextureHandlingStage. Its one caller, the ship data stage,
+   calls these members, and the verifier holds it. The ship data stage finds it
+   by name through the verifier's stage lookup.
 */
-- (BOOL)modelNamed:(NSString*)name
-      usedForEntry:(NSString*)entryName
-            inFile:(NSString*)fileName
-     withMaterials:(NSDictionary*)materials
-        andShaders:(NSDictionary*)shaders;
+struct OOModelVerifierEntry {
+    std::string name;
+    std::string context;
+    oo::PList materials;
+    oo::PList shaders;
 
-@end
+    friend bool operator==(const OOModelVerifierEntry&, const OOModelVerifierEntry&) = default;
+};
 
-@interface OOOXPVerifier (OOModelVerifierStage)
+class OOModelVerifierStage : public OOTextureHandlingStage {
+public:
+    // The stage's name, as name() returns it (the ship data stage looks the stage up by it).
+    static const char* const kName;
 
-- (OOModelVerifierStage*)modelVerifierStage;
+    // Returns name to be used in dependents() by other stages; also registers
+    // stage.
+    static std::string nameForReverseDependencyForVerifier(
+        OOOXPVerifier* verifier);
 
-@end
+    std::optional<std::string> name() override;
+    bool shouldRun() override;
+    void run() override;
+
+    /*	This can be called by other stages *before* the model stage runs.
+            returns true if the model is found, false if it is not. Caller is responsible
+            for complaining if it is not. An empty name is not found, as nil was; entryName may be absent.
+    */
+    bool modelNamed(const std::string& name,
+        const std::optional<std::string>& entryName,
+        const std::string& fileName,
+        const oo::PList& materials,
+        const oo::PList& shaders);
+
+private:
+    void checkModel(const std::string& name,
+        const std::string& context,
+        const oo::PList& materials,
+        const oo::PList& shaders);
+
+    std::vector<OOModelVerifierEntry> _modelsToCheck = { };
+};
 
 #endif

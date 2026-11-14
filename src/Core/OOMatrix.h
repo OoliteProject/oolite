@@ -24,6 +24,13 @@ MA 02110-1301, USA.
 
 */
 
+#pragma once
+
+#include "OOMathsBase.h"
+
+// Each maths header includes what it uses, so OOMaths.h may list them in any
+// order.
+#include "OOHPVector.h"
 #include "OOQuaternion.h"
 #include "OOVector.h"
 
@@ -118,8 +125,13 @@ void GLUniformMatrix3(GLint location, OOMatrix M);
 
 OOINLINE OOMatrix OOMatrixLoadGLMatrix(GLenum matrixID) ALWAYS_INLINE_FUNC;
 
-#if __OBJC__
-NSString* OOMatrixDescription(OOMatrix matrix); // @"{{#, #, #, #}, {#, #, #, #}, {#, #, #, #}, {#, #, #, #}}"
+#ifdef __cplusplus
+/*	C++ only: OOMaths.h is included inside extern "C" (as OOQuaternion.h
+   does for QuaternionDescription). */
+extern "C++" {
+#include "oofnd/StdLib.hpp"
+std::string OOMatrixDescription(OOMatrix matrix); // "{{#, #, #, #}, {#, #, #, #}, {#, #, #, #}, {#, #, #, #}}"
+}
 #endif
 
 // Row operations
