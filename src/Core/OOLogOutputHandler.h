@@ -43,6 +43,9 @@ void OOLogOutputHandlerInit(void);
 void OOLogOutputHandlerClose(void);
 void OOLogOutputHandlerPrint(NSString* string);
 
+// Queue the pending log-file flush if its deadline has passed. Called from the frame loop (proposed ADR-0033).
+void OOLogOutputHandlerFlushIfDue(void);
+
 // This will attempt to ensure the containing directory exists. If it fails, it will return nil.
 NSString* OOLogHandlerGetLogPath(void);
 NSString* OOLogHandlerGetLogBasePath(void);

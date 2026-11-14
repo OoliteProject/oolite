@@ -79,11 +79,11 @@ typedef struct OOPlanetTextureGeneratorInfo {
     OOPlanetAtmosphereGenerator* _atmoGenerator;
 }
 
-- (id)initWithPlanetInfo:(NSDictionary*)planetInfo;
+- (id)initWithPlanetInfo:(NSDictionary*)planetInfo seed:(RANROTSeed)seed;
 
-+ (OOTexture*)planetTextureWithInfo:(NSDictionary*)planetInfo;
-+ (BOOL)generatePlanetTexture:(OOTexture**)texture andAtmosphere:(OOTexture**)atmosphere withInfo:(NSDictionary*)planetInfo;
-+ (BOOL)generatePlanetTexture:(OOTexture**)texture secondaryTexture:(OOTexture**)secondaryTexture withInfo:(NSDictionary*)planetInfo;
-+ (BOOL)generatePlanetTexture:(OOTexture**)texture secondaryTexture:(OOTexture**)secondaryTexture andAtmosphere:(OOTexture**)atmosphere withInfo:(NSDictionary*)planetInfo;
++ (OOTexture*)planetTextureWithInfo:(NSDictionary*)planetInfo seed:(RANROTSeed)seed;
++ (BOOL)generatePlanetTexture:(OOTexture**)texture andAtmosphere:(OOTexture**)atmosphere withInfo:(NSDictionary*)planetInfo seed:(RANROTSeed)seed;
++ (BOOL)generatePlanetTexture:(OOTexture**)texture secondaryTexture:(OOTexture**)secondaryTexture withInfo:(NSDictionary*)planetInfo seed:(RANROTSeed)seed;
++ (BOOL)generatePlanetTexture:(OOTexture**)texture secondaryTexture:(OOTexture**)secondaryTexture andAtmosphere:(OOTexture**)atmosphere withInfo:(NSDictionary*)planetInfo seed:(RANROTSeed)seed;
 
 @end

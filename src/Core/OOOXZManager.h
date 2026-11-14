@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "OOFoundation.h"
 #import "OOOpenGL.h"
 #import "OOTypes.h"
+#import "oofnd/objc/OOObject.h"
 
 typedef enum {
     OXZ_DOWNLOAD_NONE = 0,
@@ -55,7 +56,7 @@ typedef enum {
     OXZ_STATE_EXTRACTDONE
 } OXZInterfaceState;
 
-@interface OOOXZManager : NSObject {
+@interface OOOXZManager : OOObject {
 @private
     NSArray* _oxzList;
     NSArray* _managedList;

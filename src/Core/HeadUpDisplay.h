@@ -26,11 +26,16 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 #import "OOOpenGL.h"
+#import "oofnd/objc/OOObject.h"
 
 #import "MyOpenGLView.h"
 #import "OOMaths.h"
 #import "OOTypes.h"
 #import "ShipEntity.h"
+
+#include "oofnd/StdLib.hpp"
+
+struct OOHUDWidget; // HeadUpDisplay.mm
 
 @class OOCrosshairs, OOColor;
 
@@ -230,11 +235,12 @@ enum {
 
 @class Entity, PlayerEntity, OOTextureSprite;
 
-@interface HeadUpDisplay : NSObject {
+@interface HeadUpDisplay : OOObject {
 @private
-    NSMutableArray* legendArray;
-    NSMutableArray* dialArray;
-    NSMutableArray* mfdArray;
+    // Widgets in draw order; were NSMutableArrays of NSArray tuples (bead oo-3rb.49).
+    std::vector<OOHUDWidget> legendArray;
+    std::vector<OOHUDWidget> dialArray;
+    std::vector<OOHUDWidget> mfdArray;
 
     // zoom level
     GLfloat scanner_zoom;
@@ -400,6 +406,15 @@ void OODrawHilightedString(NSString* text, GLfloat x, GLfloat y, GLfloat z, NSSi
 void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 void OODrawHilightedPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 NSRect OORectFromString(NSString* text, GLfloat x, GLfloat y, NSSize siz);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 CGFloat OOStringWidthInEm(NSString* text);
+
+#ifdef __cplusplus
+}
+#endif
 
 void OOHUDResetTextEngine(void);

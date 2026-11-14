@@ -8,7 +8,6 @@ oolite_dependencies = [
     dependency('openal'),
     dependency('vorbisfile'),
     dependency('vorbis'),
-    dependency('nspr'),
     dependency('zlib'),
 ]
 
@@ -18,6 +17,14 @@ if get_option('espeak')
 endif
 
 subdir('meson')
+subdir('oofnd')
+# Game sources include oofnd headers, which are C++20 (ADR-0011): Objective-C++ builds as c++20.
+oolite_dependencies += [oofnd_dep]
+# The Foundation-free ObjC floor (ADR-0029, bead oo-3rb.2): OOObject/OOConstantString are linked so
+# classes can reroot on OOObject. oofnd_objc_args and OOObjCInstallFloor() are NOT used until the
+# constant-string flip (oo-3rb.4): gnustep-base still owns @"..." and the forwarding hooks.
+oolite_dependencies += [oofnd_objc_dep]
+oolite_override_options += ['cpp_std=c++20']   # meson's cpp_std also governs Objective-C++
 subdir('Core')
 subdir('SDL')
 

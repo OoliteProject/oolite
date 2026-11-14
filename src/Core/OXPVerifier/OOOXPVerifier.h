@@ -40,10 +40,11 @@ SOFTWARE.
 #if OO_OXP_VERIFIER_ENABLED
 
 #import "OOFoundation.h"
+#import "oofnd/objc/OOObject.h"
 
 @class OOOXPVerifierStage;
 
-@interface OOOXPVerifier : NSObject {
+@interface OOOXPVerifier : OOObject {
 @private
     NSDictionary* _verifierPList;
 

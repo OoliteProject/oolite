@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import "NSFileManagerOOExtensions.h"
 #import "OOFoundation.h"
 #import "OOOpenGL.h"
+#import "oofnd/objc/OOObject.h"
 
 @class OOSound, OOMusic, OOSystemDescriptionManager;
 
@@ -50,7 +51,7 @@ typedef enum {
 #define SCENARIO_OXP_DEFINITION_BYTAG @"tag:"
 #define SCENARIO_OXP_DEFINITION_NOPLIST @"exc:"
 
-@interface ResourceManager : NSObject
+@interface ResourceManager : OOObject
 
 + (void)reset;
 + (void)resetManifestKnowledgeForOXZManager;

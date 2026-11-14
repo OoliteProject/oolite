@@ -28,10 +28,11 @@ SOFTWARE.
 
 #import "OOFoundation.h"
 #import "OOOpenGL.h"
+#import "oofnd/objc/OOObject.h"
 
 @class OOColor;
 
-@interface OOCrosshairs : NSObject {
+@interface OOCrosshairs : OOObject {
 @private
     NSUInteger _count;
     GLfloat* _data;

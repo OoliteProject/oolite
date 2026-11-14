@@ -46,4 +46,12 @@
 
         if allowSpaces = NO, the [<whitespace>] terms are excluded.
 */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 BOOL OOIsNumberLiteral(NSString* string, BOOL allowSpaces);
+
+#ifdef __cplusplus
+}
+#endif

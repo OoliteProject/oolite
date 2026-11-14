@@ -31,9 +31,10 @@ SOFTWARE.
 
 #import "OOMaths.h"
 #import "OOTexture.h"
+#import "oofnd/objc/OOObject.h"
 #import <Foundation/Foundation.h>
 
-@interface OOProbabilisticTextureManager : NSObject {
+@interface OOProbabilisticTextureManager : OOObject {
 @private
     unsigned _count;
     OOTexture** _textures;

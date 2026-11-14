@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #import "OOCommodities.h"
 #import "OOTypes.h"
 
-@interface OOCommodityMarket : NSObject {
+@interface OOCommodityMarket : OOObject {
 @private
     NSMutableDictionary* _commodityList;
     NSArray* _sortedKeys;

@@ -98,10 +98,18 @@ SOFTWARE.
 #define OOLogWithArguments(class, format, args) OOLogWithFunctionFileAndLineAndArguments(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, format, args)
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 BOOL OOLogWillDisplayMessagesInClass(NSString* inMessageClass);
 
 void OOLogIndent(void);
 void OOLogOutdent(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #if OOLOG_SHORT_CIRCUIT
 #define OOLogIndentIf(class)                        \
@@ -115,8 +123,14 @@ void OOLogOutdent(void);
             OOLogOutdent();                         \
     } while (0)
 #else
+#ifdef __cplusplus
+extern "C" {
+#endif
 void OOLogIndentIf(NSString* inMessageClass);
 void OOLogOutdentIf(NSString* inMessageClass);
+#ifdef __cplusplus
+}
+#endif
 #endif
 
 #define OOLOG_ERROR_PREFIX @"***** ERROR: "
@@ -126,6 +140,10 @@ void OOLogOutdentIf(NSString* inMessageClass);
 #define OOLogWARN(class, format, ...) OOLogWithPrefix(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, OOLOG_WARNING_PREFIX, format, ##__VA_ARGS__)
 
 // Remember/restore indent levels, for cases where an exception may occur while indented.
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void OOLogPushIndent(void);
 void OOLogPopIndent(void);
 
@@ -140,6 +158,10 @@ void OOLogGenericParameterErrorForFunction(const char* inFunction);
 // OOLogGenericSubclassResponsibility(): general subclass responsibility message, "***** $function_name is a subclass responsibility. (This is an internal programming error, please report it.)"
 #define OOLogGenericSubclassResponsibility() OOLogGenericSubclassResponsibilityForFunction(OOLOG_FUNCTION_NAME)
 void OOLogGenericSubclassResponsibilityForFunction(const char* inFunction);
+
+#ifdef __cplusplus
+}
+#endif
 
 #if OOLOG_POISON_NSLOG
 #pragma GCC poison NSLog // Use OOLog instead

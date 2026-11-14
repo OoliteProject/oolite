@@ -114,7 +114,7 @@ typedef enum {
 - (NSString*)marketScriptName;
 - (BOOL)marketMonitored;
 - (BOOL)marketBroadcast;
-- (OOCreditsQuantity)legalStatusOfManifest:(OOCommodityMarket*)manifest export:(BOOL)export;
+- (OOCreditsQuantity)legalStatusOfManifest:(OOCommodityMarket*)manifest export:(BOOL)isExport;
 
 - (OOCommodityMarket*)localMarket;
 - (void)setLocalMarket:(NSArray*)market;

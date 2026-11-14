@@ -34,7 +34,7 @@ SOFTWARE.
 #import "OOAsyncWorkManager.h"
 #import "OOTexture.h"
 
-@interface OOTextureLoader : NSObject <OOAsyncWorkTask> {
+@interface OOTextureLoader : OOObject <OOAsyncWorkTask> {
 @protected
     NSString* _path;
 

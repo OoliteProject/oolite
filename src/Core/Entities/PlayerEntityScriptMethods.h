@@ -87,5 +87,13 @@ MA 02110-1301, USA.
         For valid floating-point comparisons, it is imperative that the same
         calculation be used consistently.
  */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 Vector OOGalacticCoordinatesFromInternal(NSPoint internalCoordinates);
 NSPoint OOInternalCoordinatesFromGalactic(Vector galacticCoordinates);
+
+#ifdef __cplusplus
+}
+#endif

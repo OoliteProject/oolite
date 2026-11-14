@@ -35,7 +35,7 @@ SOFTWARE.
 
 @class OOColor;
 
-@interface OOShaderUniform : NSObject {
+@interface OOShaderUniform : OOObject {
 @private
     NSString* name;
     GLint location;
