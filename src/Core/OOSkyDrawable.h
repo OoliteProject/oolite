@@ -27,30 +27,85 @@ SOFTWARE.
 
 */
 
-#import "OODrawable.h"
-#import "OOOpenGL.h"
+#pragma once
 
-@class OOColor, OOTexture;
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-@interface OOSkyDrawable : OODrawable {
-@private
-    unsigned _starCount;
-    unsigned _nebulaCount;
+#include "OODrawable.h"
+#include "OOGraphicsResetManager.h"
+#include "OOOpenGL.h"
+#include "oofnd/Object.hpp"
 
-    NSMutableArray* _quadSets;
+class OOColor;
+class OOSkyQuadSet;
+struct OOSkyQuadDesc;
 
-    GLint _displayListName;
-}
+/*	A drawable. Its one caller, SkyEntity, makes it with oo::makeShared and
+   hands it to the entity. It is a graphics reset client through the C++ client
+        interface.
+*/
+class OOSkyDrawable : public OODrawable, public OOGraphicsResetClient {
+ public:
+  // -initWithColor1:Color2:Color3:Color4:starCount:nebulaCount:nebulaHueFix:clusterFactor:alpha:scale:
+  OOSkyDrawable(OOColor* color1, OOColor* color2, OOColor* color3,
+                OOColor* color4, unsigned starCount, unsigned nebulaCount,
+                bool nebulaHueFix, float nebulaClusterFactor, float nebulaAlpha,
+                float nebulaScale);
+  ~OOSkyDrawable() override;
 
-- (id)initWithColor1:(OOColor*)color1
-              Color2:(OOColor*)color2
-              Color3:(OOColor*)color3
-              Color4:(OOColor*)color4
-           starCount:(unsigned)starCount
-         nebulaCount:(unsigned)nebulaCount
-        nebulaHueFix:(BOOL)nebulaHueFix
-       clusterFactor:(float)nebulaClusterFactor
-               alpha:(float)nebulaAlpha
-               scale:(float)nebulaScale;
+  void renderOpaqueParts() override;
+  bool hasOpaqueParts() override;
+  GLfloat maxDrawDistance() override;
+#ifdef OO_DEBUG_MONITOR_ENABLED
+  std::vector<std::shared_ptr<OOTexture>> allTextures() override;
+  size_t totalSize() override;
+  size_t objectSize() const override { return sizeof *this; }
+#endif
 
-@end
+  // OOGraphicsResetClient
+  void resetGraphicsState() override;
+
+ private:
+  friend struct OOSkyDrawableTestAccess;
+
+  void setUpStars(OOColor* color1, OOColor* color2);
+  void setUpNebulae(OOColor* color1, OOColor* color2, float nebulaClusterFactor,
+                    bool nebulaHueFix, float nebulaAlpha, float nebulaScale);
+
+  void loadStarTextures();
+  void loadNebulaTextures();
+
+  void addQuads(OOSkyQuadDesc* quads, unsigned count);
+
+  void ensureTexturesLoaded();
+
+  // The unit test's stand-in for setUpStars(), which needs the game's star
+  // textures; null in the game.
+  static void (*sSetUpStarsStandIn)(OOSkyDrawable* sky, OOColor* color1,
+                                    OOColor* color2);
+
+  unsigned _starCount = {};
+  unsigned _nebulaCount = {};
+
+  std::vector<std::unique_ptr<OOSkyQuadSet>>
+      _quadSets;  // no `= {}` (GCC, incomplete
+                  // T);	// one per texture
+
+  GLint _displayListName = {};
+};

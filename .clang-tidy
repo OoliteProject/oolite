@@ -1,0 +1,99 @@
+# clang-tidy for the game's own code. Run it against the compile database ./mk.sh build writes at
+# this directory's root:
+#
+#     clang-tidy -p . --quiet src/Core/OOColor.cpp
+#     run-clang-tidy -p . 'src/(Core|SDL|oofnd)/.*\.cpp'
+#
+# Checks are the bug-finding and modernising families the codebase is held to. WarningsAsErrors
+# turns a bugprone or performance finding into an error only for the checks that reported nothing
+# over src/Core, src/SDL and src/oofnd when this file was written (the "-name" entries are the
+# ones that still had findings). A check that still has findings is enabled but does not fail a
+# run; when its sweep has cleared it, delete its "-name" line here. The modernize and readability
+# checks are not errors until their sweeps have run.
+Checks: >
+  -*,
+  bugprone-*,
+  performance-*,
+  modernize-use-nullptr,
+  modernize-use-override,
+  modernize-use-using,
+  modernize-redundant-void-arg,
+  readability-redundant-void-arg,
+  readability-make-member-function-const,
+  cppcoreguidelines-no-malloc,
+  cppcoreguidelines-use-enum-class,
+  readability-identifier-naming,
+  google-readability-casting,
+  misc-include-cleaner
+WarningsAsErrors: >
+  bugprone-*,
+  performance-*,
+  cppcoreguidelines-no-malloc,
+  cppcoreguidelines-use-enum-class,
+  readability-identifier-naming,
+  google-readability-casting,
+  misc-include-cleaner,
+  -bugprone-assignment-in-if-condition,
+  -bugprone-branch-clone,
+  -bugprone-command-processor,
+  -bugprone-derived-method-shadowing-base-method,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-exception-escape,
+  -bugprone-float-loop-counter,
+  -bugprone-implicit-widening-of-multiplication-result,
+  -bugprone-incorrect-roundings,
+  -bugprone-integer-division,
+  -bugprone-invalid-enum-default-initialization,
+  -bugprone-macro-parentheses,
+  -bugprone-misplaced-widening-cast,
+  -bugprone-multi-level-implicit-pointer-conversion,
+  -bugprone-narrowing-conversions,
+  -bugprone-redundant-branch-condition,
+  -bugprone-reserved-identifier,
+  -bugprone-signed-bitwise,
+  -bugprone-signed-char-misuse,
+  -bugprone-std-exception-baseclass,
+  -bugprone-switch-missing-default-case,
+  -bugprone-throwing-static-initialization,
+  -bugprone-unchecked-optional-access,
+  -bugprone-unchecked-string-to-number-conversion,
+  -bugprone-unhandled-code-paths,
+  -bugprone-unhandled-self-assignment,
+  -bugprone-unsafe-to-allow-exceptions,
+  -bugprone-unused-local-non-trivial-variable,
+  -performance-enum-size,
+  -performance-faster-string-find,
+  -performance-inefficient-vector-operation,
+  -performance-no-automatic-move,
+  -performance-no-int-to-ptr,
+  -performance-prefer-single-char-overloads,
+  -performance-string-view-conversions,
+  -performance-type-promotion-in-math-fn,
+  -performance-unnecessary-copy-initialization,
+  -performance-unnecessary-value-param,
+  -performance-use-std-move
+CheckOptions:
+  # An unused #include is an error; a missing direct include is not reported (the
+  # umbrella headers export what they gather, IWYU pragma: export). An include that only a
+  # platform's #if code or a complete-type conversion needs says so with IWYU pragma: keep.
+  misc-include-cleaner.MissingIncludes: false
+  # A deliberate (void) discard is accepted; a result dropped silently is still reported.
+  bugprone-unused-return-value.AllowCastToVoid: true
+  cppcoreguidelines-use-enum-class.IgnoreUnscopedEnumsInClasses: false
+  readability-identifier-naming.ScopedEnumConstantCase: CamelCase
+  readability-identifier-naming.ScopedEnumConstantPrefix: k
+  # The C string functions go behind the check (already fatal through bugprone-*), each with its
+  # replacement. vsnprintf is not listed: oofnd's printf engine keeps it for the printf-syntax data
+  # formats (descriptions.plist and other data).
+  bugprone-unsafe-functions.CustomFunctions: >-
+    ^::strcpy$,std::string,;^::strncpy$,std::string,;^::strcat$,std::string::append,;
+    ^::strncat$,std::string::append,;^::strcmp$,std::string_view comparison,;
+    ^::strncmp$,std::string_view::compare,;^::strcasecmp$,oo::str::caseInsensitiveCompare,;
+    ^::strlen$,std::string_view::size,;^::strdup$,std::string,;^::strchr$,std::string_view::find,;
+    ^::strrchr$,std::string_view::rfind,;^::strstr$,std::string_view::find,;
+    ^::strtok$,oo::str::split,;^::sprintf$,std::format,;^::snprintf$,std::format,;
+    ^::atoi$,std::from_chars,;^::atof$,std::from_chars,
+HeaderFilterRegex: '.*/src/(Core|SDL|oofnd)/.*'
+# Vendored code is not ours to tidy. Headers are excluded here; the .clang-tidy files inside
+# src/Core/MiniZip and src/SDL/EXRSnapshotSupport switch every check off for the sources there.
+ExcludeHeaderFilterRegex: '.*/(MiniZip|EXRSnapshotSupport)/.*|.*/stb_image_write\.h'

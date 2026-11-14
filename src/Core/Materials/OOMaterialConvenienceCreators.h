@@ -4,6 +4,8 @@ OOMaterialConvenienceCreators.h
 
 Methods for easy creation of materials.
 
+The creators are static members of OOMaterial.
+
 
 Copyright (C) 2007-2013 Jens Ayton
 
@@ -27,34 +29,15 @@ SOFTWARE.
 
 */
 
-#import "OOMaterial.h"
+#pragma once
 
-@class OOColor;
+#include <optional>
+#include <string>
 
-@interface OOMaterial (OOConvenienceCreators)
+#include "OOMaterial.h"
+#include "oofnd/PList.hpp"
 
-/*	Get a material based on configuration. The result will be an
-        OOBasicMaterial, OOSingleTextureMaterial or OOShaderMaterial (the latter
-        only if shaders are available). cacheKey is used for caching of synthesized
-        shader materials; nil may be passed for no caching.
-*/
-+ (OOMaterial*)materialWithName:(NSString*)name
-                       cacheKey:(NSString*)cacheKey
-                  configuration:(NSDictionary*)configuration
-                         macros:(NSDictionary*)macros
-                  bindingTarget:(id<OOWeakReferenceSupport>)object
-                forSmoothedMesh:(BOOL)smooth;
+class OOColor;
 
-/*	Select an appropriate material description (based on availability of
-        shaders and content of dictionaries, which may be nil) and call
-        +materialWithName:forModelNamed:configuration:macros:bindTarget:forSmoothedMesh:.
-*/
-+ (OOMaterial*)materialWithName:(NSString*)name
-                       cacheKey:(NSString*)cacheKey
-             materialDictionary:(NSDictionary*)materialDict
-              shadersDictionary:(NSDictionary*)shadersDict
-                         macros:(NSDictionary*)macros
-                  bindingTarget:(id<OOWeakReferenceSupport>)object
-                forSmoothedMesh:(BOOL)smooth;
-
-@end
+// The creators are static members of OOMaterial (materialWithName(), in
+// OOMaterial.h), defined in OOMaterialConvenienceCreators.cpp.

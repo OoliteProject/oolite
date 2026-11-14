@@ -25,56 +25,106 @@ MA 02110-1301, USA.
 
 */
 
-#include "OOFoundation.h"
+#pragma once
+
+#include <cstdint>
+#include <string_view>
+
+#include "OOEnumFlags.h"
 #include "OOFunctionAttributes.h"
+#ifndef OO_PLAIN_CPP_UNIT
+#include "OOFoundation.h"
+#else
+/*	A plain C or C++ translation unit (OOConstToJSString) needs only the C
+   types OOFoundation.h's floor gives (std::ptrdiff_t, std::size_t).
+   OOFoundation.h itself declares more.
+*/
+#include <limits.h>
 
-typedef enum {
-    OPTIMIZED_BY_NONE,
-    OPTIMIZED_BY_JUMPS,
-    OPTIMIZED_BY_TIME
-} OORouteType;
+#include "oofnd/objc/OOFoundationTypes.h"
+#endif
 
-#define ENTRY(label, value) label,
+enum class OORouteType : std::int32_t { kNone, kJumps, kTime };
+// The numbers JS and the saved game's chart_ana_mode use.
+static_assert(oo::ToUnderlying(OORouteType::kNone) == 0);
+static_assert(oo::ToUnderlying(OORouteType::kJumps) == 1);
+static_assert(oo::ToUnderlying(OORouteType::kTime) == 2);
 
-typedef enum {
-#include "OOViewID.tbl"
+// The names the game writes for OORouteType (saves, logs and plists).
+constexpr std::string_view OOEnumName(OORouteType value) noexcept {
+  switch (value) {
+    case OORouteType::kNone:
+      return "OPTIMIZED_BY_NONE";
+    case OORouteType::kJumps:
+      return "OPTIMIZED_BY_JUMPS";
+    case OORouteType::kTime:
+      return "OPTIMIZED_BY_TIME";
+  }
+  return {};
+}
 
-    kOOViewIDDefault = VIEW_NONE
-} OOViewID;
+#include "OOCompassMode.h"
+#include "OOLongRangeChartMode.h"
+#include "OOViewID.h"
 
-typedef enum {
-#include "OOLongRangeChartMode.tbl"
+// Encoded "i" (OOTypeEncodings.h): a by-name call answers it as a number.
+enum class OOAegisStatus : std::int32_t {
+  kNone,
+  kCloseToAnyPlanet,
+  kCloseToMainPlanet,
+  kInDockingRange
+};
 
-    kOOLongRangeChartModeDefault = OOLRC_MODE_UNKNOWN
-} OOLongRangeChartMode;
+enum class OOCargoType : std::int32_t {
+  kNotCargo = -1,
+  kSlaves = 3,
+  kAlloy = 9,
+  kMinerals = 12,
+  kThargoid = 16,
+  kRandom = 100,
+  kScriptedItem = 200,
+  kCharacter = 300
+};
+// The numbers shipdata's cargo_type uses.
+static_assert(oo::ToUnderlying(OOCargoType::kNotCargo) == -1);
+static_assert(oo::ToUnderlying(OOCargoType::kSlaves) == 3);
+static_assert(oo::ToUnderlying(OOCargoType::kAlloy) == 9);
+static_assert(oo::ToUnderlying(OOCargoType::kMinerals) == 12);
+static_assert(oo::ToUnderlying(OOCargoType::kThargoid) == 16);
+static_assert(oo::ToUnderlying(OOCargoType::kRandom) == 100);
+static_assert(oo::ToUnderlying(OOCargoType::kScriptedItem) == 200);
+static_assert(oo::ToUnderlying(OOCargoType::kCharacter) == 300);
 
-#undef ENTRY
-
-typedef enum {
-    AEGIS_NONE,
-    AEGIS_CLOSE_TO_ANY_PLANET,
-    AEGIS_CLOSE_TO_MAIN_PLANET,
-    AEGIS_IN_DOCKING_RANGE
-} OOAegisStatus;
-
-typedef enum {
-    CARGO_NOT_CARGO = -1,
-    CARGO_SLAVES = 3,
-    CARGO_ALLOY = 9,
-    CARGO_MINERALS = 12,
-    CARGO_THARGOID = 16,
-    CARGO_RANDOM = 100,
-    CARGO_SCRIPTED_ITEM = 200,
-    CARGO_CHARACTER = 300
-} OOCargoType;
+// The names the game writes for OOCargoType (saves, logs and plists).
+constexpr std::string_view OOEnumName(OOCargoType value) noexcept {
+  switch (value) {
+    case OOCargoType::kNotCargo:
+      return "CARGO_NOT_CARGO";
+    case OOCargoType::kSlaves:
+      return "CARGO_SLAVES";
+    case OOCargoType::kAlloy:
+      return "CARGO_ALLOY";
+    case OOCargoType::kMinerals:
+      return "CARGO_MINERALS";
+    case OOCargoType::kThargoid:
+      return "CARGO_THARGOID";
+    case OOCargoType::kRandom:
+      return "CARGO_RANDOM";
+    case OOCargoType::kScriptedItem:
+      return "CARGO_SCRIPTED_ITEM";
+    case OOCargoType::kCharacter:
+      return "CARGO_CHARACTER";
+  }
+  return {};
+}
 
 /*
 enum
 {
         COMMODITY_UNDEFINED		= -1,
 
-        // FIXME: hard-coded commodity types are used in OOJSManifest. Everything else is data-driven.
-        COMMODITY_FOOD,		//	=  0
+        // FIXME: hard-coded commodity types are used in OOJSManifest.
+Everything else is data-driven. COMMODITY_FOOD,		//	=  0
         COMMODITY_TEXTILES,
         COMMODITY_RADIOACTIVES,
         COMMODITY_SLAVES,
@@ -92,65 +142,103 @@ enum
         COMMODITY_GEM_STONES,
         COMMODITY_ALIEN_ITEMS
 };
-typedef NSInteger OOCommodityType;
+typedef std::ptrdiff_t OOCommodityType;
 */
-typedef NSString* OOCommodityType;
 
-typedef enum {
-    CARGO_FLAG_NONE = 400,
-    CARGO_FLAG_FULL_PLENTIFUL = 501,
-    CARGO_FLAG_FULL_SCARCE = 502,
-    CARGO_FLAG_FULL_MEDICAL = 503,
-    CARGO_FLAG_FULL_CONTRABAND = 504,
-    CARGO_FLAG_PIRATE = 505,
-    CARGO_FLAG_FULL_UNIFORM = 510,
-    CARGO_FLAG_CANISTERS = 600,
-    CARGO_FLAG_FULL_PASSENGERS = 700
-} OOCargoFlag;
-
-typedef enum {
-    UNITS_TONS,
-    UNITS_KILOGRAMS,
-    UNITS_GRAMS
-} OOMassUnit;
-
-typedef enum {
-    ENERGY_UNIT_NONE,
-    ENERGY_UNIT_NORMAL_DAMAGED,
-    ENERGY_UNIT_NAVAL_DAMAGED,
-    OLD_ENERGY_UNIT_NORMAL = 15,
-    OLD_ENERGY_UNIT_NAVAL = 20,
-    ENERGY_UNIT_NORMAL = 8,
-    ENERGY_UNIT_NAVAL = 16
-} OOEnergyUnitType;
-
-#define ENTRY(label, value) label = value,
-
-typedef enum {
-#include "OOCompassMode.tbl"
-} OOCompassMode;
-
-enum {
-    kOOCompassModeDefault = COMPASS_MODE_BASIC
+enum class OOCargoFlag : int {
+  kNone = 400,
+  kFullPlentiful = 501,
+  kFullScarce = 502,
+  kFullMedical = 503,
+  kFullContraband = 504,
+  kPirate = 505,
+  kFullUniform = 510,
+  kCanisters = 600,
+  kFullPassengers = 700
 };
 
-#undef ENTRY
+// trade-goods.plist's quantity_unit numbers (OOMassUnitFromNumber).
+enum class OOMassUnit : unsigned {
+  kTons,
+  kKilograms,
+  kGrams,
+  kUnknown  // a quantity_unit that is none of the above; displays as "??"
+};
+static_assert(oo::ToUnderlying(OOMassUnit::kTons) == 0);
+static_assert(oo::ToUnderlying(OOMassUnit::kKilograms) == 1);
+static_assert(oo::ToUnderlying(OOMassUnit::kGrams) == 2);
 
-typedef enum {
-#define DIFF_STRING_ENTRY(label, string) label,
-#include "OOLegalStatusReason.tbl"
-#undef DIFF_STRING_ENTRY
+enum class OOEnergyUnitType : std::int32_t {
+  kNone,
+  kNormalDamaged,
+  kNavalDamaged,
+  kOldNormal = 15,
+  kOldNaval = 20,
+  kNormal = 8,
+  kNaval = 16
+};
+// The numbers a legacy saved game's energy_unit uses.
+static_assert(oo::ToUnderlying(OOEnergyUnitType::kNone) == 0);
+static_assert(oo::ToUnderlying(OOEnergyUnitType::kNormalDamaged) == 1);
+static_assert(oo::ToUnderlying(OOEnergyUnitType::kNavalDamaged) == 2);
+static_assert(oo::ToUnderlying(OOEnergyUnitType::kOldNormal) == 15);
+static_assert(oo::ToUnderlying(OOEnergyUnitType::kOldNaval) == 20);
+static_assert(oo::ToUnderlying(OOEnergyUnitType::kNormal) == 8);
+static_assert(oo::ToUnderlying(OOEnergyUnitType::kNaval) == 16);
 
-    kOOLegalStatusReasonDefault = kOOLegalStatusReasonUnknown
-} OOLegalStatusReason;
+// The names the game writes for OOEnergyUnitType (saves, logs and plists).
+constexpr std::string_view OOEnumName(OOEnergyUnitType value) noexcept {
+  switch (value) {
+    case OOEnergyUnitType::kNone:
+      return "ENERGY_UNIT_NONE";
+    case OOEnergyUnitType::kNormal:
+      return "ENERGY_UNIT_NORMAL";
+    case OOEnergyUnitType::kNaval:
+      return "ENERGY_UNIT_NAVAL";
+    case OOEnergyUnitType::kNormalDamaged:
+      return "ENERGY_UNIT_NORMAL_DAMAGED";
+    case OOEnergyUnitType::kNavalDamaged:
+      return "ENERGY_UNIT_NAVAL_DAMAGED";
+    case OOEnergyUnitType::kOldNormal:  // a legacy save's number only: no name
+    case OOEnergyUnitType::kOldNaval:
+      return {};
+  }
+  return {};
+}
 
-typedef enum {
-    DOCKING_CLEARANCE_STATUS_NONE,
-    DOCKING_CLEARANCE_STATUS_NOT_REQUIRED,
-    DOCKING_CLEARANCE_STATUS_REQUESTED,
-    DOCKING_CLEARANCE_STATUS_GRANTED,
-    DOCKING_CLEARANCE_STATUS_TIMING_OUT,
-} OODockingClearanceStatus;
+#include "OOLegalStatusReason.h"
+
+enum class OODockingClearanceStatus : std::int32_t {
+  kNone,
+  kNotRequired,
+  kRequested,
+  kGranted,
+  kTimingOut,
+};
+// The numbers JS sees.
+static_assert(oo::ToUnderlying(OODockingClearanceStatus::kNone) == 0);
+static_assert(oo::ToUnderlying(OODockingClearanceStatus::kNotRequired) == 1);
+static_assert(oo::ToUnderlying(OODockingClearanceStatus::kRequested) == 2);
+static_assert(oo::ToUnderlying(OODockingClearanceStatus::kGranted) == 3);
+static_assert(oo::ToUnderlying(OODockingClearanceStatus::kTimingOut) == 4);
+
+// The names the game writes for OODockingClearanceStatus (saves, logs and
+// plists).
+constexpr std::string_view OOEnumName(OODockingClearanceStatus value) noexcept {
+  switch (value) {
+    case OODockingClearanceStatus::kNone:
+      return "DOCKING_CLEARANCE_STATUS_NONE";
+    case OODockingClearanceStatus::kRequested:
+      return "DOCKING_CLEARANCE_STATUS_REQUESTED";
+    case OODockingClearanceStatus::kNotRequired:
+      return "DOCKING_CLEARANCE_STATUS_NOT_REQUIRED";
+    case OODockingClearanceStatus::kGranted:
+      return "DOCKING_CLEARANCE_STATUS_GRANTED";
+    case OODockingClearanceStatus::kTimingOut:
+      return "DOCKING_CLEARANCE_STATUS_TIMING_OUT";
+  }
+  return {};
+}
 
 typedef uint32_t OOCargoQuantity;
 typedef int32_t OOCargoQuantityDelta;
@@ -162,54 +250,90 @@ typedef uint64_t OOCreditsQuantity;
 
 typedef uint16_t OOKeyCode;
 
-typedef uint16_t OOUniversalID; // Valid IDs range from 100 to 1000.
+typedef uint16_t OOUniversalID;  // Valid IDs range from 100 to 1000.
 
-enum {
-    UNIVERSE_MAX_ENTITIES = 2048,
-    NO_TARGET = 0,
-    MIN_ENTITY_UID = 100,
-    MAX_ENTITY_UID = MIN_ENTITY_UID + UNIVERSE_MAX_ENTITIES + 1
-};
+inline constexpr int UNIVERSE_MAX_ENTITIES = 2048;
+inline constexpr int NO_TARGET = 0;
+inline constexpr int MIN_ENTITY_UID = 100;
+inline constexpr int MAX_ENTITY_UID =
+    MIN_ENTITY_UID + UNIVERSE_MAX_ENTITIES + 1;
 
-enum {
-    kOOVariableTechLevel = 99
-};
-typedef NSUInteger OOTechLevelID; // 0..14, 99 is special. NSNotFound is used, so NSUInteger required.
+inline constexpr int kOOVariableTechLevel = 99;
+typedef std::size_t OOTechLevelID;  // 0..14, 99 is special. oo::kNotFound is
+                                    // used, so std::size_t required.
 
-typedef uint8_t OOGovernmentID; // 0..7
-typedef uint8_t OOEconomyID; // 0..7
+typedef uint8_t OOGovernmentID;  // 0..7
+typedef uint8_t OOEconomyID;     // 0..7
 
-typedef uint8_t OOGalaxyID; // 0..7
-typedef int16_t OOSystemID; // 0..255, -1 for interstellar space (?)
+typedef uint8_t OOGalaxyID;  // 0..7
+typedef int16_t OOSystemID;  // 0..255, -1 for interstellar space (?)
 
-enum {
-    kOOMaximumGalaxyID = 7,
-    kOOMaximumSystemID = 255,
-    kOOMinimumSystemID = -1,
-    kOOSystemIDInterstellarSpace = kOOMinimumSystemID
-};
+inline constexpr int kOOMaximumGalaxyID = 7;
+inline constexpr int kOOMaximumSystemID = 255;
+inline constexpr int kOOMinimumSystemID = -1;
+inline constexpr int kOOSystemIDInterstellarSpace = kOOMinimumSystemID;
 
 typedef double OOTimeAbsolute;
 typedef double OOTimeDelta;
 
-typedef enum {
-    WEAPON_FACING_FORWARD = 1,
-    WEAPON_FACING_AFT = 2,
-    WEAPON_FACING_PORT = 4,
-    WEAPON_FACING_STARBOARD = 8,
+// One weapon mount. Encoded "i" (OOTypeEncodings.h): a by-name call answers it
+// as a number.
+enum class OOWeaponFacing : std::uint8_t {
+  kNone = 0,
+  kForward = 1,
+  kAft = 2,
+  kPort = 4,
+  kStarboard = 8
+};
+constexpr std::true_type OOEnableFlagOperators(OOWeaponFacing);
 
-    WEAPON_FACING_NONE = 0
-} OOWeaponFacing;
+// The numbers of shipdata's weapon_facings bits and of JS's weaponFacings.
+static_assert(oo::ToUnderlying(OOWeaponFacing::kNone) == 0);
+static_assert(oo::ToUnderlying(OOWeaponFacing::kForward) == 1);
+static_assert(oo::ToUnderlying(OOWeaponFacing::kAft) == 2);
+static_assert(oo::ToUnderlying(OOWeaponFacing::kPort) == 4);
+static_assert(oo::ToUnderlying(OOWeaponFacing::kStarboard) == 8);
 
-typedef uint8_t OOWeaponFacingSet; // May have multiple bits set.
+// A set of mounts, as shipdata, shipyard.plist and JS give it: a number with an
+// OOWeaponFacing bit per mount.
+typedef std::uint8_t OOWeaponFacingSet;
 
-#define VALID_WEAPON_FACINGS (WEAPON_FACING_NONE | WEAPON_FACING_FORWARD | WEAPON_FACING_AFT | WEAPON_FACING_PORT | WEAPON_FACING_STARBOARD)
+inline constexpr OOWeaponFacingSet kOOValidWeaponFacings = oo::ToUnderlying(
+    OOWeaponFacing::kNone | OOWeaponFacing::kForward | OOWeaponFacing::kAft |
+    OOWeaponFacing::kPort | OOWeaponFacing::kStarboard);
 
-typedef enum {
-    DETAIL_LEVEL_MINIMUM = 0,
-    DETAIL_LEVEL_NORMAL = 1,
-    DETAIL_LEVEL_SHADERS = 2,
-    DETAIL_LEVEL_EXTRAS = 3,
+// Takes any unsigned number of facings: the sets read from plists are unsigned.
+inline bool OOWeaponFacingIsIn(unsigned facings,
+                               OOWeaponFacing facing) noexcept {
+  return (facings & oo::ToUnderlying(facing)) != 0;
+}
 
-    DETAIL_LEVEL_MAXIMUM = 3
-} OOGraphicsDetail;
+enum class OOGraphicsDetail : std::int32_t {
+  kMinimum = 0,
+  kNormal = 1,
+  kShaders = 2,
+  kExtras = 3
+};
+inline constexpr OOGraphicsDetail kOOGraphicsDetailMaximum =
+    OOGraphicsDetail::kExtras;
+// The numbers the preferences' detailLevel, the debug console and the
+// description keys use.
+static_assert(oo::ToUnderlying(OOGraphicsDetail::kMinimum) == 0);
+static_assert(oo::ToUnderlying(OOGraphicsDetail::kNormal) == 1);
+static_assert(oo::ToUnderlying(OOGraphicsDetail::kShaders) == 2);
+static_assert(oo::ToUnderlying(OOGraphicsDetail::kExtras) == 3);
+
+// The names the game writes for OOGraphicsDetail (saves, logs and plists).
+constexpr std::string_view OOEnumName(OOGraphicsDetail value) noexcept {
+  switch (value) {
+    case OOGraphicsDetail::kMinimum:
+      return "DETAIL_LEVEL_MINIMUM";
+    case OOGraphicsDetail::kNormal:
+      return "DETAIL_LEVEL_NORMAL";
+    case OOGraphicsDetail::kShaders:
+      return "DETAIL_LEVEL_SHADERS";
+    case OOGraphicsDetail::kExtras:
+      return "DETAIL_LEVEL_EXTRAS";
+  }
+  return {};
+}

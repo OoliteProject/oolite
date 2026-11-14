@@ -46,6 +46,7 @@ BUILDTIME=""
 GITHUB_REPOSITORY=""
 CLEAN_BUILD=false
 PRINT_MESON_LOG=false
+USE_CCACHE=auto  # auto | yes | no
 SETUP_FLAGS=() # Array to cleanly store additional meson setup arguments
 COMPILE_FLAGS=() # Array to cleanly store additional meson compile arguments
 CONFIGURE_FLAGS=() # Array to cleanly store additional meson configure arguments
@@ -87,6 +88,10 @@ meson_setup() {
             fi
             exit 1
         fi
+    fi
+    # clangd and clang-tidy (-p .) read the compile database from this directory's root.
+    if [[ -f "$build_dir/compile_commands.json" ]]; then
+        cp -f "$build_dir/compile_commands.json" compile_commands.json
     fi
 }
 
@@ -141,6 +146,8 @@ show_help() {  # Script Help Menu
     echo -e "  \033[36m--buildtime=\"...\"\033[0m              Specify build time"
     echo -e "  \033[36m--github-repository=\"...\"\033[0m      Specify target GitHub repository"
     echo -e "  \033[36m--meson-log\033[0m                    Output the Meson log file contents"
+    echo -e "  \033[36m--ccache\033[0m                       Compile through ccache; fail if it is missing (default: if installed)"
+    echo -e "  \033[36m--no-ccache\033[0m                    Do not compile through ccache"
     echo ""
     echo "Build Type Actions (Requires build_type as second parameter):"
     echo -e "  \033[36msetup <build_type>\033[0m             Setup a release build directory"
@@ -159,6 +166,9 @@ show_help() {  # Script Help Menu
     echo ""
     echo "Global Actions:"
     echo -e "  \033[36mclean-all\033[0m                      Remove generated artifacts for all builds"
+    echo -e "  \033[36mformat\033[0m                         Reformat src/ in place with clang-format (as the CI check expects)"
+    echo -e "  \033[36mformat-check\033[0m                   Report src/ files clang-format would change, without editing"
+    echo -e "  \033[36mtidy\033[0m                           Run .clang-tidy's checks over src/; fail on a WarningsAsErrors finding"
     echo -e "  \033[36mhelp\033[0m                           Show this breakdown menu"
     echo ""
     echo "Build Types:"
@@ -348,6 +358,14 @@ while [[ $# -gt 0 ]]; do
             GITHUB_REPOSITORY="${1#*=}"
             shift
             ;;
+        --ccache)
+            USE_CCACHE=yes
+            shift
+            ;;
+        --no-ccache)
+            USE_CCACHE=no
+            shift
+            ;;
         --meson-log|--output-meson-log)
             PRINT_MESON_LOG=true
             shift
@@ -394,6 +412,73 @@ if [[ "$ACTION" == "clean-all" ]]; then
     exit 0
 fi
 
+# Intercept global actions 'format' and 'format-check', which mirror the CI clang-format check
+if [[ "$ACTION" == "format" || "$ACTION" == "format-check" ]]; then
+    if ! command -v clang-format > /dev/null; then
+        echo "❌ clang-format not found in PATH." >&2
+        exit 1
+    fi
+    # Keep in step with clang-format-version in .github/workflows/build-all.yaml:
+    # other major versions wrap some expressions differently and fail the CI check.
+    ci_clang_format_major=22
+    if [[ "$(clang-format --version)" != *"version $ci_clang_format_major."* ]]; then
+        echo "⚠️  CI uses clang-format $ci_clang_format_major; $(clang-format --version) may format differently." >&2
+    fi
+    format_files=()
+    while IFS= read -r -d '' file; do
+        format_files+=("$file")
+    done < <(git ls-files -z -- 'src/*.h' 'src/*.hpp' 'src/*.c' 'src/*.cpp' 'src/*.m' 'src/*.mm')
+    if [[ "$ACTION" == "format" ]]; then
+        echo "--> Formatting ${#format_files[@]} files with $(clang-format --version)"
+        clang-format -i "${format_files[@]}"
+    else
+        echo "--> Checking ${#format_files[@]} files with $(clang-format --version)"
+        clang-format --dry-run -Werror "${format_files[@]}"
+    fi
+    trap - ERR
+    popd > /dev/null
+    echo "✅ Oolite task '$ACTION' completed successfully"
+    exit 0
+fi
+
+# Intercept global action 'tidy': .clang-tidy's checks over the game's own sources, read from the
+# root compile database that a build writes. A WarningsAsErrors finding fails the run. Vendored
+# code (MiniZip, EXRSnapshotSupport) is skipped: its .clang-tidy turns every check off, and
+# clang-tidy exits nonzero when no check is enabled.
+if [[ "$ACTION" == "tidy" ]]; then
+    tidy_bin_dir=""
+    if [[ -x /opt/homebrew/opt/llvm@22/bin/run-clang-tidy ]]; then
+        tidy_bin_dir=/opt/homebrew/opt/llvm@22/bin  # clang-tidy 22, the version CI's clang-format uses
+    fi
+    run_clang_tidy="${tidy_bin_dir:+$tidy_bin_dir/}run-clang-tidy"
+    clang_tidy="${tidy_bin_dir:+$tidy_bin_dir/}clang-tidy"
+    if ! command -v "$run_clang_tidy" > /dev/null || ! command -v "$clang_tidy" > /dev/null; then
+        echo "❌ run-clang-tidy and clang-tidy not found (on macOS: brew install llvm@22)." >&2
+        exit 1
+    fi
+    if [[ ! -f compile_commands.json ]]; then
+        echo "--> No compile database yet: building the test flavour first"
+        "$SCRIPT_DIR/mk.sh" build test
+    fi
+    echo "--> Running $("$clang_tidy" --version | grep -m1 -i 'version')"
+    tidy_extra_args=()
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        # Homebrew's clang-tidy does not apply the compiler driver's default SDK.
+        tidy_extra_args+=("-extra-arg=-isysroot$(xcrun --show-sdk-path)")
+    fi
+    tidy_status=0
+    "$run_clang_tidy" -p . -quiet -clang-tidy-binary "$clang_tidy" ${tidy_extra_args[@]+"${tidy_extra_args[@]}"} \
+        '^(?!.*/(MiniZip|EXRSnapshotSupport)/).*/src/(Core|SDL|oofnd)/.*\.cpp$' || tidy_status=$?
+    trap - ERR
+    popd > /dev/null
+    if [[ $tidy_status -ne 0 ]]; then
+        echo "❌ clang-tidy reported a WarningsAsErrors finding (or failed to run); see above." >&2
+        exit 1
+    fi
+    echo "✅ Oolite task 'tidy' completed successfully"
+    exit 0
+fi
+
 # Everything past this point strictly requires a build_type parameter
 if [[ -z "$BUILD_TYPE" ]]; then
     echo "❌ Error: Action '$ACTION' requires a target build_type parameter." >&2
@@ -407,6 +492,29 @@ if [[ -z "$NATIVE_FILE" ]]; then
     else
         NATIVE_FILE="clang.ini"  # Apply default if it wasn't passed as an option
     fi
+fi
+
+# ccache: meson wraps a compiler with ccache only when it detects the compiler itself, not when a
+# native file names it, so compile through a copy of the native file whose c and cpp are
+# ['ccache', '<compiler>']. A new build directory takes it; meson keeps an existing one's compilers.
+#   auto (default): if ccache runs; --ccache: ccache, or fail; --no-ccache: never
+if [[ "$USE_CCACHE" != no ]] && ! ccache --version &> /dev/null; then
+    if [[ "$USE_CCACHE" == yes ]]; then
+        echo "❌ --ccache: ccache is not installed!" >&2
+        exit 1
+    fi
+    USE_CCACHE=no
+fi
+if [[ "$USE_CCACHE" != no ]]; then
+    mkdir -p build
+    ccache_native_file="build/$(basename "${NATIVE_FILE%.ini}")-ccache.ini"
+    sed -E "s/^(c|cpp)[[:space:]]*=[[:space:]]*'([^']*)'[[:space:]]*$/\1 = ['ccache', '\2']/" \
+        "$NATIVE_FILE" > "$ccache_native_file"
+    if ! grep -q "^cpp = \['ccache', " "$ccache_native_file"; then
+        echo "❌ --ccache: could not wrap the compilers named in $NATIVE_FILE!" >&2
+        exit 1
+    fi
+    NATIVE_FILE="$ccache_native_file"
 fi
 
 execute_target "$ACTION" "$BUILD_TYPE"

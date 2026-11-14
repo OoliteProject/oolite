@@ -26,41 +26,81 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOMaths.h"
-#import "OOTextureGenerator.h"
+#pragma once
+
+#include <vector>
+
+#include "OOMaths.h"
+#include "OOTextureGenerator.h"
+#include "oofnd/PList.hpp"
 
 typedef struct OOStandaloneAtmosphereGeneratorInfo {
-    RANROTSeed seed;
+  RANROTSeed seed;
 
-    unsigned width;
-    unsigned height;
+  unsigned width;
+  unsigned height;
 
-    // Atmosphere parameters.
-    float cloudAlpha;
-    float cloudFraction;
-    FloatRGB airColor;
-    FloatRGB cloudColor;
-    FloatRGB paleCloudColor;
+  // Atmosphere parameters.
+  float cloudAlpha;
+  float cloudFraction;
+  FloatRGB airColor;
+  FloatRGB cloudColor;
+  FloatRGB paleCloudColor;
 
-    // Noise generation stuff.
-    float* fbmBuffer;
+  // Noise generation stuff.
+  std::vector<float> fbmBuffer;
 
-    uint16_t* permutations;
+  std::vector<uint16_t> permutations;
 
-    unsigned planetAspectRatio;
-    unsigned planetScaleOffset;
-    BOOL perlin3d;
+  unsigned planetAspectRatio;
+  unsigned planetScaleOffset;
+  bool perlin3d;
 } OOStandaloneAtmosphereGeneratorInfo;
 
-@interface OOStandaloneAtmosphereGenerator : OOTextureGenerator {
-@private
-    OOStandaloneAtmosphereGeneratorInfo _info;
-    unsigned _planetScale;
-}
+/*	A leaf of the texture generators, over OOTextureGenerator. Its one
+   caller (OOPlanetEntity) calls the static members; the texture takes the C++
+   generator.
+*/
+class OOStandaloneAtmosphereGenerator : public OOTextureGenerator {
+ public:
+  /*	planetInfo is the planet's material parameters, a mixed configuration:
+     plist values with the colours as PList::Object nodes holding OOColors
+     Was [[OOStandaloneAtmosphereGenerator alloc] initWithPlanetInfo:seed:];
+     null where that answered nil.
+  */
+  static std::shared_ptr<OOStandaloneAtmosphereGenerator>
+  generatorWithPlanetInfo(const oo::PList& planetInfo, RANROTSeed seed);
+  bool initWithPlanetInfo(const oo::PList& planetInfo,
+                          RANROTSeed seed);  // false where it answered nil
 
-- (id)initWithPlanetInfo:(NSDictionary*)planetInfo;
+  // Were +planetTextureWithInfo:seed: and
+  // +generateAtmosphereTexture:withInfo:seed:; the texture is answered
+  // retained.
+  static std::shared_ptr<OOTexture> planetTextureWithInfo(
+      const oo::PList& planetInfo, RANROTSeed seed);
+  static bool generateAtmosphereTexture(std::shared_ptr<OOTexture>* texture,
+                                        const oo::PList& planetInfo,
+                                        RANROTSeed seed);
 
-+ (OOTexture*)planetTextureWithInfo:(NSDictionary*)planetInfo;
-+ (BOOL)generateAtmosphereTexture:(OOTexture**)texture withInfo:(NSDictionary*)planetInfo;
+  std::optional<std::string> descriptionComponents() const override;
+  OOTextureFlags textureOptions() override;
+  std::optional<std::string> cacheKey() override;
 
-@end
+  /*	Was -getResult:format:width:height:, whose keywords are not the root's
+          -getResult:format:originalWidth:originalHeight:, so it never overrode
+     it and nothing sends it; kept, under a name that does not override
+     getResult() either.
+  */
+  bool getResultFormatWidthHeight(OOPixMap* outData,
+                                  OOTextureDataFormat* outFormat,
+                                  uint32_t* outWidth, uint32_t* outHeight);
+
+  void loadTexture() override;
+
+ private:
+  void dumpNoiseBuffer(
+      float* noise);  // defined where the .cpp's DEBUG_DUMP_RAW is set
+
+  OOStandaloneAtmosphereGeneratorInfo _info = {};
+  unsigned _planetScale = {};
+};

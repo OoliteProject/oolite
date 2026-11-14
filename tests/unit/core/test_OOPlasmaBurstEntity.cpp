@@ -1,0 +1,143 @@
+/*	test_OOPlasmaBurstEntity.mm
+        Unit tests for OOPlasmaBurstEntity
+   (src/Core/Entities/OOPlasmaBurstEntity.h), the burst a plasma shot leaves
+   where it hits.
+
+        Its object needs the game graph, so the test links the whole game but
+   main (['*']) and uses a Universe that was never initialised, of a test
+   subclass that answers the time the test sets and records what is removed, and
+   a plain entity as PLAYER. The expectations cover: what the initialiser sets
+   (position, size, red, status), the growth and fade with the time since it was
+   spawned, and its removal after two seconds. Making a burst and reading its
+   colour components go through the helpers below: a burst is made by its
+   factory as an OOLightParticleEntity.
+   Run: bash tools/check-core-tests.sh
+*/
+
+
+#include "OOPlasmaBurstEntity.h"
+#include "PlayerEntity.h"  // PLAYER is C++
+#include "Universe.h"
+#include "oo_test.hpp"
+#include "EntityManualRefs.h"  // the tests' manual entity references
+
+// main.mm defines the debug flags, and the test has its own main.
+#ifndef NDEBUG
+uint32_t gDebugFlags = 0;
+#endif
+
+class PlayerEntity;
+extern PlayerEntity* gOOPlayer;
+extern Universe* gSharedUniverse;
+
+class TestPlayer : public PlayerEntity {
+ public:
+  HPVector viewpointPosition() override { return kZeroHPVector; }
+};
+
+// NewTestPlayer<TestPlayer>(): a C++ player, as
+// PlayerEntity::sharedPlayer() makes the game's, retained (+1) as +alloc's
+// object was.
+template <class T>
+T* NewTestPlayer() {
+  std::shared_ptr<T> player = oo::makeShared<T>();
+  {
+    oo::RetainEntity(oo::MadeEntity(player));
+  }
+  return player.get();
+}
+
+static Entity* sRemoved = nullptr;
+
+// UNIVERSE: never initialised; answers the time the test sets and records what
+// is removed.
+class TestUniverse : public Universe {
+ public:
+  bool removeEntity(Entity* entity) override {
+    sRemoved = entity;
+    return true;
+  }  // the C++ entity; the record is its object
+};
+
+// The time the test sets is the universe's own clock, which getTime() answers.
+Universe* SharedTestUniverse() {
+  static Universe* universe = new TestUniverse();
+  return universe;
+}  // never released
+#define sTime (SharedTestUniverse()->universal_time)
+
+namespace {
+
+// --- How a burst is made, and its colour, and nothing else
+// -------------------
+
+Entity* MakeBurst(HPVector position) {
+  return oo::MadeEntity(OOPlasmaBurstEntity::burstWithPosition(position));
+}
+
+// The entity is the particle.
+OOLightParticleEntity* Particle(Entity* e) {
+  return static_cast<OOLightParticleEntity*>(e);
+}
+const GLfloat* ColorComponents(Entity* e) {
+  return Particle(e)->_colorComponents;
+}
+
+// --------------------------------------------------------------------------------------------------
+
+void SetUp() {
+  static Universe* universe = nullptr;
+  if (universe == nullptr) {
+    universe = SharedTestUniverse();
+  }
+  gSharedUniverse = universe;
+  static TestPlayer* player = nullptr;
+  if (player == nullptr) player = NewTestPlayer<TestPlayer>();
+  gOOPlayer = player;
+  sRemoved = nullptr;
+  sTime = 0;
+}
+
+bool ComponentsAre(Entity* e, GLfloat r, GLfloat g, GLfloat b, GLfloat a) {
+  const GLfloat* c = ColorComponents(e);
+  return c[0] == r && c[1] == g && c[2] == b && c[3] == a;
+}
+
+}  // namespace
+
+OO_TEST(initWithPosition) {
+  {
+    SetUp();
+    Entity* burst = MakeBurst(make_HPvector(4, 5, 6));
+    OO_CHECK(burst != nullptr);
+    OO_CHECK(HPvector_equal(burst->getPosition(), make_HPvector(4, 5, 6)));
+    OO_CHECK(Particle(burst)->diameter() == 64.0f &&
+             burst->collisionRadius() == 2.0f);
+    OO_CHECK(burst->status() == OOEntityStatus::kEffect &&
+             burst->getScanClass() == OOScanClass::kNoDraw && burst->isEffect());
+    OO_CHECK(ComponentsAre(burst, 1.0f, 0.0f, 0.0f, 1.0f));
+    OO_CHECK(
+        oo::EntityDescription(burst).starts_with("<OOPlasmaBurstEntity 0x"));
+  }
+}
+
+OO_TEST(growsFadesAndIsRemoved) {
+  {
+    SetUp();
+    Entity* burst = MakeBurst(make_HPvector(4, 5, 6));
+
+    sTime = 1.0;
+    burst->update(0.1);
+    OO_CHECK(Particle(burst)->diameter() == 128.0f);
+    OO_CHECK(ComponentsAre(burst, 1.0f, 0.0f, 0.0f, 0.5f));
+    OO_CHECK(sRemoved == nullptr);
+
+    sTime = 2.5;
+    burst->update(0.1);
+    OO_CHECK(Particle(burst)->diameter() == 64.0f + 2.5f * 64.0f);
+    OO_CHECK(ComponentsAre(burst, 1.0f, 0.0f, 0.0f, 0.0f));
+    OO_CHECK(sRemoved == burst);
+  }
+}
+
+OO_TEST_MAIN()

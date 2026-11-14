@@ -1,6 +1,8 @@
 /*
 
-OOJSGuiScreenKeyDefinition.h
+OOJSGuiScreenKeyDefinition.h (QuickJS-ng)
+
+The JS global object makes it and the player keeps it as a std::shared_ptr.
 
 
 Oolite
@@ -23,30 +25,65 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOJSScript.h"
-#include <jsapi.h>
+#pragma once
 
-@interface OOJSGuiScreenKeyDefinition : OOWeakRefObject {
-@private
-    jsval _callback;
-    JSObject* _callbackThis;
-    OOJSScript* _owningScript;
+#include <quickjs.h>
 
-    NSString* _name;
-    NSDictionary* _registerKeys;
-}
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-- (NSString*)name;
-- (void)setName:(NSString*)name;
-- (NSDictionary*)registerKeys;
-- (void)setRegisterKeys:(NSDictionary*)registerKeys;
-- (jsval)callback;
-- (void)setCallback:(jsval)callback;
-- (JSObject*)callbackThis;
-- (void)setCallbackThis:(JSObject*)callbackthis;
+#include "OOFoundation.h"
+#include "oofnd/Object.hpp"
+#include "oofnd/PList.hpp"
 
-- (void)runCallback:(NSString*)key;
+class OOJSScript;  // included by the .cpp, so that a test can stand in for it
 
-- (NSComparisonResult)interfaceCompare:(OOJSGuiScreenKeyDefinition*)other;
+/*	The definition owns references to its callback and callbackThis, which
+   are released on destruction and when the JavaScript engine is reset.
+*/
+class OOJSGuiScreenKeyDefinition : public oo::Object {
+ public:
+  // The old -init after [super init] (oo::makeShared).
+  OOJSGuiScreenKeyDefinition();
+  ~OOJSGuiScreenKeyDefinition() override;
 
-@end
+  std::optional<std::string> name();  // nullopt until set
+  void setName(const std::optional<std::string>& name);
+  oo::PList registerKeys();
+  void setRegisterKeys(const oo::PList& registerKeys);
+  // Returned values are owned by the caller.
+  JSValue callback();
+  void setCallback(JSValueConst callback);
+  JSValue callbackThis();
+  void setCallbackThis(JSValueConst callbackthis);
+
+  void runCallback(const std::string& key);
+
+  OOComparisonResult interfaceCompare(OOJSGuiScreenKeyDefinition* other);
+
+ private:
+  void deleteJSPointers();
+
+  JSValue _callback = JS_UNDEFINED;         // Owned.
+  JSValue _callbackThis = JS_UNDEFINED;     // Owned.
+  std::weak_ptr<OOJSScript> _owningScript;  // a weak reference
+
+  std::optional<std::string> _name;  // nullopt until set (was nil)
+  oo::PList
+      _registerKeys;  // key name -> key definitions; null until set (was nil)
+};

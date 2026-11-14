@@ -24,80 +24,108 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOMaths.h"
-#import "OOTypes.h"
-#import "legacy_random.h"
-#import <Foundation/Foundation.h>
+#pragma once
 
-@class Entity;
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-NSMutableArray* ScanTokensFromString(NSString* values);
+#include "OOFoundation.h"
+#include "OOMaths.h"
+#include "OOTypes.h"
+#include "legacy_random.h"
 
-// Note: these functions will leave their out values untouched if they fail (and return NO). They will not log an error if passed a NULL string (but will return NO). This means they can be used to, say, read dictionary entries which might not exist. They also ignore any extra components in the string.
-BOOL ScanVectorFromString(NSString* xyzString, Vector* outVector);
-BOOL ScanHPVectorFromString(NSString* xyzString, HPVector* outVector);
-BOOL ScanQuaternionFromString(NSString* wxyzString, Quaternion* outQuaternion);
-BOOL ScanVectorAndQuaternionFromString(NSString* xyzwxyzString, Vector* outVector, Quaternion* outQuaternion);
+// Tokens of a string: oo::str::tokens (oofnd/String.hpp).
 
-Vector VectorFromString(NSString* xyzString, Vector defaultValue);
-Quaternion QuaternionFromString(NSString* wxyzString, Quaternion defaultValue);
+// Note: these functions will leave their out values untouched if they fail (and
+// return NO). They will not log an error if passed a null string (nullopt; but
+// will return NO). This means they can be used to, say, read dictionary entries
+// which might not exist. They also ignore any extra components in the string.
+bool ScanVectorFromString(const std::optional<std::string>& xyzString,
+                          Vector* outVector);
+bool ScanHPVectorFromString(const std::optional<std::string>& xyzString,
+                            HPVector* outVector);
+bool ScanQuaternionFromString(const std::optional<std::string>& wxyzString,
+                              Quaternion* outQuaternion);
+bool ScanVectorAndQuaternionFromString(
+    const std::optional<std::string>& xyzwxyzString, Vector* outVector,
+    Quaternion* outQuaternion);
 
-NSString* StringFromPoint(NSPoint point);
-NSPoint PointFromString(NSString* xyString);
+Vector VectorFromString(const std::optional<std::string>& xyzString,
+                        Vector defaultValue);
+Quaternion QuaternionFromString(const std::optional<std::string>& wxyzString,
+                                Quaternion defaultValue);
 
-Random_Seed RandomSeedFromString(NSString* abcdefString);
-NSString* StringFromRandomSeed(Random_Seed seed);
+std::string StringFromPoint(NSPoint point);
+NSPoint PointFromString(const std::string& xyString);
 
-NSString* OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includeDecimal, BOOL includeSymbol);
-OOINLINE NSString* OOStringFromIntCredits(OOCreditsQuantity integerCredits, BOOL includeSymbol)
-{
-    return OOStringFromDeciCredits(integerCredits * 10, NO, includeSymbol);
+// nullopt is read as nil was (a conversion error, logged, and kNilRandomSeed).
+Random_Seed RandomSeedFromString(
+    const std::optional<std::string>& abcdefString);
+std::string StringFromRandomSeed(Random_Seed seed);
+
+std::string OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits,
+                                    bool includeDecimal, bool includeSymbol);
+
+OOINLINE std::string OOStringFromIntCredits(OOCreditsQuantity integerCredits,
+                                            bool includeSymbol) {
+  return OOStringFromDeciCredits(integerCredits * 10, false, includeSymbol);
 }
 
-OOINLINE NSString* OOCredits(OOCreditsQuantity tenthsOfCredits)
-{
-    return OOStringFromDeciCredits(tenthsOfCredits, YES, YES);
+OOINLINE std::string OOCredits(OOCreditsQuantity tenthsOfCredits) {
+  return OOStringFromDeciCredits(tenthsOfCredits, true, true);
 }
-OOINLINE NSString* OOIntCredits(OOCreditsQuantity integerCredits)
-{
-    return OOStringFromIntCredits(integerCredits, YES);
+OOINLINE std::string OOIntCredits(OOCreditsQuantity integerCredits) {
+  return OOStringFromIntCredits(integerCredits, true);
 }
 
-NSString* OOPadStringToEms(NSString* string, float numEms);
+std::string OOPadStringToEms(const std::string& string, float numEms);
 
-@interface NSString (OOUtilities)
+// Given a string of the form 1.2.3.4 (with arbitrarily many components), return
+// a list of unsigned ints.
+std::vector<unsigned> ComponentsFromVersionString(const std::string& string);
 
-// Case-insensitive match of [self pathExtension]
-- (BOOL)pathHasExtension:(NSString*)extension;
-- (BOOL)pathHasExtensionInArray:(NSArray*)extensions;
-
-@end
-
-// Given a string of the form 1.2.3.4 (with arbitrarily many components), return an array of unsigned ints.
-NSArray* ComponentsFromVersionString(NSString* string);
-
-/*	Compare two arrays of unsigned int NSNumbers, as returned by
+/*	Compare two lists of unsigned ints, as returned by
         ComponentsFromVersionString().
 
         Components are ordered from most to least significant, and a missing
-        component is treated as 0. Thus "1.7" < "1.60", and "1.2.3.0" == "1.2.3".
+        component is treated as 0. Thus "1.7" < "1.60", and "1.2.3.0" ==
+   "1.2.3".
 */
-NSComparisonResult CompareVersions(NSArray* version1, NSArray* version2);
+OOComparisonResult CompareVersions(const std::vector<unsigned>& version1,
+                                   const std::vector<unsigned>& version2);
 
-NSString* ClockToString(double clock, BOOL adjusting);
+std::string ClockToString(double clock, bool adjusting);
 
 #if DEBUG_GRAPHVIZ
-NSString* EscapedGraphVizString(NSString* string);
+
+std::string EscapedGraphVizString(const std::string& string);
 
 /*	GraphVizTokenString()
         Generate a C-style identifier. Sequences of invalid characters and
-        underscores are replaced with single underscores. If uniqueSet is not nil,
-        uniqueness is achieved by appending numbers if necessary.
+        underscores are replaced with single underscores. If uniqueSet is not
+   nullptr, uniqueness is achieved by appending numbers if necessary, and the
+   result is added to it.
 
         This can be used for any C-based langauge, but note that it excludes the
         case-insensitive GraphViz keywords node, edge, graph, digraph, subgraph
         and strict.
 */
-NSString* GraphVizTokenString(NSString* string, NSMutableSet* uniqueSet);
+std::string GraphVizTokenString(const std::string& string,
+                                std::set<std::string>* uniqueSet);
 
 #endif

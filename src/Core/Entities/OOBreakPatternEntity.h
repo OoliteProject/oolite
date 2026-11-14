@@ -4,7 +4,6 @@ OOBreakPatternEntity.h
 
 Entity implementing tunnel effect for hyperspace and stations.
 
-
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -25,36 +24,46 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
+#pragma once
 
-@class OOColor;
+#include "Entity.h"
 
-enum {
-    kOOBreakPatternMaxSides = 128,
-    kOOBreakPatternMaxVertices = (kOOBreakPatternMaxSides + 1) * 2
-};
+inline constexpr int kOOBreakPatternMaxSides = 128;
+inline constexpr int kOOBreakPatternMaxVertices =
+    (kOOBreakPatternMaxSides + 1) * 2;
 
 #define BREAK_PATTERN_RING_SPACING 50.0
 #define BREAK_PATTERN_RING_SPEED 200.0
 
-@interface OOBreakPatternEntity : Entity {
-@private
-    Vector _vertexPosition[kOOBreakPatternMaxVertices];
-    GLfloat _vertexColor[kOOBreakPatternMaxVertices][4];
-    NSUInteger _vertexCount;
-    double _lifetime;
-}
+struct OOBreakPatternEntityTestAccess;
 
-+ (instancetype)breakPatternWithPolygonSides:(NSUInteger)sides startAngle:(float)startAngleDegrees aspectRatio:(float)aspectRatio;
+class OOBreakPatternEntity : public Entity {
+ public:
+  // +breakPatternWithPolygonSides:startAngle:aspectRatio:: a new ring,
+  // initialised.
+  static std::shared_ptr<OOBreakPatternEntity> breakPatternWithPolygonSides(
+      std::size_t sides, float startAngleDegrees, float aspectRatio);
 
-- (void)setInnerColor:(OOColor*)color1 outerColor:(OOColor*)color2;
+  void setInnerColor(OOColor* color1, OOColor* color2);
 
-- (void)setLifetime:(double)lifetime;
+  void setLifetime(double lifetime);
 
-@end
+  void update(OOTimeDelta delta_t) override;
+  void drawImmediate(bool immediate, bool translucent) override;
+  bool canCollide() override;
 
-@interface Entity (OOBreakPatternEntity)
+ private:
+  friend struct ::OOBreakPatternEntityTestAccess;
 
-- (BOOL)isBreakPattern;
+  // -initWithPolygonSides:startAngle:aspectRatio:'s body, run once right after
+  // construction.
+  void initWithPolygonSides(std::size_t sides, float startAngleDegrees,
+                            float aspectRatio);
 
-@end
+  void setInnerColorComponents(GLfloat color1[4], GLfloat color2[4]);
+
+  Vector _vertexPosition[kOOBreakPatternMaxVertices] = {};
+  GLfloat _vertexColor[kOOBreakPatternMaxVertices][4] = {};
+  std::size_t _vertexCount = {};
+  double _lifetime = {};
+};

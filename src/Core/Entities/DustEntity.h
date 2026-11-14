@@ -24,34 +24,94 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
-#import "OOOpenGLExtensionManager.h"
-#import "OOTexture.h"
+#pragma once
+
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
+#include "Entity.h"
+#include "OOGraphicsResetManager.h"
+#include "OOOpenGLExtensionManager.h"
+#include "OOTexture.h"
+
+#if OO_SHADERS
+#include "OOShaderProgram.h"
+#include "OOShaderUniform.h"
+#endif
 
 #define DUST_SCALE 2000
 #define DUST_N_PARTICLES 600
 
-@class OOColor, OOShaderProgram, OOShaderUniform;
+/*	The universe makes the dust with oo::makeShared<DustEntity>() and
+   init(), and finds it with dynamic_cast. It is its own graphics reset client
+   (OOGraphicsResetClient), and the dust shader's uniforms are bound to its
+   members (OOShaderUniform's C++ target binding).
+*/
+class DustEntity : public Entity, public OOGraphicsResetClient {
+ public:
+  DustEntity() = default;
+  ~DustEntity() override;
 
-@interface DustEntity : Entity {
-@private
-    OOColor* dust_color;
-    Vector vertices[DUST_N_PARTICLES * 2];
-    GLushort indices[DUST_N_PARTICLES * 2];
-    GLfloat color_fv[4];
-    OOTexture* texture;
-    bool hasPointSprites;
-    bool drawDust;
+  /*	-init's body after [super init] (the constructor ran Entity's), run once
+     right after construction: it registers this with the graphics reset
+     manager.
+  */
+  void init();
+
+  void setDustColor(OOColor* color);
+  OOColor* dustColor();
+
+  bool canCollide() override;
+  void updateCameraRelativePosition() override;
+  void update(OOTimeDelta delta_t) override;
 
 #if OO_SHADERS
-    GLfloat warpinessAttr[DUST_N_PARTICLES * 2];
-    OOShaderProgram* shader;
-    NSArray* uniforms;
-    uint8_t shaderMode;
+  OOShaderProgram* getShader();
+  Vector offsetPlayerPosition();  // the dust shader's uOffsetPlayerPosition
 #endif
-}
+  Vector warpVector();  // the dust shader's uWarp
 
-- (void)setDustColor:(OOColor*)color;
-- (OOColor*)dustColor;
+  void drawImmediate(bool immediate, bool translucent) override;
 
-@end
+  // OOGraphicsResetClient.
+  void resetGraphicsState() override;
+
+#ifdef OO_DEBUG_MONITOR_ENABLED
+  std::optional<std::string> descriptionForObjDump() override;
+#endif
+
+ private:
+#if OO_SHADERS
+  void checkShaderMode();
+#endif
+
+  std::shared_ptr<OOColor> dust_color;
+  Vector vertices[DUST_N_PARTICLES * 2] = {};
+  GLushort indices[DUST_N_PARTICLES * 2] = {};
+  GLfloat color_fv[4] = {};
+  std::shared_ptr<OOTexture> texture;
+  bool hasPointSprites = {};
+  bool drawDust = {};
+
+#if OO_SHADERS
+  GLfloat warpinessAttr[DUST_N_PARTICLES * 2] = {};
+  std::shared_ptr<OOShaderProgram> shader;
+  std::vector<std::shared_ptr<OOShaderUniform>> uniforms;
+  uint8_t shaderMode = {};
+#endif
+};

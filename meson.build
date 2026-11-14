@@ -1,6 +1,6 @@
 project(
     'oolite',
-    ['c', 'cpp', 'objc'],
+    ['c', 'cpp'],
     meson_version: '>= 1.4.0',
     version: run_command(
         'bash',
@@ -10,11 +10,14 @@ project(
     ).stdout().strip(),
     default_options: [
         'optimization=2',
+        # Always use the bundled, patched QuickJS-ng (see subprojects/quickjs-ng.wrap):
+        # an unpatched system build breaks OXPs that rely on SpiderMonkey behaviour.
+        'force_fallback_for=quickjs-ng',
     ],
 )
 
 host_os = host_machine.system()
-c_family = ['c', 'cpp', 'objc']
+c_family = ['c', 'cpp']
 
 version_string = meson.project_version()
 cat_cmd = find_program('cat', required: true)
@@ -29,12 +32,13 @@ foreach line : file_contents.split('\n')
     value = parts[1].strip('"\' ')
     version_vars += { key : value }
 endforeach
-add_project_arguments(
-    '-DOO_VERSION_FULL="@0@"'.format(version_string),
-    '-DOO_BUILD_DATE="@0@"'.format(version_vars.get('app_date')),
-    '-DOO_BUILDER="@0@"'.format(version_vars.get('builder')),
-    language: c_family,
-)
+# The version, build date and builder go in a generated header (src/Core/OOVersion.h), not on
+# every compile line: only the files that print them include it, so a new commit or day
+# recompiles those few files and leaves every other object (and its compiler-cache entry) alone.
+oo_version_conf = configuration_data()
+oo_version_conf.set_quoted('OO_VERSION_FULL', version_string)
+oo_version_conf.set_quoted('OO_BUILD_DATE', version_vars.get('app_date'))
+oo_version_conf.set_quoted('OO_BUILDER', version_vars.get('builder'))
 
 is_debug = (get_option('optimization') == '0' or get_option('debug'))
 if is_debug
@@ -96,10 +100,50 @@ if get_option('dev_release')
     )
 endif
 
-if get_option('oo_javascript_trace')
-    add_project_arguments('-DMOZ_TRACE_JSCALLS=1', language: c_family)
-endif
-
-gnustep_folder = ''  # Not needed for Windows
 # dependencies, compiler/linker flags and build
 subdir('src')
+
+if get_option('quickjs_poc')
+    subdir('src/Core/Scripting/poc')
+endif
+
+# The unit tests are built by every flavour but deployment: they test the live assertion and
+# debug paths, which a deployment build (NDEBUG) compiles out, and upstream's CI builds
+# `./mk.sh build deployment` (since #756), which builds every default target.
+# They are Windows-only for now: they were written and verified on the native Windows toolchain
+# and use its headers and LLP64 types (<process.h>, _putenv_s, <winsock2.h>, long == 32 bits),
+# so the Linux CI flavours build the game without them.
+#
+# deployment_unit_tests builds the oofnd suite under the deployment macros as well, in a separate
+# non-LTO build directory (meson setup with -Ddeployment_unit_tests=true): OOCAssert compiled out
+# under NDEBUG, and with it PlayerEntity's -deferredInit ship set-up, passes every test-flavour
+# suite and breaks the shipped game.
+if host_machine.system() == 'windows'
+    # Tests load the toolchain's libstdc++/libwinpthread, which must win over older copies earlier
+    # on PATH (Git for Windows ships mingw64 ones; a missing symbol surfaces as exit 0xc0000139).
+    toolchain_bin = import('fs').parent(find_program(meson.get_compiler('cpp').cmd_array()[0]).full_path())
+    test_env = environment()
+    test_env.prepend('PATH', toolchain_bin)
+    add_test_setup('default', env: test_env, is_default: true)
+endif
+
+if (not get_option('deployment_release') or get_option('deployment_unit_tests')) and host_machine.system() == 'windows'
+    # Unit tests that need no game build (meson test --suite oofnd).
+    subdir('tests/unit/oofnd')
+endif
+
+if not get_option('deployment_release') and host_machine.system() == 'windows'
+    # Unit tests of converted game classes, linked from the game's own objects (meson test --suite core).
+    subdir('tests/unit/core')
+endif
+
+# tools/icosmesh generates src/Core/OOPlanetData.{cpp,h}. Plain C++, so on every platform.
+subdir('tools/icosmesh')
+
+# Source checks (meson test --suite headers). Windows-only like the unit tests above.
+if not get_option('deployment_release') and host_machine.system() == 'windows'
+    # Debug-monitor code is guarded by OO_DEBUG_MONITOR_ENABLED, not NDEBUG: the deployment flavour
+    # defines both, and no test flavour notices a guard left on NDEBUG.
+    test('debug_monitor_guards', find_program('python3'),
+        args: [files('tests/check_debug_monitor_guards.py')], suite: 'headers')
+endif

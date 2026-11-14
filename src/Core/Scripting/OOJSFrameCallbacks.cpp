@@ -1,0 +1,480 @@
+/*
+
+OOJSFrameCallbacks.m
+
+
+Copyright (C) 2011-2013 Jens Ayton
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+*/
+
+#include "OOJSFrameCallbacks.h"
+
+#include <algorithm>
+#include <new>
+#include <vector>
+
+#include "oofnd/Date.hpp"
+#include "oofnd/Log.hpp"
+#include "oofnd/objc/OOAssert.h"
+
+/*
+        By default, tracking IDs are scrambled to discourage people from trying
+   to be clever or making assumptions about them. If
+   DEBUG_FCB_SIMPLE_TRACKING_IDS is non-zero, tracking IDs starting from 1 and
+   rising monotonously are used instead. Additionally, the next ID is reset to 1
+   when all frame callbacks are removed.
+*/
+#ifndef DEBUG_FCB_SIMPLE_TRACKING_IDS
+#define DEBUG_FCB_SIMPLE_TRACKING_IDS 0
+#endif
+
+#ifndef DEBUG_FCB_VERBOSE_LOGGING
+#define DEBUG_FCB_VERBOSE_LOGGING 0
+#endif
+
+#if defined(NDEBUG) && DEBUG_FCB_SIMPLE_TRACKING_IDS
+#error Deployment builds may not be built with DEBUG_FCB_SIMPLE_TRACKING_IDS.
+#endif
+
+#if DEBUG_FCB_VERBOSE_LOGGING
+#define FCBLog OO_LOG
+#define FCBLogIndentIf(key) oo::log::indentIf(key)
+#define FCBLogOutdentIf(key) oo::log::outdentIf(key)
+#else
+#define FCBLog(...) \
+  do {              \
+  } while (0)
+#define FCBLogIndentIf(key) \
+  do {                      \
+  } while (0)
+#define FCBLogOutdentIf(key) \
+  do {                       \
+  } while (0)
+#endif
+
+constexpr std::size_t kMinCount = 16;
+
+#if DEBUG_FCB_SIMPLE_TRACKING_IDS
+constexpr uint32_t kIDScrambleMask = 0;
+constexpr uint32_t kIDIncrement = 1;
+#else
+constexpr uint32_t kIDScrambleMask = 0x2315EB16;  // Just a random number.
+constexpr uint32_t kIDIncrement =
+    992699;  // A large prime number, to produce a non-obvious sequence which
+             // still uses all 2^32 values.
+#endif
+
+using CallbackEntry = struct {
+  JSValue callback;  // Owned.
+  uint32_t trackingID;
+  uint32_t _padding;
+};
+
+/*	SpiderMonkey needed each slot to be a GC root. With QuickJS, each
+   occupied slot simply owns a reference to its callback, which is freed when
+   the callback is removed. OOJavaScriptEngine calls
+   OOJSFrameCallbacksRemoveAll() before resetting or shutting down, so no reset
+   observer is needed.
+*/
+static std::vector<CallbackEntry> sCallbacks;
+// A deferred add or remove.
+using DeferredOperation = struct {
+  std::string operation;  // "add" or "remove"
+  uint32_t trackingID;
+  std::shared_ptr<OOJSValue> value;  // the callback, for "add"
+};
+
+namespace {
+static std::vector<DeferredOperation>*
+    sDeferredOps;  // Deferred adds/removes while running.
+}  // namespace
+static uint32_t sNextID;
+namespace {
+static bool sRunning;
+}  // namespace
+
+// Methods
+static JSValue GlobalAddFrameCallback(OOJS_NATIVE_ARGS);
+static JSValue GlobalRemoveFrameCallback(OOJS_NATIVE_ARGS);
+static JSValue GlobalIsValidFrameCallback(OOJS_NATIVE_ARGS);
+
+// Internals
+namespace {
+static bool AddCallback(JSContext* context, JSValueConst callback,
+                        uint32_t trackingID,
+                        std::optional<std::string>* errorString);
+static bool GrowCallbackList(JSContext* context,
+                             std::optional<std::string>* errorString);
+}  // namespace
+
+namespace {
+static bool GetIndexForTrackingID(uint32_t trackingID, std::size_t* outIndex);
+}  // namespace
+
+namespace {
+static bool RemoveCallbackWithTrackingID(JSContext* context,
+                                         uint32_t trackingID);
+}  // namespace
+static void RemoveCallbackAtIndex(JSContext* context, std::size_t index);
+
+namespace {
+static void QueueDeferredOperation(const std::string& opType,
+                                   uint32_t trackingID, OOJSValue* value);
+}  // namespace
+static void RunDeferredOperations(JSContext* context);
+
+static const JSCFunctionListEntry sFrameCallbackMethods[] = {
+    // JS name						Function
+    // min args
+    JS_CFUNC_DEF2("addFrameCallback", 1, GlobalAddFrameCallback,
+                  OOJS_METHOD_READONLY),
+    JS_CFUNC_DEF2("removeFrameCallback", 1, GlobalRemoveFrameCallback,
+                  OOJS_METHOD_READONLY),
+    JS_CFUNC_DEF2("isValidFrameCallback", 1, GlobalIsValidFrameCallback,
+                  OOJS_METHOD_READONLY),
+};
+
+// MARK: Public
+
+void InitOOJSFrameCallbacks(JSContext* context, JSValueConst global) {
+  JS_SetPropertyFunctionList(context, global, sFrameCallbackMethods,
+                             OOJS_COUNT(sFrameCallbackMethods));
+
+#if DEBUG_FCB_SIMPLE_TRACKING_IDS
+  sNextID = 1;
+#else
+  // Set randomish initial ID to catch bad habits.
+  sNextID = oo::date::timeIntervalSinceReferenceDate();
+#endif
+}
+
+void OOJSFrameCallbacksInvoke(OOTimeDelta inDeltaT) {
+  OOCAssert(!sRunning, "%s cannot be called while frame callbacks are running.",
+            __PRETTY_FUNCTION__);
+
+  if (!sCallbacks.empty()) {
+    const OOTimeDelta delta =
+        inDeltaT *
+        (UNIVERSE != nullptr ? UNIVERSE->getTimeAccelerationFactor() : 0.0);
+    JSContext* context = OOJSAcquireContext();
+    JSValue deltaVal = JS_NewNumber(context, delta);
+    // As with JS_CallFunctionValue() with a NULL this, callbacks are called
+    // with the global object as this.
+    JSValue global = JS_GetGlobalObject(context);
+    std::size_t i;
+
+    // Block mutations.
+    sRunning = true;
+
+    /*
+            The watchdog timer only fires once per second in deployment builds,
+            but in testrelease builds at least we can keep them on a short
+       leash. (With QuickJS the limit is checked by the interrupt handler.)
+    */
+    OOJSStartTimeLimiterWithTimeLimit(0.1);
+
+    for (i = 0; i < sCallbacks.size(); i++) {
+      // TODO: remove out of scope callbacks - post MNSR!
+      JSValue result =
+          JS_Call(context, sCallbacks[i].callback, global, 1, &deltaVal);
+      if (JS_IsException(result)) {
+        OOJSReportPendingException(context);
+      }
+      JS_FreeValue(context, result);
+    }
+
+    OOJSStopTimeLimiter();
+    sRunning = false;
+
+    JS_FreeValue(context, global);
+    JS_FreeValue(context, deltaVal);
+
+    if (EXPECT_NOT(sDeferredOps != nullptr)) {
+      RunDeferredOperations(context);
+      delete sDeferredOps;
+      sDeferredOps = nullptr;
+    }
+    OOJSRelinquishContext(context);
+  }
+}
+
+void OOJSFrameCallbacksRemoveAll() {
+  OOCAssert(!sRunning, "%s cannot be called while frame callbacks are running.",
+            __PRETTY_FUNCTION__);
+
+  if (!sCallbacks.empty()) {
+    JSContext* context = OOJSAcquireContext();
+    while (!sCallbacks.empty())
+      RemoveCallbackAtIndex(context, sCallbacks.size() - 1);
+    OOJSRelinquishContext(context);
+  }
+}
+
+// MARK: Methods
+
+// addFrameCallback(callback : Function) : Number
+static JSValue GlobalAddFrameCallback(OOJS_NATIVE_ARGS) {
+  OOJS_NATIVE_ENTER(context)
+
+  // Get callback argument and verify that it's a function.
+  JSValueConst callback = OOJS_ARGV[0];
+  if (EXPECT_NOT(argc < 1 || !OOJSValueIsFunction(context, callback))) {
+    OOJSReportBadArguments(context, std::nullopt, "addFrameCallback",
+                           MIN(argc, 1), OOJS_ARGV, std::nullopt, "function");
+    return JS_EXCEPTION;
+  }
+
+  // Assign a tracking ID.
+  uint32_t trackingID = sNextID ^ kIDScrambleMask;
+  sNextID += kIDIncrement;
+
+  if (EXPECT(!sRunning)) {
+    // Add to list immediately.
+    std::optional<std::string> errorString;
+    if (EXPECT_NOT(!AddCallback(context, callback, trackingID, &errorString))) {
+      OOJSReportError(context, "%s",
+                      (errorString ? errorString->c_str() : "(null)"));
+      return JS_EXCEPTION;
+    }
+  } else {
+    // Defer mutations during callback invocation.
+    FCBLog("script.frameCallback.debug.add.deferred",
+           "Deferring addition of frame callback with tracking ID {}.",
+           trackingID);
+    QueueDeferredOperation(
+        "add", trackingID,
+        OOJSValue::valueWithJSValue(callback, context).get());
+  }
+
+  OOJS_RETURN_INT(trackingID);
+
+  OOJS_NATIVE_EXIT
+}
+
+// removeFrameCallback(trackingID : Number)
+static JSValue GlobalRemoveFrameCallback(OOJS_NATIVE_ARGS) {
+  OOJS_NATIVE_ENTER(context)
+
+  // Get tracking ID argument.
+  uint32_t trackingID;
+  if (EXPECT_NOT(argc < 1 ||
+                 JS_ToUint32(context, &trackingID, OOJS_ARGV[0]) < 0)) {
+    if (JS_HasException(context))
+      JS_FreeValue(context, JS_GetException(context));
+    OOJSReportBadArguments(context, std::nullopt, "removeFrameCallback",
+                           MIN(argc, 1), OOJS_ARGV, std::nullopt,
+                           "frame callback tracking ID");
+    return JS_EXCEPTION;
+  }
+
+  if (EXPECT(!sRunning)) {
+    // Remove it.
+    if (EXPECT_NOT(!RemoveCallbackWithTrackingID(context, trackingID))) {
+      OOJSReportWarning(context, "removeFrameCallback(): invalid tracking ID.");
+    }
+  } else {
+    // Defer mutations during callback invocation.
+    FCBLog("script.frameCallback.debug.remove.deferred",
+           "Deferring removal of frame callback with tracking ID {}.",
+           trackingID);
+    QueueDeferredOperation("remove", trackingID, nullptr);
+  }
+
+  OOJS_RETURN_VOID;
+
+  OOJS_NATIVE_EXIT
+}
+
+// isValidFrameCallback(trackingID : Number)
+static JSValue GlobalIsValidFrameCallback(OOJS_NATIVE_ARGS) {
+  OOJS_NATIVE_ENTER(context)
+
+  if (EXPECT_NOT(argc < 1)) {
+    OOJSReportBadArguments(context, std::nullopt, "isValidFrameCallback", 0,
+                           OOJS_ARGV, std::nullopt,
+                           "frame callback tracking ID");
+    return JS_EXCEPTION;
+  }
+
+  // Get tracking ID argument.
+  uint32_t trackingID;
+  if (EXPECT_NOT(JS_ToUint32(context, &trackingID, OOJS_ARGV[0]) < 0)) {
+    JS_FreeValue(context, JS_GetException(context));
+    OOJS_RETURN_BOOL(false);
+  }
+
+  std::size_t index;
+  OOJS_RETURN_BOOL(GetIndexForTrackingID(trackingID, &index));
+
+  OOJS_NATIVE_EXIT
+}
+
+// MARK: Internals
+
+namespace {
+static bool AddCallback(JSContext* context, JSValueConst callback,
+                        uint32_t trackingID,
+                        std::optional<std::string>* errorString) {
+  OOCParameterAssert(context != nullptr);
+  OOCParameterAssert(errorString != nullptr);
+  OOCAssert(!sRunning, "%s cannot be called while frame callbacks are running.",
+            __PRETTY_FUNCTION__);
+
+  if (EXPECT_NOT(sCallbacks.size() == sCallbacks.capacity())) {
+    if (!GrowCallbackList(context, errorString)) return false;
+  }
+
+  FCBLog("script.frameCallback.debug.add",
+         "Adding frame callback with tracking ID {}.", trackingID);
+
+  sCallbacks.push_back(CallbackEntry{.callback = JS_DupValue(context, callback),
+                                     .trackingID = trackingID,
+                                     ._padding = 0});
+
+  return true;
+}
+}  // namespace
+
+namespace {
+static bool GrowCallbackList(JSContext* context,
+                             std::optional<std::string>* errorString) {
+  OOCParameterAssert(context != nullptr);
+  OOCParameterAssert(errorString != nullptr);
+
+  // The occupied slots move to the new storage, their references with them.
+  try {
+    sCallbacks.reserve(std::max(sCallbacks.capacity() * 2, kMinCount));
+  } catch (const std::bad_alloc&) {
+    *errorString = "Failed to allocate space for frame callback.";
+    return false;
+  }
+
+  return true;
+}
+}  // namespace
+
+namespace {
+static bool GetIndexForTrackingID(uint32_t trackingID, std::size_t* outIndex) {
+  OOCParameterAssert(outIndex != nullptr);
+
+  /*	It is assumed that few frame callbacks will be active at once, so a
+          linear search is reasonable. If they become unexpectedly popular, we
+          can switch to a sorted list or a separate lookup table without
+     changing the API.
+  */
+  std::size_t i;
+  for (i = 0; i < sCallbacks.size(); i++) {
+    if (sCallbacks[i].trackingID == trackingID) {
+      *outIndex = i;
+      return true;
+    }
+  }
+
+  return false;
+}
+}  // namespace
+
+namespace {
+static bool RemoveCallbackWithTrackingID(JSContext* context,
+                                         uint32_t trackingID) {
+  OOCParameterAssert(context != nullptr);
+  OOCAssert(!sRunning, "%s cannot be called while frame callbacks are running.",
+            __PRETTY_FUNCTION__);
+
+  std::size_t index = 0;
+  if (GetIndexForTrackingID(trackingID, &index)) {
+    RemoveCallbackAtIndex(context, index);
+    return true;
+  }
+
+  return false;
+}
+}  // namespace
+
+static void RemoveCallbackAtIndex(JSContext* context, std::size_t index) {
+  OOCParameterAssert(context != nullptr);
+  OOCParameterAssert(index < sCallbacks.size());
+  OOCAssert(!sRunning, "%s cannot be called while frame callbacks are running.",
+            __PRETTY_FUNCTION__);
+
+  FCBLog("script.frameCallback.debug.remove",
+         "Removing frame callback with tracking ID {}.",
+         sCallbacks[index].trackingID);
+
+  // Overwrite entry to be removed with last entry, and drop the last.
+  JSValue removed = sCallbacks[index].callback;
+  sCallbacks[index] = sCallbacks.back();
+  sCallbacks.pop_back();
+  JS_FreeValue(context, removed);
+
+#if DEBUG_FCB_SIMPLE_TRACKING_IDS
+  if (sCallbacks.empty()) {
+    OO_LOG("script.frameCallback.debug.reset",
+           "All frame callbacks removed, resetting next ID to 1.");
+    sNextID = 1;
+  }
+#endif
+}
+
+namespace {
+static void QueueDeferredOperation(const std::string& opType,
+                                   uint32_t trackingID, OOJSValue* value) {
+  OOCAssert(sRunning,
+            "%s can only be called while frame callbacks are running.",
+            __PRETTY_FUNCTION__);
+
+  if (sDeferredOps == nullptr)
+    sDeferredOps = new std::vector<DeferredOperation>;
+  sDeferredOps->push_back(
+      DeferredOperation{opType, trackingID, oo::share(value)});
+}
+}  // namespace
+
+static void RunDeferredOperations(JSContext* context) {
+  FCBLog("script.frameCallback.debug.run-deferred",
+         "Running {} deferred frame callback operations.",
+         (long)sDeferredOps->size());
+  FCBLogIndentIf("script.frameCallback.debug.run-deferred");
+
+  for (const DeferredOperation& operation : *sDeferredOps) {
+    const std::string& opType = operation.operation;
+    uint32_t trackingID = operation.trackingID;
+
+    if (opType == "add") {
+      OOJSValue* callbackObj = operation.value.get();
+      std::optional<std::string> errorString;
+
+      JSValue callback =
+          (callbackObj != nullptr ? callbackObj->jsValueInContext(context)
+                                  : JS_NULL);
+      if (!AddCallback(context, callback, trackingID, &errorString)) {
+        OO_LOG_WARN("script.frameCallback.deferredAdd.failed",
+                    "Deferred frame callback insertion failed: {}",
+                    errorString.value_or("(null)"));
+      }
+      JS_FreeValue(context, callback);
+    } else if (opType == "remove") {
+      RemoveCallbackWithTrackingID(context, trackingID);
+    }
+  }
+
+  FCBLogOutdentIf("script.frameCallback.debug.run-deferred");
+}

@@ -4,6 +4,7 @@ OOMusicController.h
 
 Singleton controller for music playback.
 
+A singleton.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -25,60 +26,92 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
-#import "OOSoundSource.h"
+#pragma once
 
-@class OOMusic;
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-#define OOLITE_ITUNES_SUPPORT OOLITE_MAC_COCOA_UI
+#include "OOALMusic.h"
+#include "OOEnumFlags.h"
+#include "OOFoundation.h"
+#include "OOSoundSource.h"
+#include "oofnd/Object.hpp"
+#include "oofnd/objc/OOObject.h"
 
-typedef enum {
-    kOOMusicOff,
-    kOOMusicOn,
-    kOOMusicITunes,
+enum class OOMusicMode : std::int32_t {
+  kOff,
+  kOn,
+  kITunes,
 
-#if OOLITE_ITUNES_SUPPORT
-    kOOMusicModeMax = kOOMusicITunes
-#else
-    kOOMusicModeMax = kOOMusicOn
-#endif
-} OOMusicMode;
+};
+static_assert(static_cast<std::int32_t>(OOMusicMode::kOff) == 0);
+static_assert(static_cast<std::int32_t>(OOMusicMode::kOn) == 1);
+static_assert(static_cast<std::int32_t>(OOMusicMode::kITunes) == 2);
+inline constexpr OOMusicMode kOOMusicModeMax = OOMusicMode::kOn;
 
-@interface OOMusicController : NSObject {
-@private
-    OOMusicMode _mode;
-    NSString* _missionMusic;
-    OOMusic* _current;
-    uint8_t _special;
-}
+class OOMusicController : public oo::Object {
+ public:
+  /*	The one controller (was +sharedController),
+     made on first use and never released; borrowed.
+  */
+  static OOMusicController* sharedController();
 
-+ (OOMusicController*)sharedController;
+  OOMusicController();  // was -init
 
-- (void)playMusicNamed:(NSString*)name loop:(BOOL)loop;
-- (void)playMusicNamed:(NSString*)name loop:(BOOL)loop gain:(float)gain;
+  void playMusicNamed(const std::string& name, bool loop);
+  void playMusicNamed(const std::string& name, bool loop, float gain);
 
-- (void)playThemeMusic;
-- (void)playDockingMusic;
-- (void)playDockedMusic;
+  void playThemeMusic();
+  void playDockingMusic();
+  void playDockedMusic();
 
-- (void)setMissionMusic:(NSString*)missionMusicName;
-- (void)playMissionMusic;
+  void setMissionMusic(
+      const std::optional<std::string>&
+          missionMusicName);  // was -setMissionMusic:; nullopt: none
+  void playMissionMusic();
 
-- (void)justStop;
-- (void)stop;
-- (void)stopMusicNamed:(NSString*)name; // Stop only if name == playingMusic
-- (void)stopThemeMusic;
-- (void)stopDockingMusic;
-- (void)stopMissionMusic;
+  void justStop();
+  void stop();
+  void stopMusicNamed(
+      const std::string& name);  // Stop only if name == playingMusic
+  void stopThemeMusic();
+  void stopDockingMusic();
+  void stopMissionMusic();
 
-- (void)toggleDockingMusic; // Start docking music if none playing, stop docking music if currently playing docking music.
+  void
+  toggleDockingMusic();  // Start docking music if none playing, stop docking
+                         // music if currently playing docking music.
 
-- (OOSoundSource*)soundSource;
+  ::OOSoundSource* soundSource();
 
-- (NSString*)playingMusic;
-- (BOOL)isPlaying;
+  std::optional<std::string> playingMusic();  // nullopt: nothing playing
+  bool isPlaying();
 
-- (OOMusicMode)mode;
-- (void)setMode:(OOMusicMode)mode;
+  OOMusicMode mode();
+  void setMode(OOMusicMode mode);
 
-@end
+ private:
+  // The private category (the iTunes integration, Mac only).
+  void playiTunesPlaylist(std::string_view playlistName);
+  void pauseiTunes();
+
+  OOMusicMode _mode = {};
+  std::optional<std::string> _missionMusic;
+  std::shared_ptr<OOMusic> _current;
+  uint8_t _special = {};
+};

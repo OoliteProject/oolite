@@ -1,0 +1,290 @@
+/*	test_OOOXPVerifierStage.mm
+        Unit tests for OOOXPVerifierStage
+   (src/Core/OXPVerifier/OOOXPVerifierStage.h).
+
+        The base class has a dozen subclasses, and OOOXPVerifier drives every
+   stage. So this pins what the base computes: the defaults a subclass inherits,
+   the dependency graph (direct and recursive dependency, no duplicates,
+   dependents told once in registration order), running and skipping, an
+   exception from -run caught, the description, and the super call from a
+   subclass. The test stages are C++ subclasses (the super call a qualified base
+   call), and the description is description(). Run: bash
+   tests/run.sh unit
+*/
+
+#include "OOLogging.h"
+#include "OOOXPVerifierStage.h"
+#include "oo_test.hpp"
+#include "oofnd/objc/OOException.h"
+
+/*	The game's OOLogging.mm reaches the resource manager, so it is not
+   linked. The one function of it that the base calls is defined here instead,
+   and counts: "subclass responsibility" is checked, not only logged.
+*/
+static int gSubclassResponsibilities = 0;
+
+void OOLogGenericSubclassResponsibilityForFunction(const char* inFunction) {
+  (void)inFunction;
+  gSubclassResponsibilities++;
+}
+
+/*	A verifier for verifierIsNotRetained: the stage keeps the C++ verifier.
+   Its constructor is private; the class names this struct
+   its friend for tests. Nothing the verifier defines out of line is called, so
+   OOOXPVerifier.mm is not linked.
+*/
+struct OOOXPVerifierTestAccess {
+  static std::shared_ptr<OOOXPVerifier> Make() {
+    return std::shared_ptr<OOOXPVerifier>(new OOOXPVerifier(), oo::Dispose{});
+  }
+};
+
+/*	A stage that overrides the subclass responsibilities.
+ */
+class TestObjCStage : public OOOXPVerifierStage {
+ public:
+  std::optional<std::string> name() override { return _testName; }
+  std::optional<std::vector<std::string>> dependencies() override {
+    return _testDependencies;
+  }
+
+  void run() override {
+    _runs++;
+    if (_raise) OORaiseException("TestException", "%s", "raised by the test");
+  }
+
+  std::string _testName;
+  std::optional<std::vector<std::string>> _testDependencies;
+  int _runs = 0;
+  bool _raise = false;
+};
+
+// Extends its superclass's dependents through its base's dependents(), as
+// OOTextureHandlingStage does.
+class TestSuperCallingStage : public TestObjCStage {
+ public:
+  std::optional<std::vector<std::string>> dependents() override {
+    std::vector<std::string> result =
+        TestObjCStage::dependents().value_or(std::vector<std::string>());
+    result.push_back("Listing unused files");
+    return result;
+  }
+};
+
+// A converted stage: a C++ subclass that overrides the virtual members. Global,
+// as a game class is, so that its description names it as the game's would.
+class TestCxxStage : public OOOXPVerifierStage {
+ public:
+  explicit TestCxxStage(std::string testName)
+      : _testName(std::move(testName)) {}
+
+  std::optional<std::string> name() override { return _testName; }
+  std::optional<std::vector<std::string>> dependents() override {
+    return std::vector<std::string>{"Dependent"};
+  }
+  bool shouldRun() override { return _shouldRun; }
+  void run() override { runs++; }
+
+  int runs = 0;
+  bool _shouldRun = false;
+
+ private:
+  std::string _testName;
+};
+
+namespace {
+
+std::shared_ptr<TestObjCStage> MakeStage(const char* name) {
+  std::shared_ptr<TestObjCStage> stage = oo::makeShared<TestObjCStage>();
+  stage->_testName = name;
+  return stage;
+}
+
+bool Holds(const std::vector<std::shared_ptr<OOOXPVerifierStage>>& stages,
+           std::initializer_list<OOOXPVerifierStage*> expected) {
+  if (stages.size() != expected.size()) return false;
+  std::size_t i = 0;
+  for (OOOXPVerifierStage* stage : expected) {
+    if (stages[i++].get() != stage) return false;
+  }
+  return true;
+}
+
+}  // namespace
+
+OO_TEST(baseDefaults) {
+  {
+    const std::shared_ptr<OOOXPVerifierStage> stage = oo::makeShared<OOOXPVerifierStage>();
+    const int before = gSubclassResponsibilities;
+    OO_CHECK(!stage->name()
+                  .has_value());  // subclass responsibility: logs, answers nil
+    OO_CHECK(gSubclassResponsibilities == before + 1);
+    stage->run();
+    OO_CHECK(gSubclassResponsibilities == before + 2);
+    OO_CHECK(!stage->dependencies().has_value());
+    OO_CHECK(!stage->dependents().has_value());
+    OO_CHECK(stage->shouldRun());
+    OO_CHECK(!stage->completed());
+    OO_CHECK(!stage->canRun());
+    OO_CHECK(stage->verifier() == nullptr);
+    OO_CHECK(stage->resolvedDependencies().empty() &&
+             stage->resolvedDependents().empty());
+    stage->dependencyRegistrationComplete();
+    OO_CHECK(stage->canRun());  // nothing to wait for
+  }
+}
+
+OO_TEST(verifierIsNotRetained) {
+  {
+    const std::shared_ptr<OOOXPVerifier> object = OOOXPVerifierTestAccess::Make();
+    OOOXPVerifier* verifier = object.get();
+    const std::shared_ptr<TestObjCStage> stage = MakeStage("Stage");
+    const long before = object->weak_from_this().use_count();
+    stage->setVerifier(verifier);
+    OO_CHECK(object->weak_from_this().use_count() == before);
+    {
+      OO_CHECK(stage->verifier() == verifier);
+    }
+    OO_CHECK(object->weak_from_this().use_count() == before);
+  }
+}
+
+OO_TEST(dependencyGraph) {
+  {
+    const std::shared_ptr<TestObjCStage> a = MakeStage("A"), b = MakeStage("B"),
+                                 c = MakeStage("C"), d = MakeStage("D");
+    b->registerDependency(a.get());
+    c->registerDependency(b.get());
+    c->registerDependency(b.get());  // no duplicates
+    d->registerDependency(a.get());
+
+    OO_CHECK(b->isDependentOf(a.get()) && c->isDependentOf(b.get()));
+    OO_CHECK(c->isDependentOf(a.get()));  // recursive
+    OO_CHECK(!a->isDependentOf(c.get()) && !b->isDependentOf(c.get()) &&
+             !d->isDependentOf(b.get()));
+    OO_CHECK(!c->isDependentOf(nullptr));
+    OO_CHECK(Holds(c->resolvedDependencies(), {b.get()}));
+    OO_CHECK(Holds(a->resolvedDependents(),
+                   {b.get(), d.get()}));  // registration order
+    OO_CHECK(Holds(b->resolvedDependents(), {c.get()}));
+
+    for (TestObjCStage* stage : {a.get(), b.get(), c.get(), d.get()})
+      stage->dependencyRegistrationComplete();
+    OO_CHECK(a->canRun() && !b->canRun() && !c->canRun() && !d->canRun());
+
+    a->performRun();
+    OO_CHECK(a->_runs == 1 && a->completed() && !a->canRun());
+    OO_CHECK(b->canRun() && d->canRun() &&
+             !c->canRun());  // every dependent told
+
+    b->noteSkipped();
+    OO_CHECK(b->_runs == 0 && b->completed() && !b->canRun());
+    OO_CHECK(c->canRun());
+  }
+}
+
+OO_TEST(exceptionInRunIsCaught) {
+  {
+    const std::shared_ptr<TestObjCStage> raising = MakeStage("Raising"),
+                                 after = MakeStage("After");
+    raising->_raise = true;
+    after->registerDependency(raising.get());
+    raising->dependencyRegistrationComplete();
+    after->dependencyRegistrationComplete();
+
+    raising->performRun();  // logs verifyOXP.exception
+    OO_CHECK(raising->_runs == 1 && raising->completed());
+    OO_CHECK(after->canRun());
+  }
+}
+
+OO_TEST(superCallsReachTheBase) {
+  {
+    const std::shared_ptr<TestSuperCallingStage> stage =
+        oo::makeShared<TestSuperCallingStage>();
+    const std::optional<std::vector<std::string>> dependents =
+        stage->dependents();
+    OO_CHECK(dependents == std::vector<std::string>{"Listing unused files"});
+  }
+}
+
+OO_TEST(description) {
+  {
+    const std::string text = MakeStage("Checking things")->description();
+    OO_CHECK(text.starts_with("<TestObjCStage 0x"));
+    OO_CHECK(text.ends_with(">{\"Checking things\"}"));
+    OO_CHECK(oo::makeShared<OOOXPVerifierStage>()->description().ends_with(
+        ">{\"(null)\"}"));
+  }
+}
+
+OO_TEST(cxxStageBehindTheFacade) {
+  {
+    const std::shared_ptr<TestCxxStage> stage = oo::makeShared<TestCxxStage>("Cxx");
+
+    // The verifier's calls reach the C++ overrides, and the base's defaults.
+    OO_CHECK(stage->name() == std::optional<std::string>("Cxx"));
+    OO_CHECK(!stage->dependencies().has_value());
+    OO_CHECK(stage->dependents() == std::vector<std::string>{"Dependent"});
+    OO_CHECK(!stage->shouldRun());
+    stage->dependencyRegistrationComplete();
+    stage->performRun();
+    OO_CHECK(stage->runs == 1 && stage->completed() && stage->completed());
+
+    // Described with the C++ class's name, as [self class] named it.
+    const std::string text = stage->description();
+    OO_CHECK(text.starts_with("<TestCxxStage 0x"));
+    OO_CHECK(text.ends_with(">{\"Cxx\"}"));
+    OO_CHECK(stage->descriptionComponents() ==
+             std::optional<std::string>("\"Cxx\""));
+  }
+}
+
+OO_TEST(objCStageBehindACxxPointer) {
+  {
+    const std::shared_ptr<TestObjCStage> objCStage = MakeStage("ObjC");
+    OOOXPVerifierStage* part = objCStage.get();
+    OO_CHECK(part != nullptr);
+
+    // Virtual calls through the base reach the subclass's overrides.
+    OO_CHECK(part->name() == std::optional<std::string>("ObjC"));
+    objCStage->_testDependencies = std::vector<std::string>{"Cxx"};
+    OO_CHECK(part->dependencies() == objCStage->_testDependencies);
+    OO_CHECK(part->shouldRun());  // not overridden: the base's answer
+    OO_CHECK(!part->dependents().has_value());
+
+    // The subclass's base call still reaches the base, not back to the
+    // subclass.
+    const std::shared_ptr<TestSuperCallingStage> superCalling =
+        oo::makeShared<TestSuperCallingStage>();
+    OO_CHECK(
+        static_cast<OOOXPVerifierStage*>(superCalling.get())->dependents() ==
+        std::vector<std::string>{"Listing unused files"});
+  }
+}
+
+OO_TEST(mixedDependencyGraph) {
+  {
+    const std::shared_ptr<TestCxxStage> cxxStage = oo::makeShared<TestCxxStage>("Cxx");
+    cxxStage->_shouldRun = true;
+    const std::shared_ptr<TestObjCStage> objCStage = MakeStage("ObjC");
+
+    // The verifier wires the stages together.
+    objCStage->registerDependency(cxxStage.get());
+    OO_CHECK(objCStage->isDependentOf(cxxStage.get()));
+    OO_CHECK(objCStage->isDependentOf(cxxStage.get()));
+    OO_CHECK(Holds(cxxStage->resolvedDependents(), {objCStage.get()}));
+    OO_CHECK(cxxStage->resolvedDependents().size() == 1 &&
+             cxxStage->resolvedDependents()[0].get() == objCStage.get());
+
+    cxxStage->dependencyRegistrationComplete();
+    objCStage->dependencyRegistrationComplete();
+    OO_CHECK(cxxStage->canRun() && !objCStage->canRun());
+    cxxStage->performRun();
+    OO_CHECK(cxxStage->runs == 1 && objCStage->canRun());
+    objCStage->performRun();  // virtual run() reaches the override
+    OO_CHECK(objCStage->_runs == 1 && objCStage->completed());
+  }
+}
+
+OO_TEST_MAIN()
