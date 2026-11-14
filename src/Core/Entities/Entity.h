@@ -33,6 +33,8 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 #import "OOWeakReference.h"
 
+#include <quickjs.h>
+
 @class Universe, CollisionRegion, ShipEntity, OOVisualEffectEntity;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
@@ -59,7 +61,12 @@ typedef enum OOEntityStatus {
 
 #ifndef OO_SCANCLASS_TYPE
 #define OO_SCANCLASS_TYPE
+#ifndef __cplusplus
+/* ISO C++ forbids a forward reference to an unscoped enum with no fixed underlying
+   type. The full definition is three lines below in this same file, so C++
+   translation units never need the forward tag at all. */
 typedef enum OOScanClass OOScanClass;
+#endif
 #endif
 
 enum OOScanClass {
@@ -141,7 +148,7 @@ enum OOScanClass {
 
     OOTimeAbsolute spawnTime;
 
-    struct JSObject* _jsSelf;
+    JSValue _jsSelf; // Zero-filled (not an object) until created; test with JS_IsObject().
     NSUInteger lastDrawCounter;
 
 @private
@@ -319,8 +326,16 @@ enum {
     kOOScanClassDefault = CLASS_NOT_SET
 };
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 NSString* OOStringFromEntityStatus(OOEntityStatus status) CONST_FUNC;
 OOEntityStatus OOEntityStatusFromString(NSString* string) PURE_FUNC;
 
 NSString* OOStringFromScanClass(OOScanClass scanClass) CONST_FUNC;
 OOScanClass OOScanClassFromString(NSString* string) PURE_FUNC;
+
+#ifdef __cplusplus
+}
+#endif

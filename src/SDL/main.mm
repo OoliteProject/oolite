@@ -1,0 +1,264 @@
+/*
+
+main.m
+
+Oolite
+Copyright (C) 2004-2013 Giles C Williams and contributors
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+
+*/
+
+#if defined(GNUSTEP_BASE_LIBRARY) || defined(OOLITE_SDL_MAC)
+#import <objc/runtime.h>
+
+#import <objc/objc-arc.h>
+#if (GNUSTEP_BASE_MAJOR_VERSION == 1 && (GNUSTEP_BASE_MINOR_VERSION == 24 && GNUSTEP_BASE_SUBMINOR_VERSION >= 9) || (GNUSTEP_BASE_MINOR_VERSION > 24)) || (GNUSTEP_BASE_MAJOR_VERSION > 1)
+#import <Foundation/NSDate.h>
+#endif
+#import "GameController.h"
+#import "OOLoggingExtended.h"
+#include "oofnd/Process.hpp"
+#import <Foundation/NSString.h>
+
+#if OOLITE_WINDOWS
+#include <SDL3/SDL_main.h>
+#include <SDL3/SDL_stdinc.h>
+#include <locale.h>
+// Make sure that a high performance GPU is
+// selected, if more than one are available
+__declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+#elif OOLITE_LINUX
+#include <unistd.h>
+#elif OOLITE_MAC_OS_X
+#include <mach-o/dyld.h>
+#include <unistd.h>
+#endif
+
+GameController* controller;
+#endif
+
+#ifdef OO_DEBUG_MONITOR_ENABLED
+uint32_t gDebugFlags = 0;
+#endif
+
+#ifndef STRINGIFY // provided by GNUstep
+#define STRINGIFY_(s) #s
+#define STRINGIFY(s) STRINGIFY_(s)
+#endif
+
+// This macro is normally defined in the build command
+#ifndef OO_VERSION_FULL
+#define OO_VERSION_FULL "Undefined"
+#endif
+
+/**
+ * \ingroup cli
+ * Entry point for Linux and Windows systems.
+ * Initializes logging. If -load is passed, the argument after that is loaded
+ * as savegame.
+ *
+ * @param argc the number of command line arguments
+ * @param argv the string array values of the command line arguments
+ * @return returns 0 on success, or EXITFAILURE when an exception is caught
+ */
+int main(int argc, char* argv[])
+{
+    // Foundation's process-info -arguments, now captured here: argv as SDL_main built it (UTF-8 on Windows).
+    oo::process::setArguments(argc, argv);
+
+#if defined(GNUSTEP_BASE_LIBRARY) || defined(OOLITE_SDL_MAC)
+    int i;
+
+#if (GNUSTEP_BASE_MAJOR_VERSION == 1 && (GNUSTEP_BASE_MINOR_VERSION == 24 && GNUSTEP_BASE_SUBMINOR_VERSION >= 9) || (GNUSTEP_BASE_MINOR_VERSION > 24)) || (GNUSTEP_BASE_MAJOR_VERSION > 1)
+    [NSDate class]; // See github issue #202
+#endif
+
+#if OOLITE_WINDOWS
+
+#define OO_SHOW_MSG(ooMsg, ooMsgTitle, ooMsgFlags) MessageBox(NULL, ooMsg, ooMsgTitle, ooMsgFlags)
+#define TABS1 "\t"
+#define TABS2 "\t\t"
+#define TABS3 "\t\t\t"
+#define TABS4 ""
+
+// Detect current working directory and set up GNUstep environment variables
+#define MAX_PATH_LEN 256
+    char currentWorkingDir[MAX_PATH_LEN];
+    DWORD bufferSize = MAX_PATH_LEN;
+
+    QueryFullProcessImageName(GetCurrentProcess(), 0, currentWorkingDir, &bufferSize);
+    // Strip the exe filenameb (from last backslash onwards), leave just the path
+    char* probeString = strrchr(currentWorkingDir, '\\');
+    if (probeString)
+        *probeString = '\0'; // currentWorkingDir now contains the path we need
+
+    // Prepend system PATH env variable with our own executable's path
+    const char* pathEnvVar = "Path";
+    const char* systemPath = SDL_getenv(pathEnvVar);
+    if (!systemPath) {
+        pathEnvVar = "PATH";
+        systemPath = SDL_getenv(pathEnvVar);
+    }
+    size_t currentWorkingDirLen = strlen(currentWorkingDir);
+    size_t systemPathLen = strlen(systemPath);
+    // the max possible length of the string below is systemPath plus the path
+    // we have determined for us, plus one char for the ";" and one char for the null terminator
+    char* finalPath = (char*)malloc(systemPathLen + currentWorkingDirLen + 2 * sizeof(char));
+    strcpy(finalPath, currentWorkingDir);
+    strcat(finalPath, ";");
+    strcat(finalPath, systemPath);
+
+    SDL_setenv_unsafe("GNUSTEP_PATH_HANDLING", "windows", YES);
+    SDL_setenv_unsafe(pathEnvVar, finalPath, YES);
+    SDL_setenv_unsafe("GNUSTEP_SYSTEM_ROOT", currentWorkingDir, YES);
+    SDL_setenv_unsafe("GNUSTEP_LOCAL_ROOT", currentWorkingDir, YES);
+    SDL_setenv_unsafe("GNUSTEP_NETWORK_ROOT", currentWorkingDir, YES);
+    SDL_setenv_unsafe("GNUSTEP_USERS_ROOT", currentWorkingDir, YES);
+#if OO_GAME_DATA_TO_USER_FOLDER
+    SDL_setenv_unsafe("HOMEPATH", strcat(SDL_getenv("LOCALAPPDATA"), "\\Oolite\\oolite.app"), YES);
+#else
+    SDL_setenv_unsafe("HOMEPATH", currentWorkingDir, YES);
+#endif
+
+    SetCurrentDirectory(currentWorkingDir);
+
+    free(finalPath);
+
+    /*	Windows ambitiously starts apps with the C library locale set to the
+            system locale rather than the "C" locale as per spec. Fixing here so
+            numbers don't behave strangely.
+    */
+    setlocale(LC_ALL, "C");
+
+#else // Linux and Mac
+#if OOLITE_LINUX
+    char result[PATH_MAX];
+    ssize_t count = readlink("/proc/self/exe", result, PATH_MAX - 1);
+    result[count] = '\0';
+    char* last_slash = strrchr(result, '/');
+    if (last_slash != NULL) {
+        *last_slash = '\0'; // Chop off the executable name, leaving just the directory
+    }
+    chdir(result);
+#elif OOLITE_MAC_OS_X
+    // Run from the folder holding Resources and AddOns: Contents in an app bundle
+    // (executable in Contents/MacOS), otherwise the folder holding the executable.
+    char result[PATH_MAX];
+    uint32_t resultSize = sizeof(result);
+    char resolved[PATH_MAX];
+    if (_NSGetExecutablePath(result, &resultSize) == 0 && realpath(result, resolved) != NULL) {
+        char* last_slash = strrchr(resolved, '/');
+        if (last_slash != NULL) {
+            *last_slash = '\0';
+        }
+        chdir(resolved);
+        size_t length = strlen(resolved);
+        if (length >= 15 && strcmp(resolved + length - 15, "/Contents/MacOS") == 0) {
+            chdir("..");
+        }
+    }
+#endif
+#define OO_SHOW_MSG(ooMsg, ooTitle, ooFlags) fprintf(stdout, "%s", ooMsg)
+#define TABS1 "\t\t"
+#define TABS2 "\t\t\t"
+#define TABS3 "\t\t\t\t"
+#define TABS4 "\t"
+#endif
+
+    // Need this because we're not using the default run loop's autorelease
+    // pool.
+    void* pool = objc_autoreleasePoolPush();
+    OOLoggingInit();
+
+    @try {
+        // dajt: allocate and set the NSApplication delegate manually because not
+        // using NIB to do this
+        controller = [[GameController alloc] init];
+
+        for (i = 1; i < argc; i++) {
+            if (strcmp("-load", argv[i]) == 0) {
+                i++;
+            }
+            NSString* argument = [NSString stringWithCString:argv[i]];
+            if (i < argc && [[argument lowercaseString] hasSuffix:@".oolite-save"]) {
+                [controller setPlayerFileToLoad:argument];
+            }
+
+            if (!strcmp("-help", argv[i]) || !strcmp("--help", argv[i])) {
+                std::string processNameString = oo::process::processName();
+                char const* processName = processNameString.c_str();
+                char s[2048];
+                snprintf(s, sizeof(s), "Usage: %s [options]\n\n"
+                                       "Options can be any of the following: \n\n"
+                                       "--compile-sysdesc" TABS2 "Compile system descriptions *\n"
+                                       "--export-sysdesc" TABS2 "Export system descriptions *\n"
+#if OOLITE_WINDOWS
+                                       "-hdr" TABS3 "Start up in HDR mode\n"
+#endif
+                                       "-load [filepath]" TABS2 "Load commander from [filepath]\n" TABS3 TABS4 "(\"-load\" is optional)\n"
+                                       "-message [messageString]" TABS1 "Display [messageString] at startup\n"
+                                       "-nodust    " TABS2 TABS4 "Do not draw space dust\n"
+                                       "-noshaders" TABS2 TABS4 "Start up with shaders disabled\n"
+                                       "-nosplash    " TABS2 TABS4 "Force disable splash screen on startup\n"
+                                       "-nosound    " TABS2 TABS4 "Start up with sound disabled\n"
+                                       "-novsync" TABS3 "Force disable V-Sync\n"
+                                       "--openstep" TABS2 TABS4 "When compiling or exporting\n" TABS3 TABS4 "system descriptions, use openstep\n" TABS3 TABS4 "format *\n"
+                                       "-showversion" TABS2 TABS4 "Display version at startup screen\n"
+                                       "-splash" TABS3 TABS4 "Force splash screen on startup\n"
+                                       "-verify-oxp [filepath]    " TABS1 "Verify OXP at [filepath] *\n"
+                                       "--xml" TABS3 TABS4 "When compiling or exporting\n" TABS3 TABS4 "system descriptions, use xml\n" TABS3 TABS4 "format *\n"
+                                       "\n"
+                                       "Options marked with \"*\" are available only in Test Release configuration.\n"
+                                       "Version " OO_VERSION_FULL "\n"
+                                       "Debug functionality enabled (Test Release): "
+#ifdef OO_DEBUG_MONITOR_ENABLED
+                                       "yes\n"
+#else
+                                       "no\n"
+#endif
+                                       "Built with "
+#if OOLITE_HAVE_CLANG
+                                       "Clang version " STRINGIFY(__clang_major__) "." STRINGIFY(__clang_minor__) "." STRINGIFY(__clang_patchlevel__)
+#else
+                                       "GCC version " STRINGIFY(__GNUC__) "." STRINGIFY(__GNUC_MINOR__) "." STRINGIFY(__GNUC_PATCHLEVEL__)
+#endif
+                                           "\n\n",
+                    processName);
+                OO_SHOW_MSG(s, processName, MB_OK);
+                OOLog(@"process.args", @"%s option detected, exiting after help page has been displayed.", argv[i]);
+                return 0;
+            }
+        }
+
+        // Release anything allocated during the controller initialisation that
+        // is no longer required.
+        objc_autoreleasePoolPop(pool);
+
+        // Call applicationDidFinishLaunching because NSApp is not running in
+        // GNUstep port.
+        [controller applicationDidFinishLaunching:nil];
+    }
+    @catch (NSException* exception) {
+        OOLogERR(kOOLogException, @"Root exception handler hit - terminating. This is an internal error, please report it. Exception name: %@, reason: %@", [exception name], [exception reason]);
+        return EXIT_FAILURE;
+    }
+#endif
+
+    // never reached
+    return 0;
+}
