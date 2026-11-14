@@ -25,14 +25,18 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOMaths.h"
-#import <Foundation/Foundation.h>
+#pragma once
 
-@interface OOSoundReferencePoint : NSObject
+#include "OOMaths.h"
+#include "oofnd/Ref.hpp"
 
-// Positional audio attributes are ignored in this implementation
-- (void)setPosition:(Vector)inPosition;
-- (void)setVelocity:(Vector)inVelocity;
-- (void)setOrientation:(Vector)inOrientation;
-
-@end
+/*	Nothing outside this file messages it: the one outside mention,
+   OOSoundSource's no-op -positionRelativeTo:, takes it by (borrowed) pointer.
+*/
+class OOSoundReferencePoint : public oo::RefCounted {
+ public:
+  // Positional audio attributes are ignored in this implementation
+  void setPosition(Vector inPosition);
+  void setVelocity(Vector inVelocity);
+  void setOrientation(Vector inOrientation);
+};

@@ -111,13 +111,7 @@ Next run the following to build the GNUstep libraries needed by Oolite:
 ShellScripts/Linux/build_gnustep.sh
 ```
 
-Run the following to install the Mozilla JavaScript library needed by Oolite:
-
-```bash
-ShellScripts/Linux/install_mozilla_js.sh
-```
-
-By default, the above two commands will install to $HOME/.local, but you can supply an argument system or build
+By default, the above command will install to $HOME/.local, but you can supply an argument system or build
 to specify /usr/local or the project build folder respectively. When installing to /usr/local, sudo is used by 
 default, but you can supply a further argument to specify an alternative like doas.
 
@@ -129,6 +123,9 @@ meson setup, compile, configure and install flags. Type the following for help:
 ```bash
 ./mk.sh help
 ```
+
+Oolite's JavaScript engine, [QuickJS-ng](https://github.com/quickjs-ng/quickjs), is downloaded, patched and built as a
+Meson subproject (`subprojects/quickjs-ng.wrap`) the first time the build is set up, so that needs network access.
 
 Oolite has various build types:
 
@@ -178,6 +175,14 @@ You can install the build folder:
 
 Optionally you can pass `--install-flags` to pass specific options to meson.
 
+CI rejects code under `src` that `clang-format` 22 would change (other major versions wrap some expressions
+differently; `pip install clang-format==22.1.2` gives you that version). Reformat it before pushing, or only check it:
+
+```bash
+./mk.sh format
+./mk.sh format-check
+```
+
 ### Other Linux ./mk.sh Actions
 
 This action builds an AppImage for development which can be found in the `build` folder:
@@ -218,26 +223,11 @@ GNUstep, with the same SDL front end as Linux and Windows. It needs Xcode (or th
 ShellScripts/macOS/install_packages.sh
 ```
 
-Next, build the Mozilla JavaScript library. There is no prebuilt macOS version, so this compiles it from source into
-`build/mozilla_js`:
-
-```bash
-ShellScripts/macOS/build_mozilla_js.sh
-```
-
 Then build with `./mk.sh` as described below. The result is a self-contained application bundle, for example
 `build/meson_dev/oolite.app`, which you can open from Finder or with `open build/meson_dev/oolite.app`. The Homebrew
 libraries it needs are copied into the bundle, so it also runs on Apple Silicon Macs without Homebrew installed (same
 macOS version or later). `./mk.sh install dev` copies it to `/Applications/Oolite.app`. The bundle is only ad-hoc
 signed, so on another Mac you may need to right-click it and choose Open the first time.
-
-### Objective-C
-
-Oolite is written in Objective-C although there is also some C and C++ code in the codebase. It was
-originally coded on Mac, but was ported to Windows and Linux by way of the GNUstep runtime which
-provides a similar API to what is available on Mac. Objective-C is supported by modern IDEs like
-CLion and Visual Studio Code. The language can be easily picked up by programmers familiar with C
-or C++ with which it is interoperable.
 
 ## Contents of repository
 
@@ -251,8 +241,9 @@ guide to the source tree.
 - **installers**:  Files used to create various installers
 - **Resources**:  Game assets and resource files for Mac and GNUstep application bundles
     - **Schemata**:  Plist schema files for the [OXP Verifier](http://wiki.alioth.net/index.php/OXP_howto#OXP_Verifier)
-- **src**:  Objective-C and C sources, incuding header files
+- **src**:  C++ sources, incuding header files
     - **Core**:  Files that are compiled on all platforms
+    - **oofnd**: Files that replaced Objective-C libraries as part of a C++ migration.
     - **SDL**:  Files that are only compiled for platforms that use SDL
 - **tests**:  A mixed bag of test cases for manual testing and ad-hoc code tests.
 - **tools**:  Various historical tools for preparing files.

@@ -29,49 +29,80 @@ SOFTWARE.
 
 */
 
-#import "OOTextureGenerator.h"
+#pragma once
 
-@class OOColor;
+#include "OOColor.h"
+#include "OOTextureGenerator.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 
-@interface OOCombinedEmissionMapGenerator : OOTextureGenerator {
-@private
-    NSString* _cacheKey;
+/*	A leaf of the texture generators, over OOTextureGenerator. Its caller
+   (OOMultiTextureMaterial) makes it with the factories below, and hands the C++
+   generator to the texture.
+*/
+class OOCombinedEmissionMapGenerator : public OOTextureGenerator {
+ public:
+  ~OOCombinedEmissionMapGenerator() override;  // was -dealloc
 
-    NSDictionary* _emissionSpec;
-    NSDictionary* _illuminationSpec;
-    OOTexture* _diffuseMap;
-
-    OOPixMap _emissionPx;
-    OOPixMap _diffusePx;
-    OOPixMap _illuminationPx;
-    OOColor* _emissionColor;
-    OOColor* _illuminationColor;
-    BOOL _isCombinedMap;
-
-    uint32_t _textureOptions;
-    GLfloat _anisotropy;
-    GLfloat _lodBias;
+  /*	Were
+     -cxx_initWithEmissionMapSpec:emissionColor:diffuseMap:diffuseColor:illuminationMapSpec:
+          illuminationColor:optionsSpecifier: and
+     -cxx_initWithEmissionAndIlluminationMapSpec:
+          diffuseMap:diffuseColor:emissionColor:illuminationColor:optionsSpecifier:;
+     null where they answered nil.
+  */
+  static oo::Ref<OOCombinedEmissionMapGenerator> generatorWithEmissionMapSpec(
+      const oo::PList& emissionMapSpec, OOColor* emissionColor,
+      OOTexture* diffuseMap, OOColor* diffuseColor,
+      const oo::PList& illuminationMapSpec, OOColor* illuminationColor,
+      const oo::PList& spec);
+  static oo::Ref<OOCombinedEmissionMapGenerator>
+  generatorWithEmissionAndIlluminationMapSpec(
+      const oo::PList& emissionAndIlluminationMapSpec, OOTexture* diffuseMap,
+      OOColor* diffuseColor, OOColor* emissionColor, OOColor* illuminationColor,
+      const oo::PList& spec);
 
 #ifndef NDEBUG
-    NSString* _emissionDesc;
-    NSString* _illuminationDesc;
-    NSString* _diffuseDesc;
+  std::optional<std::string> descriptionComponents() const override;
 #endif
-}
 
-- (id)initWithEmissionMapSpec:(NSDictionary*)emissionMapSpec
-                emissionColor:(OOColor*)emissionColor
-                   diffuseMap:(OOTexture*)diffuseMap
-                 diffuseColor:(OOColor*)diffuseColor
-          illuminationMapSpec:(NSDictionary*)illuminationMapSpec
-            illuminationColor:(OOColor*)illuminationColor
-             optionsSpecifier:(NSDictionary*)spec;
+  uint32_t textureOptions() override;
+  GLfloat anisotropy() override;
+  GLfloat lodBias() override;
+  std::optional<std::string> cacheKey() override;
 
-- (id)initWithEmissionAndIlluminationMapSpec:(NSDictionary*)emissionAndIlluminationMapSpec
-                                  diffuseMap:(OOTexture*)diffuseMap
-                                diffuseColor:(OOColor*)diffuseColor
-                               emissionColor:(OOColor*)emissionColor
-                           illuminationColor:(OOColor*)illuminationColor
-                            optionsSpecifier:(NSDictionary*)spec;
+  void loadTexture() override;
 
-@end
+ private:
+  bool initWithEmissionMapSpec(const oo::PList& emissionMapSpec,
+                               OOColor* emissionColor, OOTexture* diffuseMap,
+                               OOColor* diffuseColor,
+                               const oo::PList& illuminationMapSpec,
+                               OOColor* illuminationColor, bool isCombinedMap,
+                               const oo::PList& spec);
+
+  std::string constructCacheKey();
+
+  std::string _cacheKey;
+
+  oo::PList _emissionSpec;
+  oo::PList _illuminationSpec;
+  oo::Ref<OOTexture> _diffuseMap;
+
+  OOPixMap _emissionPx = {};
+  OOPixMap _diffusePx = {};
+  OOPixMap _illuminationPx = {};
+  oo::Ref<OOColor> _emissionColor;
+  oo::Ref<OOColor> _illuminationColor;
+  bool _isCombinedMap = false;
+
+  uint32_t _textureOptions = 0;
+  GLfloat _anisotropy = 0;
+  GLfloat _lodBias = 0;
+
+#ifndef NDEBUG
+  std::string _emissionDesc;
+  std::string _illuminationDesc;
+  std::string _diffuseDesc;
+#endif
+};
