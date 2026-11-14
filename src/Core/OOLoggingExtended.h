@@ -52,4 +52,12 @@ void OOLogSetShowMessageClass(BOOL flag);
 void OOLogSetShowMessageClassTemporary(BOOL flag);
 
 // Utility function to strip path components from __FILE__ strings.
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 NSString* OOLogAbbreviatedFileName(const char* inName);
+
+#ifdef __cplusplus
+}
+#endif

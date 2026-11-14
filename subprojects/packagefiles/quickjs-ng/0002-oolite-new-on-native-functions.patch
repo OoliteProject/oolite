@@ -1,0 +1,34 @@
+--- a/quickjs.c
++++ b/quickjs.c
+@@ -21081,8 +21081,30 @@
+     if (unlikely(JS_VALUE_GET_TAG(func_obj) != JS_TAG_OBJECT))
+         goto not_a_function;
+     p = JS_VALUE_GET_OBJ(func_obj);
+-    if (unlikely(!p->is_constructor))
++    if (unlikely(!p->is_constructor)) {
++        /* Oolite: SpiderMonkey 1.8.5 let any native function be called with
++           new: it was called with a new plain object as this, and that object
++           was the result unless the function returned an object. OXPs rely on
++           it (e.g. new Vector3D.random()). ES5+ requires a TypeError. */
++        if (p->class_id == JS_CLASS_C_FUNCTION &&
++            (p->u.cfunc.cproto == JS_CFUNC_generic ||
++             p->u.cfunc.cproto == JS_CFUNC_generic_magic)) {
++            JSValue obj, ret;
++            obj = js_create_from_ctor(ctx, new_target, JS_CLASS_OBJECT);
++            if (JS_IsException(obj))
++                return JS_EXCEPTION;
++            ret = JS_CallInternal(ctx, func_obj, obj, JS_UNDEFINED, argc, argv,
++                                  flags & ~JS_CALL_FLAG_CONSTRUCTOR);
++            if (JS_VALUE_GET_TAG(ret) == JS_TAG_OBJECT ||
++                JS_IsException(ret)) {
++                JS_FreeValue(ctx, obj);
++                return ret;
++            }
++            JS_FreeValue(ctx, ret);
++            return obj;
++        }
+         return JS_ThrowTypeErrorNotAConstructor(ctx, func_obj);
++    }
+     if (unlikely(p->class_id != JS_CLASS_BYTECODE_FUNCTION)) {
+         JSClassCall *call_func;
+         call_func = ctx->rt->class_array[p->class_id].call;
