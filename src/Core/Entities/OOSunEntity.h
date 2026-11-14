@@ -24,14 +24,22 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOPlanetEntity.h"
+#pragma once
 
-#import "Entity.h"
-#import "OOColor.h"
-#import "legacy_random.h"
+#include "Entity.h"
+#include "OOColor.h"
+#include "OOPlanetEntity.h"
+#include "legacy_random.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 
-#define SUN_CORONA_SAMPLES 729 // Samples at half-degree intervals, with a bit of overlap.
-#define MAX_CORONAFLARE 600000.0 // nova flare
+/*	The sun's system dictionary is an oo::PList and its name std::optional
+   (nil stays nil).
+*/
+
+#define SUN_CORONA_SAMPLES \
+  729  // Samples at half-degree intervals, with a bit of overlap.
+#define MAX_CORONAFLARE 600000.0  // nova flare
 
 #ifndef SUN_DIRECT_VISION_GLARE
 #define SUN_DIRECT_VISION_GLARE 1
@@ -45,54 +53,87 @@ MA 02110-1301, USA.
 #define SUN_GLARE_CORONA_FACTOR 1.5
 #endif
 
-@class ShipEntity;
+/*	The universe makes it with
+   oo::makeRef<OOSunEntity>() and holds it as the C++ class; its
+   OOStellarBody answers are members (OOStellarBodyRadius()).
+*/
+class OOSunEntity : public Entity {
+ public:
+  /*	-initSunWithColor:andDictionary:'s body after [super init] (the
+     constructor ran Entity's), run on a new sun.
+  */
+  void initSunWithColor(OOColor* sun_color, const oo::PList& dict);
+  bool setSunColor(OOColor* sun_color);
+  bool changeSunProperty(const std::string& key, const oo::PList& dict);
 
-@interface OOSunEntity : Entity <OOStellarBody> {
-@private
-    GLfloat sun_diffuse[4];
-    GLfloat sun_specular[4];
+  OOStellarBodyType planetType();
 
-    GLfloat discColor[4];
-    GLfloat outerCoronaColor[4];
+  void getDiffuseComponents(GLfloat components[4]);
+  void getSpecularComponents(GLfloat components[4]);
 
-    GLfloat cor16k, lim16k;
+  double radius();
+  void setRadius(GLfloat rad, GLfloat corona);
 
-    double corona_speed_factor; // multiply delta_t by this before adding it to corona_stage
-    double corona_stage; // 0.0 -> 1.0
-    GLfloat rvalue[SUN_CORONA_SAMPLES]; // stores random values for adjusting colors in the corona
-    float corona_blending;
+  bool willGoNova();
+  bool goneNova();
+  void setGoingNova(bool yesno, double interval);
 
-    GLuint sunTriangles[3240 * 3];
-    GLfloat sunVertices[1801 * 3];
-    GLfloat sunColors[1801 * 4];
+  void drawStarGlare();
+  void drawDirectVisionSunGlare();
+  void resetNova();
 
-    OOTimeDelta _novaCountdown;
-    OOTimeDelta _novaExpansionTimer;
-    float _novaExpansionRate;
+  // OOStellarBody's name.
+  std::optional<std::string> name();
+  void setName(const std::optional<std::string>& name);
 
-    float _sunBrightnessFactor;
-    float _sunCoronaAlphaFactor;
+  std::optional<std::string> descriptionComponents() const override;
+  bool canCollide() override;
+#ifdef OO_DEBUG_MONITOR_ENABLED
+  bool checkCloseCollisionWith(Entity* other) override;
+#endif
+  void update(OOTimeDelta delta_t) override;
+  void drawImmediate(bool immediate, bool translucent) override;
+  void updateCameraRelativePosition() override;
+  void setPosition(HPVector posn) override;
+  bool isSun() override;
+  bool isVisible() override;
 
-    NSString* _name;
-}
+  // The binding's bodies (OOJSSun.cpp).
+  JSClassID jsClassID() override;
+  std::optional<std::string> jsClassName() override;
+  bool isVisibleToScripts() override;
 
-- (id)initSunWithColor:(OOColor*)sun_color andDictionary:(NSDictionary*)dict;
-- (BOOL)setSunColor:(OOColor*)sun_color;
-- (BOOL)changeSunProperty:(NSString*)key withDictionary:(NSDictionary*)dict;
+ private:
+  void calculateGLArrays(GLfloat inner_radius, GLfloat width,
+                         GLfloat z_distance);
+  void drawOpaqueParts();
+  void drawTranslucentParts();
 
-- (OOStellarBodyType)planetType;
+  GLfloat sun_diffuse[4] = {};
+  GLfloat sun_specular[4] = {};
 
-- (void)getDiffuseComponents:(GLfloat[4])components;
-- (void)getSpecularComponents:(GLfloat[4])components;
+  GLfloat discColor[4] = {};
+  GLfloat outerCoronaColor[4] = {};
 
-- (void)setRadius:(GLfloat)rad andCorona:(GLfloat)corona;
+  GLfloat cor16k = {}, lim16k = {};
 
-- (BOOL)willGoNova;
-- (BOOL)goneNova;
-- (void)setGoingNova:(BOOL)yesno inTime:(double)interval;
+  double corona_speed_factor =
+      {};  // multiply delta_t by this before adding it to corona_stage
+  double corona_stage = {};  // 0.0 -> 1.0
+  GLfloat rvalue[SUN_CORONA_SAMPLES] =
+      {};  // stores random values for adjusting colors in the corona
+  float corona_blending = {};
 
-- (void)drawStarGlare;
-- (void)drawDirectVisionSunGlare;
-- (void)resetNova;
+  GLuint sunTriangles[3240 * 3] = {};
+  GLfloat sunVertices[1801 * 3] = {};
+  GLfloat sunColors[1801 * 4] = {};
 
-@end
+  OOTimeDelta _novaCountdown = {};
+  OOTimeDelta _novaExpansionTimer = {};
+  float _novaExpansionRate = {};
+
+  float _sunBrightnessFactor = {};
+  float _sunCoronaAlphaFactor = {};
+
+  std::optional<std::string> _name;  // nullopt: nil
+};

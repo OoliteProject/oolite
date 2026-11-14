@@ -1,9 +1,9 @@
-#import <stdlib.h>
-#import <stdint.h>
-#import <assert.h>
-#import <math.h>
-#import <unistd.h>
-#import "GrayMap.h"
+#include <stdlib.h>
+#include <stdint.h>
+#include <assert.h>
+#include <math.h>
+#include <unistd.h>
+#include "GrayMap.h"
 
 
 enum

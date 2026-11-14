@@ -27,15 +27,35 @@ SOFTWARE.
 
 */
 
-#import "OOPixMap.h"
-#import "OOTextureGenerator.h"
+#pragma once
 
-@interface OOPixMapTextureLoader : OOTextureGenerator {
-@private
-    OOPixMap _pixMap;
-    uint32_t _texOptions;
-}
+#include "OOPixMap.h"
+#include "OOTexture.h"
+#include "OOTextureGenerator.h"
 
-- (id)initWithPixMap:(OOPixMap)pixMap textureOptions:(uint32_t)options freeWhenDone:(BOOL)freeWhenDone;
+/*	A leaf of the texture generators, over OOTextureGenerator. Its callers
+   (the planets) make it with loaderWithPixMap and hand the texture the C++
+   loader.
+*/
+class OOPixMapTextureLoader : public OOTextureGenerator {
+ public:
+  ~OOPixMapTextureLoader() override;  // was -dealloc
 
-@end
+  /*	Was [[OOPixMapTextureLoader alloc]
+     initWithPixMap:textureOptions:freeWhenDone:]: null where that answered nil.
+  */
+  static oo::Ref<OOPixMapTextureLoader> loaderWithPixMap(OOPixMap pixMap,
+                                                         uint32_t options,
+                                                         bool freeWhenDone);
+
+  // Was -initWithPixMap:textureOptions:freeWhenDone:; false where it answered
+  // nil.
+  bool initWithPixMap(OOPixMap pixMap, uint32_t options, bool freeWhenDone);
+
+  void loadTexture() override;
+  uint32_t textureOptions() override;
+
+ private:
+  OOPixMap _pixMap = {};
+  uint32_t _texOptions = {};
+};

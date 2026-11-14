@@ -8,7 +8,6 @@ oolite_dependencies = [
     dependency('openal'),
     dependency('vorbisfile'),
     dependency('vorbis'),
-    dependency('nspr'),
     dependency('zlib'),
 ]
 
@@ -18,6 +17,12 @@ if get_option('espeak')
 endif
 
 subdir('meson')
+subdir('oofnd')
+# Game sources include oofnd headers, which are C++20: the game builds as c++20.
+oolite_dependencies += [oofnd_dep]
+# oofnd/objc's support (OORaiseException, OOCAssert's failure path). No unit is Objective-C.
+oolite_dependencies += [oofnd_objc_dep]
+oolite_override_options += ['cpp_std=c++20']
 subdir('Core')
 subdir('SDL')
 
@@ -52,7 +57,6 @@ post_build_args = [
     version_vars.get('ver_quad'),
     version_vars.get('ver_githash'),
     version_vars.get('buildtime'),
-    gnustep_folder,
     stamp_file,
     build_docs ? 'yes' : 'no',
 ]

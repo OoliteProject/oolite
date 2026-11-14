@@ -25,13 +25,25 @@ MA 02110-1301, USA.
 
 */
 
-#include "OOFoundation.h"
+#pragma once
+
 #include "OOFunctionAttributes.h"
+#ifndef OO_PLAIN_CPP_UNIT
+#include "OOFoundation.h"
+#else
+/*	A plain C or C++ translation unit (OOConstToJSString) needs only the C
+   types OOFoundation.h's floor gives (NSInteger, NSUInteger). OOFoundation.h
+   itself declares more.
+*/
+#include <limits.h>
+
+#include "oofnd/objc/OOFoundationTypes.h"
+#endif
 
 typedef enum {
-    OPTIMIZED_BY_NONE,
-    OPTIMIZED_BY_JUMPS,
-    OPTIMIZED_BY_TIME
+  OPTIMIZED_BY_NONE,
+  OPTIMIZED_BY_JUMPS,
+  OPTIMIZED_BY_TIME
 } OORouteType;
 
 #define ENTRY(label, value) label,
@@ -39,33 +51,33 @@ typedef enum {
 typedef enum {
 #include "OOViewID.tbl"
 
-    kOOViewIDDefault = VIEW_NONE
+  kOOViewIDDefault = VIEW_NONE
 } OOViewID;
 
 typedef enum {
 #include "OOLongRangeChartMode.tbl"
 
-    kOOLongRangeChartModeDefault = OOLRC_MODE_UNKNOWN
+  kOOLongRangeChartModeDefault = OOLRC_MODE_UNKNOWN
 } OOLongRangeChartMode;
 
 #undef ENTRY
 
 typedef enum {
-    AEGIS_NONE,
-    AEGIS_CLOSE_TO_ANY_PLANET,
-    AEGIS_CLOSE_TO_MAIN_PLANET,
-    AEGIS_IN_DOCKING_RANGE
+  AEGIS_NONE,
+  AEGIS_CLOSE_TO_ANY_PLANET,
+  AEGIS_CLOSE_TO_MAIN_PLANET,
+  AEGIS_IN_DOCKING_RANGE
 } OOAegisStatus;
 
 typedef enum {
-    CARGO_NOT_CARGO = -1,
-    CARGO_SLAVES = 3,
-    CARGO_ALLOY = 9,
-    CARGO_MINERALS = 12,
-    CARGO_THARGOID = 16,
-    CARGO_RANDOM = 100,
-    CARGO_SCRIPTED_ITEM = 200,
-    CARGO_CHARACTER = 300
+  CARGO_NOT_CARGO = -1,
+  CARGO_SLAVES = 3,
+  CARGO_ALLOY = 9,
+  CARGO_MINERALS = 12,
+  CARGO_THARGOID = 16,
+  CARGO_RANDOM = 100,
+  CARGO_SCRIPTED_ITEM = 200,
+  CARGO_CHARACTER = 300
 } OOCargoType;
 
 /*
@@ -73,8 +85,8 @@ enum
 {
         COMMODITY_UNDEFINED		= -1,
 
-        // FIXME: hard-coded commodity types are used in OOJSManifest. Everything else is data-driven.
-        COMMODITY_FOOD,		//	=  0
+        // FIXME: hard-coded commodity types are used in OOJSManifest.
+Everything else is data-driven. COMMODITY_FOOD,		//	=  0
         COMMODITY_TEXTILES,
         COMMODITY_RADIOACTIVES,
         COMMODITY_SLAVES,
@@ -94,34 +106,34 @@ enum
 };
 typedef NSInteger OOCommodityType;
 */
-typedef NSString* OOCommodityType;
 
 typedef enum {
-    CARGO_FLAG_NONE = 400,
-    CARGO_FLAG_FULL_PLENTIFUL = 501,
-    CARGO_FLAG_FULL_SCARCE = 502,
-    CARGO_FLAG_FULL_MEDICAL = 503,
-    CARGO_FLAG_FULL_CONTRABAND = 504,
-    CARGO_FLAG_PIRATE = 505,
-    CARGO_FLAG_FULL_UNIFORM = 510,
-    CARGO_FLAG_CANISTERS = 600,
-    CARGO_FLAG_FULL_PASSENGERS = 700
+  CARGO_FLAG_NONE = 400,
+  CARGO_FLAG_FULL_PLENTIFUL = 501,
+  CARGO_FLAG_FULL_SCARCE = 502,
+  CARGO_FLAG_FULL_MEDICAL = 503,
+  CARGO_FLAG_FULL_CONTRABAND = 504,
+  CARGO_FLAG_PIRATE = 505,
+  CARGO_FLAG_FULL_UNIFORM = 510,
+  CARGO_FLAG_CANISTERS = 600,
+  CARGO_FLAG_FULL_PASSENGERS = 700
 } OOCargoFlag;
 
 typedef enum {
-    UNITS_TONS,
-    UNITS_KILOGRAMS,
-    UNITS_GRAMS
+  UNITS_TONS,
+  UNITS_KILOGRAMS,
+  UNITS_GRAMS,
+  UNITS_UNKNOWN  // a quantity_unit that is none of the above; displays as "??"
 } OOMassUnit;
 
 typedef enum {
-    ENERGY_UNIT_NONE,
-    ENERGY_UNIT_NORMAL_DAMAGED,
-    ENERGY_UNIT_NAVAL_DAMAGED,
-    OLD_ENERGY_UNIT_NORMAL = 15,
-    OLD_ENERGY_UNIT_NAVAL = 20,
-    ENERGY_UNIT_NORMAL = 8,
-    ENERGY_UNIT_NAVAL = 16
+  ENERGY_UNIT_NONE,
+  ENERGY_UNIT_NORMAL_DAMAGED,
+  ENERGY_UNIT_NAVAL_DAMAGED,
+  OLD_ENERGY_UNIT_NORMAL = 15,
+  OLD_ENERGY_UNIT_NAVAL = 20,
+  ENERGY_UNIT_NORMAL = 8,
+  ENERGY_UNIT_NAVAL = 16
 } OOEnergyUnitType;
 
 #define ENTRY(label, value) label = value,
@@ -130,9 +142,7 @@ typedef enum {
 #include "OOCompassMode.tbl"
 } OOCompassMode;
 
-enum {
-    kOOCompassModeDefault = COMPASS_MODE_BASIC
-};
+enum { kOOCompassModeDefault = COMPASS_MODE_BASIC };
 
 #undef ENTRY
 
@@ -141,15 +151,15 @@ typedef enum {
 #include "OOLegalStatusReason.tbl"
 #undef DIFF_STRING_ENTRY
 
-    kOOLegalStatusReasonDefault = kOOLegalStatusReasonUnknown
+  kOOLegalStatusReasonDefault = kOOLegalStatusReasonUnknown
 } OOLegalStatusReason;
 
 typedef enum {
-    DOCKING_CLEARANCE_STATUS_NONE,
-    DOCKING_CLEARANCE_STATUS_NOT_REQUIRED,
-    DOCKING_CLEARANCE_STATUS_REQUESTED,
-    DOCKING_CLEARANCE_STATUS_GRANTED,
-    DOCKING_CLEARANCE_STATUS_TIMING_OUT,
+  DOCKING_CLEARANCE_STATUS_NONE,
+  DOCKING_CLEARANCE_STATUS_NOT_REQUIRED,
+  DOCKING_CLEARANCE_STATUS_REQUESTED,
+  DOCKING_CLEARANCE_STATUS_GRANTED,
+  DOCKING_CLEARANCE_STATUS_TIMING_OUT,
 } OODockingClearanceStatus;
 
 typedef uint32_t OOCargoQuantity;
@@ -162,54 +172,55 @@ typedef uint64_t OOCreditsQuantity;
 
 typedef uint16_t OOKeyCode;
 
-typedef uint16_t OOUniversalID; // Valid IDs range from 100 to 1000.
+typedef uint16_t OOUniversalID;  // Valid IDs range from 100 to 1000.
 
 enum {
-    UNIVERSE_MAX_ENTITIES = 2048,
-    NO_TARGET = 0,
-    MIN_ENTITY_UID = 100,
-    MAX_ENTITY_UID = MIN_ENTITY_UID + UNIVERSE_MAX_ENTITIES + 1
+  UNIVERSE_MAX_ENTITIES = 2048,
+  NO_TARGET = 0,
+  MIN_ENTITY_UID = 100,
+  MAX_ENTITY_UID = MIN_ENTITY_UID + UNIVERSE_MAX_ENTITIES + 1
 };
 
+enum { kOOVariableTechLevel = 99 };
+typedef NSUInteger OOTechLevelID;  // 0..14, 99 is special. NSNotFound is used,
+                                   // so NSUInteger required.
+
+typedef uint8_t OOGovernmentID;  // 0..7
+typedef uint8_t OOEconomyID;     // 0..7
+
+typedef uint8_t OOGalaxyID;  // 0..7
+typedef int16_t OOSystemID;  // 0..255, -1 for interstellar space (?)
+
 enum {
-    kOOVariableTechLevel = 99
-};
-typedef NSUInteger OOTechLevelID; // 0..14, 99 is special. NSNotFound is used, so NSUInteger required.
-
-typedef uint8_t OOGovernmentID; // 0..7
-typedef uint8_t OOEconomyID; // 0..7
-
-typedef uint8_t OOGalaxyID; // 0..7
-typedef int16_t OOSystemID; // 0..255, -1 for interstellar space (?)
-
-enum {
-    kOOMaximumGalaxyID = 7,
-    kOOMaximumSystemID = 255,
-    kOOMinimumSystemID = -1,
-    kOOSystemIDInterstellarSpace = kOOMinimumSystemID
+  kOOMaximumGalaxyID = 7,
+  kOOMaximumSystemID = 255,
+  kOOMinimumSystemID = -1,
+  kOOSystemIDInterstellarSpace = kOOMinimumSystemID
 };
 
 typedef double OOTimeAbsolute;
 typedef double OOTimeDelta;
 
 typedef enum {
-    WEAPON_FACING_FORWARD = 1,
-    WEAPON_FACING_AFT = 2,
-    WEAPON_FACING_PORT = 4,
-    WEAPON_FACING_STARBOARD = 8,
+  WEAPON_FACING_FORWARD = 1,
+  WEAPON_FACING_AFT = 2,
+  WEAPON_FACING_PORT = 4,
+  WEAPON_FACING_STARBOARD = 8,
 
-    WEAPON_FACING_NONE = 0
+  WEAPON_FACING_NONE = 0
 } OOWeaponFacing;
 
-typedef uint8_t OOWeaponFacingSet; // May have multiple bits set.
+typedef uint8_t OOWeaponFacingSet;  // May have multiple bits set.
 
-#define VALID_WEAPON_FACINGS (WEAPON_FACING_NONE | WEAPON_FACING_FORWARD | WEAPON_FACING_AFT | WEAPON_FACING_PORT | WEAPON_FACING_STARBOARD)
+#define VALID_WEAPON_FACINGS                                        \
+  (WEAPON_FACING_NONE | WEAPON_FACING_FORWARD | WEAPON_FACING_AFT | \
+   WEAPON_FACING_PORT | WEAPON_FACING_STARBOARD)
 
 typedef enum {
-    DETAIL_LEVEL_MINIMUM = 0,
-    DETAIL_LEVEL_NORMAL = 1,
-    DETAIL_LEVEL_SHADERS = 2,
-    DETAIL_LEVEL_EXTRAS = 3,
+  DETAIL_LEVEL_MINIMUM = 0,
+  DETAIL_LEVEL_NORMAL = 1,
+  DETAIL_LEVEL_SHADERS = 2,
+  DETAIL_LEVEL_EXTRAS = 3,
 
-    DETAIL_LEVEL_MAXIMUM = 3
+  DETAIL_LEVEL_MAXIMUM = 3
 } OOGraphicsDetail;

@@ -1,6 +1,8 @@
 /*
 
-OOJSGuiScreenKeyDefinition.h
+OOJSGuiScreenKeyDefinition.h (QuickJS-ng)
+
+The JS global object makes it and the player keeps it as oo::Ref.
 
 
 Oolite
@@ -23,30 +25,51 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOJSScript.h"
-#include <jsapi.h>
+#pragma once
 
-@interface OOJSGuiScreenKeyDefinition : OOWeakRefObject {
-@private
-    jsval _callback;
-    JSObject* _callbackThis;
-    OOJSScript* _owningScript;
+#include <quickjs.h>
 
-    NSString* _name;
-    NSDictionary* _registerKeys;
-}
+#include <optional>
+#include <string>
 
-- (NSString*)name;
-- (void)setName:(NSString*)name;
-- (NSDictionary*)registerKeys;
-- (void)setRegisterKeys:(NSDictionary*)registerKeys;
-- (jsval)callback;
-- (void)setCallback:(jsval)callback;
-- (JSObject*)callbackThis;
-- (void)setCallbackThis:(JSObject*)callbackthis;
+#include "OOFoundation.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
 
-- (void)runCallback:(NSString*)key;
+class OOJSScript;  // included by the .cpp, so that a test can stand in for it
 
-- (NSComparisonResult)interfaceCompare:(OOJSGuiScreenKeyDefinition*)other;
+/*	The definition owns references to its callback and callbackThis, which
+   are released on destruction and when the JavaScript engine is reset.
+*/
+class OOJSGuiScreenKeyDefinition : public oo::RefCounted {
+ public:
+  // The old -init after [super init] (oo::makeRef).
+  OOJSGuiScreenKeyDefinition();
+  ~OOJSGuiScreenKeyDefinition() override;
 
-@end
+  std::optional<std::string> name();  // nullopt until set
+  void setName(const std::optional<std::string>& name);
+  oo::PList registerKeys();
+  void setRegisterKeys(const oo::PList& registerKeys);
+  // Returned values are owned by the caller.
+  JSValue callback();
+  void setCallback(JSValueConst callback);
+  JSValue callbackThis();
+  void setCallbackThis(JSValueConst callbackthis);
+
+  void runCallback(const std::string& key);
+
+  OOComparisonResult interfaceCompare(OOJSGuiScreenKeyDefinition* other);
+
+ private:
+  void deleteJSPointers();
+
+  JSValue _callback = JS_UNDEFINED;       // Owned.
+  JSValue _callbackThis = JS_UNDEFINED;   // Owned.
+  oo::WeakRef<OOJSScript> _owningScript;  // a weak reference
+
+  std::optional<std::string> _name;  // nullopt until set (was nil)
+  oo::PList
+      _registerKeys;  // key name -> key definitions; null until set (was nil)
+};

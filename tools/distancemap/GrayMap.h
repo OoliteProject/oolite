@@ -5,9 +5,9 @@
 	This file is hereby placed in the public domain.
 */
 
-#import <stdint.h>
-#import <stdio.h>
-#import <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdbool.h>
 
 
 typedef struct

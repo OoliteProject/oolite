@@ -27,49 +27,63 @@ SOFTWARE.
 
 */
 
-#import "OOFoundation.h"
+#pragma once
 
-@class OOAsyncQueue;
-
-@protocol OOAsyncWorkTask;
+#include "OOFoundation.h"
+#include "oofnd/Ref.hpp"
 
 typedef enum {
-    kOOAsyncPriorityLow,
-    kOOAsyncPriorityMedium,
-    kOOAsyncPriorityHigh
+  kOOAsyncPriorityLow,
+  kOOAsyncPriorityMedium,
+  kOOAsyncPriorityHigh
 } OOAsyncWorkPriority;
 
-@interface OOAsyncWorkManager : NSObject
-
-+ (OOAsyncWorkManager*)sharedAsyncWorkManager;
-
-- (BOOL)addTask:(id<OOAsyncWorkTask>)task priority:(OOAsyncWorkPriority)priority;
-
-/*	Complete any tasks whose asynchronous portion is ready, but without waiting.
- */
-- (void)completePendingTasks;
-
-/*	Wait for a task to complete.
-
-        WARNING: if task is not an existing task, or does not implement
-        -completeAsyncTask, this will never return.
-
-        IMPORTANT: May only be called on the main thread.
+/*	A task: performed on a work thread by performAsyncTask(), then, if it
+   has a completion (hasCompleteAsyncTask()), completed on the main thread by
+   completeAsyncTask(). The manager retains a task while it is queued or
+   pending.
 */
-- (void)waitForTaskToComplete:(id<OOAsyncWorkTask>)task;
+class OOAsyncWorkTask : public oo::RefCounted {
+ public:
+  // Called on a work thread. There may be multiple work threads.
+  virtual void performAsyncTask() = 0;
 
-@end
+  // Whether the task has a completion (the protocol's optional method was
+  // implemented).
+  virtual bool hasCompleteAsyncTask() const { return false; }
 
-@protocol OOAsyncWorkTask <NSObject>
+  // Called on the main thread some time after performAsyncTask() completes.
+  virtual void completeAsyncTask() {}
 
-// Called on a worker thread. There may be multiple worker threads.
-- (void)performAsyncTask;
+ protected:
+  OOAsyncWorkTask() = default;
+  ~OOAsyncWorkTask() override = default;
+};
 
-// @optional
-OOLITE_OPTIONAL(OOAsyncWorkTask)
-
-/*	Called on main thread some time after -performAsyncTask completes.
+/*	The concrete managers are private to OOAsyncWorkManager.cpp.
  */
-- (void)completeAsyncTask;
+class OOAsyncWorkManager : public oo::RefCounted {
+ public:
+  // The one manager, made on first use and never destroyed (borrowed).
+  static OOAsyncWorkManager* sharedAsyncWorkManager();
 
-@end
+  virtual bool addTask(OOAsyncWorkTask* task, OOAsyncWorkPriority priority);
+
+  /*	Complete any tasks whose asynchronous portion is ready, but without
+   * waiting.
+   */
+  virtual void completePendingTasks();
+
+  /*	Wait for a task to complete.
+
+          WARNING: if task is not an existing task, or does not implement
+          completeAsyncTask(), this will never return.
+
+          IMPORTANT: May only be called on the main thread.
+  */
+  virtual void waitForTaskToComplete(OOAsyncWorkTask* task);
+
+ protected:
+  OOAsyncWorkManager() = default;
+  ~OOAsyncWorkManager() override;
+};

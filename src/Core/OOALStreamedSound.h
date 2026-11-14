@@ -4,6 +4,9 @@ OOALStreamedSound.h
 
 OOALStreamedSound - OpenAL sound implementation for Oolite.
 
+A subclass of OOSound; the root's class cluster makes it from the C++
+decoder.
+
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
@@ -24,20 +27,37 @@ SOFTWARE.
 
 */
 
-#import "OOALSoundDecoder.h"
-#import "OOSound.h"
+#pragma once
 
-@interface OOALStreamedSound : OOSound {
-@private
-    char* _buffer;
-    size_t _size;
-    double _sampleRate;
-    NSString* _name;
-    BOOL _stereo;
-    OOALSoundDecoder* decoder;
-    BOOL _reachedEnd;
-}
+#include "OOALSound.h"
+#include "OOALSoundDecoder.h"
+#include "oofnd/StdLib.hpp"
 
-- (id)initWithDecoder:(OOALSoundDecoder*)inDecoder;
+class OOALStreamedSound : public OOSound {
+ public:
+  /*	Was -initWithDecoder:, which kept the decoder to stream from: null where
+     it answered nil (sound not OK, or no decoder).
+  */
+  static oo::Ref<OOALStreamedSound> initWithDecoder(
+      OOALSoundDecoder* inDecoder);
 
-@end
+  ~OOALStreamedSound() override;
+
+  std::optional<std::string> name() override;
+  void rewind() override;
+  bool soundIncomplete() override;
+  ALuint soundBuffer() override;
+
+ private:
+  friend struct OOALStreamedSoundTestAccess;  // the stand-ins of tests that
+                                              // stub the sound
+
+  OOALStreamedSound() = default;
+
+  char* _buffer = {};
+  double _sampleRate = {};
+  std::optional<std::string> _name;  // nil-able, as the name was
+  bool _stereo = {};
+  oo::Ref<OOALSoundDecoder> decoder;  // retained
+  bool _reachedEnd = {};
+};

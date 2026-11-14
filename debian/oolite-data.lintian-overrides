@@ -1,4 +1,0 @@
-# All gnustep applications use this override.
-# This may be clarified in a future GNUSTEP policy.
-image-file-in-usr-lib usr/lib/GNUstep/Applications/oolite.app/Resources/Images/*
-image-file-in-usr-lib usr/lib/GNUstep/Applications/oolite.app/Resources/Textures/*

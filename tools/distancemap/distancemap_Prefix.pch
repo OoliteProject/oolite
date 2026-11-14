@@ -1,7 +1,0 @@
-//
-// Prefix header for all source files of the 'distancemap' target in the 'distancemap' project.
-//
-
-#ifdef __OBJC__
-    #import <Foundation/Foundation.h>
-#endif

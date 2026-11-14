@@ -1,0 +1,2 @@
+# Vendored code (MiniZip): not tidied. Overrides the checks in the root .clang-tidy.
+Checks: '-*'
