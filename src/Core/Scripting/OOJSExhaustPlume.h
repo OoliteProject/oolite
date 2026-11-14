@@ -1,6 +1,6 @@
 /*
 
-OOJSExhaustPlume.h
+OOJSExhaustPlume.h (QuickJS-ng)
 
 JavaScript proxy for OOExhaustPlumeEntity.
 
@@ -24,16 +24,19 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOExhaustPlumeEntity.h"
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+#pragma once
 
-void InitOOJSExhaustPlume(JSContext* context, JSObject* global);
+#include "OOFoundation.h"
+#include <quickjs.h>
 
-@interface OOExhaustPlumeEntity (OOJavaScriptExtensions)
+void InitOOJSExhaustPlume(JSContext* context, JSValueConst global);
 
-- (void)getJSClass:(JSClass**)outClass andPrototype:(JSObject**)outPrototype;
-- (NSString*)oo_jsClassName;
-- (BOOL)isVisibleToScripts;
+JSClassID JSExhaustPlumeClassID(void);
 
-@end
+/*	The bodies of OOExhaustPlumeEntity (OOJavaScriptExtensions), which the engine reaches by
+        selector through the root's JS members: the C++ OOExhaustPlumeEntity's overrides call these
+        (proposed ADR-0056 amendments oo-ppc, oo-ykoy and oo-6ia4). Its jsClassID() answers
+        JSExhaustPlumeClassID().
+*/
+std::optional<std::string> OOJSExhaustPlumeJSClassName(void);
+bool OOJSExhaustPlumeIsVisibleToScripts(void);

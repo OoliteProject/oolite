@@ -1,0 +1,327 @@
+/*	test_OOOpenGLExtensionManager.mm
+	Unit tests for OOOpenGLExtensionManager (src/Core/OOOpenGLExtensionManager.h): bead oo-z1s4,
+	a Phase 3 class conversion (proposed ADR-0056).
+
+	The manager reads the machine's own OpenGL (a hidden window's context, oo_gl_test_context.hpp),
+	so its answers are checked against what the test reads from OpenGL itself: the version parsed
+	from GL_VERSION, the vendor and renderer strings, the extension list, the texture unit limits.
+	The GPU settings (gpu-settings.plist) come from this file's ResourceManager stub, so the
+	matching is pinned exactly: precedence order, a regexp array ANDed, the first match wins, and
+	what a match overrides. OORegExpMatcher and cxx_OOShaderSettingFromString are stubs as well
+	(the real ones reach the script engine and the Universe). The expectations were written
+	against the Objective-C API and run on the unconverted class first. The facade's contract test
+	went with the facade (bead oo-9ht.13; standing approval oo-9n5p9).
+	Run: bash tools/check-core-tests.sh
+*/
+
+#include "OOOpenGLExtensionManager.h"
+#include "OORegExpMatcher.h"
+
+#include "oo_test.hpp"
+#include "oo_gl_test_context.hpp"
+#include "oofnd/PList.hpp"
+#include "oofnd/Process.hpp"
+
+#include <cstdio>
+#include <regex>
+#include <sstream>
+#include <string>
+
+
+// --- Stubs of what the manager calls ------------------------------------------------------------
+
+static unsigned sPathsCalls = 0;
+static oo::PList sGPUSettings = oo::PList(oo::PList::Dict{});
+
+
+#include "ResourceManager.h"
+
+
+// ResourceManager is C++ since bead oo-9ht.150 deleted its Objective-C facade: C++ definitions of the
+// statics the code under test calls, with the Objective-C stand-in's answers.
+std::vector<std::string> ResourceManager::paths()
+{
+	sPathsCalls++;
+	return {};
+}
+
+
+oo::PList ResourceManager::dictionaryFromFilesNamed(const std::string &fileName, const std::optional<std::string> &folderName, bool mergeFiles)
+{
+	if (fileName != "gpu-settings.plist" || folderName != "Config" || !mergeFiles)  return oo::PList();
+	return sGPUSettings;
+}
+
+
+
+// OORegExpMatcher is C++ since its facade was deleted (bead oo-9ht.12). sMatchersMade counts the
+// matchers asked for: a GPU settings pass takes one and holds it across its matches.
+static unsigned sMatchersMade = 0;
+
+oo::Ref<OORegExpMatcher> OORegExpMatcher::regExpMatcher()
+{
+	sMatchersMade++;
+	return oo::makeRef<OORegExpMatcher>();
+}
+
+
+bool OORegExpMatcher::string(const std::string &string, const std::string &regExp)
+{
+	return std::regex_search(string, std::regex(regExp));
+}
+
+// OOLogging.mm's (it would bring the resource manager into the link); in the debug flavour
+// OOOpenGL.mm's OOGL error check and state dump call them (bead oo-iimku).
+void OOLogIndent(void)  {}
+void OOLogOutdent(void)  {}
+
+
+OORegExpMatcher::~OORegExpMatcher()  {}
+
+
+OOShaderSetting cxx_OOShaderSettingFromString(const std::string &string)
+{
+	if (string == "SHADERS_OFF")  return SHADERS_OFF;
+	if (string == "SHADERS_SIMPLE")  return SHADERS_SIMPLE;
+	if (string == "SHADERS_FULL")  return SHADERS_FULL;
+	return SHADERS_NOT_SUPPORTED;
+}
+
+
+// --- What OpenGL itself says --------------------------------------------------------------------
+
+namespace {
+
+std::string GLString(GLenum name)
+{
+	const GLubyte *s = glGetString(name);
+	return s != nullptr ? std::string(reinterpret_cast<const char *>(s)) : std::string();
+}
+
+
+std::vector<std::string> GLExtensions()
+{
+	std::vector<std::string> result;
+	std::istringstream words(GLString(GL_EXTENSIONS));
+	for (std::string word; words >> word; )  result.push_back(word);
+	return result;
+}
+
+
+bool GLHasExtension(const std::string &name)
+{
+	for (const std::string &e : GLExtensions())  if (e == name)  return true;
+	return false;
+}
+
+
+bool GLHasShaderExtensions()
+{
+	return GLHasExtension("GL_ARB_shading_language_100") && GLHasExtension("GL_ARB_fragment_shader") && GLHasExtension("GL_ARB_vertex_shader") && GLHasExtension("GL_ARB_multitexture") && GLHasExtension("GL_ARB_shader_objects");
+}
+
+
+void GLVersion(unsigned *major, unsigned *minor, unsigned *release)
+{
+	*major = *minor = *release = 0;
+	std::sscanf(GLString(GL_VERSION).c_str(), "%u.%u.%u", major, minor, release);
+}
+
+
+oo::PList Dict(std::initializer_list<std::pair<const char *, oo::PList>> entries)
+{
+	oo::PList::Dict dict;
+	for (const auto &[key, value] : entries)  dict[key] = value;
+	return oo::PList(std::move(dict));
+}
+
+
+void SetArguments(std::initializer_list<const char *> args)
+{
+	std::vector<const char *> argv(args);
+	oo::process::setArguments(static_cast<int>(argv.size()), argv.data());
+}
+
+}	// namespace
+
+
+// --- Tests --------------------------------------------------------------------------------------
+
+OO_TEST(readsTheDriver)
+{
+	OO_CHECK(OOTestGLContext());
+	SetArguments({ "test_OOOpenGLExtensionManager" });
+
+	{
+		OOOpenGLExtensionManager *manager = OOOpenGLExtensionManager::sharedManager();
+		OO_CHECK(manager != nullptr);
+		OO_CHECK(OOOpenGLExtensionManager::sharedManager() == manager);
+		OO_CHECK(sPathsCalls == 1);	// the resource paths are set up while the manager initialises
+
+		unsigned major, minor, release;
+		GLVersion(&major, &minor, &release);
+		OO_CHECK(major >= 3);
+		OO_CHECK(manager->majorVersionNumber() == major);
+		OO_CHECK(manager->minorVersionNumber() == minor);
+		OO_CHECK(manager->releaseVersionNumber() == release);
+		unsigned gotMajor = 99, gotMinor = 99, gotRelease = 99;
+		manager->getVersionMajor(&gotMajor, &gotMinor, &gotRelease);
+		OO_CHECK(gotMajor == major && gotMinor == minor && gotRelease == release);
+		manager->getVersionMajor(NULL, &gotMinor, NULL);	// NULL outs are skipped
+		OO_CHECK(gotMinor == minor);
+		OO_CHECK(manager->versionIsAtLeastMajor(major, minor));
+		OO_CHECK(manager->versionIsAtLeastMajor(major - 1, minor + 100));
+		OO_CHECK(!manager->versionIsAtLeastMajor(major, minor + 1));
+		OO_CHECK(!manager->versionIsAtLeastMajor(major + 1, 0));
+
+		OO_CHECK(manager->vendorString() == std::optional<std::string>(GLString(GL_VENDOR)));
+		OO_CHECK(manager->rendererString() == std::optional<std::string>(GLString(GL_RENDERER)));
+
+		const std::vector<std::string> extensions = GLExtensions();
+		OO_CHECK(!extensions.empty());
+		for (const std::string &e : extensions)  OO_CHECK(manager->haveExtension(e));
+		OO_CHECK(!manager->haveExtension("GL_OO_no_such_extension"));
+		OO_CHECK(!manager->haveExtension(""));
+
+		// The empty GPU settings leave every default in place.
+		OO_CHECK(manager->shadersForceDisabled() == NO);
+		OO_CHECK(manager->shadersSupported() == (GLHasShaderExtensions() ? YES : NO));
+		OO_CHECK(manager->usePointSmoothing() && manager->useLineSmoothing() && manager->useDustShader());
+		OO_CHECK(manager->vboSupported() == NO);	// OO_USE_VBO is 0
+		OO_CHECK(manager->fboSupported() == (GLHasExtension("GL_EXT_framebuffer_object") ? YES : NO));
+		OO_CHECK(manager->textureCombinersSupported() == (GLHasExtension("GL_ARB_texture_env_combine") ? YES : NO));
+
+		GLint units = 1;
+		if (manager->textureCombinersSupported())  glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &units);
+		OO_CHECK(manager->textureUnitCount() == units);
+		if (manager->shadersSupported())
+		{
+			GLint imageUnits = 0;
+			glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &imageUnits);
+			OO_CHECK(manager->textureImageUnitCount() == imageUnits);
+			OO_CHECK(manager->defaultDetailLevel() == DETAIL_LEVEL_MAXIMUM);
+			OO_CHECK(manager->maximumDetailLevel() == DETAIL_LEVEL_MAXIMUM);
+		}
+		OO_CHECK(OOShadersSupported() == manager->shadersSupported());
+	}
+}
+
+
+OO_TEST(gpuSettingsMatchInPrecedenceOrder)
+{
+	OO_CHECK(OOTestGLContext());
+	{
+		OOOpenGLExtensionManager *manager = OOOpenGLExtensionManager::sharedManager();
+		const BOOL shaders = GLHasShaderExtensions() ? YES : NO;
+
+		sGPUSettings = Dict({
+			// Highest precedence, but its regexp array needs both to match: it does not.
+			{ "a-strict", Dict({ { "precedence", oo::PList(5) },
+				{ "match", Dict({ { "vendor", oo::PList(oo::PList::Array{ oo::PList("."), oo::PList("^no such vendor$") }) } }) },
+				{ "smooth_lines", oo::PList(false) } }) },
+			// Matches everything (every regexp in the array matches), and wins over the default 1.
+			{ "b-any", Dict({ { "precedence", oo::PList(2) },
+				{ "match", Dict({ { "vendor", oo::PList(oo::PList::Array{ oo::PList("."), oo::PList("") }) },
+								  { "version", oo::PList("^[0-9]") } }) },
+				{ "default_shader_level", oo::PList("SHADERS_SIMPLE") },
+				{ "smooth_points", oo::PList(false) },
+				{ "use_dust_shader", oo::PList(false) },
+				{ "texture_units", oo::PList(1) },
+				{ "texture_image_units", oo::PList(2) } }) },
+			// Also matches, but loses on precedence.
+			{ "c-any", Dict({ { "match", Dict({}) }, { "smooth_lines", oo::PList(false) } }) },
+		});
+		manager->reset();
+		OO_CHECK(sPathsCalls == 2);
+
+		OO_CHECK(manager->usePointSmoothing() == NO);
+		OO_CHECK(manager->useLineSmoothing() == YES);
+		OO_CHECK(manager->useDustShader() == NO);
+		if (manager->textureCombinersSupported())  OO_CHECK(manager->textureUnitCount() == 1);
+		if (shaders)
+		{
+			OO_CHECK(manager->shadersSupported());
+			OO_CHECK(manager->textureImageUnitCount() == 2);
+			OO_CHECK(manager->defaultDetailLevel() == DETAIL_LEVEL_MINIMUM);	// SHADERS_SIMPLE < SHADERS_FULL
+			OO_CHECK(manager->maximumDetailLevel() == DETAIL_LEVEL_MAXIMUM);
+		}
+
+		// An override can only lower a limit; a maximum of SHADERS_OFF turns shaders off.
+		sGPUSettings = Dict({
+			{ "d-off", Dict({ { "name", oo::PList("test GPU") },
+				{ "maximum_shader_level", oo::PList("SHADERS_OFF") },
+				{ "texture_units", oo::PList(1000) },
+				{ "texture_image_units", oo::PList(-4) } }) },
+		});
+		manager->reset();
+		OO_CHECK(manager->shadersSupported() == NO);
+		OO_CHECK(manager->usePointSmoothing() && manager->useLineSmoothing() && manager->useDustShader());
+		if (shaders)
+		{
+			OO_CHECK(manager->textureImageUnitCount() == 0);
+			OO_CHECK(manager->defaultDetailLevel() == DETAIL_LEVEL_MINIMUM);
+			OO_CHECK(manager->maximumDetailLevel() == DETAIL_LEVEL_MINIMUM);
+		}
+		GLint units = 1;
+		if (manager->textureCombinersSupported())  glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &units);
+		OO_CHECK(manager->textureUnitCount() == units);
+
+		sGPUSettings = oo::PList(oo::PList::Dict{});
+		manager->reset();
+		OO_CHECK(manager->shadersSupported() == shaders);
+	}
+}
+
+
+OO_TEST(gpuSettingsPassTakesOneMatcher)
+{
+	// The Objective-C matcher was autoreleased, so one pass's matches shared it (and its compiled
+	// tester); the C++ pass holds the one it takes (ADR-0056 amendment oo-ct7c item 3, bead
+	// oo-9ht.12). A pass with no regexp takes none, as no message was sent.
+	OO_CHECK(OOTestGLContext());
+	{
+		OOOpenGLExtensionManager *manager = OOOpenGLExtensionManager::sharedManager();
+
+		sGPUSettings = Dict({
+			{ "a-strict", Dict({ { "precedence", oo::PList(5) },
+				{ "match", Dict({ { "vendor", oo::PList(oo::PList::Array{ oo::PList("."), oo::PList("^no such vendor$") }) } }) } }) },
+			{ "b-any", Dict({ { "precedence", oo::PList(2) },
+				{ "match", Dict({ { "vendor", oo::PList(".") }, { "renderer", oo::PList(".") }, { "version", oo::PList("^[0-9]") } }) } }) },
+		});
+		unsigned made = sMatchersMade;
+		manager->reset();
+		OO_CHECK(sMatchersMade == made + 1);	// several matches, one matcher
+
+		sGPUSettings = Dict({ { "c-any", Dict({ { "match", Dict({}) } }) } });
+		made = sMatchersMade;
+		manager->reset();
+		OO_CHECK(sMatchersMade == made);
+
+		sGPUSettings = oo::PList(oo::PList::Dict{});
+		manager->reset();
+	}
+}
+
+
+OO_TEST(noShadersArgument)
+{
+	OO_CHECK(OOTestGLContext());
+	{
+		OOOpenGLExtensionManager *manager = OOOpenGLExtensionManager::sharedManager();
+		SetArguments({ "test_OOOpenGLExtensionManager", "--noshaders" });
+		manager->reset();
+		OO_CHECK(manager->shadersForceDisabled() == YES);
+		OO_CHECK(manager->shadersSupported() == NO);
+		OO_CHECK(OOShadersSupported() == NO);
+		OO_CHECK(manager->defaultDetailLevel() == DETAIL_LEVEL_MINIMUM);
+		OO_CHECK(manager->maximumDetailLevel() == DETAIL_LEVEL_MINIMUM);
+
+		SetArguments({ "test_OOOpenGLExtensionManager" });
+		manager->reset();
+		OO_CHECK(manager->shadersForceDisabled() == NO);
+		OO_CHECK(manager->shadersSupported() == (GLHasShaderExtensions() ? YES : NO));
+	}
+}
+
+
+OO_TEST_MAIN()

@@ -24,28 +24,12 @@ MA 02110-1301, USA.
 
 */
 
+#pragma once
+
 #include "PlayerEntity.h"
 
-@interface PlayerEntity (Controls)
-
-- (void)initControls;
-- (void)initKeyConfigSettings;
-
-- (void)pollControls:(double)delta_t;
-- (BOOL)handleGUIUpDownArrowKeys;
-- (void)clearPlanetSearchString;
-- (void)targetNewSystem:(int)direction;
-- (void)switchToMainView;
-- (void)noteSwitchToView:(OOViewID)toView fromView:(OOViewID)fromView;
-- (void)beginWitchspaceCountdown:(int)spin_time;
-- (void)beginWitchspaceCountdown;
-- (void)cancelWitchspaceCountdown;
-- (NSArray*)processKeyCode:(NSArray*)key_def;
-- (BOOL)checkNavKeyPress:(NSArray*)key_def;
-- (BOOL)checkKeyPress:(NSArray*)key_def;
-- (BOOL)checkKeyPress:(NSArray*)key_def fKey_only:(BOOL)fKey_only;
-- (BOOL)checkKeyPress:(NSArray*)key_def ignore_ctrl:(BOOL)ignore_ctrl;
-- (BOOL)checkKeyPress:(NSArray*)key_def fKey_only:(BOOL)fKey_only ignore_ctrl:(BOOL)ignore_ctrl;
-- (int)getFirstKeyCode:(NSArray*)key_def;
-
-@end
+/*	The categories PlayerEntity (Controls) and (OOControlsPrivate) are members of
+        PlayerEntity, declared in PlayerEntity.h and defined in PlayerEntityControls.mm. Its Objective-C interface,
+        for the callers that remained, was the category of the same name in PlayerEntity+ObjCBridge.h (deleted),
+        which PlayerEntity.h imports. This header stays for the files that import it.
+*/

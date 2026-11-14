@@ -26,11 +26,26 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFileScannerVerifierStage.h"
+#pragma once
+
+#include "OOFileScannerVerifierStage.h"
 
 #if OO_OXP_VERIFIER_ENABLED
 
-@interface OOCheckDemoShipsPListVerifierStage : OOFileHandlingVerifierStage
-@end
+/*	C++20 since bead oo-si5w (proposed ADR-0056 Amendment 1, amendment oo-up4b item 6): a leaf of
+        OOFileHandlingVerifierStage. It is global and has no facade: nothing outside this file
+        names it, the verifier makes it from its name (kCxxStages in OOOXPVerifier.mm) and holds it
+        (as its OOOXPVerifierStage facade until bead oo-9ht.4).
+*/
+class OOCheckDemoShipsPListVerifierStage : public OOFileHandlingVerifierStage {
+public:
+    std::optional<std::string> name() override;
+    bool shouldRun() override;
+    void run() override;
+
+private:
+    // demoshipsPList is an Array, shipdataPList a Dict.
+    void runCheckWithDemoShips(const oo::PList& demoshipsPList, const oo::PList& shipdataPList);
+};
 
 #endif
