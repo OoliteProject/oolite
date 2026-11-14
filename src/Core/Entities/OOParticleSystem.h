@@ -2,6 +2,9 @@
 
 OOParticleSystem.h
 
+The two fragment bursts here and OOExplosionCloudEntity are global classes
+over Entity. Their
+callers (ShipEntity, Universe) make them with a factory.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -23,58 +26,83 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
+#pragma once
 
-#import "OOMaths.h"
-#import "OOTypes.h"
+#include "Entity.h"
 
-@class OOTexture, OOColor;
+#include "OOMaths.h"
+#include "OOTypes.h"
+
+class OOTexture;
+class OOColor;
 
 enum {
     kFragmentBurstMaxParticles = 64,
     kBigFragmentBurstMaxParticles = 16
 };
 
-@interface OOParticleSystem : Entity {
-@protected
-    Vector _particlePosition[kFragmentBurstMaxParticles];
-    Vector _particleVelocity[kFragmentBurstMaxParticles];
-    GLfloat _particleColor[kFragmentBurstMaxParticles][4];
-    GLfloat _particleSize[kFragmentBurstMaxParticles];
-    unsigned _count;
+class OOParticleSystem : public Entity {
+public:
+    std::optional<std::string> descriptionComponents() const override;
+    bool canCollide() override;
+    bool checkCloseCollisionWith(Entity* other) override;
+    void update(OOTimeDelta delta_t) override;
+    void drawImmediate(bool immediate, bool translucent) override;
+    bool isEffect() override;
 
-    unsigned _particleType;
+    virtual OOTexture* texture();
 
-    OOTimeDelta _timePassed, _duration;
-    double _maxSpeed;
-}
+#ifdef OO_DEBUG_MONITOR_ENABLED
+    std::vector<oo::Ref<OOTexture>> allTextures() override;
+#endif
 
-/*	Initialize particle effect with particles flying out randomly.
-        Initiali _particleSize[] is equal to speed.
- */
-- (id)initWithPosition:(HPVector)position
-              velocity:(Vector)velocity
-                 count:(unsigned)count
-              minSpeed:(float)minSpeed
-              maxSpeed:(float)maxSpeed
-              duration:(OOTimeDelta)duration
-             baseColor:(GLfloat[4])baseColor;
+protected:
+    // -init answered nil: only a subclass makes one, then runs initWithPosition().
+    OOParticleSystem() = default;
 
-- (OOTexture*)texture;
+    /*	Initialize particle effect with particles flying out randomly.
+            Initiali _particleSize[] is equal to speed.
+     */
+    void initWithPosition(HPVector position,
+        Vector velocity,
+        unsigned count,
+        float minSpeed,
+        float maxSpeed,
+        OOTimeDelta duration,
+        GLfloat baseColor[4]);
 
-@end
+    Vector _particlePosition[kFragmentBurstMaxParticles] = { };
+    Vector _particleVelocity[kFragmentBurstMaxParticles] = { };
+    GLfloat _particleColor[kFragmentBurstMaxParticles][4] = { };
+    GLfloat _particleSize[kFragmentBurstMaxParticles] = { };
+    unsigned _count = { };
 
-@interface OOSmallFragmentBurstEntity : OOParticleSystem
+    unsigned _particleType = { };
 
-+ (id)fragmentBurstFromEntity:(Entity*)entity;
+    OOTimeDelta _timePassed = { }, _duration = { };
+    double _maxSpeed = { };
+};
 
-@end
+class OOSmallFragmentBurstEntity : public OOParticleSystem {
+public:
+    static oo::Ref<OOSmallFragmentBurstEntity> fragmentBurstFromEntity(
+        Entity* entity); // the C++ entity
 
-@interface OOBigFragmentBurstEntity : OOParticleSystem {
-@private
-    GLfloat _baseSize;
-}
+    void update(OOTimeDelta delta_t) override;
 
-+ (id)fragmentBurstFromEntity:(Entity*)entity;
+private:
+    void initFragmentBurstFrom(HPVector fragPosition, Vector fragVelocity, GLfloat size);
+};
 
-@end
+class OOBigFragmentBurstEntity : public OOParticleSystem {
+public:
+    static oo::Ref<OOBigFragmentBurstEntity> fragmentBurstFromEntity(
+        Entity* entity); // the C++ entity
+
+    void update(double delta_t) override;
+
+private:
+    void initFragmentBurstFrom(HPVector fragPosition, Vector fragVelocity, GLfloat size);
+
+    GLfloat _baseSize = { };
+};

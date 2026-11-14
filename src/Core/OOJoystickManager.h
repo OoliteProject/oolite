@@ -6,13 +6,20 @@ modified by Alex Smith and Jens Ayton
 
 JoystickHandler handles joystick events, and translates them
 into the appropriate action via a lookup table. The lookup table is
-stored as a simple array rather than an ObjC dictionary since this
+stored as a simple array rather than a dictionary since this
 will be examined fairly often (once per frame during gameplay).
 
 Conversion methods are provided to convert between the internal
-representation and an NSDictionary (for loading/saving user defaults
+representation and a property-list dictionary (for loading/saving user defaults
 and for use in areas where portability/ease of coding are more important
 than performance such as the GUI)
+
+The methods a subclass overrides (joystickCount, nameOfJoystick,
+getAxisWithStick) are virtual; -init's body is init(), run after construction
+because it reaches those virtual members. Its one subclass is the C++
+OOSDLJoystickManager, the shared handler is made by a registered factory
+function (was +setStickHandlerClass:) and the stick-mapper callback is a C++
+function.
 
 
 Oolite
@@ -37,11 +44,18 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#import "OOFoundation.h"
+#include "OOFoundation.h"
+#include "oofnd/objc/OOObject.h"
 
-// Enums are used here rather than a more complex ObjC object because
+#include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
+#include <functional>
+#include <string_view>
+
+// Enums are used here rather than a more complex object because
 // these are required very frequently (once per frame) so must be light
-// on CPU cycles (try and avoid too many objc sendmsgs).
+// on CPU cycles.
 // Controls that can be an axis
 enum {
     AXIS_ROLL,
@@ -148,113 +162,127 @@ enum {
 #define AXCBTHRESH 20000
 
 // Dictionary keys - used in the defaults file
-#define AXIS_SETTINGS @"JoystickAxes" // NSUserDefaults
-#define BUTTON_SETTINGS @"JoystickButs" // NSUserDefaults
-#define GUI_BUTTON_SETTINGS @"GuiJoystickButs" // NSUserDefaults
-#define STICK_ISAXIS @"isAxis" // YES=axis NO=button
-#define STICK_NUMBER @"stickNum" // Stick number 0 to 4
-#define STICK_AXBUT @"stickAxBt" // Axis or button number
-#define STICK_FUNCTION @"stickFunc" // Function of axis/button
-#define STICK_ROLL_AXIS_PROFILE_SETTING @"RollAxisProfile" // Joystick Profiles
-#define STICK_PITCH_AXIS_PROFILE_SETTING @"PitchAxisProfile" // Joystick Profiles
-#define STICK_YAW_AXIS_PROFILE_SETTING @"YawAxisProfile" // Joystick Profiles
+inline constexpr std::string_view AXIS_SETTINGS = "JoystickAxes"; // oo::Defaults key
+inline constexpr std::string_view BUTTON_SETTINGS = "JoystickButs"; // oo::Defaults key
+inline constexpr std::string_view GUI_BUTTON_SETTINGS = "GuiJoystickButs"; // oo::Defaults key
+inline constexpr std::string_view STICK_ISAXIS = "isAxis"; // YES=axis NO=button
+inline constexpr std::string_view STICK_NUMBER = "stickNum"; // Stick number 0 to 4
+inline constexpr std::string_view STICK_AXBUT = "stickAxBt"; // Axis or button number
+#define STICK_FUNCTION "stickFunc" // Function of axis/button
+inline constexpr std::string_view STICK_ROLL_AXIS_PROFILE_SETTING = "RollAxisProfile"; // Joystick Profiles
+inline constexpr std::string_view STICK_PITCH_AXIS_PROFILE_SETTING = "PitchAxisProfile"; // Joystick Profiles
+inline constexpr std::string_view STICK_YAW_AXIS_PROFILE_SETTING = "YawAxisProfile"; // Joystick Profiles
 // shortcut to make code more readable when using enum as key for
-// an NSDictionary
-#define ENUMKEY(x) [NSString stringWithFormat:@"%d", x]
+// a dictionary: a std::string (oofnd/String.hpp)
+#define ENUMKEY(x) oo::str::format("%d", x)
 
-#import "OOJoystickProfile.h"
+#include "OOJoystickProfile.h"
+#include "oofnd/String.hpp"
 
-@interface OOJoystickManager : NSObject {
-    // Axis/button mapping arrays
-    int8_t axismap[MAX_STICKS][MAX_AXES];
-    int8_t buttonmap[MAX_STICKS][MAX_BUTTONS];
-    int8_t guibuttonmap[MAX_STICKS][MAX_BUTTONS];
-    BOOL true_butstate[MAX_STICKS][MAX_BUTTONS];
-    double axstate[AXIS_end];
-    BOOL butstate[BUTTON_end];
-    uint8_t hatstate[MAX_STICKS][MAX_HATS];
-    BOOL precisionMode;
+class OOJoystickManager : public oo::RefCounted {
+public:
+    OOJoystickManager() = default;
 
-    // Handle callbacks - the object, selector to call
-    // the desired function, and the hardware (axis or button etc.)
-    id cbObject;
-    SEL cbSelector;
-    char cbHardware;
-    BOOL invertPitch;
+    // The shared handler, made on first use by the registered factory (else a plain manager) and
+    // init()ed; never null, never destroyed. Was +sharedStickHandler.
+    static OOJoystickManager* sharedStickHandler();
+    // Registers the platform's handler, before the first sharedStickHandler(). Was
+    // +setStickHandlerClass: (the class is a function that makes the manager).
+    using StickHandlerFactory = oo::Ref<OOJoystickManager> (*)();
+    static bool setStickHandlerFactory(StickHandlerFactory factory);
 
-@private
-    OOJoystickAxisProfile* roll_profile;
-    OOJoystickAxisProfile* pitch_profile;
-    OOJoystickAxisProfile* yaw_profile;
-}
+    // General.
+    // Note: handleSDLEvent returns a BOOL (YES we handled it or NO we
+    // didn't) so in the future when more handler classes are written,
+    // the GameView event loop can just go through an array of handlers
+    // until it finds a handler that handles the event.
+    void init(); // run once, right after construction, by whoever makes the manager
 
-+ (id)sharedStickHandler;
-+ (BOOL)setStickHandlerClass:(Class)aClass;
+    // Roll/pitch axis
+    NSPoint rollPitchAxis();
 
-// General.
-// Note: handleSDLEvent returns a BOOL (YES we handled it or NO we
-// didn't) so in the future when more handler classes are written,
-// the GameView event loop can just go through an NSArray of handlers
-// until it finds a handler that handles the event.
-- (id)init;
+    // View axis
+    NSPoint viewAxis();
 
-// Roll/pitch axis
-- (NSPoint)rollPitchAxis;
+    // convert a dictionary into the internal function map
+    void setFunction(int function, const oo::PList& stickFn);
+    void unsetAxisFunction(int function);
+    void unsetButtonFunction(int function);
+    void unsetGuiButtonFunction(int function);
 
-// View axis
-- (NSPoint)viewAxis;
+    // Accessors and discovery about the hardware.
+    // These work directly on the internal lookup table so to be fast
+    // since they are likely to be called by the game loop.
+    bool isButtonDown(int button, int stickNum);
+    bool getButtonState(int function);
+    double getAxisState(int function);
+    double getSensitivity();
 
-// convert a dictionary into the internal function map
-- (void)setFunction:(int)function withDict:(NSDictionary*)stickFn;
-- (void)unsetAxisFunction:(int)function;
-- (void)unsetButtonFunction:(int)function;
-- (void)unsetGuiButtonFunction:(int)function;
+    // Axis profile handling
+    void setProfile(OOJoystickAxisProfile* profile, int axis);
+    OOJoystickAxisProfile* getProfileForAxis(int axis); // borrowed; null for an axis with none
+    void saveProfileForAxis(int axis);
+    void loadProfileForAxis(int axis);
 
-// Accessors and discovery about the hardware.
-// These work directly on the internal lookup table so to be fast
-// since they are likely to be called by the game loop.
-- (BOOL)isButtonDown:(int)button stick:(int)stickNum;
-- (BOOL)getButtonState:(int)function;
-- (double)getAxisState:(int)function;
-- (double)getSensitivity;
+    // This one just returns a pointer to the entire state array to
+    // allow for multiple lookups with only one call
+    const BOOL* getAllButtonStates();
 
-// Axis profile handling
-- (void)setProfile:(OOJoystickAxisProfile*)profile forAxis:(int)axis;
-- (OOJoystickAxisProfile*)getProfileForAxis:(int)axis;
-- (void)saveProfileForAxis:(int)axis;
-- (void)loadProfileForAxis:(int)axis;
+    // Hardware introspection.
+    std::vector<std::string> listSticks();
 
-// This one just returns a pointer to the entire state array to
-// allow for multiple lookups with only one objc_sendMsg
-- (const BOOL*)getAllButtonStates;
+    // These use property-list dictionaries since they are used outside the game
+    // loop and are needed for loading/saving defaults.
+    oo::PList axisFunctions();
+    oo::PList buttonFunctions();
+    oo::PList guiButtonFunctions();
 
-// Hardware introspection.
-- (NSArray*)listSticks;
+    // Set a callback for the next moved axis/pressed button. hwflags
+    // is in the form HW_AXIS | HW_BUTTON (or just one of). The callback is called once, with the
+    // stick function's dictionary (was a selector called by name on an object).
+    using StickCallback = std::function<void(const oo::PList&)>;
+    void setCallback(StickCallback callback, char hwflags);
+    void clearCallback();
 
-// These use NSDictionary/NSArray since they are used outside the game
-// loop and are needed for loading/saving defaults.
-- (NSDictionary*)axisFunctions;
-- (NSDictionary*)buttonFunctions;
-- (NSDictionary*)guiButtonFunctions;
+    // Methods generally only used by this class.
+    void setDefaultMapping();
+    void clearMappings();
+    void clearStickStates();
+    void clearStickButtonState(int stickButton);
+    void saveStickSettings();
+    void loadStickSettings();
 
-// Set a callback for the next moved axis/pressed button. hwflags
-// is in the form HW_AXIS | HW_BUTTON (or just one of).
-- (void)setCallback:(SEL)selector
-             object:(id)obj
-           hardware:(char)hwflags;
-- (void)clearCallback;
+    // Methods that should be overridden by all subclasses
+    virtual NSUInteger joystickCount();
+    virtual std::optional<std::string> nameOfJoystick(NSUInteger stickNumber); // nullopt: the device has no name
+    virtual int16_t getAxisWithStick(NSUInteger stickNum, NSUInteger axisNum);
 
-// Methods generally only used by this class.
-- (void)setDefaultMapping;
-- (void)clearMappings;
-- (void)clearStickStates;
-- (void)clearStickButtonState:(int)stickButton;
-- (void)saveStickSettings;
-- (void)loadStickSettings;
+private:
+    // Setting button and axis functions
+    void setFunctionForAxis(int axis, int function, int stickNum);
+    void setFunctionForButton(int button, int function, int stickNum);
+    void setGuiFunctionForButton(int button, int function, int stickNum);
 
-// Methods that should be overridden by all subclasses
-- (NSUInteger)joystickCount;
-- (NSString*)nameOfJoystick:(NSUInteger)stickNumber;
-- (int16_t)getAxisWithStick:(NSUInteger)stickNum axis:(NSUInteger)axisNum;
+protected:
+    // Axis/button mapping arrays (the platform manager's event decoders read
+    // and set them)
+    int8_t axismap[MAX_STICKS][MAX_AXES] = { };
+    int8_t buttonmap[MAX_STICKS][MAX_BUTTONS] = { };
+    int8_t guibuttonmap[MAX_STICKS][MAX_BUTTONS] = { };
+    bool true_butstate[MAX_STICKS][MAX_BUTTONS] = { };
+    double axstate[AXIS_end] = { };
+    BOOL butstate[BUTTON_end] = { }; // still BOOL: getAllButtonStates() hands unconverted callers a const BOOL *
+    uint8_t hatstate[MAX_STICKS][MAX_HATS] = { };
+    bool precisionMode = { };
 
-@end
+    // Handle callbacks - the function to call
+    // and the hardware (axis or button etc.)
+    StickCallback cbCallback = { }; // empty: none (was a nil object)
+    char cbHardware = { };
+    bool invertPitch = { };
+
+private:
+    oo::Ref<OOJoystickAxisProfile> roll_profile = { };
+    oo::Ref<OOJoystickAxisProfile> pitch_profile = { };
+    oo::Ref<OOJoystickAxisProfile> yaw_profile = { };
+};

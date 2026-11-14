@@ -29,10 +29,11 @@ SOFTWARE.
 
 */
 
+#pragma once
+
 #ifndef OOALSTR
-#ifdef __OBJC__
-#import <Foundation/Foundation.h>
-#define OOALSTR(x) @"" x
+#if defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT) // was __OBJC__: a game unit, not a plain C++ one
+#include "OOFoundation.h" // (OOALSTR(x) was the literal @"" x: no game unit spells one)
 #else // C
 #include <CoreFoundation/CoreFoundation.h>
 #define OOALSTR(x) CFSTR(x)

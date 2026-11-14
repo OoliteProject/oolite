@@ -4,6 +4,9 @@ OODrawable.h
 
 Abstract base class for objects which can draw themselves.
 
+Every drawable (OOMesh,
+OOPlanetDrawable, OOSkyDrawable) and every holder is C++.
+
 
 Copyright (C) 2007-2013 Jens Ayton
 
@@ -27,31 +30,56 @@ SOFTWARE.
 
 */
 
-#import "OOFoundation.h"
-#import "OOMaths.h"
-#import "OOOpenGL.h"
-#import "OOWeakReference.h"
+#pragma once
 
-@interface OODrawable : NSObject
+#include "OOFoundation.h"
+#include "OOMaths.h"
+#include "OOOpenGL.h"
+#include "oofnd/objc/OOObject.h"
+class Entity; // Entity.h: the shader binding target
 
-- (void)renderOpaqueParts;
-- (void)renderTranslucentParts;
-- (BOOL)hasOpaqueParts;
-- (BOOL)hasTranslucentParts;
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
+#include <vector>
 
-- (GLfloat)collisionRadius;
-- (GLfloat)maxDrawDistance;
+#include "OOTexture.h" // allTextures() answers oo::Ref<OOTexture>, which needs the class
 
-- (BoundingBox)boundingBox;
+class OODrawable : public oo::RefCounted {
+public:
+    virtual void renderOpaqueParts();
+    virtual void renderTranslucentParts();
+    virtual bool hasOpaqueParts();
+    virtual bool hasTranslucentParts();
 
-// Passed to all materials.
-- (void)setBindingTarget:(id<OOWeakReferenceSupport>)target;
+    virtual GLfloat collisionRadius();
+    virtual GLfloat maxDrawDistance();
 
-- (void)dumpSelfState;
+    virtual BoundingBox boundingBox();
+
+    // Passed to all materials.
+    virtual void setBindingTarget(Entity* target);
+
+    virtual void dumpSelfState();
+
+    // What "%@" prints between the braces of <Class 0x...>{...} (OODescription.h). None here, as
+    // OOObject answered; OOMesh and OOSkyDrawable override it.
+    virtual std::optional<std::string> descriptionComponents() const;
+
+    // "<Class 0x...>{components}": the C++ class's name and the drawable's own address.
+    std::string description() const;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (NSSet*)allTextures;
-- (size_t)totalSize; // Size including dynamic data, not counting textures.
-#endif
+    virtual std::vector<oo::Ref<OOTexture>> allTextures();
+    virtual size_t totalSize(); // Size including dynamic data, not counting textures.
 
-@end
+    // The object's own size, which totalSize() starts from: sizeof the dynamic type, each subclass answering its own.
+    virtual size_t objectSize() const { return sizeof *this; }
+#endif
+};
+
+/*	Keeps the drawable
+        until the current autorelease pool drains, so a drawable an entity replaces lives exactly as
+        long as an autoreleased object
+   would. Nothing for null.
+*/
+void OODrawableAutorelease(oo::Ref<OODrawable> drawable);
