@@ -4,6 +4,10 @@ OOALBufferedSound.h
 
 OOALBufferedSound - OpenAL sound implementation for Oolite.
 
+C++20 since bead oo-2wpb (proposed ADR-0056, the Audio module: amendment oo-2en): a subclass of
+OOSound. Bead oo-9ht.83 deleted its Objective-C facade and moved it to the global namespace; the root's
+class cluster makes it from the C++ decoder (bead oo-9ht.82).
+
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
@@ -24,18 +28,37 @@ SOFTWARE.
 
 */
 
-#import "OOALSoundDecoder.h"
-#import "OOSound.h"
+#ifndef OOALBUFFEREDSOUND_H
+#define OOALBUFFEREDSOUND_H
 
-@interface OOALBufferedSound : OOSound {
-@private
-    char* _buffer;
-    size_t _size;
-    double _sampleRate;
-    NSString* _name;
-    BOOL _stereo;
-}
+#include "OOALSound.h"
 
-- (id)initWithDecoder:(OOALSoundDecoder*)inDecoder;
+class OOALSoundDecoder; // only named here (OOALSoundDecoder.h)
 
-@end
+#include "oofnd/StdLib.hpp"
+
+class OOALBufferedSound : public OOSound {
+public:
+    /*	Was -initWithDecoder:, which decoded the whole sound: null where it answered nil (sound not
+            OK, no decoder, or the decoder could not read the sound).
+    */
+    static oo::Ref<OOALBufferedSound> initWithDecoder(OOALSoundDecoder* inDecoder);
+
+    ~OOALBufferedSound() override;
+
+    std::optional<std::string> name() override;
+    ALuint soundBuffer() override;
+
+private:
+    friend struct OOALBufferedSoundTestAccess; // the stand-ins of tests that stub the sound (bead oo-9ht.83)
+
+    OOALBufferedSound() = default;
+
+    char* _buffer = { };
+    size_t _size = { };
+    double _sampleRate = { };
+    std::optional<std::string> _name; // nil-able, as the name was (proposed ADR-0043)
+    bool _stereo = { };
+};
+
+#endif // OOALBUFFEREDSOUND_H

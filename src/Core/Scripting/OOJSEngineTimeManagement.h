@@ -4,6 +4,10 @@ OOJSEngineTimeManagement.h
 
 Functionality related to time limiting and profiling of JavaScript code.
 
+C++20 since bead oo-cn4o (proposed ADR-0056; amendment oo-ppc for the scripting files): the
+profile classes are OOTimeProfile and OOTimeProfileEntry (no Objective-C facades: the debug console
+holds them and the engine converts them to JavaScript with oo_jsValueInContext()).
+
 
 Copyright (C) 2010-2013 Jens Ayton
 
@@ -27,7 +31,15 @@ SOFTWARE.
 
 */
 
-#import "OOJavaScriptEngine.h"
+#pragma once
+
+#include "OOJavaScriptEngine.h"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
+
+#include <optional>
+#include <string>
+#include <vector>
 
 /*	Time Limiter
 
@@ -44,23 +56,23 @@ SOFTWARE.
         known to be slow. OOJSPauseTimeLimiter() and OOJSResumeTimeLimiter() must
         be balanced and can be nested, but the nest count may be negative - it is
         valid to call OOJSResumeTimeLimiter() followed by OOJSPauseTimeLimiter().
+
+        With QuickJS, the limiter functions (OOJSStartTimeLimiterWithTimeLimit(),
+        OOJSStartTimeLimiter(), OOJSStopTimeLimiter(), OOJSPauseTimeLimiter(),
+        OOJSResumeTimeLimiter(), kOOJSLongTimeLimit and, in debug builds,
+        OOJSResetTimeLimiter(), OOJSGetTimeLimiterLimit() and
+        OOJSSetTimeLimiterLimit()) are declared in OOJavaScriptEngine.h and
+        implemented in OOJavaScriptEngine.m. QuickJS polls an interrupt handler
+        while running JS code, so no watchdog thread or operation callback is
+        needed.
+
+        Not ported: the debug-build variants that record the file and line of
+        the last start/stop (OOJSStartTimeLimiterWithTimeLimit_() and
+        OOJSStopTimeLimiter_()), which were only used to diagnose unbalanced
+        calls.
 */
-#define OOJSStartTimeLimiter() OOJSStartTimeLimiterWithTimeLimit(0.0)
-
-#ifndef NDEBUG
-#define OOJSStartTimeLimiterWithTimeLimit(limit) OOJSStartTimeLimiterWithTimeLimit_(limit, OOLOG_FILE_NAME, __LINE__)
-#define OOJSStopTimeLimiter() OOJSStopTimeLimiter_(OOLOG_FILE_NAME, __LINE__)
-void OOJSStartTimeLimiterWithTimeLimit_(OOTimeDelta limit, const char* file, unsigned line);
-void OOJSStopTimeLimiter_(const char* file, unsigned line);
-#else
-void OOJSStartTimeLimiterWithTimeLimit(OOTimeDelta limit);
-void OOJSStopTimeLimiter(void);
-#endif
-
-#define kOOJSLongTimeLimit (5.0)
 
 #if OOJS_PROFILE
-#import "OOProfilingStopwatch.h"
 
 /*
         Profiling support.
@@ -72,94 +84,106 @@ void OOJSStopTimeLimiter(void);
         If trace is set, all profileable functions will be logged. The actual
         profile will be of little use in this case because of logging overhead.
 
-        OOJSCopyTimeLimiterNominalStartTime()
-        Copy the nominal start time for the time limiter. This is the actual time
-        with any time extensions (paused periods) added in.
+        As in SpiderMonkey builds without MOZ_TRACE_JSCALLS, only natives are
+        profiled (QuickJS has no function call hook); time not spent in natives
+        is reported as JavaScript time.
 
-        OOJSResetTimeLimiter()
-        Set the time limiter start time to now.
+        OOJSExcludeTimeFromLimiter()
+        Extend the current time limit by the given time, unless the limiter is
+        paused. Used to keep profiler overhead from counting towards the limit.
 
-        OOJSGetTimeLimiterLimit()
-        OOJSSetTimeLimiterLimit()
-        Manipulate the timeout.
-*/
-
-@class OOTimeProfile, OOTimeProfileEntry;
-
-void OOJSBeginProfiling(BOOL trace);
-OOTimeProfile* OOJSEndProfiling(void);
-BOOL OOJSIsProfiling(void);
-
-OOHighResTimeValue OOJSCopyTimeLimiterNominalStartTime(void);
-
-void OOJSResetTimeLimiter(void);
-OOTimeDelta OOJSGetTimeLimiterLimit(void);
-void OOJSSetTimeLimiterLimit(OOTimeDelta limit);
-
-/*
         NOTE: the profiler declarations that need to be visible to functions that
-        are profiled are found in OOJSEngineNativeWrappers.h.
+        are profiled are found in OOJavaScriptEngine.h.
 */
 
-@interface OOTimeProfile : NSObject {
-@private
-    double _totalTime;
-    double _nativeTime;
-    double _extensionTime;
-#ifdef MOZ_TRACE_JSCALLS
-    double _javaScriptTime;
+class OOTimeProfile;
+
+oo::Ref<OOTimeProfile> OOJSEndProfiling(void);
+
+void OOJSBeginProfiling(bool trace);
+bool OOJSIsProfiling(void);
+
+void OOJSExcludeTimeFromLimiter(OOTimeDelta time);
+
+class OOTimeProfileEntry;
+
+class OOTimeProfile : public oo::RefCounted {
+public:
+    std::optional<std::string> description();
+
+    double totalTime();
+    double javaScriptTime();
+    double nativeTime();
+    double extensionTime();
+    double nonExtensionTime();
+    double profilerOverhead();
+
+    std::vector<oo::Ref<OOTimeProfileEntry>> profileEntries(); // sorted by self time, longest first
+
+    JSValue oo_jsValueInContext(JSContext* context);
+
+    // Set by OOJSEndProfiling() (the old private category).
+    void setTotalTime(double value);
+    void setNativeTime(double value);
+    void setProfilerOverhead(double value);
+    void setExtensionTime(double value);
+    void setProfileEntries(const std::vector<oo::Ref<OOTimeProfileEntry>>& value);
+
+private:
+    oo::PList propertyListRepresentation();
+
+    double _totalTime = { };
+    double _nativeTime = { };
+    double _extensionTime = { };
+    double _profilerOverhead = { };
+
+    std::vector<oo::Ref<OOTimeProfileEntry>> _profileEntries;
+};
+
+class OOTimeProfileEntry : public oo::RefCounted {
+public:
+    // The profiler's (the old private category): only while profiling.
+    explicit OOTimeProfileEntry(const char* name);
+
+    void addSampleWithTotalTime(OOTimeDelta totalTime, OOTimeDelta selfTime);
+
+    std::optional<std::string> description();
+
+    std::optional<std::string> function(); // nullopt: none (bead oo-3rb.291.3)
+    NSUInteger hitCount();
+    double totalTimeSum();
+    double selfTimeSum();
+    double totalTimeAverage();
+    double selfTimeAverage();
+    double totalTimeMax();
+    double selfTimeMax();
+    bool isJavaScriptFrame();
+
+    OOComparisonResult compareByTotalTime(OOTimeProfileEntry* other);
+    OOComparisonResult compareByTotalTimeReverse(OOTimeProfileEntry* other);
+    OOComparisonResult compareBySelfTime(OOTimeProfileEntry* other);
+    OOComparisonResult compareBySelfTimeReverse(OOTimeProfileEntry* other);
+
+    JSValue oo_jsValueInContext(JSContext* context);
+
+private:
+    friend class OOTimeProfile; // its "profiles" list holds each entry's property list
+    oo::PList propertyListRepresentation();
+
+    std::optional<std::string> _function; // nullopt when created without a name
+    unsigned long _hitCount = { };
+    double _totalTimeSum = { };
+    double _selfTimeSum = { };
+    double _totalTimeMax = { };
+    double _selfTimeMax = { };
+};
+
 #endif
 
-    double _profilerOverhead;
+class OOJavaScriptEngine;
 
-    NSArray* _profileEntries;
-}
-
-- (double)totalTime;
-- (double)javaScriptTime;
-- (double)nativeTime;
-- (double)extensionTime;
-- (double)nonExtensionTime;
-- (double)profilerOverhead;
-
-- (NSArray*)profileEntries; // Array of OOTimeProfileEntry
-
-@end
-
-@interface OOTimeProfileEntry : NSObject {
-@private
-    NSString* _function;
-    unsigned long _hitCount;
-    double _totalTimeSum;
-    double _selfTimeSum;
-    double _totalTimeMax;
-    double _selfTimeMax;
-#ifdef MOZ_TRACE_JSCALLS
-    JSFunction* _jsFunction;
-#endif
-}
-
-- (NSString*)description;
-
-- (NSString*)function;
-- (NSUInteger)hitCount;
-- (double)totalTimeSum;
-- (double)selfTimeSum;
-- (double)totalTimeAverage;
-- (double)selfTimeAverage;
-- (double)totalTimeMax;
-- (double)selfTimeMax;
-- (BOOL)isJavaScriptFrame;
-
-- (NSComparisonResult)compareByTotalTime:(OOTimeProfileEntry*)other;
-- (NSComparisonResult)compareByTotalTimeReverse:(OOTimeProfileEntry*)other;
-- (NSComparisonResult)compareBySelfTime:(OOTimeProfileEntry*)other;
-- (NSComparisonResult)compareBySelfTimeReverse:(OOTimeProfileEntry*)other;
-
-@end
-
-#endif
-
-@class OOJavaScriptEngine;
-
+/*	Formerly installed the watchdog thread and operation callback. The QuickJS
+        interrupt handler is installed by -[OOJavaScriptEngine init], so this
+        does nothing; it is kept for source compatibility.
+*/
 void OOJSTimeManagementInit(OOJavaScriptEngine* engine, JSRuntime* runtime);

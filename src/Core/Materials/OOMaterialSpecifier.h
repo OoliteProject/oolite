@@ -27,76 +27,74 @@ SOFTWARE.
 
 */
 
-#import "OOFoundation.h"
+#pragma once
 
-@class OOColor;
+#include "OOFoundation.h"
 
-//	Convenience methods to extract properties from material dictionaries.
-@interface NSDictionary (OOMateralProperties)
+#include "oofnd/PList.hpp"
 
-- (OOColor*)oo_diffuseColor;
-- (OOColor*)oo_ambientColor;
-- (OOColor*)oo_specularColor;
-- (OOColor*)oo_specularModulateColor;
-- (OOColor*)oo_emissionColor;
-- (OOColor*)oo_emissionModulateColor;
-- (OOColor*)oo_illuminationModulateColor;
+#include "OOColor.h" // the colour readers answer oo::Ref<OOColor>
 
-- (NSDictionary*)oo_diffuseMapSpecifierWithDefaultName:(NSString*)name;
-- (NSDictionary*)oo_combinedSpecularMapSpecifier;
-- (NSDictionary*)oo_specularColorMapSpecifier;
-- (NSDictionary*)oo_specularExponentMapSpecifier;
-- (NSDictionary*)oo_normalMapSpecifier;
-- (NSDictionary*)oo_parallaxMapSpecifier;
-- (NSDictionary*)oo_normalAndParallaxMapSpecifier;
-- (NSDictionary*)oo_emissionMapSpecifier;
-- (NSDictionary*)oo_illuminationMapSpecifier;
-- (NSDictionary*)oo_emissionAndIlluminationMapSpecifier;
+/*	Material configuration properties (Foundation sweep, proposed ADR-0043 Amendment 2, bead
+        oo-hiis). A material configuration is an oo::PList dictionary: property-list data plus
+        PList::Object nodes for the live objects callers put in it (colours, textures); a null PList is
+        a nil configuration, and every function then answers as a message to nil did. Specifiers are
+        oo::PList dictionaries (null = nil). The Foundation dictionary category these replace, and the
+        Foundation-string key constants, live on in a transitional bridge (now removed) until their callers move.
+*/
+oo::Ref<OOColor> cxx_OOMaterialDiffuseColor(const oo::PList& configuration);
+oo::Ref<OOColor> cxx_OOMaterialAmbientColor(const oo::PList& configuration);
+oo::Ref<OOColor> cxx_OOMaterialSpecularColor(const oo::PList& configuration);
+oo::Ref<OOColor> cxx_OOMaterialSpecularModulateColor(const oo::PList& configuration);
+oo::Ref<OOColor> cxx_OOMaterialEmissionColor(const oo::PList& configuration);
+oo::Ref<OOColor> cxx_OOMaterialEmissionModulateColor(const oo::PList& configuration);
+oo::Ref<OOColor> cxx_OOMaterialIlluminationModulateColor(const oo::PList& configuration);
 
-- (float)oo_parallaxScale;
-- (float)oo_parallaxBias;
+oo::PList cxx_OOMaterialDiffuseMapSpecifier(const oo::PList& configuration, const std::optional<std::string>& defaultName);
+oo::PList cxx_OOMaterialCombinedSpecularMapSpecifier(const oo::PList& configuration);
+oo::PList cxx_OOMaterialSpecularColorMapSpecifier(const oo::PList& configuration);
+oo::PList cxx_OOMaterialSpecularExponentMapSpecifier(const oo::PList& configuration);
+oo::PList cxx_OOMaterialNormalMapSpecifier(const oo::PList& configuration);
+oo::PList cxx_OOMaterialParallaxMapSpecifier(const oo::PList& configuration);
+oo::PList cxx_OOMaterialNormalAndParallaxMapSpecifier(const oo::PList& configuration);
+oo::PList cxx_OOMaterialEmissionMapSpecifier(const oo::PList& configuration);
+oo::PList cxx_OOMaterialIlluminationMapSpecifier(const oo::PList& configuration);
+oo::PList cxx_OOMaterialEmissionAndIlluminationMapSpecifier(const oo::PList& configuration);
 
-- (BOOL)oo_gammaCorrect;
+float cxx_OOMaterialParallaxScale(const oo::PList& configuration);
+float cxx_OOMaterialParallaxBias(const oo::PList& configuration);
+bool cxx_OOMaterialGammaCorrect(const oo::PList& configuration);
+float cxx_OOMaterialGloss(const oo::PList& configuration);
+int cxx_OOMaterialSpecularExponent(const oo::PList& configuration);
 
-- (float)oo_gloss;
-
-- (int)oo_specularExponent;
-
-@end
-
-extern NSString* const kOOMaterialDiffuseColorName;
-extern NSString* const kOOMaterialDiffuseColorLegacyName;
-extern NSString* const kOOMaterialAmbientColorName;
-extern NSString* const kOOMaterialAmbientColorLegacyName;
-extern NSString* const kOOMaterialSpecularColorName;
-extern NSString* const kOOMaterialSpecularColorLegacyName;
-extern NSString* const kOOMaterialSpecularModulateColorName;
-extern NSString* const kOOMaterialEmissionColorName;
-extern NSString* const kOOMaterialEmissionColorLegacyName;
-extern NSString* const kOOMaterialEmissionModulateColorName;
-extern NSString* const kOOMaterialIlluminationModulateColorName;
-
-extern NSString* const kOOMaterialDiffuseMapName;
-extern NSString* const kOOMaterialSpecularColorMapName;
-extern NSString* const kOOMaterialSpecularExponentMapName;
-extern NSString* const kOOMaterialCombinedSpecularMapName;
-extern NSString* const kOOMaterialNormalMapName;
-extern NSString* const kOOMaterialParallaxMapName;
-extern NSString* const kOOMaterialNormalAndParallaxMapName;
-extern NSString* const kOOMaterialEmissionMapName;
-extern NSString* const kOOMaterialIlluminationMapName;
-extern NSString* const kOOMaterialEmissionAndIlluminationMapName;
-
-extern NSString* const kOOMaterialParallaxScaleName;
-extern NSString* const kOOMaterialParallaxBiasName;
-
-extern NSString* const kOOMaterialGammaCorrectName;
-
-extern NSString* const kOOMaterialGlossName;
-
-extern NSString* const kOOMaterialSpecularExponentName;
-extern NSString* const kOOMaterialSpecularExponentLegacyName;
-
-extern NSString* const kOOMaterialLightMapsName;
+// Configuration keys.
+inline constexpr const char* cxx_kOOMaterialDiffuseColorName = "diffuse_color";
+inline constexpr const char* cxx_kOOMaterialDiffuseColorLegacyName = "diffuse";
+inline constexpr const char* cxx_kOOMaterialAmbientColorName = "ambient_color";
+inline constexpr const char* cxx_kOOMaterialAmbientColorLegacyName = "ambient";
+inline constexpr const char* cxx_kOOMaterialSpecularColorName = "specular_color";
+inline constexpr const char* cxx_kOOMaterialSpecularColorLegacyName = "specular";
+inline constexpr const char* cxx_kOOMaterialSpecularModulateColorName = "specular_modulate_color";
+inline constexpr const char* cxx_kOOMaterialEmissionColorName = "emission_color";
+inline constexpr const char* cxx_kOOMaterialEmissionColorLegacyName = "emission";
+inline constexpr const char* cxx_kOOMaterialEmissionModulateColorName = "emission_modulate_color";
+inline constexpr const char* cxx_kOOMaterialIlluminationModulateColorName = "illumination_modulate_color";
+inline constexpr const char* cxx_kOOMaterialDiffuseMapName = "diffuse_map";
+inline constexpr const char* cxx_kOOMaterialSpecularColorMapName = "specular_color_map";
+inline constexpr const char* cxx_kOOMaterialSpecularExponentMapName = "specular_exponent_map";
+inline constexpr const char* cxx_kOOMaterialCombinedSpecularMapName = "specular_map"; // Combined specular_color_map and specular_exponent_map (unfortunate name required for backwards-compatibility).
+inline constexpr const char* cxx_kOOMaterialNormalMapName = "normal_map";
+inline constexpr const char* cxx_kOOMaterialParallaxMapName = "parallax_map";
+inline constexpr const char* cxx_kOOMaterialNormalAndParallaxMapName = "normal_and_parallax_map";
+inline constexpr const char* cxx_kOOMaterialEmissionMapName = "emission_map";
+inline constexpr const char* cxx_kOOMaterialIlluminationMapName = "illumination_map";
+inline constexpr const char* cxx_kOOMaterialEmissionAndIlluminationMapName = "emission_and_illumination_map";
+inline constexpr const char* cxx_kOOMaterialParallaxScaleName = "parallax_scale";
+inline constexpr const char* cxx_kOOMaterialParallaxBiasName = "parallax_bias";
+inline constexpr const char* cxx_kOOMaterialGammaCorrectName = "gamma_correct";
+inline constexpr const char* cxx_kOOMaterialGlossName = "gloss";
+inline constexpr const char* cxx_kOOMaterialSpecularExponentName = "specular_exponent";
+inline constexpr const char* cxx_kOOMaterialSpecularExponentLegacyName = "shininess";
+inline constexpr const char* cxx_kOOMaterialLightMapsName = "light_map";
 
 #define kOOMaterialDefaultParallaxScale (0.01f)

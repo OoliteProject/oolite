@@ -25,23 +25,27 @@ MA 02110-1301, USA.
 
 */
 
-#import "ShipEntity.h"
+#pragma once
 
-@interface ShipEntity (LoadRestore)
+#include "ShipEntity.h"
 
-/*	Produces a property list representation of a specific ship. Intended for
-        use with wormholes, but should probably generalize quite well.
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 
-        The optional "context" is a mutable dictionary used to synchronise certain
-        state when saving multiple ships - currently, groups. It is not a property
-        list and does not need to be saved alongside the ships.
+/*	Foundation sweep (proposed ADR-0043, bead oo-0s1h): a saved ship is an oo::PList (a Dict; null
+        for no ship, as nil was), and the save/restore context, which was a mutable dictionary keyed by
+        group pointers, is this struct. Both selectors are unique.
 */
-- (NSDictionary*)savedShipDictionaryWithContext:(NSMutableDictionary*)context;
+struct OOShipSaveContext {
+    std::map<OOShipGroup*, unsigned> groupIDs; // not retained, as the pointer-box keys were not
+    unsigned nextGroupID = 0;
+    std::vector<oo::Ref<OOShipGroup>> groups; // keeps the groups alive while they have IDs
+    std::map<NSUInteger, oo::Ref<OOShipGroup>> groupsByID;
+};
 
-/*	Restore a ship from a property list representation generated with
-        -savedShipDictionary. If the ship can't be restored and fallback is YES,
-        an attempt will be made to generate a new ship with the same primary role.
+/*	Bead oo-kw44 (ADR-0056 amendments oo-o89 item 4 and oo-42dr): the category ShipEntity
+        (LoadRestore) is members of ShipEntity, declared in ShipEntity.h and defined in
+        ShipEntityLoadRestore.mm. Its Objective-C interface was the category of the same name in
+        ShipEntity+ObjCBridge.h until bead oo-9ht.144 deleted the facade. This header stays for the files
+        that import it, and for OOShipSaveContext.
 */
-+ (id)shipRestoredFromDictionary:(NSDictionary*)dictionary useFallback:(BOOL)fallback context:(NSMutableDictionary*)context;
-
-@end

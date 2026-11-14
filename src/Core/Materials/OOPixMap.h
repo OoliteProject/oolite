@@ -27,7 +27,11 @@ SOFTWARE.
 
 */
 
-#import "OOMaths.h"
+#pragma once
+
+#include "OOMaths.h"
+
+#include "oofnd/StdLib.hpp"
 
 typedef uint32_t OOPixMapDimension; // Note: dimensions are assumed to be less than 1048576 (2^20) pixels.
 
@@ -50,8 +54,8 @@ typedef struct OOPixMap {
 
 extern const OOPixMap kOONullPixMap;
 
-OOINLINE BOOL OOIsNullPixMap(OOPixMap pixMap) { return pixMap.pixels == NULL; }
-BOOL OOIsValidPixMap(OOPixMap pixMap);
+OOINLINE bool OOIsNullPixMap(OOPixMap pixMap) { return pixMap.pixels == NULL; }
+bool OOIsValidPixMap(OOPixMap pixMap);
 OOINLINE size_t OOMinimumPixMapBufferSize(OOPixMap pixMap) { return pixMap.rowBytes * pixMap.height; }
 
 /*	OOMakePixMap()
@@ -83,7 +87,7 @@ OOPixMap OODuplicatePixMap(OOPixMap srcPixMap, size_t desiredSize);
         Set the size of a pixmap's buffer. Fails if specified size is smaller than
         required to fit the current pixels.
 */
-BOOL OOResizePixMap(OOPixMap* ioPixMap, size_t desiredSize);
+bool OOResizePixMap(OOPixMap* ioPixMap, size_t desiredSize);
 
 /*	OOCompactPixMap()
         Remove any trailing space in a pixmap's buffer, if possible.
@@ -93,17 +97,17 @@ OOINLINE void OOCompactPixMap(OOPixMap* ioPixMap) { OOResizePixMap(ioPixMap, OOM
 /*	OOExpandPixMap()
         Expand pixmap to at least desiredSize bytes. Returns false on failure.
 */
-BOOL OOExpandPixMap(OOPixMap* ioPixMap, size_t desiredSize);
+bool OOExpandPixMap(OOPixMap* ioPixMap, size_t desiredSize);
 
 #ifndef NDEBUG
-void OODumpPixMap(OOPixMap pixMap, NSString* name);
+void OODumpPixMap(OOPixMap pixMap, const std::string& name); // Foundation sweep (proposed ADR-0043, bead oo-mhqb)
 #else
 #define OODumpPixMap(p, n) \
     do {                   \
     } while (0)
 #endif
 
-BOOL OOIsValidPixMapFormat(OOPixMapFormat format);
+bool OOIsValidPixMapFormat(OOPixMapFormat format);
 
 #ifndef NDEBUG
 unsigned short OOPixMapBytesPerPixelForFormat(OOPixMapFormat format) PURE_FUNC;
@@ -120,6 +124,6 @@ OOINLINE unsigned short OOPixMapBytesPerPixel(OOPixMap pixMap)
     return OOPixMapBytesPerPixelForFormat(pixMap.format);
 }
 
-NSString* OOPixMapFormatName(OOPixMapFormat format) PURE_FUNC;
+std::string OOPixMapFormatName(OOPixMapFormat format) PURE_FUNC;
 
-BOOL OOPixMapFormatHasAlpha(OOPixMapFormat format) PURE_FUNC;
+bool OOPixMapFormatHasAlpha(OOPixMapFormat format) PURE_FUNC;

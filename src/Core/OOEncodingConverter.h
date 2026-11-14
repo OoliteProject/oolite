@@ -28,38 +28,57 @@ SOFTWARE.
 
 */
 
+#pragma once
+
 #ifndef OOENCODINGCONVERTER_EXCLUDE // For the convenience of fonttexgen
 
-#import "OOFoundation.h"
+#include "OOFoundation.h"
 
-@class OOCache;
+#include "oofnd/Encoding.hpp"
+#include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
 
-@interface OOEncodingConverter : NSObject {
-@private
-    NSStringEncoding _encoding;
-    OOCache* _cache;
-    NSDictionary* _substitutions;
-}
+class OOCache; // C++ since bead oo-rdfh
 
-- (id)initWithEncoding:(NSStringEncoding)encoding substitutions:(NSDictionary*)substitutions;
-- (id)initWithFontPList:(NSDictionary*)fontPList;
+/*	C++20 since bead oo-demz (proposed ADR-0056, the OOColor house style). Its one caller
+        (HeadUpDisplay's text engine) was adapted in the same bead, so there is no Objective-C facade
+        and the class is global.
+*/
+class OOEncodingConverter : public oo::RefCounted {
+public:
+    // [[OOEncodingConverter alloc] initWithEncoding:substitutions:] and -initWithFontPList:.
+    OOEncodingConverter(std::optional<oo::str::Encoding> encoding, const oo::PList& substitutions); // a dictionary of strings
+    explicit OOEncodingConverter(const oo::PList& fontPList);
 
-- (NSData*)convertString:(NSString*)string;
+    ~OOEncodingConverter() override;
 
-- (NSStringEncoding)encoding;
+    oo::Data convertString(const std::string& string); // empty if the string cannot be converted
 
-@end
+    std::optional<oo::str::Encoding> encoding();
+
+    // What "%@" printed between the braces of <OOEncodingConverter 0x...>{...} (OODescription.h).
+    std::optional<std::string> descriptionComponents() const;
+
+private:
+    std::optional<oo::Data> performConversionForString(const std::string& string);
+    void profileFire(void* junk); // defined only when the .mm's PROFILE_ENCODING_CONVERTER is on
+
+    std::optional<oo::str::Encoding> _encoding = { }; // nullopt: an unknown encoding name (was NSNotFound)
+    oo::Ref<OOCache> _cache; // no `= {}`: GCC instantiates ~Ref<T> at a default member initializer, and T is incomplete here (bead oo-1q4)
+    std::vector<std::pair<std::string, std::string>> _substitutions = { }; // in the order they are applied
+};
 
 #endif // OOENCODINGCONVERTER_EXCLUDE
 
 /*
         There are a variety of overlapping naming schemes for text encoding.
-        We ignore them and use a fixed list:
-                "windows-latin-1"		NSWindowsCP1252StringEncoding
-                "windows-latin-2"		NSWindowsCP1250StringEncoding
-                "windows-cyrillic"		NSWindowsCP1251StringEncoding
-                "windows-greek"			NSWindowsCP1253StringEncoding
-                "windows-turkish"		NSWindowsCP1254StringEncoding
+        We ignore them and use a fixed list (oo::str::Encoding in oofnd/Encoding.hpp):
+                "windows-latin-1"		windowsCP1252 (code page 1252)
+                "windows-latin-2"		windowsCP1250 (code page 1250)
+                "windows-cyrillic"		windowsCP1251 (code page 1251)
+                "windows-greek"			windowsCP1253 (code page 1253)
+                "windows-turkish"		windowsCP1254 (code page 1254)
 */
-NSString* StringFromEncoding(NSStringEncoding encoding); // Returns nil for unknown
-NSStringEncoding EncodingFromString(NSString* name); // Returns (NSStringEncoding)NSNotFound for unknown
+const char* StringFromEncoding(unsigned encoding); // oo::str::Encoding numeric value; NULL for unknown
+// (EncodingFromString() retired with the Foundation sweep, bead oo-gosz: oo::str::encodingFromName() in oofnd/Encoding.hpp)

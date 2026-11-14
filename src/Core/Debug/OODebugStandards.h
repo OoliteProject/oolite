@@ -26,17 +26,37 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 */
-#import "OOFoundation.h"
+#pragma once
+
+#include "OOFoundation.h"
+
+#ifdef __cplusplus
+#include "oofnd/StdLib.hpp"
 
 // Warn/exit if deprecated functionality used
-void OOStandardsDeprecated(NSString* message);
+void cxx_OOStandardsDeprecated(const std::string& message);
 
 // Warn/exit if an OXP error is detected
-void OOStandardsError(NSString* message);
+void cxx_OOStandardsError(const std::string& message);
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // Return true if in standard enforcing mode
 // Always false in release builds
 // This will *not* exit in "exit on error" mode
-BOOL OOEnforceStandards(void);
+bool OOEnforceStandards(void);
 
 void OOSetStandardsForOXPVerifierMode(void);
+
+#ifdef __cplusplus
+}
+#endif
+
+/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
+        declared before bead oo-56ct, forwarding to the cxx_ functions above, so unmigrated callers
+        compile unchanged. Callers move to the cxx_ API in their own sweep beads; the bridge goes in
+        its own bead.
+*/
