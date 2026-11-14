@@ -1,6 +1,6 @@
 /*
 
-OOJSShipGroup.h
+OOJSShipGroup.h (QuickJS-ng)
 
 JavaScript wrapper for ship group objects.
 
@@ -25,6 +25,17 @@ MA 02110-1301, USA.
 
 */
 
-#include <jsapi.h>
+#include <quickjs.h>
 
-void InitOOJSShipGroup(JSContext* context, JSObject* global);
+#import "OOFoundation.h"
+@class OOShipGroup;
+
+void InitOOJSShipGroup(JSContext* context, JSValueConst global);
+
+/*	The bodies of OOShipGroup (OOJavaScriptExtensions), which the engine reaches by selector. Its
+        methods are one-line forwarders to these in OOJSShipGroup+ObjCBridge.mm, which pass the façade's
+        _jsSelf ivar by reference, until the façade goes (proposed ADR-0056 amendments oo-ppc, oo-ykoy
+        and oo-bwrq).
+*/
+JSValue OOJSShipGroupJSValueInContext(OOShipGroup* group, JSValue& jsSelf, JSContext* context);
+void OOJSShipGroupClearJSSelf(JSValue& jsSelf, JSValueConst selfVal);

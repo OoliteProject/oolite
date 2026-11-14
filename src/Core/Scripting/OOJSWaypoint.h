@@ -1,6 +1,6 @@
 /*
 
-OOJSWaypoint.h
+OOJSWaypoint.h (QuickJS-ng)
 
 JavaScript proxy for OOWaypointEntities.
 
@@ -25,18 +25,20 @@ MA 02110-1301, USA.
 */
 
 #pragma once
-#import "OOWaypointEntity.h"
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+
+#import "OOFoundation.h"
+#include <quickjs.h>
 
 @class OOWaypointEntity;
 
-void InitOOJSWaypoint(JSContext* context, JSObject* global);
+void InitOOJSWaypoint(JSContext* context, JSValueConst global);
 
-@interface OOWaypointEntity (OOJavaScriptExtensions)
+JSClassID JSWaypointClassID(void);
 
-- (void)getJSClass:(JSClass**)outClass andPrototype:(JSObject**)outPrototype;
-- (NSString*)oo_jsClassName;
-- (BOOL)isVisibleToScripts;
-
-@end
+/*	The bodies of OOWaypointEntity (OOJavaScriptExtensions), which the engine reaches by
+        selector. Its methods are one-line forwarders to these in OOJSWaypoint+ObjCBridge.mm until
+        OOWaypointEntity converts (proposed ADR-0056 amendments oo-ppc and oo-ykoy). Its
+        -oo_jsClassID answers JSWaypointClassID().
+*/
+std::optional<std::string> OOJSWaypointJSClassName(void);
+bool OOJSWaypointIsVisibleToScripts(void);

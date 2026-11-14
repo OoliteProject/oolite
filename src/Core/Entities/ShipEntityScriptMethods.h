@@ -27,11 +27,15 @@ MA 02110-1301, USA.
 
 #import "ShipEntity.h"
 
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
+
 @interface ShipEntity (ScriptMethods)
 
-- (ShipEntity*)ejectShipOfType:(NSString*)shipKey; // Note: ship type, not role.
-- (ShipEntity*)ejectShipOfRole:(NSString*)role;
+// Foundation sweep (proposed ADR-0043, bead oo-tm7d): std::nullopt ejects nothing, as nil did.
+- (ShipEntity*)ejectShipOfType:(const std::optional<std::string>&)shipKey; // Note: ship type, not role.
+- (ShipEntity*)ejectShipOfRole:(const std::optional<std::string>&)role;
 
-- (NSArray*)spawnShipsWithRole:(NSString*)role count:(NSUInteger)count;
+- (std::vector<oo::ObjCRef<ShipEntity*>>)spawnShipsWithRole:(const std::string&)role count:(NSUInteger)count;
 
 @end

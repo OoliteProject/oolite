@@ -31,28 +31,78 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 
-@interface OOCacheManager : NSObject {
-@private
-    NSMutableDictionary* _caches;
-    id _scheduledWrite;
-    BOOL _permitWrites;
-    BOOL _dirty;
-}
+#include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
 
-+ (OOCacheManager*)sharedCache;
+/*	Foundation sweep (proposed ADR-0043, bead oo-19g0): cache names and keys are UTF-8
+        std::strings. The cache directory is std::nullopt where it was nil. Every cached value is
+        property-list data, held as an oo::PList (proposed ADR-0055 item 2, bead oo-qps.36) and
+        written to the cache file as it is; a null PList is "no value".
+*/
+/*	C++20 since bead oo-rmd7 (proposed ADR-0056; a singleton, amendments oo-r7m0 and oo-z1s4).
+        OOCacheManager+ObjCBridge.h, imported at the end of this header, keeps the Objective-C
+        OOCacheManager as a facade over this class for the callers that are not converted yet, and
+        holds the write task (OOAsyncCacheWriter), which stays Objective-C while OOAsyncWorkTask is an
+        Objective-C protocol (amendment oo-rmd7). The bridge's deletion bead moves the class out of
+        namespace cxx.
+*/
+namespace cxx {
 
-- (id)objectForKey:(NSString*)inKey inCache:(NSString*)inCacheKey;
-- (void)setObject:(id)inElement forKey:(NSString*)inKey inCache:(NSString*)inCacheKey;
-- (void)removeObjectForKey:(NSString*)inKey inCache:(NSString*)inCacheKey;
-- (void)clearCache:(NSString*)inCacheKey;
-- (void)clearAllCaches;
-- (void)reloadAllCaches;
+class OOCacheManager : public oo::RefCounted {
+public:
+    static OOCacheManager* sharedCache(); // the one instance, made on first use and never released
+    ~OOCacheManager() override;
 
-- (void)setAllowCacheWrites:(BOOL)flag;
+    oo::PList pListForKey(const std::string& key, const std::string& cache); // null PList: absent
+    void setPList(const oo::PList& value, const std::string& key, const std::string& cache); // value: not null
 
-- (NSString*)cacheDirectoryPathCreatingIfNecessary:(BOOL)create;
+    void removeObjectForKey(const std::string& inKey, const std::string& inCacheKey);
+    void clearCache(const std::string& inCacheKey);
+    void clearAllCaches();
+    void reloadAllCaches();
 
-- (void)flush;
-- (void)finishOngoingFlush; // Wait for flush to complete. Does nothing if async flushing is disabled.
+    void setAllowCacheWrites(bool flag);
 
-@end
+    std::optional<std::string> cacheDirectoryPathCreatingIfNecessary(bool create);
+
+    void flush();
+    void finishOngoingFlush(); // Wait for flush to complete. Does nothing if async flushing is disabled.
+
+    // What "%@" printed between the braces of <OOCacheManager 0x...>{...} (OODescription.h).
+    std::optional<std::string> descriptionComponents() const;
+
+    // Private before the conversion; public because the write task (OOAsyncCacheWriter, in
+    // OOCacheManager+ObjCBridge.mm) calls it on a worker thread.
+    bool writeDict(const oo::PList& inDict);
+
+private:
+    void init(); // -init's body, run after the instance is recorded as the singleton
+
+    void loadCache();
+    void write();
+    void clear();
+    bool dirty();
+    void markClean();
+
+    oo::PList loadDict(); // null: no cache
+
+    void buildCachesFromDictionary(const oo::PList* inDict); // nullptr: none
+    oo::PList dictionaryOfCaches();
+
+    bool directoryExists(const std::string& inPath, bool inCreate);
+
+    std::optional<std::string> cachePathCreatingIfNecessary(bool create);
+
+    // cache name -> key -> cached value; std::nullopt before loading, as nil was.
+    std::optional<std::map<std::string, std::map<std::string, oo::PList, std::less<>>, std::less<>>> _caches = { };
+    id _scheduledWrite = { }; // the pending OOAsyncCacheWriter, retained
+    bool _permitWrites = { };
+    bool _dirty = { };
+};
+
+} // namespace cxx
+
+// The Objective-C facade (and the write task) for code not converted yet. Deleted, with namespace
+// cxx above, by the bridge's deletion bead.
+#import "OOCacheManager+ObjCBridge.h"

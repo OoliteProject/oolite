@@ -2,6 +2,12 @@
 
 OOEquipmentType.h
 
+C++20 since bead oo-fg7i (Phase 3, proposed ADR-0056). The class is cxx::OOEquipmentType while
+OOEquipmentType+ObjCBridge.h, imported at the end of this header, keeps the Objective-C
+OOEquipmentType its unconverted callers message (ships, the player, the JS bindings); the bridge's
+deletion bead moves it out of namespace cxx. The registries of types are the class's; the facade
+keeps each registered type's Objective-C object alive while it is registered.
+
 Class representing a type of ship equipment. Exposed to JavaScript as
 EquipmentInfo.
 
@@ -30,144 +36,173 @@ SOFTWARE.
 
 #pragma once
 
+#ifndef OOEQUIPMENTTYPE_H
+#define OOEQUIPMENTTYPE_H
+
+#import "OOColor.h"
 #import "OOFoundation.h"
-#import "OOScript.h"
+#import "OOOpenGL.h"
 #import "OOTypes.h"
-#import "Universe.h"
+#include "oofnd/Ref.hpp"
+#include "oofnd/objc/OOObjCRef.h"
+#import "oofnd/objc/OOObject.h"
 
-@interface OOEquipmentType : NSObject <NSCopying> {
-@private
-    OOTechLevelID _techLevel;
-    OOCreditsQuantity _price;
-    NSString* _name;
-    NSString* _identifier;
-    NSString* _description;
-    unsigned _isAvailableToAll : 1,
-        _requiresEmptyPylon : 1,
-        _requiresMountedPylon : 1,
-        _requiresClean : 1,
-        _requiresNotClean : 1,
-        _portableBetweenShips : 1,
-        _requiresFreePassengerBerth : 1,
-        _requiresFullFuel : 1,
-        _requiresNonFullFuel : 1,
-        _isMissileOrMine : 1,
-        _isVisible : 1,
-        _isAvailableToPlayer : 1,
-        _isAvailableToNPCs : 1,
-        _fastAffinityA : 1,
-        _fastAffinityB : 1,
-        _canCarryMultiple : 1,
-        _hideValues : 1;
-    OOColor* _displayColor;
-    NSUInteger _installTime;
-    NSUInteger _repairTime;
-    GLfloat _damageProbability;
-    OOCargoQuantity _requiredCargoSpace;
-    NSSet* _requiresEquipment;
-    NSSet* _requiresAnyEquipment;
-    NSSet* _incompatibleEquipment;
-    NSArray* _conditions;
-    NSArray* _provides;
-    NSArray* _defaultActivateKey;
-    NSArray* _defaultModeKey;
-    NSDictionary* _scriptInfo;
-    NSDictionary* _weaponInfo;
-    NSString* _script;
-    NSString* _condition_script;
+#include <quickjs.h>
 
-    struct JSObject* _jsSelf;
-}
+#include <map>
+#include <optional>
+#include <string>
+#include <vector>
 
-+ (void)loadEquipment; // Load equipment data; called on loading and when changing to/from strict mode.
-+ (void)addEquipmentWithInfo:(NSArray*)itemInfo; // Used to generate equipment from missile_role entries.
+#include "oofnd/PList.hpp"
 
-+ (NSString*)getMissileRegistryRoleForShip:(NSString*)shipKey;
-+ (void)setMissileRegistryRole:(NSString*)roles forShip:(NSString*)shipKey;
+namespace cxx {
 
-+ (NSArray*)allEquipmentTypes;
-+ (NSEnumerator*)equipmentEnumerator;
-+ (NSEnumerator*)reverseEquipmentEnumerator;
-+ (NSEnumerator*)equipmentEnumeratorOutfitting;
+class OOEquipmentType : public oo::RefCounted {
+public:
+    static void loadEquipment(); // Load equipment data; called on loading and when changing to/from strict mode.
+    static void addEquipmentWithInfo(const oo::PList& itemInfo); // Used to generate equipment from missile_role entries.
 
-+ (OOEquipmentType*)equipmentTypeWithIdentifier:(NSString*)identifier;
+    static std::optional<std::string> getMissileRegistryRoleForShip(const std::string& shipKey); // nullopt: none registered
+    static void setMissileRegistryRole(const std::string& role, const std::string& shipKey);
 
-- (NSString*)identifier;
-- (NSString*)damagedIdentifier;
-- (NSString*)name; // localized
-- (NSString*)descriptiveText; // localized
-- (OOTechLevelID)techLevel;
-- (OOCreditsQuantity)price; // Tenths of credits
+    static std::vector<oo::Ref<OOEquipmentType>> allEquipmentTypes(); // a snapshot, in equipment.plist order
+    static std::vector<oo::Ref<OOEquipmentType>> allEquipmentTypesOutfitting(); // the outfitting dataset
 
-- (BOOL)isAvailableToAll;
-- (BOOL)requiresEmptyPylon;
-- (BOOL)requiresMountedPylon;
-- (BOOL)requiresCleanLegalRecord;
-- (BOOL)requiresNonCleanLegalRecord;
-- (BOOL)requiresFreePassengerBerth;
-- (BOOL)requiresFullFuel;
-- (BOOL)requiresNonFullFuel;
-- (BOOL)isPrimaryWeapon;
-- (BOOL)isMissileOrMine;
-- (BOOL)isPortableBetweenShips;
+    static oo::Ref<OOEquipmentType> equipmentTypeWithIdentifier(const std::string& identifier); // null: none
 
-- (BOOL)canCarryMultiple;
-- (GLfloat)damageProbability;
-- (BOOL)canBeDamaged;
-- (BOOL)isVisible; // Visible in UI?
-- (BOOL)hideValues;
-- (OOColor*)displayColor;
-- (void)setDisplayColor:(OOColor*)newColor;
+    std::optional<std::string> identifier();
+    std::optional<std::string> damagedIdentifier();
+    std::optional<std::string> name(); // localized (bead oo-3rb.289.10)
+    std::optional<std::string> descriptiveText(); // localized
+    OOTechLevelID techLevel();
+    OOCreditsQuantity price(); // Tenths of credits
 
-- (BOOL)isAvailableToPlayer;
-- (BOOL)isAvailableToNPCs;
+    bool isAvailableToAll();
+    bool requiresEmptyPylon();
+    bool requiresMountedPylon();
+    bool requiresCleanLegalRecord();
+    bool requiresNonCleanLegalRecord();
+    bool requiresFreePassengerBerth();
+    bool requiresFullFuel();
+    bool requiresNonFullFuel();
+    bool isPrimaryWeapon();
+    bool isMissileOrMine();
+    bool isPortableBetweenShips();
 
-- (OOCargoQuantity)requiredCargoSpace;
-- (NSSet*)requiresEquipment; // Set of equipment identifiers; all items required
-- (NSSet*)requiresAnyEquipment; // Set of equipment identifiers; any item required
-- (NSSet*)incompatibleEquipment; // Set of equipment identifiers; all items prohibited
+    bool canCarryMultiple();
+    GLfloat damageProbability();
+    bool canBeDamaged();
+    bool isVisible(); // Visible in UI?
+    bool hideValues();
+    oo::Ref<OOColor> displayColor();
+    void setDisplayColor(OOColor* newColor);
 
-// FIXME: should have general mechanism to handle scripts or legacy conditions.
-- (NSArray*)conditions;
+    bool isAvailableToPlayer();
+    bool isAvailableToNPCs();
 
-- (NSString*)conditionScript;
+    OOCargoQuantity requiredCargoSpace();
+    // Equipment identifiers, sorted and de-duplicated; nullopt when not specified.
+    std::optional<std::vector<std::string>> requiresEquipment(); // all items required
+    std::optional<std::vector<std::string>> requiresAnyEquipment(); // any item required
+    std::optional<std::vector<std::string>> incompatibleEquipment(); // all items prohibited
 
-- (NSDictionary*)scriptInfo;
-- (NSString*)scriptName;
+    // FIXME: should have general mechanism to handle scripts or legacy conditions.
+    oo::PList conditions(); // an array; null: none
 
-- (BOOL)fastAffinityDefensive;
-- (BOOL)fastAffinityOffensive;
+    std::optional<std::string> conditionScript();
 
-- (NSArray*)defaultActivateKey;
-- (NSArray*)defaultModeKey;
+    oo::PList scriptInfo(); // null: none
+    std::optional<std::string> scriptName();
 
-- (NSUInteger)installTime;
-- (NSUInteger)repairTime;
+    bool fastAffinityDefensive();
+    bool fastAffinityOffensive();
 
-- (NSArray*)providesForScripting;
-- (BOOL)provides:(NSString*)key;
+    oo::PList defaultActivateKey(); // an array; null: none
+    oo::PList defaultModeKey(); // an array; null: none
 
-// weapon properties
-- (BOOL)isTurretLaser;
-- (BOOL)isMiningLaser;
-- (NSDictionary*)weaponInfo;
-- (GLfloat)weaponRange;
-- (GLfloat)weaponEnergyUse;
-- (GLfloat)weaponDamage;
-- (GLfloat)weaponRechargeRate;
-- (GLfloat)weaponShotTemperature;
-- (GLfloat)weaponThreatAssessment;
-- (OOColor*)weaponColor;
-- (NSString*)fxShotMissName;
-- (NSString*)fxShotHitName;
-- (NSString*)fxShieldHitName;
-- (NSString*)fxUnshieldedHitName;
-- (NSString*)fxWeaponLaunchedName;
+    NSUInteger installTime();
+    NSUInteger repairTime();
 
-@end
+    std::vector<std::string> providesForScripting();
+    bool provides(const std::string& key);
 
-@interface OOEquipmentType (Conveniences)
+    // weapon properties
+    bool isTurretLaser();
+    bool isMiningLaser();
+    oo::PList weaponInfo(); // a dictionary
+    GLfloat weaponRange();
+    GLfloat weaponEnergyUse();
+    GLfloat weaponDamage();
+    GLfloat weaponRechargeRate();
+    GLfloat weaponShotTemperature();
+    GLfloat weaponThreatAssessment();
+    oo::Ref<OOColor> weaponColor();
+    std::optional<std::string> fxShotMissName();
+    std::optional<std::string> fxShotHitName();
+    std::optional<std::string> fxShieldHitName();
+    std::optional<std::string> fxUnshieldedHitName();
+    std::optional<std::string> fxWeaponLaunchedName();
 
-- (OOTechLevelID)effectiveTechLevel;
+    // Conveniences
+    OOTechLevelID effectiveTechLevel();
 
-@end
+    // What "%@" prints between the braces of <OOEquipmentType 0x...>{...} (OODescription.h).
+    std::optional<std::string> descriptionComponents() const;
+
+private:
+    OOEquipmentType() = default;
+
+    // -initWithInfo:, which could fail: createWithInfo() runs it on a new object (ADR-0056
+    // amendment oo-fg7i).
+    static oo::Ref<OOEquipmentType> createWithInfo(const oo::PList& info);
+    bool initWithInfo(const oo::PList& info); // an equipment.plist entry (an array)
+
+    OOTechLevelID _techLevel = { };
+    OOCreditsQuantity _price = { };
+    std::string _name; // never empty-for-nil: initWithInfo() fails without all three
+    std::string _identifier;
+    std::string _description;
+    unsigned _isAvailableToAll : 1 = 0,
+                                 _requiresEmptyPylon : 1 = 0,
+                                 _requiresMountedPylon : 1 = 0,
+                                 _requiresClean : 1 = 0,
+                                 _requiresNotClean : 1 = 0,
+                                 _portableBetweenShips : 1 = 0,
+                                 _requiresFreePassengerBerth : 1 = 0,
+                                 _requiresFullFuel : 1 = 0,
+                                 _requiresNonFullFuel : 1 = 0,
+                                 _isMissileOrMine : 1 = 0,
+                                 _isVisible : 1 = 0,
+                                 _isAvailableToPlayer : 1 = 0,
+                                 _isAvailableToNPCs : 1 = 0,
+                                 _fastAffinityA : 1 = 0,
+                                 _fastAffinityB : 1 = 0,
+                                 _canCarryMultiple : 1 = 0,
+                                 _hideValues : 1 = 0;
+    oo::Ref<OOColor> _displayColor;
+    NSUInteger _installTime = { };
+    NSUInteger _repairTime = { };
+    GLfloat _damageProbability = { };
+    OOCargoQuantity _requiredCargoSpace = { };
+    // Sorted, de-duplicated equipment keys; nullopt when the key is absent (was nil).
+    std::optional<std::vector<std::string>> _requiresEquipment;
+    std::optional<std::vector<std::string>> _requiresAnyEquipment;
+    std::optional<std::vector<std::string>> _incompatibleEquipment;
+    oo::PList _conditions; // an array; null: none (was nil)
+    std::vector<std::string> _provides;
+    oo::PList _defaultActivateKey; // an array; null: none (was nil)
+    oo::PList _defaultModeKey; // an array; null: none (was nil)
+    oo::PList _scriptInfo; // a dictionary; null: none (was nil)
+    oo::PList _weaponInfo; // a dictionary (empty by default)
+    std::optional<std::string> _script;
+    std::optional<std::string> _condition_script;
+};
+
+} // namespace cxx
+
+// Transitional: the Objective-C OOEquipmentType, for callers not yet converted. Deleted, with
+// namespace cxx above, by the bridge's deletion bead.
+#import "OOEquipmentType+ObjCBridge.h"
+
+#endif // OOEQUIPMENTTYPE_H
