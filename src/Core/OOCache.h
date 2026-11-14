@@ -14,14 +14,11 @@ If auto-pruning is on, the cache will pruned to 80% of the prune threshold
 whenever the prune threshold is exceeded. If auto-pruning is off, the cache
 can be pruned to the prune threshold by explicitly calling -prune.
 
-While OOCacheManager-managed caches must have string keys and property list
-values, OOCaches used directly may have any keys allowable for a mutable
-dictionary (that is, keys should conform to <NSCopying> and values may be
-arbitrary objects) -- an 'unmanaged' cache is essentially a mutable dictionary
-with a prune limit. (Project: with the addition of a -keyEnumerator method and
-sutiable NSEnumerator subclass, and a -count method, it could be turned into a
-subclass of NSMutableDictionary.)
-
+Keys are UTF-8 std::strings and values are oo::PList: property-list data, or a
+PList::Object node for a live object such as a texture. An
+OOCache is essentially a string-keyed dictionary with a prune limit. A null
+PList is "no value": it is never stored, and it is what a lookup of an absent
+key returns.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -43,44 +40,92 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
+#pragma once
 
-enum {
-    kOOCacheMinimumPruneThreshold = 25U,
-    kOOCacheDefaultPruneThreshold = 200U,
-    kOOCacheNoPrune = 0xFFFFFFFFU
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
+#include "OOFoundation.h"
+#include "oofnd/Object.hpp"
+#include "oofnd/PList.hpp"
+
+inline constexpr unsigned kOOCacheMinimumPruneThreshold = 25U;
+inline constexpr unsigned kOOCacheDefaultPruneThreshold = 200U;
+inline constexpr unsigned kOOCacheNoPrune = 0xFFFFFFFFU;
+
+class OOCache : public oo::Object {
+ public:
+  // [[OOCache alloc] init] is cacheWithPList(oo::PList()), as -init was.
+  // An array of {key = string; value = plist;} entries, oldest first (a null
+  // PList: empty); null for anything else. pListRepresentation() is the same
+  // form, null for an empty cache.
+  static std::shared_ptr<OOCache> cacheWithPList(const oo::PList& pList);
+  oo::PList pListRepresentation();
+
+  ~OOCache() override;
+
+  oo::PList pListForKey(const std::string& key);  // null PList: absent
+  void setPList(const oo::PList& value,
+                const std::string& key);  // a null value is not stored
+  void removePListForKey(const std::string& key);
+
+  void setPruneThreshold(unsigned threshold);
+  unsigned pruneThreshold();
+
+  void setAutoPrune(bool flag);
+  bool autoPrune();
+
+  void prune();
+
+  bool dirty();
+  void markClean();
+
+  std::optional<std::string> name();  // nullopt: unnamed
+  void setName(const std::optional<std::string>& name);
+
+  std::vector<oo::PList>
+  pListsByAge();  // the values, youngest first; empty for an empty cache
+
+  // What "%@" printed between the braces of <OOCache 0x...>{...}
+  // (OODescription.h).
+  std::optional<std::string> descriptionComponents() const;
+
+#if DEBUG_GRAPHVIZ
+  std::optional<std::string> generateGraphVizBodyWithRootNamed(
+      const std::string& rootName);
+  std::string generateGraphViz();
+  void writeGraphVizToPath(const std::string& path);
+#endif
+
+ private:
+  bool initWithPList(
+      const oo::PList& pList);  // false where -initWithPList: returned nil
+
+  void loadFromArray(const oo::PList& inArray);
+
+#if DEBUG_GRAPHVIZ
+  void appendNodesFromSubTree(struct OOCacheNode* subTree,
+                              std::string& ioString);
+#endif
+
+  struct OOCacheImpl* cache = {};
+  unsigned _pruneThreshold =
+      {};                // (the ivar was pruneThreshold, now the getter's name)
+  bool _autoPrune = {};  // (autoPrune, likewise)
+  bool _dirty = {};      // (dirty, likewise)
 };
-
-@interface OOCache : NSObject {
-@private
-    struct OOCacheImpl* cache;
-    unsigned pruneThreshold;
-    BOOL autoPrune;
-    BOOL dirty;
-}
-
-- (id)init;
-- (id)initWithPList:(id)pList;
-- (id)pListRepresentation;
-
-- (id)objectForKey:(id)key;
-- (void)setObject:(id)value forKey:(id)key;
-- (void)removeObjectForKey:(id)key;
-
-- (void)setPruneThreshold:(unsigned)threshold;
-- (unsigned)pruneThreshold;
-
-- (void)setAutoPrune:(BOOL)flag;
-- (BOOL)autoPrune;
-
-- (void)prune;
-
-- (BOOL)dirty;
-- (void)markClean;
-
-- (NSString*)name;
-- (void)setName:(NSString*)name;
-
-- (NSArray*)objectsByAge;
-
-@end

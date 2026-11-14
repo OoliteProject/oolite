@@ -23,10 +23,19 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOLightParticleEntity.h"
+#pragma once
 
-@interface OOPlasmaBurstEntity : OOLightParticleEntity
+#include "OOLightParticleEntity.h"
 
-- (id)initWithPosition:(HPVector)position;
+// A global class over OOLightParticleEntity, made with burstWithPosition().
+class OOPlasmaBurstEntity : public OOLightParticleEntity {
+ public:
+  // [[OOPlasmaBurstEntity alloc] initWithPosition:]: a new burst, initialised.
+  static std::shared_ptr<OOPlasmaBurstEntity> burstWithPosition(
+      HPVector position);
 
-@end
+  // -initWithPosition:'s body, run once right after construction.
+  void initWithPosition(HPVector position);
+
+  void update(OOTimeDelta delta_t) override;
+};

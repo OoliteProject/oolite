@@ -27,28 +27,59 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
-#import "OOOpenGLOnly.h"
+#pragma once
 
-typedef enum {
-    // NOTE: numerical values are available to scripts.
-    SHADERS_NOT_SUPPORTED = 0,
-    SHADERS_OFF = 1,
-    SHADERS_SIMPLE = 2,
-    SHADERS_FULL = 3
-} OOShaderSetting;
+#include <cstdint>
+#include <string_view>
+#include <type_traits>
 
-#define NULL_SHADER ((GLhandleARB)0)
-
-// GLhandleARB is a pointer type on macOS; convert to a GLuint for the core GL 2.0+ shader API.
-#define OOGLProgramName(handle) ((GLuint)(uintptr_t)(handle))
-
-// Whether to use state verifier. Will be changed to equal OO_CHECK_GL_HEAVY in future.
-#ifdef NDEBUG
-#define OO_GL_STATE_VERIFICATION 0
-#else
-#define OO_GL_STATE_VERIFICATION 1
+#ifndef OO_PLAIN_CPP_UNIT
+#include "OOFoundation.h"
 #endif
+#include "OOEnumFlags.h"
+#include "OOOpenGLCheck.h"
+#include "OOOpenGLOnly.h"
+
+enum class OOShaderSetting : std::int32_t {
+  // NOTE: numerical values are available to scripts.
+  kNotSupported = 0,
+  kOff = 1,
+  kSimple = 2,
+  kFull = 3
+};
+// The numbers the GPU configuration and scripts use.
+static_assert(oo::ToUnderlying(OOShaderSetting::kNotSupported) == 0);
+static_assert(oo::ToUnderlying(OOShaderSetting::kOff) == 1);
+static_assert(oo::ToUnderlying(OOShaderSetting::kSimple) == 2);
+static_assert(oo::ToUnderlying(OOShaderSetting::kFull) == 3);
+
+// The names the game writes for OOShaderSetting (saves, logs and plists).
+constexpr std::string_view OOEnumName(OOShaderSetting value) noexcept {
+  switch (value) {
+    case OOShaderSetting::kOff:
+      return "SHADERS_OFF";
+    case OOShaderSetting::kSimple:
+      return "SHADERS_SIMPLE";
+    case OOShaderSetting::kFull:
+      return "SHADERS_FULL";
+    case OOShaderSetting::kNotSupported:
+      return "SHADERS_NOT_SUPPORTED";
+  }
+  return {};
+}
+
+#define NULL_SHADER (static_cast<GLhandleARB>(0))
+
+// GLhandleARB is a pointer type on macOS and an integer elsewhere; convert it
+// to a GLuint for the core GL 2.0+ shader API.
+template <class Handle>
+inline GLuint OOGLProgramName(Handle handle) {
+  if constexpr (std::is_pointer_v<Handle>) {
+    return static_cast<GLuint>(reinterpret_cast<std::uintptr_t>(handle));
+  } else {
+    return static_cast<GLuint>(handle);
+  }
+}
 
 /*
         OOSetOpenGLState(stateType)
@@ -56,11 +87,11 @@ typedef enum {
         Set OpenGL state to one of two standard states.
 
         In Deployment builds, this only modifies the state that differs between
-        the two standard states, and only when the last set state is not the same
-        as the specified target.
+        the two standard states, and only when the last set state is not the
+   same as the specified target.
 
-        In Debug builds, it tests many different OpenGL state variables, complains
-        if they aren't in the expected state, and corrects them.
+        In Debug builds, it tests many different OpenGL state variables,
+   complains if they aren't in the expected state, and corrects them.
 
 
         The correct procedure for using these functions is:
@@ -73,24 +104,20 @@ typedef enum {
 
 
         The states are:
-        OPENGL_STATE_OPAQUE - standard state for drawing solid objects like OOMesh
-        and planets. This can be considered the Oolite baseline state.
-        Differs from standard GL state as follows:
-                GL_LIGHTING is on
-                GL_LIGHT1 is on
+        OPENGL_STATE_OPAQUE - standard state for drawing solid objects like
+   OOMesh and planets. This can be considered the Oolite baseline state. Differs
+   from standard GL state as follows: GL_LIGHTING is on GL_LIGHT1 is on
                 GL_TEXTURE_2D is on
-                Blend mode is GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA (but GL_BLEND is off)
-                GL_FOG may be either on or off (as it's set in Universe's draw loop)
+                Blend mode is GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA (but GL_BLEND
+   is off) GL_FOG may be either on or off (as it's set in Universe's draw loop)
                 GL_VERTEX_ARRAY is on
                 GL_NORMAL_ARRAY is on
                 GL_DEPTH_TEST is on
                 GL_CULL_FACE is on
 
-        OPENGL_STATE_TRANSLUCENT_PASS is used during the translucent phase of the
-        universe draw loop. This usage needs to be cleaned up.
-        Differs from OPENGL_STATE_OPAQUE as follows:
-                GL_LIGHTING is off
-                GL_TEXTURE_2D is off
+        OPENGL_STATE_TRANSLUCENT_PASS is used during the translucent phase of
+   the universe draw loop. This usage needs to be cleaned up. Differs from
+   OPENGL_STATE_OPAQUE as follows: GL_LIGHTING is off GL_TEXTURE_2D is off
                 GL_VERTEX_ARRAY is off
                 GL_NORMAL_ARRAY is off
                 GL_DEPTH_WRITEMASK is off
@@ -105,50 +132,43 @@ typedef enum {
                 GL_DEPTH_WRITEMASK is off
                 GL_CULL_FACE is off
 
-        OPENGL_STATE_OVERLAY is used for UI elements, which are unlit and don't use
-        z-buffering.
-        Differs from OPENGL_STATE_OPAQUE as follows:
-                GL_LIGHTING is off
-                GL_TEXTURE_2D is off
-                GL_BLEND is on
-                GL_FOG is off
-                GL_NORMAL_ARRAY is off
+        OPENGL_STATE_OVERLAY is used for UI elements, which are unlit and don't
+   use z-buffering. Differs from OPENGL_STATE_OPAQUE as follows: GL_LIGHTING is
+   off GL_TEXTURE_2D is off GL_BLEND is on GL_FOG is off GL_NORMAL_ARRAY is off
                 GL_DEPTH_TEST is off
                 GL_DEPTH_WRITEMASK is off
                 GL_CULL_FACE is off
 */
-typedef enum {
-    OPENGL_STATE_OPAQUE,
-    OPENGL_STATE_TRANSLUCENT_PASS,
-    OPENGL_STATE_ADDITIVE_BLENDING,
-    OPENGL_STATE_OVERLAY,
+enum class OOOpenGLStateID : int {
+  kOpaque,
+  kTranslucentPass,
+  kAdditiveBlending,
+  kOverlay,
 
-    OPENGL_STATE_INTERNAL_USE_ONLY
-} OOOpenGLStateID;
+  kInternalUseOnly,
+};
+static_assert(static_cast<int>(OOOpenGLStateID::kOpaque) == 0);
+static_assert(static_cast<int>(OOOpenGLStateID::kTranslucentPass) == 1);
+static_assert(static_cast<int>(OOOpenGLStateID::kAdditiveBlending) == 2);
+static_assert(static_cast<int>(OOOpenGLStateID::kOverlay) == 3);
+static_assert(static_cast<int>(OOOpenGLStateID::kInternalUseOnly) == 4);
 
 #if OO_GL_STATE_VERIFICATION
-void OOSetOpenGLState_(OOOpenGLStateID state, const char* function, unsigned line);
+void OOSetOpenGLState_(OOOpenGLStateID state, const char* function,
+                       unsigned line);
 void OOVerifyOpenGLState_(const char* function, unsigned line);
 #define OOSetOpenGLState(STATE) OOSetOpenGLState_(STATE, __FUNCTION__, __LINE__)
 #define OOVerifyOpenGLState() OOVerifyOpenGLState_(__FUNCTION__, __LINE__)
 #else
 void OOSetOpenGLState(OOOpenGLStateID state);
 #define OOVerifyOpenGLState() \
-    do {                      \
-    } while (0)
+  do {                        \
+  } while (0)
 #endif
 
-// Inform the SetState/VerifyState mechanism that the OpenGL context has been reset to its initial state.
+// Inform the SetState/VerifyState mechanism that the OpenGL context has been
+// reset to its initial state.
 void OOResetGLStateVerifier(void);
-
-/*	OOCheckOpenGLErrors()
-        Check for and log OpenGL errors, and returns YES if an error occurred.
-        NOTE: this is controlled by the log message class rendering.opengl.error.
-                  If logging is disabled, no error checking will occur. This is done
-                  because glGetError() is quite expensive, requiring a full OpenGL
-                  state sync.
-*/
-BOOL OOCheckOpenGLErrors(NSString* format, ...);
 
 /*	LogOpenGLState()
         Write a bunch of OpenGL state information to the log.
@@ -173,118 +193,53 @@ void GLSetDisplayScaleFactor(GLfloat factor);
 
 /*	OOGLWireframeModeOn()
         OOGLWireframeModeOff()
-        Enable/disable polygon-to-lines wireframe rendering with line width of 1.
+        Enable/disable polygon-to-lines wireframe rendering with line width
+   of 1.
 */
 void OOGLWireframeModeOn(void);
 void OOGLWireframeModeOff(void);
 
 /*	GLDrawBallBillboard()
-        Draws a circle corresponding to a sphere of given radius at given distance.
-        Assumes Z buffering will be disabled.
+        Draws a circle corresponding to a sphere of given radius at given
+   distance. Assumes Z buffering will be disabled.
 */
 void GLDrawBallBillboard(GLfloat radius, GLfloat step, GLfloat z_distance);
 
 /*	GLDrawOval(), GLDrawFilledOval()
         Draw axis-alligned ellipses, as outline and fill respectively.
 */
+#ifndef OO_PLAIN_CPP_UNIT
+// plain C++ unit (OODebugGLDrawing.cpp) does
+// not see these
 void GLDrawOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step);
-void GLDrawFilledOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step);
+void GLDrawFilledOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz,
+                      GLfloat step);
+#endif
 
 /*	GLDrawPoints(), GLDrawFilledPoints()
         Draw array of points, as outline and fill respectively.
 */
 
 typedef struct {
-    GLfloat x;
-    GLfloat y;
-    GLfloat z;
+  GLfloat x;
+  GLfloat y;
+  GLfloat z;
 } OOGLVector;
 
 void GLDrawPoints(OOGLVector* points, int n);
 void GLDrawFilledPoints(OOGLVector* points, int n);
 void GLDrawQuadStrip(OOGLVector* points, int n);
 
-/*	OO_CHECK_GL_HEAVY and error-checking stuff
+inline constexpr OOShaderSetting kOOShaderSettingDefault =
+    OOShaderSetting::kNotSupported;
 
-        If OO_CHECK_GL_HEAVY is non-zero, the following error-checking facilities
-        come into play:
-        OOGL(foo) checks for GL errors before and after performing the statement foo.
-        OOGLBEGIN(mode) checks for GL errors, then calls glBegin(mode).
-        OOGLEND() calls glEnd(), then checks for GL errors.
-        CheckOpenGLErrorsHeavy() checks for errors exactly like OOCheckOpenGLErrors().
-
-        If OO_CHECK_GL_HEAVY is zero, these macros don't perform error checking,
-        but otherwise continue to work as before, so:
-        OOGL(foo) performs the statement foo.
-        OOGLBEGIN(mode) calls glBegin(mode);
-        OOGLEND() calls glEnd().
-        CheckOpenGLErrorsHeavy() does nothing (including not performing any parameter side-effects).
-*/
-#ifndef OO_CHECK_GL_HEAVY
-#define OO_CHECK_GL_HEAVY 0
-#endif
-
-#if OO_CHECK_GL_HEAVY
-
-#if OO_GL_STATE_VERIFICATION
-void OOGLNoteCurrentFunction(const char* func, unsigned line);
-#else
-#define OOGLNoteCurrentFunction(FUNC, line) \
-    do {                                    \
-    } while (0)
-#endif
-
-NSString* OOLogAbbreviatedFileName(const char* inName);
-#define OOGL_PERFORM_CHECK(label, code) OOCheckOpenGLErrors(@"%s %@:%u (%s)%s", label, OOLogAbbreviatedFileName(__FILE__), __LINE__, __PRETTY_FUNCTION__, code)
-#define OOGL(statement)                                  \
-    do {                                                 \
-        OOGLNoteCurrentFunction(__FUNCTION__, __LINE__); \
-        OOGL_PERFORM_CHECK("PRE", " -- " #statement);    \
-        statement;                                       \
-        OOGL_PERFORM_CHECK("POST", " -- " #statement);   \
-    } while (0)
-#define CheckOpenGLErrorsHeavy OOCheckOpenGLErrors
-#define OOGLBEGIN(mode)                                  \
-    do {                                                 \
-        OOGLNoteCurrentFunction(__FUNCTION__, __LINE__); \
-        OOGL_PERFORM_CHECK("PRE-BEGIN", " -- " #mode);   \
-        glBegin(mode);                                   \
-    } while (0)
-#define OOGLEND()                                        \
-    do {                                                 \
-        glEnd();                                         \
-        OOGLNoteCurrentFunction(__FUNCTION__, __LINE__); \
-        OOGL_PERFORM_CHECK("POST-END", "");              \
-    } while (0)
-
-#else
-
-#define OOGL(statement) \
-    do {                \
-        statement;      \
-    } while (0)
-#define CheckOpenGLErrorsHeavy(...) \
-    do {                            \
-    } while (0)
-#define OOGLBEGIN glBegin
-#define OOGLEND glEnd
-
-#endif
-
-enum {
-    kOOShaderSettingDefault = SHADERS_NOT_SUPPORTED
-};
-
-// Programmer-readable shader mode strings.
-OOShaderSetting OOShaderSettingFromString(NSString* string);
-NSString* OOStringFromShaderSetting(OOShaderSetting setting);
-// Localized shader mode strings.
-NSString* OODisplayStringFromShaderSetting(OOShaderSetting setting);
+// The shader mode strings (OOShaderSettingFromString() and friends) are
+// declared in OOConstToString.h.
 
 #ifndef NDEBUG
 
-NSString* OOGLColorToString(GLfloat color[4]);
-NSString* OOGLEnumToString(GLenum value);
-NSString* OOGLFlagToString(bool value);
+std::string OOGLColorToString(GLfloat color[4]);
+std::string OOGLEnumToString(GLenum value);
+std::string OOGLFlagToString(bool value);
 
 #endif

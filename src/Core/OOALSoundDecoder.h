@@ -6,6 +6,9 @@ Class responsible for converting a sound to a PCM buffer for playback. This
 class is an implementation detail. Do not use it directly; use OOSound to
 load sounds.
 
+The sounds call it directly. The Vorbis codec, the class cluster's one
+concrete decoder, is private to OOALSoundDecoder.cpp.
+
 
 OOALSound - OpenAL sound implementation for Oolite.
 Copyright (C) 2005-2013 Jens Ayton
@@ -30,31 +33,66 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
+#pragma once
+
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
+#include "OOFoundation.h"
+#include "OOFunctionAttributes.h"
+#include "oofnd/Object.hpp"
+#include "oofnd/objc/OOObject.h"
 
 #define OOAL_STREAM_CHUNK_SIZE (sizeof(char) * 409600)
 
-@interface OOALSoundDecoder : NSObject
+class OOALSoundDecoder : public oo::Object {
+ public:
+  /*	Was -initWithPath:, a class cluster's initialiser: it answered, in
+     place of the receiver, the Vorbis codec for a path whose extension is
+     "ogg", else nil. Null where it answered nil (also when the codec could not
+     open the file).
+  */
+  static std::shared_ptr<OOALSoundDecoder> initWithPath(
+      const std::optional<std::string>& inPath);  // nullopt: null
+  static std::shared_ptr<OOALSoundDecoder> codecWithPath(
+      const std::string& inPath);
 
-- (id)initWithPath:(NSString*)inPath;
-+ (OOALSoundDecoder*)codecWithPath:(NSString*)inPath;
+  // Full-buffer reading.
+  // Replaces out with the whole sound's samples; false (out empty) if none.
+  virtual bool readCreatingBuffer(std::vector<char>& out);
 
-// Full-buffer reading.
-- (BOOL)readCreatingBuffer:(char**)outBuffer withFrameCount:(size_t*)outSize;
+  // Stream reading.
+  virtual size_t streamToBuffer(char* buffer);
 
-// Stream reading.
-- (size_t)streamToBuffer:(char*)buffer;
+  // Returns the size of the data readCreatingBuffer() will create.
+  virtual size_t sizeAsBuffer();
 
-// Returns the size of the data -readMonoCreatingBuffer:withFrameCount: will create.
-- (size_t)sizeAsBuffer;
+  virtual bool isStereo();
 
-- (BOOL)isStereo;
+  virtual long sampleRate();
 
-- (long)sampleRate;
+  // For streaming
+  virtual void reset();
 
-// For streaming
-- (void)reset;
+  virtual std::optional<std::string> name();
 
-- (NSString*)name;
-
-@end
+  // What "%@" prints between the braces of <Class 0x...>{...}
+  // (OODescription.h). None here, as OOObject answered; the codec prints its
+  // name and comments.
+  virtual std::optional<std::string> descriptionComponents() const;
+};

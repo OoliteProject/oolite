@@ -25,20 +25,17 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
+#pragma once
 
-#if OOLITE_MAC_OS_X
-#import <OpenAL/al.h>
-#import <OpenAL/alc.h>
-#else
 #include <AL/al.h>
 #include <AL/alc.h>
-#endif
+
+#include "OOFoundation.h"
 
 // alGetError should always be called before openAL calls to reset the
 // error stack
-#define OOAL(cmd)     \
-    do {              \
-        alGetError(); \
-        cmd;          \
-    } while (0)
+#define OOAL(cmd) \
+  do {            \
+    alGetError(); \
+    cmd;          \
+  } while (0)

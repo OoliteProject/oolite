@@ -24,27 +24,24 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
+#pragma once
 
-@class OODrawable;
+#include "Entity.h"
+#include "OODrawable.h"  // the drawable is held by std::shared_ptr (a complete type wherever the entity is destroyed)
 
-// Methods that must be supported by subentities, regardless of type.
-@protocol OOSubEntity
+class OOEntityWithDrawable : public Entity {
+ public:
+  OODrawable* getDrawable();  // borrowed
+  void setDrawable(OODrawable* drawable);
 
-- (void)rescaleBy:(GLfloat)factor;
-- (void)rescaleBy:(GLfloat)factor writeToCache:(BOOL)writeToCache;
+  double findCollisionRadius() override;
+  void drawImmediate(bool immediate, bool translucent) override;
 
-// Separate drawing path for subentities of ships.
-- (void)drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent;
+#ifdef OO_DEBUG_MONITOR_ENABLED
+  std::vector<std::shared_ptr<OOTexture>> allTextures() override;
+#endif
 
-@end
-
-@interface OOEntityWithDrawable : Entity {
-@private
-    OODrawable* drawable;
-}
-
-- (OODrawable*)drawable;
-- (void)setDrawable:(OODrawable*)drawable;
-
-@end
+ private:
+  // The drawable, held.
+  std::shared_ptr<OODrawable> drawable;
+};

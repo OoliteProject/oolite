@@ -25,44 +25,71 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
-#include <jsapi.h>
+#pragma once
 
-@interface OOJSFunction : NSObject {
-@private
-    JSFunction* _function;
-    NSString* _name;
-}
+#include <quickjs.h>
 
-- (id)initWithFunction:(JSFunction*)function context:(JSContext*)context;
-- (id)initWithName:(NSString*)name
-             scope:(JSObject*)scope // may be NULL, in which case global object is used.
-              code:(NSString*)code // full JS code for function, including function declaration.
-     argumentCount:(NSUInteger)argCount
-     argumentNames:(const char**)argNames
-          fileName:(NSString*)fileName
-        lineNumber:(NSUInteger)lineNumber
-           context:(JSContext*)context; // may be NULL. If not null, must be in a request.
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-- (NSString*)name;
-- (JSFunction*)function;
-- (jsval)functionValue;
+#include "OOFoundation.h"
+#include "oofnd/Object.hpp"
 
-// Raw evaluation. Context may not be NULL and must be in a request.
-- (BOOL)evaluateWithContext:(JSContext*)context
-                      scope:(JSObject*)jsThis
-                       argc:(uintN)argc
-                       argv:(jsval*)argv
-                     result:(jsval*)result;
+class OOJSFunction : public oo::Object {
+ public:
+  // The initialisers' factories: null where the initialiser answered nil (not a
+  // function; no code, missing argument names, or a compile error). function
+  // must be a function value; the OOJSFunction takes its own reference.
+  static std::shared_ptr<OOJSFunction> initWithFunction(JSValueConst function,
+                                                        JSContext* context);
+  static std::shared_ptr<OOJSFunction> initWithName(
+      const std::optional<std::string>& name,
+      JSValueConst scope,  // Ignored; QuickJS compiles functions in the global
+                           // scope. Pass JS_UNDEFINED.
+      const std::optional<std::string>& code,  // Function body.
+      std::size_t argCount, const char** argNames,
+      const std::optional<std::string>& fileName, std::size_t lineNumber,
+      JSContext* context);  // may be NULL.
 
-// Object-wrapper evaluation.
-- (id)evaluateWithContext:(JSContext*)context
-                    scope:(id)jsThis
-                arguments:(NSArray*)arguments;
+  ~OOJSFunction() override;
 
-// As above, but converts result to a boolean.
-- (BOOL)evaluatePredicateWithContext:(JSContext*)context
-                               scope:(id)jsThis
-                           arguments:(NSArray*)arguments;
+  std::optional<std::string> descriptionComponents() const;
 
-@end
+  std::optional<std::string> name();  // nullopt: anonymous
+  // Borrowed; valid while the receiver is alive and the engine is not reset.
+  // JS_NULL if invalid.
+  JSValueConst function();
+  // Owned (caller must free). JS_NULL if invalid.
+  JSValue functionValue();
+
+  // Raw evaluation. *result is owned by the caller on success. On failure, any
+  // exception is left pending (not reported).
+  bool evaluateWithContext(JSContext* context, JSValueConst jsThis, int argc,
+                           JSValueConst* argv, JSValue* result);
+
+ private:
+  // The part of -initWithFunction:context: that cannot fail.
+  OOJSFunction(JSValueConst function, JSContext* context);
+
+  bool isValid() const;
+  void deleteJSValue();
+
+  JSValue _function = JS_NULL;  // Owned; JS_NULL when invalid.
+  std::optional<std::string>
+      _name;  // nullopt for an anonymous function (was nil)
+};

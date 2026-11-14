@@ -27,17 +27,57 @@ SOFTWARE.
 
 */
 
-#import "OOTextureLoader.h"
-#import "png.h"
+#pragma once
 
-@interface OOPNGTextureLoader : OOTextureLoader {
-@private
-    png_structp png;
-    png_infop pngInfo;
-    png_infop pngEndInfo;
-    NSData* fileData;
-    size_t length;
-    size_t offset;
-}
+// png.h first, in a block of its own: which header comes first decides whether
+// MinGW's or the UCRT's printf family is used by the files that include this
+// one first.
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-@end
+#include "OOTexture.h"
+#include "OOTextureLoader.h"
+#include "oofnd/Data.hpp"
+#include "png.h"
+
+/*	A leaf over OOTextureLoader. Only the loaders' factory
+   (OOTextureLoader::loaderWithPath) makes one and queues it on the work
+   manager.
+*/
+class OOPNGTextureLoader : public OOTextureLoader {
+ public:
+  ~OOPNGTextureLoader() override;  // was -dealloc
+
+  void loadTexture() override;
+
+  // Internal: for libpng's read callback (was the private -readBytes:count:).
+  void readBytes(png_bytep bytes, png_size_t count);
+
+ private:
+  void doLoadTexture();
+
+  png_structp png = {};
+  png_infop pngInfo = {};
+  png_infop pngEndInfo = {};
+  std::optional<oo::Data> fileData;
+  size_t length = {};
+  size_t offset = {};
+  // The row pointers into _data while libpng reads. A member, not a local: a
+  // libpng error longjmps back into doLoadTexture().
+  std::vector<png_bytep> rows;
+};

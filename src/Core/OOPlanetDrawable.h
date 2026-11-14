@@ -4,6 +4,9 @@ OOPlanetDrawable.h
 
 Draw a ball, such as might be used to represent a planet.
 
+A class derived from the drawable root OODrawable. It keeps its material
+retained, as an std::shared_ptr<OOMaterial>.
+
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -24,41 +27,92 @@ MA 02110-1301, USA.
 
 */
 
-#import "OODrawable.h"
-#import "OOMaths.h"
+#pragma once
 
-@class OOMaterial;
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-@interface OOPlanetDrawable : OODrawable <NSCopying> {
-@private
-    OOMaterial* _material;
-    BOOL _isAtmosphere;
-    float _radius;
-    OOMatrix _transform;
-    unsigned _lod;
-}
+#include "OODrawable.h"
+#include "OOMaterial.h"
+#include "OOMaths.h"
+#include "oofnd/Object.hpp"
 
-+ (instancetype)planetWithTextureName:(NSString*)textureName radius:(float)radius;
-+ (instancetype)atmosphereWithRadius:(float)radius;
+class OOPlanetDrawable : public OODrawable {
+ public:
+  static std::shared_ptr<OOPlanetDrawable> planetWithTextureName(
+      const std::string& textureName, float radius);
+  static std::shared_ptr<OOPlanetDrawable> atmosphereWithRadius(float radius);
 
-- (id)initAsAtmosphere;
+  // -init's body.
+  OOPlanetDrawable();
 
-- (OOMaterial*)material;
-- (void)setMaterial:(OOMaterial*)material;
+  // -initAsAtmosphere: a new drawable that draws an atmosphere.
+  static std::shared_ptr<OOPlanetDrawable> initAsAtmosphere();
 
-- (NSString*)textureName;
-- (void)setTextureName:(NSString*)textureName;
+  // -copy (OOCopying's -copyWithZone:): a new drawable with this one's
+  // material, kind, radius, transform and level of detail.
+  std::shared_ptr<OOPlanetDrawable> copy();
 
-// Radius, in game metres.
-- (float)radius;
-- (void)setRadius:(float)radius;
+  OOMaterial* material();
+  void setMaterial(OOMaterial* material);
 
-// Level of detail, [0..1]. Granularity is implementation-defined.
-- (float)levelOfDetail;
-- (void)setLevelOfDetail:(float)lod;
-- (void)calculateLevelOfDetailForViewDistance:(float)distance;
+  // The material's name (nullopt when it has none, as nil was).
+  std::optional<std::string> textureName();
+  void setTextureName(const std::string& textureName);
 
-// depth-buffer hack
-- (void)renderTranslucentPartsOnOpaquePass;
+  // Radius, in game metres.
+  float radius();
+  void setRadius(float radius);
 
-@end
+  // Level of detail, [0..1]. Granularity is implementation-defined.
+  float levelOfDetail();
+  void setLevelOfDetail(float lod);
+  void calculateLevelOfDetailForViewDistance(float distance);
+
+  // depth-buffer hack
+  void renderTranslucentPartsOnOpaquePass();
+
+  void renderOpaqueParts() override;
+  void renderTranslucentParts() override;
+  bool hasOpaqueParts() override;
+  bool hasTranslucentParts() override;
+#ifdef OO_DEBUG_MONITOR_ENABLED
+  size_t objectSize() const override { return sizeof *this; }
+#endif
+  GLfloat collisionRadius() override;
+  GLfloat maxDrawDistance() override;
+  BoundingBox boundingBox() override;
+  void setBindingTarget(Entity* target) override;
+  void dumpSelfState() override;
+#ifdef OO_DEBUG_MONITOR_ENABLED
+  std::vector<std::shared_ptr<OOTexture>> allTextures() override;
+#endif
+
+ private:
+  void recalculateTransform();
+#ifdef OO_DEBUG_MONITOR_ENABLED
+  void debugDrawNormals();
+#endif
+  void renderCommonParts();
+
+  std::shared_ptr<OOMaterial> _material;
+  bool _isAtmosphere = false;
+  float _radius = {};
+  OOMatrix _transform = {};
+  unsigned _lod = {};
+};

@@ -29,49 +29,99 @@ SOFTWARE.
 
 */
 
-#import "OOTextureGenerator.h"
+#pragma once
 
-@class OOColor;
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-@interface OOCombinedEmissionMapGenerator : OOTextureGenerator {
-@private
-    NSString* _cacheKey;
+#include "OOColor.h"
+#include "OOTextureGenerator.h"
+#include "oofnd/PList.hpp"
 
-    NSDictionary* _emissionSpec;
-    NSDictionary* _illuminationSpec;
-    OOTexture* _diffuseMap;
+/*	A leaf of the texture generators, over OOTextureGenerator. Its caller
+   (OOMultiTextureMaterial) makes it with the factories below, and hands the C++
+   generator to the texture.
+*/
+class OOCombinedEmissionMapGenerator : public OOTextureGenerator {
+ public:
+  ~OOCombinedEmissionMapGenerator() override;  // was -dealloc
 
-    OOPixMap _emissionPx;
-    OOPixMap _diffusePx;
-    OOPixMap _illuminationPx;
-    OOColor* _emissionColor;
-    OOColor* _illuminationColor;
-    BOOL _isCombinedMap;
-
-    uint32_t _textureOptions;
-    GLfloat _anisotropy;
-    GLfloat _lodBias;
+  /*	Were
+     -initWithEmissionMapSpec:emissionColor:diffuseMap:diffuseColor:illuminationMapSpec:
+          illuminationColor:optionsSpecifier: and
+     -initWithEmissionAndIlluminationMapSpec:
+          diffuseMap:diffuseColor:emissionColor:illuminationColor:optionsSpecifier:;
+     null where they answered nil.
+  */
+  static std::shared_ptr<OOCombinedEmissionMapGenerator>
+  generatorWithEmissionMapSpec(const oo::PList& emissionMapSpec,
+                               OOColor* emissionColor, OOTexture* diffuseMap,
+                               OOColor* diffuseColor,
+                               const oo::PList& illuminationMapSpec,
+                               OOColor* illuminationColor,
+                               const oo::PList& spec);
+  static std::shared_ptr<OOCombinedEmissionMapGenerator>
+  generatorWithEmissionAndIlluminationMapSpec(
+      const oo::PList& emissionAndIlluminationMapSpec, OOTexture* diffuseMap,
+      OOColor* diffuseColor, OOColor* emissionColor, OOColor* illuminationColor,
+      const oo::PList& spec);
 
 #ifndef NDEBUG
-    NSString* _emissionDesc;
-    NSString* _illuminationDesc;
-    NSString* _diffuseDesc;
+  std::optional<std::string> descriptionComponents() const override;
 #endif
-}
 
-- (id)initWithEmissionMapSpec:(NSDictionary*)emissionMapSpec
-                emissionColor:(OOColor*)emissionColor
-                   diffuseMap:(OOTexture*)diffuseMap
-                 diffuseColor:(OOColor*)diffuseColor
-          illuminationMapSpec:(NSDictionary*)illuminationMapSpec
-            illuminationColor:(OOColor*)illuminationColor
-             optionsSpecifier:(NSDictionary*)spec;
+  OOTextureFlags textureOptions() override;
+  GLfloat anisotropy() override;
+  GLfloat lodBias() override;
+  std::optional<std::string> cacheKey() override;
 
-- (id)initWithEmissionAndIlluminationMapSpec:(NSDictionary*)emissionAndIlluminationMapSpec
-                                  diffuseMap:(OOTexture*)diffuseMap
-                                diffuseColor:(OOColor*)diffuseColor
-                               emissionColor:(OOColor*)emissionColor
-                           illuminationColor:(OOColor*)illuminationColor
-                            optionsSpecifier:(NSDictionary*)spec;
+  void loadTexture() override;
 
-@end
+ private:
+  bool initWithEmissionMapSpec(const oo::PList& emissionMapSpec,
+                               OOColor* emissionColor, OOTexture* diffuseMap,
+                               OOColor* diffuseColor,
+                               const oo::PList& illuminationMapSpec,
+                               OOColor* illuminationColor, bool isCombinedMap,
+                               const oo::PList& spec);
+
+  std::string constructCacheKey();
+
+  std::string _cacheKey;
+
+  oo::PList _emissionSpec;
+  oo::PList _illuminationSpec;
+  std::shared_ptr<OOTexture> _diffuseMap;
+
+  OOPixMap _emissionPx = {};
+  OOPixMap _diffusePx = {};
+  OOPixMap _illuminationPx = {};
+  std::shared_ptr<OOColor> _emissionColor;
+  std::shared_ptr<OOColor> _illuminationColor;
+  bool _isCombinedMap = false;
+
+  OOTextureFlags _textureOptions = OOTextureFlags::kNone;
+  GLfloat _anisotropy = 0;
+  GLfloat _lodBias = 0;
+
+#ifndef NDEBUG
+  std::string _emissionDesc;
+  std::string _illuminationDesc;
+  std::string _diffuseDesc;
+#endif
+};

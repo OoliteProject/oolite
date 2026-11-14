@@ -4,6 +4,9 @@ OOALStreamedSound.h
 
 OOALStreamedSound - OpenAL sound implementation for Oolite.
 
+A subclass of OOSound; the root's class cluster makes it from the C++
+decoder.
+
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
@@ -24,20 +27,54 @@ SOFTWARE.
 
 */
 
-#import "OOALSoundDecoder.h"
-#import "OOSound.h"
+#pragma once
 
-@interface OOALStreamedSound : OOSound {
-@private
-    char* _buffer;
-    size_t _size;
-    double _sampleRate;
-    NSString* _name;
-    BOOL _stereo;
-    OOALSoundDecoder* decoder;
-    BOOL _reachedEnd;
-}
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-- (id)initWithDecoder:(OOALSoundDecoder*)inDecoder;
+#include "OOALSound.h"
+#include "OOALSoundDecoder.h"
 
-@end
+class OOALStreamedSound : public OOSound {
+ public:
+  /*	Was -initWithDecoder:, which kept the decoder to stream from: null where
+     it answered nil (sound not OK, or no decoder).
+  */
+  static std::shared_ptr<OOALStreamedSound> initWithDecoder(
+      OOALSoundDecoder* inDecoder);
+
+  ~OOALStreamedSound() override;
+
+  std::optional<std::string> name() override;
+  void rewind() override;
+  bool soundIncomplete() override;
+  ALuint soundBuffer() override;
+
+ private:
+  friend struct OOALStreamedSoundTestAccess;  // the stand-ins of tests that
+                                              // stub the sound
+
+  OOALStreamedSound() = default;
+
+  std::vector<char> _buffer;  // one OOAL_STREAM_CHUNK_SIZE chunk
+  double _sampleRate = {};
+  std::optional<std::string> _name;  // nil-able, as the name was
+  bool _stereo = {};
+  std::shared_ptr<OOALSoundDecoder> decoder;  // retained
+  bool _reachedEnd = {};
+};

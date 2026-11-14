@@ -7,9 +7,9 @@ Probability weights can be 0 - an object may be in the set but not selectable.
 Comes in mutable and immutable variants.
 
 Performance characteristics:
-  *	-randomObject, the primary method, is O(log n) for immutable
+  *	randomObject(), the primary method, is O(log n) for immutable
         OOProbabilitySets and O(n) for mutable ones.
-  *	-containsObject: and -probabilityForObject: are O(n). This could be
+  *	containsObject() and probabilityForObject() are O(n). This could be
         optimized, but there's currently no need.
 
 
@@ -35,41 +35,92 @@ SOFTWARE.
 
 */
 
-#import "OOFoundation.h"
+#pragma once
 
-@interface OOProbabilitySet : NSObject <NSCopying, NSMutableCopying>
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-+ (id)probabilitySet;
-+ (id)probabilitySetWithObjects:(id*)objects weights:(float*)weights count:(NSUInteger)count;
-+ (id)probabilitySetWithPropertyListRepresentation:(NSDictionary*)plist;
+#include "OOFoundation.h"
+#include "oofnd/Object.hpp"
+#include "oofnd/PList.hpp"
 
-- (id)init;
-- (id)initWithObjects:(id*)objects weights:(float*)weights count:(NSUInteger)count;
-- (id)initWithPropertyListRepresentation:(NSDictionary*)plist;
+/*	The class cluster is a C++ hierarchy: the two abstract classes here, and
+   the four concrete ones private to OOProbabilitySet.cpp.
+*/
+class OOMutableProbabilitySet;
 
-// propertyListRepresentation is only valid if objects are property list objects.
-- (NSDictionary*)propertyListRepresentation;
+class OOProbabilitySet : public oo::Object {
+ public:
+  // The elements are oo::PList values: ship keys are strings; an
+  // Object node (oo::PListObject) carries an object. Two elements
+  // are the same if they are == or are Object nodes holding the same object.
+  // The factories make an immutable set, null where the initialiser fails.
+  static std::shared_ptr<OOProbabilitySet>
+  probabilitySet();  // the empty set: one shared object
+  static std::shared_ptr<OOProbabilitySet> probabilitySetWithObjects(
+      const oo::PList* objects, const float* weights, std::size_t count);
+  static std::shared_ptr<OOProbabilitySet>
+  probabilitySetWithPropertyListRepresentation(const oo::PList& plist);
 
-- (NSUInteger)count;
-- (id)randomObject;
+  // propertyListRepresentation is only valid if objects are property list
+  // objects.
+  virtual oo::PList propertyListRepresentation() = 0;
 
-- (float)weightForObject:(id)object; // Returns -1 for unknown objects.
-- (float)sumOfWeights;
-- (NSArray*)allObjects;
+  virtual std::size_t count() = 0;
+  virtual oo::PList randomObject() = 0;  // A null PList for none (an empty set,
+                                         // or every weight zero).
 
-@end
+  virtual float weightForObject(
+      const oo::PList& object) = 0;  // Returns -1 for unknown objects.
+  virtual float sumOfWeights() = 0;
+  virtual std::vector<oo::PList>
+  allElements() = 0;  // the elements, in the same order (-allObjects is
+                      // OOWeakSet's family)
 
-@interface OOProbabilitySet (OOExtendedProbabilitySet)
+  // (OOExtendedProbabilitySet)
+  bool containsObject(const oo::PList& object);
+  float probabilityForObject(
+      const oo::PList& object);  // Returns -1 for unknown objects, or a value
+                                 // from 0 to 1 inclusive for known objects.
 
-- (BOOL)containsObject:(id)object;
-- (NSEnumerator*)objectEnumerator;
-- (float)probabilityForObject:(id)object; // Returns -1 for unknown objects, or a value from 0 to 1 inclusive for known objects.
+  // -copy (an immutable set) and -mutableCopy.
+  virtual std::shared_ptr<OOProbabilitySet> copy();
+  virtual std::shared_ptr<OOMutableProbabilitySet> mutableCopy();
 
-@end
+  // What "%@" printed between the braces of <Class 0x...>{...}
+  // (OODescription.h).
+  std::optional<std::string> descriptionComponents() const;
+};
 
-@interface OOMutableProbabilitySet : OOProbabilitySet
+class OOMutableProbabilitySet : public OOProbabilitySet {
+ public:
+  // The same factories, for a mutable set (+probabilitySet: a new empty one).
+  static std::shared_ptr<OOMutableProbabilitySet> probabilitySet();
+  static std::shared_ptr<OOMutableProbabilitySet> probabilitySetWithObjects(
+      const oo::PList* objects, const float* weights, std::size_t count);
+  static std::shared_ptr<OOMutableProbabilitySet>
+  probabilitySetWithPropertyListRepresentation(const oo::PList& plist);
 
-- (void)setWeight:(float)weight forObject:(id)object; // Adds object if needed.
-- (void)removeObject:(id)object;
+  virtual void setWeight(
+      float weight,
+      const oo::PList&
+          object) = 0;  // Adds object if needed; a null object is ignored.
+  virtual void removeObject(const oo::PList& object) = 0;
 
-@end
+  std::shared_ptr<OOProbabilitySet> copy() override;
+};
