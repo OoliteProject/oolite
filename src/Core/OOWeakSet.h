@@ -25,9 +25,12 @@ This code is hereby placed in the public domain.
 #import "OOFoundation.h"
 #import "OOWeakReference.h"
 
-@interface OOWeakSet : NSObject <NSCopying, NSMutableCopying> {
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
+
+@interface OOWeakSet : OOObject <OOCopying, OOMutableCopying> {
 @private
-    NSMutableSet* _objects;
+    std::vector<oo::ObjCRef<OOWeakReference*>> _objects; // each once (identity), in insertion order
 }
 
 - (id)init;
@@ -38,17 +41,19 @@ This code is hereby placed in the public domain.
 
 - (NSUInteger)count;
 - (BOOL)containsObject:(id<OOWeakReferenceSupport>)object;
-- (NSEnumerator*)objectEnumerator;
+- (id)objectEnumerator; // shared selector: an enumerator over a snapshot of the live objects
+- (std::vector<oo::ObjCRef<id>>)cxx_objectEnumerator; // the same snapshot, for C++ iteration
 
-- (void)addObject:(id<OOWeakReferenceSupport>)object; // Unlike NSSet, adding nil fails silently.
-- (void)removeObject:(id<OOWeakReferenceSupport>)object; // Like NSSet, does not complain if object is not already a member.
+- (void)addObject:(id<OOWeakReferenceSupport>)object; // Unlike a Foundation set, adding nil fails silently.
+- (void)removeObject:(id<OOWeakReferenceSupport>)object; // Like a Foundation set, does not complain if object is not already a member.
 
-- (void)addObjectsByEnumerating:(NSEnumerator*)enumerator;
+- (void)addObjectsByEnumerating:(id)enumerator; // anything answering -nextObject
 
 - (void)makeObjectsPerformSelector:(SEL)selector;
 - (void)makeObjectsPerformSelector:(SEL)selector withObject:(id)argument;
 
-- (NSArray*)allObjects;
+- (id)allObjects; // shared selector: an immutable array of the live objects
+- (std::vector<oo::ObjCRef<id>>)cxx_allObjects; // the live objects, in the set's order
 
 - (void)removeAllObjects;
 

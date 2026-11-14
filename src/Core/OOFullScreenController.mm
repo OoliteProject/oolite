@@ -1,0 +1,103 @@
+/*
+
+OOFullScreenController.m
+
+
+Oolite
+Copyright (C) 2004-2013 Giles C Williams and contributors
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+
+*/
+
+#import "OOFullScreenController.h"
+#import "OOFoundationBridge.h"
+#import "OOLogging.h"
+
+@implementation OOFullScreenController
+
+- (id)initWithGameView:(MyOpenGLView*)view
+{
+    if ((self = [super init])) {
+        _gameView = [view retain];
+    }
+    return self;
+}
+
+- (void)dealloc
+{
+    DESTROY(_gameView);
+
+    [super dealloc];
+}
+
+- (MyOpenGLView*)gameView
+{
+    return _gameView;
+}
+
+- (BOOL)inFullScreenMode
+{
+    OOLogGenericSubclassResponsibility();
+    return NO;
+}
+
+- (void)setFullScreenMode:(BOOL)value
+{
+    OOLogGenericSubclassResponsibility();
+}
+
+- (oo::PList)displayModes
+{
+    OOLogGenericSubclassResponsibility();
+    return oo::PList();
+}
+
+- (oo::PList)currentDisplayMode
+{
+    const oo::PList modes = [self displayModes];
+    const oo::PList::Array* arr = modes.getIf<oo::PList::Array>();
+    if (arr == nullptr)
+        return oo::PList();
+    const NSUInteger idx = [self indexOfCurrentDisplayMode];
+    if (idx >= arr->size())
+        return oo::PList();
+    return (*arr)[idx];
+}
+
+- (NSUInteger)indexOfCurrentDisplayMode
+{
+    OOLogGenericSubclassResponsibility();
+    return NSNotFound;
+}
+
+- (BOOL)setDisplayWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)refresh
+{
+    OOLogGenericSubclassResponsibility();
+    return NO;
+}
+
+- (oo::PList)findDisplayModeForWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)d_refresh
+{
+    OOLogGenericSubclassResponsibility();
+    return oo::PList();
+}
+
+- (void)noteMouseInteractionModeChangedFrom:(OOMouseInteractionMode)oldMode to:(OOMouseInteractionMode)newMode
+{
+}
+
+@end

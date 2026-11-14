@@ -10,7 +10,7 @@ stored as a simple array rather than an ObjC dictionary since this
 will be examined fairly often (once per frame during gameplay).
 
 Conversion methods are provided to convert between the internal
-representation and an NSDictionary (for loading/saving user defaults
+representation and a property-list dictionary (for loading/saving user defaults
 and for use in areas where portability/ease of coding are more important
 than performance such as the GUI)
 
@@ -38,6 +38,11 @@ MA 02110-1301, USA.
 #pragma once
 
 #import "OOFoundation.h"
+#import "oofnd/objc/OOObject.h"
+
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+#include <string_view>
 
 // Enums are used here rather than a more complex ObjC object because
 // these are required very frequently (once per frame) so must be light
@@ -148,23 +153,23 @@ enum {
 #define AXCBTHRESH 20000
 
 // Dictionary keys - used in the defaults file
-#define AXIS_SETTINGS @"JoystickAxes" // NSUserDefaults
-#define BUTTON_SETTINGS @"JoystickButs" // NSUserDefaults
-#define GUI_BUTTON_SETTINGS @"GuiJoystickButs" // NSUserDefaults
-#define STICK_ISAXIS @"isAxis" // YES=axis NO=button
-#define STICK_NUMBER @"stickNum" // Stick number 0 to 4
-#define STICK_AXBUT @"stickAxBt" // Axis or button number
+inline constexpr std::string_view AXIS_SETTINGS = "JoystickAxes"; // oo::Defaults key
+inline constexpr std::string_view BUTTON_SETTINGS = "JoystickButs"; // oo::Defaults key
+inline constexpr std::string_view GUI_BUTTON_SETTINGS = "GuiJoystickButs"; // oo::Defaults key
+inline constexpr std::string_view STICK_ISAXIS = "isAxis"; // YES=axis NO=button
+inline constexpr std::string_view STICK_NUMBER = "stickNum"; // Stick number 0 to 4
+inline constexpr std::string_view STICK_AXBUT = "stickAxBt"; // Axis or button number
 #define STICK_FUNCTION @"stickFunc" // Function of axis/button
-#define STICK_ROLL_AXIS_PROFILE_SETTING @"RollAxisProfile" // Joystick Profiles
-#define STICK_PITCH_AXIS_PROFILE_SETTING @"PitchAxisProfile" // Joystick Profiles
-#define STICK_YAW_AXIS_PROFILE_SETTING @"YawAxisProfile" // Joystick Profiles
+inline constexpr std::string_view STICK_ROLL_AXIS_PROFILE_SETTING = "RollAxisProfile"; // Joystick Profiles
+inline constexpr std::string_view STICK_PITCH_AXIS_PROFILE_SETTING = "PitchAxisProfile"; // Joystick Profiles
+inline constexpr std::string_view STICK_YAW_AXIS_PROFILE_SETTING = "YawAxisProfile"; // Joystick Profiles
 // shortcut to make code more readable when using enum as key for
-// an NSDictionary
-#define ENUMKEY(x) [NSString stringWithFormat:@"%d", x]
+// a dictionary: a std::string (oofnd/String.hpp)
+#define ENUMKEY(x) oo::str::format("%d", x)
 
 #import "OOJoystickProfile.h"
 
-@interface OOJoystickManager : NSObject {
+@interface OOJoystickManager : OOObject {
     // Axis/button mapping arrays
     int8_t axismap[MAX_STICKS][MAX_AXES];
     int8_t buttonmap[MAX_STICKS][MAX_BUTTONS];
@@ -194,7 +199,7 @@ enum {
 // General.
 // Note: handleSDLEvent returns a BOOL (YES we handled it or NO we
 // didn't) so in the future when more handler classes are written,
-// the GameView event loop can just go through an NSArray of handlers
+// the GameView event loop can just go through an array of handlers
 // until it finds a handler that handles the event.
 - (id)init;
 
@@ -205,7 +210,7 @@ enum {
 - (NSPoint)viewAxis;
 
 // convert a dictionary into the internal function map
-- (void)setFunction:(int)function withDict:(NSDictionary*)stickFn;
+- (void)setFunction:(int)function withDict:(const oo::PList&)stickFn;
 - (void)unsetAxisFunction:(int)function;
 - (void)unsetButtonFunction:(int)function;
 - (void)unsetGuiButtonFunction:(int)function;
@@ -229,13 +234,13 @@ enum {
 - (const BOOL*)getAllButtonStates;
 
 // Hardware introspection.
-- (NSArray*)listSticks;
+- (std::vector<std::string>)listSticks;
 
-// These use NSDictionary/NSArray since they are used outside the game
-// loop and are needed for loading/saving defaults.
-- (NSDictionary*)axisFunctions;
-- (NSDictionary*)buttonFunctions;
-- (NSDictionary*)guiButtonFunctions;
+// These use property-list dictionaries since they are used outside the game
+// loop and are needed for loading/saving defaults. A nil manager answers a null PList.
+- (oo::PList)axisFunctions;
+- (oo::PList)buttonFunctions;
+- (oo::PList)guiButtonFunctions;
 
 // Set a callback for the next moved axis/pressed button. hwflags
 // is in the form HW_AXIS | HW_BUTTON (or just one of).
@@ -254,7 +259,7 @@ enum {
 
 // Methods that should be overridden by all subclasses
 - (NSUInteger)joystickCount;
-- (NSString*)nameOfJoystick:(NSUInteger)stickNumber;
+- (std::optional<std::string>)nameOfJoystick:(NSUInteger)stickNumber; // nullopt: the device has no name
 - (int16_t)getAxisWithStick:(NSUInteger)stickNum axis:(NSUInteger)axisNum;
 
 @end

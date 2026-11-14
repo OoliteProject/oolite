@@ -30,10 +30,16 @@ SOFTWARE.
 #import "OOBasicMaterial.h"
 #import "OOMaths.h"
 #import "OOWeakReference.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/objc/OOObjCRef.h"
+
+#include <map>
+#include <optional>
+#include <string>
 
 #if OO_SHADERS
 
-@class OOShaderProgram, OOTexture;
+@class OOShaderProgram, OOTexture, OOShaderUniform;
 
 enum {
     // Conversion settings for uniform bindings
@@ -49,7 +55,7 @@ typedef uint16_t OOUniformConvertOptions;
 @interface OOShaderMaterial : OOBasicMaterial {
 @private
     OOShaderProgram* shaderProgram;
-    NSMutableDictionary* uniforms;
+    std::map<std::string, oo::ObjCRef<OOShaderUniform*>, std::less<>> uniforms; // by uniform name
 
     uint32_t texCount;
     OOTexture** textures;
@@ -57,7 +63,7 @@ typedef uint16_t OOUniformConvertOptions;
     OOWeakReference* bindingTarget;
 }
 
-+ (BOOL)configurationDictionarySpecifiesShaderMaterial:(NSDictionary*)configuration;
++ (BOOL)configurationDictionarySpecifiesShaderMaterial:(const oo::PList&)configuration; // null -> NO
 
 /*	Set up an OOShaderMaterial.
 
@@ -83,14 +89,14 @@ typedef uint16_t OOUniformConvertOptions;
         will be transformed into:
                 #define OO_ENGINE_LEVEL 1
 */
-+ (instancetype)shaderMaterialWithName:(NSString*)name
-                         configuration:(NSDictionary*)configuration
-                                macros:(NSDictionary*)macros
++ (instancetype)shaderMaterialWithName:(const std::optional<std::string>&)name
+                         configuration:(const oo::PList&)configuration // null = nil
+                                macros:(const oo::PList&)macros // null = nil
                          bindingTarget:(id<OOWeakReferenceSupport>)target;
 
-- (id)initWithName:(NSString*)name
-     configuration:(NSDictionary*)configuration
-            macros:(NSDictionary*)macros
+- (id)initWithName:(const std::optional<std::string>&)name
+     configuration:(const oo::PList&)configuration // null = nil
+            macros:(const oo::PList&)macros // null = nil
      bindingTarget:(id<OOWeakReferenceSupport>)target;
 
 /*	Bind a uniform to a property of an object.
@@ -102,21 +108,21 @@ typedef uint16_t OOUniformConvertOptions;
         A bound method must not take any parameters, and must return one of the
         following types:
                 * Any integer or float type.
-                * NSNumber.
+                * A number object.
                 * Vector.
                 * Quaternion.
                 * OOMatrix.
                 * OOColor.
 
         The "convert" flag has different meanings for different types:
-                * For int, float or NSNumber, it clamps to the range [0..1].
+                * For int, float or a number object, it clamps to the range [0..1].
                 * For Vector, it normalizes.
                 * For Quaternion, it converts to a rotation matrix (instead of a vector).
 
         NOTE: this method *does not* check against the whitelist. See
         -bindSafeUniform:toObject:propertyNamed:convertOptions: below.
 */
-- (BOOL)bindUniform:(NSString*)uniformName
+- (BOOL)bindUniform:(const std::string&)uniformName
            toObject:(id<OOWeakReferenceSupport>)target
            property:(SEL)selector
      convertOptions:(OOUniformConvertOptions)options;
@@ -126,18 +132,18 @@ typedef uint16_t OOUniformConvertOptions;
         This is similar to -bindUniform:toObject:property:convertOptions:, except
         that it checks against OOUniformBindingPermitted().
 */
-- (BOOL)bindSafeUniform:(NSString*)uniformName
+- (BOOL)bindSafeUniform:(const std::string&)uniformName
                toObject:(id<OOWeakReferenceSupport>)target
-          propertyNamed:(NSString*)property
+          propertyNamed:(const std::optional<std::string>&)property // nullopt: no property (not bound)
          convertOptions:(OOUniformConvertOptions)options;
 
 /*	Set a uniform value.
  */
-- (void)setUniform:(NSString*)uniformName intValue:(int)value;
-- (void)setUniform:(NSString*)uniformName floatValue:(float)value;
-- (void)setUniform:(NSString*)uniformName vectorValue:(GLfloat[4])value;
-- (void)setUniform:(NSString*)uniformName vectorObjectValue:(id)value; // Array of four numbers, or something that can be OOVectorFromObject()ed.
-- (void)setUniform:(NSString*)uniformName quaternionValue:(Quaternion)value asMatrix:(BOOL)asMatrix;
+- (void)setUniform:(const std::string&)uniformName intValue:(int)value;
+- (void)setUniform:(const std::string&)uniformName floatValue:(float)value;
+- (void)setUniform:(const std::string&)uniformName vectorValue:(GLfloat[4])value;
+- (void)setUniform:(const std::string&)uniformName vectorObjectValue:(const oo::PList&)value; // Array of four numbers, or something that can be OOVectorFromObject()ed.
+- (void)setUniform:(const std::string&)uniformName quaternionValue:(Quaternion)value asMatrix:(BOOL)asMatrix;
 
 /*	Add constant uniforms. Same format as uniforms dictionary of configuration
         parameter to -initWithConfiguration:macros:. The target parameter is used
@@ -147,11 +153,11 @@ typedef uint16_t OOUniformConvertOptions;
         any random bindings:
 - (uint32_t) randomSeedForShaders;
 */
-- (void)addUniformsFromDictionary:(NSDictionary*)uniformDefs withBindingTarget:(id<OOWeakReferenceSupport>)target;
+- (void)addUniformsFromDictionary:(const oo::PList&)uniformDefs withBindingTarget:(id<OOWeakReferenceSupport>)target;
 
 @end
 
-@interface NSObject (ShaderBindingHierarchy)
+@interface OOObject (ShaderBindingHierarchy)
 
 /*	Informal protocol for objects to "forward" their shader bindings up a
         hierarchy (for instance, subentities to parent entities).
@@ -174,23 +180,23 @@ enum {
         Predicate determining whether a given property may be used as a binding.
         Client code is responsible for implementing this.
 */
-BOOL OOUniformBindingPermitted(NSString* propertyName, id bindingTarget);
+BOOL OOUniformBindingPermitted(const std::string& propertyName, id bindingTarget);
 
-@interface NSObject (OOShaderMaterialTargetOptional)
+@interface OOObject (OOShaderMaterialTargetOptional)
 
 - (uint32_t)randomSeedForShaders;
 
 @end
 
 // Material specifier dictionary keys.
-extern NSString* const kOOVertexShaderSourceKey;
-extern NSString* const kOOVertexShaderNameKey;
-extern NSString* const kOOFragmentShaderSourceKey;
-extern NSString* const kOOFragmentShaderNameKey;
-extern NSString* const kOOTexturesKey;
-extern NSString* const kOOTextureObjectsKey;
-extern NSString* const kOOUniformsKey;
-extern NSString* const kOOIsSynthesizedMaterialConfigurationKey;
-extern NSString* const kOOIsSynthesizedMaterialMacrosKey;
+inline constexpr const char* kOOVertexShaderSourceKey = "_oo_vertex_shader_source";
+inline constexpr const char* kOOVertexShaderNameKey = "vertex_shader";
+inline constexpr const char* kOOFragmentShaderSourceKey = "_oo_fragment_shader_source";
+inline constexpr const char* kOOFragmentShaderNameKey = "fragment_shader";
+inline constexpr const char* kOOTexturesKey = "textures";
+inline constexpr const char* kOOTextureObjectsKey = "_oo_texture_objects";
+inline constexpr const char* kOOUniformsKey = "uniforms";
+inline constexpr const char* kOOIsSynthesizedMaterialConfigurationKey = "_oo_is_synthesized_config";
+inline constexpr const char* kOOIsSynthesizedMaterialMacrosKey = "_oo_synthesized_material_macros";
 
 #endif // OO_SHADERS

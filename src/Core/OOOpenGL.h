@@ -69,7 +69,7 @@ typedef enum {
           3. Draw
           4. Reverse state changes from stage 2
           5. Call OOVerifyOpenGLState()
-          6. Call OOCheckOpenGLErrors().
+          6. Call cxx_OOCheckOpenGLErrors().
 
 
         The states are:
@@ -126,6 +126,10 @@ typedef enum {
     OPENGL_STATE_INTERNAL_USE_ONLY
 } OOOpenGLStateID;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if OO_GL_STATE_VERIFICATION
 void OOSetOpenGLState_(OOOpenGLStateID state, const char* function, unsigned line);
 void OOVerifyOpenGLState_(const char* function, unsigned line);
@@ -141,14 +145,24 @@ void OOSetOpenGLState(OOOpenGLStateID state);
 // Inform the SetState/VerifyState mechanism that the OpenGL context has been reset to its initial state.
 void OOResetGLStateVerifier(void);
 
-/*	OOCheckOpenGLErrors()
+/*	cxx_OOCheckOpenGLErrors()
         Check for and log OpenGL errors, and returns YES if an error occurred.
         NOTE: this is controlled by the log message class rendering.opengl.error.
                   If logging is disabled, no error checking will occur. This is done
                   because glGetError() is quite expensive, requiring a full OpenGL
                   state sync.
+        The context is built only when an error is found: a printf format and its
+        arguments (a null format reads "<unknown>"), or a function giving the text.
+        (C++ linkage: this header is sometimes reached from inside an extern "C"
+        block, OOMaths.h, as OOFoundation.h notes.)
 */
-BOOL OOCheckOpenGLErrors(NSString* format, ...);
+#ifdef __cplusplus
+extern "C++" {
+#include "oofnd/StdLib.hpp"
+BOOL cxx_OOCheckOpenGLErrors(const char* format, ...) __attribute__((format(printf, 1, 2)));
+BOOL cxx_OOCheckOpenGLErrors(const std::function<std::string()>& context);
+}
+#endif
 
 /*	LogOpenGLState()
         Write a bunch of OpenGL state information to the log.
@@ -211,7 +225,7 @@ void GLDrawQuadStrip(OOGLVector* points, int n);
         OOGL(foo) checks for GL errors before and after performing the statement foo.
         OOGLBEGIN(mode) checks for GL errors, then calls glBegin(mode).
         OOGLEND() calls glEnd(), then checks for GL errors.
-        CheckOpenGLErrorsHeavy() checks for errors exactly like OOCheckOpenGLErrors().
+        CheckOpenGLErrorsHeavy() checks for errors exactly like cxx_OOCheckOpenGLErrors().
 
         If OO_CHECK_GL_HEAVY is zero, these macros don't perform error checking,
         but otherwise continue to work as before, so:
@@ -224,18 +238,32 @@ void GLDrawQuadStrip(OOGLVector* points, int n);
 #define OO_CHECK_GL_HEAVY 0
 #endif
 
+#ifdef __cplusplus
+}
+#endif
+
 #if OO_CHECK_GL_HEAVY
 
 #if OO_GL_STATE_VERIFICATION
+#ifdef __cplusplus
+extern "C" {
+#endif
 void OOGLNoteCurrentFunction(const char* func, unsigned line);
+#ifdef __cplusplus
+}
+#endif
 #else
 #define OOGLNoteCurrentFunction(FUNC, line) \
     do {                                    \
     } while (0)
 #endif
 
-NSString* OOLogAbbreviatedFileName(const char* inName);
-#define OOGL_PERFORM_CHECK(label, code) OOCheckOpenGLErrors(@"%s %@:%u (%s)%s", label, OOLogAbbreviatedFileName(__FILE__), __LINE__, __PRETTY_FUNCTION__, code)
+#ifdef __cplusplus
+extern "C++" {
+#include "oofnd/Log.hpp" // oo::log::abbreviatedFileName()
+}
+#endif
+#define OOGL_PERFORM_CHECK(label, code) cxx_OOCheckOpenGLErrors("%s %s:%u (%s)%s", label, oo::log::abbreviatedFileName(__FILE__).c_str(), __LINE__, __PRETTY_FUNCTION__, code)
 #define OOGL(statement)                                  \
     do {                                                 \
         OOGLNoteCurrentFunction(__FUNCTION__, __LINE__); \
@@ -243,7 +271,7 @@ NSString* OOLogAbbreviatedFileName(const char* inName);
         statement;                                       \
         OOGL_PERFORM_CHECK("POST", " -- " #statement);   \
     } while (0)
-#define CheckOpenGLErrorsHeavy OOCheckOpenGLErrors
+#define CheckOpenGLErrorsHeavy cxx_OOCheckOpenGLErrors
 #define OOGLBEGIN(mode)                                  \
     do {                                                 \
         OOGLNoteCurrentFunction(__FUNCTION__, __LINE__); \
@@ -275,16 +303,22 @@ enum {
     kOOShaderSettingDefault = SHADERS_NOT_SUPPORTED
 };
 
-// Programmer-readable shader mode strings.
-OOShaderSetting OOShaderSettingFromString(NSString* string);
-NSString* OOStringFromShaderSetting(OOShaderSetting setting);
-// Localized shader mode strings.
-NSString* OODisplayStringFromShaderSetting(OOShaderSetting setting);
+// The shader mode strings (OOShaderSettingFromString() and friends) are declared in OOConstToString.h.
 
 #ifndef NDEBUG
 
-NSString* OOGLColorToString(GLfloat color[4]);
-NSString* OOGLEnumToString(GLenum value);
-NSString* OOGLFlagToString(bool value);
+#ifdef __cplusplus
+extern "C++" { // (this header is sometimes reached from inside OOMaths.h's extern "C" block)
+#endif
+#ifdef __cplusplus
+extern "C++" { // (this header is sometimes reached from inside OOMaths.h's extern "C" block)
+std::string OOGLColorToString(GLfloat color[4]);
+std::string OOGLEnumToString(GLenum value);
+std::string OOGLFlagToString(bool value);
+}
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #endif

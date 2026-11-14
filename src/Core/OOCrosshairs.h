@@ -28,16 +28,20 @@ SOFTWARE.
 
 #import "OOFoundation.h"
 #import "OOOpenGL.h"
+#import "oofnd/objc/OOObject.h"
+
+#include "oofnd/PList.hpp"
 
 @class OOColor;
 
-@interface OOCrosshairs : NSObject {
+@interface OOCrosshairs : OOObject {
 @private
     NSUInteger _count;
     GLfloat* _data;
 }
 
-- (id)initWithPoints:(NSArray*)points
+// points: the crosshair definition, a property-list array of 6-number arrays (proposed ADR-0043).
+- (id)initWithPoints:(const oo::PList&)points
                scale:(GLfloat)scale
                color:(OOColor*)color
         overallAlpha:(GLfloat)alpha;

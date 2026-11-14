@@ -25,10 +25,11 @@ MA 02110-1301, USA.
 
 */
 
+#import "OOFoundation.h"
 #import "OOMaths.h"
-#import <Foundation/Foundation.h>
+#import "oofnd/objc/OOObject.h"
 
-@interface OOSoundReferencePoint : NSObject
+@interface OOSoundReferencePoint : OOObject
 
 // Positional audio attributes are ignored in this implementation
 - (void)setPosition:(Vector)inPosition;

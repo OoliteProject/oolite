@@ -38,24 +38,34 @@ SOFTWARE.
 #import "OODebuggerInterface.h"
 #import "OOFoundation.h"
 #import "OOWeakReference.h"
+#include <quickjs.h>
 
-@class OOJSScript;
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
+
+#include <map>
+#include <optional>
+#include <string>
+#include <vector>
+
+@class OOJSScript, OOColor;
 
 @protocol OODebugMonitorInterface
 
 // Note: disconnectDebugger:message: will cause a disconnectDebugMonitor:message: message to be sent to the debugger. The debugger should not send disconnectDebugger:message: in response to disconnectDebugMonitor:message:.
-- (void)disconnectDebugger:(in id<OODebuggerInterface>)debugger
-                   message:(in NSString*)message;
+- (void)disconnectDebugger:(id<OODebuggerInterface>)debugger
+                   message:(const std::optional<std::string>&)message;
 
 // *** JavaScript console support.
 
 // Perform a JS command as though entered at the console, including echoing.
-- (oneway void)performJSConsoleCommand:(in NSString*)command;
+- (void)performJSConsoleCommand:(const std::string&)command;
 
-- (id)configurationValueForKey:(in NSString*)key;
-- (void)setConfigurationValue:(in id)value forKey:(in NSString*)key;
+- (oo::PList)configurationValueForKey:(const std::string&)key;
+- (void)setConfigurationValue:(const oo::PList&)value forKey:(const std::string&)key;
 
-- (NSString*)sourceCodeForFile:(in NSString*)filePath line:(in unsigned)line;
+- (std::string)sourceCodeForFile:(const std::string&)filePath line:(unsigned)line;
 
 @end
 
@@ -65,15 +75,15 @@ SOFTWARE.
 
     // JavaScript console support.
     OOJSScript* _script;
-    struct JSObject* _jsSelf;
+    JSValue _jsSelf; // Owned; released when the JS engine resets.
 
-    NSDictionary* _configFromOXPs; // Settings from debugConfig.plist
-    NSMutableDictionary* _configOverrides; // Settings from preferences, modifiable through JS.
+    oo::PList _configFromOXPs; // Settings from debugConfig.plist (a Dict, never null after -init)
+    oo::PList _configOverrides; // Settings from preferences, modifiable through JS (a Dict; values may be Object nodes).
 
     // Caches
-    NSMutableDictionary *_fgColors,
-        *_bgColors,
-        *_sourceFiles;
+    std::map<std::string, oo::ObjCRef<OOColor*>, std::less<>> _fgColors,
+        _bgColors;
+    std::map<std::string, std::vector<std::string>, std::less<>> _sourceFiles; // lines of each source file shown so far
     // TCP options
     BOOL _TCPIgnoresDroppedPackets;
     BOOL _usingPlugInController;
@@ -84,19 +94,19 @@ SOFTWARE.
 
 // *** JavaScript console support.
 - (void)appendJSConsoleLine:(id)string
-                   colorKey:(NSString*)colorKey
+                   colorKey:(const std::optional<std::string>&)colorKey
               emphasisRange:(NSRange)emphasisRange;
 
 - (void)appendJSConsoleLine:(id)string
-                   colorKey:(NSString*)colorKey;
+                   colorKey:(const std::optional<std::string>&)colorKey;
 
 - (void)clearJSConsole;
 - (void)showJSConsole;
 
-- (id)configurationValueForKey:(NSString*)key class:(Class)class defaultValue:(id)value;
-- (long long)configurationIntValueForKey:(NSString*)key defaultValue:(long long)value;
+- (id)cxx_configurationValueForKey:(const std::string&)key class:(Class)klass defaultValue:(id)value;
+- (long long)configurationIntValueForKey:(const std::string&)key defaultValue:(long long)value;
 
-- (NSArray*)configurationKeys;
+- (std::vector<std::string>)configurationKeys; // sorted case-insensitively
 
 - (BOOL)debuggerConnected;
 

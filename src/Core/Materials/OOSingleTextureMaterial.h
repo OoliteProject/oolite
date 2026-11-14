@@ -44,9 +44,13 @@ SOFTWARE.
         If the found OOTexture config dictionary contains a "name" key, it will be
         used in preference to the name parameter.
 */
-- (id)initWithName:(NSString*)name configuration:(NSDictionary*)configuration;
+- (id)initWithName:(id)name configuration:(id)configuration; // shared with OOBasicMaterial and OOMultiTextureMaterial: an Objective-C string and dictionary (proposed ADR-0043)
 
-// Designated initializer
-- (id)initWithName:(NSString*)name texture:(OOTexture*)texture configuration:(NSDictionary*)configuration;
+/*	Designated initializer. Foundation sweep (proposed ADR-0043, bead oo-ac2y): the name is
+        nil-able (the initializer fails without one); the configuration is a material configuration
+        dictionary, which may hold objects other than property-list data, so it stays an Objective-C
+        object and goes to OOBasicMaterial unchanged.
+*/
+- (id)initWithName:(const std::optional<std::string>&)name texture:(OOTexture*)texture configuration:(id)configuration;
 
 @end

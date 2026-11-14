@@ -26,43 +26,45 @@ MA 02110-1301, USA.
 */
 
 #import "OOFoundation.h"
-#include <jsapi.h>
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
+#import "oofnd/objc/OOObject.h"
+#include <quickjs.h>
 
-@interface OOJSFunction : NSObject {
+@interface OOJSFunction : OOObject {
 @private
-    JSFunction* _function;
-    NSString* _name;
+    JSValue _function; // Owned; zero-filled (not an object) when invalid.
+    std::optional<std::string> _name; // nullopt for an anonymous function (was nil)
 }
 
-- (id)initWithFunction:(JSFunction*)function context:(JSContext*)context;
-- (id)initWithName:(NSString*)name
-             scope:(JSObject*)scope // may be NULL, in which case global object is used.
-              code:(NSString*)code // full JS code for function, including function declaration.
+// function must be a function value; the OOJSFunction takes its own reference.
+- (id)initWithFunction:(JSValueConst)function context:(JSContext*)context;
+- (id)initWithName:(const std::optional<std::string>&)name
+             scope:(JSValueConst)scope // Ignored; QuickJS compiles functions in the global scope. Pass JS_UNDEFINED.
+              code:(const std::optional<std::string>&)code // Function body.
      argumentCount:(NSUInteger)argCount
      argumentNames:(const char**)argNames
-          fileName:(NSString*)fileName
+          fileName:(const std::optional<std::string>&)fileName
         lineNumber:(NSUInteger)lineNumber
-           context:(JSContext*)context; // may be NULL. If not null, must be in a request.
+           context:(JSContext*)context; // may be NULL.
 
-- (NSString*)name;
-- (JSFunction*)function;
-- (jsval)functionValue;
+- (id)name; // shared selector (Foundation declares -name too): -cxx_name as an Objective-C string, or nil
+- (std::optional<std::string>)cxx_name; // nullopt: anonymous (bead oo-3rb.289.7)
+// Borrowed; valid while the receiver is alive and the engine is not reset. JS_NULL if invalid.
+- (JSValueConst)function;
+// Owned (caller must free). JS_NULL if invalid.
+- (JSValue)functionValue;
 
-// Raw evaluation. Context may not be NULL and must be in a request.
+// Raw evaluation. *result is owned by the caller on success. On failure, any exception is left pending (not reported).
 - (BOOL)evaluateWithContext:(JSContext*)context
-                      scope:(JSObject*)jsThis
-                       argc:(uintN)argc
-                       argv:(jsval*)argv
-                     result:(jsval*)result;
+                      scope:(JSValueConst)jsThis
+                       argc:(int)argc
+                       argv:(JSValueConst*)argv
+                     result:(JSValue*)result;
 
-// Object-wrapper evaluation.
-- (id)evaluateWithContext:(JSContext*)context
-                    scope:(id)jsThis
-                arguments:(NSArray*)arguments;
-
-// As above, but converts result to a boolean.
+// Object-wrapper evaluation, converting the result to a boolean.
 - (BOOL)evaluatePredicateWithContext:(JSContext*)context
                                scope:(id)jsThis
-                           arguments:(NSArray*)arguments;
+                           arguments:(const std::vector<oo::ObjCRef<id>>&)arguments;
 
 @end

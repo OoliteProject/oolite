@@ -30,10 +30,20 @@ MA 02110-1301, USA.
 */
 
 #import "OOFoundation.h"
+#import "oofnd/objc/OOObject.h"
 
-@interface OOCacheManager : NSObject {
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+
+/*	Foundation sweep (proposed ADR-0043, bead oo-19g0): cache names and keys are UTF-8
+        std::strings. The cache directory is std::nullopt where it was nil. Every cached value is
+        property-list data, held as an oo::PList (proposed ADR-0055 item 2, bead oo-qps.36) and
+        written to the cache file as it is; a null PList is "no value".
+*/
+@interface OOCacheManager : OOObject {
 @private
-    NSMutableDictionary* _caches;
+    // cache name -> key -> cached value; std::nullopt before loading, as nil was.
+    std::optional<std::map<std::string, std::map<std::string, oo::PList, std::less<>>, std::less<>>> _caches;
     id _scheduledWrite;
     BOOL _permitWrites;
     BOOL _dirty;
@@ -41,16 +51,21 @@ MA 02110-1301, USA.
 
 + (OOCacheManager*)sharedCache;
 
-- (id)objectForKey:(NSString*)inKey inCache:(NSString*)inCacheKey;
-- (void)setObject:(id)inElement forKey:(NSString*)inKey inCache:(NSString*)inCacheKey;
-- (void)removeObjectForKey:(NSString*)inKey inCache:(NSString*)inCacheKey;
-- (void)clearCache:(NSString*)inCacheKey;
+- (oo::PList)cxx_pListForKey:(const std::string&)key inCache:(const std::string&)cache; // null PList: absent
+- (void)cxx_setPList:(const oo::PList&)value forKey:(const std::string&)key inCache:(const std::string&)cache; // value: not null
+
+// The id forms of the two above (oo::ObjectFromPList / oo::PListFrom of the value), until
+// oo-qps.72 deletes them once their callers have moved.
+- (id)cxx_objectForKey:(const std::string&)inKey inCache:(const std::string&)inCacheKey;
+- (void)cxx_setObject:(id)inElement forKey:(const std::string&)inKey inCache:(const std::string&)inCacheKey;
+- (void)cxx_removeObjectForKey:(const std::string&)inKey inCache:(const std::string&)inCacheKey;
+- (void)cxx_clearCache:(const std::string&)inCacheKey;
 - (void)clearAllCaches;
 - (void)reloadAllCaches;
 
 - (void)setAllowCacheWrites:(BOOL)flag;
 
-- (NSString*)cacheDirectoryPathCreatingIfNecessary:(BOOL)create;
+- (std::optional<std::string>)cxx_cacheDirectoryPathCreatingIfNecessary:(BOOL)create;
 
 - (void)flush;
 - (void)finishOngoingFlush; // Wait for flush to complete. Does nothing if async flushing is disabled.

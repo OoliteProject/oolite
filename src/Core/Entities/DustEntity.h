@@ -28,6 +28,9 @@ MA 02110-1301, USA.
 #import "OOOpenGLExtensionManager.h"
 #import "OOTexture.h"
 
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
+
 #define DUST_SCALE 2000
 #define DUST_N_PARTICLES 600
 
@@ -46,7 +49,7 @@ MA 02110-1301, USA.
 #if OO_SHADERS
     GLfloat warpinessAttr[DUST_N_PARTICLES * 2];
     OOShaderProgram* shader;
-    NSArray* uniforms;
+    std::vector<oo::ObjCRef<OOShaderUniform*>> uniforms;
     uint8_t shaderMode;
 #endif
 }

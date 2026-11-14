@@ -31,8 +31,14 @@ SOFTWARE.
 #import "OOMaths.h"
 #import "OOOpenGL.h"
 #import "OOWeakReference.h"
+#import "oofnd/objc/OOObject.h"
 
-@interface OODrawable : NSObject
+#include "oofnd/objc/OOObjCRef.h"
+#include <vector>
+
+@class OOTexture;
+
+@interface OODrawable : OOObject
 
 - (void)renderOpaqueParts;
 - (void)renderTranslucentParts;
@@ -50,7 +56,7 @@ SOFTWARE.
 - (void)dumpSelfState;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (NSSet*)allTextures;
+- (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures;
 - (size_t)totalSize; // Size including dynamic data, not counting textures.
 #endif
 

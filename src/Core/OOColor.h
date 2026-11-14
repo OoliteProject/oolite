@@ -27,6 +27,10 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 #import "OOOpenGL.h"
+#import "oofnd/objc/OOObject.h"
+
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 
 typedef struct
 {
@@ -38,7 +42,7 @@ typedef struct
     float h, s, b, a;
 } OOHSBAComponents;
 
-@interface OOColor : NSObject <NSCopying> {
+@interface OOColor : OOObject <OOCopying> {
 @private
     float rgba[4];
 }
@@ -49,20 +53,34 @@ typedef struct
 + (OOColor*)colorWithRGBAComponents:(OORGBAComponents)components;
 + (OOColor*)colorWithHSBAComponents:(OOHSBAComponents)components; // Note: hue in 0..360
 
-// Flexible color creator; takes a selector name, a string with components, or an array.
-+ (OOColor*)colorWithDescription:(id)description;
+/*	Flexible color creator (proposed ADR-0055 item 2): <description> is plist data, one of
+        - a string: a selector name ending in "Color" (+redColor & co.), or components
+          (+cxx_colorFromString:);
+        - an array of components (their descriptions, joined with spaces, as a string);
+        - a dictionary of hue/saturation/brightness (or value)/alpha (or opacity) keys, hue
+          in 0..360, or of red/green/blue/alpha (or opacity) keys;
+        - an Object node (OOObjCPList.h) holding an OOColor, which is returned as is.
+        Anything else, or a null PList, gives nil.
+*/
++ (OOColor*)cxx_colorWithDescription:(const oo::PList&)description;
 
-// Like +colorWithDescription:, but forces brightness of at least 0.5.
-+ (OOColor*)brightColorWithDescription:(id)description;
+// Like +cxx_colorWithDescription:, but forces brightness of at least 0.5.
++ (OOColor*)cxx_brightColorWithDescription:(const oo::PList&)description;
 
-/*	Like +colorWithDescription:, but multiplies saturation by provided factor.
+/*	Like +cxx_colorWithDescription:, but multiplies saturation by provided factor.
         If the colour is an HSV dictionary, it may specify a saturation greater
         than 1.0 to override the scaling.
 */
++ (OOColor*)cxx_colorWithDescription:(const oo::PList&)description saturationFactor:(float)factor;
+
+// The id forms of the three above: <description> through oo::PListFrom. Deleted by oo-qps.72
+// once their callers have moved to the PList forms.
++ (OOColor*)colorWithDescription:(id)description;
++ (OOColor*)brightColorWithDescription:(id)description;
 + (OOColor*)colorWithDescription:(id)description saturationFactor:(float)factor;
 
 // Creates a colour given a string with components.
-+ (OOColor*)colorFromString:(NSString*)colorFloatString;
++ (OOColor*)cxx_colorFromString:(const std::string&)colorFloatString;
 
 + (OOColor*)blackColor; // 0.0 white
 + (OOColor*)darkGrayColor; // 0.333 white
@@ -119,12 +137,12 @@ typedef struct
 - (OOColor*)colorWithBrightnessFactor:(float)factor;
 
 // r,g,b,a array in 0..1 range.
-- (NSArray*)normalizedArray;
+- (std::vector<float>)cxx_normalizedArray;
 
-- (NSString*)rgbaDescription;
-- (NSString*)hsbaDescription;
+- (std::optional<std::string>)cxx_rgbaDescription;
+- (std::optional<std::string>)cxx_hsbaDescription;
 
 @end
 
-NSString* OORGBAComponentsDescription(OORGBAComponents components);
-NSString* OOHSBAComponentsDescription(OOHSBAComponents components);
+std::string cxx_OORGBAComponentsDescription(OORGBAComponents components);
+std::string cxx_OOHSBAComponentsDescription(OOHSBAComponents components);

@@ -37,6 +37,17 @@ MA 02110-1301, USA.
 #include <math.h>
 #include <stdbool.h>
 
+/*	Apple's -sortedArrayUsingFunction: and friends take NSInteger (*)(id, id, void*). Oolite's
+        sort functions return NSComparisonResult, which has the same size and calling convention
+        but is a distinct enum type that C++ will not convert implicitly. GNUstep declares them
+        with NSComparisonResult, so there the functions are passed as they are.
+*/
+#ifdef GNUSTEP_BASE_LIBRARY
+#define OOSortFunction(function) (function)
+#else
+#define OOSortFunction(function) ((NSInteger (*)(id, id, void*))(function))
+#endif
+
 #ifdef NDEBUG
 #define OOLITE_DEBUG 0
 #else
@@ -45,6 +56,18 @@ MA 02110-1301, USA.
 
 #if !OOLITE_DEBUG
 #define NS_BLOCK_ASSERTIONS 1
+#endif
+
+/*	OO_DEBUG is set by the build system for debug builds (meson.build adds -DOO_DEBUG when
+        optimization==0 or debug==true; the deployment/test/dev flavours never do).
+
+        Hoisted here from further down the file because the enumeration macros below have to
+        test it, and a macro cannot be defined in terms of one the preprocessor has not seen
+        yet. Nothing between here and the old site defines it, so the meaning is unchanged.
+*/
+#ifndef OO_DEBUG
+// Defined by makefile/Xcode in debug builds.
+#define OO_DEBUG 0
 #endif
 
 #ifdef GNUSTEP_BASE_LIBRARY
@@ -104,6 +127,20 @@ MA 02110-1301, USA.
 #define OOLITE_LINUX 1
 #endif
 
+#if defined(__cplusplus)
+/*	Objective-C++ is built as C++20 (ADR-0011; proposed ADR-0028). The true/false macros below
+        stay exactly as they were (game code keeps its int-typed true/false), but a C++20 standard
+        header parsed after them breaks: <optional> has `bool(__x) <=> false`, i.e. bool <=> int.
+        So those headers are parsed here first, with the real keywords; their include guards make
+        every later #include of them a no-op. extern "C++" because OOFoundation.h is sometimes reached
+        from inside an extern "C" block (OOMaths.h).
+*/
+extern "C++" {
+#include <compare>
+#include <optional>
+}
+#endif
+
 #if OOLITE_GNUSTEP
 #define true 1
 #define false 0
@@ -129,8 +166,6 @@ MA 02110-1301, USA.
 #ifndef IBAction
 #define IBAction void
 #endif
-
-#import "Comparison.h"
 
 /* Define AppKit constants for events */
 enum {
@@ -249,29 +284,13 @@ enum {
 
 #import "OOLogging.h"
 
-@interface NSObject (OODescriptionComponents)
+#import "OOObjectGNUstepBridge.h"
+#import "oofnd/objc/OOObject.h"
 
-/*	In order to allow implementations of -description to inherit description
-        components from superclasses, and to allow implementations of -description
-        and -oo_jsDescription to share code, both are implemented as wrappers
-        around -descriptionComponents. -descriptionComponents should provide
-        information about an object without a class name or surrounding
-        punctuation. -description will wrap the components like this:
-                <ClassName 0xnnnnnnnn>{descriptionComponents}
-        and -oo_jsDescription will wrap them like this:
-                [oo_jsClassName descriptionComponents]
+/*	The description family (-cxx_descriptionComponents & co., oo::DescriptionOf), Foundation-free
+        (proposed ADR-0055 item 1).
 */
-- (NSString*)descriptionComponents;
-
-/*	A lot of Oolite's -description implementations are rather long, and many
-        embed other descriptions. -shortDescription provides a truncated
-        alternative, while -shortDescriptionComponents provides a
-        -descriptionComponents-like mechanism to simplify implementation.
-*/
-- (NSString*)shortDescription;
-- (NSString*)shortDescriptionComponents;
-
-@end
+#import "OODescription.h"
 
 #if OOLITE_MAC_OS_X
 #define OOLITE_RELEASE_PLIST_ERROR_STRINGS 1
@@ -289,45 +308,17 @@ typedef NSInteger OOComparisonResult;
 typedef NSComparisonResult OOComparisonResult;
 #endif
 
-/*	Fast enumeration (for (x in y) syntax) is supported in all Mac compilers
-        when targeting 10.5 or later, and in gcc 4.6 with the GNU libobjc runtime.
-        At the time of writing, GNUstep stable does not support gcc 4.6, but it
-        already has support for the fast enumeration protocol in its collection
-        classes.
-
-        All release versions of clang support fast enumeration, assuming libobjc2
-        or ObjectiveC2.framework is being used. We shall make that assumption.
-
-        References:
-                http://lists.gnu.org/archive/html/discuss-gnustep/2011-02/msg00019.html
-                http://wiki.gnustep.org/index.php/ObjC2_FAQ
-        -- Ahruman 2011-02-04
+/*	The ordering values under Oolite's own names (bead oo-3yh0, the NSComparisonResult seam of the
+        oo-qps gap sweep): game code spells OOComparisonResult / OOOrdered*, never the NS names. They
+        are the same type and values as Foundation's, so a -compare: method a Foundation sort calls
+        keeps its ABI. oo-qps makes OOComparisonResult its own NSInteger enum when Foundation goes.
 */
-
-/*	Enumeration macros:
-        foreach(VAR, COLLECTION) enumerates the members of an array or set, setting
-        the variable VAR to a member on each pass.
-        foreachkey(VAR, DICT) enumerates the keys of a dictionary the same way.
-
-        Example:
-                id element = nil;
-                foreach (element, array)
-                {
-                        OOLog(@"element", @"%@", element);
-                }
-
-    These are based on macros by Jens Alfke.
-*/
-#define foreach(VAR, COLLECTION) for (VAR in COLLECTION)
-#define foreachkey(VAR, DICT) for (VAR in DICT)
-
-/*	Support for foreach() with NSEnumerators in GCC.
-        It works without this with for (x in y) support, but we leave it defined
-        to reduce differences between different build environments.
-*/
-@interface NSEnumerator (OOForEachSupport)
-- (NSEnumerator*)objectEnumerator;
-@end
+#ifdef __cplusplus
+inline constexpr OOComparisonResult OOOrderedAscending = NSOrderedAscending;
+inline constexpr OOComparisonResult OOOrderedSame = NSOrderedSame;
+inline constexpr OOComparisonResult OOOrderedDescending = NSOrderedDescending;
+static_assert(OOOrderedAscending == -1 && OOOrderedSame == 0 && OOOrderedDescending == 1, "Foundation's ordering values");
+#endif
 
 #define OOLITE_OPTIONAL(protocolName) @optional
 
@@ -338,7 +329,7 @@ typedef NSComparisonResult OOComparisonResult;
         instance of that class.
 
         For example, given:
-                @interface Foo: NSObject
+                @interface Foo: OOObject
                 + (instancetype) fooWithProperty:(id)property;
                 @end
 
@@ -367,10 +358,7 @@ typedef NSComparisonResult OOComparisonResult;
 typedef id instancetype;
 #endif
 
-#ifndef OO_DEBUG
-// Defined by makefile/Xcode in debug builds.
-#define OO_DEBUG 0
-#endif
+// OO_DEBUG is defined at the top of this file, where the enumeration macros can test it.
 
 #if OOLITE_WINDOWS
 #ifndef OO_GAME_DATA_TO_USER_FOLDER

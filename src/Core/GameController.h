@@ -28,6 +28,10 @@ MA 02110-1301, USA.
 #import "OOFullScreenController.h"
 #import "OOFunctionAttributes.h"
 #import "OOMouseInteractionMode.h"
+#import "oofnd/objc/OOObject.h"
+
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 
 #if OOLITE_MAC_COCOA_UI
 #import <Quartz/Quartz.h> // For PDFKit.
@@ -44,7 +48,7 @@ MA 02110-1301, USA.
 // TEMP: whether to use separate OOFullScreenController object, will hopefully be used for all builds soon.
 #define OO_USE_FULLSCREEN_CONTROLLER OOLITE_MAC_COCOA_UI
 
-@interface GameController : NSObject {
+@interface GameController : OOObject {
 @private
 #if OOLITE_MAC_COCOA_UI
     IBOutlet NSTextField* splashProgressTextField;
@@ -61,17 +65,16 @@ MA 02110-1301, USA.
 
     int my_mouse_x, my_mouse_y;
 
-    NSString* playerFileDirectory;
-    NSString* playerFileToLoad;
-    NSMutableArray* expansionPathsToInclude;
+    std::optional<std::string> playerFileDirectory; // nullopt: not looked up yet, or none (was nil)
+    std::optional<std::string> playerFileToLoad; // nullopt: none (was nil)
+    std::vector<std::string> expansionPathsToInclude; // expansion folders opened with the application (Mac)
 
-    NSTimer* timer;
     NSTimeInterval _animationTimerInterval;
 
-    NSDate* _splashStart;
+    NSTimeInterval _splashStart; // oo::date::monotonicSeconds() at start-up
 
     SEL pauseSelector;
-    NSObject* pauseTarget;
+    OOObject* pauseTarget;
 
     BOOL gameIsPaused;
 
@@ -85,13 +88,13 @@ MA 02110-1301, USA.
     NSRect fsGeometry;
     MyOpenGLView* switchView;
 
-    NSMutableArray* displayModes;
+    oo::PList::Array displayModes; // the usable screen modes, each a mode dictionary
 
     unsigned int width, height;
     unsigned int refresh;
     BOOL fullscreen;
-    NSDictionary* originalDisplayMode;
-    NSDictionary* fullscreenDisplayMode;
+    oo::PList originalDisplayMode; // a mode dictionary; null: none (was nil)
+    oo::PList fullscreenDisplayMode; // a mode dictionary; null: none (was nil)
 
     BOOL stayInFullScreenMode;
     BOOL _finishedLaunching;
@@ -100,7 +103,7 @@ MA 02110-1301, USA.
 
 + (GameController*)sharedController;
 
-- (void)applicationDidFinishLaunching:(NSNotification*)notification;
+- (void)applicationDidFinishLaunching;
 - (BOOL)finishedLaunching;
 
 - (BOOL)isGamePaused;
@@ -130,25 +133,29 @@ MA 02110-1301, USA.
 - (IBAction)showSnapshotsAction:(id)sender;
 - (IBAction)showAddOnsAction:(id)sender;
 - (void)recenterVirtualJoystick;
+- (NSURL*)snapshotsURLCreatingIfNeeded:(BOOL)create;
 #endif
 
-- (void)exitAppWithContext:(NSString*)context;
+- (void)cxx_exitAppWithContext:(const std::string&)context;
 - (void)exitAppCommandQ;
 
-- (NSString*)playerFileToLoad;
-- (void)setPlayerFileToLoad:(NSString*)filename;
+// nullopt: no saved game to load (was nil).
+- (std::optional<std::string>)cxx_playerFileToLoad;
+- (void)cxx_setPlayerFileToLoad:(const std::string&)filename; // kept only for a .oolite-save path
 
-- (NSString*)playerFileDirectory;
-- (void)setPlayerFileDirectory:(NSString*)filename;
+// nullopt: no save directory (was nil). A nullopt argument clears it and the save-directory
+// default, and the next -cxx_playerFileDirectory looks it up again (as nil did; "" does not).
+- (std::optional<std::string>)cxx_playerFileDirectory;
+- (void)cxx_setPlayerFileDirectory:(const std::optional<std::string>&)filename;
 
 - (void)loadPlayerIfRequired;
 
 - (void)beginSplashScreen;
-- (void)logProgress:(NSString*)message;
+- (void)cxx_logProgress:(const std::string&)message;
 #if OO_DEBUG
-- (void)debugLogProgress:(NSString*)format, ... OO_TAKES_FORMAT_STRING(1, 2);
-- (void)debugLogProgress:(NSString*)format arguments:(va_list)arguments OO_TAKES_FORMAT_STRING(1, 0);
-- (void)debugPushProgressMessage:(NSString*)format, ... OO_TAKES_FORMAT_STRING(1, 2);
+// These take the formatted message, as do OO_DEBUG_PROGRESS / OO_DEBUG_PUSH_PROGRESS below.
+- (void)cxx_debugLogProgress:(const std::string&)message;
+- (void)cxx_debugPushProgressMessage:(const std::string&)message;
 - (void)debugPopProgressMessage;
 #endif
 - (void)endSplashScreen;
@@ -156,12 +163,18 @@ MA 02110-1301, USA.
 - (void)startAnimationTimer;
 - (void)stopAnimationTimer;
 
+/*	Fire whatever is due now, the game tick first, then one deferred call:
+        what the run loop's -limitDateForMode: did for the game while its tick and
+        deferred calls were run-loop timers. For code that must let the game tick
+        while it blocks the frame loop (the OXZ download callback). See proposed
+        ADR-0033 and ADR-0040.
+*/
+- (void)fireDueTimers;
+
 - (MyOpenGLView*)gameView;
 - (void)setGameView:(MyOpenGLView*)view;
 
-- (void)windowDidResize:(NSNotification*)aNotification;
-
-- (NSURL*)snapshotsURLCreatingIfNeeded:(BOOL)create;
+- (void)windowDidResize;
 
 @end
 
@@ -179,8 +192,8 @@ MA 02110-1301, USA.
 - (BOOL)inFullScreenMode;
 
 - (BOOL)setDisplayWidth:(unsigned int)d_width Height:(unsigned int)d_height Refresh:(unsigned int)d_refresh;
-- (NSDictionary*)findDisplayModeForWidth:(unsigned int)d_width Height:(unsigned int)d_height Refresh:(unsigned int)d_refresh;
-- (NSArray*)displayModes;
+- (oo::PList)findDisplayModeForWidth:(unsigned int)d_width Height:(unsigned int)d_height Refresh:(unsigned int)d_refresh; // a mode dictionary; null: none (flipped with its family, bead oo-3rb.273)
+- (oo::PList)displayModes; // an array of mode dictionaries (flipped with its family, bead oo-3rb.273)
 - (NSUInteger)indexOfCurrentDisplayMode;
 
 - (void)pauseFullScreenModeToPerform:(SEL)selector onTarget:(id)target;
@@ -190,16 +203,27 @@ MA 02110-1301, USA.
 
 @end
 
+/*	OOScheduleDeferredCall(target, selector, argument, delay): what Foundation's
+        performer-after-delay did (bead oo-3rb.57, proposed ADR-0040). [target
+        performSelector:selector withObject:argument] runs on the first frame-loop
+        pass at least delay seconds from now (a delay <= 0 is 0.0001 s), after that
+        pass's tick; target and argument are retained until then. Due calls fire in
+        the order they were scheduled, at most two per pass, as the run loop fired
+        its timers. Main thread only: a call scheduled on another thread never fires,
+        as a performer on that thread's never-run run loop did not.
+*/
+void OOScheduleDeferredCall(id target, SEL selector, id argument, NSTimeInterval delay);
+
 #if OO_DEBUG
-#define OO_DEBUG_PROGRESS(...) [[GameController sharedController] debugLogProgress:__VA_ARGS__]
-#define OO_DEBUG_PUSH_PROGRESS(...) [[GameController sharedController] debugPushProgressMessage:__VA_ARGS__]
+#define OO_DEBUG_PROGRESS(message) [[GameController sharedController] cxx_debugLogProgress:message]
+#define OO_DEBUG_PUSH_PROGRESS(message) [[GameController sharedController] cxx_debugPushProgressMessage:message]
 #define OO_DEBUG_POP_PROGRESS() [[GameController sharedController] debugPopProgressMessage]
 #else
-#define OO_DEBUG_PROGRESS(...) \
-    do {                       \
+#define OO_DEBUG_PROGRESS(message) \
+    do {                           \
     } while (0)
-#define OO_DEBUG_PUSH_PROGRESS(...) \
-    do {                            \
+#define OO_DEBUG_PUSH_PROGRESS(message) \
+    do {                                \
     } while (0)
 #define OO_DEBUG_POP_PROGRESS() \
     do {                        \
