@@ -28,19 +28,21 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 #import "OOMouseInteractionMode.h"
+#import "oofnd/objc/OOObject.h"
+
+#include "oofnd/PList.hpp"
 
 @class MyOpenGLView;
 
-#if OOLITE_MAC_COCOA_UI
-#define kOODisplayWidth ((NSString*)kCGDisplayWidth)
-#define kOODisplayHeight ((NSString*)kCGDisplayHeight)
-#define kOODisplayRefreshRate ((NSString*)kCGDisplayRefreshRate)
-#define kOODisplayBitsPerPixel ((NSString*)kCGDisplayBitsPerPixel)
-#define kOODisplayIOFlags ((NSString*)kCGDisplayIOFlags)
-#else
+/*	Display-mode dictionary keys. On Mac OS X they were CoreGraphics' kCGDisplay* constants, whose
+        values are these same strings (CFSTR("Width") and so on), so a mode dictionary answers to either.
+*/
 #define kOODisplayWidth (@"Width")
 #define kOODisplayHeight (@"Height")
 #define kOODisplayRefreshRate (@"RefreshRate")
+#if OOLITE_MAC_COCOA_UI
+#define kOODisplayBitsPerPixel (@"BitsPerPixel")
+#define kOODisplayIOFlags (@"IOFlags")
 #endif
 
 #define DISPLAY_MIN_COLOURS 32
@@ -49,7 +51,7 @@ MA 02110-1301, USA.
 #define DISPLAY_MAX_WIDTH 7680 // 8K gaming, yay!!
 #define DISPLAY_MAX_HEIGHT 4320
 
-@interface OOFullScreenController : NSObject {
+@interface OOFullScreenController : OOObject {
 @private
     MyOpenGLView* _gameView;
 }
@@ -60,8 +62,8 @@ MA 02110-1301, USA.
 
 @property (nonatomic, readonly) MyOpenGLView* gameView;
 @property (nonatomic, getter=inFullScreenMode) BOOL fullScreenMode;
-@property (nonatomic, readonly) NSArray* displayModes;
-@property (nonatomic, readonly) NSDictionary* currentDisplayMode;
+@property (nonatomic, readonly) id displayModes; // shared selector: an Objective-C array of mode dictionaries
+@property (nonatomic, readonly) oo::PList currentDisplayMode; // a mode dictionary
 @property (nonatomic, readonly) NSUInteger indexOfCurrentDisplayMode;
 
 #else
@@ -71,14 +73,14 @@ MA 02110-1301, USA.
 - (BOOL)inFullScreenMode;
 - (void)setFullScreenMode:(BOOL)value;
 
-- (NSArray*)displayModes;
-- (NSDictionary*)currentDisplayMode;
+- (id)displayModes; // shared selector: an Objective-C array of mode dictionaries
+- (oo::PList)currentDisplayMode; // a mode dictionary
 - (NSUInteger)indexOfCurrentDisplayMode;
 
 #endif
 
 - (BOOL)setDisplayWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)refresh;
-- (NSDictionary*)findDisplayModeForWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)d_refresh;
+- (oo::PList)findDisplayModeForWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)d_refresh; // a mode dictionary; null: none
 
 - (void)noteMouseInteractionModeChangedFrom:(OOMouseInteractionMode)oldMode to:(OOMouseInteractionMode)newMode;
 

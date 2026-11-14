@@ -33,6 +33,10 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 #import "OOWeakReference.h"
 
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
+#include <quickjs.h>
+
 @class Universe, CollisionRegion, ShipEntity, OOVisualEffectEntity;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
@@ -59,7 +63,12 @@ typedef enum OOEntityStatus {
 
 #ifndef OO_SCANCLASS_TYPE
 #define OO_SCANCLASS_TYPE
+#ifndef __cplusplus
+/* ISO C++ forbids a forward reference to an unscoped enum with no fixed underlying
+   type. The full definition is three lines below in this same file, so C++
+   translation units never need the forward tag at all. */
 typedef enum OOScanClass OOScanClass;
+#endif
 #endif
 
 enum OOScanClass {
@@ -137,11 +146,11 @@ enum OOScanClass {
     BoundingBox boundingBox;
     GLfloat mass;
 
-    NSMutableArray* collidingEntities;
+    std::vector<oo::ObjCRef<Entity*>> collidingEntities; // filled by CollisionRegion each frame
 
     OOTimeAbsolute spawnTime;
 
-    struct JSObject* _jsSelf;
+    JSValue _jsSelf; // Zero-filled (not an object) until created; test with JS_IsObject().
     NSUInteger lastDrawCounter;
 
 @private
@@ -255,14 +264,14 @@ enum OOScanClass {
 - (GLfloat)collisionRadius;
 - (GLfloat)frustumRadius;
 - (void)setCollisionRadius:(GLfloat)amount;
-- (NSMutableArray*)collisionArray;
+- (std::vector<oo::ObjCRef<Entity*>>*)cxx_collidingEntities; // the live list (ADR-0043 item 22); nullptr on nil
 
 - (void)update:(OOTimeDelta)delta_t;
 
 - (void)applyVelocity:(OOTimeDelta)delta_t;
 - (BOOL)checkCloseCollisionWith:(Entity*)other;
 
-- (void)takeEnergyDamage:(double)amount from:(Entity*)ent becauseOf:(Entity*)other weaponIdentifier:(NSString*)weaponIdentifier;
+- (void)takeEnergyDamage:(double)amount from:(Entity*)ent becauseOf:(Entity*)other weaponIdentifier:(id)weaponIdentifier; // shared selector (proposed ADR-0043): an Objective-C string
 
 - (void)dumpState; // General "describe situtation verbosely in log" command.
 - (void)dumpSelfState; // Subclasses should override this, not -dumpState, and call throught to super first.
@@ -285,10 +294,10 @@ enum OOScanClass {
 - (OOColor*)fogUniform;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (NSString*)descriptionForObjDumpBasic;
-- (NSString*)descriptionForObjDump;
+- (std::optional<std::string>)descriptionForObjDumpBasic;
+- (id)descriptionForObjDump; // shared selector (proposed ADR-0043): an Objective-C string
 
-- (NSSet*)allTextures;
+- (id)allTextures; // shared selector (proposed ADR-0043): an Objective-C set of textures
 #endif
 
 @end
@@ -299,10 +308,10 @@ enum OOScanClass {
 @protocol OOBeaconEntity
 
 - (NSComparisonResult)compareBeaconCodeWith:(Entity<OOBeaconEntity>*)other;
-- (NSString*)beaconCode;
-- (void)setBeaconCode:(NSString*)bcode;
-- (NSString*)beaconLabel;
-- (void)setBeaconLabel:(NSString*)blabel;
+- (id)beaconCode; // shared selector (proposed ADR-0043): an Objective-C string
+- (void)setBeaconCode:(id)bcode; // shared selector (proposed ADR-0043)
+- (id)beaconLabel; // shared selector (proposed ADR-0043): an Objective-C string
+- (void)setBeaconLabel:(id)blabel; // shared selector (proposed ADR-0043)
 - (BOOL)isBeacon;
 - (id<OOHUDBeaconIcon>)beaconDrawable;
 - (Entity<OOBeaconEntity>*)prevBeacon;
@@ -319,8 +328,20 @@ enum {
     kOOScanClassDefault = CLASS_NOT_SET
 };
 
-NSString* OOStringFromEntityStatus(OOEntityStatus status) CONST_FUNC;
-OOEntityStatus OOEntityStatusFromString(NSString* string) PURE_FUNC;
+#ifdef __cplusplus
+#include "oofnd/StdLib.hpp"
 
-NSString* OOStringFromScanClass(OOScanClass scanClass) CONST_FUNC;
-OOScanClass OOScanClassFromString(NSString* string) PURE_FUNC;
+// C++ forms, defined in OOConstToString.mm (bead oo-nts1, chunk oo-3rb.161): std::string results
+// (never nil), const std::string & parameters (nil arrived as "" and matched nothing: the defaults).
+// The Foundation forms in Entity+FoundationBridge.h forward to them from OOConstToString+FoundationBridge.mm.
+std::string cxx_OOStringFromEntityStatus(OOEntityStatus status);
+OOEntityStatus cxx_OOEntityStatusFromString(const std::string& string);
+
+std::string cxx_OOStringFromScanClass(OOScanClass scanClass);
+OOScanClass cxx_OOScanClassFromString(const std::string& string);
+#endif
+
+// TRANSITIONAL (proposed ADR-0043): the Foundation-typed OOStringFromEntityStatus /
+// OOEntityStatusFromString / OOStringFromScanClass / OOScanClassFromString (defined in
+// OOConstToString+FoundationBridge.mm) until their callers are swept. Keep this the last line.
+#import "Entity+FoundationBridge.h"

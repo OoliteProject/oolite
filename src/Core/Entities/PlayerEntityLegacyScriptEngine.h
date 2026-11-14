@@ -26,6 +26,9 @@ MA 02110-1301, USA.
 
 #import "PlayerEntity.h"
 
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+
 @class OOScript;
 
 typedef enum {
@@ -55,121 +58,130 @@ typedef enum {
 - (void)setScriptTarget:(ShipEntity*)ship;
 - (ShipEntity*)scriptTarget;
 
-- (void)runScriptActions:(NSArray*)sanitizedActions withContextName:(NSString*)contextName forTarget:(ShipEntity*)target;
-- (void)runUnsanitizedScriptActions:(NSArray*)unsanitizedActions allowingAIMethods:(BOOL)allowAIMethods withContextName:(NSString*)contextName forTarget:(ShipEntity*)target;
+/*	Foundation sweep (proposed ADR-0043, chunk 1 of oo-j924: bead oo-3rb.190): scripts and
+        conditions are oo::PList trees, context names std::optional (nullopt was nil). The
+        Foundation-typed forms moved to PlayerEntityLegacyScriptEngine+FoundationBridge.h
+        (transitional), forwarding to these.
+*/
+- (void)cxx_runScriptActions:(const oo::PList&)sanitizedActions withContextName:(const std::optional<std::string>&)contextName forTarget:(ShipEntity*)target;
+- (void)cxx_runUnsanitizedScriptActions:(const oo::PList&)unsanitizedActions allowingAIMethods:(BOOL)allowAIMethods withContextName:(const std::optional<std::string>&)contextName forTarget:(ShipEntity*)target;
 
 // Test (sanitized) legacy script conditions array.
-- (BOOL)scriptTestConditions:(NSArray*)array;
+- (BOOL)cxx_scriptTestConditions:(const oo::PList&)array;
 
-- (NSDictionary*)missionVariables;
+/*	The mission-variable store (bead oo-3rb.191): a variable is an oo::PList (null = unset; a
+        string, an array from -setMissionInstructionsList:, or whatever JavaScript stored).
+*/
+- (oo::PList)cxx_missionVariables; // a snapshot
+- (oo::PList)cxx_missionVariableForKey:(const std::string&)key;
+- (void)cxx_setMissionVariable:(const oo::PList&)value forKey:(const std::string&)key; // null removes
 
-- (NSString*)missionVariableForKey:(NSString*)key;
-- (void)setMissionVariable:(NSString*)value forKey:(NSString*)key;
-
-- (NSMutableDictionary*)localVariablesForMission:(NSString*)missionKey;
-- (NSString*)localVariableForKey:(NSString*)variableName andMission:(NSString*)missionKey;
-- (void)setLocalVariable:(NSString*)value forKey:(NSString*)variableName andMission:(NSString*)missionKey;
-
-/*-----------------------------------------------------*/
-
-- (NSString*)mission_string;
-- (NSString*)status_string;
-- (NSString*)gui_screen_string;
-- (NSNumber*)galaxy_number;
-- (NSNumber*)planet_number;
-- (NSNumber*)score_number;
-- (NSNumber*)credits_number;
-- (NSNumber*)scriptTimer_number;
-- (NSNumber*)shipsFound_number;
-
-- (NSNumber*)d100_number;
-- (NSNumber*)pseudoFixedD100_number;
-- (NSNumber*)d256_number;
-- (NSNumber*)pseudoFixedD256_number;
-
-- (NSNumber*)clock_number; // returns the game time in seconds
-- (NSNumber*)clock_secs_number; // returns the game time in seconds
-- (NSNumber*)clock_mins_number; // returns the game time in minutes
-- (NSNumber*)clock_hours_number; // returns the game time in hours
-- (NSNumber*)clock_days_number; // returns the game time in days
-
-- (NSNumber*)fuelLevel_number; // returns the fuel level in LY
-
-- (NSString*)dockedAtMainStation_bool;
-- (NSString*)foundEquipment_bool;
-
-- (NSString*)sunWillGoNova_bool; // returns whether the sun is going to go nova
-- (NSString*)sunGoneNova_bool; // returns whether the sun has gone nova
-
-- (NSString*)missionChoice_string; // returns nil or the key for the chosen option
-- (NSString*)missionKeyPress_string;
-
-- (NSNumber*)dockedTechLevel_number;
-- (NSString*)dockedStationName_string; // returns 'NONE' if the player isn't docked, [station name] if it is, 'UNKNOWN' otherwise
-
-- (NSNumber*)systemGovernment_number;
-- (NSString*)systemGovernment_string;
-- (NSNumber*)systemEconomy_number;
-- (NSString*)systemEconomy_string;
-- (NSNumber*)systemTechLevel_number;
-- (NSNumber*)systemPopulation_number;
-- (NSNumber*)systemProductivity_number;
-
-- (NSString*)commanderName_string;
-- (NSString*)commanderRank_string;
-- (NSString*)commanderShip_string;
-- (NSString*)commanderShipDisplayName_string;
-- (NSString*)commanderLegalStatus_string;
-- (NSNumber*)commanderLegalStatus_number;
+// A mission's local variables (bead oo-3rb.192): a snapshot Dict, null for no mission.
+- (oo::PList)localVariablesForMission:(const std::optional<std::string>&)missionKey;
+- (std::optional<std::string>)localVariableForKey:(const std::string&)variableName andMission:(const std::optional<std::string>&)missionKey;
+- (void)setLocalVariable:(const std::optional<std::string>&)value forKey:(const std::string&)variableName andMission:(const std::optional<std::string>&)missionKey; // nullopt removes
 
 /*-----------------------------------------------------*/
 
-- (NSArray*)missionsList;
+- (id)mission_string; // called by name (ADR-0043 item 21)
+- (id)status_string; // called by name (ADR-0043 item 21)
+- (id)gui_screen_string; // called by name (ADR-0043 item 21)
+- (id)galaxy_number; // called by name (ADR-0043 item 21)
+- (id)planet_number; // called by name (ADR-0043 item 21)
+- (id)score_number; // called by name (ADR-0043 item 21)
+- (id)credits_number; // called by name (ADR-0043 item 21)
+- (id)scriptTimer_number; // called by name (ADR-0043 item 21)
+- (id)shipsFound_number; // called by name (ADR-0043 item 21)
 
-- (void)setMissionDescription:(NSString*)textKey;
+- (id)d100_number; // called by name (ADR-0043 item 21)
+- (id)pseudoFixedD100_number; // called by name (ADR-0043 item 21)
+- (id)d256_number; // called by name (ADR-0043 item 21)
+- (id)pseudoFixedD256_number; // called by name (ADR-0043 item 21)
+
+- (id)clock_number; // called by name (ADR-0043 item 21); returns the game time in seconds
+- (id)clock_secs_number; // called by name (ADR-0043 item 21); returns the game time in seconds
+- (id)clock_mins_number; // called by name (ADR-0043 item 21); returns the game time in minutes
+- (id)clock_hours_number; // called by name (ADR-0043 item 21); returns the game time in hours
+- (id)clock_days_number; // called by name (ADR-0043 item 21); returns the game time in days
+
+- (id)fuelLevel_number; // called by name (ADR-0043 item 21); returns the fuel level in LY
+
+- (id)dockedAtMainStation_bool; // called by name (ADR-0043 item 21)
+- (id)foundEquipment_bool; // called by name (ADR-0043 item 21)
+
+- (id)sunWillGoNova_bool; // called by name (ADR-0043 item 21); returns whether the sun is going to go nova
+- (id)sunGoneNova_bool; // called by name (ADR-0043 item 21); returns whether the sun has gone nova
+
+- (id)missionChoice_string; // called by name (ADR-0043 item 21); returns nil or the key for the chosen option
+- (id)missionKeyPress_string; // called by name (ADR-0043 item 21)
+
+- (id)dockedTechLevel_number; // called by name (ADR-0043 item 21)
+- (id)dockedStationName_string; // called by name (ADR-0043 item 21); returns 'NONE' if the player isn't docked, [station name] if it is, 'UNKNOWN' otherwise
+
+- (id)systemGovernment_number; // called by name (ADR-0043 item 21)
+- (id)systemGovernment_string; // called by name (ADR-0043 item 21)
+- (id)systemEconomy_number; // called by name (ADR-0043 item 21)
+- (id)systemEconomy_string; // called by name (ADR-0043 item 21)
+- (id)systemTechLevel_number; // called by name (ADR-0043 item 21)
+- (id)systemPopulation_number; // called by name (ADR-0043 item 21)
+- (id)systemProductivity_number; // called by name (ADR-0043 item 21)
+
+- (id)commanderName_string; // called by name (ADR-0043 item 21)
+- (id)commanderRank_string; // called by name (ADR-0043 item 21)
+- (id)commanderShip_string; // called by name (ADR-0043 item 21)
+- (id)commanderShipDisplayName_string; // called by name (ADR-0043 item 21)
+- (id)commanderLegalStatus_string; // called by name (ADR-0043 item 21)
+- (id)commanderLegalStatus_number; // called by name (ADR-0043 item 21)
+
+/*-----------------------------------------------------*/
+
+// The F5 manifest (bead oo-3rb.193): strings first, then arrays of a header and its entries.
+- (oo::PList)cxx_missionsList;
+
+- (void)setMissionDescription:(id)textKey; // called by name (ADR-0043 item 21)
 - (void)clearMissionDescription;
-- (void)setMissionInstructions:(NSString*)text forMission:(NSString*)key;
-- (void)setMissionInstructionsList:(NSArray*)list forMission:(NSString*)key;
-- (void)setMissionDescription:(NSString*)textKey forMission:(NSString*)key;
-- (void)clearMissionDescriptionForMission:(NSString*)key;
+- (void)cxx_setMissionInstructions:(const std::string&)text forMission:(const std::optional<std::string>&)key; // nullopt key: logged, ignored
+- (void)cxx_setMissionInstructionsList:(const oo::PList&)list forMission:(const std::optional<std::string>&)key;
+- (void)setMissionDescription:(const std::string&)textKey forMission:(const std::optional<std::string>&)key;
+- (void)clearMissionDescriptionForMission:(id)key; // called by name (ADR-0043 item 21)
 
-- (void)commsMessage:(NSString*)valueString;
-- (void)commsMessageByUnpiloted:(NSString*)valueString; // Enabled 02-May-2008 - Nikos. Same as commsMessage, but
-                                                        // can be used by scripts to have unpiloted ships sending
-                                                        // commsMessages, if we want to.
+- (void)commsMessage:(id)valueString; // called by name (ADR-0043 item 21); shared selector (proposed ADR-0043)
+- (void)commsMessageByUnpiloted:(id)valueString; // called by name (ADR-0043 item 21); shared selector (proposed ADR-0043)// Enabled 02-May-2008 - Nikos. Same as commsMessage, but
+                                                 // can be used by scripts to have unpiloted ships sending
+                                                 // commsMessages, if we want to.
 
-- (void)consoleMessage3s:(NSString*)valueString;
-- (void)consoleMessage6s:(NSString*)valueString;
+- (void)consoleMessage3s:(id)valueString; // called by name (ADR-0043 item 21)
+- (void)consoleMessage6s:(id)valueString; // called by name (ADR-0043 item 21)
 
-- (void)setLegalStatus:(NSString*)valueString;
-- (void)awardCredits:(NSString*)valueString;
-- (void)awardShipKills:(NSString*)valueString;
-- (void)awardEquipment:(NSString*)equipString; // eg. EQ_NAVAL_ENERGY_UNIT
-- (void)removeEquipment:(NSString*)equipString; // eg. EQ_NAVAL_ENERGY_UNIT
+- (void)setLegalStatus:(id)valueString; // called by name (ADR-0043 item 21); shared selector (proposed ADR-0043)
+- (void)awardCredits:(id)valueString; // called by name (ADR-0043 item 21)
+- (void)awardShipKills:(id)valueString; // called by name (ADR-0043 item 21)
+- (void)awardEquipment:(id)equipString; // called by name (ADR-0043 item 21); eg. EQ_NAVAL_ENERGY_UNIT
+- (void)removeEquipment:(id)equipString; // called by name (ADR-0043 item 21); eg. EQ_NAVAL_ENERGY_UNIT
 
-- (void)setPlanetinfo:(NSString*)key_valueString; // uses key=value format
-- (void)setSpecificPlanetInfo:(NSString*)key_valueString; // uses galaxy#=planet#=key=value
+- (void)setPlanetinfo:(id)key_valueString; // called by name (ADR-0043 item 21); uses key=value format
+- (void)setSpecificPlanetInfo:(id)key_valueString; // called by name (ADR-0043 item 21); uses galaxy#=planet#=key=value
 
-- (void)awardCargo:(NSString*)amount_typeString;
+- (void)awardCargo:(id)amount_typeString; // called by name (ADR-0043 item 21)
 - (void)removeAllCargo;
 - (void)removeAllCargo:(BOOL)forceRemoval;
 
-- (void)useSpecialCargo:(NSString*)descriptionString;
+- (void)useSpecialCargo:(id)descriptionString; // called by name (ADR-0043 item 21)
 
-- (void)testForEquipment:(NSString*)equipString; // eg. EQ_NAVAL_ENERGY_UNIT
+- (void)testForEquipment:(id)equipString; // called by name (ADR-0043 item 21); eg. EQ_NAVAL_ENERGY_UNIT
 
-- (void)awardFuel:(NSString*)valueString; // add to fuel up to 7.0 LY
+- (void)awardFuel:(id)valueString; // called by name (ADR-0043 item 21); add to fuel up to 7.0 LY
 
-- (void)messageShipAIs:(NSString*)roles_message;
-- (void)ejectItem:(NSString*)item_key;
-- (void)addShips:(NSString*)roles_number;
-- (void)addSystemShips:(NSString*)roles_number_position;
-- (void)addShipsAt:(NSString*)roles_number_system_x_y_z;
-- (void)addShipsAtPrecisely:(NSString*)roles_number_system_x_y_z;
-- (void)addShipsWithinRadius:(NSString*)roles_number_system_x_y_z_r;
-- (void)spawnShip:(NSString*)ship_key;
-- (void)set:(NSString*)missionvariable_value;
-- (void)reset:(NSString*)missionvariable;
+- (void)messageShipAIs:(id)roles_message; // called by name (ADR-0043 item 21)
+- (void)ejectItem:(id)item_key; // called by name (ADR-0043 item 21)
+- (void)addShips:(id)roles_number; // called by name (ADR-0043 item 21)
+- (void)addSystemShips:(id)roles_number_position; // called by name (ADR-0043 item 21)
+- (void)addShipsAt:(id)roles_number_system_x_y_z; // called by name (ADR-0043 item 21)
+- (void)addShipsAtPrecisely:(id)roles_number_system_x_y_z; // called by name (ADR-0043 item 21)
+- (void)addShipsWithinRadius:(id)roles_number_system_x_y_z_r; // called by name (ADR-0043 item 21)
+- (void)spawnShip:(id)ship_key; // called by name (ADR-0043 item 21); shared selector (proposed ADR-0043)
+- (void)set:(id)missionvariable_value; // called by name (ADR-0043 item 21)
+- (void)reset:(id)missionvariable; // called by name (ADR-0043 item 21)
 /*
         set:missionvariable_value
         add:missionvariable_value
@@ -186,77 +198,86 @@ typedef enum {
                 subtract: mission_my_mission_clock d100_number
 */
 
-- (void)increment:(NSString*)missionVariableString;
-- (void)decrement:(NSString*)missionVariableString;
+- (void)increment:(id)missionVariableString; // called by name (ADR-0043 item 21)
+- (void)decrement:(id)missionVariableString; // called by name (ADR-0043 item 21)
 
-- (void)add:(NSString*)missionVariableString_value;
-- (void)subtract:(NSString*)missionVariableString_value;
+- (void)add:(id)missionVariableString_value; // called by name (ADR-0043 item 21)
+- (void)subtract:(id)missionVariableString_value; // called by name (ADR-0043 item 21)
 
-- (void)checkForShips:(NSString*)roleString;
+- (void)checkForShips:(id)roleString; // called by name (ADR-0043 item 21)
 - (void)resetScriptTimer;
-- (void)addMissionText:(NSString*)textKey;
-- (void)addLiteralMissionText:(NSString*)text;
+- (void)addMissionText:(id)textKey; // called by name (ADR-0043 item 21)
+- (void)addLiteralMissionText:(id)text; // called by name (ADR-0043 item 21)
 
 - (void)setMissionChoiceByTextEntry:(BOOL)enable;
-- (void)setMissionChoices:(NSString*)choicesKey; // choicesKey is a key for a dictionary of
-                                                 // choices/choice phrases in missiontext.plist and also..
-- (void)setMissionChoicesDictionary:(NSDictionary*)choicesDict;
+- (void)setMissionChoices:(id)choicesKey; // called by name (ADR-0043 item 21); choicesKey is a key for a dictionary of
+                                          // choices/choice phrases in missiontext.plist and also..
+- (void)cxx_setMissionChoicesDictionary:(const oo::PList&)choicesDict; // keys are strings (bead oo-3rb.194)
 - (void)resetMissionChoice; // resets MissionChoice to nil
 
 - (void)clearMissionScreen;
 
-- (void)addMissionDestination:(NSString*)destinations; // mark a system on the star charts
-- (void)removeMissionDestination:(NSString*)destinations; // stop a system being marked on star charts
+- (void)addMissionDestination:(id)destinations; // called by name (ADR-0043 item 21); mark a system on the star charts
+- (void)removeMissionDestination:(id)destinations; // called by name (ADR-0043 item 21); stop a system being marked on star charts
 
-- (void)showShipModel:(NSString*)shipKey;
-- (void)setMissionMusic:(NSString*)value;
+- (void)showShipModel:(id)shipKey; // called by name (ADR-0043 item 21)
+- (void)setMissionMusic:(id)value; // called by name (ADR-0043 item 21); shared selector (proposed ADR-0043)
 
-- (NSString*)missionTitle;
-- (void)setMissionTitle:(NSString*)value;
+- (std::optional<std::string>)cxx_missionTitle;
+- (void)cxx_setMissionTitle:(const std::optional<std::string>&)value;
 
-- (void)setFuelLeak:(NSString*)value;
-- (NSNumber*)fuelLeakRate_number;
-- (void)setSunNovaIn:(NSString*)time_value;
+- (void)setFuelLeak:(id)value; // called by name (ADR-0043 item 21)
+- (id)fuelLeakRate_number; // called by name (ADR-0043 item 21)
+- (void)setSunNovaIn:(id)time_value; // called by name (ADR-0043 item 21)
 - (void)launchFromStation;
 - (void)blowUpStation;
 - (void)sendAllShipsAway;
 
-- (OOPlanetEntity*)addPlanet:(NSString*)planetKey;
-- (OOPlanetEntity*)addMoon:(NSString*)moonKey;
+- (OOPlanetEntity*)addPlanet:(id)planetKey; // called by name (ADR-0043 item 21)
+- (OOPlanetEntity*)addMoon:(id)moonKey; // called by name (ADR-0043 item 21)
 
 - (void)debugOn;
 - (void)debugOff;
-- (void)debugMessage:(NSString*)args;
+- (void)debugMessage:(id)args; // called by name (ADR-0043 item 21)
 
-- (NSString*)replaceVariablesInString:(NSString*)args;
+- (std::optional<std::string>)replaceVariablesInString:(const std::string&)args;
 
-- (void)playSound:(NSString*)soundName;
+- (void)playSound:(id)soundName; // called by name (ADR-0043 item 21); shared selector (proposed ADR-0043)
 
-- (BOOL)addEqScriptForKey:(NSString*)eq_key;
-- (void)removeEqScriptForKey:(NSString*)eq_key;
-- (NSUInteger)eqScriptIndexForKey:(NSString*)eq_key;
+// Equipment scripts (bead oo-3rb.195): no equipment has an empty key.
+- (BOOL)cxx_addEqScriptForKey:(const std::string&)eq_key;
+- (void)cxx_removeEqScriptForKey:(const std::string&)eq_key;
+- (NSUInteger)cxx_eqScriptIndexForKey:(const std::string&)eq_key; // the count of scripts if none
 
 - (void)targetNearestHostile;
 - (void)targetNearestIncomingMissile;
 
-- (void)setGalacticHyperspaceBehaviourTo:(NSString*)galacticHyperspaceBehaviourString;
-- (void)setGalacticHyperspaceFixedCoordsTo:(NSString*)galacticHyperspaceFixedCoordsString;
+- (void)setGalacticHyperspaceBehaviourTo:(id)galacticHyperspaceBehaviourString; // called by name (ADR-0043 item 21)
+- (void)setGalacticHyperspaceFixedCoordsTo:(id)galacticHyperspaceFixedCoordsString; // called by name (ADR-0043 item 21)
 
 /*-----------------------------------------------------*/
 
 - (void)clearMissionScreenID;
-- (void)setMissionScreenID:(NSString*)msid;
-- (NSString*)missionScreenID;
+- (void)cxx_setMissionScreenID:(const std::optional<std::string>&)msid;
+- (std::optional<std::string>)cxx_missionScreenID;
 - (void)setGuiToMissionScreen;
 - (void)refreshMissionScreenTextEntry;
 - (void)setGuiToMissionScreenWithCallback:(BOOL)callback;
 - (void)doMissionCallback;
 - (void)endMissionScreenAndNoteOpportunity;
-- (void)setBackgroundFromDescriptionsKey:(NSString*)d_key;
-- (void)addScene:(NSArray*)items atOffset:(Vector)off;
-- (BOOL)processSceneDictionary:(NSDictionary*)couplet atOffset:(Vector)off;
-- (BOOL)processSceneString:(NSString*)item atOffset:(Vector)off;
+- (void)cxx_setBackgroundFromDescriptionsKey:(const std::string&)d_key;
+// Scenes (bead oo-3rb.197): a scene is an array of strings, arrays and couplet dictionaries.
+- (void)addScene:(const oo::PList&)items atOffset:(Vector)off;
+- (BOOL)processSceneDictionary:(const oo::PList&)couplet atOffset:(Vector)off;
+- (BOOL)processSceneString:(const std::string&)item atOffset:(Vector)off;
 
 @end
 
-NSString* OOComparisonTypeToString(OOComparisonType type) CONST_FUNC;
+std::string cxx_OOComparisonTypeToString(OOComparisonType type);
+
+/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
+        declared before its sweep (beads oo-3rb.190 onwards, chunks of oo-j924), forwarding to the cxx_
+        methods above, so unmigrated callers compile unchanged. Callers move to the cxx_ API in their
+        own sweep beads; the bridge goes in its own bead.
+*/
+#import "PlayerEntityLegacyScriptEngine+FoundationBridge.h"

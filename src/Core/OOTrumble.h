@@ -25,7 +25,10 @@ MA 02110-1301, USA.
 */
 
 #import "OOOpenGL.h"
+#import "oofnd/objc/OOObject.h"
 #import <Foundation/Foundation.h>
+
+#include "oofnd/PList.hpp"
 
 @class PlayerEntity, AI, OOSound, OOTexture;
 
@@ -62,7 +65,7 @@ enum trumble_mouth {
     TRUMBLE_MOUTH_NORMAL
 };
 
-@interface OOTrumble : NSObject {
+@interface OOTrumble : OOObject {
 @private
     PlayerEntity* player; // owning entity (not retained)
     //
@@ -109,9 +112,9 @@ enum trumble_mouth {
 }
 
 - (id)initForPlayer:(PlayerEntity*)p1;
-- (id)initForPlayer:(PlayerEntity*)p1 digram:(NSString*)digramString;
+- (id)initForPlayer:(PlayerEntity*)p1 digram:(const std::string&)digramString;
 
-- (void)setupForPlayer:(PlayerEntity*)p1 digram:(NSString*)digramString;
+- (void)setupForPlayer:(PlayerEntity*)p1 digram:(const std::string&)digramString;
 
 - (void)spawnFrom:(OOTrumble*)parentTrumble;
 
@@ -152,7 +155,7 @@ enum trumble_mouth {
 - (void)updateSleep:(double)delta_t;
 - (void)updateSpawn:(double)delta_t;
 
-- (NSDictionary*)dictionary;
-- (void)setFromDictionary:(NSDictionary*)dict;
+- (oo::PList)dictionary; // the savegame record: a dictionary
+- (void)setFromDictionary:(const oo::PList&)dict;
 
 @end

@@ -33,6 +33,7 @@ SOFTWARE.
 #if OO_SHADERS || defined(OO_DEBUG_MONITOR_ENABLED)
 
 #import "OOMaths.h"
+#include <objc/runtime.h>
 
 typedef enum {
     kOOShaderUniformTypeInvalid, // Not valid for bindings or constants
@@ -59,7 +60,11 @@ typedef enum {
     kOOShaderUniformTypeCount // Not valid for bindings or constants
 } OOShaderUniformType;
 
-OOShaderUniformType OOShaderUniformTypeFromMethodSignature(NSMethodSignature* signature);
+/*	The uniform type of a method's return value, from the runtime's type encoding (its
+        arguments are not considered, as the method signature object's -methodReturnType did not
+        consider them; bead oo-3rb.15). NULL gives kOOShaderUniformTypeInvalid.
+*/
+OOShaderUniformType OOShaderUniformTypeFromMethod(Method method);
 
 long long OOCallIntegerMethod(id object, SEL selector, IMP method, OOShaderUniformType type);
 double OOCallFloatMethod(id object, SEL selector, IMP method, OOShaderUniformType type);

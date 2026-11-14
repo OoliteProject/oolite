@@ -119,7 +119,11 @@ void GLUniformMatrix3(GLint location, OOMatrix M);
 OOINLINE OOMatrix OOMatrixLoadGLMatrix(GLenum matrixID) ALWAYS_INLINE_FUNC;
 
 #if __OBJC__
-NSString* OOMatrixDescription(OOMatrix matrix); // @"{{#, #, #, #}, {#, #, #, #}, {#, #, #, #}, {#, #, #, #}}"
+/*	Objective-C++ only: OOMaths.h is included inside extern "C" (proposed ADR-0043, bead oo-6283). */
+extern "C++" {
+#include "oofnd/StdLib.hpp"
+std::string OOMatrixDescription(OOMatrix matrix); // "{{#, #, #, #}, {#, #, #, #}, {#, #, #, #}, {#, #, #, #}}"
+}
 #endif
 
 // Row operations
