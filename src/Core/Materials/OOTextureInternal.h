@@ -29,46 +29,19 @@ SOFTWARE.
 
 #pragma once
 
-#import "OOOpenGLExtensionManager.h"
-#import "OOTexture.h"
+#include "OOOpenGLExtensionManager.h"
+#include "OOTexture.h"
 
-@interface OOTexture (SubclassInterface)
-
-- (void)addToCaches;
-- (void)removeFromCaches; // Must be called on -dealloc (while -cacheKey is still valid) for cacheable textures.
-
-+ (OOTexture*)existingTextureForKey:(NSString*)key;
-
-@end
-
-@interface OOTexture (SubclassResponsibilities)
-
-- (void)apply;
-- (NSSize)dimensions;
-
-- (void)forceRebind;
-
-@end
-
-@interface OOTexture (SubclassOptional)
-
-- (void)ensureFinishedLoading; // Default: does nothing
-- (BOOL)isFinishedLoading; // Default: YES
-- (NSString*)cacheKey; // Default: nil
-- (BOOL)isRectangleTexture; // Default: NO
-- (BOOL)isCubeMap; // Default: NO
-- (NSSize)texCoordsScale; // Default: 1,1
-- (struct OOPixMap)copyPixMapRepresentation; // Default: kOONullPixMap
-
-@end
+// The subclass interface (the categories SubclassInterface, SubclassResponsibilities and
+// SubclassOptional) is OOTexture's own members since bead oo-9ht.99 deleted the facade.
 
 /*	OOGenerateTextureCacheKey()
-        OOTextureCacheKeyForSpecifier()
+        cxx_OOTextureCacheKeyForSpecifier()
 
         Generate texture cache keys of the form used by normal file-based textures.
  */
-NSString* OOGenerateTextureCacheKey(NSString* directory, NSString* name, OOTextureFlags options, float anisotropy, float lodBias);
-NSString* OOTextureCacheKeyForSpecifier(id specifier);
+std::string OOGenerateTextureCacheKey(const std::optional<std::string>& directory, const std::string& name, OOTextureFlags options, float anisotropy, float lodBias);
+std::string cxx_OOTextureCacheKeyForSpecifier(const oo::PList& specifier);
 
 typedef struct OOTextureInfo {
     GLfloat anisotropyScale;

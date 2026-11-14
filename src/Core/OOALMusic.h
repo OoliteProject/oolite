@@ -5,6 +5,10 @@ OOALMusic.h
 Subclass of OOSound with additional controls specific to music playback. Only
 one instance of OOMusic may be playing at a time.
 
+C++20 since bead oo-nwbw (proposed ADR-0056, the Audio module: amendment oo-2en). The class is
+OOMusic, a subclass of OOSound; its Objective-C facade was deleted by bead oo-9ht.85, and the
+facades of the sound and the sound source it uses by beads oo-9ht.68 and oo-9ht.88.
+
 
 OOALSound - OpenAL sound implementation for Oolite.
 Copyright (C) 2005-2013 Jens Ayton
@@ -29,20 +33,37 @@ SOFTWARE.
 
 */
 
-#import "OOALSound.h"
-#import "OOSoundSource.h"
-#import <Foundation/Foundation.h>
+#ifndef OOALMUSIC_H
+#define OOALMUSIC_H
 
-@interface OOMusic : OOSound {
-@private
-    OOSound* sound;
-}
+#include "OOALSound.h"
+#include "OOFoundation.h"
+#include "OOSoundSource.h"
 
-- (void)playLooped:(BOOL)looped;
-- (void)stop;
-- (BOOL)isPlaying;
-- (void)setMusicGain:(float)newValue;
-- (float)musicGain;
-- (OOSoundSource*)musicSoundSource;
+class OOMusic : public OOSound {
+public:
+    /*	Was -cxx_initWithContentsOfFile:, OOSound's designated initialiser overridden: a music that
+            wraps the sound the root's class cluster loads for the path. Null where it answered nil. It
+            hides the root's factory of the same name (amendment oo-2en item 3).
+    */
+    static oo::Ref<OOMusic> initWithContentsOfFile(const std::optional<std::string>& inPath);
 
-@end
+    ~OOMusic() override;
+
+    std::optional<std::string> name() override;
+
+    void playLooped(bool looped);
+    void stop();
+    bool isPlaying();
+    void setMusicGain(float newValue);
+    float musicGain();
+    OOSoundSource* musicSoundSource();
+
+private:
+    OOMusic() = default;
+
+    // The sound the root's cluster made for the path, retained as before.
+    oo::Ref<OOSound> sound;
+};
+
+#endif // OOALMUSIC_H

@@ -90,45 +90,4 @@
     } while (0)
 #endif
 
-/*
-        OO_TAKES_FORMAT_STRING(stringIndex, firstToCheck): marks a function that
-        applies [NSString stringWithFormat:]-type formatting to arguments.
-
-        According to the fine manuals, mainline GCC supports basic checking of
-        NSString format strings since 4.6, but doesn't validate the arguments.
-
-        Update: apparently GCC 4.6.3 doesn't recognize Objective-C string literals
-        as being string literals for this purpose, and errors out.
-        -- Ahruman 2012-10-06
-*/
-#if __has_attribute(format) /*|| (defined(OOLITE_GCC_VERSION) && OOLITE_GCC_VERSION >= 40600)*/
-#define OO_TAKES_FORMAT_STRING(stringIndex, firstToCheck) __attribute__((format(NSString, stringIndex, firstToCheck)))
-#else
-#define OO_TAKES_FORMAT_STRING(stringIndex, firstToCheck)
-#endif
-
-#if __OBJC__
-/*	OOConsumeReference()
-        Decrements the Clang Static Analyzer's notion of an object's reference
-        count. This is used to work around cases where the analyzer claims an
-        object is being leaked but it actually isn't, due to a pattern the
-        analyzer doesn't understand (like singletons, or references being stored
-        in JavaScript objects' private field).
-        Do not use this blindly. If you aren't absolutely certain it's appropriate,
-        don't use it.
-        -- Ahruman 2011-01-28
-*/
-#if NDEBUG
-OOINLINE id OOConsumeReference(id OO_NS_CONSUMED value) ALWAYS_INLINE_FUNC;
-OOINLINE id OOConsumeReference(id OO_NS_CONSUMED value)
-{
-    return value;
-}
-#else
-// Externed to work around analyzer being too "clever" and ignoring attributes
-// when it's inlined.
-id OOConsumeReference(id OO_NS_CONSUMED value);
-#endif
-#endif
-
 #endif /* INCLUDED_OOFUNCTIONATTRIBUTES_h */

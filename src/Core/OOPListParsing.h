@@ -26,15 +26,19 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
+#pragma once
 
-// whereFrom is an optional description of the data source, for error reporting.
-id OOPropertyListFromData(NSData* data, NSString* whereFrom);
-id OOPropertyListFromFile(NSString* path);
+#include "OOFoundation.h"
 
-// Wrappers which ensure that the plist contains the right type of object.
-NSDictionary* OODictionaryFromData(NSData* data, NSString* whereFrom);
-NSDictionary* OODictionaryFromFile(NSString* path);
+#include "oofnd/Data.hpp"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 
-NSArray* OOArrayFromData(NSData* data, NSString* whereFrom);
-NSArray* OOArrayFromFile(NSString* path);
+// whereFrom is an optional description of the data source, for error reporting (nullopt reads as
+// "<data in memory>"). No data (nullopt) parses nothing. The result is null where there was no
+// property list.
+oo::PList cxx_OOPropertyListFromData(const std::optional<oo::Data>& data, const std::optional<std::string>& whereFrom);
+oo::PList cxx_OOPropertyListFromFile(const std::string& path);
+
+// The typed wrappers have no twins: test the result's kind (getIf<oo::PList::Dict> /
+// getIf<oo::PList::Array>).
