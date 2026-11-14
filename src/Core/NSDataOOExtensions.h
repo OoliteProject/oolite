@@ -31,6 +31,18 @@ SOFTWARE.
 
 @interface NSData (OOExtensions)
 
-+ (instancetype)oo_dataWithOXZFile:(NSString*)path;
++ (instancetype)oo_dataWithOXZFile:(NSString*)path; // forwards to OODataFromOXZFile()
 
 @end
+
+#ifdef __cplusplus
+#include "oofnd/Data.hpp"
+#include "oofnd/StdLib.hpp"
+
+/*	The contents of the file at path, where a path component with the extension .oxz (any case)
+        is a zip archive and the rest of the path names a file inside it (bead oo-3rb.131). nullopt
+        where +oo_dataWithOXZFile: returned nil: no such file, a directory, an empty plain file, or an
+        archive or entry that cannot be read (with the same log lines).
+*/
+std::optional<oo::Data> OODataFromOXZFile(const std::string& path);
+#endif

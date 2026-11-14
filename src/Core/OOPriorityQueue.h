@@ -39,6 +39,7 @@ SOFTWARE.
 */
 
 #import "OOFoundation.h"
+#import "oofnd/objc/OOObject.h"
 
 #ifndef OO_PQ_STRONG
 #if __has_feature(objc_arc)
@@ -48,7 +49,7 @@ SOFTWARE.
 #endif
 #endif
 
-@interface OOPriorityQueue : NSObject <NSCopying> {
+@interface OOPriorityQueue : OOObject <OOCopying> {
 @private
     SEL _comparator;
     OO_PQ_STRONG id* _heap;

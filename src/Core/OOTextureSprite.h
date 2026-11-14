@@ -24,13 +24,14 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 #import "OOOpenGL.h"
+#import "oofnd/objc/OOObject.h"
 
 @class OOTexture;
 
 #define OPEN_GL_SPRITE_MIN_WIDTH 64.0
 #define OPEN_GL_SPRITE_MIN_HEIGHT 64.0
 
-@interface OOTextureSprite : NSObject {
+@interface OOTextureSprite : OOObject {
 @private
     OOTexture* texture;
     NSSize size;

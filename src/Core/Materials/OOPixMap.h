@@ -29,6 +29,8 @@ SOFTWARE.
 
 #import "OOMaths.h"
 
+#include "oofnd/StdLib.hpp"
+
 typedef uint32_t OOPixMapDimension; // Note: dimensions are assumed to be less than 1048576 (2^20) pixels.
 
 #define OORoundUpToPowerOf2_PixMap OORoundUpToPowerOf2_32
@@ -96,7 +98,7 @@ OOINLINE void OOCompactPixMap(OOPixMap* ioPixMap) { OOResizePixMap(ioPixMap, OOM
 BOOL OOExpandPixMap(OOPixMap* ioPixMap, size_t desiredSize);
 
 #ifndef NDEBUG
-void OODumpPixMap(OOPixMap pixMap, NSString* name);
+void OODumpPixMap(OOPixMap pixMap, const std::string& name); // Foundation sweep (proposed ADR-0043, bead oo-mhqb)
 #else
 #define OODumpPixMap(p, n) \
     do {                   \
@@ -120,6 +122,6 @@ OOINLINE unsigned short OOPixMapBytesPerPixel(OOPixMap pixMap)
     return OOPixMapBytesPerPixelForFormat(pixMap.format);
 }
 
-NSString* OOPixMapFormatName(OOPixMapFormat format) PURE_FUNC;
+std::string OOPixMapFormatName(OOPixMapFormat format) PURE_FUNC;
 
 BOOL OOPixMapFormatHasAlpha(OOPixMapFormat format) PURE_FUNC;

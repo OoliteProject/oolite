@@ -25,9 +25,10 @@ SOFTWARE.
 */
 
 #import "OOOpenALController.h"
+#import "oofnd/objc/OOObject.h"
 #import <Foundation/Foundation.h>
 
-@interface OOSound : NSObject
+@interface OOSound : OOObject
 
 + (BOOL)setUp;
 + (void)update;
@@ -35,9 +36,9 @@ SOFTWARE.
 + (void)setMasterVolume:(float)fraction;
 + (float)masterVolume;
 
-- (id)initWithContentsOfFile:(NSString*)path;
+- (id)initWithContentsOfFile:(id)path; // path: an Objective-C string. Shared selector (proposed ADR-0043).
 
-- (NSString*)name;
+- (id)name; // an Objective-C string. Shared selector (proposed ADR-0043).
 
 + (BOOL)isSoundOK;
 

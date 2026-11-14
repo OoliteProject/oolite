@@ -27,9 +27,11 @@ MA 02110-1301, USA.
 #import "OOFoundation.h"
 #import "OOWeakReference.h"
 
+#include <quickjs.h>
+
 @class ShipEntity;
 
-@interface OOShipGroup : OOWeakRefObject <NSFastEnumeration> {
+@interface OOShipGroup : OOWeakRefObject {
 @private
     NSUInteger _count, _capacity;
     unsigned long _updateCount;
@@ -37,7 +39,7 @@ MA 02110-1301, USA.
     OOWeakReference* _leader;
     NSString* _name;
 
-    struct JSObject* _jsSelf;
+    JSValue _jsSelf; // Zero-filled (not an object) until created; test with JS_IsObject().
 }
 
 - (id)init;

@@ -27,6 +27,11 @@ MA 02110-1301, USA.
 
 #import "OOParticleSystem.h"
 
+#include "oofnd/PList.hpp"
+
+/*	Foundation sweep (proposed ADR-0043, bead oo-8sel): the explosion settings are an oo::PList (a
+        Dict; an empty one where the settings were nil).
+*/
 @interface OOExplosionCloudEntity : OOParticleSystem {
 @private
     float _growthRate;
@@ -34,10 +39,10 @@ MA 02110-1301, USA.
     float _alpha;
     float _brightnessMult;
     OOTexture* _texture;
-    NSDictionary* _settings;
+    oo::PList _settings;
 }
 
-+ (instancetype)explosionCloudFromEntity:(Entity*)entity withSettings:(NSDictionary*)settings;
-+ (instancetype)explosionCloudFromEntity:(Entity*)entity withSize:(float)size andSettings:(NSDictionary*)settings;
++ (instancetype)explosionCloudFromEntity:(Entity*)entity withSettings:(const oo::PList&)settings;
++ (instancetype)explosionCloudFromEntity:(Entity*)entity withSize:(float)size andSettings:(const oo::PList&)settings;
 
 @end

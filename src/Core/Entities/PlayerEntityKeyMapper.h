@@ -29,6 +29,9 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 #import "Universe.h"
 
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+
 #define MAX_ROWS_KC_FUNCTIONS 12
 
 #define GUI_ROW_KC_SELECTKBD 1
@@ -85,7 +88,7 @@ MA 02110-1301, USA.
 - (void)setGuiToKeyboardLayoutScreen:(unsigned)skip resetCurrentRow:(BOOL)resetCurrentRow;
 - (void)handleKeyboardLayoutEntryKeys:(GuiDisplayGen*)gui view:(MyOpenGLView*)gameView;
 
-- (NSString*)validateKey:(NSString*)key checkKeys:(NSArray*)check_keys;
+- (std::optional<std::string>)validateKey:(const std::string&)key checkKeys:(const oo::PList&)check_keys; // the conflicting function; nullopt: none
 
 - (NSDictionary*)makeKeyGuiDict:(NSString*)what keyDef:(NSString*)keyDef;
 - (NSDictionary*)makeKeyGuiDictHeader:(NSString*)header;
