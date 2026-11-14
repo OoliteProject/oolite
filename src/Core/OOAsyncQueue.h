@@ -30,27 +30,47 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
+#ifndef OOASYNCQUEUE_H
+#define OOASYNCQUEUE_H
 
-@interface OOAsyncQueue : NSObject {
-@private
-    NSConditionLock* _lock;
-    struct OOAsyncQueueElement *_head,
-        *_tail,
-        *_pool;
-    unsigned _elemCount,
-        _poolCount;
-}
+#import "OOFoundation.h"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
 
-- (BOOL)enqueue:(id)object; // Returns NO on failure, or if object is nil.
+class OOAsyncQueue : public oo::RefCounted {
+public:
+    OOAsyncQueue();
+    ~OOAsyncQueue() override;
 
-- (id)dequeue; // Blocks until the queue is non-empty.
-- (id)tryDequeue; // Returns nil if empty.
+    bool enqueue(id object); // Returns false on failure, or if object is nil.
 
-// Due to the asynchronous nature of the queue, these values are immediately out of date.
-- (BOOL)empty;
-- (unsigned)count;
+    id dequeue(); // Blocks until the queue is non-empty.
+    id tryDequeue(); // Returns nil if empty.
 
-- (void)emptyQueue; // Releases all elements.
+    // Due to the asynchronous nature of the queue, these values are immediately out of date.
+    bool empty();
+    unsigned count();
 
-@end
+    void emptyQueue(); // Releases all elements.
+
+    // What "%@" printed between the braces of <OOAsyncQueue 0x...>{...} (OODescription.h).
+    std::optional<std::string> descriptionComponents() const;
+
+private:
+    void doEmptyQueueWithAcquiredLock();
+    id doDequeAndUnlockWithAcquiredLock();
+    void recycleElementWithAcquiredLock(struct OOAsyncQueueElement* element);
+
+    // The Foundation condition lock as its three parts (bead oo-3rb.7): the lock, the
+    // condition value it guards (kCondition* in the .mm), and the broadcast a change makes.
+    std::mutex _lock;
+    std::condition_variable _conditionChanged;
+    int _condition = { };
+    struct OOAsyncQueueElement *_head = { },
+                               *_tail = { },
+                               *_pool = { };
+    unsigned _elemCount = { },
+             _poolCount = { };
+};
+
+#endif // OOASYNCQUEUE_H

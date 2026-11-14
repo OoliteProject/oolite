@@ -29,11 +29,14 @@ SOFTWARE.
 
 */
 
+#import "OOFoundation.h"
 #import "OOMaths.h"
 #import "OOTexture.h"
-#import <Foundation/Foundation.h>
+#import "oofnd/objc/OOObject.h"
 
-@interface OOProbabilisticTextureManager : NSObject {
+#include "oofnd/StdLib.hpp"
+
+@interface OOProbabilisticTextureManager : OOObject {
 @private
     unsigned _count;
     OOTexture** _textures;
@@ -53,12 +56,12 @@ SOFTWARE.
 
         If no seed is specified, the current seed will be copied.
 */
-- (id)initWithPListName:(NSString*)plistName
+- (id)initWithPListName:(const std::string&)plistName
                 options:(uint32_t)options
              anisotropy:(GLfloat)anisotropy
                 lodBias:(GLfloat)lodBias;
 
-- (id)initWithPListName:(NSString*)plistName
+- (id)initWithPListName:(const std::string&)plistName
                 options:(uint32_t)options
              anisotropy:(GLfloat)anisotropy
                 lodBias:(GLfloat)lodBias

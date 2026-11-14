@@ -27,6 +27,9 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 #import "OOSoundSource.h"
+#import "oofnd/objc/OOObject.h"
+
+#include "oofnd/StdLib.hpp"
 
 @class OOMusic;
 
@@ -44,29 +47,29 @@ typedef enum {
 #endif
 } OOMusicMode;
 
-@interface OOMusicController : NSObject {
+@interface OOMusicController : OOObject {
 @private
     OOMusicMode _mode;
-    NSString* _missionMusic;
+    std::optional<std::string> _missionMusic;
     OOMusic* _current;
     uint8_t _special;
 }
 
 + (OOMusicController*)sharedController;
 
-- (void)playMusicNamed:(NSString*)name loop:(BOOL)loop;
-- (void)playMusicNamed:(NSString*)name loop:(BOOL)loop gain:(float)gain;
+- (void)playMusicNamed:(const std::string&)name loop:(BOOL)loop;
+- (void)playMusicNamed:(const std::string&)name loop:(BOOL)loop gain:(float)gain;
 
 - (void)playThemeMusic;
 - (void)playDockingMusic;
 - (void)playDockedMusic;
 
-- (void)setMissionMusic:(NSString*)missionMusicName;
+- (void)cxx_setMissionMusic:(const std::optional<std::string>&)missionMusicName; // nullopt: none (was the shared selector -setMissionMusic:, bead oo-qps.53)
 - (void)playMissionMusic;
 
 - (void)justStop;
 - (void)stop;
-- (void)stopMusicNamed:(NSString*)name; // Stop only if name == playingMusic
+- (void)stopMusicNamed:(const std::string&)name; // Stop only if name == playingMusic
 - (void)stopThemeMusic;
 - (void)stopDockingMusic;
 - (void)stopMissionMusic;
@@ -75,7 +78,7 @@ typedef enum {
 
 - (OOSoundSource*)soundSource;
 
-- (NSString*)playingMusic;
+- (std::optional<std::string>)playingMusic; // nullopt: nothing playing
 - (BOOL)isPlaying;
 
 - (OOMusicMode)mode;

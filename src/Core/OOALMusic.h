@@ -30,8 +30,8 @@ SOFTWARE.
 */
 
 #import "OOALSound.h"
+#import "OOFoundation.h"
 #import "OOSoundSource.h"
-#import <Foundation/Foundation.h>
 
 @interface OOMusic : OOSound {
 @private

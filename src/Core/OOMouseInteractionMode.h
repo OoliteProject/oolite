@@ -23,7 +23,16 @@ MA 02110-1301, USA.
 
 */
 
+#ifdef __OBJC__
 #import "OOFoundation.h"
+#else
+/*	Plain C++ translation unit (OOMouseInteractionMode.cpp, ADR-0012): only BOOL is needed, and OOFoundation.h
+        imports Foundation, which does not compile outside Objective-C.
+*/
+#include <objc/runtime.h> // BOOL
+#endif
+
+#include "oofnd/StdLib.hpp"
 
 /*
         OOMouseInteractionMode
@@ -49,6 +58,6 @@ typedef enum {
     MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL
 } OOMouseInteractionMode;
 
-NSString* OOStringFromMouseInteractionMode(OOMouseInteractionMode mode);
+std::string OOStringFromMouseInteractionMode(OOMouseInteractionMode mode);
 BOOL OOMouseInteractionModeIsUIScreen(OOMouseInteractionMode mode);
 BOOL OOMouseInteractionModeIsFlightMode(OOMouseInteractionMode mode);

@@ -1,6 +1,6 @@
 /*
 
-OOJSExhaustPlume.h
+OOJSExhaustPlume.h (QuickJS-ng)
 
 JavaScript proxy for OOExhaustPlumeEntity.
 
@@ -25,15 +25,18 @@ MA 02110-1301, USA.
 */
 
 #import "OOExhaustPlumeEntity.h"
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+#import "OOFoundation.h"
+#include <quickjs.h>
 
-void InitOOJSExhaustPlume(JSContext* context, JSObject* global);
+void InitOOJSExhaustPlume(JSContext* context, JSValueConst global);
+
+JSClassID JSExhaustPlumeClassID(void);
 
 @interface OOExhaustPlumeEntity (OOJavaScriptExtensions)
 
-- (void)getJSClass:(JSClass**)outClass andPrototype:(JSObject**)outPrototype;
-- (NSString*)oo_jsClassName;
+// Replaces SpiderMonkey's -getJSClass:andPrototype:.
+- (JSClassID)oo_jsClassID;
+- (std::optional<std::string>)cxx_oo_jsClassName;
 - (BOOL)isVisibleToScripts;
 
 @end

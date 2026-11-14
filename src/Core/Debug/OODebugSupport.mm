@@ -1,0 +1,122 @@
+/*
+
+OODebugSupport.m
+
+
+Copyright (C) 2007-2013 Jens Ayton
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+*/
+
+#ifdef OO_DEBUG_MONITOR_ENABLED
+
+#import "OODebugSupport.h"
+#import "GameController.h"
+#import "OODebugMonitor.h"
+#import "OODebugTCPConsoleClient.h"
+#import "OOJavaScriptEngine.h"
+#import "ResourceManager.h"
+
+#include "oofnd/Log.hpp"
+#include "oofnd/PListGet.hpp"
+
+#if OOLITE_MAC_COCOA_UI
+static id LoadDebugPlugIn(void);
+#else
+#define LoadDebugPlugIn() nil
+#endif
+
+static id sDebugPlugInController;
+
+@interface OOObject (OODebugPlugInController)
+
+- (id<OODebuggerInterface>)setUpDebugger;
+
+@end
+
+void OOInitDebugSupport(void)
+{
+    std::optional<std::string> debugOXPPath;
+    oo::PList debugSettings;
+    std::optional<std::string> consoleHost;
+    unsigned short consolePort = 0;
+    id<OODebuggerInterface> debugger = nil;
+    BOOL activateDebugConsole = NO;
+
+    // Load debug settings.
+    debugSettings = [ResourceManager cxx_dictionaryFromFilesNamed:"debugConfig.plist"
+                                                         inFolder:"Config"
+                                                        mergeMode:MERGE_BASIC
+                                                            cache:NO];
+
+    // Check that the debug OXP is installed. If not, we don't enable debug support.
+    debugOXPPath = [ResourceManager cxx_pathForFileNamed:"DebugOXPLocatorBeacon.magic" inFolder:"nil"];
+    if (debugOXPPath.has_value()) {
+        // Load plug-in debugging code on platforms where this is supported.
+        sDebugPlugInController = [(id)LoadDebugPlugIn() retain];
+
+        // oo_stringForKey: a string, or a number's string value; nil for anything else.
+        const oo::PList* consoleHostValue = debugSettings.get<oo::PList>("console-host");
+        if (consoleHostValue != nullptr && (consoleHostValue->isString() || consoleHostValue->isNumber())) {
+            consoleHost = debugSettings.get<std::string>("console-host");
+        }
+        consolePort = debugSettings.get<unsigned short>("console-port");
+
+        // If consoleHost is nil, and the debug plug-in can set up a debugger, use that.
+        if (!consoleHost.has_value() && [sDebugPlugInController respondsToSelector:@selector(setUpDebugger)]) {
+            debugger = [sDebugPlugInController setUpDebugger];
+            [[OODebugMonitor sharedDebugMonitor] setUsingPlugInController:YES];
+        }
+
+        // Otherwise, use TCP debugger connection.
+        if (debugger == nil) {
+            debugger = [[OODebugTCPConsoleClient alloc] initWithAddress:consoleHost
+                                                                   port:consolePort];
+            [debugger autorelease];
+            [[OODebugMonitor sharedDebugMonitor] setUsingPlugInController:NO];
+        }
+
+        activateDebugConsole = (debugger != nil);
+    }
+
+    if (!activateDebugConsole) {
+        activateDebugConsole = debugSettings.get<bool>("always-load-debug-console");
+    }
+
+    if (activateDebugConsole) {
+        // Set up monitor and register debugger, if any.
+        [[OODebugMonitor sharedDebugMonitor] setDebugger:debugger];
+        [[OOJavaScriptEngine sharedEngine] enableDebuggerStatement];
+    }
+}
+
+#if OOLITE_MAC_COCOA_UI
+
+static id LoadDebugPlugIn()
+{
+    // Mac Contents/PlugIns/Debug.bundle load used the application bundle APIs; ResourcePaths
+    // (ADR-0017) covers the SDL layout only. Until a PlugIns root exists there, skip the load.
+    OO_LOG("debugSupport.load.failed", "{}", "Debug plug-in load is unavailable on this platform layout.");
+    return nil;
+}
+
+#endif
+
+#endif /* OO_DEBUG_MONITOR_ENABLED */

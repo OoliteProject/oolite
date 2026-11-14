@@ -34,13 +34,17 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 #import "OOOpenGL.h"
+#include "oofnd/PList.hpp"
+#import "oofnd/objc/OOObject.h"
 
 @class OOColor;
 
-@interface TextureStore : NSObject
+@interface TextureStore : OOObject
 
 // routines to create textures...
-+ (BOOL)getPlanetTextureNameFor:(NSDictionary*)planetInfo
+// planetInfo: a dictionary whose colours are Object nodes holding OOColors (OOObjCPList.h) and
+// whose land_fraction is a number (bead oo-qps.52).
++ (BOOL)getPlanetTextureNameFor:(const oo::PList&)planetInfo
                        intoData:(unsigned char**)textureData
                           width:(GLuint*)textureWidth
                          height:(GLuint*)textureHeight;

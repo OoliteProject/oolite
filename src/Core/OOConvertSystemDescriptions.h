@@ -39,12 +39,14 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
+#import "OOFoundation.h"
 
-NSArray* OOConvertSystemDescriptionsToArrayFormat(NSDictionary* descriptionsInDictionaryFormat, NSDictionary* indicesToKeys);
-NSDictionary* OOConvertSystemDescriptionsToDictionaryFormat(NSArray* descriptionsInArrayFormat, NSDictionary* indicesToKeys);
+#include "oofnd/PList.hpp"
 
-NSString* OOStringifySystemDescriptionLine(NSString* line, NSDictionary* indicesToKeys, BOOL useFallback);
+oo::PList OOConvertSystemDescriptionsToArrayFormat(const oo::PList& descriptionsInDictionaryFormat, const oo::PList& indicesToKeys); // an array
+oo::PList OOConvertSystemDescriptionsToDictionaryFormat(const oo::PList& descriptionsInArrayFormat, const oo::PList& indicesToKeys); // a dictionary
+
+std::string OOStringifySystemDescriptionLine(const std::string& line, const oo::PList& indicesToKeys, BOOL useFallback);
 
 //	Higher-level functions to drive the entire conversion.
 void CompileSystemDescriptions(BOOL asXML);
