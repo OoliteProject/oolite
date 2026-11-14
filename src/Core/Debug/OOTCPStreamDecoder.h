@@ -28,8 +28,7 @@ SOFTWARE.
 
 */
 
-#ifndef INCLUDED_OOTCPStreamDecoder_h
-#define INCLUDED_OOTCPStreamDecoder_h
+#pragma once
 
 #include "OOTCPStreamDecoderAbstractionLayer.h"
 
@@ -44,5 +43,3 @@ void OOTCPStreamDecoderDestroy(OOTCPStreamDecoderRef decoder);
 
 void OOTCPStreamDecoderReceiveData(OOTCPStreamDecoderRef decoder, OOALDataRef data);
 void OOTCPStreamDecoderReceiveBytes(OOTCPStreamDecoderRef decoder, const void* bytes, size_t length);
-
-#endif /* INCLUDED_OOTCPStreamDecoder_h */

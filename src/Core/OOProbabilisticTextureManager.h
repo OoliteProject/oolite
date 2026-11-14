@@ -6,7 +6,6 @@ Manages a set of textures, specified in a property list, with associated
 probabilities. To avoid interfering with other PRNG-based code, it uses its
 own ranrot state.
 
-
 Copyright (C) 2007-2013 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -29,50 +28,75 @@ SOFTWARE.
 
 */
 
-#import "OOMaths.h"
-#import "OOTexture.h"
-#import <Foundation/Foundation.h>
+#pragma once
 
-@interface OOProbabilisticTextureManager : NSObject {
-@private
-    unsigned _count;
-    OOTexture** _textures;
-    float* _prob;
-    int* _galaxy;
-    float _probMax;
-    float* _probMaxGal;
-    RANROTSeed _seed;
-}
+#include "OOFoundation.h"
+#include "OOMaths.h"
+#include "OOOpenGL.h"
+#include "oofnd/objc/OOObject.h"
 
-/*	plistName is the name of the property list specifying the actual textures
-        to use. The plist will be loaded from Config directories and merged. It
-        should contain an array of dictionaries; each dictionary must have a
-        "texture" entry specifying the texture file name (in Textures directories)
-        and an optional "probability" entry (default: 1.0). As a convenience, an
-        entry may also be a string, in which case probability will be 1.0.
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
 
-        If no seed is specified, the current seed will be copied.
-*/
-- (id)initWithPListName:(NSString*)plistName
-                options:(uint32_t)options
-             anisotropy:(GLfloat)anisotropy
-                lodBias:(GLfloat)lodBias;
+#include <optional>
+#include <string>
 
-- (id)initWithPListName:(NSString*)plistName
-                options:(uint32_t)options
-             anisotropy:(GLfloat)anisotropy
-                lodBias:(GLfloat)lodBias
-                   seed:(RANROTSeed)seed;
+class OOTexture;
 
-/*	Select a texture, weighted-randomly.
- */
-- (OOTexture*)selectTexture;
+class OOProbabilisticTextureManager : public oo::RefCounted {
+public:
+    /*	plistName is the name of the property list specifying the actual textures
+            to use. The plist will be loaded from Config directories and merged. It
+            should contain an array of dictionaries; each dictionary must have a
+            "texture" entry specifying the texture file name (in Textures directories)
+            and an optional "probability" entry (default: 1.0). As a convenience, an
+            entry may also be a string, in which case probability will be 1.0.
 
-- (unsigned)textureCount;
+            If no seed is specified, the current seed will be copied.
 
-- (void)ensureTexturesLoaded;
+            Null where no texture loads (-initWithPListName:... answered nil).
+    */
+    static oo::Ref<OOProbabilisticTextureManager> createWithPListName(const std::string& plistName,
+        uint32_t options,
+        GLfloat anisotropy,
+        GLfloat lodBias);
 
-- (RANROTSeed)seed;
-- (void)setSeed:(RANROTSeed)seed;
+    static oo::Ref<OOProbabilisticTextureManager> createWithPListName(const std::string& plistName,
+        uint32_t options,
+        GLfloat anisotropy,
+        GLfloat lodBias,
+        RANROTSeed seed);
 
-@end
+    /*	Select a texture, weighted-randomly.
+     */
+    OOTexture* selectTexture();
+
+    unsigned textureCount();
+
+    void ensureTexturesLoaded();
+
+    RANROTSeed seed();
+    void setSeed(RANROTSeed seed);
+
+    // What OOObject's -description printed between the braces (OODescription.h).
+    std::optional<std::string> descriptionComponents() const;
+
+    ~OOProbabilisticTextureManager() override;
+
+private:
+    OOProbabilisticTextureManager() = default; // createWithPListName() runs initWithPListName()
+
+    bool initWithPListName(const std::string& plistName,
+        uint32_t options,
+        GLfloat anisotropy,
+        GLfloat lodBias,
+        RANROTSeed seed);
+
+    unsigned _count = { };
+    OOTexture** _textures = { };
+    float* _prob = { };
+    int* _galaxy = { };
+    float _probMax = { };
+    float* _probMaxGal = { };
+    RANROTSeed _seed = { };
+};

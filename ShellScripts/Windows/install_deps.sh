@@ -42,7 +42,7 @@ run_script() {
 
     pacman -Syu --noconfirm
     pacman -S --noconfirm dos2unix git jq pactoys unzip
-    pacboy -S --noconfirm binutils curl espeak-ng libffi libpng libvorbis mesa meson ninja nsis ntldd openal pcaudiolib python-pip sdl3 shared-mime-info
+    pacboy -S --noconfirm binutils curl espeak-ng icu libffi libpng libvorbis mesa meson ninja nsis ntldd openal pcaudiolib python-pip sdl3 shared-mime-info
     pacboy -S --noconfirm doxygen graphviz
     mkdir -p ../../build/packages
     cd ../../build
@@ -59,14 +59,6 @@ run_script() {
         curl -L "$url" -o "$clean_filename"
     done
 
-    echo "Installing common packages"
-    local package_names=(spidermonkey)
-    for packagename in "${package_names[@]}"; do
-        if ! install $packagename; then
-            return 1
-        fi
-    done
-
     if [[ -z "$1" || "$1" == "clang" ]]; then
         pacboy -S clang --noconfirm
         pacboy -S lld --noconfirm
@@ -74,7 +66,7 @@ run_script() {
         echo "Installing GNUStep libraries with clang"
         export cc=$MINGW_PREFIX/bin/clang
         export cxx=$MINGW_PREFIX/bin/clang++
-        local clang_package_names=(libobjc2 gnustep-make gnustep-base)
+        local clang_package_names=(libobjc2 gnustep-make)
         for packagename in "${clang_package_names[@]}"; do
             if ! install $packagename clang; then
                 return 1
@@ -85,7 +77,7 @@ run_script() {
         echo "Installing GNUStep libraries with gcc"
         export cc=$MINGW_PREFIX/bin/gcc
         export cxx=$MINGW_PREFIX/bin/g++
-        local gcc_package_names=(gnustep-make gnustep-base)
+        local gcc_package_names=(gnustep-make)
         for packagename in "${gcc_package_names[@]}"; do
             if ! install $packagename gcc; then
                 return 1

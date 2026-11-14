@@ -7,6 +7,8 @@
         This data may be used freely.
 */
 
+#pragma once
+
 #include "OOOpenGLOnly.h"
 
 #define kOOPlanetDataLevels 6
