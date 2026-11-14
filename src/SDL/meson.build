@@ -1,12 +1,13 @@
 # Generated Meson configuration for sub-module: SDL
 
 oolite_sources += files(
-    'Comparison.m',
-    'GameController+SDLFullScreen.m',
-    'MyOpenGLView.m',
-    'MyOpenGLView+Input.m',
-    'OOSDLJoystickManager.m',
-    'main.m',
+    'GameController+SDLFullScreen.mm',
+    'MyOpenGLView.mm',
+    'MyOpenGLView+ObjCBridge.mm',
+    'MyOpenGLView+Input.mm',
+    'OOSDLJoystickManager.mm',
+    'OOSDLJoystickManager+ObjCBridge.mm',
+    'main.mm',
 )
 
 oolite_includes += include_directories('.')

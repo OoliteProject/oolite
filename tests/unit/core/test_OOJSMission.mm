@@ -1,0 +1,1033 @@
+/*	test_OOJSMission.mm
+	Unit tests for the mission JS binding (src/Core/Scripting/OOJSMission.h/.mm): bead oo-nge8,
+	converted the way bead oo-ppc converted OOJSVector (proposed ADR-0056 amendment oo-ppc).
+
+	As the binding tests of amendment oo-ppc item 6 do, it runs the JS class in a real QuickJS-ng
+	context, and links the game's own objects for the binding, the engine's class registry
+	(OOJSClasses.mm), its exception translator (OOJSEngineNativeWrappers.mm) and the constant
+	strings (OOConstToJSString.cpp). It stands in for the player (PlayerEntity records
+	what the binding tells it), the universe and its GUI, a demo ship, the running script and the
+	script engine (OOJSScript and OOJavaScriptEngine, which call the mission screen's callback),
+	the music controller (amendment oo-jy98 item 3: a converted class the binding only calls, an
+	Objective-C stand-in before the conversion and C++ member stand-ins after it, which is the one
+	part of this file the conversion ported), the string
+	expander, the standards switches and the engine functions the binding links against, with the
+	engine headers' linkage; the log is captured with oo::log::logger().setSink. The expectations
+	were written against the Objective-C file and run on it first; they pin the JS-visible
+	behaviour: the mission object and its properties, markSystem()/unmarkSystem() with numbers and
+	markers, addMessageText(), setInstructions()/setInstructionsKey() in each form, runScreen()
+	(its settings, its errors, and the callback MissionRunCallback() makes, including an exception
+	in it, which is logged and ignored), runShipLibrary(), and a native's exception.
+	Run: bash tools/check-core-tests.sh
+*/
+
+#import "OOFoundation.h"
+#import "oofnd/objc/OOObject.h"
+#include <objc/runtime.h>
+#include "OOMaths.h"
+#include "OOTypes.h"
+#include "OOEntityEnums.h"
+#include <quickjs.h>
+#include "oofnd/objc/OOException.h"
+#include "oofnd/Log.hpp"
+#include "oofnd/PList.hpp"
+#include "oofnd/String.hpp"
+#import "OOConstToJSString.h"
+#import "OOStringExpander.h"
+
+
+// MARK: The classes, as far as the binding sees them ----------------------------------------------
+
+typedef NSInteger OOGUIRow;	// as GuiDisplayGen.h declares it
+
+
+@interface ShipEntity: OOObject
+{
+@public
+	uint16_t _personality;
+	JSValue _jsSelf;	// owned; zero-filled (not an object) until made
+}
+- (void) setEntityPersonalityInt:(uint16_t)value;
+- (JSValue) oo_jsValueInContext:(JSContext *)context;	// owned by the caller
+@end
+
+
+/*	The player: it records what it is told, as "selector(arguments)" lines. While _raise is set,
+	-cxx_missionScreenID raises, and while _throwCxx is set it throws a C++ exception, so the test
+	sees what an exception under a native becomes.
+*/
+@interface PlayerEntity: ShipEntity
+{
+@public
+	std::vector<std::string> _calls;
+	OOEntityStatus _status;
+	oo::PList::Dict _destinations;
+	std::optional<std::string> _screenID;
+	OOGUIScreenID _exitScreen;
+	oo::PList _choice;
+	oo::PList _keyPress;
+	BOOL _removeFails;
+	BOOL _raise;
+	BOOL _throwCxx;
+}
+- (void) setScriptTarget:(ShipEntity *)ship;
+- (OOEntityStatus) status;
+- (oo::PList) cxx_getMissionDestinations;
+- (std::optional<std::string>) cxx_missionScreenID;
+- (OOGUIScreenID) missionExitScreen;
+- (void) setMissionExitScreen:(OOGUIScreenID)screen;
+- (void) cxx_addMissionDestinationMarker:(const oo::PList &)marker;
+- (oo::PList) cxx_defaultMarker:(OOSystemID)system;
+- (BOOL) cxx_removeMissionDestinationMarker:(const oo::PList &)marker;
+- (void) addLiteralMissionText:(const std::string &)text;
+- (void) setMissionDescription:(const std::string &)textKey forMission:(const std::optional<std::string> &)key;
+- (void) cxx_setMissionInstructions:(const std::string &)text forMission:(const std::optional<std::string> &)key;
+- (void) cxx_setMissionInstructionsList:(const oo::PList &)list forMission:(const std::optional<std::string> &)key;
+- (void) clearMissionDescriptionForMission:(const std::string &)key;
+- (void) cxx_setMissionTitle:(const std::optional<std::string> &)value;
+- (void) cxx_setMissionOverlayDescriptor:(const oo::PList &)descriptor;
+- (void) cxx_setMissionBackgroundDescriptor:(const oo::PList &)descriptor;
+- (void) cxx_setMissionBackgroundSpecial:(const std::string &)special;
+- (void) setCustomChartZoom:(OOScalar)zoom;
+- (void) setCustomChartCentre:(NSPoint)coords;
+- (NSPoint) galaxy_coordinates;
+- (void) cxx_setMissionScreenID:(const std::optional<std::string> &)msid;
+- (void) clearMissionScreenID;
+- (void) clearExtraMissionKeys;
+- (void) cxx_setExtraMissionKeys:(const oo::PList &)keys;
+- (void) setMissionChoiceByTextEntry:(BOOL)enable;
+- (void) setGuiToMissionScreenWithCallback:(BOOL)callback;
+- (void) allowMissionInterrupt;
+- (void) addMissionText:(const std::string &)textKey;
+- (void) setMissionChoices:(const std::string &)choicesKey;
+- (void) cxx_setMissionChoicesDictionary:(const oo::PList &)choicesDict;
+- (void) setMissionMusic:(const std::string &)value;
+- (void) setGuiToIntroFirstGo:(BOOL)justCobra;
+- (oo::PList) missionChoice_string;
+- (oo::PList) missionKeyPress_string;
+- (void) cxx_setMissionChoice:(const std::optional<std::string> &)newChoice keyPress:(const std::optional<std::string> &)keyPress withEvent:(BOOL)withEvent;
+@end
+
+
+@interface GuiDisplayGen: OOObject
+{
+@public
+	std::vector<std::string> _calls;
+}
+- (oo::PList) cxx_textureDescriptorFromJSValue:(JSValue)value inContext:(JSContext *)context callerDescription:(const std::optional<std::string> &)callerDescription;
+- (OOGUIRow) cxx_rowForKey:(const std::optional<std::string> &)key;
+- (BOOL) setSelectedRow:(OOGUIRow)row;
+@end
+
+
+@interface Universe: OOObject
+{
+@public
+	GuiDisplayGen *_gui;
+	ShipEntity *_demoShip;
+	std::vector<std::string> _calls;
+}
+- (GuiDisplayGen *) gui;
+- (oo::PList) cxx_missiontext;
+- (void) removeDemoShips;
+- (ShipEntity *) cxx_makeDemoShipWithRole:(const std::string &)role spinning:(BOOL)spinning;
+@end
+
+
+@interface OOJSScript: OOObject
+{
+@public
+	std::optional<std::string> _name;
+}
++ (OOJSScript *) currentlyRunningScript;
++ (void) pushScript:(OOJSScript *)script;
++ (void) popScript:(OOJSScript *)script;
+- (std::optional<std::string>) cxx_name;
+- (id) weakRefUnderlyingObject;
+@end
+
+
+/*	The engine calls the mission screen's callback. While _raise is set it raises instead, as a
+	script error could, which MissionRunCallback() logs and ignores.
+*/
+@interface OOJavaScriptEngine: OOObject
+{
+@public
+	int _calls;
+	BOOL _raise;
+}
++ (OOJavaScriptEngine *) sharedEngine;
+- (BOOL) callJSFunction:(JSValueConst)function forObject:(JSValueConst)jsThis argc:(int)argc argv:(JSValueConst *)argv result:(JSValue *)outResult;
+@end
+
+
+// The music controller, a converted class the binding only calls (amendment oo-jy98 item 3): the
+// members the binding calls are defined below.
+#import "OOMusicController.h"
+
+
+#include "OOJSEngineCore.h"
+#import "OOJSMission.h"
+
+#include "oo_test.hpp"
+
+#include <cmath>
+#include <cstdarg>
+#include <cstdint>
+#include <cstring>
+#include <map>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+
+namespace {
+
+std::vector<std::string> sMusic;			// what the music controller was told
+std::vector<std::string> sScriptStack;		// pushScript:/popScript:, as "+name"/"-name"
+std::vector<std::string> sLog;
+OOJSScript *sRunningScript = nil;
+JSContext *sContext = nullptr;
+
+
+std::string Describe(const oo::PList &plist)
+{
+	if (plist.isNull())  return "null";
+	if (const std::string *str = plist.getIf<std::string>())  return "'" + *str + "'";
+	if (const bool *boolean = plist.getIf<bool>())  return *boolean ? "true" : "false";
+	if (plist.isNumber())  return oo::str::format("%g", plist.doubleValue());
+	if (const oo::PList::Array *array = plist.getIf<oo::PList::Array>())
+	{
+		std::string result = "[";
+		for (const oo::PList &element : *array)  result += (result.size() > 1 ? "," : "") + Describe(element);
+		return result + "]";
+	}
+	if (const oo::PList::Dict *dict = plist.getIf<oo::PList::Dict>())
+	{
+		std::string result = "{";
+		for (const auto &[key, value] : *dict)  result += (result.size() > 1 ? "," : "") + key + ":" + Describe(value);
+		return result + "}";
+	}
+	return "?";
+}
+
+
+std::string Optional(const std::optional<std::string> &string)
+{
+	return string.has_value() ? "'" + *string + "'" : "nullopt";
+}
+
+
+oo::PList Dict(std::initializer_list<std::pair<const char *, oo::PList>> entries)
+{
+	oo::PList::Dict dict;
+	for (const auto &[key, value] : entries)  dict[key] = value;
+	return oo::PList(std::move(dict));
+}
+
+
+std::string Take(std::vector<std::string> &calls)
+{
+	std::string result;
+	for (const std::string &call : calls)  result += (result.empty() ? "" : "; ") + call;
+	calls.clear();
+	return result;
+}
+
+
+void CaptureLog(std::string_view line)
+{
+	sLog.emplace_back(line);
+}
+
+}	// namespace
+
+
+@implementation ShipEntity
+
+- (void) setEntityPersonalityInt:(uint16_t)value  { _personality = value; }
+
+- (JSValue) oo_jsValueInContext:(JSContext *)context
+{
+	if (!JS_IsObject(_jsSelf))
+	{
+		_jsSelf = JS_NewObject(context);
+		JS_SetPropertyStr(context, _jsSelf, "name", JS_NewString(context, "demo ship"));
+	}
+	return JS_DupValue(context, _jsSelf);
+}
+
+@end
+
+
+@implementation PlayerEntity
+
+- (void) setScriptTarget:(ShipEntity *)ship  { (void)ship; }
+- (OOEntityStatus) status  { return _status; }
+- (oo::PList) cxx_getMissionDestinations  { return oo::PList(_destinations); }
+
+- (std::optional<std::string>) cxx_missionScreenID
+{
+	if (_raise)  [OOException raise:OOInvalidArgumentException format:"screen %s", "boom"];
+	if (_throwCxx)  throw std::runtime_error("cxx boom");
+	return _screenID;
+}
+
+- (OOGUIScreenID) missionExitScreen  { return _exitScreen; }
+- (void) setMissionExitScreen:(OOGUIScreenID)screen  { _exitScreen = screen; _calls.push_back(oo::str::format("exitScreen(%d)", static_cast<int>(screen))); }
+
+- (void) cxx_addMissionDestinationMarker:(const oo::PList &)marker
+{
+	_calls.push_back("addMarker(" + Describe(marker) + ")");
+	_destinations[oo::str::format("%d", marker.get<int>("system", -1))] = marker;
+}
+
+- (oo::PList) cxx_defaultMarker:(OOSystemID)system  { return Dict({ { "system", oo::PList(static_cast<int>(system)) }, { "name", oo::PList("default") } }); }
+
+- (BOOL) cxx_removeMissionDestinationMarker:(const oo::PList &)marker
+{
+	_calls.push_back("removeMarker(" + Describe(marker) + ")");
+	_destinations.erase(oo::str::format("%d", marker.get<int>("system", -1)));
+	return !_removeFails;
+}
+
+- (void) addLiteralMissionText:(const std::string &)text  { _calls.push_back("literalText('" + text + "')"); }
+- (void) setMissionDescription:(const std::string &)textKey forMission:(const std::optional<std::string> &)key  { _calls.push_back("description('" + textKey + "', " + Optional(key) + ")"); }
+- (void) cxx_setMissionInstructions:(const std::string &)text forMission:(const std::optional<std::string> &)key  { _calls.push_back("instructions('" + text + "', " + Optional(key) + ")"); }
+- (void) cxx_setMissionInstructionsList:(const oo::PList &)list forMission:(const std::optional<std::string> &)key  { _calls.push_back("instructionsList(" + Describe(list) + ", " + Optional(key) + ")"); }
+- (void) clearMissionDescriptionForMission:(const std::string &)key  { _calls.push_back("clearDescription('" + key + "')"); }
+- (void) cxx_setMissionTitle:(const std::optional<std::string> &)value  { _calls.push_back("title(" + Optional(value) + ")"); }
+- (void) cxx_setMissionOverlayDescriptor:(const oo::PList &)descriptor  { _calls.push_back("overlay(" + Describe(descriptor) + ")"); }
+- (void) cxx_setMissionBackgroundDescriptor:(const oo::PList &)descriptor  { _calls.push_back("background(" + Describe(descriptor) + ")"); }
+- (void) cxx_setMissionBackgroundSpecial:(const std::string &)special  { _calls.push_back("backgroundSpecial('" + special + "')"); }
+- (void) setCustomChartZoom:(OOScalar)zoom  { _calls.push_back(oo::str::format("chartZoom(%g)", static_cast<double>(zoom))); }
+- (void) setCustomChartCentre:(NSPoint)coords  { _calls.push_back(oo::str::format("chartCentre(%g, %g)", static_cast<double>(coords.x), static_cast<double>(coords.y))); }
+- (NSPoint) galaxy_coordinates  { return NSMakePoint(10, 20); }
+- (void) cxx_setMissionScreenID:(const std::optional<std::string> &)msid  { _calls.push_back("screenID(" + Optional(msid) + ")"); }
+- (void) clearMissionScreenID  { _calls.push_back("clearScreenID"); }
+- (void) clearExtraMissionKeys  { _calls.push_back("clearExtraKeys"); }
+- (void) cxx_setExtraMissionKeys:(const oo::PList &)keys  { _calls.push_back("extraKeys(" + Describe(keys) + ")"); }
+- (void) setMissionChoiceByTextEntry:(BOOL)enable  { _calls.push_back(enable ? "textEntry(YES)" : "textEntry(NO)"); }
+- (void) setGuiToMissionScreenWithCallback:(BOOL)callback  { _calls.push_back(callback ? "missionScreen(YES)" : "missionScreen(NO)"); }
+- (void) allowMissionInterrupt  { _calls.push_back("allowInterrupt"); }
+- (void) addMissionText:(const std::string &)textKey  { _calls.push_back("text('" + textKey + "')"); }
+- (void) setMissionChoices:(const std::string &)choicesKey  { _calls.push_back("choices('" + choicesKey + "')"); }
+- (void) cxx_setMissionChoicesDictionary:(const oo::PList &)choicesDict  { _calls.push_back("choicesDict(" + Describe(choicesDict) + ")"); }
+- (void) setMissionMusic:(const std::string &)value  { _calls.push_back("missionMusic('" + value + "')"); }
+- (void) setGuiToIntroFirstGo:(BOOL)justCobra  { _calls.push_back(justCobra ? "introFirstGo(YES)" : "introFirstGo(NO)"); }
+- (oo::PList) missionChoice_string  { return _choice; }
+- (oo::PList) missionKeyPress_string  { return _keyPress; }
+
+- (void) cxx_setMissionChoice:(const std::optional<std::string> &)newChoice keyPress:(const std::optional<std::string> &)keyPress withEvent:(BOOL)withEvent
+{
+	_calls.push_back("choice(" + Optional(newChoice) + ", " + Optional(keyPress) + (withEvent ? ", YES)" : ", NO)"));
+}
+
+@end
+
+
+@implementation GuiDisplayGen
+
+- (oo::PList) cxx_textureDescriptorFromJSValue:(JSValue)value inContext:(JSContext *)context callerDescription:(const std::optional<std::string> &)callerDescription
+{
+	_calls.push_back("texture(" + Optional(callerDescription) + ")");
+	if (JS_IsNull(value) || JS_IsUndefined(value))  return oo::PList();
+	const char *chars = JS_ToCString(context, value);
+	std::string name = chars != nullptr ? chars : "";
+	JS_FreeCString(context, chars);
+	return Dict({ { "name", oo::PList(name) } });
+}
+
+- (OOGUIRow) cxx_rowForKey:(const std::optional<std::string> &)key
+{
+	_calls.push_back("rowForKey(" + Optional(key) + ")");
+	return key == std::optional<std::string>("2_NO") ? 7 : -1;
+}
+
+- (BOOL) setSelectedRow:(OOGUIRow)row
+{
+	_calls.push_back(oo::str::format("selectRow(%ld)", static_cast<long>(row)));
+	return YES;
+}
+
+@end
+
+
+@implementation Universe
+
+- (GuiDisplayGen *) gui  { return _gui; }
+- (oo::PList) cxx_missiontext  { return Dict({ { "mission_title", oo::PList("The [name] Job") }, { "mission_number", oo::PList(12) } }); }
+- (void) removeDemoShips  { _calls.push_back("removeDemoShips"); }
+
+- (ShipEntity *) cxx_makeDemoShipWithRole:(const std::string &)role spinning:(BOOL)spinning
+{
+	_calls.push_back("demoShip('" + role + "', " + (spinning ? "YES)" : "NO)"));
+	return role == "none" ? nil : _demoShip;
+}
+
+@end
+
+
+@implementation OOJSScript
+
++ (OOJSScript *) currentlyRunningScript  { return sRunningScript; }
++ (void) pushScript:(OOJSScript *)script  { sScriptStack.push_back("+" + (script != nil ? script->_name.value_or("?") : std::string("nil"))); }
++ (void) popScript:(OOJSScript *)script  { sScriptStack.push_back("-" + (script != nil ? script->_name.value_or("?") : std::string("nil"))); }
+- (std::optional<std::string>) cxx_name  { return _name; }
+- (id) weakRefUnderlyingObject  { return self; }
+
+@end
+
+
+namespace {
+OOJavaScriptEngine *sEngine = nil;
+}
+
+@implementation OOJavaScriptEngine
+
++ (OOJavaScriptEngine *) sharedEngine  { return sEngine; }
+
+- (BOOL) callJSFunction:(JSValueConst)function forObject:(JSValueConst)jsThis argc:(int)argc argv:(JSValueConst *)argv result:(JSValue *)outResult
+{
+	_calls++;
+	if (_raise)  [OOException raise:OOInvalidArgumentException format:"callback %s", "boom"];
+	JSValue result = JS_Call(sContext, function, jsThis, argc, argv);
+	if (JS_IsException(result))
+	{
+		JS_FreeValue(sContext, JS_GetException(sContext));	// the engine reports and clears it
+		if (outResult != nullptr)  *outResult = JS_UNDEFINED;
+		return NO;
+	}
+	if (outResult != nullptr)  *outResult = result;
+	else  JS_FreeValue(sContext, result);
+	return YES;
+}
+
+@end
+
+
+cxx::OOMusicController::OOMusicController()
+{
+}
+
+
+cxx::OOMusicController *cxx::OOMusicController::sharedController()
+{
+	static cxx::OOMusicController *shared = new cxx::OOMusicController();	// never released, as the game's
+	return shared;
+}
+
+
+void cxx::OOMusicController::setMissionMusic(const std::optional<std::string> &missionMusicName)
+{
+	sMusic.push_back(Optional(missionMusicName));
+}
+
+
+// MARK: What the rest of the engine provides ------------------------------------------------------
+
+const char *const cxx_kOOLogException = "exception";
+
+
+// The expander: "<string>".
+std::optional<std::string> cxx_OOExpandDescriptionString(Random_Seed, const std::string &string, const oo::PList &, const oo::PList &, const std::optional<std::string> &, OOExpandOptions)
+{
+	return "<" + string + ">";
+}
+
+Random_Seed OOStringExpanderDefaultRandomSeed(void)
+{
+	return Random_Seed{};
+}
+
+
+namespace {
+int sDeprecations = 0;
+bool sEnforceStandards = false;
+std::string sLastWarning;
+std::vector<std::string> sWarnings;
+}
+
+void cxx_OOStandardsDeprecated(const std::string &message)
+{
+	(void)message;
+	sDeprecations++;
+}
+
+extern "C" bool OOEnforceStandards(void)
+{
+	return sEnforceStandards;
+}
+
+
+void cxx_OOJSReportErrorWithArguments(JSContext *context, const char *format, va_list args)
+{
+	std::string msg = oo::str::vformat(format, args);
+	JS_ThrowPlainError(context, "%s", msg.c_str());
+}
+
+
+void cxx_OOJSReportError(JSContext *context, const char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	cxx_OOJSReportErrorWithArguments(context, format, args);
+	va_end(args);
+}
+
+
+void cxx_OOJSReportWarning(JSContext *, const char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	sLastWarning = oo::str::vformat(format, args);
+	va_end(args);
+	sWarnings.push_back(sLastWarning);
+}
+
+
+void cxx_OOJSReportBadArguments(JSContext *context, const std::optional<std::string> &scriptClass, const std::optional<std::string> &function, int argc, JSValueConst *, const std::optional<std::string> &message, const std::optional<std::string> &expectedArgsDescription)
+{
+	cxx_OOJSReportError(context, "bad arguments: %s.%s(%d) %s / %s", scriptClass.value_or("-").c_str(), function.value_or("-").c_str(), argc, message.value_or("-").c_str(), expectedArgsDescription.value_or("-").c_str());
+}
+
+
+// As the engine's: the pending exception is reported (here, dropped) and cleared.
+void OOJSReportPendingException(JSContext *context)
+{
+	JS_FreeValue(context, JS_GetException(context));
+}
+
+
+std::optional<std::string> cxx_OOStringFromJSValue(JSContext *context, JSValueConst value)
+{
+	if (JS_IsNull(value) || JS_IsUndefined(value))  return std::nullopt;
+	std::size_t length = 0;
+	const char *chars = JS_ToCStringLen(context, &length, value);
+	if (chars == nullptr)
+	{
+		JS_FreeValue(context, JS_GetException(context));
+		return std::nullopt;
+	}
+	std::string result(chars, length);
+	JS_FreeCString(context, chars);
+	return result;
+}
+
+
+std::optional<std::string> cxx_OOStringFromJSValueEvenIfNull(JSContext *context, JSValueConst value)
+{
+	if (JS_IsNull(value))  return "null";
+	if (JS_IsUndefined(value))  return "undefined";
+	return cxx_OOStringFromJSValue(context, value);
+}
+
+
+oo::PList cxx_OOJSPListFromJSValue(JSContext *context, JSValueConst value);
+
+oo::PList cxx_OOJSPListFromJSObject(JSContext *context, JSValueConst object)
+{
+	if (!JS_IsObject(object))  return oo::PList();
+	if (JS_IsArray(object))
+	{
+		std::int64_t length = 0;
+		JS_GetLength(context, object, &length);
+		oo::PList::Array array;
+		for (std::int64_t i = 0; i < length; i++)
+		{
+			JSValue element = JS_GetPropertyUint32(context, object, static_cast<std::uint32_t>(i));
+			array.push_back(cxx_OOJSPListFromJSValue(context, element));
+			JS_FreeValue(context, element);
+		}
+		return oo::PList(std::move(array));
+	}
+	// An object's own enumerable properties, in the order Object.keys() gives them.
+	oo::PList::Dict dict;
+	JSPropertyEnum *properties = nullptr;
+	uint32_t count = 0;
+	if (JS_GetOwnPropertyNames(context, &properties, &count, object, JS_GPN_STRING_MASK | JS_GPN_ENUM_ONLY) == 0)
+	{
+		for (uint32_t i = 0; i < count; i++)
+		{
+			const char *key = JS_AtomToCString(context, properties[i].atom);
+			JSValue element = JS_GetProperty(context, object, properties[i].atom);
+			dict[key != nullptr ? key : ""] = cxx_OOJSPListFromJSValue(context, element);
+			JS_FreeValue(context, element);
+			JS_FreeCString(context, key);
+		}
+		JS_FreePropertyEnum(context, properties, count);
+	}
+	return oo::PList(std::move(dict));
+}
+
+
+oo::PList cxx_OOJSPListFromJSValue(JSContext *context, JSValueConst value)
+{
+	if (JS_IsNull(value) || JS_IsUndefined(value))  return oo::PList();
+	if (JS_IsString(value))  return oo::PList(cxx_OOStringFromJSValue(context, value).value_or(std::string()));
+	if (JS_IsBool(value))  return oo::PList(JS_ToBool(context, value) > 0);
+	if (JS_IsNumber(value))
+	{
+		double number = 0;
+		JS_ToFloat64(context, &number, value);
+		return oo::PList(number);
+	}
+	if (JS_IsObject(value))  return cxx_OOJSPListFromJSObject(context, value);
+	return oo::PList();
+}
+
+
+// A property list as JavaScript (owned), as far as the binding hands one over: null, a string, a
+// number, or an array or dictionary of those.
+JSValue OOJSValueFromPList(JSContext *context, const oo::PList &plist)
+{
+	if (const std::string *str = plist.getIf<std::string>())  return JS_NewStringLen(context, str->data(), str->size());
+	if (plist.isNumber())  return JS_NewNumber(context, plist.doubleValue());
+	if (const oo::PList::Array *array = plist.getIf<oo::PList::Array>())
+	{
+		JSValue object = JS_NewArray(context);
+		std::uint32_t index = 0;
+		for (const oo::PList &element : *array)  JS_SetPropertyUint32(context, object, index++, OOJSValueFromPList(context, element));
+		return object;
+	}
+	if (const oo::PList::Dict *dict = plist.getIf<oo::PList::Dict>())
+	{
+		JSValue object = JS_NewObject(context);
+		for (const auto &entry : *dict)  JS_SetPropertyStr(context, object, entry.first.c_str(), OOJSValueFromPList(context, entry.second));
+		return object;
+	}
+	return JS_NULL;
+}
+
+
+// The internal chart coordinates of a galactic position: (x * 4, y * 2) here.
+extern "C" NSPoint OOInternalCoordinatesFromGalactic(Vector galacticCoordinates)
+{
+	return NSMakePoint(galacticCoordinates.x * 4, galacticCoordinates.y * 2);
+}
+
+
+namespace {
+JSValue sScriptObject = JS_UNDEFINED;	// held for the life of the test
+}
+
+PlayerEntity *gOOPlayer = nil;
+Universe *gSharedUniverse = nil;
+JSContext *gOOJSMainThreadContext = nullptr;
+// The engine's reset notification, which the binding observes (never posted).
+extern const char * const kOOJavaScriptEngineWillResetNotificationName;
+const char * const kOOJavaScriptEngineWillResetNotificationName = "org.aegidian.oolite OOJavaScriptEngine will reset";
+
+
+// Property IDs (OOJSID(), and those OOJSClasses.mm records): interned for the life of the process,
+// as the engine's.
+JSAtom OOJSInternAtomPRIVATE(const char *name)
+{
+	return JS_NewAtom(gOOJSMainThreadContext, name);
+}
+
+
+JSAtom cxx_OOJSIDFromString(const std::string &string)
+{
+	return JS_NewAtomLen(gOOJSMainThreadContext, string.data(), string.size());
+}
+
+
+// The engine's: rounded to nearest; NaN or out of range is an error.
+BOOL OOJSValueToInt32(JSContext *context, JSValueConst value, int32_t *outValue)
+{
+	double number;
+	if (JS_ToFloat64(context, &number, value) < 0)  return NO;
+	number = std::floor(number + 0.5);
+	if (std::isnan(number) || number < INT32_MIN || number > INT32_MAX)
+	{
+		cxx_OOJSReportError(context, "can't convert %s to an integer", cxx_OOStringFromJSValueEvenIfNull(context, value).value_or("(null)").c_str());
+		return NO;
+	}
+	*outValue = static_cast<int32_t>(number);
+	return YES;
+}
+
+
+PlayerEntity *OOPlayerForScripting(void)
+{
+	return gOOPlayer;
+}
+
+
+// A vector is the array [x, y, z] here.
+bool JSValueToVector(JSContext *context, JSValueConst value, Vector *outVector)
+{
+	if (!JS_IsArray(value))  return false;
+	double v[3] = {};
+	for (std::uint32_t i = 0; i < 3; i++)
+	{
+		JSValue element = JS_GetPropertyUint32(context, value, i);
+		const bool ok = !JS_IsException(element) && JS_ToFloat64(context, &v[i], element) == 0;
+		JS_FreeValue(context, element);
+		if (!ok)  return false;
+	}
+	*outVector = make_vector(static_cast<OOScalar>(v[0]), static_cast<OOScalar>(v[1]), static_cast<OOScalar>(v[2]));
+	return true;
+}
+
+
+// What the engine makes of a native object (owned by the caller): the running script's JS object
+// here.
+JSValue OOJSValueFromNativeObject(JSContext *context, id object)
+{
+	if (object != nil && object == sRunningScript)  return JS_DupValue(context, sScriptObject);
+	return JS_NULL;
+}
+
+
+void OOJSReportBadPropertySelector(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t)
+{
+	cxx_OOJSReportError(context, "bad property selector");
+}
+
+
+void OOJSReportBadPropertyValue(JSContext *context, JSValueConst, int, const JSCFunctionListEntry *, size_t, JSValueConst)
+{
+	cxx_OOJSReportError(context, "bad property value");
+}
+
+
+JSValue OOJSUnconstructableConstruct(JSContext *context, JSValueConst, int, JSValueConst *)
+{
+	cxx_OOJSReportError(context, "unconstructable");
+	return JS_EXCEPTION;
+}
+
+
+int sLimiterPauses = 0;
+int sProfileDepth = 0;
+
+void OOJSProfileEnter(struct OOJSProfileStackFrame *, const char *)  { sProfileDepth++; }
+void OOJSProfileExit(struct OOJSProfileStackFrame *)  { sProfileDepth--; }
+
+void OOJSPauseTimeLimiter(void)  { sLimiterPauses++; }
+void OOJSResumeTimeLimiter(void)  { sLimiterPauses--; }
+
+
+#ifndef NDEBUG
+void OOJSUnreachable(const char *function, const char *, unsigned)
+{
+	std::printf("unreachable reached in %s\n", function);
+	abort();
+}
+#endif
+
+
+// MARK: The context -------------------------------------------------------------------------------
+
+namespace {
+
+JSRuntime *sRuntime;
+JSValue sGlobal = JS_UNDEFINED;	// held for the life of the test
+PlayerEntity *sPlayer = nil;
+Universe *sUniverse = nil;
+
+
+void SetUpContext()
+{
+	if (sContext != nullptr)  return;
+	oo::log::logger().setInitialized(true);
+	oo::log::logger().setSink(&CaptureLog);
+
+	sRuntime = JS_NewRuntime();
+	JS_SetMemoryLimit(sRuntime, 8u * 1024u * 1024u);
+	sContext = JS_NewContext(sRuntime);
+	gOOJSMainThreadContext = sContext;
+	sGlobal = JS_GetGlobalObject(sContext);
+	OOConstToJSStringInit(sContext);
+
+	// Kept for the life of the test.
+	sPlayer = [[PlayerEntity alloc] init];
+	sPlayer->_status = STATUS_DOCKED;
+	sPlayer->_exitScreen = GUI_SCREEN_STATUS;
+	gOOPlayer = sPlayer;
+	sUniverse = [[Universe alloc] init];
+	sUniverse->_gui = [[GuiDisplayGen alloc] init];
+	sUniverse->_demoShip = [[ShipEntity alloc] init];
+	gSharedUniverse = sUniverse;
+	sEngine = [[OOJavaScriptEngine alloc] init];
+	sRunningScript = [[OOJSScript alloc] init];
+	sRunningScript->_name = "oolite-test-mission";
+	sScriptObject = JS_NewObject(sContext);
+	JS_SetPropertyStr(sContext, sGlobal, "theScript", JS_DupValue(sContext, sScriptObject));
+
+	InitOOJSMission(sContext, sGlobal);
+}
+
+
+// Evaluates src and gives its result as a string ("undefined", "null", ...), or "threw: <message>".
+std::string Eval(const char *src)
+{
+	SetUpContext();
+	std::string wrapped = std::string("(function () { try { return String(") + src + "); } catch (e) { return 'threw: ' + (e && e.message !== undefined ? e.message : e); } })()";
+	JSValue result = JS_Eval(sContext, wrapped.c_str(), wrapped.size(), "test.js", JS_EVAL_TYPE_GLOBAL);
+	if (JS_IsException(result))
+	{
+		JS_FreeValue(sContext, JS_GetException(sContext));
+		return "<evaluation failed>";
+	}
+	std::string text = cxx_OOStringFromJSValue(sContext, result).value_or("<not a string>");
+	JS_FreeValue(sContext, result);
+	return text;
+}
+
+
+// Eval, and print what came back when it is not what the check expects.
+std::string EvalShown(const char *src, const char *expected)
+{
+	std::string result = Eval(src);
+	if (result != expected)  std::printf("    %s\n    gave: %s\n", src, result.c_str());
+	return result;
+}
+#define OO_CHECK_EVAL(src, expected)  OO_CHECK_EQ(EvalShown(src, expected), expected)
+
+#define OO_CHECK_CALLS(calls, expected) \
+	do { std::string got_ = Take(calls); if (got_ != (expected))  std::printf("    calls: %s\n", got_.c_str()); OO_CHECK_EQ(got_, std::string(expected)); } while (0)
+
+}	// namespace
+
+
+// MARK: Tests -------------------------------------------------------------------------------------
+
+OO_TEST(registration)
+{
+	SetUpContext();
+	OO_CHECK_EVAL("typeof Mission", "function");
+	OO_CHECK_EVAL("new Mission()", "threw: unconstructable");
+	OO_CHECK_EVAL("mission instanceof Mission", "true");
+	OO_CHECK_EVAL("(function () { mission = 5; return mission instanceof Mission; })()", "true");	// read-only
+	OO_CHECK_EVAL("Object.keys(Mission.prototype).join()", "markedSystems,screenID,exitScreen");
+	OO_CHECK_EVAL("['addMessageText', 'markSystem', 'runScreen', 'setInstructions', 'setInstructionsKey', 'unmarkSystem', 'runShipLibrary'].map(function (m) { return typeof mission[m]; }).join()",
+				  "function,function,function,function,function,function,function");
+}
+
+
+OO_TEST(properties)
+{
+	SetUpContext();
+	OO_CHECK_EVAL("JSON.stringify(mission.markedSystems)", "[]");
+	sPlayer->_destinations["7"] = Dict({ { "system", oo::PList(7) } });
+	sPlayer->_destinations["12"] = Dict({ { "system", oo::PList(12) }, { "name", oo::PList("x") } });
+	OO_CHECK_EVAL("mission.markedSystems.map(function (m) { return m.system + ':' + m.name; }).join()", "12:x,7:undefined");	// in key order
+	sPlayer->_destinations.clear();
+
+	OO_CHECK_EVAL("mission.screenID", "null");
+	sPlayer->_screenID = "oolite-intro";
+	OO_CHECK_EVAL("mission.screenID", "oolite-intro");
+	sPlayer->_screenID = std::nullopt;
+
+	OO_CHECK_EVAL("mission.exitScreen", "GUI_SCREEN_STATUS");
+	OO_CHECK_EVAL("(function () { mission.exitScreen = 'GUI_SCREEN_MARKET'; return mission.exitScreen; })()", "GUI_SCREEN_MARKET");
+	OO_CHECK_EVAL("(function () { mission.exitScreen = 'nonsense'; return mission.exitScreen; })()", "GUI_SCREEN_MAIN");	// the default
+	sPlayer->_calls.clear();
+	sPlayer->_exitScreen = GUI_SCREEN_STATUS;
+	OO_CHECK_EVAL("(function () { mission.screenID = 'x'; return mission.screenID; })()", "null");	// read-only
+}
+
+
+OO_TEST(markSystems)
+{
+	SetUpContext();
+	sDeprecations = 0;
+	OO_CHECK_EVAL("mission.markSystem(7, {system: 12, name: 'twelve'}, {name: 'none'})", "undefined");
+	OO_CHECK_CALLS(sPlayer->_calls, "addMarker({name:'default',system:7}); addMarker({name:'twelve',system:12})");
+	OO_CHECK_EQ(sDeprecations, 1);
+	OO_CHECK_EVAL("mission.markSystem(3, 'x')", "threw: bad arguments: Mission.markSystem(1) - / numbers or objects");
+	OO_CHECK_CALLS(sPlayer->_calls, "");	// nothing marked when one is bad
+	OO_CHECK_EVAL("mission.markSystem(null)", "undefined");	// null is the number 0
+	OO_CHECK_CALLS(sPlayer->_calls, "addMarker({name:'default',system:0})");
+	sEnforceStandards = true;
+	OO_CHECK_EVAL("mission.markSystem(9)", "undefined");	// numbers are ignored when standards are enforced
+	OO_CHECK_CALLS(sPlayer->_calls, "");
+	sEnforceStandards = false;
+
+	OO_CHECK_EVAL("mission.unmarkSystem(7, {system: 12})", "true");
+	OO_CHECK_CALLS(sPlayer->_calls, "removeMarker({name:'default',system:7}); removeMarker({system:12})");
+	sPlayer->_removeFails = YES;
+	OO_CHECK_EVAL("mission.unmarkSystem({system: 4})", "false");
+	OO_CHECK_EVAL("mission.unmarkSystem({name: 'no system'})", "true");	// not tried
+	sPlayer->_removeFails = NO;
+	OO_CHECK_EVAL("mission.unmarkSystem(true, 'x')", "threw: bad arguments: Mission.unmarkSystem(1) - / numbers or objects");
+	sPlayer->_calls.clear();
+	sPlayer->_destinations.clear();
+}
+
+
+OO_TEST(messageAndInstructions)
+{
+	SetUpContext();
+	OO_CHECK_EVAL("mission.addMessageText('Hello')", "undefined");
+	OO_CHECK_EVAL("mission.addMessageText()", "undefined");	// nothing
+	OO_CHECK_EVAL("mission.addMessageText(null)", "undefined");	// nothing
+	OO_CHECK_CALLS(sPlayer->_calls, "literalText('Hello')");
+
+	// The mission key is the running script's name unless given.
+	OO_CHECK_EVAL("mission.setInstructions('Go to Lave.')", "undefined");
+	OO_CHECK_EVAL("mission.setInstructions('Go home.', 'other')", "undefined");
+	OO_CHECK_EVAL("mission.setInstructions(['One.', 'Two.'])", "undefined");
+	OO_CHECK_EVAL("mission.setInstructions(null)", "undefined");
+	OO_CHECK_EVAL("mission.setInstructions(null, null)", "undefined");	// the key "null"
+	OO_CHECK_CALLS(sPlayer->_calls, "instructions('Go to Lave.', 'oolite-test-mission'); instructions('Go home.', 'other'); "
+				   "instructionsList(['One.','Two.'], 'oolite-test-mission'); clearDescription('oolite-test-mission'); clearDescription('null')");
+	OO_CHECK_EVAL("mission.setInstructionsKey('lave_key')", "undefined");
+	OO_CHECK_EVAL("mission.setInstructionsKey(['a'])", "undefined");	// a list is not a key: cleared
+	OO_CHECK_CALLS(sPlayer->_calls, "description('lave_key', 'oolite-test-mission'); clearDescription('oolite-test-mission')");
+
+	sLastWarning.clear();
+	OO_CHECK_EVAL("mission.setInstructions()", "undefined");
+	OO_CHECK_EQ(sLastWarning, std::string("Usage error: mission.setInstructions() called with no arguments. Treating as Mission.setInstructions(null). This call may fail in a future version of Oolite."));
+	OO_CHECK_CALLS(sPlayer->_calls, "clearDescription('oolite-test-mission')");
+	OO_CHECK_EVAL("mission.setInstructionsKey(undefined)", "threw: bad arguments: Mission.setInstructionsKey(1) - / string or null");
+
+	// No running script and no key: the player is told with no key (and logs it).
+	OOJSScript *running = sRunningScript;
+	sRunningScript = nil;
+	OO_CHECK_EVAL("mission.setInstructions(null)", "undefined");
+	OO_CHECK_CALLS(sPlayer->_calls, "instructions('', nullopt)");
+	sRunningScript = running;
+}
+
+
+OO_TEST(runScreen)
+{
+	SetUpContext();
+	sPlayer->_calls.clear();
+	sUniverse->_calls.clear();
+	sUniverse->_gui->_calls.clear();
+	sMusic.clear();
+	sLimiterPauses = 0;
+
+	OO_CHECK_EVAL("mission.runScreen({title: 'A Job', music: 'tune.ogg', overlay: 'over.png', message: 'Hello', "
+				  "choices: {'1_YES': 'Yes', '2_NO': 'No'}, initialChoicesKey: '2_NO', screenID: 'job', exitScreen: 'GUI_SCREEN_MARKET', "
+				  "allowInterrupt: true, registerKeys: {k: [{key: 'k'}]}, customChartZoom: 2, customChartCentre: [1, 2, 0]}, "
+				  "function (choice, key) { this.lastChoice = choice + '/' + key; })", "true");
+	OO_CHECK_CALLS(sPlayer->_calls, "title('A Job'); overlay({name:'over.png'}); background(null); backgroundSpecial(''); chartZoom(2); chartCentre(1, 2); "
+				   "exitScreen(13); screenID('job'); clearExtraKeys; extraKeys({k:[{key:'k'}]}); textEntry(NO); missionScreen(YES); allowInterrupt; "
+				   "literalText('Hello'); choicesDict({1_YES:'Yes',2_NO:'No'}); overlay(null); background(null); title(nullopt); missionMusic('')");
+	OO_CHECK_CALLS(sUniverse->_calls, "removeDemoShips");
+	OO_CHECK_CALLS(sUniverse->_gui->_calls, "texture('mission.runScreen()'); texture('mission.runScreen()'); rowForKey('2_NO'); selectRow(7)");
+	OO_CHECK(sMusic == (std::vector<std::string>{ "'tune.ogg'" }));
+	OO_CHECK_EQ(sLimiterPauses, 0);
+	OO_CHECK_EVAL("'displayModel' in mission", "false");
+
+	// The callback runs as the script that set the screen, with the choice and the key pressed,
+	// and this is the script; the choice is reset first, without an event.
+	sPlayer->_choice = oo::PList("1_YES");
+	sPlayer->_keyPress = oo::PList("y");
+	sScriptStack.clear();
+	MissionRunCallback();
+	OO_CHECK_EVAL("theScript.lastChoice", "1_YES/y");
+	OO_CHECK_CALLS(sPlayer->_calls, "choice(nullopt, '', NO)");
+	OO_CHECK(sScriptStack == (std::vector<std::string>{ "+oolite-test-mission", "-oolite-test-mission" }));
+	OO_CHECK_EQ(sEngine->_calls, 1);
+	// Only once.
+	MissionRunCallback();
+	OO_CHECK_EQ(sEngine->_calls, 1);
+	OO_CHECK_CALLS(sPlayer->_calls, "");
+}
+
+
+OO_TEST(runScreenOtherSettings)
+{
+	SetUpContext();
+	sPlayer->_calls.clear();
+	sUniverse->_calls.clear();
+	sUniverse->_gui->_calls.clear();
+	sMusic.clear();
+
+	// No callback, a title key, a model, text entry, a choices key and a message key; a third
+	// argument is the callback's this.
+	OO_CHECK_EVAL("mission.runScreen({titleKey: 'mission_title', model: 'cobra', spinModel: false, modelPersonality: 9, textEntry: true, "
+				  "choicesKey: 'my_choices', messageKey: 'my_message', customChartCentreInLY: [3, 4, 0], customChartZoom: 0.5, background: 'back.png', backgroundSpecial: 'SHORT_RANGE_CHART'})", "true");
+	OO_CHECK_CALLS(sPlayer->_calls, "title('<The [name] Job>'); overlay(null); background({name:'back.png'}); backgroundSpecial('SHORT_RANGE_CHART'); "
+				   "chartZoom(1); chartCentre(12, 8); exitScreen(6); clearScreenID; clearExtraKeys; textEntry(YES); missionScreen(NO); "
+				   "text('my_message'); overlay(null); background(null); title(nullopt); missionMusic('')");
+	OO_CHECK_EQ(sLastWarning, std::string("Mission.runScreen: invalid customChartZoom value specified."));
+	OO_CHECK_CALLS(sUniverse->_calls, "removeDemoShips; demoShip('cobra', NO)");
+	OO_CHECK_EQ(sUniverse->_demoShip->_personality, 9);
+	OO_CHECK_EVAL("mission.displayModel.name", "demo ship");
+	OO_CHECK(sMusic == (std::vector<std::string>{ "nullopt" }));
+
+	OO_CHECK_EVAL("mission.runScreen({titleKey: 'no_such_key', model: 'none', customChartCentre: 'x'})", "true");
+	OO_CHECK_EVAL("'displayModel' in mission", "false");
+	OO_CHECK(sWarnings.size() >= 2 && sWarnings[sWarnings.size() - 2] == "Mission.runScreen: titleKey 'no_such_key' has no entry in missiontext.plist.");
+	OO_CHECK_EQ(sLastWarning, std::string("Mission.runScreen: invalid value for customChartCentre. Must be valid vector. Defaulting to current location."));
+	OO_CHECK_CALLS(sPlayer->_calls, "overlay(null); background(null); backgroundSpecial(''); chartCentre(10, 20); exitScreen(6); clearScreenID; clearExtraKeys; "
+				   "textEntry(NO); missionScreen(NO); choices(''); overlay(null); background(null); title(nullopt); missionMusic('')");
+	sUniverse->_calls.clear();
+
+	// In flight: interruptible, and no model by role.
+	sPlayer->_status = STATUS_IN_FLIGHT;
+	OO_CHECK_EVAL("mission.runScreen({model: 'cobra', allowInterrupt: false})", "true");
+	OO_CHECK_EQ(sLastWarning, std::string("Mission.runScreen: model cannot be displayed while in flight."));
+	OO_CHECK_CALLS(sUniverse->_calls, "removeDemoShips");
+	OO_CHECK(Take(sPlayer->_calls).find("allowInterrupt") != std::string::npos);
+	sPlayer->_status = STATUS_DOCKED;
+
+	// The callback with a this of its own; an exception in it is logged and ignored.
+	OO_CHECK_EVAL("mission.runScreen({}, function () { this.called = true; }, theScript)", "true");
+	sPlayer->_calls.clear();
+	sEngine->_raise = YES;
+	sLog.clear();
+	sScriptStack.clear();
+	MissionRunCallback();
+	sEngine->_raise = NO;
+	OO_CHECK_EQ(sLog.size(), static_cast<std::size_t>(1));
+	OO_CHECK(!sLog.empty() && sLog[0].find("Ignoring exception") != std::string::npos && sLog[0].find("callback boom") != std::string::npos);
+	OO_CHECK(sScriptStack == (std::vector<std::string>{ "+oolite-test-mission", "-oolite-test-mission" }));
+	OO_CHECK_EVAL("theScript.called", "undefined");
+}
+
+
+OO_TEST(runScreenErrors)
+{
+	SetUpContext();
+	sPlayer->_calls.clear();
+	OO_CHECK_EVAL("mission.runScreen()", "threw: bad arguments: mission.runScreen(0) - / parameter object");
+	OO_CHECK_EVAL("mission.runScreen({}, 'not a function')", "threw: bad arguments: mission.runScreen(1) - / function");
+	OO_CHECK_CALLS(sPlayer->_calls, "");
+	sPlayer->_status = STATUS_START_GAME;
+	OO_CHECK_EVAL("mission.runScreen({title: 'x'})", "false");	// not during the intro
+	OO_CHECK_CALLS(sPlayer->_calls, "");
+	sPlayer->_status = STATUS_DOCKED;
+	OO_CHECK_EQ(sLimiterPauses, 0);
+}
+
+
+OO_TEST(runShipLibrary)
+{
+	SetUpContext();
+	sPlayer->_calls.clear();
+	OO_CHECK_EVAL("mission.runShipLibrary()", "true");
+	OO_CHECK_CALLS(sPlayer->_calls, "introFirstGo(NO)");
+	sPlayer->_status = STATUS_IN_FLIGHT;
+	sLastWarning.clear();
+	OO_CHECK_EVAL("mission.runShipLibrary()", "false");
+	OO_CHECK_EQ(sLastWarning, std::string("Mission.runShipLibrary: must be docked."));
+	OO_CHECK_CALLS(sPlayer->_calls, "");
+	sPlayer->_status = STATUS_DOCKED;
+}
+
+
+OO_TEST(nativeExceptions)
+{
+	SetUpContext();
+	sPlayer->_raise = YES;
+	OO_CHECK_EVAL("mission.screenID", "threw: Native exception: screen boom");
+	sPlayer->_raise = NO;
+	sPlayer->_throwCxx = YES;
+	OO_CHECK_EVAL("mission.screenID", "threw: Native exception: cxx boom");
+	sPlayer->_throwCxx = NO;
+	OO_CHECK_EVAL("mission.screenID", "null");
+	OO_CHECK_EQ(sLimiterPauses, 0);
+	OO_CHECK_EQ(sProfileDepth, 0);
+}
+
+
+OO_TEST_MAIN()

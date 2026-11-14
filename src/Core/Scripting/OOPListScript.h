@@ -9,6 +9,11 @@ PlayerEntity's many overloaded functions. The scale of the task was such that
 I've stepped back, and this simply wraps the old plist scripting in
 PlayerEntity.
 
+C++20 since bead oo-q9q4 (proposed ADR-0056, the OOColor house style). Bead oo-9ht.57 deleted its
+Objective-C facade once OOScript was C++ (oo-604l; ADR-0056 amendments oo-o89 item 3 and "deleting
+a facade"): the class is global and derives from cxx::OOScript, overriding its members, and
+Objective-C sees a plist script as the root's facade, an OOScript.
+
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -30,14 +35,44 @@ MA 02110-1301, USA.
 
 */
 
+#ifndef OOPLISTSCRIPT_H
+#define OOPLISTSCRIPT_H
+
+#import "OOFoundation.h"
 #import "OOScript.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
 
-@interface OOPListScript : OOScript {
-@private
-    NSArray* _script;
-    NSDictionary* _metadata;
-}
+#include <optional>
+#include <string>
+#include <vector>
 
-+ (NSArray*)scriptsInPListFile:(NSString*)filePath;
+@class OOScript, Entity;
 
-@end
+class OOPListScript : public cxx::OOScript {
+public:
+    // The old -initWithName:scriptArray:metadata: after [super init].
+    OOPListScript(const std::string& name, const oo::PList& script, const oo::PList* metadata);
+
+    // The scripts of a legacy script file, each the root's facade of a new OOPListScript, as the
+    // Objective-C scripts were; nullopt when the file is not a dictionary.
+    static std::optional<std::vector<oo::ObjCRef<::OOScript*>>> scriptsInPListFile(const std::string& filePath);
+
+    // OOScript overrides.
+    std::optional<std::string> name() override;
+    std::optional<std::string> scriptDescription() override;
+    std::optional<std::string> version() override;
+    bool requiresTickle() override;
+    void runWithTarget(::Entity* target) override;
+
+private:
+    static std::vector<oo::ObjCRef<::OOScript*>> scriptsFromDictionaryOfScripts(const oo::PList& dictionary, const std::string& filePath);
+    static std::vector<oo::ObjCRef<::OOScript*>> loadCachedScripts(const oo::PList& cachedScripts);
+
+    oo::PList _script; // the sanitized script actions (an array)
+    oo::PList _metadata; // a dictionary: name, and the file's !metadata! if it had one
+};
+
+#endif // OOPLISTSCRIPT_H
