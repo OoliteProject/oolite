@@ -15,8 +15,8 @@ packages=(
     # Documentation
     doxygen graphviz typst
     # Libraries
-    sdl3 libpng openal-soft libvorbis nspr espeak-ng
+    sdl3 libpng openal-soft libvorbis icu4c espeak-ng
 )
 
 brew install "${packages[@]}"
-echo "✅ Homebrew packages installed. Next run ShellScripts/macOS/build_mozilla_js.sh"
+echo "✅ Homebrew packages installed."

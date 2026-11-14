@@ -26,6 +26,9 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#include "OOFastArithmetic.h"
+#include "OOMathsBase.h"
+
 #ifndef OOMATHS_EXTERNAL_VECTOR_TYPES
 
 typedef struct Vector {
@@ -117,18 +120,27 @@ OOINLINE OOScalar triple_product(Vector first, Vector second, Vector third) INLI
 /* Given three points on a surface, returns the normal to the surface. */
 OOINLINE Vector normal_to_surface(Vector v1, Vector v2, Vector v3) CONST_FUNC;
 
-#if __OBJC__
-NSString* VectorDescription(Vector vector); // @"(x, y, z)"
+#ifndef OO_PLAIN_CPP_UNIT
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+std::string VectorDescription(Vector vector); // "(x, y, z)"
 
-/* For storing vectors in NSArrays */
-@interface OONativeVector : NSObject {
-@private
-    Vector v;
-}
-- (id)initWithVector:(Vector)vect;
-- (Vector)getVector;
+/*	For storing vectors in property lists: a PList::Object node holds the
+   box (OOJSShip.mm makes them, OOPListGameTypes.mm and the JavaScript engine
+   read them). The box is the node's foreign object itself.
+*/
+class OONativeVector : public oo::PListForeign {
+public:
+    explicit OONativeVector(Vector vect);
+    Vector getVector();
 
-@end
+    // oo::PListForeign: the class name, and "%@" as <OONativeVector 0x...>.
+    std::string className() const override;
+    std::string description() const override;
+
+private:
+    Vector v = { };
+};
 
 #endif
 
@@ -167,7 +179,7 @@ OOINLINE void scale_vector(Vector* vec, OOScalar factor)
 {
     /*
             Clang static analyzer: reports an unintialized value here when called
-            from -[HeadUpDisplay rescaleByFactor:]. This is blatantly wrong, as
+            from the HUD's rescaling. This is blatantly wrong, as
             the array the vector comes from is fully initialized in the range being
             looped over.
             -- Ahruman 2012-09-14
@@ -181,7 +193,7 @@ OOINLINE Vector vector_multiply_scalar(Vector v, OOScalar s)
 {
     /*
             Clang static analyzer: reports a garbage value here when called from
-            -[OOMesh rescaleByFactor:], apparently on baseless assumption that
+            OOMesh::rescaleByFactor(), apparently on baseless assumption that
             OOMesh._vertices points to only one vertex.
             -- Ahruman 2012-09-14
     */

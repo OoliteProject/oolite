@@ -1,0 +1,64 @@
+# clang-tidy for the game's own code. Run it against the compile database ./mk.sh build writes at
+# this directory's root:
+#
+#     clang-tidy -p . --quiet src/Core/OOColor.cpp
+#     run-clang-tidy -p . 'src/(Core|SDL|oofnd)/.*\.cpp'
+#
+# Checks are the bug-finding and modernising families the codebase is held to. WarningsAsErrors
+# turns a bugprone or performance finding into an error only for the checks that reported nothing
+# over src/Core, src/SDL and src/oofnd when this file was written (the "-name" entries are the
+# ones that still had findings). A check that still has findings is enabled but does not fail a
+# run; when its sweep has cleared it, delete its "-name" line here. The modernize and readability
+# checks are not errors until their sweeps have run.
+Checks: >
+  -*,
+  bugprone-*,
+  performance-*,
+  modernize-use-nullptr,
+  modernize-use-override,
+  modernize-use-using,
+  modernize-redundant-void-arg,
+  readability-redundant-void-arg,
+  readability-make-member-function-const
+WarningsAsErrors: >
+  bugprone-*,
+  performance-*,
+  -bugprone-assignment-in-if-condition,
+  -bugprone-branch-clone,
+  -bugprone-derived-method-shadowing-base-method,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-float-loop-counter,
+  -bugprone-implicit-widening-of-multiplication-result,
+  -bugprone-incorrect-roundings,
+  -bugprone-integer-division,
+  -bugprone-invalid-enum-default-initialization,
+  -bugprone-macro-parentheses,
+  -bugprone-multi-level-implicit-pointer-conversion,
+  -bugprone-narrowing-conversions,
+  -bugprone-redundant-branch-condition,
+  -bugprone-reserved-identifier,
+  -bugprone-signed-bitwise,
+  -bugprone-signed-char-misuse,
+  -bugprone-std-exception-baseclass,
+  -bugprone-switch-missing-default-case,
+  -bugprone-throwing-static-initialization,
+  -bugprone-unchecked-optional-access,
+  -bugprone-unchecked-string-to-number-conversion,
+  -bugprone-unhandled-code-paths,
+  -bugprone-unhandled-self-assignment,
+  -bugprone-unsafe-to-allow-exceptions,
+  -performance-enum-size,
+  -performance-faster-string-find,
+  -performance-inefficient-vector-operation,
+  -performance-no-automatic-move,
+  -performance-no-int-to-ptr,
+  -performance-prefer-single-char-overloads,
+  -performance-string-view-conversions,
+  -performance-type-promotion-in-math-fn,
+  -performance-unnecessary-copy-initialization,
+  -performance-unnecessary-value-param,
+  -performance-use-std-move
+HeaderFilterRegex: '.*/src/(Core|SDL|oofnd)/.*'
+# Vendored code is not ours to tidy. Headers are excluded here; the .clang-tidy files inside
+# src/Core/MiniZip and src/SDL/EXRSnapshotSupport switch every check off for the sources there.
+ExcludeHeaderFilterRegex: '.*/(MiniZip|EXRSnapshotSupport)/.*|.*/stb_image_write\.h'

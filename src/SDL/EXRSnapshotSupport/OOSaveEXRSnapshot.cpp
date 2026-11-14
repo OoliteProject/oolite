@@ -1,11 +1,10 @@
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <ctime>
 #include <vector>
 
-extern "C" {
 int SaveEXRSnapshot(const char* outfilename, int width, int height, const float* rgb);
-}
 
 #ifdef WIN32
 #define TINYEXR_IMPLEMENTATION

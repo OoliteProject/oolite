@@ -24,89 +24,144 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOStellarBody.h"
-#if !NEW_PLANETS
-#import "PlanetEntity.h"
-#else
+#pragma once
 
-#import "Entity.h"
-#import "OOColor.h"
+#include "OOStellarBody.h"
 
-@class OOPlanetDrawable, ShipEntity, OOMaterial;
+#include "Entity.h"
+#include "OOColor.h"
+#include "OOGraphicsResetManager.h"
 
-@interface OOPlanetEntity : Entity <OOStellarBody> {
-@private
-    OOPlanetDrawable* _planetDrawable;
-    OOPlanetDrawable* _atmosphereDrawable;
-    OOPlanetDrawable* _cloudsShaderDrawable;
-    OOPlanetDrawable* _atmosphereShaderDrawable;
+#include "legacy_random.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
 
-    BOOL _miniature;
-    OOColor* _airColor;
-    OOColor* _illuminationColor;
-    float _airColorMixRatio;
-    float _airDensity;
-    double _mesopause2;
+/*	The planet configuration and material parameters are oo::PLists (mixed:
+   colours are PList::Object nodes); texture and planet names are std::optional
+   (nullopt where they were nil).
+*/
 
-    Vector _rotationAxis;
-    float _rotationalVelocity;
-    Quaternion _atmosphereOrientation;
-    float _atmosphereRotationalVelocity;
+class OOMaterial;
+class OOTexture;
+class ShipEntity;
+class OOPlanetDrawable; // this class is its one caller
 
-    Vector _terminatorThresholdVector;
+/*	The universe and the legacy scripts make it with
+   oo::makeRef<OOPlanetEntity>() and hold it as
+   the C++ class. Its OOStellarBody answers are members (OOStellarBodyRadius()),
+   and the shader binding names are answered for a planet only
+   (OOEntityCalledByName.cpp).
+*/
+class OOPlanetEntity : public Entity, public ::OOGraphicsResetClient {
+public:
+    ~OOPlanetEntity() override; // unregisters the graphics reset client
 
-    unsigned _shuttlesOnGround;
-    OOTimeDelta _lastLaunchTime;
-    OOTimeDelta _shuttleLaunchInterval;
+    /*	The initialisers' bodies after [self init] (the constructor ran
+       Entity's), run on a new planet once its object is made.
+    */
+    void initAsMainPlanetForSystem(OOSystemID s);
+    void initFromDictionary(const oo::PList& dict, bool atmosphere, Random_Seed seed, OOSystemID systemID);
 
-    NSDictionary* _materialParameters;
-    NSString* _textureName;
-    NSString* _normSpecMapName;
+    oo::Ref<OOPlanetEntity> miniatureVersion();
 
-    NSString* _name;
-}
+    double rotationalVelocity();
+    void setRotationalVelocity(double v);
 
-- (id)initAsMainPlanetForSystem:(OOSystemID)s;
+    bool planetHasStation();
+    void launchShuttle();
+    void welcomeShuttle(::ShipEntity* shuttle);
 
-- (id)initFromDictionary:(NSDictionary*)dict withAtmosphere:(BOOL)atmosphere andSeed:(Random_Seed)seed forSystem:(OOSystemID)systemID;
+    bool hasAtmosphere();
 
-- (instancetype)miniatureVersion;
+    // FIXME: need material model.
+    std::optional<std::string> textureFileName(); // nullopt: none
+    void setTextureFileName(const std::optional<std::string>& textureName);
 
-- (double)rotationalVelocity;
-- (void)setRotationalVelocity:(double)v;
+    bool setUpPlanetFromTexture(const std::optional<std::string>& fileName); // nullopt: none
 
-- (BOOL)planetHasStation;
-- (void)launchShuttle;
-- (void)welcomeShuttle:(ShipEntity*)shuttle;
+    // The drawables' materials, as the drawables keep them.
+    OOMaterial* material();
+    OOMaterial* atmosphereMaterial();
+    OOMaterial* atmosphereShaderMaterial();
 
-- (BOOL)hasAtmosphere;
+    bool isFinishedLoading();
 
-// FIXME: need material model.
-- (NSString*)textureFileName;
-- (void)setTextureFileName:(NSString*)textureName;
+    Vector airColorAsVector(); // visible to shader bindings
+    OOColor* airColor();
+    void setAirColor(OOColor* newColor);
+    Vector illuminationColorAsVector(); // visible to shader bindings
+    OOColor* illuminationColor();
+    void setIlluminationColor(OOColor* newColor);
+    float airColorMixRatio(); // visible to shader bindings
+    void setAirColorMixRatio(float newRatio);
+    float airDensity(); // visible to shafer bindings
+    void setAirDensity(float newDensity);
 
-- (BOOL)setUpPlanetFromTexture:(NSString*)fileName;
+    void setTerminatorThresholdVector(Vector newTerminatorThresholdVector);
+    Vector terminatorThresholdVector(); // visible to shader bindings
 
-- (OOMaterial*)material;
-- (OOMaterial*)atmosphereMaterial;
-- (OOMaterial*)atmosphereShaderMaterial;
+    // OOStellarBody.
+    double radius();
+    OOStellarBodyType planetType();
+    std::optional<std::string> name();
+    void setName(const std::optional<std::string>& name);
 
-- (BOOL)isFinishedLoading;
+    // OOGraphicsResetClient: the planet registers itself once set up.
+    void resetGraphicsState() override;
 
-- (Vector)airColorAsVector; // visible to shader bindings
-- (OOColor*)airColor;
-- (void)setAirColor:(OOColor*)newColor;
-- (Vector)illuminationColorAsVector; // visible to shader bindings
-- (OOColor*)illuminationColor;
-- (void)setIlluminationColor:(OOColor*)newColor;
-- (float)airColorMixRatio; // visible to shader bindings
-- (void)setAirColorMixRatio:(float)newRatio;
-- (float)airDensity; // visible to shafer bindings
-- (void)setAirDensity:(float)newDensity;
+    std::optional<std::string> descriptionComponents() const override;
+    void setOrientation(Quaternion quat) override;
+    void update(OOTimeDelta delta_t) override;
+    void drawImmediate(bool immediate, bool translucent) override;
+    bool checkCloseCollisionWith(Entity* other) override;
+    bool isPlanet() override;
+    bool isVisible() override;
 
-- (void)setTerminatorThresholdVector:(Vector)newTerminatorThresholdVector;
-- (Vector)terminatorThresholdVector; // visible to shader bindings
+    // The binding's bodies (OOJSPlanet.mm).
+    JSClassID jsClassID() override;
+    std::optional<std::string> jsClassName() override;
+    bool isVisibleToScripts() override;
 
-@end
+private:
+    bool initAsMiniatureVersionOfPlanet(OOPlanetEntity* planet);
 
-#endif // NEW_PLANETS
+    void setUpTerrainParametersWithSourceInfo(const oo::PList& sourceInfo, oo::PList& targetInfo);
+    void setUpLandParametersWithSourceInfo(const oo::PList& sourceInfo, oo::PList& targetInfo);
+    void setUpAtmosphereParametersWithSourceInfo(const oo::PList& sourceInfo, oo::PList& targetInfo);
+    void setUpColorParametersWithSourceInfo(const oo::PList& sourceInfo, oo::PList& targetInfo, bool isAtmosphere);
+    void setUpTypeParametersWithSourceInfo(const oo::PList& sourceInfo, oo::PList& targetInfo);
+
+    oo::Ref<OOPlanetDrawable> _planetDrawable;
+    oo::Ref<OOPlanetDrawable> _atmosphereDrawable;
+    oo::Ref<OOPlanetDrawable> _cloudsShaderDrawable;
+    oo::Ref<OOPlanetDrawable> _atmosphereShaderDrawable;
+
+    bool _miniature = false;
+    oo::Ref<OOColor> _airColor;
+    oo::Ref<OOColor> _illuminationColor;
+    float _airColorMixRatio = { };
+    float _airDensity = { };
+    double _mesopause2 = { };
+
+    Vector _rotationAxis = { };
+    float _rotationalVelocity = { };
+    Quaternion _atmosphereOrientation = { };
+    float _atmosphereRotationalVelocity = { };
+
+    Vector _terminatorThresholdVector = { };
+
+    unsigned _shuttlesOnGround = { };
+    OOTimeDelta _lastLaunchTime = { };
+    OOTimeDelta _shuttleLaunchInterval = { };
+
+    oo::PList _materialParameters; // null where it was nil
+    std::optional<std::string> _textureName;
+    std::optional<std::string> _normSpecMapName;
+
+    std::optional<std::string> _name;
+
+    // The texture generators' noise seed, handed to them directly; was a value
+    // box under "noise_map_seed" in planetInfo / _materialParameters.
+    RANROTSeed _noiseMapSeed = { };
+};

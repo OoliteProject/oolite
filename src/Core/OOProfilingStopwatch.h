@@ -28,11 +28,26 @@ SOFTWARE.
 
 */
 
+#pragma once
+
 #ifndef OOSTOPWATCH_STANDALONE
-#import "OOFoundation.h"
-#import "OOFunctionAttributes.h"
-#import "OOTypes.h"
+#ifndef OO_PLAIN_CPP_UNIT
+#include "OOFoundation.h"
+#else
+/*	A plain C++ translation unit (the JS bindings, through
+        OOJSEngineNativeWrappers.h) cannot parse OOFoundation.h's class declarations. The one platform switch
+        below that differs from its default on this build is set as OOFoundation.h sets it, so
+        OOHighResTimeValue is the same type in both kinds of translation unit.
+*/
+#if defined(WIN32) && !defined(OOLITE_WINDOWS)
+#define OOLITE_WINDOWS 1
 #endif
+#endif
+#include "OOFunctionAttributes.h"
+#include "OOTypes.h"
+#endif
+
+#include "oofnd/Ref.hpp"
 
 /*	Platform-specific high-resolution timer:
 
@@ -62,8 +77,12 @@ typedef uint64_t OOHighResTimeValue;
 
 #elif OOLITE_WINDOWS
 
-// Windows: if standalone, use timeGetTime...
-#if OOSTOPWATCH_STANDALONE
+// Windows: use timeGetTime.
+// DWORD and timeGetTime(), from their own headers: <windows.h> here would bring in the old
+// <winsock.h> ahead of a later <winsock2.h>.
+#include <windef.h>
+
+#include <timeapi.h>
 #define OO_PROFILING_STOPWATCH_WINDOWS 1
 typedef DWORD OOHighResTimeValue; // Rolls over once every 50 days, but we can live with that.
 
@@ -76,14 +95,6 @@ typedef DWORD OOHighResTimeValue; // Rolls over once every 50 days, but we can l
         (void)time;                \
     } while (0)
 #define OOCopyHighResTime(time) ((OOHighResTimeValue)time)
-
-#else
-/*	...otherwise, use JS_Now() for higher precision. The Windows implementation
-        does the messy work of calibrating performance counters against low-res
-        timers.
-*/
-#define OO_PROFILING_STOPWATCH_JS_NOW 1
-#endif
 
 #else
 
@@ -109,37 +120,27 @@ OOINLINE OOHighResTimeValue OOGetHighResTime(void)
 
 #endif
 
-#if OO_PROFILING_STOPWATCH_JS_NOW
-#include <jsapi.h>
-typedef int64 OOHighResTimeValue;
-
-#define OOGetHighResTime JS_Now
-#define OODisposeHighResTime(time) \
-    do {                           \
-        (void)time;                \
-    } while (0)
-#define OOCopyHighResTime(time) ((OOHighResTimeValue)time)
-#endif
-
 OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime, OOHighResTimeValue endTime);
 
-@interface OOProfilingStopwatch : NSObject {
-@private
-    OOHighResTimeValue _start;
-    OOHighResTimeValue _end;
-    BOOL _running;
-}
+class OOProfilingStopwatch : public oo::RefCounted {
+public:
+    OOProfilingStopwatch();
+    ~OOProfilingStopwatch() override;
 
-+ (instancetype)stopwatch; // New stopwatch is initially started.
+    static oo::Ref<OOProfilingStopwatch> stopwatch(); // New stopwatch is initially started.
 
-- (void)start;
-- (void)stop;
-- (OOTimeDelta)currentTime; // Returns stop time - start time if stopped, or now - start time if running.
+    void start();
+    void stop();
+    OOTimeDelta currentTime(); // Returns stop time - start time if stopped, or now - start time if running.
 
-/*	Resets timer to zero, returning the current value. This is drift-free, i.e.
-        if it is called twice in a row while running the sum is an accurate time
-        since the timer started.
-*/
-- (OOTimeDelta)reset;
+    /*	Resets timer to zero, returning the current value. This is drift-free, i.e.
+            if it is called twice in a row while running the sum is an accurate time
+            since the timer started.
+    */
+    OOTimeDelta reset();
 
-@end
+private:
+    OOHighResTimeValue _start = { };
+    OOHighResTimeValue _end = { };
+    bool _running = { };
+};

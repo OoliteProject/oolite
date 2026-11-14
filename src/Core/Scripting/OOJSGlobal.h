@@ -25,8 +25,15 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+#pragma once
 
-void CreateOOJSGlobal(JSContext* context, JSObject** outGlobal);
-void SetUpOOJSGlobal(JSContext* context, JSObject* global);
+#include "OOFoundation.h"
+#include <quickjs.h>
+
+/*	QuickJS's global object is an ordinary object created with the context,
+        so there is no CreateOOJSGlobal(). SetUpOOJSGlobal() defines Oolite's
+        global properties and functions on it.
+*/
+void SetUpOOJSGlobal(JSContext* context, JSValueConst global);
+
+#include "oofnd/StdLib.hpp"

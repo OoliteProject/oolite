@@ -1,0 +1,24 @@
+# Matches .clang-format (Google style): UTF-8, LF, final newline, no trailing whitespace.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+
+[*.{c,cc,cpp,cxx,h,hh,hpp,hxx,m,mm}]
+indent_size = 2
+
+[{meson.build,meson.options,*.build}]
+indent_size = 2
+
+[*.{py,sh}]
+indent_size = 4
+
+[*.{bat,cmd}]
+end_of_line = crlf
+
+[*.md]
+trim_trailing_whitespace = false

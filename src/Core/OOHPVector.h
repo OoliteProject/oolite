@@ -27,6 +27,10 @@ MA 02110-1301, USA.
 
 #pragma once
 
+#include "OOMathsBase.h"
+
+// Each maths header includes what it uses, so OOMaths.h may list them in any
+// order.
 #include "OOFastArithmetic.h"
 #include "OOVector.h"
 
@@ -126,9 +130,10 @@ OOINLINE OOHPScalar HPtriple_product(HPVector first, HPVector second, HPVector t
 /* Given three points on a surface, returns the normal to the surface. */
 OOINLINE HPVector HPnormal_to_surface(HPVector v1, HPVector v2, HPVector v3) CONST_FUNC;
 
-#if __OBJC__
-NSString* HPVectorDescription(HPVector vector); // @"(x, y, z)"
-NSArray* ArrayFromHPVector(HPVector vector);
+#ifndef OO_PLAIN_CPP_UNIT
+#include "oofnd/StdLib.hpp"
+std::string cxx_HPVectorDescription(HPVector vector); // "(x, y, z)"
+std::vector<double> cxx_ArrayFromHPVector(HPVector vector); // { x, y, z }
 
 #endif
 
@@ -185,7 +190,7 @@ OOINLINE void HPscale_vector(HPVector* vec, OOHPScalar factor)
 {
     /*
             Clang static analyzer: reports an unintialized value here when called
-            from -[HeadUpDisplay rescaleByFactor:]. This is blatantly wrong, as
+            from the HUD's rescaling. This is blatantly wrong, as
             the array the vector comes from is fully initialized in the range being
             looped over.
             -- Ahruman 2012-09-14
@@ -199,7 +204,7 @@ OOINLINE HPVector HPvector_multiply_scalar(HPVector v, OOHPScalar s)
 {
     /*
             Clang static analyzer: reports a garbage value here when called from
-            -[OOMesh rescaleByFactor:], apparently on baseless assumption that
+            OOMesh::rescaleByFactor(), apparently on baseless assumption that
             OOMesh._vertices points to only one vertex.
             -- Ahruman 2012-09-14
     */
@@ -331,3 +336,6 @@ OOINLINE HPVector HPnormal_to_surface(HPVector v1, HPVector v2, HPVector v3)
     d1 = HPvector_subtract(v3, v2);
     return HPcross_product(d0, d1);
 }
+
+#if __OBJC__
+#endif

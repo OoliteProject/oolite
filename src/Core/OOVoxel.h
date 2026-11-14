@@ -26,6 +26,14 @@ MA 02110-1301, USA.
 
 */
 
+#pragma once
+
+#include "OOMathsBase.h"
+
+// Each maths header includes what it uses, so OOMaths.h may list them in any
+// order.
+#include "OOVector.h"
+
 #define CUBE_FACE_RIGHT 0x01
 #define CUBE_FACE_LEFT 0x02
 #define CUBE_FACE_TOP 0x04

@@ -24,6 +24,15 @@ MA 02110-1301, USA.
 
 */
 
+#pragma once
+
+#include "OOMathsBase.h"
+
+// Each maths header includes what it uses, so OOMaths.h may list them in any
+// order.
+#include "OOHPVector.h"
+#include "OOVector.h"
+
 typedef struct Quaternion {
     OOScalar w;
     OOScalar x;
@@ -84,9 +93,8 @@ void quaternion_rotate_about_axis(Quaternion* quat, Vector axis, OOScalar angle)
 /* Normalize quaternion */
 OOINLINE void quaternion_normalize(Quaternion* quat) NONNULL_FUNC ALWAYS_INLINE_FUNC;
 
-#if __OBJC__
-NSString* QuaternionDescription(Quaternion quaternion); // @"(w + xi + yj + zk)"
-#endif
+#include "oofnd/StdLib.hpp"
+std::string QuaternionDescription(Quaternion quaternion); // "(w + xi + yj + zk)"
 
 Vector quaternion_rotate_vector(Quaternion q, Vector vector) CONST_FUNC;
 HPVector quaternion_rotate_HPvector(Quaternion q, HPVector vector) CONST_FUNC;
