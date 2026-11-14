@@ -25,11 +25,25 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFileScannerVerifierStage.h"
+#pragma once
+
+#include "OOFileScannerVerifierStage.h"
 
 #if OO_OXP_VERIFIER_ENABLED
 
-@interface OOCheckEquipmentPListVerifierStage : OOFileHandlingVerifierStage
-@end
+/*	A leaf of OOFileHandlingVerifierStage. Nothing outside this file names
+   it; the verifier makes it from its name (kCxxStages in OOOXPVerifier.mm) and
+   holds it.
+*/
+class OOCheckEquipmentPListVerifierStage : public OOFileHandlingVerifierStage {
+ public:
+  std::optional<std::string> name() override;
+  bool shouldRun() override;
+  void run() override;
+
+ private:
+  // equipmentPList is an Array.
+  void runCheckWithEquipment(const oo::PList& equipmentPList);
+};
 
 #endif

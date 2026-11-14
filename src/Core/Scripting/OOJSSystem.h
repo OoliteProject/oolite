@@ -1,6 +1,6 @@
 /*
 
-OOJSSystem.h
+OOJSSystem.h (QuickJS-ng)
 
 JavaScript proxy for the current system.
 
@@ -25,7 +25,10 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+#pragma once
 
-void InitOOJSSystem(JSContext* context, JSObject* global);
+#include <quickjs.h>
+
+#include "OOFoundation.h"
+
+void InitOOJSSystem(JSContext* context, JSValueConst global);
