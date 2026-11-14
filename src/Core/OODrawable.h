@@ -4,6 +4,10 @@ OODrawable.h
 
 Abstract base class for objects which can draw themselves.
 
+C++20 since bead oo-smy, with OOMaterial the Materials module exemplar (proposed ADR-0056,
+amendment oo-smy). Global, its Objective-C facade deleted: every drawable (OOMesh,
+OOPlanetDrawable, OOSkyDrawable) and every holder is C++.
+
 
 Copyright (C) 2007-2013 Jens Ayton
 
@@ -27,31 +31,61 @@ SOFTWARE.
 
 */
 
+#ifndef OODRAWABLE_H
+#define OODRAWABLE_H
+
 #import "OOFoundation.h"
 #import "OOMaths.h"
 #import "OOOpenGL.h"
 #import "OOWeakReference.h"
+#import "oofnd/objc/OOObject.h"
 
-@interface OODrawable : NSObject
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
+#include <vector>
 
-- (void)renderOpaqueParts;
-- (void)renderTranslucentParts;
-- (BOOL)hasOpaqueParts;
-- (BOOL)hasTranslucentParts;
+@class OOTexture;
 
-- (GLfloat)collisionRadius;
-- (GLfloat)maxDrawDistance;
+class OODrawable : public oo::RefCounted {
+public:
+    virtual void renderOpaqueParts();
+    virtual void renderTranslucentParts();
+    virtual bool hasOpaqueParts();
+    virtual bool hasTranslucentParts();
 
-- (BoundingBox)boundingBox;
+    virtual GLfloat collisionRadius();
+    virtual GLfloat maxDrawDistance();
 
-// Passed to all materials.
-- (void)setBindingTarget:(id<OOWeakReferenceSupport>)target;
+    virtual BoundingBox boundingBox();
 
-- (void)dumpSelfState;
+    // Passed to all materials.
+    virtual void setBindingTarget(id<OOWeakReferenceSupport> target);
+
+    virtual void dumpSelfState();
+
+    // What "%@" prints between the braces of <Class 0x...>{...} (OODescription.h). None here, as
+    // OOObject answered; OOMesh and OOSkyDrawable override it.
+    virtual std::optional<std::string> descriptionComponents() const;
+
+    // What "%@" printed for the drawable's facade: "<Class 0x...>{components}",
+    // the C++ class's name and the drawable's own address.
+    std::string description() const;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (NSSet*)allTextures;
-- (size_t)totalSize; // Size including dynamic data, not counting textures.
-#endif
+    virtual std::vector<oo::ObjCRef<::OOTexture*>> allTextures();
+    virtual size_t totalSize(); // Size including dynamic data, not counting textures.
 
-@end
+    // The object's own size, which totalSize() starts from (the facade's instance size
+    // before): sizeof the dynamic type, each subclass answering its own.
+    virtual size_t objectSize() const { return sizeof *this; }
+#endif
+};
+
+/*	[drawable autorelease], which the deleted facade answered: keeps the drawable
+        until the current autorelease pool drains, so a drawable an entity replaces lives exactly as
+        long as its autoreleased object did. Nothing for null.
+*/
+void OODrawableAutorelease(oo::Ref<OODrawable> drawable);
+
+#endif // OODRAWABLE_H

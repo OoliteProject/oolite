@@ -1,6 +1,10 @@
 /*
 
-OOJSPopulatorDefinition.h
+OOJSPopulatorDefinition.h (QuickJS-ng)
+
+C++20 since bead oo-1h0h (proposed ADR-0056, the OOColor house style). An oo::RefCounted in the
+global namespace: OOJSSystem makes it with oo::makeRef and Universe keeps it as a PList::Object
+node (OOJSPopulatorDefinitionToPList / OOJSPopulatorDefinitionIn below).
 
 
 Oolite
@@ -23,22 +27,45 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOJSScript.h"
+#ifndef OOJSPOPULATORDEFINITION_H
+#define OOJSPOPULATORDEFINITION_H
+
+#import "OOFoundation.h"
 #import "OOMaths.h"
-#include <jsapi.h>
+#include <quickjs.h>
 
-@interface OOJSPopulatorDefinition : OOWeakRefObject {
-@private
-    jsval _callback;
-    JSObject* _callbackThis;
-    OOJSScript* _owningScript;
-}
+#include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
 
-- (jsval)callback;
-- (void)setCallback:(jsval)callback;
-- (JSObject*)callbackThis;
-- (void)setCallbackThis:(JSObject*)callbackthis;
+class OOJSScript; // imported by the .mm, so that a test can stand in for it
 
-- (void)runCallback:(HPVector)location;
+/*	The definition owns references to its callback and callbackThis, which are
+        released on destruction and when the JavaScript engine is reset.
+*/
+class OOJSPopulatorDefinition : public oo::RefCounted {
+public:
+    OOJSPopulatorDefinition();
+    ~OOJSPopulatorDefinition() override;
 
-@end
+    // Returned values are owned by the caller.
+    JSValue callback();
+    void setCallback(JSValueConst callback);
+    JSValue callbackThis();
+    void setCallbackThis(JSValueConst callbackthis);
+
+    void runPopulatorCallback(HPVector location);
+
+private:
+    void deleteJSPointers();
+
+    JSValue _callback = JS_UNDEFINED; // Owned.
+    JSValue _callbackThis = JS_UNDEFINED; // Owned.
+    oo::WeakRef<OOJSScript> _owningScript; // a weak reference (was -weakRetain)
+};
+
+// A PList::Object node holding the definition (strongly), as the settings' callbackObj.
+oo::PList OOJSPopulatorDefinitionToPList(oo::Ref<OOJSPopulatorDefinition> definition);
+// The definition inside such a node; nullptr for any other node.
+OOJSPopulatorDefinition* OOJSPopulatorDefinitionIn(const oo::PList& plist);
+
+#endif // OOJSPOPULATORDEFINITION_H
