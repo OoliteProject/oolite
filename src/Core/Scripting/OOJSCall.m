@@ -63,7 +63,7 @@ typedef enum {
 static MethodType GetMethodType(id object, SEL selector);
 OOINLINE BOOL MethodExpectsParameter(MethodType type) { return type == kMethodTypeVoidObject || type == kMethodTypeObjectObject; }
 
-BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, NSString* oo_jsClassName, uintN argc, jsval* argv, jsval* outResult)
+BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, NSString* oo_jsClassName, int argc, JSValueConst* argv, JSValue* outResult)
 {
     OOJS_PROFILE_ENTER
 
@@ -143,13 +143,23 @@ BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, NSString* oo_jsClas
 
             case kMethodTypeVectorVoid: {
                 Vector v = ((VectorReturnMsgSend)method)(object, selector);
-                *outResult = OBJECT_TO_JSVAL(JSVectorWithVector(context, v));
+                JSValue vectorValue = JSVectorWithVector(context, v);
+                if (JS_IsException(vectorValue)) {
+                    error = YES;
+                } else {
+                    *outResult = vectorValue;
+                }
                 break;
             }
 
             case kMethodTypeQuaternionVoid: {
                 Quaternion q = ((QuaternionReturnMsgSend)method)(object, selector);
-                *outResult = OBJECT_TO_JSVAL(JSQuaternionWithQuaternion(context, q));
+                JSValue quaternionValue = JSQuaternionWithQuaternion(context, q);
+                if (JS_IsException(quaternionValue)) {
+                    error = YES;
+                } else {
+                    *outResult = quaternionValue;
+                }
                 break;
             }
 

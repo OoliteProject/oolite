@@ -1,6 +1,6 @@
 /*
 
-OOJSFont.m
+OOJSFont.m (QuickJS-ng)
 
 
 Copyright (C) 2011-2013 Jens Ayton
@@ -29,26 +29,27 @@ SOFTWARE.
 #import "HeadUpDisplay.h"
 #import "OOJavaScriptEngine.h"
 
-static JSBool FontMeasureString(JSContext* context, uintN argc, jsval* vp);
+static JSValue FontMeasureString(OOJS_NATIVE_ARGS);
 
 // MARK: Public
 
-void InitOOJSFont(JSContext* context, JSObject* global)
+void InitOOJSFont(JSContext* context, JSValueConst global)
 {
-    JSObject* fontObject = JS_DefineObject(context, global, "defaultFont", NULL, NULL, OOJS_PROP_READONLY);
-    JS_DefineFunction(context, fontObject, "measureString", FontMeasureString, 1, OOJS_METHOD_READONLY);
+    JSValue fontObject = JS_NewObject(context);
+    JS_DefinePropertyValueStr(context, fontObject, "measureString", JS_NewCFunction(context, FontMeasureString, "measureString", 1), OOJS_METHOD_READONLY);
+    JS_DefinePropertyValueStr(context, global, "defaultFont", fontObject, OOJS_PROP_READONLY);
 }
 
 // MARK: Methods
 
-static JSBool FontMeasureString(JSContext* context, uintN argc, jsval* vp)
+static JSValue FontMeasureString(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    if (EXPECT_NOT(argc < 1) || JSVAL_IS_VOID(OOJS_ARGV[0])) {
-        jsval undefined = JSVAL_VOID;
-        OOJSReportBadArguments(context, nil, @"defaultFont.measureString", MIN(argc, 1U), &undefined, nil, @"string");
-        return NO;
+    if (EXPECT_NOT(argc < 1) || JS_IsUndefined(OOJS_ARGV[0])) {
+        JSValueConst undefined = JS_UNDEFINED;
+        OOJSReportBadArguments(context, nil, @"defaultFont.measureString", MIN(argc, 1), &undefined, nil, @"string");
+        return OOJSNativeFailure(context);
     }
 
     OOJS_RETURN_DOUBLE(OOStringWidthInEm(OOStringFromJSValue(context, OOJS_ARGV[0])));

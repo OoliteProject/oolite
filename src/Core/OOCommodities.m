@@ -232,14 +232,14 @@ MA 02110-1301, USA.
         return good;
     }
 
-    if (!JSVAL_IS_OBJECT(rval)) {
+    if (!JS_IsObject(rval)) { // Unlike JSVAL_IS_OBJECT(), false for null, which gets the same message below.
         OOLog(@"script.commodityScript.error", @"Could not update %@ commodity definition for %@ - return value invalid", errorType, [good oo_stringForKey:kOOCommodityKey]);
         OOJSFreeValue(context, rval);
         OOJSRelinquishContext(context);
         return good;
     }
 
-    result = OOJSNativeObjectFromJSObject(context, JSVAL_TO_OBJECT(rval));
+    result = OOJSNativeObjectFromJSObject(context, rval);
     OOJSFreeValue(context, rval);
     OOJSRelinquishContext(context);
     if (![result isKindOfClass:[NSDictionary class]]) {

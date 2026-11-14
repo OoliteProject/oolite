@@ -78,43 +78,52 @@ enum {
 
 typedef struct
 {
-    jsval callback;
-    uint32 trackingID;
-    uint32 _padding;
+    JSValue callback; // Owned.
+    uint32_t trackingID;
+    uint32_t _padding;
 } CallbackEntry;
 
+/*	SpiderMonkey needed each slot to be a GC root. With QuickJS, each occupied
+        slot simply owns a reference to its callback, which is freed when the
+        callback is removed. OOJavaScriptEngine calls OOJSFrameCallbacksRemoveAll()
+        before resetting or shutting down, so no reset observer is needed.
+*/
 static CallbackEntry* sCallbacks;
 static NSUInteger sCount; // Number of slots in use.
 static NSUInteger sSpace; // Number of slots allocated.
-static NSUInteger sHighWaterMark; // Number of slots which are GC roots.
 static NSMutableArray* sDeferredOps; // Deferred adds/removes while running.
-static uint32 sNextID;
+static uint32_t sNextID;
 static BOOL sRunning;
 
 // Methods
-static JSBool GlobalAddFrameCallback(JSContext* context, uintN argc, jsval* vp);
-static JSBool GlobalRemoveFrameCallback(JSContext* context, uintN argc, jsval* vp);
-static JSBool GlobalIsValidFrameCallback(JSContext* context, uintN argc, jsval* vp);
+static JSValue GlobalAddFrameCallback(OOJS_NATIVE_ARGS);
+static JSValue GlobalRemoveFrameCallback(OOJS_NATIVE_ARGS);
+static JSValue GlobalIsValidFrameCallback(OOJS_NATIVE_ARGS);
 
 // Internals
-static BOOL AddCallback(JSContext* context, jsval callback, uint32 trackingID, NSString** errorString);
+static BOOL AddCallback(JSContext* context, JSValueConst callback, uint32_t trackingID, NSString** errorString);
 static BOOL GrowCallbackList(JSContext* context, NSString** errorString);
 
-static BOOL GetIndexForTrackingID(uint32 trackingID, NSUInteger* outIndex);
+static BOOL GetIndexForTrackingID(uint32_t trackingID, NSUInteger* outIndex);
 
-static BOOL RemoveCallbackWithTrackingID(JSContext* context, uint32 trackingID);
+static BOOL RemoveCallbackWithTrackingID(JSContext* context, uint32_t trackingID);
 static void RemoveCallbackAtIndex(JSContext* context, NSUInteger index);
 
-static void QueueDeferredOperation(NSString* opType, uint32 trackingID, OOJSValue* value);
+static void QueueDeferredOperation(NSString* opType, uint32_t trackingID, OOJSValue* value);
 static void RunDeferredOperations(JSContext* context);
+
+static const JSCFunctionListEntry sFrameCallbackMethods[] = {
+    // JS name						Function						min args
+    JS_CFUNC_DEF2("addFrameCallback", 1, GlobalAddFrameCallback, OOJS_METHOD_READONLY),
+    JS_CFUNC_DEF2("removeFrameCallback", 1, GlobalRemoveFrameCallback, OOJS_METHOD_READONLY),
+    JS_CFUNC_DEF2("isValidFrameCallback", 1, GlobalIsValidFrameCallback, OOJS_METHOD_READONLY),
+};
 
 // MARK: Public
 
-void InitOOJSFrameCallbacks(JSContext* context, JSObject* global)
+void InitOOJSFrameCallbacks(JSContext* context, JSValueConst global)
 {
-    JS_DefineFunction(context, global, "addFrameCallback", GlobalAddFrameCallback, 1, OOJS_METHOD_READONLY);
-    JS_DefineFunction(context, global, "removeFrameCallback", GlobalRemoveFrameCallback, 1, OOJS_METHOD_READONLY);
-    JS_DefineFunction(context, global, "isValidFrameCallback", GlobalIsValidFrameCallback, 1, OOJS_METHOD_READONLY);
+    JS_SetPropertyFunctionList(context, global, sFrameCallbackMethods, OOJS_COUNT(sFrameCallbackMethods));
 
 #if DEBUG_FCB_SIMPLE_TRACKING_IDS
     sNextID = 1;
@@ -131,32 +140,39 @@ void OOJSFrameCallbacksInvoke(OOTimeDelta inDeltaT)
     if (sCount != 0) {
         const OOTimeDelta delta = inDeltaT * [UNIVERSE timeAccelerationFactor];
         JSContext* context = OOJSAcquireContext();
-        jsval deltaVal, result;
+        JSValue deltaVal = JS_NewNumber(context, delta);
+        // As with JS_CallFunctionValue() with a NULL this, callbacks are called with the global object as this.
+        JSValue global = JS_GetGlobalObject(context);
         NSUInteger i;
 
-        if (EXPECT(JS_NewNumberValue(context, delta, &deltaVal))) {
-            // Block mutations.
-            sRunning = YES;
+        // Block mutations.
+        sRunning = YES;
 
-            /*
-                    The watchdog timer only fires once per second in deployment builds,
-                    but in testrelease builds at least we can keep them on a short leash.
-            */
-            OOJSStartTimeLimiterWithTimeLimit(0.1);
+        /*
+                The watchdog timer only fires once per second in deployment builds,
+                but in testrelease builds at least we can keep them on a short leash.
+                (With QuickJS the limit is checked by the interrupt handler.)
+        */
+        OOJSStartTimeLimiterWithTimeLimit(0.1);
 
-            for (i = 0; i < sCount; i++) {
-                // TODO: remove out of scope callbacks - post MNSR!
-                JS_CallFunctionValue(context, NULL, sCallbacks[i].callback, 1, &deltaVal, &result);
-                JS_ReportPendingException(context);
+        for (i = 0; i < sCount; i++) {
+            // TODO: remove out of scope callbacks - post MNSR!
+            JSValue result = JS_Call(context, sCallbacks[i].callback, global, 1, (JSValueConst*)&deltaVal);
+            if (JS_IsException(result)) {
+                OOJSReportPendingException(context);
             }
+            JS_FreeValue(context, result);
+        }
 
-            OOJSStopTimeLimiter();
-            sRunning = NO;
+        OOJSStopTimeLimiter();
+        sRunning = NO;
 
-            if (EXPECT_NOT(sDeferredOps != NULL)) {
-                RunDeferredOperations(context);
-                DESTROY(sDeferredOps);
-            }
+        JS_FreeValue(context, global);
+        JS_FreeValue(context, deltaVal);
+
+        if (EXPECT_NOT(sDeferredOps != NULL)) {
+            RunDeferredOperations(context);
+            DESTROY(sDeferredOps);
         }
         OOJSRelinquishContext(context);
     }
@@ -177,19 +193,19 @@ void OOJSFrameCallbacksRemoveAll(void)
 // MARK: Methods
 
 // addFrameCallback(callback : Function) : Number
-static JSBool GlobalAddFrameCallback(JSContext* context, uintN argc, jsval* vp)
+static JSValue GlobalAddFrameCallback(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
     // Get callback argument and verify that it's a function.
-    jsval callback = OOJS_ARGV[0];
+    JSValueConst callback = OOJS_ARGV[0];
     if (EXPECT_NOT(argc < 1 || !OOJSValueIsFunction(context, callback))) {
-        OOJSReportBadArguments(context, nil, @"addFrameCallback", MIN(argc, 1U), OOJS_ARGV, nil, @"function");
-        return NO;
+        OOJSReportBadArguments(context, nil, @"addFrameCallback", MIN(argc, 1), OOJS_ARGV, nil, @"function");
+        return JS_EXCEPTION;
     }
 
     // Assign a tracking ID.
-    uint32 trackingID = sNextID ^ kIDScrambleMask;
+    uint32_t trackingID = sNextID ^ kIDScrambleMask;
     sNextID += kIDIncrement;
 
     if (EXPECT(!sRunning)) {
@@ -197,7 +213,7 @@ static JSBool GlobalAddFrameCallback(JSContext* context, uintN argc, jsval* vp)
         NSString* errorString = nil;
         if (EXPECT_NOT(!AddCallback(context, callback, trackingID, &errorString))) {
             OOJSReportError(context, @"%@", errorString);
-            return NO;
+            return JS_EXCEPTION;
         }
     } else {
         // Defer mutations during callback invocation.
@@ -211,15 +227,17 @@ static JSBool GlobalAddFrameCallback(JSContext* context, uintN argc, jsval* vp)
 }
 
 // removeFrameCallback(trackingID : Number)
-static JSBool GlobalRemoveFrameCallback(JSContext* context, uintN argc, jsval* vp)
+static JSValue GlobalRemoveFrameCallback(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
     // Get tracking ID argument.
-    uint32 trackingID;
-    if (EXPECT_NOT(argc < 1 || !JS_ValueToECMAUint32(context, OOJS_ARGV[0], &trackingID))) {
-        OOJSReportBadArguments(context, nil, @"removeFrameCallback", MIN(argc, 1U), OOJS_ARGV, nil, @"frame callback tracking ID");
-        return NO;
+    uint32_t trackingID;
+    if (EXPECT_NOT(argc < 1 || JS_ToUint32(context, &trackingID, OOJS_ARGV[0]) < 0)) {
+        if (JS_HasException(context))
+            JS_FreeValue(context, JS_GetException(context));
+        OOJSReportBadArguments(context, nil, @"removeFrameCallback", MIN(argc, 1), OOJS_ARGV, nil, @"frame callback tracking ID");
+        return JS_EXCEPTION;
     }
 
     if (EXPECT(!sRunning)) {
@@ -239,18 +257,19 @@ static JSBool GlobalRemoveFrameCallback(JSContext* context, uintN argc, jsval* v
 }
 
 // isValidFrameCallback(trackingID : Number)
-static JSBool GlobalIsValidFrameCallback(JSContext* context, uintN argc, jsval* vp)
+static JSValue GlobalIsValidFrameCallback(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
     if (EXPECT_NOT(argc < 1)) {
         OOJSReportBadArguments(context, nil, @"isValidFrameCallback", 0, OOJS_ARGV, nil, @"frame callback tracking ID");
-        return NO;
+        return JS_EXCEPTION;
     }
 
     // Get tracking ID argument.
-    uint32 trackingID;
-    if (EXPECT_NOT(!JS_ValueToECMAUint32(context, OOJS_ARGV[0], &trackingID))) {
+    uint32_t trackingID;
+    if (EXPECT_NOT(JS_ToUint32(context, &trackingID, OOJS_ARGV[0]) < 0)) {
+        JS_FreeValue(context, JS_GetException(context));
         OOJS_RETURN_BOOL(NO);
     }
 
@@ -262,9 +281,9 @@ static JSBool GlobalIsValidFrameCallback(JSContext* context, uintN argc, jsval* 
 
 // MARK: Internals
 
-static BOOL AddCallback(JSContext* context, jsval callback, uint32 trackingID, NSString** errorString)
+static BOOL AddCallback(JSContext* context, JSValueConst callback, uint32_t trackingID, NSString** errorString)
 {
-    NSCParameterAssert(context != NULL && JS_IsInRequest(context));
+    NSCParameterAssert(context != NULL);
     NSCParameterAssert(errorString != NULL);
     NSCAssert1(!sRunning, @"%s cannot be called while frame callbacks are running.", __PRETTY_FUNCTION__);
 
@@ -275,18 +294,7 @@ static BOOL AddCallback(JSContext* context, jsval callback, uint32 trackingID, N
 
     FCBLog(@"script.frameCallback.debug.add", @"Adding frame callback with tracking ID %u.", trackingID);
 
-    sCallbacks[sCount].callback = callback;
-    if (sCount >= sHighWaterMark) {
-        // If we haven't used this slot before, root it.
-
-        if (EXPECT_NOT(!OOJSAddGCValueRoot(context, &sCallbacks[sCount].callback, "frame callback"))) {
-            *errorString = @"Failed to add GC root for frame callback.";
-            return NO;
-        }
-
-        sHighWaterMark = sCount + 1;
-    }
-
+    sCallbacks[sCount].callback = JS_DupValue(context, callback);
     sCallbacks[sCount].trackingID = trackingID;
     sCount++;
 
@@ -295,52 +303,30 @@ static BOOL AddCallback(JSContext* context, jsval callback, uint32 trackingID, N
 
 static BOOL GrowCallbackList(JSContext* context, NSString** errorString)
 {
-    NSCParameterAssert(context != NULL && JS_IsInRequest(context));
+    NSCParameterAssert(context != NULL);
     NSCParameterAssert(errorString != NULL);
 
     NSUInteger newSpace = MAX(sSpace * 2, (NSUInteger)kMinCount);
 
     CallbackEntry* newCallbacks = calloc(sizeof(CallbackEntry), newSpace);
-    if (newCallbacks == NULL)
+    if (newCallbacks == NULL) {
+        *errorString = @"Failed to allocate space for frame callback.";
         return NO;
-
-    CallbackEntry* oldCallbacks = sCallbacks;
-
-    // Root and copy occupied slots.
-    NSUInteger newHighWaterMark = sCount;
-    NSUInteger i;
-    for (i = 0; i < newHighWaterMark; i++) {
-        if (EXPECT_NOT(!OOJSAddGCValueRoot(context, &newCallbacks[i].callback, "frame callback"))) {
-            // If we can't root them all, we fail; unroot all entries to date, free the buffer and return NO.
-            NSUInteger j;
-            for (j = 0; j < i; j++) {
-                JS_RemoveValueRoot(context, &newCallbacks[j].callback);
-            }
-            free(newCallbacks);
-
-            *errorString = @"Failed to add GC root for frame callback.";
-            return NO;
-        }
-        newCallbacks[i] = oldCallbacks[i];
     }
 
-    // Unroot old array's slots.
-    for (i = 0; i < sHighWaterMark; i++) {
-        JS_RemoveValueRoot(context, &oldCallbacks[i].callback);
-    }
-
-    // We only rooted the occupied slots, so reset high water mark.
-    sHighWaterMark = newHighWaterMark;
+    // Move occupied slots; the references move with them.
+    if (sCount != 0)
+        memcpy(newCallbacks, sCallbacks, sizeof(CallbackEntry) * sCount);
 
     // Replace array.
+    free(sCallbacks);
     sCallbacks = newCallbacks;
-    free(oldCallbacks);
     sSpace = newSpace;
 
     return YES;
 }
 
-static BOOL GetIndexForTrackingID(uint32 trackingID, NSUInteger* outIndex)
+static BOOL GetIndexForTrackingID(uint32_t trackingID, NSUInteger* outIndex)
 {
     NSCParameterAssert(outIndex != NULL);
 
@@ -360,9 +346,9 @@ static BOOL GetIndexForTrackingID(uint32 trackingID, NSUInteger* outIndex)
     return NO;
 }
 
-static BOOL RemoveCallbackWithTrackingID(JSContext* context, uint32 trackingID)
+static BOOL RemoveCallbackWithTrackingID(JSContext* context, uint32_t trackingID)
 {
-    NSCParameterAssert(context != NULL && JS_IsInRequest(context));
+    NSCParameterAssert(context != NULL);
     NSCAssert1(!sRunning, @"%s cannot be called while frame callbacks are running.", __PRETTY_FUNCTION__);
 
     NSUInteger index = 0;
@@ -376,16 +362,18 @@ static BOOL RemoveCallbackWithTrackingID(JSContext* context, uint32 trackingID)
 
 static void RemoveCallbackAtIndex(JSContext* context, NSUInteger index)
 {
-    NSCParameterAssert(context != NULL && JS_IsInRequest(context));
+    NSCParameterAssert(context != NULL);
     NSCParameterAssert(index < sCount && sCallbacks != NULL);
     NSCAssert1(!sRunning, @"%s cannot be called while frame callbacks are running.", __PRETTY_FUNCTION__);
 
     FCBLog(@"script.frameCallback.debug.remove", @"Removing frame callback with tracking ID %u.", sCallbacks[index].trackingID);
 
     // Overwrite entry to be removed with last entry, and decrement count.
+    JSValue removed = sCallbacks[index].callback;
     sCount--;
     sCallbacks[index] = sCallbacks[sCount];
-    sCallbacks[sCount].callback = JSVAL_NULL;
+    sCallbacks[sCount].callback = JS_NULL;
+    JS_FreeValue(context, removed);
 
 #if DEBUG_FCB_SIMPLE_TRACKING_IDS
     if (sCount == 0) {
@@ -395,7 +383,7 @@ static void RemoveCallbackAtIndex(JSContext* context, NSUInteger index)
 #endif
 }
 
-static void QueueDeferredOperation(NSString* opType, uint32 trackingID, OOJSValue* value)
+static void QueueDeferredOperation(NSString* opType, uint32_t trackingID, OOJSValue* value)
 {
     NSCAssert1(sRunning, @"%s can only be called while frame callbacks are running.", __PRETTY_FUNCTION__);
 
@@ -417,15 +405,17 @@ static void RunDeferredOperations(JSContext* context)
 
     foreach (operation, sDeferredOps) {
         NSString* opType = [operation objectForKey:@"operation"];
-        uint32 trackingID = [operation oo_intForKey:@"trackingID"];
+        uint32_t trackingID = [operation oo_intForKey:@"trackingID"];
 
         if ([opType isEqualToString:@"add"]) {
             OOJSValue* callbackObj = [operation objectForKey:@"value"];
             NSString* errorString = nil;
 
-            if (!AddCallback(context, OOJSValueFromNativeObject(context, callbackObj), trackingID, &errorString)) {
+            JSValue callback = OOJSValueFromNativeObject(context, callbackObj);
+            if (!AddCallback(context, callback, trackingID, &errorString)) {
                 OOLogWARN(@"script.frameCallback.deferredAdd.failed", @"Deferred frame callback insertion failed: %@", errorString);
             }
+            JS_FreeValue(context, callback);
         } else if ([opType isEqualToString:@"remove"]) {
             RemoveCallbackWithTrackingID(context, trackingID);
         }
