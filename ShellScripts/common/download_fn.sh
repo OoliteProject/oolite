@@ -1,5 +1,5 @@
 download() {
-    # Download file
+    # Download file if missing/not executable
     # Parameter one: download URL
     # Parameter two: destination path
     # Parameter three: optional +x to make executable
