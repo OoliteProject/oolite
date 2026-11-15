@@ -40,7 +40,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          source ShellScripts/common/curl_fn.sh
+          . ShellScripts/common/curl_fn.sh
           Documentation/build_sitedocs.sh
       - name: Zip pdfs
         run: |
@@ -95,7 +95,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          source ShellScripts/common/curl_fn.sh
+          . ShellScripts/common/curl_fn.sh
           ShellScripts/Linux/install_packages_root.sh --core+appimage
       - name: Build GNUstep
         run: |
@@ -150,7 +150,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          source ShellScripts/common/curl_fn.sh
+          . ShellScripts/common/curl_fn.sh
           ShellScripts/Linux/install_packages_root.sh --core+appimage
       - name: Build GNUstep
         run: |
@@ -198,7 +198,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          source ShellScripts/common/curl_fn.sh
+          . ShellScripts/common/curl_fn.sh
           ShellScripts/Linux/install_packages_root.sh --core
       - name: Build GNUstep
         run: |
@@ -237,8 +237,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Installing gitversion..."
-          source ShellScripts/common/curl_fn.sh
-          source ShellScripts/Linux/install_gitversion_fn.sh
+          . ShellScripts/common/curl_fn.sh
+          . ShellScripts/Linux/install_gitversion_fn.sh
           mkdir -p /usr/local/bin
           install_gitversion /usr/local/bin "."
           ./mk.sh pkg-flatpak deployment --github-repository="$GITHUB_REPOSITORY"
@@ -279,7 +279,7 @@ jobs:
           MSYSTEM: UCRT64
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          source ShellScripts/common/curl_fn.sh
+          . ShellScripts/common/curl_fn.sh
           ShellScripts/Windows/install_deps.sh clang
       - name: Build Oolite
         shell: msys2 {0}
