@@ -13,6 +13,7 @@ download_github_release() {
     local api_url="https://api.github.com/repos/${repo}/releases/latest"
 
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    source "$script_dir/curl_fn.sh"
     source "$script_dir/download_fn.sh"
 
     echo "Fetching latest release info for ${repo}..." >&2

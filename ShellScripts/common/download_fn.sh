@@ -9,6 +9,10 @@ download() {
 
     local filename=$(basename "${download_url}")
     local dest="$outputdir/$filename"
+
+    local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    source "$script_dir/curl_fn.sh"
+
     # Determine if we need to download
     local need_download=0
     if [[ "$make_exec" == "+x" ]]; then

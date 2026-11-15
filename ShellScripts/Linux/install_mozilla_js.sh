@@ -7,6 +7,7 @@
 run_script() {
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
+    source "$script_dir/../common/curl_fn.sh"
     source "$script_dir/dep_location_fn.sh"
     local lib_subdir target escalate
     dep_location lib_subdir target escalate "mozilla_js" $1 $2

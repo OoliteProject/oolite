@@ -40,7 +40,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          . ShellScripts/common/curl_fn.sh
           Documentation/build_sitedocs.sh
       - name: Zip pdfs
         run: |
@@ -95,7 +94,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          . ShellScripts/common/curl_fn.sh
           ShellScripts/Linux/install_packages_root.sh --core+appimage
       - name: Build GNUstep
         run: |
@@ -104,7 +102,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          . ShellScripts/common/curl_fn.sh
           ShellScripts/Linux/install_mozilla_js.sh system
           echo "/usr/local/lib" | tee -a /etc/ld.so.conf
           ldconfig
@@ -153,7 +150,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          . ShellScripts/common/curl_fn.sh
           ShellScripts/Linux/install_packages_root.sh --core+appimage
       - name: Build GNUstep
         run: |
@@ -164,7 +160,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          . ShellScripts/common/curl_fn.sh
           ShellScripts/Linux/install_mozilla_js.sh system
       - name: Build Oolite
         run: |
@@ -204,7 +199,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          . ShellScripts/common/curl_fn.sh
           ShellScripts/Linux/install_packages_root.sh --core
       - name: Build GNUstep
         run: |
@@ -213,7 +207,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          . ShellScripts/common/curl_fn.sh
           ShellScripts/Linux/install_mozilla_js.sh system
           echo "/usr/local/lib64" | tee -a /etc/ld.so.conf
           ldconfig
@@ -246,7 +239,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Installing gitversion..."
-          . ShellScripts/common/curl_fn.sh
           . ShellScripts/Linux/install_gitversion_fn.sh
           mkdir -p /usr/local/bin
           install_gitversion /usr/local/bin "."
@@ -288,7 +280,6 @@ jobs:
           MSYSTEM: UCRT64
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          . ShellScripts/common/curl_fn.sh
           ShellScripts/Windows/install_deps.sh clang
       - name: Build Oolite
         shell: msys2 {0}
