@@ -37,7 +37,10 @@ jobs:
           sudo apt update
           sudo apt install -y doxygen graphviz jq zip
       - name: Build site documentation
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          source ShellScripts/common/curl_fn.sh
           Documentation/build_sitedocs.sh
       - name: Zip pdfs
         run: |
@@ -79,21 +82,20 @@ jobs:
         run: |
           pacman -Syu --noconfirm
           pacman -S --noconfirm --needed git
-      - name: Pre-setup ownership & curl token
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pre-setup ownership
         run: |
           # This must run before the checkout action if the action tries to do git commands
           mkdir -p "$GITHUB_WORKSPACE"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          echo 'header = "Authorization: Bearer '$GITHUB_TOKEN'"' >> ~/.curlrc
-          echo 'header = "Accept: application/vnd.github+json"' >> ~/.curlrc
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Install packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          source ShellScripts/common/curl_fn.sh
           ShellScripts/Linux/install_packages_root.sh --core+appimage
       - name: Build GNUstep
         run: |
@@ -135,21 +137,20 @@ jobs:
         run: |
           apt update          
           apt install -y git curl ca-certificates zip
-      - name: Pre-setup ownership & curl token
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pre-setup ownership
         run: |
           # This must run before the checkout action if the action tries to do git commands
           mkdir -p "$GITHUB_WORKSPACE"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          echo 'header = "Authorization: Bearer '$GITHUB_TOKEN'"' >> ~/.curlrc
-          echo 'header = "Accept: application/vnd.github+json"' >> ~/.curlrc
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Install packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          source ShellScripts/common/curl_fn.sh
           ShellScripts/Linux/install_packages_root.sh --core+appimage
       - name: Build GNUstep
         run: |
@@ -184,21 +185,20 @@ jobs:
         run: |
           dnf -y update
           dnf -y install git
-      - name: Pre-setup ownership & curl token
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pre-setup ownership
         run: |
           # This must run before the checkout action if the action tries to do git commands
           mkdir -p "$GITHUB_WORKSPACE"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          echo 'header = "Authorization: Bearer '$GITHUB_TOKEN'"' >> ~/.curlrc
-          echo 'header = "Accept: application/vnd.github+json"' >> ~/.curlrc
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Install packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          source ShellScripts/common/curl_fn.sh
           ShellScripts/Linux/install_packages_root.sh --core
       - name: Build GNUstep
         run: |
@@ -223,22 +223,21 @@ jobs:
       image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
       options: --privileged
     steps:
-      - name: Pre-setup ownership & curl token
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pre-setup ownership
         run: |
           # This must run before the checkout action if the action tries to do git commands
           mkdir -p "$GITHUB_WORKSPACE"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          echo 'header = "Authorization: Bearer '$GITHUB_TOKEN'"' >> ~/.curlrc
-          echo 'header = "Accept: application/vnd.github+json"' >> ~/.curlrc
       - name: Checkout Oolite
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Build flatpak
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Installing gitversion..."
+          source ShellScripts/common/curl_fn.sh
           source ShellScripts/Linux/install_gitversion_fn.sh
           mkdir -p /usr/local/bin
           install_gitversion /usr/local/bin "."
@@ -260,7 +259,7 @@ jobs:
       #   run: |
       #     Get-ChildItem Env: | Sort Name
 
-      - name: Git line endings & curl token
+      - name: Git line endings
         run: |
           git config --global core.autocrlf false
           git config --global core.eol lf
@@ -280,9 +279,7 @@ jobs:
           MSYSTEM: UCRT64
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo 'header = "Authorization: Bearer '$GITHUB_TOKEN'"' >> ~/.curlrc
-          echo 'header = "Accept: application/vnd.github+json"' >> ~/.curlrc
-          cp ~/.curlrc /c/Users/runneradmin/.curlrc 2>/dev/null || true          
+          source ShellScripts/common/curl_fn.sh
           ShellScripts/Windows/install_deps.sh clang
       - name: Build Oolite
         shell: msys2 {0}
