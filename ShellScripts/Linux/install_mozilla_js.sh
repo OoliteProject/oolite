@@ -7,13 +7,10 @@
 run_script() {
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
-    source "$script_dir/../common/curl_fn.sh"
+    source "$script_dir/../common/download_github_release_fn.sh"
     source "$script_dir/dep_location_fn.sh"
     local lib_subdir target escalate
     dep_location lib_subdir target escalate "mozilla_js" $1 $2
-
-    # The URL to your specific GitHub release asset
-    local release_url="https://github.com/OoliteProject/mozillajs-linux/releases/download/0.0.1/mozilla-js-static-lib.tar.gz"
 
     echo "Installing Mozilla JS static library to $target"
     [[ -n "$escalate" ]] && echo "Using escalation: $escalate"
@@ -24,8 +21,10 @@ run_script() {
     local temp_staging=$(mktemp -d)
     trap 'rm -rf "$temp_staging"' EXIT
 
-    if ! curl -L "$release_url" | tar -xz -C "$temp_staging"; then
-        echo "❌ Mozilla JS library download or extract failed!" >&2
+    local mozilla_tgz
+    download_github_release mozilla_tgz "OoliteProject" "mozillajs-linux" "static-lib" "$temp_staging"
+    if ! tar xfz ${mozilla_tgz} --directory "$temp_staging"; then
+        echo "❌ Could not unpack Mozilla JS library tgz!" >&2
         return 1
     fi
 
