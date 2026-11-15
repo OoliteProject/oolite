@@ -1,5 +1,5 @@
 #!/bin/bash
-# Installs Gitversion for local testing
+# Installs Gitversion. Called from build-flatpak GitHub Actions workflow.
 
 run_script() {
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
