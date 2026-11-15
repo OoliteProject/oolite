@@ -1,25 +1,23 @@
+// clang-format off
 /*	oofnd/Defaults.hpp
         oo::Defaults: the game's preferences, replacing NSUserDefaults and the
    two categories that bend GNUstep's to Oolite (Core/NSUserDefaults+Override.m,
    Core/NSBundle+Override.m).
 
-            today (Objective-C, gnustep-base 1.31)                   oofnd
-            -------------------------------------------------------
-   --------------------------------- [NSUserDefaults standardUserDefaults]
-   oo::Defaults::standard() -objectForKey: / -stringForKey: / -arrayForKey: /
-   object() / stringForKey() / -dictionaryForKey: arrayForKey() /
-   dictionaryForKey() -boolForKey: / -integerForKey: / -floatForKey: /
-   boolForKey() / integerForKey() / -doubleForKey: floatForKey() /
-   doubleForKey() -setObject:forKey: -setBool: -setInteger: -setFloat:
-   setObject() setBool() setInteger() -setDouble: -removeObjectForKey:
-   setFloat() setDouble() removeObject() -registerDefaults: / -synchronize
-   registerDefaults() / synchronize() NSUserDefaults+Override
-   -writeDictionary:toFile:         writeOpenStepPList() + synchronize()
-            NSBundle+Override -infoDictionary (for the domain name)
-   applicationDomainName()
+        today (Objective-C, gnustep-base 1.31)                   oofnd
+        -------------------------------------------------------  ---------------------------------
+        [NSUserDefaults standardUserDefaults]                    oo::Defaults::standard()
+        -objectForKey: / -stringForKey: / -arrayForKey: /        object() / stringForKey() /
+          -dictionaryForKey:                                       arrayForKey() / dictionaryForKey()
+        -boolForKey: / -integerForKey: / -floatForKey: /         boolForKey() / integerForKey() /
+          -doubleForKey:                                           floatForKey() / doubleForKey()
+        -setObject:forKey: -setBool: -setInteger: -setFloat:     setObject() setBool() setInteger()
+          -setDouble: -removeObjectForKey:                         setFloat() setDouble() removeObject()
+        -registerDefaults: / -synchronize                        registerDefaults() / synchronize()
+        NSUserDefaults+Override -writeDictionary:toFile:         writeOpenStepPList() + synchronize()
+        NSBundle+Override -infoDictionary (for the domain name)  applicationDomainName()
 
-        Everything below was probed against gnustep-base 1.31 on this toolchain
-  :
+        Everything below was probed against gnustep-base 1.31 on this toolchain:
 
           * FILE. <home>/GNUstep/Defaults/<domain>.plist, home as
    ResourcePaths::homeDirectory() (next to oolite.exe; GNUstep.conf's
@@ -52,6 +50,7 @@
         Header-only, C++23, no exceptions. Thread-safe as NSUserDefaults is (one
    mutex).
 */
+// clang-format on
 
 #pragma once
 

@@ -1,3 +1,4 @@
+// clang-format off
 /*	oofnd/PListParsing.hpp
         oo::parsePropertyList(): what OOPropertyListFromData
    (src/Core/OOPListParsing.m) does with a buffer, minus the logging -
@@ -6,24 +7,23 @@
    propertyListFromData:mutabilityOption:format:errorDescription:] format
    detection and dispatch:
 
-          * empty data                      -> error "empty data argument passed
-   to method"
-          * "bplist00..." / first byte 0 or 1 -> binary formats: an error in
-   oofnd
-          * "<?" after plist whitespace       -> oo::parseXMLPList
-   (oofnd/PListXML.hpp)
-          * anything else                     -> oo::parseOldStylePList
-   (oofnd/PListOldStyle.hpp)
+          * empty data                        -> error "empty data argument passed to method"
+          * "bplist00..." / first byte 0 or 1 -> binary formats: an error in oofnd
+          * "<?" after plist whitespace       -> oo::parseXMLPList (oofnd/PListXML.hpp)
+          * anything else                     -> oo::parseOldStylePList (oofnd/PListOldStyle.hpp)
 
-            std::expected<oo::PList, oo::PListError> r =
-   oo::parsePropertyList(bytes); if (!r) OOLog(kOOLogPListFoundationParseError,
-   "Failed to parse %s as a property list.\n%s", whereFrom,
-   r.error().description().c_str()); else if (r->isNull()) ...   // GNUstep's
-   "nil without an error" (logged as "<no error message>")
+            std::expected<oo::PList, oo::PListError> r = oo::parsePropertyList(bytes);
+            if (!r)
+              OOLog(kOOLogPListFoundationParseError,
+                    "Failed to parse %s as a property list.\n%s", whereFrom,
+                    r.error().description().c_str());
+            else if (r->isNull())
+              ...   // GNUstep's "nil without an error" (logged as "<no error message>")
 
         A PList that is not the kind the caller wanted (OODictionaryFromData's
    ValueIfClass) is the caller's check: r->getIf<oo::PList::Dict>().
 */
+// clang-format on
 
 #pragma once
 

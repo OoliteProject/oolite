@@ -1,3 +1,4 @@
+// clang-format off
 /*	oofnd/String.hpp
         oo::str: string utilities over UTF-8 std::string, the
    C++ shape of the NSString methods Oolite relies on and of its own NSString
@@ -6,51 +7,46 @@
         tests/unit/oofnd/test_string.cpp pins each one against output captured
    from it.
 
-            Foundation / Oolite category                  oo::str
-            --------------------------------------------
-   ---------------------------------------------- [s length] (UTF-16 units)
-   oo::str::length(s) [s uppercaseString] / lowercaseString
-   oo::str::uppercase(s) / lowercase(s) [s capitalizedString]
-   oo::str::capitalized(s) [s caseInsensitiveCompare:t] == NSOrderedSame
-   oo::str::equalsIgnoringCaseAscii(s, t)  (t ASCII) [s
-   stringByTrimmingLeadingWhitespace
-   oo::str::trimLeadingWhitespaceAndNewlines(s) AndNewlineCharacters]
-   (NSStringOOExtensions)
-            ... TrailingWhitespaceAndNewlineCharacters
-   oo::str::trimTrailingWhitespaceAndNewlines(s) [s
-   stringByTrimmingCharactersInSet: oo::str::trimWhitespaceAndNewlines(s)
-                whitespaceAndNewlineCharacterSet]
-            [s oo_hash]                                   oo::str::ooHash(s)
-            [s utf16DataWithBOM:b]                        oo::str::utf16Data(s,
-   b)   (an oo::Data) +stringWithContentsOfUnicodeFile: (bytes)
-   oo::str::decodeUnicodeFile(data) +stringWithUTF16String:
-   oo::utf16ToUtf8(u16string_view(chars))  (PList.hpp) OOTabString(n)
-   oo::str::tabString(n) [m appendLine:l] oo::str::appendLine(m, l) [m
-   deleteCharacterAtIndex:i]                  oo::str::deleteUnitAt(m, i)  (i in
-   UTF-16 units) [s pathExtension] oo::str::pathExtension(s) [s
-   pathHasExtension:e]  (OOStringParsing)     oo::str::pathHasExtension(s, e) [s
-   pathHasExtensionInArray:a]                 oo::str::pathHasExtensionIn(s, a)
-            [m replaceOccurrencesOfString:t withString:r
-   oo::str::replaceOccurrences(m, t, r) options:0 range:<all>] (NSLiteralSearch:
-   ..., Search::kLiteral) [s componentsSeparatedByString:sep] oo::str::split(s,
-   sep) ScanTokensFromString(s)                       oo::str::tokens(s) [s
-   intValue] / longLongValue / doubleValue    oo::str::intValue(s) /
-   longLongValue / doubleValue [s hasPrefix:p] / hasSuffix:
-   oo::str::hasPrefix(s, p) / hasSuffix(s, p) [s compare:t] / [s
-   caseInsensitiveCompare:t]  oo::str::compare(s, t) / caseInsensitiveCompare(s,
-   t)  (<0, 0, >0) [s pathComponents] / +pathWithComponents:
-   oo::str::pathComponents(s) / pathWithComponents(v) [s lastPathComponent]
-   oo::str::lastPathComponent(s) [s stringByDeletingLastPathComponent]
-   oo::str::deletingLastPathComponent(s) [s stringByAppendingPathComponent:c]
-   oo::str::appendingPathComponent(s, c)  (c: one component) [s
-   stringByAppendingPathExtension:e]          oo::str::appendingPathExtension(s,
-   e) %p in a format string                         %s with
-   oo::str::pointerDescription(p).c_str() ComponentsFromVersionString(s)
-   oo::str::versionComponents(s) CompareVersions(a, b)
-   oo::str::compareVersions(a, b)  (<0, 0, >0) [NSString stringWithFormat:f,
-   ...] (no %@)    oo::str::format(f, ...) [NSString stringWithFormat:f, ...], f
-   read    oo::str::formatRuntime(f, {args...})  (%@, %p, at run time (DESC, a
-   plist template)      positional; FormatArg per argument)
+            Foundation / Oolite category                      oo::str
+            ------------------------------------------------  ----------------------------------------
+            [s length] (UTF-16 units)                         oo::str::length(s)
+            [s uppercaseString] / lowercaseString             oo::str::uppercase(s) / lowercase(s)
+            [s capitalizedString]                             oo::str::capitalized(s)
+            [s caseInsensitiveCompare:t] == NSOrderedSame     oo::str::equalsIgnoringCaseAscii(s, t)  (t ASCII)
+            [s stringByTrimmingLeadingWhitespace              oo::str::trimLeadingWhitespaceAndNewlines(s)
+              AndNewlineCharacters]  (NSStringOOExtensions)
+              ... TrailingWhitespaceAndNewlineCharacters      oo::str::trimTrailingWhitespaceAndNewlines(s)
+            [s stringByTrimmingCharactersInSet:               oo::str::trimWhitespaceAndNewlines(s)
+              whitespaceAndNewlineCharacterSet]
+            [s oo_hash]                                       oo::str::ooHash(s)
+            [s utf16DataWithBOM:b]                            oo::str::utf16Data(s, b)   (an oo::Data)
+            +stringWithContentsOfUnicodeFile: (bytes)         oo::str::decodeUnicodeFile(data)
+            +stringWithUTF16String:                           oo::utf16ToUtf8(u16string_view(chars))  (PList.hpp)
+            OOTabString(n)                                    oo::str::tabString(n)
+            [m appendLine:l]                                  oo::str::appendLine(m, l)
+            [m deleteCharacterAtIndex:i]                      oo::str::deleteUnitAt(m, i)  (i in UTF-16 units)
+            [s pathExtension]                                 oo::str::pathExtension(s)
+            [s pathHasExtension:e]  (OOStringParsing)         oo::str::pathHasExtension(s, e)
+            [s pathHasExtensionInArray:a]                     oo::str::pathHasExtensionIn(s, a)
+            [m replaceOccurrencesOfString:t withString:r      oo::str::replaceOccurrences(m, t, r)
+              options:0 range:<all>]                            (NSLiteralSearch: ..., Search::kLiteral)
+            [s componentsSeparatedByString:sep]               oo::str::split(s, sep)
+            ScanTokensFromString(s)                           oo::str::tokens(s)
+            [s intValue] / longLongValue / doubleValue        oo::str::intValue(s) / longLongValue / doubleValue
+            [s hasPrefix:p] / hasSuffix:                      oo::str::hasPrefix(s, p) / hasSuffix(s, p)
+            [s compare:t] / [s caseInsensitiveCompare:t]      oo::str::compare(s, t) / caseInsensitiveCompare(s, t)
+                                                                (<0, 0, >0)
+            [s pathComponents] / +pathWithComponents:         oo::str::pathComponents(s) / pathWithComponents(v)
+            [s lastPathComponent]                             oo::str::lastPathComponent(s)
+            [s stringByDeletingLastPathComponent]             oo::str::deletingLastPathComponent(s)
+            [s stringByAppendingPathComponent:c]              oo::str::appendingPathComponent(s, c)  (c: one component)
+            [s stringByAppendingPathExtension:e]              oo::str::appendingPathExtension(s, e)
+            %p in a format string                             %s with oo::str::pointerDescription(p).c_str()
+            ComponentsFromVersionString(s)                    oo::str::versionComponents(s)
+            CompareVersions(a, b)                             oo::str::compareVersions(a, b)  (<0, 0, >0)
+            [NSString stringWithFormat:f, ...] (no %@)        oo::str::format(f, ...)
+            [NSString stringWithFormat:f, ...], f read        oo::str::formatRuntime(f, {args...})
+              at run time (DESC, a plist template)              (%@, %p, positional; FormatArg per argument)
 
         Strings are UTF-8 (WTF-8 for a lone surrogate, as oo::PList holds them).
    Where GNUstep's answer depends on UTF-16 (case tables, character sets,
@@ -59,6 +55,7 @@
 
         Header-only, C++23.
 */
+// clang-format on
 
 #pragma once
 

@@ -1,3 +1,4 @@
+// clang-format off
 /*	oofnd/WeakSet.hpp
         oo::WeakSet<T>: a mutable set of zeroing weak references, the
    replacement for OOWeakSet (src/Core/OOWeakSet.h). Same semantics:
@@ -13,15 +14,16 @@
    members' final releases (OOWeakSet.h states the same contract).
 
         OOWeakSet method              oo::WeakSet<T>
-        ----------------------------
-   ----------------------------------------------------------------- -count
-   count()          (empty() too) -containsObject:              contains(obj)
+        ----------------------------  -----------------------------------------------------------------
+        -count                        count()          (empty() too)
+        -containsObject:              contains(obj)
         -addObject: / -removeObject:  add(obj) / remove(obj)
         -addObjectsByEnumerating:     addAll(range of T* or std::shared_ptr<T>)
-        -allObjects                   allObjects()     (live members, retained,
-   as NSArray retained them) -makeObjectsPerformSelector:  forEach(f) (f(T&) for
-   each live member) -removeAllObjects             removeAll() -isEqual: ==
-   (same live members) -objectEnumerator             allObjects() or forEach()
+        -allObjects                   allObjects()     (live members, retained, as NSArray retained them)
+        -makeObjectsPerformSelector:  forEach(f)       (f(T&) for each live member)
+        -removeAllObjects             removeAll()
+        -isEqual:                     ==               (same live members)
+        -objectEnumerator             allObjects() or forEach()
 
         One deliberate strengthening: iteration is in insertion order. NSSet's
    order was unspecified (pointer-hash order, so it varied run to run);
@@ -33,6 +35,7 @@
    the iteration (mutating an NSSet during enumeration raised an exception
    instead).
 */
+// clang-format on
 
 #pragma once
 

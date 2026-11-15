@@ -1,24 +1,24 @@
+// clang-format off
 /*	oofnd/Notification.hpp
         oo::NotificationCenter: the replacement for NSNotificationCenter /
    NSNotification. Named notifications, delivered synchronously to the
    observers whose (name, object) filter matches, on the posting thread, in
    registration order.
 
-            Foundation                                        oofnd
-            ------------------------------------------------
-   ----------------------------------------- [NSNotificationCenter
-   defaultCenter]              oo::NotificationCenter::defaultCenter() [nc
-   addObserver:self selector:@selector(m)        nc.addObserver(self, name, obj,
-                        name:n object:obj]                        [self](const
-   oo::Notification&) { [self m]; }) [nc addObserverForName:n object:obj
-   queue:nil     auto token = nc.addObserver(nullptr, n, usingBlock:b] obj, f)
-   (remove with the token) [nc removeObserver:self name:n object:obj]
-   nc.removeObserver(self, n, obj) [nc removeObserver:self]
-   nc.removeObserver(self) [nc removeObserver:token] nc.removeObserver(token)
-            [nc postNotificationName:n object:obj]            nc.post(n, obj)
-            [notification name] / [notification object]      notification.name /
-   notification.object NSString * const kFooNotification                 inline
-   constexpr char kFoo[] / const char *
+        Foundation                                      oofnd
+        ----------------------------------------------  ------------------------------------------
+        [NSNotificationCenter defaultCenter]            oo::NotificationCenter::defaultCenter()
+        [nc addObserver:self selector:@selector(m)      nc.addObserver(self, name, obj,
+              name:n object:obj]                            [self](const oo::Notification&) {
+                                                              [self m]; })
+        [nc addObserverForName:n object:obj             auto token = nc.addObserver(nullptr, n,
+              queue:nil usingBlock:b]                       obj, f)   (remove with the token)
+        [nc removeObserver:self name:n object:obj]      nc.removeObserver(self, n, obj)
+        [nc removeObserver:self]                        nc.removeObserver(self)
+        [nc removeObserver:token]                       nc.removeObserver(token)
+        [nc postNotificationName:n object:obj]          nc.post(n, obj)
+        [notification name] / [notification object]     notification.name / notification.object
+        NSString * const kFooNotification               inline constexpr char kFoo[] / const char *
 
         SEMANTICS, each as NSNotificationCenter has them:
 
@@ -46,6 +46,7 @@
    or post.
           * There is no userInfo: no call site in the game posts one.
 */
+// clang-format on
 
 #pragma once
 

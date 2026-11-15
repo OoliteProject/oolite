@@ -1,20 +1,22 @@
+// clang-format off
 /*	oofnd/PListDescription.hpp
         oo::describe(plist): the text gnustep-base's -description gave for the
    Foundation form of a property list (what "%@" printed for
    oo::ObjectFromPList(plist)), without Foundation. Game code reaches it as
    oo::DescriptionOf(const oo::PList &) (src/Core/OODescription.h).
 
-            value (top level)        text
-            -----------------------
-   ---------------------------------------------------------------- null (nil)
-   (null) string                   itself bool / integer           1 / 0; %lld,
-   or %llu when unsigned real                     %0.16g; a single-precision
-   real (PList::singleReal) %0.7g data                     <0a0b0c0d 0e>:
-   lower-case hex, a space after every four bytes date 2001-01-01 00:00:00
-   +0000: oo::date::description, local time zone Object node              its
-   PListForeign::description() array                    (a, b, c) () when empty
-            dictionary               {key = value; other = 2; }   {} when empty;
-   keys by -compare: (UTF-16 units of each key's NFD)
+        value (top level)        text
+        -----------------------  ----------------------------------------------------------------
+        null (nil)               (null)
+        string                   itself
+        bool / integer           1 / 0; %lld, or %llu when unsigned
+        real                     %0.16g; a single-precision real (PList::singleReal) %0.7g
+        data                     <0a0b0c0d 0e>: lower-case hex, a space after every four bytes
+        date                     2001-01-01 00:00:00 +0000: oo::date::description, local time zone
+        Object node             its PListForeign::description()
+        array                    (a, b, c)   () when empty
+        dictionary               {key = value; other = 2; }   {} when empty; keys by -compare:
+                                   (UTF-16 units of each key's NFD)
 
         Inside an array or dictionary every element and key except data, arrays
    and dictionaries is written as a string: bare when it is non-empty ASCII
@@ -32,6 +34,7 @@
 
         Header-only, C++23.
 */
+// clang-format on
 
 #pragma once
 

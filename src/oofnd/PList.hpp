@@ -1,3 +1,4 @@
+// clang-format off
 /*	oofnd/PList.hpp
         oo::PList: one property-list value, the replacement for the Foundation
    object graph that NSPropertyListSerialization hands to Oolite (NSString /
@@ -5,24 +6,30 @@
    copying a PList copies the tree, as -mutableCopy / -copy of an immutable
    plist yields an equal tree.
 
-            Foundation (what the GNUstep parsers produce)       oo::PList
-            --------------------------------------------------
-   --------------------------------------- nil (no plist, or the parse produced
-   nothing)        PList()                 Type::kNull [NSNumber
-   numberWithBool:] (the boolY/boolN          PList(true) Type::kBool
-   singletons: XML <true/>, old-style <*BY>) NSNumber of a signed integer type
-   (XML <integer> PList(std::int64_t)     Type::kInteger with a '-', old-style
-   <*I-...>) NSNumber of an unsigned type (XML <integer> PList(std::uint64_t)
-   Type::kInteger, without '-', old-style <*I...>) isUnsigned NSNumber of
-   double/float (XML <real>, <*R...>)       PList(double)           Type::kReal
-            NSString                                             PList("text")
-   Type::kString NSData PList(oo::Data(..))     Type::kData NSDate /
-   NSCalendarDate                              PList(PList::Date{..})
-   Type::kDate NSArray PList(PList::Array{..}) Type::kArray NSDictionary
-   PList(PList::Dict{..})  Type::kDict +numberWithFloat: (single precision)
-   PList::singleReal(f)    Type::kReal, isSinglePrecision any other object (a
-   colour, a texture, a             PList(PList::Object)    Type::kObject
-                placeholder) inside a configuration dictionary
+        Foundation (what the GNUstep parsers produce) -> oo::PList
+
+        Foundation                        oo::PList                 Type::
+        --------------------------------  ------------------------  -------
+        nil (no plist, or the parse       PList()                   kNull
+          produced nothing)
+        NSNumber boolY/boolN singletons   PList(true)               kBool
+          (XML <true/>, old-style <*BY>)
+        signed NSNumber (XML <integer>    PList(std::int64_t)       kInteger
+          with '-', old-style <*I-...>)
+        unsigned NSNumber (XML <integer>  PList(std::uint64_t)      kInteger
+          without '-', <*I...>)
+        double/float NSNumber (XML        PList(double)             kReal
+          <real>, <*R...>)
+        NSString                          PList("text")             kString
+        NSData                            PList(oo::Data(..))       kData
+        NSDate / NSCalendarDate           PList(PList::Date{..})    kDate
+        NSArray                           PList(PList::Array{..})   kArray
+        NSDictionary                      PList(PList::Dict{..})    kDict
+        +numberWithFloat: (single         PList::singleReal(f)      kReal
+          precision)                                                (single)
+        any other object (a colour, a     PList(PList::Object)      kObject
+          texture, a placeholder) inside
+          a configuration dictionary
 
         The last two rows are the typed carrier for
    configuration dictionaries that mix property-list data with live objects. No
@@ -65,6 +72,7 @@
    and oo::PListError (the error string GNUstep reports, and the -[NSError
    description] Oolite logged).
 */
+// clang-format on
 
 #ifndef OOFND_PLIST_HPP
 #define OOFND_PLIST_HPP

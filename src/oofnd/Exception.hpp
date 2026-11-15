@@ -1,18 +1,17 @@
+// clang-format off
 /*	oofnd/Exception.hpp
         oo::Exception: the game's exception as a C++ type, the thing
    OORaiseException() throws. (oofnd/objc/OOException.h only includes this
    header.)
 
-            OOException                                   oofnd
-            --------------------------------------------
-   ---------------------------------------------- [OOException raise:N format:F,
-   ...]            OORaiseException(N, F, ...)  (unchanged) [OOException
-   exceptionWithName:N reason:R]     oo::Exception(N, R)
-            @catch (OOException *e)                        catch (const
-   oo::Exception &e) [e name], [e reason]                           e.name(),
-   e.reason()  (const char *, UTF-8) Foundation's exception names
-   OOInvalidArgumentException & co.: const char * with the SAME text, so logged
-   names do not change
+            OOException                                     oofnd
+            ----------------------------------------------  ----------------------------------------
+            [OOException raise:N format:F, ...]             OORaiseException(N, F, ...)  (unchanged)
+            [OOException exceptionWithName:N reason:R]      oo::Exception(N, R)
+            @catch (OOException *e)                         catch (const oo::Exception &e)
+            [e name], [e reason]                            e.name(), e.reason()  (const char *, UTF-8)
+            Foundation's exception names                    const char * with the SAME text, so logged
+              OOInvalidArgumentException & co.                names do not change
 
         The name and reason are copied; a null one becomes "", as
    -initWithName:reason: did. It is a std::exception whose what() is the reason,
@@ -23,29 +22,27 @@
 
         The game's @try/@catch/@finally as C++ try/catch:
 
-            @catch (OOException *e) { ... [e name] ... }   catch (...)
+            @catch (OOException *e) { ... [e name] ... }    catch (...)
                                                             {
-                                                                const auto e =
-   oo::CurrentOOException(); if (!e)  throw;	// not an OOException: on up
-                                                                ... e->name()
-   ...
+                                                                const auto e = oo::CurrentOOException();
+                                                                if (!e)  throw;	// not an OOException: on up
+                                                                ... e->name() ...
                                                             }
-            @throw e;  (inside that handler)                throw;  (the same
-   object, rethrown)
-            @catch (id e) { ... }                           catch (const
-   oo::Exception &e) { ... }  (what src throws; no Objective-C object is thrown)
+            @throw e;  (inside that handler)                throw;  (the same object, rethrown)
+            @catch (id e) { ... }                           catch (const oo::Exception &e) { ... }
+                                                              (what src throws; no Objective-C object is thrown)
             @catch (id e) {}                                catch (...)
                                                             {
-                                                                if
-   (!oo::CurrentOOException())  throw; }  (the same, without an empty handler)
-            @try { A } @finally { B }                       { oo::Finally f([&]
-   { B }); A }
+                                                                if (!oo::CurrentOOException())  throw;
+                                                            }  (the same, without an empty handler)
+            @try { A } @finally { B }                       { oo::Finally f([&] { B }); A }
 
         CurrentOOException() tells the game's exception from anything else, as
    @catch (OOException *) did. The functions are defined in oofnd/Exception.cpp.
 
         C++23.
 */
+// clang-format on
 
 #pragma once
 

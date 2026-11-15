@@ -1,39 +1,38 @@
+// clang-format off
 /*	oofnd/FileSystem.hpp
         oo::fs: file-system operations, the C++ shape of NSFileManager and of
    Oolite's NSFileManager (OOExtensions) category. Built on
    std::filesystem, using only its non-throwing (std::error_code) overloads;
    every fallible call returns std::expected.
 
-            Foundation / NSFileManagerOOExtensions        oofnd
-            --------------------------------------------
-   ---------------------------------------------- NSString *path (a file-system
-   path)           oo::fs::Path   (= std::filesystem::path) NSString -> path
-   oo::fs::pathFromUTF8([s UTF8String]) path -> NSString [NSString
-   stringWithUTF8String: oo::fs::utf8String(p).c_str()] [fm fileExistsAtPath:p]
-   oo::fs::fileExists(p) [fm fileExistsAtPath:p isDirectory:&dir]
-   oo::fs::fileType(p)  (none/regular/directory/other) [fm
-   oo_directoryContentsAtPath:p]             oo::fs::directoryContents(p) [fm
-   oo_createDirectoryAtPath:p attributes:nil] oo::fs::createDirectories(p) [fm
-   oo_removeItemAtPath:p]                    oo::fs::removeItem(p) [fm
-   oo_moveItemAtPath:a toPath:b]             oo::fs::moveItem(a, b) [fm
-   currentDirectoryPath]                     oo::fs::currentDirectory() [fm
-   changeCurrentDirectoryPath:p]             oo::fs::setCurrentDirectory(p) [fm
-   oo_fileSystemAttributesAtPath:p] objectForKey:NSFileSystemFreeSize
-   oo::fs::freeSpace(p)
-            [[fm oo_fileAttributesAtPath:p ...] fileSize] oo::fs::fileSize(p)
-            [NSData dataWithContentsOfFile:p]             oo::fs::readFile(p)
-            +[NSData oo_dataWithOXZFile:] (path may OODataFromOXZFile(path)
-   (declared below; defined in pass through a .oxz zip component)
-   Core/OODataFromOXZFile.cpp) [data writeToFile:p atomically:YES / NO]
-   oo::fs::writeFile(p, data, WriteMode::kAtomic / direct) [fm
-   createFileAtPath:p contents:nil ...] + [NSFileHandle
-   fileHandleForWritingAtPath:p] oo::fs::createFileForWriting(p)  (a FILE *)
-   [handle synchronizeFile] oo::fs::synchronizeFile(file) [fm
-   displayNameAtPath:p] (GNUstep returns [p lastPathComponent]; a string op) [fm
-   enumeratorAtPath:p] + -skipDescendents oo::fs::RecursiveDirectoryEnumerator
-   [attrs fileModificationDate] timeInterval...
-   oo::fs::modificationTimeSince1970(p) [fm oo_oxzFileExistsAtPath:p]
-   OOOxzFileExistsAtPath(path)
+            Foundation / NSFileManagerOOExtensions            oofnd
+            ------------------------------------------------  ----------------------------------------
+            NSString *path (a file-system path)               oo::fs::Path   (= std::filesystem::path)
+            NSString -> path                                  oo::fs::pathFromUTF8([s UTF8String])
+            path -> NSString
+              [NSString stringWithUTF8String:                 oo::fs::utf8String(p).c_str()]
+            [fm fileExistsAtPath:p]                           oo::fs::fileExists(p)
+            [fm fileExistsAtPath:p isDirectory:&dir]          oo::fs::fileType(p)  (none/regular/directory/other)
+            [fm oo_directoryContentsAtPath:p]                 oo::fs::directoryContents(p)
+            [fm oo_createDirectoryAtPath:p attributes:nil]    oo::fs::createDirectories(p)
+            [fm oo_removeItemAtPath:p]                        oo::fs::removeItem(p)
+            [fm oo_moveItemAtPath:a toPath:b]                 oo::fs::moveItem(a, b)
+            [fm currentDirectoryPath]                         oo::fs::currentDirectory()
+            [fm changeCurrentDirectoryPath:p]                 oo::fs::setCurrentDirectory(p)
+            [fm oo_fileSystemAttributesAtPath:p]              oo::fs::freeSpace(p)
+              objectForKey:NSFileSystemFreeSize
+            [[fm oo_fileAttributesAtPath:p ...] fileSize]     oo::fs::fileSize(p)
+            [NSData dataWithContentsOfFile:p]                 oo::fs::readFile(p)
+            +[NSData oo_dataWithOXZFile:] (path may           OODataFromOXZFile(path)
+              pass through a .oxz zip component)                (declared below; defined in Core/OODataFromOXZFile.cpp)
+            [data writeToFile:p atomically:YES / NO]          oo::fs::writeFile(p, data, WriteMode::kAtomic / direct)
+            [fm createFileAtPath:p contents:nil ...]          oo::fs::createFileForWriting(p)  (a FILE *)
+              + [NSFileHandle fileHandleForWritingAtPath:p]
+            [handle synchronizeFile]                          oo::fs::synchronizeFile(file)
+            [fm displayNameAtPath:p]                          (GNUstep returns [p lastPathComponent]; a string op)
+            [fm enumeratorAtPath:p] + -skipDescendents        oo::fs::RecursiveDirectoryEnumerator
+            [attrs fileModificationDate] timeInterval...      oo::fs::modificationTimeSince1970(p)
+            [fm oo_oxzFileExistsAtPath:p]                     OOOxzFileExistsAtPath(path)
 
         SEMANTICS, each matching what GNUstep does today:
 
@@ -63,6 +62,7 @@
 
         Header-only, C++23.
 */
+// clang-format on
 
 #pragma once
 

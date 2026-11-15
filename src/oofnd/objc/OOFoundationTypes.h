@@ -1,3 +1,4 @@
+// clang-format off
 /*	oofnd/objc/OOFoundationTypes.h
         What is left of Foundation's plain C types: the geometry structs and
    NSRange, which have no standard equivalent, and oo::kNotFound.
@@ -9,14 +10,13 @@
    NSTimeInterval and CGFloat were double on every 64-bit target and are
    double; NSNotFound is oo::kNotFound, with the same value.
 
-            NSPoint, NSSize, NSRect        struct CGPoint {x, y}, CGSize {width,
-   height}, CGRect {origin, size} (NSGeometry.h), of double
-            NSZeroPoint/Size/Rect          static const, all zero
-            NSRange                        struct _NSRange {location, length},
-   of std::size_t (NSRange.h); NSMakeRange, NSMaxRange, NSLocationInRange,
-   NSEqualRanges
-            NSMakePoint, NSMakeSize, NSMakeRect, NSEqualPoints, NSEqualSizes,
-   NSEqualRects
+        NSPoint, NSSize, NSRect        struct CGPoint {x, y}, CGSize {width, height},
+                                         CGRect {origin, size} (NSGeometry.h), of double
+        NSZeroPoint/Size/Rect          static const, all zero
+        NSRange                        struct _NSRange {location, length}, of std::size_t
+                                         (NSRange.h); NSMakeRange, NSMaxRange,
+                                         NSLocationInRange, NSEqualRanges
+        NSMakePoint, NSMakeSize, NSMakeRect, NSEqualPoints, NSEqualSizes, NSEqualRects
 
         The layouts, values and results are pinned against numbers recorded
    from GNUstep on this toolchain by tests/unit/oofnd/test_foundation_types.cpp.
@@ -30,6 +30,7 @@
    it: it is included by OOFoundation.h only when the Foundation import is
    removed.
 */
+// clang-format on
 
 #pragma once
 
