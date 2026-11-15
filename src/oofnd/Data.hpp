@@ -1,20 +1,21 @@
+// clang-format off
 /*	oofnd/Data.hpp
         oo::Data: a byte buffer, the C++ shape of NSData / NSMutableData.
 
-            Foundation                                  oofnd
-            ------------------------------------------
-   ------------------------------------------------ NSData *d / NSMutableData *d
-   oo::Data d        (a value; see below) [NSData data] oo::Data{} [NSData
-   dataWithBytes:p length:n]           oo::Data(p, n) [s
-   dataUsingEncoding:NSUTF8StringEncoding]  oo::Data::fromString(utf8) [d bytes]
-   /  [d length]                    d.bytes()  /  d.length() [d mutableBytes]
-   d.mutableBytes() [d appendBytes:p length:n] / appendData:    d.append(p, n)
-   /  d.append(other) [d setLength:n]                             d.setLength(n)
-   (new bytes are zero, as NSData's) [d subdataWithRange:r] d.subdata(location,
-   length)   (clamped, see below) [d isEqualToData:e]                         d
-   == e [NSData dataWithContentsOfFile:p]           oo::fs::readFile(p)
-   (oofnd/FileSystem.hpp) [d writeToFile:p atomically:YES] oo::fs::writeFile(p,
-   d, oo::fs::WriteMode::kAtomic)
+        Foundation                                      oofnd
+        ----------------------------------------------  ------------------------------------------------
+        NSData *d / NSMutableData *d                    oo::Data d        (a value; see below)
+        [NSData data]                                   oo::Data{}
+        [NSData dataWithBytes:p length:n]               oo::Data(p, n)
+        [s dataUsingEncoding:NSUTF8StringEncoding]      oo::Data::fromString(utf8)
+        [d bytes]  /  [d length]                        d.bytes()  /  d.length()
+        [d mutableBytes]                                d.mutableBytes()
+        [d appendBytes:p length:n] / appendData:        d.append(p, n)  /  d.append(other)
+        [d setLength:n]                                 d.setLength(n)   (new bytes are zero, as NSData's)
+        [d subdataWithRange:r]                          d.subdata(location, length)   (clamped, see below)
+        [d isEqualToData:e]                             d == e
+        [NSData dataWithContentsOfFile:p]               oo::fs::readFile(p)   (oofnd/FileSystem.hpp)
+        [d writeToFile:p atomically:YES]                oo::fs::writeFile(p, d, oo::fs::WriteMode::kAtomic)
 
         SEMANTICS:
 
@@ -34,6 +35,7 @@
         Header-only, C++23, no exceptions thrown by oofnd itself (std::vector
    may still report allocation failure as the standard library does).
 */
+// clang-format on
 
 #pragma once
 

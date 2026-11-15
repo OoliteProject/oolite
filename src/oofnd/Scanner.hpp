@@ -1,3 +1,4 @@
+// clang-format off
 /*	oofnd/Scanner.hpp
         oo::str::CharacterSet and oo::str::Scanner: NSCharacterSet and NSScanner
    as Oolite uses them, over UTF-8 std::string with GNUstep base 1.31.1's
@@ -5,39 +6,34 @@
    scanning, skipping and failure rules. tests/unit/oofnd/test_scanner.cpp pins
    both against captured output.
 
-            Foundation                                    oo::str
-            --------------------------------------------
-   ---------------------------------------------- [NSCharacterSet
-   whitespaceCharacterSet]       CharacterSet::whitespace()
-            ... whitespaceAndNewlineCharacterSet
-   CharacterSet::whitespaceAndNewline()
-            ... newlineCharacterSet CharacterSet::newline()
-            ... decimalDigitCharacterSet CharacterSet::decimalDigit()
-            ... alphanumericCharacterSet CharacterSet::alphanumeric()
-            [NSCharacterSet characterSetWithCharacters
-   CharacterSet::fromCharacters(s) InString:s] [set invertedSet] set.inverted()
-            [set characterIsMember:c]                     set.contains(c)   (c a
-   UTF-16 unit) [set longCharacterIsMember:c]  (c a UTF-16 unit) set.contains(c)
-   (the same over the BMP) [s stringByTrimmingCharactersInSet:set]
-   oo::str::trim(s, set) [s rangeOfCharacterFromSet:set].location
-   oo::str::findFirstOf(s, set)   (npos: oo::kNotFound)
-            ... options:NSLiteralSearch range:{from, ...}
-   oo::str::findFirstOf(s, set, from)   (to the end)
-            ... options:NSBackwardsSearch                 oo::str::findLastOf(s,
-   set) [s componentsSeparatedByCharactersInSet:set]
-   oo::str::splitByCharacters(s, set) [NSScanner scannerWithString:s] Scanner
-   scanner(s) [sc scanInt:&i] / scanFloat: / scanDouble:    sc.scanInt(&i) /
-   scanFloat(&f) / scanDouble(&d) [sc scanString:t intoString:&r]
-   sc.scanString(t, &r) [sc scanUpToString:t intoString:&r] sc.scanUpToString(t,
-   &r) [sc scanCharactersFromSet:c intoString:&r]    sc.scanCharactersFromSet(c,
-   &r) [sc scanUpToCharactersFromSet:c intoString:]
-   sc.scanUpToCharactersFromSet(c, &r) [sc ooliteScanCharactersFromSet:c ...]
-   sc.scanCharactersFromSetNoSkip(c, &r) [sc ooliteScanUpToCharactersFromSet:c
-   ...]    sc.scanUpToCharactersFromSetNoSkip(c, &r) (NSScannerOOExtensions: no
-   skipping) [sc isAtEnd]                                  sc.isAtEnd() [sc
-   scanLocation] / setScanLocation:          sc.scanLocation() /
-   setScanLocation(n)
-            [[sc string] substringFromIndex:              sc.remainder()
+            Foundation                                        oo::str
+            ------------------------------------------------  ----------------------------------------
+            [NSCharacterSet whitespaceCharacterSet]           CharacterSet::whitespace()
+              ... whitespaceAndNewlineCharacterSet            CharacterSet::whitespaceAndNewline()
+              ... newlineCharacterSet                         CharacterSet::newline()
+              ... decimalDigitCharacterSet                    CharacterSet::decimalDigit()
+              ... alphanumericCharacterSet                    CharacterSet::alphanumeric()
+            [NSCharacterSet characterSetWithCharactersInString:s]  CharacterSet::fromCharacters(s)
+            [set invertedSet]                                 set.inverted()
+            [set characterIsMember:c]  (c a UTF-16 unit)      set.contains(c)
+            [set longCharacterIsMember:c]  (c a UTF-16 unit)  set.contains(c)  (the same over the BMP)
+            [s stringByTrimmingCharactersInSet:set]           oo::str::trim(s, set)
+            [s rangeOfCharacterFromSet:set].location          oo::str::findFirstOf(s, set)   (npos: oo::kNotFound)
+              ... options:NSLiteralSearch range:{from, ...}   oo::str::findFirstOf(s, set, from)   (to the end)
+              ... options:NSBackwardsSearch                   oo::str::findLastOf(s, set)
+            [s componentsSeparatedByCharactersInSet:set]      oo::str::splitByCharacters(s, set)
+            [NSScanner scannerWithString:s]                   Scanner scanner(s)
+            [sc scanInt:&i] / scanFloat: / scanDouble:        sc.scanInt(&i) / scanFloat(&f) / scanDouble(&d)
+            [sc scanString:t intoString:&r]                   sc.scanString(t, &r)
+            [sc scanUpToString:t intoString:&r]               sc.scanUpToString(t, &r)
+            [sc scanCharactersFromSet:c intoString:&r]        sc.scanCharactersFromSet(c, &r)
+            [sc scanUpToCharactersFromSet:c intoString:]      sc.scanUpToCharactersFromSet(c, &r)
+            [sc ooliteScanCharactersFromSet:c ...]            sc.scanCharactersFromSetNoSkip(c, &r)
+            [sc ooliteScanUpToCharactersFromSet:c ...]        sc.scanUpToCharactersFromSetNoSkip(c, &r)
+              (NSScannerOOExtensions: no skipping)
+            [sc isAtEnd]                                      sc.isAtEnd()
+            [sc scanLocation] / setScanLocation:              sc.scanLocation() / setScanLocation(n)
+            [[sc string] substringFromIndex:                  sc.remainder()
                 [sc scanLocation]]
 
         Locations are UTF-16 units, as NSScanner's are. Every scan first skips
@@ -53,6 +49,7 @@
 
         Header-only, C++23.
 */
+// clang-format on
 
 #pragma once
 

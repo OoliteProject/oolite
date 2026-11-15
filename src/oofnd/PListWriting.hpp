@@ -1,14 +1,14 @@
+// clang-format off
 /*	oofnd/PListWriting.hpp
         The two plist writers Oolite uses, reproduced byte for byte:
 
-            Objective-C                                                   oofnd
-            ------------------------------------------------------------
-   ------------------------------ [plist
-   oldSchoolPListFormatWithErrorDescription:&err] oo::writeOldStylePList(plist)
-                (src/Core/OldSchoolPropertyListWriting.m)
-            [NSPropertyListSerialization dataFromPropertyList:plist
-   oo::writeXMLPList(plist) format:NSPropertyListXMLFormat_v1_0
-   errorDescription:&err]
+        Objective-C                                                 oofnd
+        ----------------------------------------------------------  ----------------------------
+        [plist oldSchoolPListFormatWithErrorDescription:&err]       oo::writeOldStylePList(plist)
+          (src/Core/OldSchoolPropertyListWriting.m)
+        [NSPropertyListSerialization dataFromPropertyList:plist     oo::writeXMLPList(plist)
+          format:NSPropertyListXMLFormat_v1_0
+          errorDescription:&err]
 
         Both return the bytes as oo::Data (UTF-8), or a PListError.
 
@@ -42,6 +42,7 @@
    its UTF-8 conversion fails, so the old-style writer fails as a whole and the
    XML writer writes nothing for it.
 */
+// clang-format on
 
 #pragma once
 

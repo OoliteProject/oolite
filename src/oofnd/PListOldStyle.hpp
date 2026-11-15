@@ -1,3 +1,4 @@
+// clang-format off
 /*	oofnd/PListOldStyle.hpp
         The old-style (OpenStep / GNUstep text) property-list scanner: a port of
   GNUstep base 1.31.1's parsePlItem() and helpers (Source/NSPropertyList.m),
@@ -6,9 +7,8 @@
   what OOPropertyListFromData runs - on any data that does not start with "<?"
   (XML) or look binary.
 
-            std::expected<oo::PList, oo::PListError> r =
-  oo::parseOldStylePList(bytes); if (!r) OOLog(..., "%s",
-  r.error().description().c_str());
+            std::expected<oo::PList, oo::PListError> r = oo::parseOldStylePList(bytes);
+            if (!r) OOLog(..., "%s", r.error().description().c_str());
 
         It reproduces GNUstep quirk-for-quirk, including the odd
   parts:
@@ -34,19 +34,19 @@
   terminates an octal or hex escape is counted twice (GNUstep rescans it);
   "char" is the byte offset + 1.
           * After the top-level item only whitespace and comments may follow.
-  * Arrays "( a, b, )" may end in a comma; ",," is an empty string. Dictionaries
-    "{ k = v; }" may omit the last ';' and keep the last of repeated keys; keys
-  must be strings. Data "<0a0b 0c>" allows whitespace and
-  comments between octets.
-  * GNUstep's extensions "<*I12>", "<*R1.5>", "<*BY>", "<*D2001-01-01 00:00:00
-  +0000>" and
-    "<[base64]>" are read, and make the reported format GNUstep. A <*D> or
-  <[...]> GNUstep cannot decode is nil WITHOUT an error, which makes the whole
-  plist nil: oofnd returns a null PList.
+          * Arrays "( a, b, )" may end in a comma; ",," is an empty string.
+            Dictionaries "{ k = v; }" may omit the last ';' and keep the last of repeated
+            keys; keys must be strings. Data "<0a0b 0c>" allows whitespace and comments
+            between octets.
+          * GNUstep's extensions "<*I12>", "<*R1.5>", "<*BY>", "<*D2001-01-01 00:00:00
+            +0000>" and "<[base64]>" are read, and make the reported format GNUstep. A <*D>
+            or <[...]> GNUstep cannot decode is nil WITHOUT an error, which makes the whole
+            plist nil: oofnd returns a null PList.
 
         Error messages are GNUstep's, formatted as its propertyListWithData
   formats them: "Parse failed at line L (char C) - <reason>".
 */
+// clang-format on
 
 #pragma once
 

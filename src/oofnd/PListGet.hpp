@@ -1,25 +1,27 @@
+// clang-format off
 /*	oofnd/PListGet.hpp
         oo::PList::get<T>(key, fallback) and oo::PList::at<T>(index, fallback):
    the typed, defaulted accessor that replaces OOCollectionExtractors
    (`-oo_<type>ForKey:defaultValue:` and
         `-oo_<type>AtIndex:defaultValue:`), with the SAME conversions.
 
-            Objective-C (OOCollectionExtractors)                  oo::PList
-            ----------------------------------------------------
-   ------------------------------------------- [d oo_floatForKey:@"k"
-   defaultValue:1.0f]             d.get<float>("k", 1.0f) [d
-   oo_floatForKey:@"k"]                               d.get<float>("k")
-   (fallback 0) [a oo_intAtIndex:3 defaultValue:-1] a.at<int>(3, -1) char short
-   int long long long, unsigned ...           the same C++ type (clamped exactly
-   as the OO<Type>FromObject functions clamp) std::ptrdiff_t / std::size_t long
-   long / unsigned long long (Windows) oo_boolForKey (bool) get<bool>
-            oo_nonNegativeFloatForKey / ...DoubleForKey
-   get<oo::NonNegative<float>> / <double> oo_stringForKey (NSString *)
-   get<std::string>   (fallback "", not nil) oo_objectForKey (id) get<oo::PList>
-   -> const PList* oo_arrayForKey / oo_dictionaryForKey / oo_dataForKey
-   get<PList::Array> / <PList::Dict> / <PList::Data>           -> const PList*
-            oo_setForKey, vector/quaternion, fuzzy boolean        not here: no
-   PList kind (NSSet) or a game type; the game specialises oo::PListGet<T>
+        Objective-C (OOCollectionExtractors)                oo::PList
+        --------------------------------------------------  --------------------------------------------
+        [d oo_floatForKey:@"k" defaultValue:1.0f]           d.get<float>("k", 1.0f)
+        [d oo_floatForKey:@"k"]                             d.get<float>("k")   (fallback 0)
+        [a oo_intAtIndex:3 defaultValue:-1]                 a.at<int>(3, -1)
+        char short int long long long, unsigned ...         the same C++ type (clamped exactly as the
+                                                              OO<Type>FromObject functions clamp)
+        std::ptrdiff_t / std::size_t                        long long / unsigned long long (Windows)
+        oo_boolForKey (bool)                                get<bool>
+        oo_nonNegativeFloatForKey / ...DoubleForKey         get<oo::NonNegative<float>> / <double>
+        oo_stringForKey (NSString *)                        get<std::string>   (fallback "", not nil)
+        oo_objectForKey (id)                                get<oo::PList> -> const PList*
+        oo_arrayForKey / oo_dictionaryForKey / oo_dataForKey
+                                                            get<PList::Array> / <PList::Dict> /
+                                                              <PList::Data> -> const PList*
+        oo_setForKey, vector/quaternion, fuzzy boolean      not here: no PList kind (NSSet) or a game
+                                                              type; the game specialises oo::PListGet<T>
 
         While the game still holds NSDictionary/NSArray, call sites use the
    zero-copy bridge oo::PListView (src/Core/OOPListView.h) whose get<T>/at<T>
@@ -67,6 +69,7 @@
    platform today. On LP64, Oolite's `unsigned long` accessor aliased the
    SIGNED reading; revisit when Linux returns.
 */
+// clang-format on
 
 #pragma once
 

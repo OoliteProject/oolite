@@ -1,22 +1,21 @@
+// clang-format off
 /*	oofnd/Log.hpp
         oo::log: Oolite's logging (OOLogging) without Foundation: message-class
    switches with inheritance and $metaclasses, per-thread indentation, the
    exact Latest.log line layout, and a std::format front end.
 
-            OOLogging (Objective-C)                          oo::log
-            -----------------------------------------------
-   ------------------------------------------- OOLog(@"cls", @"n = %d, s = %@",
-   n, s)           OO_LOG("cls", "n = {}, s = {}", n, s) OOLogERR /
-   OOLogWARN(@"cls", fmt, ...)           OO_LOG_ERR / OO_LOG_WARN("cls", fmt,
-   ...) OOLogWillDisplayMessagesInClass(@"cls") oo::log::willDisplay("cls")
-            OOLogSetDisplayMessagesInClass(@"cls", YES)
-   oo::log::logger().setDisplay("cls", true) OOLogIndent / Outdent / PushIndent
-   / PopIndent   oo::log::indent / outdent / pushIndent / popIndent
-            OOLogIndentIf(@"cls") / OOLogOutdentIf oo::log::indentIf("cls") /
-   outdentIf OOLogGetParentMessageClass(@"a.b") oo::log::parentClass("a.b")
-            OOLogAbbreviatedFileName(__FILE__)
-   oo::log::abbreviatedFileName(__FILE__) OOLogInsertMarker()
-   oo::log::logger().insertMarker()
+        OOLogging (Objective-C)                          oo::log
+        -----------------------------------------------  -------------------------------------------
+        OOLog(@"cls", @"n = %d, s = %@", n, s)           OO_LOG("cls", "n = {}, s = {}", n, s)
+        OOLogERR / OOLogWARN(@"cls", fmt, ...)           OO_LOG_ERR / OO_LOG_WARN("cls", fmt, ...)
+        OOLogWillDisplayMessagesInClass(@"cls")          oo::log::willDisplay("cls")
+        OOLogSetDisplayMessagesInClass(@"cls", YES)      oo::log::logger().setDisplay("cls", true)
+        OOLogIndent / Outdent / PushIndent / PopIndent   oo::log::indent / outdent / pushIndent /
+                                                           popIndent
+        OOLogIndentIf(@"cls") / OOLogOutdentIf           oo::log::indentIf("cls") / outdentIf
+        OOLogGetParentMessageClass(@"a.b")               oo::log::parentClass("a.b")
+        OOLogAbbreviatedFileName(__FILE__)               oo::log::abbreviatedFileName(__FILE__)
+        OOLogInsertMarker()                              oo::log::logger().insertMarker()
 
         The game's OOLogging.cpp is a thin shell over this: it loads
    logcontrol.plist and the logging-show-* defaults, formats %@ messages for the
@@ -34,6 +33,7 @@
         Header-only, C++23. std::format itself may report a malformed format
    string at compile time; nothing here throws.
 */
+// clang-format on
 
 #pragma once
 

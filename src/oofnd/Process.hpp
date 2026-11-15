@@ -1,16 +1,15 @@
+// clang-format off
 /*	oofnd/Process.hpp
         oo::process: what Oolite asked of NSProcessInfo.
 
-            Foundation                                        oofnd
-            ------------------------------------------------
-   --------------------------------------------
-            [[NSProcessInfo processInfo] arguments] oo::process::arguments()
-   (UTF-8 strings) [arguments containsObject:@"-x"]
-   oo::process::hasArgument("-x")
-            [[pi environment] objectForKey:@"NAME"]           oo::env("NAME")
-   (std::optional, UTF-8) [pi processorCount] oo::process::processorCount() [pi
-   operatingSystemVersionString] oo::process::operatingSystemVersionString() [pi
-   processName]                                  oo::process::processName()
+        Foundation                                        oofnd
+        ------------------------------------------------  --------------------------------------------
+        [[NSProcessInfo processInfo] arguments]           oo::process::arguments()   (UTF-8 strings)
+        [arguments containsObject:@"-x"]                  oo::process::hasArgument("-x")
+        [[pi environment] objectForKey:@"NAME"]           oo::env("NAME")   (std::optional, UTF-8)
+        [pi processorCount]                               oo::process::processorCount()
+        [pi operatingSystemVersionString]                 oo::process::operatingSystemVersionString()
+        [pi processName]                                  oo::process::processName()
 
         SEMANTICS (measured against gnustep-base 1.31 on Windows):
 
@@ -33,6 +32,7 @@
 
         Header-only, C++23.
 */
+// clang-format on
 
 #pragma once
 

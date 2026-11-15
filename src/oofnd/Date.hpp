@@ -1,24 +1,22 @@
+// clang-format off
 /*	oofnd/Date.hpp
         oo::date: the replacement for NSDate, on std::chrono. double
    stays a double count of seconds (the Foundation-types header keeps the
    typedef).
 
-            Foundation                                      oofnd
-            ----------------------------------------------
-   ------------------------------------------ NSDate used as a stopwatch / frame
-   clock: t = [NSDate timeIntervalSinceReferenceDate];  t =
-   oo::date::monotonicSeconds();
-              ... now - t                                    ... (only
-   differences are meaningful) [NSDate dateWithTimeIntervalSinceNow:s]
-   std::chrono::steady_clock::now() + seconds (a deadline) (a time_point) NSDate
-   used as a wall clock (a value that is stored, shown or compared across runs):
-              [NSDate timeIntervalSinceReferenceDate]
-   oo::date::timeIntervalSinceReferenceDate()
-              [[NSDate date] timeIntervalSince1970]
-   oo::date::timeIntervalSince1970() [NSDate date]
-   std::chrono::system_clock::now() [NSDate dateWithTimeIntervalSince1970:s]
-   oo::date::dateWithTimeIntervalSince1970(s) [date description], "%@" of an
-   NSDate          oo::date::description(t)
+        Foundation                                          oofnd
+        --------------------------------------------------  --------------------------------------------
+        NSDate used as a stopwatch / frame clock:
+          t = [NSDate timeIntervalSinceReferenceDate];      t = oo::date::monotonicSeconds();
+          ... now - t                                       ... (only differences are meaningful)
+          [NSDate dateWithTimeIntervalSinceNow:s]           std::chrono::steady_clock::now() + seconds
+            (a deadline)                                      (a time_point)
+        NSDate used as a wall clock (a value that is stored, shown or compared across runs):
+          [NSDate timeIntervalSinceReferenceDate]           oo::date::timeIntervalSinceReferenceDate()
+          [[NSDate date] timeIntervalSince1970]             oo::date::timeIntervalSince1970()
+          [NSDate date]                                     std::chrono::system_clock::now()
+          [NSDate dateWithTimeIntervalSince1970:s]          oo::date::dateWithTimeIntervalSince1970(s)
+          [date description], "%@" of an NSDate             oo::date::description(t)
 
         SEMANTICS, each as GNUstep has them:
 
@@ -32,6 +30,7 @@
             "%Y-%m-%d %H:%M:%S %z" in the local time zone, e.g. "2026-09-23
    14:03:12 +0100"; seconds are truncated, not rounded.
 */
+// clang-format on
 
 #pragma once
 

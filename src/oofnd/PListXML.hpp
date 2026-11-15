@@ -1,3 +1,4 @@
+// clang-format off
 /*	oofnd/PListXML.hpp
         The XML property-list reader Oolite runs today, reproduced
    quirk-for-quirk:
@@ -16,37 +17,38 @@
    What that means in practice:
 
               - The <?xml ...?> declaration must be the very first byte: leading
-   whitespace or a BOM fails the parse. DOCTYPE, comments, processing
-   instructions and attributes are skipped; CDATA sections are DROPPED
-   (GSXMLPListParser has no CDATA callback).
+                whitespace or a BOM fails the parse. DOCTYPE, comments, processing
+                instructions and attributes are skipped; CDATA sections are DROPPED
+                (GSXMLPListParser has no CDATA callback).
               - Tags must nest exactly; an unknown element (anything but plist,
-   dict, array, key, string, data, date, integer, real, true, false) fails when
-   it closes.
+                dict, array, key, string, data, date, integer, real, true, false) fails when
+                it closes.
               - Text inside key/string/... is kept verbatim (leading and
-   trailing whitespace too). Text between container tags is trimmed and GLUED
-   onto the next key or value: <dict>x<key>k</key>... has the key "xk".
+                trailing whitespace too). Text between container tags is trimmed and GLUED
+                onto the next key or value: <dict>x<key>k</key>... has the key "xk".
               - Entities: the five predefined ones and &#ddd; / &#xhh; (6 digits
-   at most); any other entity becomes "". A '&' without a ';' before the next
-   '<' fails the parse.
+                at most); any other entity becomes "". A '&' without a ';' before the next
+                '<' fails the parse.
               - In <key> and <string>, \Uxxxx (capital U, exactly four hex
-   digits) is a UTF-16 unit.
+                digits) is a UTF-16 unit.
               - <integer> is strtoll of the text (so " 12 " is 12, "1.9" is 1,
-   overflow saturates), stored unsigned unless the text starts with '-'; <real>
-   is strtod; <data> is GSMimeDocument's lenient base64; <date> see PList.hpp's
-   parseCalendarDate().
+                overflow saturates), stored unsigned unless the text starts with '-'; <real>
+                is strtod; <data> is GSMimeDocument's lenient base64; <date> see PList.hpp's
+                parseCalendarDate().
               - The result is the LAST completed top-level value; an empty
-   <plist/> is nil without an error (a null PList here). A value in a dict
-   without a preceding <key> fails.
+                <plist/> is nil without an error (a null PList here). A value in a dict
+                without a preceding <key> fails.
               - Byte-order marks follow NSString (see PList.hpp): an entity or
-   \U escape for U+FEFF or U+FFFE is "", and a text chunk starting with U+FEFF
-   loses it.
+                \U escape for U+FEFF or U+FFFE is "", and a text chunk starting with U+FEFF
+                loses it.
               - The bytes are UTF-8, or ISO-8859-1 when they are not valid UTF-8
-   or the declaration says so (GNUstep scans the whole document for
-   encoding="..."). UTF-16/32 fail.
+                or the declaration says so (GNUstep scans the whole document for
+                encoding="..."). UTF-16/32 fail.
 
         Every failure has GNUstep's single message, "failed to parse as XML
    property list".
 */
+// clang-format on
 
 #pragma once
 

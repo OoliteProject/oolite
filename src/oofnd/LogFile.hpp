@@ -1,20 +1,19 @@
+// clang-format off
 /*	oofnd/LogFile.hpp
         oo::log::FileWriter: the Latest.log writer (OOLogOutputHandler's
    OOAsyncLogger) without Foundation, and the byte conversions it and the
    console echo applied to a finished line.
 
-            OOLogOutputHandler (Objective-C, gnustep-base 1.31)      oo::log
-            -------------------------------------------------------
-   -------------------------------------
-            -[OOAsyncLogger init]: Latest.log -> Previous.log
-   rotateToPrevious(latest, previous) -startLogging (create the file, start
-   loggerThread)      FileWriter::start(path) -asyncLogMessage: (line + "\n",
-   CRLF, UTF-8 data)        FileWriter::write(line) the bytes it enqueued
-   logFileBytes(line, crlf) -flushLog ([logFile synchronizeFile] on the thread)
-   FileWriter::flush() -endLogging ("\nClosing log at %@.", die, close)
-   FileWriter::end(postamble) the 1 GiB "LOG TRUNCATED" saturation FileWriter
-   (limit, shared flag)
-            [[line stringByAppendingString:@"\n"] UTF8String] consoleBytes(line)
+        OOLogOutputHandler (Objective-C, gnustep-base 1.31)      oo::log
+        -------------------------------------------------------  -------------------------------------
+        -[OOAsyncLogger init]: Latest.log -> Previous.log        rotateToPrevious(latest, previous)
+        -startLogging (create the file, start loggerThread)      FileWriter::start(path)
+        -asyncLogMessage: (line + "\n", CRLF, UTF-8 data)        FileWriter::write(line)
+        the bytes it enqueued                                    logFileBytes(line, crlf)
+        -flushLog ([logFile synchronizeFile] on the thread)      FileWriter::flush()
+        -endLogging ("\nClosing log at %@.", die, close)         FileWriter::end(postamble)
+        the 1 GiB "LOG TRUNCATED" saturation                     FileWriter (limit, shared flag)
+        [[line stringByAppendingString:@"\n"] UTF8String]        consoleBytes(line)
 
         Captured from gnustep-base 1.31.1 (throwaway probe;
    tests/unit/oofnd/test_logfile.cpp):
@@ -41,6 +40,7 @@
 
         Header-only, C++23.
 */
+// clang-format on
 
 #pragma once
 

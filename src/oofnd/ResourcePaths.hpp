@@ -1,3 +1,4 @@
+// clang-format off
 /*	oofnd/ResourcePaths.hpp
         oo::ResourcePaths: where the game finds its built-in Resources, its
    AddOns roots and its per-user directories (saves, snapshots, logs, caches,
@@ -8,32 +9,34 @@
    platforms (Windows, Linux), including the OO_* environment overrides, so a
    consumer can switch without moving a file:
 
-            today (Objective-C)                                      oofnd
-            -------------------------------------------------------
-   --------------------------------- NSHomeDirectory() homeDirectory() [fm
-   defaultCommanderPath] (before its mkdir/fallback)    saveDirectory()
-              OO_SAVEDIR | ~/oolite-saves
-            chdirToSnapshotPath's directory snapshotDirectory() OO_SNAPSHOTSDIR
-   | ~/oolite-saves/snapshots OOLogHandlerGetLogBasePath()  (before its mkdirs)
-   logDirectory() OO_LOGSDIR | Windows ~/Logs, Linux ~/.Oolite/Logs
-            NSSearchPathForDirectoriesInDomains(NSLibraryDirectory)
-   userLibraryDirectory()
-              ~/GNUstep/Library   (GNUstep's default user layout)
-            ...(NSApplicationSupportDirectory) applicationSupportDirectory()
-              ~/GNUstep/Library/ApplicationSupport
-            ...(NSCachesDirectory) cachesDirectory()
-              ~/GNUstep/Library/Caches
-            [[OOOXZManager sharedManager] installPath] managedAddOnsDirectory()
-              OO_MANAGEDADDONSDIR | <ApplicationSupport>/Oolite/ManagedAddOns
-            [[OOOXZManager sharedManager] extractAddOnsPath]
-   extractAddOnsDirectory() OO_ADDONSEXTRACTDIR | Windows "../AddOns" (relative,
-   as today) or, when built with OO_GAME_DATA_TO_USER_FOLDER,
-   %LOCALAPPDATA%\Oolite\AddOns | Linux ~/.Oolite/AddOns
-            [[OOOXZManager sharedManager] additionalAddOnsPaths]
-   additionalAddOnsDirectories() OO_ADDITIONALADDONSDIRS split on ','
-            [ResourceManager builtInPath] builtInResourcesDirectory()
-              <cwd>/Resources if it is a directory, else
-   <cwd>/../share/oolite/Resources [ResourceManager userRootPaths]
+            today (Objective-C)                                       oofnd
+            --------------------------------------------------------  ----------------------------------------
+            NSHomeDirectory()                                         homeDirectory()
+            [fm defaultCommanderPath] (before its mkdir/fallback)     saveDirectory()
+                                                                        OO_SAVEDIR | ~/oolite-saves
+            chdirToSnapshotPath's directory                           snapshotDirectory()
+                                                                        OO_SNAPSHOTSDIR | ~/oolite-saves/snapshots
+            OOLogHandlerGetLogBasePath()  (before its mkdirs)         logDirectory()
+                                                                        OO_LOGSDIR | Windows ~/Logs, Linux ~/.Oolite/Logs
+            NSSearchPathForDirectoriesInDomains(NSLibraryDirectory)   userLibraryDirectory()
+                                                                        ~/GNUstep/Library   (GNUstep's default user layout)
+              ...(NSApplicationSupportDirectory)                      applicationSupportDirectory()
+                                                                        ~/GNUstep/Library/ApplicationSupport
+              ...(NSCachesDirectory)                                  cachesDirectory()
+                                                                        ~/GNUstep/Library/Caches
+            [[OOOXZManager sharedManager] installPath]                managedAddOnsDirectory()
+                                                                        OO_MANAGEDADDONSDIR | <ApplicationSupport>/Oolite/ManagedAddOns
+            [[OOOXZManager sharedManager] extractAddOnsPath]          extractAddOnsDirectory()
+                                                                        OO_ADDONSEXTRACTDIR | Windows "../AddOns" (relative, as today) or,
+                                                                        when built with OO_GAME_DATA_TO_USER_FOLDER,
+                                                                        %LOCALAPPDATA%\Oolite\AddOns | Linux ~/.Oolite/AddOns
+            [[OOOXZManager sharedManager] additionalAddOnsPaths]      additionalAddOnsDirectories()
+                                                                        OO_ADDITIONALADDONSDIRS split on ','
+            [ResourceManager builtInPath]                             builtInResourcesDirectory()
+                                                                        <cwd>/Resources if it is a directory, else
+                                                                        <cwd>/../share/oolite/Resources
+            [ResourceManager userRootPaths]                           userRootDirectories()
+            [ResourceManager rootPaths]                               rootDirectories()
    userRootDirectories() [ResourceManager rootPaths] rootDirectories()
 
         "~" is homeDirectory(). On Windows that is GNUstep's rule: %HOMEPATH%
@@ -60,6 +63,7 @@
 
         Header-only, C++23.
 */
+// clang-format on
 
 #pragma once
 
