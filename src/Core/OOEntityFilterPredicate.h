@@ -47,6 +47,10 @@ typedef struct
     void* parameter2;
 } BinaryOperationPredicateParameter;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 BOOL YESPredicate(Entity* entity, void* parameter); // Parameter: ignored. Always returns YES.
 BOOL NOPredicate(Entity* entity, void* parameter); // Parameter: ignored. Always returns NO.
 
@@ -72,3 +76,7 @@ BOOL HasPrimaryRolePredicate(Entity* ship, void* parameter); // Parameter: NSStr
 BOOL HasRoleInSetPredicate(Entity* ship, void* parameter); // Parameter: NSSet
 BOOL HasPrimaryRoleInSetPredicate(Entity* ship, void* parameter); // Parameter: NSSet
 BOOL IsHostileAgainstTargetPredicate(Entity* ship, void* parameter); // Parameter: ShipEntity
+
+#ifdef __cplusplus
+}
+#endif

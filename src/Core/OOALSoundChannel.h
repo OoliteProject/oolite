@@ -34,10 +34,11 @@ SOFTWARE.
 
 #import "OOMaths.h"
 #import "OOOpenALController.h"
+#import "oofnd/objc/OOObject.h"
 
 @class OOSound;
 
-@interface OOSoundChannel : NSObject {
+@interface OOSoundChannel : OOObject {
     OOSoundChannel* _next;
     id _delegate;
     OOSound* _sound;

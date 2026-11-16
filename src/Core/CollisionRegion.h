@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 #import "OOMaths.h"
+#import "oofnd/objc/OOObject.h"
 
 #define COLLISION_REGION_BORDER_RADIUS 32000.0f
 #define COLLISION_MAX_ENTITIES 128
@@ -34,7 +35,7 @@ MA 02110-1301, USA.
 
 @class Entity, OOSunEntity;
 
-@interface CollisionRegion : NSObject {
+@interface CollisionRegion : OOObject {
 @private
     BOOL isUniverse; // if YES location is origin and radius is 0.0f
 

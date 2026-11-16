@@ -28,6 +28,10 @@ MA 02110-1301, USA.
 
 #import <Foundation/Foundation.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // whereFrom is an optional description of the data source, for error reporting.
 id OOPropertyListFromData(NSData* data, NSString* whereFrom);
 id OOPropertyListFromFile(NSString* path);
@@ -38,3 +42,7 @@ NSDictionary* OODictionaryFromFile(NSString* path);
 
 NSArray* OOArrayFromData(NSData* data, NSString* whereFrom);
 NSArray* OOArrayFromFile(NSString* path);
+
+#ifdef __cplusplus
+}
+#endif

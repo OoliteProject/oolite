@@ -66,7 +66,7 @@ typedef NSString* OOALStringRef;
 typedef NSData* OOALDataRef;
 typedef NSMutableData* OOALMutableDataRef;
 typedef NSDictionary* OOALDictionaryRef;
-typedef NSAutoreleasePool* OOALAutoreleasePoolRef;
+typedef void* OOALAutoreleasePoolRef; // objc_autoreleasePoolPush() token
 
 #define OOALSTR(x) @"" x
 
@@ -78,11 +78,15 @@ typedef const struct NSString* OOALStringRef;
 typedef const struct NSData* OOALDataRef;
 typedef struct NSData* OOALMutableDataRef;
 typedef const struct NSDictionary* OOALDictionaryRef;
-typedef const struct NSAutoreleasePool* OOALAutoreleasePoolRef;
+typedef const struct OOALAutoreleasePool* OOALAutoreleasePoolRef;
 
 OOALStringRef OOALGetConstantString(const char* string); // Should only be used with string literals!
 #define OOALSTR(string) OOALGetConstantString("" string "")
 
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 void OOALRelease(OOALObjectRef object);
@@ -101,9 +105,12 @@ const void* OOALDataGetBytePtr(OOALDataRef data);
 size_t OOALDataGetLength(OOALDataRef data);
 
 OOALAutoreleasePoolRef OOALCreateAutoreleasePool(void);
-#define OOALDestroyAutoreleasePool(pool) OOALRelease(pool)
+void OOALDestroyAutoreleasePool(OOALAutoreleasePoolRef pool);
 
 OOALObjectRef OOALPropertyListFromData(OOALMutableDataRef data, OOALStringRef* errStr);
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* OOTCPSTREAM_USE_COREFOUNDATION */
 #endif /* INCLUDED_OOTCPStreamDecoderAbstractionLayer_h */

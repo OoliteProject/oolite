@@ -31,8 +31,9 @@ SOFTWARE.
 #import "OOFoundation.h"
 #import "OOOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
+#import "oofnd/objc/OOObject.h"
 
-@interface OOPolygonSprite : NSObject {
+@interface OOPolygonSprite : OOObject {
 @private
     GLfloat* _solidData;
     size_t _solidCount;

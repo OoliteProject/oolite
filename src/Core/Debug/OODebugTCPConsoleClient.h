@@ -29,6 +29,7 @@ SOFTWARE.
 
 #import "OODebuggerInterface.h"
 #import "OOFoundation.h"
+#import "oofnd/objc/OOObject.h"
 
 @class OODebugMonitor;
 
@@ -41,7 +42,7 @@ typedef enum {
     kOOTCPClientDisconnected
 } OOTCPClientConnectionStatus;
 
-@interface OODebugTCPConsoleClient : NSObject <OODebuggerInterface> {
+@interface OODebugTCPConsoleClient : OOObject <OODebuggerInterface> {
 @private
 #if OOLITE_MAC_OS_X
     NSString* _host; // NSHost does blocking DNS lookups on macOS, so keep the address
