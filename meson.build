@@ -1,6 +1,6 @@
 project(
     'oolite',
-    ['c', 'cpp', 'objc'],
+    ['c', 'cpp', 'objc', 'objcpp'],
     meson_version: '>= 1.4.0',
     version: run_command(
         'bash',
@@ -10,11 +10,14 @@ project(
     ).stdout().strip(),
     default_options: [
         'optimization=2',
+        # Always use the bundled, patched QuickJS-ng (see subprojects/quickjs-ng.wrap):
+        # an unpatched system build breaks OXPs that rely on SpiderMonkey behaviour.
+        'force_fallback_for=quickjs-ng',
     ],
 )
 
 host_os = host_machine.system()
-c_family = ['c', 'cpp', 'objc']
+c_family = ['c', 'cpp', 'objc', 'objcpp']
 
 version_string = meson.project_version()
 cat_cmd = find_program('cat', required: true)
@@ -96,10 +99,10 @@ if get_option('dev_release')
     )
 endif
 
-if get_option('oo_javascript_trace')
-    add_project_arguments('-DMOZ_TRACE_JSCALLS=1', language: c_family)
-endif
-
 gnustep_folder = ''  # Not needed for Windows
 # dependencies, compiler/linker flags and build
 subdir('src')
+
+if get_option('quickjs_poc')
+    subdir('src/Core/Scripting/poc')
+endif
