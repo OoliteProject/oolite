@@ -1,6 +1,6 @@
 /*
 
-OOJSWormhole.h
+OOJSWormhole.h (QuickJS-ng)
 
 JavaScript proxy for WormholeEntities.
 
@@ -28,16 +28,19 @@ MA 02110-1301, USA.
 
 #import "WormholeEntity.h"
 #import <Foundation/Foundation.h>
-#include <jsapi.h>
+#include <quickjs.h>
 
 @class WormholeEntity;
 
-void InitOOJSWormhole(JSContext* context, JSObject* global);
+void InitOOJSWormhole(JSContext* context, JSValueConst global);
+
+JSClassID JSWormholeClassID(void);
 
 @interface WormholeEntity (OOJavaScriptExtensions)
 
-- (void)getJSClass:(JSClass**)outClass andPrototype:(JSObject**)outPrototype;
-- (NSString*)oo_jsClassName;
+// Replaces SpiderMonkey's -getJSClass:andPrototype:.
+- (JSClassID)oo_jsClassID;
+- (id)oo_jsClassName; // shared selector (proposed ADR-0043)
 - (BOOL)isVisibleToScripts;
 
 @end

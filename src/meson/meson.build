@@ -13,6 +13,16 @@ if ccid == 'gcc'
     oolite_override_options += 'c_std=gnu99'
 endif
 
+oolite_dependencies += dependency(
+    'quickjs-ng',
+    version: '>=0.17.0',
+    # No LTO for QuickJS: with clang on Windows (MSYS2), the static library's
+    # LTO objects are archived without a symbol index, so linking fails.
+    # Warning level 2 (QuickJS defaults to 3) leaves out -Wpedantic, which
+    # clang uses to flag QuickJS's "return f();" in void functions.
+    default_options: ['default_library=static', 'libc=false', 'b_lto=false', 'warning_level=2'],
+)
+
 if get_option('b_lto')
     if ccid == 'clang'
         add_project_arguments('-flto=thin', language: c_family)
@@ -37,6 +47,11 @@ add_project_arguments(
     '-fobjc-exceptions',
     language: 'objc',
 )
+add_project_arguments(
+    '-fexceptions',
+    '-fobjc-exceptions',
+    language: 'objcpp',
+)
 
 if host_os == 'darwin'
     # Apple Foundation and the Apple Objective-C runtime (manual retain/release).
@@ -48,6 +63,13 @@ elif ccid == 'clang'
         '-fobjc-runtime=gnustep-2.2',
         '-fblocks',
         language: 'objc',
+    )
+    add_project_arguments(
+        '-DGNUSTEP_RUNTIME=1',
+        '-D_NONFRAGILE_ABI=1',
+        '-fobjc-runtime=gnustep-2.2',
+        '-fblocks',
+        language: 'objcpp',
     )
 else
     add_project_arguments(
