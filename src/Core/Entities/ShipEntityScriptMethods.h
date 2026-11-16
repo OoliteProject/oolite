@@ -25,13 +25,13 @@ MA 02110-1301, USA.
 
 */
 
-#import "ShipEntity.h"
+#pragma once
 
-@interface ShipEntity (ScriptMethods)
+#include "ShipEntity.h"
 
-- (ShipEntity*)ejectShipOfType:(NSString*)shipKey; // Note: ship type, not role.
-- (ShipEntity*)ejectShipOfRole:(NSString*)role;
-
-- (NSArray*)spawnShipsWithRole:(NSString*)role count:(NSUInteger)count;
-
-@end
+/*	Bead oo-42dr (ADR-0056 amendments oo-o89 item 4 and oo-9fwb): the category ShipEntity
+        (ScriptMethods) is members of ShipEntity, declared in ShipEntity.h and defined in
+        ShipEntityScriptMethods.mm. Its Objective-C interface was the category of the same name in
+        ShipEntity+ObjCBridge.h until bead oo-9ht.144 deleted the facade. This header stays for the
+        files that import it.
+*/

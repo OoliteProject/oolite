@@ -25,8 +25,10 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
-#import "OOMaths.h"
+#pragma once
+
+#include "OOFoundation.h"
+#include "OOMaths.h"
 
 // Option flags for OOExpandDescriptionString().
 enum {
@@ -101,7 +103,15 @@ typedef NSUInteger OOExpandOptions;
         converted to line breaks. This is used for expanding missiontext.plist
         entries, which may have literal \n especially in XML format.
 */
-NSString* OOExpandDescriptionString(Random_Seed seed, NSString* string, NSDictionary* overrides, NSDictionary* legacyLocals, NSString* systemName, OOExpandOptions options);
+#ifdef __cplusplus
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+
+// C++ form (bead oo-3il6, chunk oo-3rb.145): overrides and legacyLocals are dictionaries of
+// mixed values (oo::PList with Object nodes; null: none); nullopt where the string expanded to
+// nothing. Game code calls this or the cxx_OOExpand* macros below.
+std::optional<std::string> cxx_OOExpandDescriptionString(Random_Seed seed, const std::string& string, const oo::PList& overrides, const oo::PList& legacyLocals, const std::optional<std::string>& systemName, OOExpandOptions options);
+#endif
 
 /*
         OOGenerateSystemDescription(seed, name)
@@ -113,110 +123,18 @@ NSString* OOExpandDescriptionString(Random_Seed seed, NSString* string, NSDictio
         NOTE: this does not apply planetinfo overrides. To get the actual system
         description, use [UNIVERSE generateSystemData:].
 */
-NSString* OOGenerateSystemDescription(Random_Seed seed, NSString* name);
-
-/**
-        Expand a string with default options.
-*/
-#define OOExpand(string, ...) OOExpandWithSeed(OOStringExpanderDefaultRandomSeed(), string, __VA_ARGS__)
-
-/**
-        Expand a string as though it were surrounded by brackets;
-        OOExpandKey(@"foo", ...) is equivalent to OOExpand(@"[foo]", ...).
-*/
-#define OOExpandKey(key, ...) OOExpandKeyWithSeed(OOStringExpanderDefaultRandomSeed(), key, __VA_ARGS__)
-
-/**
-        Like OOExpandKey(), but uses a random-er random seed to avoid repeatability.
- */
-#define OOExpandKeyRandomized(key, ...) OOExpandWithOptions(OOStringExpanderDefaultRandomSeed(), kOOExpandKey | kOOExpandGoodRNG | kOOExpandReseedRNG, key, __VA_ARGS__)
-
-#define OOExpandWithSeed(seed, string, ...) OOExpandWithOptions(seed, kOOExpandNoOptions, string, __VA_ARGS__)
-
-#define OOExpandKeyWithSeed(seed, key, ...) OOExpandWithOptions(seed, kOOExpandKey, key, __VA_ARGS__)
-
-#define OOExpandWithOptions(seed, options, string, ...) \
-    OOExpandDescriptionString(seed, string, OOEXPAND_ARG_DICTIONARY(__VA_ARGS__), nil, nil, options)
+#ifdef __cplusplus
+std::optional<std::string> cxx_OOGenerateSystemDescription(Random_Seed seed, const std::optional<std::string>& name);
+#endif
 
 // Equivalent to [[UNIVERSE systemManager] getRandomSeedForCurrentSystem], without pulling in Universe.h.
+#ifdef __cplusplus
+extern "C" {
+#endif
 Random_Seed OOStringExpanderDefaultRandomSeed(void);
-
-// MARK: Danger zone! Everything beyond this point is scary.
-
-/*	Given an argument list, return a dictionary whose keys are the literal
-        arguments and whose values are objects representing the arguments' values
-        (as per OO_CAST_PARAMETER() below).
-
-        Note that the argument list will be preprocessor-expanded at this point.
- */
-#define OOEXPAND_ARG_DICTIONARY(...) (                                                                                              \
-    (OOEXPAND_ARGUMENT_COUNT(__VA_ARGS__) == 0) ? nil : [NSDictionary dictionaryWithObjects:OOEXPAND_OBJECTS_FROM_ARGS(__VA_ARGS__) \
-                                                                                    forKeys:OOEXPAND_NAMES_FROM_ARGS(__VA_ARGS__)   \
-                                                                                      count:OOEXPAND_ARGUMENT_COUNT(__VA_ARGS__)])
-
-#define OOEXPAND_NAME_FROM_ARG(ITEM) @ #ITEM
-#define OOEXPAND_NAMES_FROM_ARGS(...) \
-    (NSString*[]) { OOEXPAND_MAP(OOEXPAND_NAME_FROM_ARG, __VA_ARGS__) }
-
-#define OOEXPAND_OBJECTS_FROM_ARGS(...) \
-    (id[]) { OOEXPAND_MAP(OO_CAST_PARAMETER, __VA_ARGS__) }
-
-/*	Limited boxing mechanism. ITEM may be an NSString *, NSNumber *, any
-        integer type or any floating point type; the result is an NSNumber *,
-        except if the parameter is an NSString * in which case it is returned
-        unmodified.
- */
-#define OO_CAST_PARAMETER(ITEM)                             \
-    __builtin_choose_expr(                                  \
-        OOEXPAND_IS_OBJECT(ITEM),                           \
-        OOCastParamObject,                                  \
-        __builtin_choose_expr(                              \
-            OOEXPAND_IS_SIGNED_INTEGER(ITEM),               \
-            OOCastParamSignedInteger,                       \
-            __builtin_choose_expr(                          \
-                OOEXPAND_IS_UNSIGNED_INTEGER(ITEM),         \
-                OOCastParamUnsignedInteger,                 \
-                __builtin_choose_expr(                      \
-                    OOEXPAND_IS_FLOAT(ITEM),                \
-                    OOCastParamFloat,                       \
-                    __builtin_choose_expr(                  \
-                        OOEXPAND_IS_UNSIGNED_INTEGER(ITEM), \
-                        OOCastParamUnsignedInteger,         \
-                        __builtin_choose_expr(              \
-                            OOEXPAND_IS_DOUBLE(ITEM),       \
-                            OOCastParamDouble,              \
-                            (void)0))))))(ITEM)
-
-// Test whether ITEM is a known object type.
-// NOTE: id works here in clang, but not gcc.
-#define OOEXPAND_IS_OBJECT(ITEM) ( \
-    __builtin_types_compatible_p(typeof(ITEM), NSString*) || __builtin_types_compatible_p(typeof(ITEM), NSNumber*))
-
-// Test whether ITEM is a signed integer type.
-// Some redundancy to avoid silliness across platforms; probably not necessary.
-#define OOEXPAND_IS_SIGNED_INTEGER(ITEM) ( \
-    __builtin_types_compatible_p(typeof(ITEM), char) || __builtin_types_compatible_p(typeof(ITEM), short) || __builtin_types_compatible_p(typeof(ITEM), int) || __builtin_types_compatible_p(typeof(ITEM), long) || __builtin_types_compatible_p(typeof(ITEM), long long) || __builtin_types_compatible_p(typeof(ITEM), NSInteger) || __builtin_types_compatible_p(typeof(ITEM), intptr_t) || __builtin_types_compatible_p(typeof(ITEM), ssize_t) || __builtin_types_compatible_p(typeof(ITEM), off_t))
-
-// Test whether ITEM is an unsigned integer type.
-// Some redundancy to avoid silliness across platforms; probably not necessary.
-#define OOEXPAND_IS_UNSIGNED_INTEGER(ITEM) ( \
-    __builtin_types_compatible_p(typeof(ITEM), unsigned char) || __builtin_types_compatible_p(typeof(ITEM), unsigned short) || __builtin_types_compatible_p(typeof(ITEM), unsigned int) || __builtin_types_compatible_p(typeof(ITEM), unsigned long) || __builtin_types_compatible_p(typeof(ITEM), unsigned long long) || __builtin_types_compatible_p(typeof(ITEM), NSUInteger) || __builtin_types_compatible_p(typeof(ITEM), uintptr_t) || __builtin_types_compatible_p(typeof(ITEM), size_t))
-
-// Test whether ITEM is a float.
-// This is distinguished from double to expose optimization opportunities.
-#define OOEXPAND_IS_FLOAT(ITEM) ( \
-    __builtin_types_compatible_p(typeof(ITEM), float))
-
-// Test whether ITEM is any other floating-point type.
-#define OOEXPAND_IS_DOUBLE(ITEM) ( \
-    __builtin_types_compatible_p(typeof(ITEM), double) || __builtin_types_compatible_p(typeof(ITEM), long double))
-
-// OO_CAST_PARAMETER() boils down to one of these.
-static inline id OOCastParamObject(id object) { return object; }
-static inline id OOCastParamSignedInteger(long long value) { return [NSNumber numberWithLongLong:value]; }
-static inline id OOCastParamUnsignedInteger(unsigned long long value) { return [NSNumber numberWithUnsignedLongLong:value]; }
-static inline id OOCastParamFloat(float value) { return [NSNumber numberWithFloat:value]; }
-static inline id OOCastParamDouble(double value) { return [NSNumber numberWithDouble:value]; }
+#ifdef __cplusplus
+}
+#endif
 
 /*
         Evil macro magic.
@@ -327,3 +245,71 @@ static inline id OOCastParamDouble(double value) { return [NSNumber numberWithDo
 #define OOEXPAND_MAP_IMPL_60(F, HEAD, ...) F(HEAD), OOEXPAND_MAP_IMPL_59(F, __VA_ARGS__)
 #define OOEXPAND_MAP_IMPL_61(F, HEAD, ...) F(HEAD), OOEXPAND_MAP_IMPL_60(F, __VA_ARGS__)
 #define OOEXPAND_MAP_IMPL_62(F, HEAD, ...) F(HEAD), OOEXPAND_MAP_IMPL_61(F, __VA_ARGS__)
+
+#ifdef __cplusplus
+/*
+        C++ forms of the OOExpand* macros (bead oo-3rb.294, the seam for oo-m2nh). They take the string
+        or key as a std::string and return cxx_OOExpandDescriptionString's std::optional<std::string>.
+        As with the Foundation macros, each extra argument reaches the expander under its own spelling
+        (#ITEM: OOExpandKey("x-[count]", count) makes [count] refer to the variable), boxed as
+        OO_CAST_PARAMETER boxed it: signed integers (and char, bool and unscoped enums, which promote
+        to int) as PList::signedInteger, unsigned integers as PList::unsignedInteger, float as
+        PList::singleReal, double and long double as a double, strings as strings. A std::nullopt string
+        is left out of the dictionary (the Foundation macro could not hold nil). No arguments passes
+        the null PList, as the macro passed nil.
+*/
+#define cxx_OOExpand(string, ...) cxx_OOExpandWithSeed(OOStringExpanderDefaultRandomSeed(), string, __VA_ARGS__)
+
+#define cxx_OOExpandKey(key, ...) cxx_OOExpandKeyWithSeed(OOStringExpanderDefaultRandomSeed(), key, __VA_ARGS__)
+
+#define cxx_OOExpandKeyRandomized(key, ...) cxx_OOExpandWithOptions(OOStringExpanderDefaultRandomSeed(), kOOExpandKey | kOOExpandGoodRNG | kOOExpandReseedRNG, key, __VA_ARGS__)
+
+#define cxx_OOExpandWithSeed(seed, string, ...) cxx_OOExpandWithOptions(seed, kOOExpandNoOptions, string, __VA_ARGS__)
+
+#define cxx_OOExpandKeyWithSeed(seed, key, ...) cxx_OOExpandWithOptions(seed, kOOExpandKey, key, __VA_ARGS__)
+
+#define cxx_OOExpandWithOptions(seed, options, string, ...) \
+    cxx_OOExpandDescriptionString(seed, string, OOEXPAND_CXX_ARG_DICTIONARY(__VA_ARGS__), oo::PList(), std::nullopt, options)
+
+#define OOEXPAND_CXX_ARG_DICTIONARY(...) cxx_OOExpandArgumentDictionary({ OOEXPAND_MAP(OOEXPAND_CXX_ARG_ENTRY, __VA_ARGS__) })
+#define OOEXPAND_CXX_ARG_ENTRY(ITEM) oo::PList::Dict::value_type(#ITEM, cxx_OOCastParam(ITEM))
+
+// cxx_OOCastParam() is OO_CAST_PARAMETER() for the C++ macros.
+inline oo::PList cxx_OOCastParam(const std::string& value) { return oo::PList(value); }
+inline oo::PList cxx_OOCastParam(const char* value) { return oo::PList(value); }
+inline oo::PList cxx_OOCastParam(const std::optional<std::string>& value) { return value.has_value() ? oo::PList(*value) : oo::PList(); }
+inline oo::PList cxx_OOCastParam(float value) { return oo::PList::singleReal(value); }
+inline oo::PList cxx_OOCastParam(double value) { return oo::PList(value); }
+inline oo::PList cxx_OOCastParam(long double value) { return oo::PList(static_cast<double>(value)); }
+
+template <class I>
+    requires std::integral<I>
+oo::PList cxx_OOCastParam(I value)
+{
+    if constexpr (std::is_unsigned_v<I> && !std::same_as<I, bool>)
+        return oo::PList::unsignedInteger(value);
+    else
+        return oo::PList::signedInteger(value);
+}
+
+template <class E>
+    requires(std::is_enum_v<E> && std::is_convertible_v<E, std::underlying_type_t<E>>)
+oo::PList cxx_OOCastParam(E value)
+{
+    return cxx_OOCastParam(+value); // the integral promotion OOCastParam's overload resolution made
+}
+
+// The argument dictionary: the null PList when there are no arguments; null values left out; a
+// repeated name keeps its last value, as +dictionaryWithObjects:forKeys:count: did.
+inline oo::PList cxx_OOExpandArgumentDictionary(std::initializer_list<oo::PList::Dict::value_type> entries)
+{
+    if (entries.size() == 0)
+        return oo::PList();
+    oo::PList::Dict dictionary;
+    for (const auto& entry : entries) {
+        if (!entry.second.isNull())
+            dictionary.insert_or_assign(entry.first, entry.second);
+    }
+    return oo::PList(std::move(dictionary));
+}
+#endif

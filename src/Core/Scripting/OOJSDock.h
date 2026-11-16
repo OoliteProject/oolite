@@ -1,6 +1,6 @@
 /*
 
-OOJSDock.h
+OOJSDock.h (QuickJS-ng)
 
 JavaScript proxy for DockEntities.
 
@@ -26,10 +26,19 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#import "DockEntity.h"
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+#include "OOFoundation.h"
+#include <quickjs.h>
 
-@class DockEntity;
+#include <optional>
+#include <string>
 
-void InitOOJSDock(JSContext* context, JSObject* global);
+class DockEntity;
+
+void InitOOJSDock(JSContext* context, JSValueConst global);
+
+JSClassID JSDockClassID(void);
+
+/*	The bodies of Entity (OOJavaScriptExtensions)'s class questions for a dock, which the C++
+        DockEntity's overrides call. Its JS class is JSDockClassID() (DockEntity::jsClassID()).
+*/
+std::optional<std::string> OOJSDockJSClassName(void);
