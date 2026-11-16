@@ -63,8 +63,7 @@ typedef uint64_t OOHighResTimeValue;
 #elif OOLITE_WINDOWS
 
 // Windows: if standalone, use timeGetTime...
-// TODO (port): QuickJS has no JS_Now(), so timeGetTime is also used with QuickJS (millisecond resolution).
-#if OOSTOPWATCH_STANDALONE || OOJS_QUICKJS
+#if OOSTOPWATCH_STANDALONE
 #define OO_PROFILING_STOPWATCH_WINDOWS 1
 typedef DWORD OOHighResTimeValue; // Rolls over once every 50 days, but we can live with that.
 
@@ -72,6 +71,27 @@ typedef DWORD OOHighResTimeValue; // Rolls over once every 50 days, but we can l
 // don't think we need to do something about it. If we really need microseond precision, we might consider an implementation
 // based on the Win32 API QueryPerformanceCounter function - Nikos 20100615.
 #define OOGetHighResTime timeGetTime
+#define OODisposeHighResTime(time) \
+    do {                           \
+        (void)time;                \
+    } while (0)
+#define OOCopyHighResTime(time) ((OOHighResTimeValue)time)
+
+#elif OOJS_QUICKJS
+/*	...with QuickJS, which has no JS_Now(), use the performance counter, so
+        the profiler can time short functions (timeGetTime() only counts whole
+        milliseconds)...
+*/
+#define OO_PROFILING_STOPWATCH_PERFORMANCE_COUNTER 1
+typedef int64_t OOHighResTimeValue;
+
+OOINLINE OOHighResTimeValue OOGetHighResTime(void)
+{
+    LARGE_INTEGER counter;
+    QueryPerformanceCounter(&counter);
+    return counter.QuadPart;
+}
+
 #define OODisposeHighResTime(time) \
     do {                           \
         (void)time;                \
