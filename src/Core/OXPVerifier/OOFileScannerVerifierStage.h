@@ -29,84 +29,168 @@ SOFTWARE.
 
 */
 
-#import "OOOXPVerifierStage.h"
+#pragma once
+
+#include "OOOXPVerifierStage.h"
 
 #if OO_OXP_VERIFIER_ENABLED
 
-@interface OOFileScannerVerifierStage : OOOXPVerifierStage {
-@private
-    NSString* _basePath;
-    NSMutableSet* _usedFiles;
-    NSMutableSet* _caseWarnings;
-    NSDictionary* _directoryListings;
-    NSDictionary* _directoryCases;
-    NSMutableSet* _badPLists;
-    NSSet* _junkFileNames;
-    NSSet* _skipDirectoryNames;
-}
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-// Returns name to be used in -dependencies by other stages; also registers stage.
-+ (NSString*)nameForDependencyForVerifier:(OOOXPVerifier*)verifier;
+#include "oofnd/Data.hpp"
+#include "oofnd/PList.hpp"
 
-/*	This method does the following:
-                A.	Checks whether a file exists.
-                B.	Checks whether case matches, and logs a warning otherwise.
-                C.	Maintains list of files which are referred to.
-                D.	Optionally falls back on Oolite's built-in files.
+/*	File and
+   folder names are UTF-8 std::strings; a name that could be nil is
+   std::optional.
 
-        For example, to test whether a texture referenced in a shipdata.plist entry
-        exists, one would use:
-        [fileScanner fileExists:textureName inFolder:@"Textures" referencedFrom:@"shipdata.plist" checkBuiltIn:YES];
+   A stage finds the scanner by its name through the verifier's stage lookup,
+   which answers the C++ stage.
 */
-- (BOOL)fileExists:(NSString*)file
-          inFolder:(NSString*)folder
-    referencedFrom:(NSString*)context
-      checkBuiltIn:(BOOL)checkBuiltIn;
 
-//	This method performs all the checks the previous one does, but also returns a file path.
-- (NSString*)pathForFile:(NSString*)file
-                inFolder:(NSString*)folder
-          referencedFrom:(NSString*)context
-            checkBuiltIn:(BOOL)checkBuiltIn;
+class OOFileScannerVerifierStage : public OOOXPVerifierStage {
+ public:
+  // The stage's name, as name() returns it (the stages look the scanner up by
+  // it).
+  static const char* const kName;
 
-//	Data getters based on above method.
-- (NSData*)dataForFile:(NSString*)file
-              inFolder:(NSString*)folder
-        referencedFrom:(NSString*)context
-          checkBuiltIn:(BOOL)checkBuiltIn;
+  // Returns name to be used in dependencies() by other stages; also registers
+  // stage.
+  static std::optional<std::string> nameForDependencyForVerifier(
+      OOOXPVerifier* verifier);
 
-- (id)plistNamed:(NSString*)file // Only uses "real" plist parser, not homebrew.
-          inFolder:(NSString*)folder
-    referencedFrom:(NSString*)context
-      checkBuiltIn:(BOOL)checkBuiltIn;
+  std::optional<std::string> name() override;
+  void run() override;
 
-/*	Utility to handle display names of files.
-        If a file and folder are provided, returns folder/file, otherwise just file.
+  /*	This method does the following:
+                  A.	Checks whether a file exists.
+                  B.	Checks whether case matches, and logs a warning
+     otherwise. C.	Maintains list of files which are referred to. D.
+     Optionally falls back on Oolite's built-in files.
+
+          For example, to test whether a texture referenced in a shipdata.plist
+     entry exists, one would use: fileScanner->fileExists(textureName,
+     "Textures", "shipdata.plist", true);
+  */
+  bool fileExists(const std::optional<std::string>& file,
+                  const std::optional<std::string>& folder,
+                  const std::optional<std::string>& context, bool checkBuiltIn);
+
+  //	This method performs all the checks the previous one does, but also
+  // returns a file path.
+  std::optional<std::string> pathForFile(
+      const std::optional<std::string>& file,
+      const std::optional<std::string>& folder,
+      const std::optional<std::string>& context, bool checkBuiltIn);
+
+  //	Data getters based on above method. An empty oo::Data: no such file (or
+  // an empty one).
+  oo::Data dataForFile(const std::optional<std::string>& file,
+                       const std::optional<std::string>& folder,
+                       const std::optional<std::string>& context,
+                       bool checkBuiltIn);
+
+  oo::PList plistNamed(
+      const std::optional<std::string>&
+          file,  // Only uses "real" plist parser, not homebrew. Null: none.
+      const std::optional<std::string>& folder,
+      const std::optional<std::string>& context, bool checkBuiltIn);
+
+  /*	Utility to handle display names of files.
+          If a file and folder are provided, returns folder/file, otherwise just
+     file.
+  */
+  std::optional<std::string> displayNameForFile(
+      const std::optional<std::string>& file,
+      const std::optional<std::string>& folder);
+
+  /*	Get a list of files in a subfolder of the OXP, in byte order of the
+     lowercase name; nullopt if the OXP has no such folder.
+  */
+  std::optional<std::vector<std::string>> filesInFolder(
+      const std::optional<std::string>& folder);
+
+ private:
+  void scanForFiles();
+
+  void checkRootFolders();
+  void checkConfigFiles();
+  void checkKnownFiles();
+
+  /*	Given an array of strings, return a dictionary mapping lowercase strings
+          to the canonicial case given in the array. For instance, given
+                  (Foo, BAR)
+
+          it will return
+                  { foo = Foo; bar = BAR }
+  */
+  std::optional<std::map<std::string, std::string, std::less<>>> lowercaseMap(
+      const std::vector<std::string>& array);
+
+  std::optional<std::map<std::string, std::string, std::less<>>> scanDirectory(
+      const std::string& path);
+  void checkPListFormat(oo::PListFormat format,
+                        const std::optional<std::string>& file,
+                        const std::optional<std::string>& folder);
+  std::vector<std::string> constructReadMeNames();
+
+  // The file name in a folder's listing (the root's is ""), in the case found
+  // on disk.
+  std::optional<std::string> realNameOf(const std::string& lcName,
+                                        const std::string& lcDirName);
+
+  std::string _basePath = {};
+  std::set<std::string> _usedFiles = {};
+  std::set<std::string> _caseWarnings = {};
+  // lowercase folder name ("" for the root) -> lowercase file name -> file name
+  // as on disk
+  std::map<std::string, std::map<std::string, std::string, std::less<>>,
+           std::less<>>
+      _directoryListings = {};
+  std::map<std::string, std::string, std::less<>> _directoryCases =
+      {};  // lowercase -> as on disk
+  std::set<std::string> _badPLists = {};
+  std::set<std::string> _junkFileNames = {};
+  std::set<std::string> _skipDirectoryNames = {};
+};
+
+/*	A C++ subclass of OOOXPVerifierStage that overrides its virtual members.
+   Nothing outside this file names it, and the verifier holds it.
 */
-- (id)displayNameForFile:(NSString*)file andFolder:(NSString*)folder;
+class OOListUnusedFilesStage : public OOOXPVerifierStage {
+ public:
+  // Returns name to be used in dependents() by other stages; also registers
+  // stage.
+  static std::string nameForReverseDependencyForVerifier(
+      OOOXPVerifier* verifier);
 
-/*	Get a list of files in a subfolder of the OXP. Order is undefined.
- */
-- (NSArray*)filesInFolder:(NSString*)folder;
+  std::optional<std::string> name() override;
+  std::optional<std::vector<std::string>> dependencies() override;
+  void run() override;
+};
 
-@end
-
-@interface OOListUnusedFilesStage : OOOXPVerifierStage
-
-// Returns name to be used in -dependents by other stages; also registers stage.
-+ (NSString*)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier;
-
-@end
-
-@interface OOOXPVerifier (OOFileScannerVerifierStage)
-
-- (OOFileScannerVerifierStage*)fileScannerStage;
-
-@end
-
-// Convenience base class for stages that require OOFileScannerVerifierStage and OOListUnusedFilesStage.
-@interface OOFileHandlingVerifierStage : OOOXPVerifierStage
-
-@end
+// Convenience base class for stages that require OOFileScannerVerifierStage and
+// OOListUnusedFilesStage.
+class OOFileHandlingVerifierStage : public OOOXPVerifierStage {
+ public:
+  std::optional<std::vector<std::string>> dependencies() override;
+  std::optional<std::vector<std::string>> dependents() override;
+};
 
 #endif

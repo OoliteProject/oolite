@@ -3,11 +3,12 @@
 OORegExpMatcher.h
 
 Regular expression utility built on top of JavaScript regexp objects in lieu
-of Objective-C regexp support. Not thread-safe.
+of native regexp support. Not thread-safe.
 
 If we had a performance-critical need for regexps, I'd want a real library,
 but this will do for light usage.
 
+A caller that wants one matcher across several matches holds the Ref.
 
 Copyright (C) 2010-2013 Jens Ayton
 
@@ -31,33 +32,64 @@ SOFTWARE.
 
 */
 
-#import "OOFoundation.h"
-#include <jsapi.h>
+#pragma once
 
-@class OOJSFunction, OOJSValue;
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-enum {
-    kOORegExpCaseInsensitive = JSREG_FOLD,
-    kOORegExpMultiLine = JSREG_MULTILINE
+#include "OOEnumFlags.h"
+#include "OOFoundation.h"
+#include "OOJSEngineCore.h"  // OOJSValue, which the matcher holds
+#include "OOJSFunction.h"
+#include "oofnd/Object.hpp"
+
+// Same values as SpiderMonkey's JSREG_FOLD and JSREG_MULTILINE.
+enum class OORegExpFlags : std::size_t {
+  kNone = 0,
+  kCaseInsensitive = 0x01,
+  kMultiLine = 0x04
 };
+constexpr std::true_type OOEnableFlagOperators(OORegExpFlags);
 
-@interface OORegExpMatcher : NSObject {
-@private
-    OOJSFunction* _tester;
-    NSString* _cachedRegExpString;
-    OOJSValue* _cachedRegExpObject;
-    NSUInteger _cachedFlags;
-}
+class OORegExpMatcher : public oo::Object {
+ public:
+  /*	Pseudo-singleton: a single instance exists at a given time, but can be
+     released. While one is alive (held by a Ref) this returns it; otherwise a
+     new one. Null if the tester function could not be compiled.
+  */
+  static std::shared_ptr<OORegExpMatcher> regExpMatcher();
 
-+ (instancetype)regExpMatcher;
+  // Strings are UTF-8.
+  bool string(const std::string& string, const std::string& regExp);
+  bool string(const std::string& string, const std::string& regExp,
+              OORegExpFlags flags);
 
-- (BOOL)string:(NSString*)string matchesExpression:(NSString*)regExp;
-- (BOOL)string:(NSString*)string matchesExpression:(NSString*)regExp flags:(NSUInteger)flags;
+  ~OORegExpMatcher() override;
 
-@end
+ private:
+  // The old -init, which could fail: regExpMatcher()
+  // calls it right after making the object, and drops the object when it
+  // returns false.
+  bool init();
 
-@interface NSString (OORegExpMatcher)
-
-- (BOOL)oo_matchesRegularExpression:(NSString*)regExp;
-
-@end
+  std::shared_ptr<OOJSFunction> _tester = {};
+  std::optional<std::string> _cachedRegExpString =
+      {};  // UTF-8; nullopt: nothing cached
+  std::shared_ptr<OOJSValue> _cachedRegExpObject = {};
+  OORegExpFlags _cachedFlags = {};
+};

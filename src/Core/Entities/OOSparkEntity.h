@@ -23,18 +23,29 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOLightParticleEntity.h"
+#pragma once
 
-@interface OOSparkEntity : OOLightParticleEntity {
-@private
-    GLfloat _baseRGBA[4];
-    GLfloat _duration, _timeRemaining;
-}
+#include "OOLightParticleEntity.h"
 
-- (id)initWithPosition:(HPVector)position
-              velocity:(Vector)velocity
-              duration:(OOTimeDelta)duration
-                  size:(float)size
-                 color:(OOColor*)color;
+// A global class over OOLightParticleEntity, made with sparkWithPosition().
+class OOSparkEntity : public OOLightParticleEntity {
+ public:
+  // [[OOSparkEntity alloc] initWithPosition:...]: a new spark, initialised.
+  static std::shared_ptr<OOSparkEntity> sparkWithPosition(HPVector position,
+                                                          Vector velocity,
+                                                          OOTimeDelta duration,
+                                                          float size,
+                                                          OOColor* color);
 
-@end
+  // -initWithPosition:...'s body, run once right after construction.
+  void initWithPosition(HPVector position, Vector velocity,
+                        OOTimeDelta duration, float size, OOColor* color);
+
+  void update(OOTimeDelta delta_t) override;
+
+ private:
+  void performUpdate(OOTimeDelta delta_t);
+
+  GLfloat _baseRGBA[4] = {};
+  GLfloat _duration = {}, _timeRemaining = {};
+};

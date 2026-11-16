@@ -24,32 +24,59 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOOpenAL.h"
+#pragma once
 
-static NSString* const kOOLogSoundInitError = @"sound.initialization.error";
-static NSString* const kOOLogSoundLoadingSuccess = @"sound.load.success";
-static NSString* const kOOLogSoundLoadingError = @"sound.load.error";
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-@interface OOOpenALController : NSObject {
-@private
-    ALCdevice* device;
-    ALCcontext* context;
-}
+#include "OOOpenAL.h"
+#include "oofnd/Object.hpp"
 
-+ (OOOpenALController*)sharedController;
+// Log message classes, UTF-8: an OOLog
+// call passes oo::NSStringFrom(kOOLogSound...) until it is converted to OO_LOG.
+static constexpr const char* kOOLogSoundInitError =
+    "sound.initialization.error";
+static constexpr const char* kOOLogSoundLoadingSuccess = "sound.load.success";
+static constexpr const char* kOOLogSoundLoadingError = "sound.load.error";
 
-- (void)setMasterVolume:(ALfloat)fraction;
-- (ALfloat)masterVolume;
+class OOOpenALController : public oo::Object {
+ public:
+  /*	The shared controller, made on first use; borrowed (it is never
+     released). Null when init() refused it, and then the next call makes and
+     asks a new one.
+  */
+  static OOOpenALController* sharedController();
 
-- (void)shutdown;
+  void setMasterVolume(ALfloat fraction);
+  ALfloat masterVolume();
 
-/**
- * \ingroup cli
- * Scans the command line for -nosound or --nosound arguments.
- *
- * @return returns the instance to OOOpenALController if sound
- *         shall be played and can be played, otherwise null
- */
-- (id)init;
+  void shutdown();
 
-@end
+  /**
+   * \ingroup cli
+   * Scans the command line for -nosound or --nosound arguments.
+   *
+   * @return returns true if sound shall be played and can be played,
+   *         otherwise false (the controller is then discarded)
+   */
+  bool init();
+
+ private:
+  ALCdevice* device = {};
+  ALCcontext* context = {};
+};

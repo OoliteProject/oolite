@@ -28,24 +28,25 @@ MA 02110-1301, USA.
 
 */
 
-#import "MyOpenGLView.h"
-#import "OOFunctionAttributes.h"
-#import "OOTypes.h"
-#import <Foundation/Foundation.h>
+#pragma once
 
-enum {
-    // Values used for unknown strings.
-    kOOCargoTypeDefault = CARGO_NOT_CARGO,
-    //	kOOCommodityTypeDefault		= COMMODITY_UNDEFINED,
-    kOOEnergyUnitTypeDefault = ENERGY_UNIT_NONE,
-    kOORouteTypeDefault = OPTIMIZED_BY_JUMPS
-};
+#include "MyOpenGLView.h"
+#include "OOFoundation.h"
+#include "OOFunctionAttributes.h"
+#include "OOTypes.h"
+
+// Values used for unknown strings.
+inline constexpr OOCargoType kOOCargoTypeDefault = OOCargoType::kNotCargo;
+//	kOOCommodityTypeDefault		= COMMODITY_UNDEFINED,
+inline constexpr OOEnergyUnitType kOOEnergyUnitTypeDefault =
+    OOEnergyUnitType::kNone;
+inline constexpr OORouteType kOORouteTypeDefault = OORouteType::kJumps;
 
 /*
 
 To avoid pulling in unnecessary headers, some functions defined in
-OOConstToString.m are declared in the header with the appropriate type
-declaration, in particular:
+OOConstToString.cpp are declared in the header with the appropriate type
+declaration, each with its C++ (cxx_) form beside it, in particular:
 
         Entity.h:
         OOStringFromEntityStatus()
@@ -75,48 +76,70 @@ declaration, in particular:
         OODisplayStringFromGovernmentID()
         OODisplayStringFromEconomyID()
 
-        OOOpenGL.h:
-        OOShaderSettingFromString()
-        OOStringFromShaderSetting()
-        OODisplayStringFromShaderSetting()
-
 */
 
-NSString* JSTypeToString(int /* JSType */ type) CONST_FUNC;
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-NSString* CargoTypeToString(OOCargoType cargo) CONST_FUNC;
-OOCargoType StringToCargoType(NSString* string) PURE_FUNC;
+#include "oofnd/PList.hpp"
 
-// NSString *CommodityTypeToString(OOCommodityType commodity) CONST_FUNC;	// returns the commodity identifier
-// OOCommodityType StringToCommodityType(NSString *string) PURE_FUNC;		// needs commodity identifier
+// C++ forms: std::string results (never nil)
+// and const std::string & parameters (the old nil arrived as "" and matched
+// nothing: the same defaults).
+std::string CargoTypeToString(OOCargoType cargo);
+OOCargoType StringToCargoType(const std::string& string);
+std::string EnergyUnitTypeToString(OOEnergyUnitType unit);
+OOEnergyUnitType StringToEnergyUnitType(const std::string& string);
+std::string RouteTypeToString(OORouteType routeType);
+OORouteType StringToRouteType(const std::string& string);
+std::string DockingClearanceStatusToString(
+    OODockingClearanceStatus dockingClearanceStatus);
+std::string OOStringFromGraphicsDetail(OOGraphicsDetail detail);
+OOGraphicsDetail OOGraphicsDetailFromString(const std::string& string);
+std::string OOStringFromHDRToneMapper(OOHDRToneMapper toneMapper);
+OOHDRToneMapper OOHDRToneMapperFromString(const std::string& string);
+std::string OOStringFromSDRToneMapper(OOSDRToneMapper toneMapper);
+OOSDRToneMapper OOSDRToneMapperFromString(const std::string& string);
 
-NSString* EnergyUnitTypeToString(OOEnergyUnitType unit) CONST_FUNC;
-OOEnergyUnitType StringToEnergyUnitType(NSString* string) PURE_FUNC;
+// The .tbl families whose types come from OOTypes.h; the
+// others are declared beside their enums in Entity.h, ShipEntity.h and
+// PlayerEntity.h.
+std::string OOStringFromCompassMode(OOCompassMode mode);
+OOCompassMode OOCompassModeFromString(const std::string& string);
+std::string OOStringFromLongRangeChartMode(OOLongRangeChartMode chartMode);
+OOLongRangeChartMode OOLongRangeChartModeFromString(const std::string& string);
+std::string OOStringFromLegalStatusReason(OOLegalStatusReason reason);
 
-NSString* CommodityDisplayNameForSymbolicName(NSString* symbolicName);
-NSString* CommodityDisplayNameForCommodityArray(NSArray* commodityDefinition);
+// Commodity display strings. A commodity is named by its
+// identifier string.
+std::string CommodityDisplayNameForSymbolicName(
+    const std::string& symbolicName);
+std::string CommodityDisplayNameForCommodityArray(
+    const oo::PList& commodityDefinition);  // an array
+std::optional<std::string> DisplayStringForMassUnit(
+    OOMassUnit unit);  // nullopt: no description (was nil)
+std::optional<std::string> DisplayStringForMassUnitForCommodity(
+    const std::string& commodity);
 
-NSString* DisplayStringForMassUnit(OOMassUnit unit);
-NSString* DisplayStringForMassUnitForCommodity(OOCommodityType commodity);
-
-NSString* OOStringFromCompassMode(OOCompassMode mode);
-OOCompassMode OOCompassModeFromString(NSString* string);
-
-NSString* OOStringFromLongRangeChartMode(OOLongRangeChartMode chartMode);
-OOLongRangeChartMode OOLongRangeChartModeFromString(NSString* string);
-
-NSString* OOStringFromLegalStatusReason(OOLegalStatusReason reason);
-
-NSString* RouteTypeToString(OORouteType routeType);
-OORouteType StringToRouteType(NSString* string);
-
-NSString* DockingClearanceStatusToString(OODockingClearanceStatus dockingClearanceStatus) PURE_FUNC;
-
-NSString* OOStringFromGraphicsDetail(OOGraphicsDetail detail);
-OOGraphicsDetail OOGraphicsDetailFromString(NSString* string);
-
-NSString* OOStringFromHDRToneMapper(OOHDRToneMapper toneMapper);
-OOHDRToneMapper OOHDRToneMapperFromString(NSString* string);
-
-NSString* OOStringFromSDRToneMapper(OOSDRToneMapper toneMapper);
-OOSDRToneMapper OOSDRToneMapperFromString(NSString* string);
+// Shader settings (OOShaderSetting is OOOpenGL.h's).
+// Programmer-readable shader mode strings.
+OOShaderSetting OOShaderSettingFromString(const std::string& string);
+std::string OOStringFromShaderSetting(OOShaderSetting setting);
+// Localized shader mode strings; nullopt: no description (was nil).
+std::optional<std::string> OODisplayStringFromShaderSetting(
+    OOShaderSetting setting);

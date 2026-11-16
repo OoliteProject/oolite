@@ -7,6 +7,10 @@ A channel for audio playback.
 This class is an implementation detail. Do not use it directly; use an
 OOSoundSource to play an OOSound.
 
+The mixer makes and keeps the channels (std::shared_ptr), the sound sources hold
+one borrowed, and the delegate is the C++ interface OOSoundChannelDelegate
+below.
+
 OOALSound - OpenAL sound implementation for Oolite.
 Copyright (C) 2006-2013 Jens Ayton
 
@@ -32,43 +36,71 @@ SOFTWARE.
 
 #pragma once
 
-#import "OOMaths.h"
-#import "OOOpenALController.h"
+#include "OOALSound.h"
+#include "OOFoundation.h"
+#include "OOMaths.h"
+#include "OOOpenALController.h"
+#include "oofnd/Object.hpp"
+#include "oofnd/objc/OOObject.h"
+struct OOSoundChannelTestAccess;
+class OOSoundChannel;
 
-@class OOSound;
+/*	The channel's delegate: was the informal OOObject
+   (OOSoundChannelDelegate) category, any object answering
+   -channel:didFinishPlayingSound:. The channel holds it
+   unretained, as before; a playing sound source and the stopped-source handler
+   implement it.
+*/
+class OOSoundChannelDelegate {
+ public:
+  virtual void channel(OOSoundChannel* channel, OOSound* sound) = 0;
 
-@interface OOSoundChannel : NSObject {
-    OOSoundChannel* _next;
-    id _delegate;
-    OOSound* _sound;
-    ALuint _buffer;
-    ALuint _lastBuffer;
-    BOOL _bigSound;
-    ALuint _source;
-    BOOL _playing;
-    BOOL _loop;
-}
+ protected:
+  ~OOSoundChannelDelegate() = default;
+};
 
-- (void)update;
+class OOSoundChannel : public oo::Object {
+ public:
+  /*	Was -init, which answered nil when OpenAL would not make a source: false
+     then. Its maker runs it right after making the
+     channel and drops a channel for which it fails.
+  */
+  bool init();
 
-- (void)setDelegate:(id)delegate;
+  ~OOSoundChannel() override;
 
-// Unretained pointer used to maintain simple stack
-- (OOSoundChannel*)next;
-- (void)setNext:(OOSoundChannel*)next;
+  void update();
 
-// set sound position relative to listener
-- (void)setPosition:(Vector)vector;
-- (void)setGain:(float)gain;
-- (BOOL)playSound:(OOSound*)sound looped:(BOOL)loop;
-- (void)stop;
+  void setDelegate(OOSoundChannelDelegate* delegate);
 
-- (OOSound*)sound;
+  // Unretained pointer used to maintain simple stack
+  OOSoundChannel* next();
+  void setNext(OOSoundChannel* next);
 
-@end
+  // set sound position relative to listener
+  void setPosition(Vector vector);
+  void setGain(float gain);
+  bool playSound(OOSound* sound, bool loop);
+  void stop();
 
-@interface NSObject (OOSoundChannelDelegate)
+  OOSound* sound();
 
-- (void)channel:(OOSoundChannel*)inChannel didFinishPlayingSound:(OOSound*)inSound;
+ private:
+  // Was the private -hasStopped, which told the delegate that self had
+  // finished; -dealloc sent it too, so the destructor does.
+  void hasStopped();
 
-@end
+  bool enqueueBuffer(OOSound* sound);
+  void getNextSoundBuffer();
+
+  OOSoundChannel* _next = {};
+  OOSoundChannelDelegate* _delegate = {};
+  std::shared_ptr<OOSound> _sound;  // retained
+  ALuint _buffer = {};
+  ALuint _lastBuffer = {};
+  bool _bigSound = {};
+  ALuint _source = {};
+  bool _loop = {};
+
+  friend struct ::OOSoundChannelTestAccess;  // tests only
+};

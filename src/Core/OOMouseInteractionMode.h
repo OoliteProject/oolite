@@ -23,7 +23,36 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
+#pragma once
+
+#ifndef OO_PLAIN_CPP_UNIT
+#include "OOFoundation.h"
+#else
+/*	Plain C++ translation unit (OOMouseInteractionMode.cpp): only
+   BOOL is needed, and OOFoundation.h imports Foundation, which does not compile
+   in a plain C++ unit.
+*/
+#include "oofnd/objc/OOFoundationTypes.h"  // bool
+#endif
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
+#include "OOEnumFlags.h"
 
 /*
         OOMouseInteractionMode
@@ -42,13 +71,21 @@ MA 02110-1301, USA.
         Flight screens have two modes, one for mouse control enabled and one for
         mouse control disabled.
 */
-typedef enum {
-    MOUSE_MODE_UI_SCREEN_NO_INTERACTION,
-    MOUSE_MODE_UI_SCREEN_WITH_INTERACTION,
-    MOUSE_MODE_FLIGHT_NO_MOUSE_CONTROL,
-    MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL
-} OOMouseInteractionMode;
+enum class OOMouseInteractionMode : std::int32_t {
+  kUiScreenNoInteraction,
+  kUiScreenWithInteraction,
+  kFlightNoMouseControl,
+  kFlightWithMouseControl,
+};
+static_assert(static_cast<std::int32_t>(
+                  OOMouseInteractionMode::kUiScreenNoInteraction) == 0);
+static_assert(static_cast<std::int32_t>(
+                  OOMouseInteractionMode::kUiScreenWithInteraction) == 1);
+static_assert(static_cast<std::int32_t>(
+                  OOMouseInteractionMode::kFlightNoMouseControl) == 2);
+static_assert(static_cast<std::int32_t>(
+                  OOMouseInteractionMode::kFlightWithMouseControl) == 3);
 
-NSString* OOStringFromMouseInteractionMode(OOMouseInteractionMode mode);
-BOOL OOMouseInteractionModeIsUIScreen(OOMouseInteractionMode mode);
-BOOL OOMouseInteractionModeIsFlightMode(OOMouseInteractionMode mode);
+std::string OOStringFromMouseInteractionMode(OOMouseInteractionMode mode);
+bool OOMouseInteractionModeIsUIScreen(OOMouseInteractionMode mode);
+bool OOMouseInteractionModeIsFlightMode(OOMouseInteractionMode mode);
