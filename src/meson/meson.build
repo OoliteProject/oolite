@@ -39,6 +39,10 @@ if use_quickjs
     endif
     if quickjs_has_call_hook
         add_project_arguments('-DOOJS_QUICKJS_CALL_HOOK=1', language: c_family)
+    elif quickjs_dep.type_name() == 'internal'
+        warning('subprojects/quickjs-ng predates Oolite\'s function call hook patch, so the profiler will time natives only. Run "meson subprojects update --reset quickjs-ng" and rebuild.')
+    else
+        warning('This QuickJS-ng lacks Oolite\'s function call hook patch, so the profiler will time natives only.')
     endif
 endif
 
