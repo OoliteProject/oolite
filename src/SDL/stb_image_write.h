@@ -148,6 +148,8 @@ LICENSE
 
 */
 
+#pragma once
+
 #ifndef INCLUDE_STB_IMAGE_WRITE_H
 #define INCLUDE_STB_IMAGE_WRITE_H
 

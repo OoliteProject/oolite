@@ -25,52 +25,14 @@ MA 02110-1301, USA.
 
 */
 
-#import "ShipEntity.h"
+#pragma once
 
-@class AI, Universe, OOPlanetEntity;
+#include "ShipEntity.h"
 
-@interface ShipEntity (AI)
+class AI; // AI.h
+class Universe;
+class OOPlanetEntity;
 
-//	AI methods also used in other code.
-
-- (void)setAITo:(NSString*)aiString;
-- (void)setAIScript:(NSString*)aiString;
-- (void)switchAITo:(NSString*)aiString;
-
-- (void)scanForHostiles;
-- (BOOL)performHyperSpaceToSpecificSystem:(OOSystemID)systemID;
-- (void)scanForNearestIncomingMissile;
-
-- (void)enterTargetWormhole;
-- (void)enterPlayerWormhole;
-
-- (void)wormholeEscorts;
-- (void)wormholeEntireGroup;
-
-- (BOOL)suggestEscortTo:(ShipEntity*)mother;
-
-- (void)groupAttackTarget;
-
-- (void)performAttack;
-- (void)performCollect;
-- (void)performEscort;
-- (void)performFaceDestination;
-- (void)performFlee;
-- (void)performFlyToRangeFromDestination;
-- (void)performHold;
-- (void)performIdle;
-- (void)performIntercept;
-- (void)performLandOnPlanet;
-- (void)performMining;
-- (void)performScriptedAI;
-- (void)performScriptedAttackAI;
-- (void)performStop;
-- (void)performTumble;
-
-- (void)broadcastDistressMessage;
-- (void)broadcastDistressMessageWithDumping:(BOOL)dumpCargo;
-
-- (void)requestDockingCoordinates;
-- (void)recallDockingInstructions;
-
-@end
+/* The category ShipEntity (AI): its methods are members of ShipEntity. This
+ * header stays for the files that include it.
+ */

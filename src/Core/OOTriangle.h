@@ -24,6 +24,14 @@ MA 02110-1301, USA.
 
 */
 
+#pragma once
+
+#include "OOMathsBase.h"
+
+// Each maths header includes what it uses, so OOMaths.h may list them in any
+// order.
+#include "OOVector.h"
+
 typedef struct
 {
     Vector v[3];

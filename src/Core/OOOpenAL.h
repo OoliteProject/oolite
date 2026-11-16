@@ -25,7 +25,9 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
+#pragma once
+
+#include "OOFoundation.h"
 
 #if OOLITE_MAC_OS_X
 #import <OpenAL/al.h>
