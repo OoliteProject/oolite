@@ -78,11 +78,24 @@ typedef DWORD OOHighResTimeValue; // Rolls over once every 50 days, but we can l
 #define OOCopyHighResTime(time) ((OOHighResTimeValue)time)
 
 #else
-/*	...otherwise, use JS_Now() for higher precision. The Windows implementation
-        does the messy work of calibrating performance counters against low-res
-        timers.
+/*	...otherwise use the performance counter, so the profiler can time short
+        functions (timeGetTime() only counts whole milliseconds).
 */
-#define OO_PROFILING_STOPWATCH_JS_NOW 1
+#define OO_PROFILING_STOPWATCH_PERFORMANCE_COUNTER 1
+typedef int64_t OOHighResTimeValue;
+
+OOINLINE OOHighResTimeValue OOGetHighResTime(void)
+{
+    LARGE_INTEGER counter;
+    QueryPerformanceCounter(&counter);
+    return counter.QuadPart;
+}
+
+#define OODisposeHighResTime(time) \
+    do {                           \
+        (void)time;                \
+    } while (0)
+#define OOCopyHighResTime(time) ((OOHighResTimeValue)time)
 #endif
 
 #else
@@ -107,18 +120,6 @@ OOINLINE OOHighResTimeValue OOGetHighResTime(void)
     } while (0)
 #define OOCopyHighResTime(time) ((OOHighResTimeValue)time)
 
-#endif
-
-#if OO_PROFILING_STOPWATCH_JS_NOW
-#include <jsapi.h>
-typedef int64 OOHighResTimeValue;
-
-#define OOGetHighResTime JS_Now
-#define OODisposeHighResTime(time) \
-    do {                           \
-        (void)time;                \
-    } while (0)
-#define OOCopyHighResTime(time) ((OOHighResTimeValue)time)
 #endif
 
 OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime, OOHighResTimeValue endTime);

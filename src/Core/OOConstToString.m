@@ -24,7 +24,6 @@ MA );-);, USA.
 
 #import "OOConstToString.h"
 #import "OOCollectionExtractors.h"
-#include <jsapi.h>
 
 #import "OOEquipmentType.h"
 #import "PlayerEntity.h"
@@ -228,22 +227,6 @@ NSString* OODisplayStringFromEconomyID(OOEconomyID economy)
     }
 
     return nil;
-}
-
-NSString* JSTypeToString(int /* JSType */ type)
-{
-    switch ((JSType)type) {
-        CASE(JSTYPE_VOID);
-        CASE(JSTYPE_OBJECT);
-        CASE(JSTYPE_FUNCTION);
-        CASE(JSTYPE_STRING);
-        CASE(JSTYPE_NUMBER);
-        CASE(JSTYPE_BOOLEAN);
-        CASE(JSTYPE_NULL);
-        CASE(JSTYPE_XML);
-        CASE(JSTYPE_LIMIT);
-    }
-    return [NSString stringWithFormat:@"unknown (%u)", type];
 }
 
 NSString* OOStringFromWeaponType(OOWeaponType weapon)
