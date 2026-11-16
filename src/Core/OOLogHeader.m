@@ -135,11 +135,7 @@ void OOPrintLogHeader(void)
 #endif
 
 #if OOJS_PROFILE
-#ifdef MOZ_TRACE_JSCALLS
-        @"JavaScript profiling",
-#else
         @"JavaScript native callback profiling",
-#endif
 #endif
 
 #if OO_FOV_INFLIGHT_CONTROL_ENABLED

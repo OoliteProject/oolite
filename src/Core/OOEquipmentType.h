@@ -35,6 +35,8 @@ SOFTWARE.
 #import "OOTypes.h"
 #import "Universe.h"
 
+#include <quickjs.h>
+
 @interface OOEquipmentType : NSObject <NSCopying> {
 @private
     OOTechLevelID _techLevel;
@@ -76,7 +78,7 @@ SOFTWARE.
     NSString* _script;
     NSString* _condition_script;
 
-    struct JSObject* _jsSelf;
+    JSValue _jsSelf; // Zero-filled (not an object) until created; test with JS_IsObject().
 }
 
 + (void)loadEquipment; // Load equipment data; called on loading and when changing to/from strict mode.
