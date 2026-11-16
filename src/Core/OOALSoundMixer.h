@@ -29,7 +29,8 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
+#import "OOFoundation.h"
+#import "oofnd/objc/OOObject.h"
 
 @class OOSoundChannel;
 
@@ -37,7 +38,7 @@ enum {
     kMixerGeneralChannels = 32
 };
 
-@interface OOSoundMixer : NSObject {
+@interface OOSoundMixer : OOObject {
     OOSoundChannel* _channels[kMixerGeneralChannels];
     OOSoundChannel* _freeList;
 
@@ -49,6 +50,10 @@ enum {
 + (id)sharedMixer;
 
 - (void)update;
+
+// Only to be called at app shutdown, by OOOpenALController::shutdown(). (Declared here since
+// bead oo-r7m0: the declaration it resolved to was OOOpenALController's own -shutdown.)
+- (void)shutdown;
 
 - (OOSoundChannel*)popChannel;
 - (void)pushChannel:(OOSoundChannel*)channel;

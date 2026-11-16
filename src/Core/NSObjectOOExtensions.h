@@ -29,7 +29,8 @@ SOFTWARE.
 
 #import "OOFoundation.h"
 
-@interface NSObject (OOExtensions)
+// On OOObject, the root of every Oolite class (ADR-0029).
+@interface OOObject (OOExtensions)
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 

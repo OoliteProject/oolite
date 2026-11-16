@@ -94,7 +94,6 @@ enum
 };
 typedef NSInteger OOCommodityType;
 */
-typedef NSString* OOCommodityType;
 
 typedef enum {
     CARGO_FLAG_NONE = 400,
@@ -111,7 +110,8 @@ typedef enum {
 typedef enum {
     UNITS_TONS,
     UNITS_KILOGRAMS,
-    UNITS_GRAMS
+    UNITS_GRAMS,
+    UNITS_UNKNOWN // a quantity_unit that is none of the above (ADR-0036); displays as "??"
 } OOMassUnit;
 
 typedef enum {

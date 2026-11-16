@@ -1,0 +1,15 @@
+--- a/meson.build
++++ b/meson.build
+@@ -132,7 +132,11 @@ qjs_sys_deps = []
+ 
+ m_dep = cc.find_library('m', required: false)
+ qjs_sys_deps += m_dep
+-qjs_sys_deps += dependency('threads', required: false)
++# Oolite: on Windows QuickJS uses Win32 threads (see cutils.h), and the -pthread
++# that the threads dependency adds makes clang warn that it is unused at link time.
++if host_system != 'windows'
++  qjs_sys_deps += dependency('threads', required: false)
++endif
+ qjs_sys_deps += dependency('dl', required: false)
+ 
+ qjs_srcs = files(

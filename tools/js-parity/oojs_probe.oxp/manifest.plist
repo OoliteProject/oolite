@@ -1,0 +1,9 @@
+{
+	identifier = "org.oolite.oojs_probe";
+	required_oolite_version = "1.90";
+	title = "QuickJS migration probe";
+	version = "1.0";
+	category = "Miscellaneous";
+	author = "Oolite";
+	license = "GPL 2+";
+}
