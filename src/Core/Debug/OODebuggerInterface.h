@@ -2,7 +2,8 @@
 
 OODebuggerInterface.h
 
-Protocols for communication between OODebugMonitor and OODebuggerInterface.
+Interfaces for communication between OODebugMonitor and its debugger. The
+debugger is a C++ interface whose members take the C++ monitor.
 
 
 Oolite Debug Support
@@ -31,43 +32,56 @@ SOFTWARE.
 
 #pragma once
 
-#import "OOFoundation.h"
+#include <optional>
+#include <string>
 
-@class OODebugMonitor;
+#include "OOFoundation.h" // NSRange
+#include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
 
-// Interface for debugger.
+class OODebugMonitor;
 
-@protocol OODebuggerInterface <NSObject>
+// Interface for debugger. Reference counted: the monitor keeps its debugger
+// (oo::Ref).
 
-// Sent to establish connection.
-- (BOOL)connectDebugMonitor:(in OODebugMonitor*)debugMonitor
-               errorMessage:(out NSString**)message;
+class OODebuggerInterface : public oo::RefCounted {
+public:
+    // Configuration and console text use oo::PList / std::string.
 
-// Sent to close connection.
-- (void)disconnectDebugMonitor:(in OODebugMonitor*)debugMonitor
-                       message:(in NSString*)message;
+    // Sent to establish connection. *message: error text when the connect fails.
+    virtual bool connectDebugMonitor(OODebugMonitor* debugMonitor,
+        std::optional<std::string>* message) = 0;
 
-// Sent to print to the JavaScript console.
-// colorKey is intended to be used to look up a foreground/background colour pair
-// in the configuration. EmphasisRange is to specify a bold section of text.
-- (oneway void)debugMonitor:(in OODebugMonitor*)debugMonitor
-            jsConsoleOutput:(in NSString*)output
-                   colorKey:(in NSString*)colorKey
-              emphasisRange:(in NSRange)emphasisRange;
+    // Sent to close connection. message: nullopt when none.
+    virtual void disconnectDebugMonitor(
+        OODebugMonitor* debugMonitor,
+        const std::optional<std::string>& message) = 0;
 
-// Sent to clear the JavaScript console.
-- (oneway void)debugMonitorClearConsole:(in OODebugMonitor*)debugMonitor;
+    // Sent to print to the JavaScript console.
+    // colorKey is intended to be used to look up a foreground/background colour
+    // pair in the configuration. EmphasisRange is to specify a bold section of
+    // text.
+    virtual void debugMonitor(OODebugMonitor* debugMonitor,
+        const std::string& output,
+        const std::optional<std::string>& colorKey,
+        NSRange emphasisRange) = 0;
 
-// Sent to show the console, for instance in response to a warning or error message.
-- (oneway void)debugMonitorShowConsole:(in OODebugMonitor*)debugMonitor;
+    // Sent to clear the JavaScript console.
+    virtual void debugMonitorClearConsole(OODebugMonitor* debugMonitor) = 0;
 
-// Sent once when the debugger is connected.
-- (oneway void)debugMonitor:(in OODebugMonitor*)debugMonitor
-          noteConfiguration:(in NSDictionary*)configuration;
+    // Sent to show the console, for instance in response to a warning or error
+    // message.
+    virtual void debugMonitorShowConsole(OODebugMonitor* debugMonitor) = 0;
 
-// Sent when configuration changes. newValue may be nil.
-- (oneway void)debugMonitor:(in OODebugMonitor*)debugMonitor
-    noteChangedConfigrationValue:(in id)newValue
-                          forKey:(in NSString*)key;
+    // Sent once when the debugger is connected.
+    virtual void debugMonitor(OODebugMonitor* debugMonitor,
+        const oo::PList& configuration) = 0;
 
-@end
+    // Sent when configuration changes. newValue null = was nil.
+    virtual void debugMonitor(OODebugMonitor* debugMonitor,
+        const oo::PList& newValue,
+        const std::string& key) = 0;
+
+    // What the monitor's log lines print for the debugger (<ClassName 0x...>).
+    virtual std::string description() const = 0;
+};

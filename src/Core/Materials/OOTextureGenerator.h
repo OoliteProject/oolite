@@ -27,7 +27,9 @@ SOFTWARE.
 
 */
 
-#import "OOTextureLoader.h"
+#pragma once
+
+#include "OOTextureLoader.h"
 
 typedef struct
 {
@@ -39,17 +41,20 @@ typedef struct
     float r, g, b, a;
 } FloatRGBA;
 
-@interface OOTextureGenerator : OOTextureLoader
+/*	An intermediate class of the texture loaders, which
+   OOPixMapTextureLoader and the planet, atmosphere and emission-map generators
+   derive from.
+*/
+class OOTextureGenerator : public OOTextureLoader {
+public:
+    // Generators, unlike normal loaders, get to specify their own flags and other settings.
+    virtual uint32_t textureOptions(); // Default: kOOTextureDefaultOptions
+    virtual GLfloat anisotropy(); // Default: kOOTextureDefaultAnisotropy
+    virtual GLfloat lodBias(); // Default: kOOTextureDefaultLODBias
 
-// Generators, unlike normal loaders, get to specify their own flags and other settings.
-- (uint32_t)textureOptions; // Default: kOOTextureDefaultOptions
-- (GLfloat)anisotropy; // Default: kOOTextureDefaultAnisotropy
-- (GLfloat)lodBias; // Default: kOOTextureDefaultLODBias
+    // Key for in-memory cache; nullopt for no cache.
+    std::optional<std::string> cacheKey() override;
 
-// Key for in-memory cache; nil for no cache.
-- (NSString*)cacheKey;
-
-// For use by OOTexture.
-- (BOOL)enqueue;
-
-@end
+    // For use by OOTexture: queues the generator on the work manager.
+    virtual bool enqueue();
+};

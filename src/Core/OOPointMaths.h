@@ -1,5 +1,9 @@
-#import "OOFunctionAttributes.h"
+#pragma once
+
 #include <tgmath.h>
+
+#include "OOFunctionAttributes.h"
+#include "oofnd/objc/OOFoundationTypes.h" // NSPoint
 
 // Utilities for working with NSPoints as 2D vectors.
 OOINLINE NSPoint PtAdd(NSPoint a, NSPoint b)

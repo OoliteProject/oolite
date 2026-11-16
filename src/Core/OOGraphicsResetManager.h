@@ -9,6 +9,7 @@ display lists relying on old texture names. All objects which have display
 lists must therefore register with the OOGraphicsResetManager on init, and
 unregister on dealloc.
 
+Every client is a C++ OOGraphicsResetClient.
 
 Copyright (C) 2007-2013 Jens Ayton and contributors
 
@@ -32,26 +33,34 @@ SOFTWARE.
 
 */
 
-#import "OOFoundation.h"
+#pragma once
 
-@protocol OOGraphicsResetClient
+#include "OOFoundation.h"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
 
-- (void)resetGraphicsState;
+// A client: the one method, resetGraphicsState(), as a pure virtual. It
+// registers with registerCxxClient().
+class OOGraphicsResetClient {
+public:
+    virtual ~OOGraphicsResetClient() = default;
+    virtual void resetGraphicsState() = 0;
+};
 
-@end
+class OOGraphicsResetManager : public oo::RefCounted {
+public:
+    // The shared manager, made on first use; borrowed, never released.
+    static OOGraphicsResetManager* sharedManager();
 
-@interface OOGraphicsResetManager : NSObject {
-@private
-    NSMutableSet* clients;
-}
+    ~OOGraphicsResetManager();
 
-+ (OOGraphicsResetManager*)sharedManager;
+    // Clients are not retained; null is never registered.
+    void registerCxxClient(OOGraphicsResetClient* client);
+    void unregisterCxxClient(OOGraphicsResetClient* client);
 
-// Clients are not retained.
-- (void)registerClient:(id<OOGraphicsResetClient>)client;
-- (void)unregisterClient:(id<OOGraphicsResetClient>)client;
+    // Forwarded to all clients, after resetting textures.
+    void resetGraphicsState();
 
-// Forwarded to all clients, after resetting textures.
-- (void)resetGraphicsState;
-
-@end
+private:
+    std::unordered_set<OOGraphicsResetClient*> cxxClients = { }; // not retained
+};
