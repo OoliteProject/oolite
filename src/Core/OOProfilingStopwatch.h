@@ -77,6 +77,27 @@ typedef DWORD OOHighResTimeValue; // Rolls over once every 50 days, but we can l
     } while (0)
 #define OOCopyHighResTime(time) ((OOHighResTimeValue)time)
 
+#elif OOJS_QUICKJS
+/*	...with QuickJS, which has no JS_Now(), use the performance counter, so
+        the profiler can time short functions (timeGetTime() only counts whole
+        milliseconds)...
+*/
+#define OO_PROFILING_STOPWATCH_PERFORMANCE_COUNTER 1
+typedef int64_t OOHighResTimeValue;
+
+OOINLINE OOHighResTimeValue OOGetHighResTime(void)
+{
+    LARGE_INTEGER counter;
+    QueryPerformanceCounter(&counter);
+    return counter.QuadPart;
+}
+
+#define OODisposeHighResTime(time) \
+    do {                           \
+        (void)time;                \
+    } while (0)
+#define OOCopyHighResTime(time) ((OOHighResTimeValue)time)
+
 #else
 /*	...otherwise, use JS_Now() for higher precision. The Windows implementation
         does the messy work of calibrating performance counters against low-res
