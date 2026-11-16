@@ -29,6 +29,11 @@ SOFTWARE.
 
 #import "OOMaterial.h"
 
+#include "oofnd/PList.hpp"
+
+#include <optional>
+#include <string>
+
 @class OOColor;
 
 @interface OOMaterial (OOConvenienceCreators)
@@ -36,24 +41,26 @@ SOFTWARE.
 /*	Get a material based on configuration. The result will be an
         OOBasicMaterial, OOSingleTextureMaterial or OOShaderMaterial (the latter
         only if shaders are available). cacheKey is used for caching of synthesized
-        shader materials; nil may be passed for no caching.
+        shader materials; nullopt may be passed for no caching.
+        Unique selectors (ADR-0043): name/cacheKey are optional UTF-8 strings;
+        configuration and macros are oo::PList (null = nil).
 */
-+ (OOMaterial*)materialWithName:(NSString*)name
-                       cacheKey:(NSString*)cacheKey
-                  configuration:(NSDictionary*)configuration
-                         macros:(NSDictionary*)macros
++ (OOMaterial*)materialWithName:(const std::optional<std::string>&)name
+                       cacheKey:(const std::optional<std::string>&)cacheKey
+                  configuration:(const oo::PList&)configuration
+                         macros:(const oo::PList&)macros
                   bindingTarget:(id<OOWeakReferenceSupport>)object
                 forSmoothedMesh:(BOOL)smooth;
 
 /*	Select an appropriate material description (based on availability of
-        shaders and content of dictionaries, which may be nil) and call
-        +materialWithName:forModelNamed:configuration:macros:bindTarget:forSmoothedMesh:.
+        shaders and content of dictionaries, which may be null) and call
+        +materialWithName:cacheKey:configuration:macros:bindingTarget:forSmoothedMesh:.
 */
-+ (OOMaterial*)materialWithName:(NSString*)name
-                       cacheKey:(NSString*)cacheKey
-             materialDictionary:(NSDictionary*)materialDict
-              shadersDictionary:(NSDictionary*)shadersDict
-                         macros:(NSDictionary*)macros
++ (OOMaterial*)materialWithName:(const std::optional<std::string>&)name
+                       cacheKey:(const std::optional<std::string>&)cacheKey
+             materialDictionary:(const oo::PList&)materialDict
+              shadersDictionary:(const oo::PList&)shadersDict
+                         macros:(const oo::PList&)macros
                   bindingTarget:(id<OOWeakReferenceSupport>)object
                 forSmoothedMesh:(BOOL)smooth;
 

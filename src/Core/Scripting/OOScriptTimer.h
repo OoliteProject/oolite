@@ -34,8 +34,9 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 #import "OOTypes.h"
+#import "oofnd/objc/OOObject.h"
 
-@interface OOScriptTimer : NSObject {
+@interface OOScriptTimer : OOObject {
 @private
     OOTimeAbsolute _nextTime;
     OOTimeDelta _interval;
@@ -66,6 +67,6 @@ MA 02110-1301, USA.
 
 - (BOOL)isValidForScheduling;
 
-- (NSComparisonResult)compareByNextFireTime:(OOScriptTimer*)other;
+- (OOComparisonResult)compareByNextFireTime:(OOScriptTimer*)other;
 
 @end

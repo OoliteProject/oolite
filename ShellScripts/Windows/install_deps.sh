@@ -42,7 +42,7 @@ run_script() {
 
     pacman -Syu --noconfirm
     pacman -S --noconfirm dos2unix git jq pactoys unzip
-    pacboy -S --noconfirm binutils curl espeak-ng libffi libpng libvorbis mesa meson ninja nsis ntldd openal pcaudiolib python-pip sdl3 shared-mime-info
+    pacboy -S --noconfirm binutils curl espeak-ng icu libffi libpng libvorbis mesa meson ninja nsis ntldd openal pcaudiolib python-pip sdl3 shared-mime-info
     pacboy -S --noconfirm doxygen graphviz
     mkdir -p ../../build/packages
     cd ../../build
@@ -57,14 +57,6 @@ run_script() {
         clean_filename=$(printf '%b' "${raw_filename//%/\\x}")
         echo "Downloading: $clean_filename"
         curl -L "$url" -o "$clean_filename"
-    done
-
-    echo "Installing common packages"
-    local package_names=(spidermonkey)
-    for packagename in "${package_names[@]}"; do
-        if ! install $packagename; then
-            return 1
-        fi
     done
 
     if [[ -z "$1" || "$1" == "clang" ]]; then

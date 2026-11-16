@@ -45,7 +45,7 @@
 #if !defined(__COMPARISON_OL_GUARD)
 #define __COMPARISON_OL_GUARD
 
-#include <Foundation/NSObject.h>
+#import "OOFoundation.h"
 
 /**
  * @category NSObject(OLComparisonMethods) Comparison.h Objectivelib/Comparison.h
@@ -62,7 +62,7 @@
 
 /**
  * Return whether another object is equal to this one. This message returns YES if
- * and only if the message @c compare: returns @c NSOrderedSame.
+ * and only if the message @c compare: returns @c OOOrderedSame.
  *
  * @param object the object to which to compare this one
  * @return YES if @a object is equal to this one, NO otherwise
@@ -71,7 +71,7 @@
 
 /**
  * Return whether this object is greater than another one. This message returns
- * YES if and only if @c compare: returns @c NSOrderedDescending.
+ * YES if and only if @c compare: returns @c OOOrderedDescending.
  *
  * @param object the object to which to compare this one
  * @return YES if this object is greater than @a object, NO otherwise
@@ -80,7 +80,7 @@
 
 /**
  * Return whether this object is greater than or equal to another one. This message returns
- * YES if and only if @c compare: does not return @c NSOrderedAscending.
+ * YES if and only if @c compare: does not return @c OOOrderedAscending.
  *
  * @param object the object to which to compare this one
  * @return YES if this object is greater than or equal to @a object, NO otherwise
@@ -89,7 +89,7 @@
 
 /**
  * Return whether this object is less than another one. This message returns
- * YES if and only if @c compare: returns @c NSOrderedAscending.
+ * YES if and only if @c compare: returns @c OOOrderedAscending.
  *
  * @param object the object to which to compare this one
  * @return YES if this object is less than @a object, NO otherwise
@@ -98,7 +98,7 @@
 
 /**
  * Return whether this object is less than or equal to another one. This message returns
- * YES if and only if @c compare: does not return @c NSOrderedDescending.
+ * YES if and only if @c compare: does not return @c OOOrderedDescending.
  *
  * @param object the object to which to compare this one
  * @return YES if this object is less than or equal to @a object, NO otherwise
@@ -107,7 +107,7 @@
 
 /**
  * Return whether another object is not equal to this one. This message returns YES if
- * and only if the message @c compare: does not return @c NSOrderedSame.
+ * and only if the message @c compare: does not return @c OOOrderedSame.
  *
  * @param object the object to which to compare this one
  * @return YES if @a object is not equal to this one, NO otherwise

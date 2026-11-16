@@ -33,12 +33,15 @@ SOFTWARE.
 
 @class OOColor;
 
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+
 @interface OOCombinedEmissionMapGenerator : OOTextureGenerator {
 @private
-    NSString* _cacheKey;
+    std::string _cacheKey;
 
-    NSDictionary* _emissionSpec;
-    NSDictionary* _illuminationSpec;
+    oo::PList _emissionSpec;
+    oo::PList _illuminationSpec;
     OOTexture* _diffuseMap;
 
     OOPixMap _emissionPx;
@@ -53,25 +56,25 @@ SOFTWARE.
     GLfloat _lodBias;
 
 #ifndef NDEBUG
-    NSString* _emissionDesc;
-    NSString* _illuminationDesc;
-    NSString* _diffuseDesc;
+    std::string _emissionDesc;
+    std::string _illuminationDesc;
+    std::string _diffuseDesc;
 #endif
 }
 
-- (id)initWithEmissionMapSpec:(NSDictionary*)emissionMapSpec
-                emissionColor:(OOColor*)emissionColor
-                   diffuseMap:(OOTexture*)diffuseMap
-                 diffuseColor:(OOColor*)diffuseColor
-          illuminationMapSpec:(NSDictionary*)illuminationMapSpec
-            illuminationColor:(OOColor*)illuminationColor
-             optionsSpecifier:(NSDictionary*)spec;
+- (id)cxx_initWithEmissionMapSpec:(const oo::PList&)emissionMapSpec
+                    emissionColor:(OOColor*)emissionColor
+                       diffuseMap:(OOTexture*)diffuseMap
+                     diffuseColor:(OOColor*)diffuseColor
+              illuminationMapSpec:(const oo::PList&)illuminationMapSpec
+                illuminationColor:(OOColor*)illuminationColor
+                 optionsSpecifier:(const oo::PList&)spec;
 
-- (id)initWithEmissionAndIlluminationMapSpec:(NSDictionary*)emissionAndIlluminationMapSpec
-                                  diffuseMap:(OOTexture*)diffuseMap
-                                diffuseColor:(OOColor*)diffuseColor
-                               emissionColor:(OOColor*)emissionColor
-                           illuminationColor:(OOColor*)illuminationColor
-                            optionsSpecifier:(NSDictionary*)spec;
+- (id)cxx_initWithEmissionAndIlluminationMapSpec:(const oo::PList&)emissionAndIlluminationMapSpec
+                                      diffuseMap:(OOTexture*)diffuseMap
+                                    diffuseColor:(OOColor*)diffuseColor
+                                   emissionColor:(OOColor*)emissionColor
+                               illuminationColor:(OOColor*)illuminationColor
+                                optionsSpecifier:(const oo::PList&)spec;
 
 @end

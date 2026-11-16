@@ -1,6 +1,6 @@
 /*
 
-OOJSInterfaceDefinition.h
+OOJSInterfaceDefinition.h (QuickJS-ng)
 
 
 Oolite
@@ -24,32 +24,38 @@ MA 02110-1301, USA.
 */
 
 #import "OOJSScript.h"
-#include <jsapi.h>
+#include <quickjs.h>
 
+#include "oofnd/StdLib.hpp"
+
+/*	The definition owns references to its callback and callbackThis, which are
+        released on dealloc and when the JavaScript engine is reset.
+*/
 @interface OOJSInterfaceDefinition : OOWeakRefObject {
 @private
-    jsval _callback;
-    JSObject* _callbackThis;
+    JSValue _callback; // Owned.
+    JSValue _callbackThis; // Owned.
     OOJSScript* _owningScript;
 
-    NSString* _title;
-    NSString* _summary;
-    NSString* _category;
+    std::optional<std::string> _title; // nullopt until set (was nil)
+    std::optional<std::string> _summary;
+    std::optional<std::string> _category;
 }
 
-- (NSString*)title;
-- (void)setTitle:(NSString*)title;
-- (NSString*)category;
-- (void)setCategory:(NSString*)category;
-- (NSString*)summary;
-- (void)setSummary:(NSString*)summary;
-- (jsval)callback;
-- (void)setCallback:(jsval)callback;
-- (JSObject*)callbackThis;
-- (void)setCallbackThis:(JSObject*)callbackthis;
+- (id)title; // shared selector (proposed ADR-0043): an Objective-C string, or nil
+- (void)setTitle:(id)title; // shared selector (proposed ADR-0043): an Objective-C string, or nil
+- (std::optional<std::string>)category;
+- (void)setCategory:(const std::string&)category;
+- (std::optional<std::string>)summary;
+- (void)setSummary:(const std::string&)summary;
+// Returned values are owned by the caller.
+- (JSValue)callback;
+- (void)setCallback:(JSValueConst)callback;
+- (JSValue)callbackThis;
+- (void)setCallbackThis:(JSValueConst)callbackthis;
 
-- (void)runCallback:(NSString*)key;
+- (void)runCallback:(id)key; // shared selector (proposed ADR-0043): key is an Objective-C string
 
-- (NSComparisonResult)interfaceCompare:(OOJSInterfaceDefinition*)other;
+- (OOComparisonResult)interfaceCompare:(OOJSInterfaceDefinition*)other;
 
 @end

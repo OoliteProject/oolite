@@ -32,6 +32,14 @@ SOFTWARE.
 #import "OOFunctionAttributes.h"
 #include <stdarg.h>
 
+// OO_LOG / oo::log (ADR-0035): the Foundation-free logging API. extern "C++" because this header
+// is sometimes reached from inside an extern "C" block (OOMaths.h), as OOFoundation.h notes.
+#ifdef __cplusplus
+extern "C++" {
+#include "oofnd/Log.hpp"
+}
+#endif
+
 #ifndef OOLOG_POISON_NSLOG
 #define OOLOG_POISON_NSLOG 0
 #endif
@@ -98,10 +106,16 @@ SOFTWARE.
 #define OOLogWithArguments(class, format, args) OOLogWithFunctionFileAndLineAndArguments(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, format, args)
 #endif
 
-BOOL OOLogWillDisplayMessagesInClass(NSString* inMessageClass);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void OOLogIndent(void);
 void OOLogOutdent(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #if OOLOG_SHORT_CIRCUIT
 #define OOLogIndentIf(class)                        \
@@ -114,10 +128,7 @@ void OOLogOutdent(void);
         if (OOLogWillDisplayMessagesInClass(class)) \
             OOLogOutdent();                         \
     } while (0)
-#else
-void OOLogIndentIf(NSString* inMessageClass);
-void OOLogOutdentIf(NSString* inMessageClass);
-#endif
+#endif // otherwise they are functions, declared in OOLogging+FoundationBridge.h
 
 #define OOLOG_ERROR_PREFIX @"***** ERROR: "
 #define OOLOG_WARNING_PREFIX @"----- WARNING: "
@@ -126,12 +137,12 @@ void OOLogOutdentIf(NSString* inMessageClass);
 #define OOLogWARN(class, format, ...) OOLogWithPrefix(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, OOLOG_WARNING_PREFIX, format, ##__VA_ARGS__)
 
 // Remember/restore indent levels, for cases where an exception may occur while indented.
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void OOLogPushIndent(void);
 void OOLogPopIndent(void);
-
-void OOLogWithPrefix(NSString* inMessageClass, const char* inFunction, const char* inFile, unsigned long inLine, NSString* inPrefix, NSString* inFormat, ...) OO_TAKES_FORMAT_STRING(6, 7);
-void OOLogWithFunctionFileAndLine(NSString* inMessageClass, const char* inFunction, const char* inFile, unsigned long inLine, NSString* inFormat, ...) OO_TAKES_FORMAT_STRING(5, 6);
-void OOLogWithFunctionFileAndLineAndArguments(NSString* inMessageClass, const char* inFunction, const char* inFile, unsigned long inLine, NSString* inFormat, va_list inArguments) OO_TAKES_FORMAT_STRING(5, 0);
 
 // OOLogGenericParameterError(): general parameter error message, "***** $function_name: bad parameters. (This is an internal programming error, please report it.)"
 #define OOLogGenericParameterError() OOLogGenericParameterErrorForFunction(OOLOG_FUNCTION_NAME)
@@ -140,6 +151,10 @@ void OOLogGenericParameterErrorForFunction(const char* inFunction);
 // OOLogGenericSubclassResponsibility(): general subclass responsibility message, "***** $function_name is a subclass responsibility. (This is an internal programming error, please report it.)"
 #define OOLogGenericSubclassResponsibility() OOLogGenericSubclassResponsibilityForFunction(OOLOG_FUNCTION_NAME)
 void OOLogGenericSubclassResponsibilityForFunction(const char* inFunction);
+
+#ifdef __cplusplus
+}
+#endif
 
 #if OOLOG_POISON_NSLOG
 #pragma GCC poison NSLog // Use OOLog instead
@@ -179,17 +194,27 @@ void OOLogGenericSubclassResponsibilityForFunction(const char* inFunction);
         @"general.error.subclassResponsibility.Entity-warnAboutHostiles".
 */
 
-extern NSString* const kOOLogSubclassResponsibility; // @"general.error.subclassResponsibility"
-extern NSString* const kOOLogParameterError; // @"general.error.parameterError"
-extern NSString* const kOOLogDeprecatedMethod; // @"general.error.deprecatedMethod"
-extern NSString* const kOOLogAllocationFailure; // @"general.error.allocationFailure"
-extern NSString* const kOOLogInconsistentState; // @"general.error.inconsistentState"
-extern NSString* const kOOLogException; // @"exception"
+#ifdef __cplusplus
+extern const char* const cxx_kOOLogSubclassResponsibility; // "general.error.subclassResponsibility"
+extern const char* const cxx_kOOLogParameterError; // "general.error.parameterError"
+extern const char* const cxx_kOOLogDeprecatedMethod; // "general.error.deprecatedMethod"
+extern const char* const cxx_kOOLogAllocationFailure; // "general.error.allocationFailure"
+extern const char* const cxx_kOOLogInconsistentState; // "general.error.inconsistentState"
+extern const char* const cxx_kOOLogException; // "exception"
 
-extern NSString* const kOOLogFileNotFound; // @"files.notFound"
-extern NSString* const kOOLogFileNotLoaded; // @"files.notLoaded"
+extern const char* const cxx_kOOLogFileNotFound; // "files.notFound"
+extern const char* const cxx_kOOLogFileNotLoaded; // "files.notLoaded"
 
-extern NSString* const kOOLogOpenGLError; // @"rendering.opengl.error"
+extern const char* const cxx_kOOLogOpenGLError; // "rendering.opengl.error"
 
-// Don't use. However, #defining it as @"unclassified.module" can be used as a stepping stone to OOLog support.
-extern NSString* const kOOLogUnconvertedNSLog; // @"unclassified"
+// Don't use.
+extern const char* const cxx_kOOLogUnconvertedNSLog; // "unclassified"
+#endif
+
+/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the message-class API that takes
+        Foundation strings (and the constants above as Foundation strings), as it was declared before
+        its sweep (bead oo-lskf, chunk oo-3rb.136), so unmigrated callers and the macros above compile
+        unchanged. Migrated code uses OO_LOG with a cxx_kOOLog* constant or a literal class; the bridge
+        goes in its own bead, the last one deleted.
+*/
+#import "OOLogging+FoundationBridge.h"

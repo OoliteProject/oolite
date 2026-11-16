@@ -39,20 +39,23 @@ SOFTWARE.
 
 @protocol OODebuggerInterface <NSObject>
 
-// Sent to establish connection.
-- (BOOL)connectDebugMonitor:(in OODebugMonitor*)debugMonitor
-               errorMessage:(out NSString**)message;
+// The string and dictionary parameters are typed id: these selectors are shared with the one
+// implementer, OODebugTCPConsoleClient (proposed ADR-0043).
 
-// Sent to close connection.
+// Sent to establish connection. *message: a string.
+- (BOOL)connectDebugMonitor:(in OODebugMonitor*)debugMonitor
+               errorMessage:(out id*)message;
+
+// Sent to close connection. message: a string or nil.
 - (void)disconnectDebugMonitor:(in OODebugMonitor*)debugMonitor
-                       message:(in NSString*)message;
+                       message:(in id)message;
 
 // Sent to print to the JavaScript console.
 // colorKey is intended to be used to look up a foreground/background colour pair
 // in the configuration. EmphasisRange is to specify a bold section of text.
 - (oneway void)debugMonitor:(in OODebugMonitor*)debugMonitor
-            jsConsoleOutput:(in NSString*)output
-                   colorKey:(in NSString*)colorKey
+            jsConsoleOutput:(in id)output
+                   colorKey:(in id)colorKey
               emphasisRange:(in NSRange)emphasisRange;
 
 // Sent to clear the JavaScript console.
@@ -63,11 +66,11 @@ SOFTWARE.
 
 // Sent once when the debugger is connected.
 - (oneway void)debugMonitor:(in OODebugMonitor*)debugMonitor
-          noteConfiguration:(in NSDictionary*)configuration;
+          noteConfiguration:(in id)configuration; // a dictionary
 
 // Sent when configuration changes. newValue may be nil.
 - (oneway void)debugMonitor:(in OODebugMonitor*)debugMonitor
     noteChangedConfigrationValue:(in id)newValue
-                          forKey:(in NSString*)key;
+                          forKey:(in id)key;
 
 @end
