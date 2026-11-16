@@ -270,12 +270,9 @@ NSString* OOPadStringToEms(NSString* string, float padEms)
 NSString* OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includeDecimal, BOOL includeSymbol)
 {
     JSContext* context = OOJSAcquireContext();
-    JSObject* global = [[OOJavaScriptEngine sharedEngine] globalObject];
-    JSObject* fakeRoot;
-    jsval method;
-    jsval rval;
+    JSValueConst global = [[OOJavaScriptEngine sharedEngine] globalObject];
+    JSValue exception = JS_UNDEFINED;
     NSString* result = nil;
-    jsval exception;
     BOOL hadException;
 
     /*	Because the |cr etc. formatting operators call this, and the
@@ -288,25 +285,30 @@ NSString* OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includ
 
     reentrancyLock = YES;
 
-    hadException = JS_GetPendingException(context, &exception);
-    JS_ClearPendingException(context);
+    hadException = JS_HasException(context);
+    if (hadException)
+        exception = JS_GetException(context); // Clears it.
 
-    if (JS_GetMethodById(context, global, OOJSID("formatCredits"), &fakeRoot, &method)) {
-        jsval args[3];
-        if (JS_NewNumberValue(context, tenthsOfCredits * 0.1, &args[0])) {
-            args[1] = OOJSValueFromBOOL(includeDecimal);
-            args[2] = OOJSValueFromBOOL(includeSymbol);
+    JSValue method = JS_GetProperty(context, global, OOJSID("formatCredits"));
+    if (!JS_IsException(method)) {
+        JSValue args[3] = { JS_NewNumber(context, tenthsOfCredits * 0.1), OOJSValueFromBOOL(includeDecimal), OOJSValueFromBOOL(includeSymbol) };
 
-            OOJSStartTimeLimiter();
-            JS_CallFunctionValue(context, global, method, 3, args, &rval);
-            OOJSStopTimeLimiter();
+        OOJSStartTimeLimiter();
+        JSValue rval = JS_Call(context, method, global, 3, args);
+        OOJSStopTimeLimiter();
 
+        if (JS_IsException(rval))
+            OOJSReportPendingException(context);
+        else
             result = OOStringFromJSValue(context, rval);
-        }
+        JS_FreeValue(context, rval);
+    } else {
+        OOJSReportPendingException(context);
     }
+    JS_FreeValue(context, method);
 
     if (hadException)
-        JS_SetPendingException(context, exception);
+        JS_Throw(context, exception); // Takes ownership.
 
     OOJSRelinquishContext(context);
 
