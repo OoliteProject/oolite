@@ -1,9 +1,15 @@
 /*
 
-OOJSScript.h
+OOJSScript.h (QuickJS-ng)
 
 JavaScript support for Oolite
 Copyright (C) 2007-2013 David Taylor and Jens Ayton.
+
+C++20 (the OOColor house style), a subclass of OOScript. Its Objective-C facade was deleted, and
+so was the OOScript root's facade, which was then its object: the script's identity is the C++
+object. Holders keep it as oo::Ref (the timers and definitions as oo::WeakRef), the stack of running
+scripts holds it weakly, and the Script JS object's private slot holds a weak reference to it
+(OOJSPrivateObject glue), as it held the facade's weak reference proxy.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -22,69 +28,90 @@ MA 02110-1301, USA.
 
 */
 
+#ifndef OOJSSCRIPT_H
+#define OOJSSCRIPT_H
+
 #import "OOJavaScriptEngine.h"
 #import "OOScript.h"
+#include "oofnd/Notification.hpp"
 
-static NSString* const kLocalManifestProperty = @"oolite_manifest_identifier";
+// The script property that holds the identifier of the manifest the script was loaded under.
+inline constexpr char kLocalManifestProperty[] = "oolite_manifest_identifier";
 
-@interface OOJSScript : OOScript <OOWeakReferenceSupport> {
-@private
-    JSObject* _jsSelf;
+class OOJSScript : public OOScript {
+public:
+    // +scriptWithPath:properties:: a new script, null when it could not be loaded. path nullopt is
+    // nil (the script is then named after its address); properties may hold live objects.
+    static oo::Ref<OOJSScript> scriptWithPath(const std::optional<std::string>& path, const oo::PList& properties);
 
-    NSString* name;
-    NSString* description;
-    NSString* version;
-    NSString* filePath;
+    // The old -dealloc's body (the facade's, which ran it as willDealloc()).
+    ~OOJSScript() override;
 
-    OOWeakReference* weakSelf;
-}
+    // The old -initWithPath:properties: after [super init], run by scriptWithPath(); false: the
+    // script could not be loaded, and scriptWithPath() drops it.
+    bool initWithPath(const std::optional<std::string>& path, const oo::PList& properties);
 
-+ (id)scriptWithPath:(NSString*)path properties:(NSDictionary*)properties;
+    // The running script; null when none runs, for a script-less push, and once a weakly pushed
+    // script has gone (a dead weak reference, which answered every message as nil).
+    static OOJSScript* currentlyRunningScript();
+    // The running scripts, outermost first; an entry is null once a weakly pushed script has gone.
+    // Raises, as -addObject: did on nil, if the stack holds a script-less push.
+    static std::vector<oo::Ref<OOJSScript>> scriptStack();
 
-- (id)initWithPath:(NSString*)path properties:(NSDictionary*)properties;
+    /*	External manipulation of acrtive script stack. Used, for instance, by
+            timers. Failing to balance these will crash!
+            Passing a nil script is valid for cases where JS is used which is not
+            attached to a specific script.
+            The weak form is for a holder that keeps its script weakly (it pushed the weak reference
+            proxy the script's facade gave it); pop it with its get().
+    */
+    static void pushScript(OOJSScript* script);
+    static void pushScript(const oo::WeakRef<OOJSScript>& script);
+    static void popScript(OOJSScript* script);
 
-+ (OOJSScript*)currentlyRunningScript;
-+ (NSArray*)scriptStack;
+    /*	Call a method.
+            outResult may be NULL; if not, it is owned by the caller.
+    */
+    bool callMethod(JSAtom methodID, JSContext* context, JSValueConst* argv, int argc, JSValue* outResult) override;
 
-/*	External manipulation of acrtive script stack. Used, for instance, by
-        timers. Failing to balance these will crash!
-        Passing a nil script is valid for cases where JS is used which is not
-        attached to a specific script.
-*/
-+ (void)pushScript:(OOJSScript*)script;
-+ (void)popScript:(OOJSScript*)script;
+    // The property as cxx_OOJSPListFromJSValue() converts it; null when there is no script object or it could not be read.
+    oo::PList propertyWithID(JSAtom propID, JSContext* context);
+    // Set a property which can be modified or deleted by the script.
+    bool setProperty(const oo::PList& value, JSAtom propID, JSContext* context);
+    // Set a special property which cannot be modified or deleted by the script.
+    bool defineProperty(const oo::PList& value, JSAtom propID, JSContext* context);
 
-/*	Call a method.
-        Requires a request on context.
-        outResult may be NULL.
-*/
-- (BOOL)callMethod:(jsid)methodID
-         inContext:(JSContext*)context
-     withArguments:(jsval*)argv
-             count:(intN)argc
-            result:(jsval*)outResult;
+    oo::PList propertyNamed(const std::string& name);
+    bool setProperty(const oo::PList& value, const std::string& name);
+    bool defineProperty(const oo::PList& value, const std::string& name);
 
-- (id)propertyWithID:(jsid)propID inContext:(JSContext*)context;
-// Set a property which can be modified or deleted by the script.
-- (BOOL)setProperty:(id)value withID:(jsid)propID inContext:(JSContext*)context;
-// Set a special property which cannot be modified or deleted by the script.
-- (BOOL)defineProperty:(id)value withID:(jsid)propID inContext:(JSContext*)context;
+    // The JS glue (OOJSPrivateObject; -cxx_oo_jsClassName, -oo_jsValueInContext: and the
+    // -cxx_oo_jsDescription toString() answered).
+    std::optional<std::string> jsClassName();
+    JSValue jsValueInContext(JSContext* context) override; // owned
+    std::optional<std::string> jsDescription() override;
 
-- (id)propertyNamed:(NSString*)name;
-- (BOOL)setProperty:(id)value named:(NSString*)name;
-- (BOOL)defineProperty:(id)value named:(NSString*)name;
+    // OOScript
+    std::optional<std::string> descriptionComponents() override;
+    std::optional<std::string> name() override;
+    std::optional<std::string> scriptDescription() override;
+    std::optional<std::string> version() override;
+    void runWithTarget(Entity* target) override;
 
-@end
+private:
+    void javaScriptEngineWillReset(const oo::Notification& notification);
+    std::string scriptNameFromPath(const std::optional<std::string>& path);
+    oo::PList::Dict defaultPropertiesFromPath(const std::optional<std::string>& path);
+    void checkForTickle(JSContext* context);
 
-@interface OOScript (JavaScriptEvents)
+    JSValue _jsSelf = JS_UNDEFINED; // Owned.
 
-// For simplicity, calling methods on non-JS scripts works but does nothing.
-- (BOOL)callMethod:(jsid)methodID
-         inContext:(JSContext*)context
-     withArguments:(jsval*)argv
-             count:(intN)argc
-            result:(jsval*)outResult;
+    std::optional<std::string> _name;
+    std::optional<std::string> _description;
+    std::optional<std::string> _version;
+    std::optional<std::string> _filePath;
+};
 
-@end
+void InitOOJSScript(JSContext* context, JSValueConst global);
 
-void InitOOJSScript(JSContext* context, JSObject* global);
+#endif // OOJSSCRIPT_H
