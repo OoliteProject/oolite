@@ -24,6 +24,12 @@ MA 02110-1301, USA.
 
 #import "PlayerEntity.h"
 
+#include "oofnd/StdLib.hpp"
+
+/*	Foundation sweep (proposed ADR-0043, bead oo-14c5): weapon identifiers and sound keys are
+        std::strings. The weapon-identifier selectors are called from PlayerEntity.mm and
+        PlayerEntityControls.mm, so they are cxx_ twins here.
+*/
 @interface PlayerEntity (Sound)
 
 - (void)setUpSound;
@@ -117,15 +123,15 @@ MA 02110-1301, USA.
 - (void)playFuelLeak;
 
 // Damage sounds
-- (void)playShieldHit:(Vector)attackVector weaponIdentifier:(NSString*)weaponIdentifier;
-- (void)playDirectHit:(Vector)attackVector weaponIdentifier:(NSString*)weaponIdentifier;
+- (void)cxx_playShieldHit:(Vector)attackVector weaponIdentifier:(const std::string&)weaponIdentifier;
+- (void)cxx_playDirectHit:(Vector)attackVector weaponIdentifier:(const std::string&)weaponIdentifier;
 - (void)playScrapeDamage:(Vector)attackVector;
 
 // Weapon sounds
-- (void)playLaserHit:(BOOL)hit offset:(Vector)weaponOffset weaponIdentifier:(NSString*)weaponIdentifier;
+- (void)cxx_playLaserHit:(BOOL)hit offset:(Vector)weaponOffset weaponIdentifier:(const std::string&)weaponIdentifier;
 - (void)playWeaponOverheated:(Vector)weaponOffset;
-- (void)playMissileLaunched:(Vector)weaponOffset weaponIdentifier:(NSString*)weaponIdentifier;
-- (void)playMineLaunched:(Vector)weaponOffset weaponIdentifier:(NSString*)weaponIdentifier;
+- (void)cxx_playMissileLaunched:(Vector)weaponOffset weaponIdentifier:(const std::string&)weaponIdentifier;
+- (void)cxx_playMineLaunched:(Vector)weaponOffset weaponIdentifier:(const std::string&)weaponIdentifier;
 
 // Miscellaneous sounds
 - (void)playEscapePodScooped;
@@ -133,6 +139,6 @@ MA 02110-1301, USA.
 - (void)playAegisCloseToStation;
 - (void)playGameOver;
 
-- (void)playLegacyScriptSound:(NSString*)key;
+- (void)playLegacyScriptSound:(const std::string&)key;
 
 @end

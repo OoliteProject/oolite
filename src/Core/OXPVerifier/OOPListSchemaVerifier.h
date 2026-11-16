@@ -5,7 +5,6 @@ OOPListSchemaVerifier.h
 Utility class to verify the structure of a property list based on a schema
 (which is itself a property list).
 
-
 Copyright (C) 2007-2013 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -32,76 +31,98 @@ SOFTWARE.
 
 #if OO_OXP_VERIFIER_ENABLED
 
+#import "OOFoundation.h"
 #import "OOFunctionAttributes.h"
-#import <Foundation/Foundation.h>
+#import "oofnd/objc/OOObject.h"
 
-@interface OOPListSchemaVerifier : NSObject {
-@private
-    NSDictionary* _schema;
-    NSDictionary* _definitions;
+#include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
 
-    id _delegate;
-    uint32_t _badDelegateWarning : 1;
-}
-
-+ (instancetype)verifierWithSchema:(NSDictionary*)schema;
-- (id)initWithSchema:(NSDictionary*)schema;
-
-- (void)setDelegate:(id)delegate;
-- (id)delegate;
-
-- (BOOL)verifyPropertyList:(id)plist named:(NSString*)name;
-
-/*	Convert a key path (such as provided to the delegate method
-        -verifier:withPropertyList:failedForProperty:atPath:expectedType:) to a
-        human-readable string. Strings are separated by dots and numbers are give
-        brackets. For instance, the key path ( "adder-player", "custom_views", 0,
-        "view_description" ) is transfomed to
-        "adder-player.custom_views[0].view_description".
+/*	A schema verifier error (ADR-0029 decision 5, bead oo-3rb.16): what the Foundation error object
+        carried. domain is kOOPListSchemaVerifierErrorDomain, code an OOPListSchemaVerifierErrorCode,
+        failureReason the old -localizedFailureReason, and userInfo a Dict of the error keys below
+        (kPListKeyPathErrorKey and the error's own; a nested error is held as a Dict of these four
+        fields). Where the old error could be nil, it is a std::optional.
 */
-+ (NSString*)descriptionForKeyPath:(NSArray*)keyPath;
+struct OOPListSchemaVerifierError {
+    std::string domain;
+    int code = 0;
+    std::optional<std::string> failureReason;
+    oo::PList userInfo;
+};
 
-@end
-
-@interface NSObject (OOPListSchemaVerifierDelegate)
-
-// Handle "delegated types". Return YES for valid, NO for invalid.
-- (BOOL)verifier:(OOPListSchemaVerifier*)verifier
-    withPropertyList:(id)rootPList
-               named:(NSString*)name
-        testProperty:(id)subPList
-              atPath:(NSArray*)keyPath
-         againstType:(NSString*)typeKey
-               error:(NSError**)outError;
-
-/*	Method notifying of verification failure.
-        Return YES to continue verifying, NO to stop.
+/*	The key path the verification core hands down, one link per level (a dictionary key, an array
+        index, or neither for the root). Private to OOPListSchemaVerifier.mm until slice 1 of its
+        Phase 3 conversion (bead oo-pni4): the verification core's members below take it, so its
+        definition is here. Not for other callers.
 */
-- (BOOL)verifier:(OOPListSchemaVerifier*)verifier
-     withPropertyList:(id)rootPList
-                named:(NSString*)name
-    failedForProperty:(id)subPList
-            withError:(NSError*)error
-         expectedType:(NSDictionary*)localSchema;
+typedef struct BackLinkChain BackLinkChain;
+struct BackLinkChain {
+    BackLinkChain* link;
+    const std::string* key; // a dictionary key (the caller keeps it alive), or
+    NSUInteger index; // an array index when isIndex; neither for the root
+    bool isIndex;
+};
 
-@end
+namespace cxx {
 
-// NSError domain and codes used to report schema verifier errors.
-extern NSString* const kOOPListSchemaVerifierErrorDomain;
+class OOPListSchemaVerifier : public oo::RefCounted {
+public:
+    static oo::Ref<OOPListSchemaVerifier> verifierWithSchema(const oo::PList& schema); // null for a null schema
+    static oo::Ref<OOPListSchemaVerifier> initWithSchema(const oo::PList& schema); // -initWithSchema:; null for a null schema
 
-extern NSString* const kPListKeyPathErrorKey; // Array specifying key path in plist.
-extern NSString* const kSchemaKeyPathErrorKey; // Array specifying key path in schema.
+    void setDelegate(id delegate);
+    id delegate();
 
-extern NSString* const kExpectedClassErrorKey; // Expected class. Nil for vector and quaternion.
-extern NSString* const kExpectedClassNameErrorKey; // String describing expected class. May be more specific (for instance, "boolean" or "positive integer" for NSNumber).
-extern NSString* const kUnknownKeyErrorKey; // Unallowed key found in dictionary.
-extern NSString* const kMissingRequiredKeysErrorKey; // Set of required keys not present in dictionary
-extern NSString* const kMissingSubStringErrorKey; // String or array of strings not found for kPListErrorStringPrefixMissing/kPListErrorStringSuffixMissing/kPListErrorStringSubstringMissing.
-extern NSString* const kUnnownFilterErrorKey; // Unrecognized filter specifier for kPListErrorSchemaUnknownFilter. Not specified if filter is not a string.
-extern NSString* const kErrorsByOptionErrorKey; // Dictionary of errors for oneOf types.
+    bool verifyPropertyList(const oo::PList& plist, const std::string& name);
 
-extern NSString* const kUnknownTypeErrorKey; // Set for kPListErrorSchemaUnknownType.
-extern NSString* const kUndefinedMacroErrorKey; // Set for kPListErrorSchemaUndefiniedMacroReference.
+    /*	Convert a key path (such as provided to the delegate method
+            -verifier:withPropertyList:failedForProperty:atPath:expectedType:) to a
+            human-readable string. Strings are separated by dots and numbers are give
+            brackets. For instance, the key path ( "adder-player", "custom_views", 0,
+            "view_description" ) is transfomed to
+            "adder-player.custom_views[0].view_description".
+    */
+    static std::optional<std::string> descriptionForKeyPath(const oo::PList& keyPath); // a null or empty path is "root"; nullopt for a component that is neither string nor number
+
+    // Internal (the OOPrivate category): the verification core and the delegate calls, which the
+    // type verifiers in OOPListSchemaVerifier.mm (file-static functions) call directly.
+    bool delegateVerifierWithPropertyList(const oo::PList& rootPList, const std::string& name, const oo::PList& subPList, BackLinkChain keyPath, const oo::PList& typeKey, std::optional<OOPListSchemaVerifierError>* outError);
+    bool delegateVerifierWithPropertyList(const oo::PList& rootPList, const std::string& name, const oo::PList& subPList, const OOPListSchemaVerifierError& error, const oo::PList& localSchema);
+    bool verifyPList(const oo::PList& rootPList, const std::string& name, const oo::PList& subProperty, const oo::PList& subSchema, BackLinkChain keyPath, bool tentative, std::optional<OOPListSchemaVerifierError>* outError, BOOL* outStop);
+    oo::PList resolveSchemaType(const oo::PList& specifier, BackLinkChain keyPath, std::optional<OOPListSchemaVerifierError>* outError); // null: not resolved (*outError says why)
+
+private:
+    explicit OOPListSchemaVerifier(const oo::PList& schema); // -initWithSchema:, less its failure
+
+    oo::PList _schema;
+    oo::PList _definitions; // the schema's $definitions (null if none)
+
+    id _delegate = { };
+    uint32_t _badDelegateWarning : 1 = 0;
+};
+
+} // namespace cxx
+
+// Error domain and codes used to report schema verifier errors (UTF-8; the error's domain and
+// userInfo keys are these texts).
+extern const char* const kOOPListSchemaVerifierErrorDomain;
+
+extern const char* const kPListKeyPathErrorKey; // Array specifying key path in plist.
+extern const char* const kSchemaKeyPathErrorKey; // Array specifying key path in schema.
+
+extern const char* const kExpectedClassErrorKey; // Expected class. Nil for vector and quaternion.
+extern const char* const kExpectedClassNameErrorKey; // String describing expected class. May be more specific (for instance, "boolean" or "positive integer" for a number).
+extern const char* const kUnknownKeyErrorKey; // Unallowed key found in dictionary.
+extern const char* const kMissingRequiredKeysErrorKey; // Array of the required keys not present in dictionary, sorted
+extern const char* const kMissingSubStringErrorKey; // String or array of strings not found for kPListErrorStringPrefixMissing/kPListErrorStringSuffixMissing/kPListErrorStringSubstringMissing.
+extern const char* const kUnnownFilterErrorKey; // Unrecognized filter specifier for kPListErrorSchemaUnknownFilter. Not specified if filter is not a string.
+extern const char* const kErrorsByOptionErrorKey;
+extern const char* const kUnderlyingErrorErrorKey; // The delegate's own error for kPListDelegatedTypeError.		// Dictionary of errors for oneOf types.
+
+extern const char* const kUnknownTypeErrorKey; // Set for kPListErrorSchemaUnknownType.
+extern const char* const kUndefinedMacroErrorKey; // Set for kPListErrorSchemaUndefiniedMacroReference.
 
 // All plist verifier errors have a short error description in their -localizedFailureReason.
 
@@ -127,7 +148,7 @@ typedef enum {
 
     kPListErrorOneOfNoMatch, // No match for oneOf type. kErrorsByOptionErrorKey is set to a dictionary of type specifiers to errors. Note that the keys in this dictionary can be either strings or dictionaries.
 
-    kPListDelegatedTypeError, // Delegate's verification method failed. If it returned an error, this will be in NSUnderlyingErrorKey.
+    kPListDelegatedTypeError, // Delegate's verification method failed. If it returned an error, this will be in kUnderlyingErrorErrorKey.
 
     // Schema errors -- schema is broken.
     kPListErrorStartOfSchemaErrors = 100,
@@ -148,16 +169,6 @@ OOINLINE BOOL OOPlistErrorIsSchemaError(OOPListSchemaVerifierErrorCode error)
     return kPListErrorStartOfSchemaErrors < error && error < kPListErrorLastErrorCode;
 }
 
-@interface NSError (OOPListSchemaVerifierConveniences)
-
-- (NSArray*)plistKeyPath;
-- (NSString*)plistKeyPathDescription; // Result of calling +[OOPListSchemaVerifier descriptionForKeyPath:] on kPListKeyPathErrorKey.
-
-- (NSSet*)missingRequiredKeys;
-
-- (Class)expectedClass;
-- (NSString*)expectedClassName;
-
-@end
+#import "OOPListSchemaVerifier+ObjCBridge.h"
 
 #endif // OO_OXP_VERIFIER_ENABLED
