@@ -1,6 +1,6 @@
 /*
 
-OOJSShipGroup.h
+OOJSShipGroup.h (QuickJS-ng)
 
 JavaScript wrapper for ship group objects.
 
@@ -25,6 +25,10 @@ MA 02110-1301, USA.
 
 */
 
-#include <jsapi.h>
+#pragma once
 
-void InitOOJSShipGroup(JSContext* context, JSObject* global);
+#include <quickjs.h>
+
+#include "OOFoundation.h"
+
+void InitOOJSShipGroup(JSContext* context, JSValueConst global);

@@ -4,6 +4,8 @@ OOExplosionCloudEntity.h
 
 Cloud effect during explosions
 
+A global class (see OOParticleSystem.h): ShipEntity and Universe
+make it with a factory.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -25,19 +27,33 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOParticleSystem.h"
+#pragma once
 
-@interface OOExplosionCloudEntity : OOParticleSystem {
-@private
-    float _growthRate;
-    OOTimeDelta _cloudDuration;
-    float _alpha;
-    float _brightnessMult;
-    OOTexture* _texture;
-    NSDictionary* _settings;
-}
+#include "OOParticleSystem.h"
+#include "oofnd/PList.hpp"
 
-+ (instancetype)explosionCloudFromEntity:(Entity*)entity withSettings:(NSDictionary*)settings;
-+ (instancetype)explosionCloudFromEntity:(Entity*)entity withSize:(float)size andSettings:(NSDictionary*)settings;
+/*	The explosion settings are an oo::PList (a Dict; an empty one where the
+   settings were nil).
+*/
+class OOExplosionCloudEntity : public OOParticleSystem {
+ public:
+  // Null where the texture is not found.
+  static oo::Ref<OOExplosionCloudEntity> explosionCloudFromEntity(
+      Entity* entity, const oo::PList& settings);
+  static oo::Ref<OOExplosionCloudEntity> explosionCloudFromEntity(
+      Entity* entity, float size, const oo::PList& settings);
 
-@end
+  void update(OOTimeDelta delta_t) override;
+  OOTexture* texture() override;
+
+ private:
+  bool initExplosionCloudWithEntity(Entity* entity, float size,
+                                    const oo::PList& settings);
+
+  float _growthRate = {};
+  OOTimeDelta _cloudDuration = {};
+  float _alpha = {};
+  float _brightnessMult = {};
+  oo::Ref<OOTexture> _texture;
+  oo::PList _settings;
+};

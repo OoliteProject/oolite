@@ -30,76 +30,101 @@ SOFTWARE.
 
 */
 
-#import "OOColor.h"
-#import "OOMaterial.h"
+#pragma once
 
-@interface OOBasicMaterial : OOMaterial {
-@private
-    NSString* materialName;
+#include "OOColor.h"
+#include "OOMaterial.h"
+#include "oofnd/StdLib.hpp"
 
-    // Colours
-    GLfloat diffuse[4],
-        specular[4],
-        ambient[4],
-        emission[4];
+class OOBasicMaterial : public OOMaterial {
+ public:
+  /*	A new material, initialised by the initialiser of the same arguments
+     (below). They were
+          [[OOBasicMaterial alloc] cxx_initWithName:] and [[OOBasicMaterial
+     alloc] initWithName:configuration:].
+  */
+  static oo::Ref<OOBasicMaterial> materialWithName(
+      const std::optional<std::string>& name);
+  static oo::Ref<OOBasicMaterial> materialWithName(
+      const std::optional<std::string>& name, const oo::PList& configuration);
 
-    // Specular exponent
-    uint8_t shininess; // Default: 0.0
-}
+  /*	The initialisers. Each runs once, right after construction: from a
+     factory above or a subclass's initialiser. Not
+     constructors, because the second asks the virtual permitSpecular(), which
+     must reach a subclass's override.
 
-/*	Initialize with default values (historical Olite defaults, not GL defaults):
-                diffuse		{ 1.0, 1.0, 1.0, 1.0 }
-                specular	{ 0.0, 0.0, 0.0, 1.0 }
-                ambient		{ 1.0, 1.0, 1.0, 1.0 }
-                emission	{ 0.0, 0.0, 0.0, 1.0 }
-                shininess	0
-*/
-- (id)initWithName:(NSString*)name;
+          Initialize with default values (historical Olite defaults, not GL
+     defaults): diffuse		{ 1.0, 1.0, 1.0, 1.0 } specular	{ 0.0, 0.0,
+     0.0, 1.0 } ambient		{ 1.0, 1.0, 1.0, 1.0 } emission	{ 0.0, 0.0,
+     0.0, 1.0 } shininess	0
+  */
+  void initWithName(const std::optional<std::string>& name);
 
-/*	Initialize with dictionary. Accepted keys:
-                diffuse		colour description
-                specular	colour description
-                ambient		colour description
-                emission	colour description
-                shininess	integer
+  /*	Initialize with dictionary. Accepted keys:
+                  diffuse		colour description
+                  specular	colour description
+                  ambient		colour description
+                  emission	colour description
+                  shininess	integer
 
-        "Colour description" refers to anything +[OOColor colorWithDescription:]
-        will accept.
-*/
-- (id)initWithName:(NSString*)name configuration:(NSDictionary*)configuration;
+          "Colour description" refers to anything
+     OOColor::colorWithDescription() will accept.
+  */
+  void initWithName(
+      const std::optional<std::string>& name,
+      const oo::PList& configuration);  // a null configuration is an empty one.
+                                        // Shared by the material classes.
 
-- (OOColor*)diffuseColor;
-- (void)setDiffuseColor:(OOColor*)color;
-- (void)setAmbientAndDiffuseColor:(OOColor*)color;
-- (OOColor*)specularColor;
-- (void)setSpecularColor:(OOColor*)color;
-- (OOColor*)ambientColor;
-- (void)setAmbientColor:(OOColor*)color;
-- (OOColor*)emmisionColor;
-- (void)setEmissionColor:(OOColor*)color;
+  std::optional<std::string> name() override;
+  bool doApply() override;
+  void unapplyWithNext(OOMaterial* next) override;
+  size_t objectSize() const override { return sizeof *this; }
+#ifdef OO_DEBUG_MONITOR_ENABLED
+  std::vector<oo::Ref<OOTexture>> allTextures() override;
+#endif
 
-- (void)getDiffuseComponents:(GLfloat[4])outComponents;
-- (void)setDiffuseComponents:(const GLfloat[4])components;
-- (void)setAmbientAndDiffuseComponents:(const GLfloat[4])components;
-- (void)getSpecularComponents:(GLfloat[4])outComponents;
-- (void)setSpecularComponents:(const GLfloat[4])components;
-- (void)getAmbientComponents:(GLfloat[4])outComponents;
-- (void)setAmbientComponents:(const GLfloat[4])components;
-- (void)getEmissionComponents:(GLfloat[4])outComponents;
-- (void)setEmissionComponents:(const GLfloat[4])components;
+  oo::Ref<OOColor> diffuseColor();
+  void setDiffuseColor(OOColor* color);
+  void setAmbientAndDiffuseColor(OOColor* color);
+  oo::Ref<OOColor> specularColor();
+  void setSpecularColor(OOColor* color);
+  oo::Ref<OOColor> ambientColor();
+  void setAmbientColor(OOColor* color);
+  oo::Ref<OOColor> emmisionColor();
+  void setEmissionColor(OOColor* color);
 
-- (void)setDiffuseRed:(GLfloat)r green:(GLfloat)g blue:(GLfloat)b alpha:(GLfloat)a;
-- (void)setAmbientAndDiffuseRed:(GLfloat)r green:(GLfloat)g blue:(GLfloat)b alpha:(GLfloat)a;
-- (void)setSpecularRed:(GLfloat)r green:(GLfloat)g blue:(GLfloat)b alpha:(GLfloat)a;
-- (void)setAmbientRed:(GLfloat)r green:(GLfloat)g blue:(GLfloat)b alpha:(GLfloat)a;
-- (void)setEmissionRed:(GLfloat)r green:(GLfloat)g blue:(GLfloat)b alpha:(GLfloat)a;
+  void getDiffuseComponents(GLfloat outComponents[4]);
+  void setDiffuseComponents(const GLfloat components[4]);
+  void setAmbientAndDiffuseComponents(const GLfloat components[4]);
+  void getSpecularComponents(GLfloat outComponents[4]);
+  void setSpecularComponents(const GLfloat components[4]);
+  void getAmbientComponents(GLfloat outComponents[4]);
+  void setAmbientComponents(const GLfloat components[4]);
+  void getEmissionComponents(GLfloat outComponents[4]);
+  void setEmissionComponents(const GLfloat components[4]);
 
-- (uint8_t)shininess;
-- (void)setShininess:(uint8_t)value; // Clamped to [0, 128]
+  void setDiffuseRed(GLfloat r, GLfloat g, GLfloat b, GLfloat a);
+  void setAmbientAndDiffuseRed(GLfloat r, GLfloat g, GLfloat b, GLfloat a);
+  void setSpecularRed(GLfloat r, GLfloat g, GLfloat b, GLfloat a);
+  void setAmbientRed(GLfloat r, GLfloat g, GLfloat b, GLfloat a);
+  void setEmissionRed(GLfloat r, GLfloat g, GLfloat b, GLfloat a);
 
-/*	For subclasses: return true to permit specular settings, false to deny
-        them. By default, this is ![UNIVERSE reducedDetail].
-*/
-- (BOOL)permitSpecular;
+  uint8_t shininess();
+  void setShininess(uint8_t value);  // Clamped to [0, 128]
 
-@end
+  /*	For subclasses: return true to permit specular settings, false to deny
+          them. By default, this is !(UNIVERSE != nullptr ?
+     UNIVERSE->reducedDetail() : false).
+  */
+  virtual bool permitSpecular();
+
+ private:
+  std::optional<std::string> materialName = {};  // nil-able, as the name was
+
+  // Colours
+  GLfloat diffuse[4] = {}, specular[4] = {}, ambient[4] = {}, emission[4] = {};
+
+  // Specular exponent. The leading underscore: shininess() is the getter's
+  // name.
+  uint8_t _shininess = {};  // Default: 0.0
+};

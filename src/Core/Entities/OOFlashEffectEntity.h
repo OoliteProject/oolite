@@ -25,18 +25,38 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOLightParticleEntity.h"
+#pragma once
 
-@interface OOFlashEffectEntity : OOLightParticleEntity {
-@private
-    float _duration;
-    float _growthRate;
-    float _alpha;
-}
+#include "OOLightParticleEntity.h"
 
-+ (instancetype)explosionFlashFromEntity:(Entity*)entity;
-+ (instancetype)laserFlashWithPosition:(HPVector)position velocity:(Vector)vel color:(OOColor*)color;
+/*	The ship and the universe call the factories.
+ */
+class OOFlashEffectEntity : public OOLightParticleEntity {
+ public:
+  // +explosionFlashFromEntity: and +laserFlashWithPosition:velocity:color:: a
+  // new flash, initialised.
+  static oo::Ref<OOFlashEffectEntity> explosionFlashFromEntity(
+      Entity* entity);  // the C++ entity
+  static oo::Ref<OOFlashEffectEntity> laserFlashWithPosition(HPVector position,
+                                                             Vector vel,
+                                                             OOColor* color);
 
-+ (void)setUpTexture;
+  static void setUpTexture();
+  // Called by the texture's file-local graphics reset client.
+  static void resetGraphicsState();
 
-@end
+  void update(OOTimeDelta delta_t) override;
+  OOTexture* texture() override;
+
+ private:
+  // The initialisers' bodies, run once right after construction.
+  void initExplosionFlashWithPosition(HPVector pos, Vector vel, float size);
+  void initLaserFlashWithPosition(HPVector pos, Vector vel, OOColor* color);
+  // Designated initializer.
+  void initWithPosition(HPVector pos, float size, OOColor* color,
+                        float duration);
+
+  float _duration = {};
+  float _growthRate = {};
+  float _alpha = {};
+};
