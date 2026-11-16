@@ -1,6 +1,6 @@
 /*
 
-OOJSSun.h
+OOJSSun.h (QuickJS-ng)
 
 JavaScript proxy for suns.
 
@@ -25,7 +25,22 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+#pragma once
 
-void InitOOJSSun(JSContext* context, JSObject* global);
+#include "OOFoundation.h"
+#include <quickjs.h>
+
+#include <optional>
+#include <string>
+
+void InitOOJSSun(JSContext* context, JSValueConst global);
+
+JSClassID JSSunClassID(void);
+
+/*	The bodies of OOSunEntity (OOJavaScriptExtensions), which the engine reaches by selector. Its
+        methods are one-line forwarders to these on the OOSunEntity facade, in OOSunEntity+ObjCBridge.mm
+        (bead oo-9ht.51), until that facade goes (oo-9ht.111; proposed ADR-0056 amendments oo-ppc,
+        oo-ykoy and oo-6ia4). (-oo_jsClassID answers JSSunClassID().)
+*/
+bool OOJSSunIsVisibleToScripts(void);
+std::optional<std::string> OOJSSunJSClassName(void);

@@ -1,6 +1,9 @@
 /*
 
-OOJSInterfaceDefinition.h
+OOJSInterfaceDefinition.h (QuickJS-ng)
+
+C++20 since bead oo-8fpc (proposed ADR-0056, the OOColor house style). It has no Objective-C
+facade: the station keeps its definitions as oo::Ref, and the player reads them as C++.
 
 
 Oolite
@@ -22,34 +25,56 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
 
 */
+#ifndef OOJSINTERFACEDEFINITION_H
+#define OOJSINTERFACEDEFINITION_H
 
-#import "OOJSScript.h"
-#include <jsapi.h>
+#include "OOFoundation.h"
+#include <quickjs.h>
 
-@interface OOJSInterfaceDefinition : OOWeakRefObject {
-@private
-    jsval _callback;
-    JSObject* _callbackThis;
-    OOJSScript* _owningScript;
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 
-    NSString* _title;
-    NSString* _summary;
-    NSString* _category;
-}
+#include "oofnd/Ref.hpp"
+#include <optional>
+#include <string>
 
-- (NSString*)title;
-- (void)setTitle:(NSString*)title;
-- (NSString*)category;
-- (void)setCategory:(NSString*)category;
-- (NSString*)summary;
-- (void)setSummary:(NSString*)summary;
-- (jsval)callback;
-- (void)setCallback:(jsval)callback;
-- (JSObject*)callbackThis;
-- (void)setCallbackThis:(JSObject*)callbackthis;
+class OOJSScript; // imported by the .mm, so that a test can stand in for it
 
-- (void)runCallback:(NSString*)key;
+/*	The definition owns references to its callback and callbackThis, which are
+        released on destruction and when the JavaScript engine is reset.
+*/
+class OOJSInterfaceDefinition : public oo::RefCounted {
+public:
+    // The old -init after [super init] (oo::makeRef).
+    OOJSInterfaceDefinition();
+    ~OOJSInterfaceDefinition() override;
 
-- (NSComparisonResult)interfaceCompare:(OOJSInterfaceDefinition*)other;
+    std::optional<std::string> title(); // nullopt: none (bead oo-3rb.290)
+    void setTitle(const std::optional<std::string>& title); // bead oo-3rb.290
+    std::optional<std::string> category();
+    void setCategory(const std::string& category);
+    std::optional<std::string> summary();
+    void setSummary(const std::string& summary);
+    // Returned values are owned by the caller.
+    JSValue callback();
+    void setCallback(JSValueConst callback);
+    JSValue callbackThis();
+    void setCallbackThis(JSValueConst callbackthis);
 
-@end
+    void runCallback(const std::string& key);
+
+    OOComparisonResult interfaceCompare(OOJSInterfaceDefinition* other);
+
+private:
+    void deleteJSPointers();
+
+    JSValue _callback = JS_UNDEFINED; // Owned.
+    JSValue _callbackThis = JS_UNDEFINED; // Owned.
+    oo::WeakRef<OOJSScript> _owningScript; // a weak reference (was the facade's weak reference proxy)
+
+    std::optional<std::string> _title; // nullopt until set (was nil)
+    std::optional<std::string> _summary;
+    std::optional<std::string> _category;
+};
+
+#endif // OOJSINTERFACEDEFINITION_H

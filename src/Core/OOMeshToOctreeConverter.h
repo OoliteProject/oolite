@@ -25,31 +25,47 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
-#import "OOMaths.h"
+#ifndef OOMESHTOOCTREECONVERTER_H
+#define OOMESHTOOCTREECONVERTER_H
 
-@class ShipEntity, Octree;
+#include "OOFoundation.h"
+#include "OOMaths.h"
+#include "Octree.h"
+#include "oofnd/objc/OOObject.h"
+
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
+
+class ShipEntity; // C++ since bead oo-9ht.144
 
 enum {
     kOOMeshToOctreeConverterSmallDataCapacity = 16
 };
 
-@interface OOMeshToOctreeConverter : NSObject {
-@private
-    struct OOMeshToOctreeConverterInternalData {
-        Triangle* triangles;
-        uint32_t count;
-        uint32_t capacity;
-        uint32_t pendingCapacity;
-        Triangle smallData[kOOMeshToOctreeConverterSmallDataCapacity];
-    } _data;
-}
+// (declared inside the Objective-C class's ivar block before bead oo-rsk8, which put it at file scope)
+struct OOMeshToOctreeConverterInternalData {
+    Triangle* triangles;
+    uint32_t count;
+    uint32_t capacity;
+    uint32_t pendingCapacity;
+    Triangle smallData[kOOMeshToOctreeConverterSmallDataCapacity];
+};
 
-- (id)initWithCapacity:(NSUInteger)capacity;
-+ (instancetype)converterWithCapacity:(NSUInteger)capacity;
+class OOMeshToOctreeConverter : public oo::RefCounted {
+public:
+    explicit OOMeshToOctreeConverter(NSUInteger capacity); // -initWithCapacity:
+    static oo::Ref<OOMeshToOctreeConverter> converterWithCapacity(NSUInteger capacity);
+    ~OOMeshToOctreeConverter() override;
 
-- (void)addTriangle:(Triangle)tri;
+    void addTriangle(Triangle tri);
 
-- (Octree*)findOctreeToDepth:(NSUInteger)depth;
+    oo::Ref<Octree> findOctreeToDepth(NSUInteger depth);
 
-@end
+    // What "%@" prints between the braces of <OOMeshToOctreeConverter 0x...>{...} (OODescription.h).
+    std::optional<std::string> descriptionComponents() const;
+
+private:
+    struct OOMeshToOctreeConverterInternalData _data = { };
+};
+
+#endif // OOMESHTOOCTREECONVERTER_H
