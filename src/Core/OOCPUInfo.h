@@ -24,8 +24,12 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
+#pragma once
+
 #include <stdint.h>
+
+#include "OOFoundation.h"
+#include "oofnd/StdLib.hpp"
 
 #if OOLITE_LINUX
 #include <sys/sysinfo.h>
@@ -33,8 +37,8 @@ MA 02110-1301, USA.
 
 void OOCPUInfoInit(void);
 
-/*	Number of processors (whether they be individual or cores), used to select
-        number of threads to use for things like texture loading.
+/*	Number of processors (whether they be individual or cores), used to
+   select number of threads to use for things like texture loading.
 */
 NSUInteger OOCPUCount(void);
 
@@ -42,11 +46,10 @@ NSUInteger OOCPUCount(void);
         Returns the CPU identifier string. Currently Windows and Linux only.
 */
 #if (OOLITE_WINDOWS || OOLITE_LINUX)
-NSString* OOCPUDescription(void);
+std::string OOCPUDescription(void); // UTF-8
 void OOCPUID(int CPUInfo[4], int InfoType);
 
-typedef struct
-{
+typedef struct {
     unsigned long long ooPhysicalMemory;
     unsigned long long ooAvailableMemory;
 } OOMemoryStatus;
@@ -54,65 +57,21 @@ OOMemoryStatus OOSystemMemoryStatus(void);
 #endif
 
 #if OOLITE_WINDOWS
-typedef BOOL(WINAPI* IW64PFP)(HANDLE, BOOL*); // for checking for 64/32 bit system
-BOOL is64BitSystem(void);
-NSString* operatingSystemFullVersion(void);
+#include <windows.h>
+
+// IsWow64Process, to check for a 64/32 bit system: windows.h's BOOL is an int
+typedef BOOL(WINAPI* IW64PFP)(HANDLE, BOOL*);
+bool is64BitSystem(void);
+std::string operatingSystemFullVersion(void); // UTF-8
 #endif
 
-/*	Set up OOLITE_BIG_ENDIAN and OOLITE_LITTLE_ENDIAN macros. Exactly one must
-        be non-zero. If you're porting Oolite to a middle-endian platform, you'll
-        need to work out what to do with endian-sensitive stuff -- currently, that
-        means texture loading. (The data cache automatically rejects cached data
-        of the wrong byte sex.)
-*/
-#if !defined(OOLITE_BIG_ENDIAN) && !defined(OOLITE_LITTLE_ENDIAN)
-
-#if __BIG_ENDIAN__
-#define OOLITE_BIG_ENDIAN 1
-#endif
-
-#if __LITTLE_ENDIAN__
-#define OOLITE_LITTLE_ENDIAN 1
-#endif
-
-#if !defined(OOLITE_BIG_ENDIAN) && !defined(OOLITE_LITTLE_ENDIAN)
-#if defined(__i386__) || defined(__amd64__) || defined(__x86_64__)
-#define OOLITE_LITTLE_ENDIAN 1
-#endif
-
-#if defined(__sgi__) || defined(__mips__)
-#define OOLITE_BIG_ENDIAN 1
-#endif
-
-// Do not assume PPC == big endian, it can be either.
-
-#endif // inner none defined
-#endif // outer none defined
-
-#ifndef OOLITE_BIG_ENDIAN
-#define OOLITE_BIG_ENDIAN 0
-#endif
-
-#ifndef OOLITE_LITTLE_ENDIAN
-#define OOLITE_LITTLE_ENDIAN 0
-#endif
-
-#if !OOLITE_BIG_ENDIAN && !OOLITE_LITTLE_ENDIAN
-#error Neither OOLITE_BIG_ENDIAN nor OOLITE_LITTLE_ENDIAN is defined as nonzero!
-
-#undef OOLITE_BIG_ENDIAN
-#undef OOLITE_LITTLE_ENDIAN
-
-// Cause errors where the macros are used
-#define OOLITE_BIG_ENDIAN "BUG"
-#define OOLITE_LITTLE_ENDIAN "BUG"
-#endif
+#include "OOCPUInfoEndian.h"
 
 /*	Set up OOLITE_NATIVE_64_BIT. This is intended for 64-bit optimizations
         (see OOTextureScaling.m). It is not set for systems where 64-bitness may
         be determined at runtime (such as 32-bit OS X binaries), because I can't
-        be bothered to do the set-up required to use switch to a 64-bit code path
-        at runtime while being cross-platform.
+        be bothered to do the set-up required to use switch to a 64-bit code
+   path at runtime while being cross-platform.
         -- Ahruman
 */
 

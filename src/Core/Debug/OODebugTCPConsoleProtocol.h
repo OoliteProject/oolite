@@ -29,11 +29,12 @@ SOFTWARE.
 
 */
 
+#pragma once
+
 #ifndef OOALSTR
-#ifdef __OBJC__
-#import <Foundation/Foundation.h>
-#define OOALSTR(x) @"" x
-#else // C
+#ifndef OO_PLAIN_CPP_UNIT
+#include "OOFoundation.h" // (OOALSTR(x) was the literal @"" x: no game unit spells one)
+#else // a plain C++ unit
 #include <CoreFoundation/CoreFoundation.h>
 #define OOALSTR(x) CFSTR(x)
 #endif
