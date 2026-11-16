@@ -5,10 +5,10 @@
 	This file is hereby placed in the public domain.
 */
 
-#import <stdlib.h>
-#import <assert.h>
+#include <stdlib.h>
+#include <assert.h>
 #include "GrayMap.h"
-#import "png.h"
+#include "png.h"
 
 
 static png_bytepp MakeGrayMapRowPointers(GrayMap *grayMap);	// Free with free()
@@ -91,9 +91,9 @@ static png_bytepp MakeGrayMapRowPointers(GrayMap *grayMap)
 GrayMap *ReadGrayMapFile(FILE *file, const char *name)
 {
 	GrayMap						*result = NULL;
-	struct png_struct_def		*png = NULL;
-	struct png_info_struct		*pngInfo = NULL;
-	struct png_info_struct		*pngEndInfo = NULL;
+	png_structp				png = NULL;
+	png_infop				pngInfo = NULL;
+	png_infop				pngEndInfo = NULL;
 	png_bytepp					rows = NULL;
 	png_uint_32					pngWidth,
 	pngHeight;
@@ -215,8 +215,8 @@ bool WriteGrayMap(const char *path, GrayMap *grayMap)
 
 bool WriteGrayMapFile(FILE *file, const char *name, GrayMap *grayMap)
 {
-	struct png_struct_def		*png = NULL;
-	struct png_info_struct		*pngInfo = NULL;
+	png_structp				png = NULL;
+	png_infop				pngInfo = NULL;
 	png_bytepp					rows = NULL;
 	
 	if (grayMap == NULL || file == NULL)  return false;

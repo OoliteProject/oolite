@@ -12,6 +12,9 @@ splines between the set of control points - the segment between (0,0)
 and the first control point is linear, the remaining segments
 quadratic with the gradients matching at the control point.
 
+The three profile classes are C++ classes, the curve (rawValue) virtual; the
+spline's segments are the private OOJoystickSplineSegment.
+
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -34,59 +37,69 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#import "OOFoundation.h"
+#include "OOFoundation.h"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
 
 #define STICKPROFILE_TYPE_STANDARD 1
 #define STICKPROFILE_TYPE_SPLINE 2
 #define STICKPROFILE_MAX_POWER 10.0
 
-@interface OOJoystickAxisProfile : NSObject <NSCopying> {
-@private
-    double deadzone;
-}
+class OOJoystickSplineSegment;  // private to OOJoystickProfile.cpp
 
-- (id)init;
-- (id)copyWithZone:(NSZone*)zone;
-- (double)rawValue:(double)x;
-- (double)value:(double)x;
-- (double)deadzone;
-- (void)setDeadzone:(double)newValue;
+class OOJoystickAxisProfile : public oo::RefCounted {
+ public:
+  OOJoystickAxisProfile();                        // -init
+  virtual oo::Ref<OOJoystickAxisProfile> copy();  // -copyWithZone:
+  virtual double rawValue(double x);
+  double value(double x);
+  double deadzone();
+  void setDeadzone(double newValue);
 
-@end
+ private:
+  double deadzone_ = {};  // the ivar deadzone (it clashes with deadzone())
+};
 
-@interface OOJoystickStandardAxisProfile : OOJoystickAxisProfile {
-@private
-    double power;
-    double parameter;
-}
+class OOJoystickStandardAxisProfile : public OOJoystickAxisProfile {
+ public:
+  OOJoystickStandardAxisProfile();  // -init
+  oo::Ref<OOJoystickAxisProfile> copy() override;
+  void setPower(double newValue);
+  double power();
+  void setParameter(double newValue);
+  double parameter();
+  double rawValue(double x) override;
 
-- (id)init;
-- (id)copyWithZone:(NSZone*)zone;
-- (void)setPower:(double)newValue;
-- (double)power;
-- (void)setParameter:(double)newValue;
-- (double)parameter;
-- (double)rawValue:(double)x;
+ private:
+  double power_ =
+      {};  // the ivars power and parameter (clash with power(), parameter())
+  double parameter_ = {};
+};
 
-@end
+class OOJoystickSplineAxisProfile : public OOJoystickAxisProfile {
+ public:
+  OOJoystickSplineAxisProfile();            // -init
+  ~OOJoystickSplineAxisProfile() override;  // -dealloc
+  oo::Ref<OOJoystickAxisProfile> copy() override;
+  int addControl(NSPoint point);
+  NSPoint pointAtIndex(NSInteger index);
+  int countPoints();
+  void removeControl(NSInteger index);
+  void clearControlPoints();
+  void moveControl(NSInteger index, NSPoint point);
+  double rawValue(double x) override;
+  double gradient(double x);
+  std::vector<NSPoint> controlPoints();
 
-@interface OOJoystickSplineAxisProfile : OOJoystickAxisProfile {
-@private
-    NSMutableArray* controlPoints;
-    NSArray* segments;
-}
+ private:
+  // Create the segments from the control points.  If there's a problem, e.g.
+  // control points not in order or overlapping, leave segments as they are and
+  // return NO.  Otherwise return YES.
+  bool makeSegments();
 
-- (id)init;
-- (void)dealloc;
-- (id)copyWithZone:(NSZone*)zone;
-- (int)addControl:(NSPoint)point;
-- (NSPoint)pointAtIndex:(NSInteger)index;
-- (int)countPoints;
-- (void)removeControl:(NSInteger)index;
-- (void)clearControlPoints;
-- (void)moveControl:(NSInteger)index point:(NSPoint)point;
-- (double)rawValue:(double)x;
-- (double)gradient:(double)x;
-- (NSArray*)controlPoints;
-
-@end
+  // The ivar controlPoints (clashes with controlPoints()).
+  std::vector<NSPoint> controlPoints_ = {};
+  std::vector<oo::Ref<OOJoystickSplineSegment>>
+      segments;  // no `= {}`: GCC instantiates ~Ref<T> at a default member
+                 // initializer, and T is incomplete here
+};

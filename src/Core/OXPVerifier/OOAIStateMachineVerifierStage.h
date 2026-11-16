@@ -25,21 +25,41 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFileScannerVerifierStage.h"
+#pragma once
+
+#include "OOFileScannerVerifierStage.h"
 
 #if OO_OXP_VERIFIER_ENABLED
 
-@interface OOAIStateMachineVerifierStage : OOFileHandlingVerifierStage {
-@private
-    NSSet* _whitelist;
-    NSMutableSet* _usedAIs;
-}
+#include "oofnd/StdLib.hpp"
 
-// Returns name to be used in -dependents by other stages.
-+ (NSString*)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier;
+/*	The whitelist and the used AI names are sorted std::vectors of strings
+   (sets). nameForReverseDependencyForVerifier() is a shared name (the other
+   stages declare it) and returns a std::string.
 
-- (void)stateMachineNamed:(NSString*)name usedByShip:(NSString*)shipName;
+   A leaf of OOFileHandlingVerifierStage. Its one caller,
+   OOCheckShipDataPListVerifierStage, calls these members, and the verifier
+   holds it and makes it from its name through a table.
+*/
+class OOAIStateMachineVerifierStage : public OOFileHandlingVerifierStage {
+ public:
+  // Returns name to be used in dependents() by other stages.
+  static std::string nameForReverseDependencyForVerifier(
+      OOOXPVerifier* verifier);
 
-@end
+  // The caller only reports an AI it has a name for (it tested the name against
+  // nil).
+  void stateMachineNamed(const std::string& name, const std::string& shipName);
+
+  std::optional<std::string> name() override;
+  bool shouldRun() override;
+  void run() override;
+
+ private:
+  void validateAI(const std::string& aiName);
+
+  std::vector<std::string> _whitelist = {};  // sorted, no duplicates
+  std::vector<std::string> _usedAIs = {};    // sorted, no duplicates
+};
 
 #endif
