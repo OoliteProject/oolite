@@ -3,7 +3,6 @@
 OOCrosshairs.h
 Oolite
 
-
 Copyright (C) 2008 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,22 +25,35 @@ SOFTWARE.
 
 */
 
-#import "OOFoundation.h"
-#import "OOOpenGL.h"
+#pragma once
 
-@class OOColor;
+#include "OOOpenGL.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
 
-@interface OOCrosshairs : NSObject {
-@private
-    NSUInteger _count;
-    GLfloat* _data;
-}
+class OOColor;
 
-- (id)initWithPoints:(NSArray*)points
-               scale:(GLfloat)scale
-               color:(OOColor*)color
-        overallAlpha:(GLfloat)alpha;
+class OOCrosshairs : public oo::RefCounted {
+ public:
+  // points: the crosshair definition, a property-list array of 6-number arrays.
+  OOCrosshairs(const oo::PList& points, GLfloat scale, OOColor* color,
+               GLfloat alpha);
+  ~OOCrosshairs() override;
 
-- (void)render;
+  void render();
 
-@end
+ private:
+  friend struct OOCrosshairsTestAccess;  // tests/unit/core/test_OOCrosshairs.mm
+                                         // reads the vertex buffer
+
+  void setUpDataWithPoints(const oo::PList& points, GLfloat scale,
+                           OOColor* color, GLfloat alpha);
+
+  // pointInfo: nullptr for an entry that is not an array (as nil was).
+  void setUpDataForOnePoint(const oo::PList* pointInfo, GLfloat scale,
+                            float colorComps[4], GLfloat alpha,
+                            GLfloat* ioBuffer);
+
+  NSUInteger _count = {};
+  GLfloat* _data = {};
+};

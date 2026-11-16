@@ -25,11 +25,21 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFileScannerVerifierStage.h"
+#pragma once
+
+#include "OOFileScannerVerifierStage.h"
 
 #if OO_OXP_VERIFIER_ENABLED
 
-@interface OOCheckPListSyntaxVerifierStage : OOFileHandlingVerifierStage
-@end
+/*	A leaf of OOFileHandlingVerifierStage. Nothing outside this file names
+   it; the verifier makes it from its name (kCxxStages in OOOXPVerifier.mm) and
+   holds it.
+*/
+class OOCheckPListSyntaxVerifierStage : public OOFileHandlingVerifierStage {
+ public:
+  std::optional<std::string> name() override;
+  bool shouldRun() override;
+  void run() override;
+};
 
 #endif

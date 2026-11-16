@@ -1,3 +1,13 @@
-# Apple-style Objective-C clang-format configuration
-
-BasedOnStyle: WebKit
+BasedOnStyle: Google
+Language: Cpp
+Standard: Latest      # C++23
+---
+# Headers that still carry fenced Mac code (@class, #import, [obj message]) are
+# guessed to be Objective-C. They are C++, so undo Google's ObjC differences.
+Language: ObjC
+BasedOnStyle: Google
+Standard: Latest
+ColumnLimit: 80
+AlwaysBreakBeforeMultilineStrings: true
+IncludeBlocks: Regroup
+DerivePointerAlignment: false
