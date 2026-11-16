@@ -30,6 +30,13 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 #import "legacy_random.h"
 
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+
+/*	Foundation sweep (proposed ADR-0043, bead oo-hach): the sun's system dictionary is an oo::PList
+        and its name std::optional (nil stays nil); -name and -setName: are shared and keep id.
+*/
+
 #define SUN_CORONA_SAMPLES 729 // Samples at half-degree intervals, with a bit of overlap.
 #define MAX_CORONAFLARE 600000.0 // nova flare
 
@@ -73,12 +80,12 @@ MA 02110-1301, USA.
     float _sunBrightnessFactor;
     float _sunCoronaAlphaFactor;
 
-    NSString* _name;
+    std::optional<std::string> _name; // nullopt: nil
 }
 
-- (id)initSunWithColor:(OOColor*)sun_color andDictionary:(NSDictionary*)dict;
+- (id)initSunWithColor:(OOColor*)sun_color andDictionary:(const oo::PList&)dict;
 - (BOOL)setSunColor:(OOColor*)sun_color;
-- (BOOL)changeSunProperty:(NSString*)key withDictionary:(NSDictionary*)dict;
+- (BOOL)changeSunProperty:(const std::string&)key withDictionary:(const oo::PList&)dict;
 
 - (OOStellarBodyType)planetType;
 

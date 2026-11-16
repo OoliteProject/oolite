@@ -32,12 +32,14 @@ SOFTWARE.
 
 #pragma once
 
+#import "OOFoundation.h"
 #import "OOMaths.h"
 #import "OOOpenALController.h"
+#import "oofnd/objc/OOObject.h"
 
 @class OOSound;
 
-@interface OOSoundChannel : NSObject {
+@interface OOSoundChannel : OOObject {
     OOSoundChannel* _next;
     id _delegate;
     OOSound* _sound;
@@ -67,7 +69,7 @@ SOFTWARE.
 
 @end
 
-@interface NSObject (OOSoundChannelDelegate)
+@interface OOObject (OOSoundChannelDelegate)
 
 - (void)channel:(OOSoundChannel*)inChannel didFinishPlayingSound:(OOSound*)inSound;
 

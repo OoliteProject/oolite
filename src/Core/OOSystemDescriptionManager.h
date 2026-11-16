@@ -27,6 +27,11 @@ MA 02110-1301, USA.
 #import "OOFoundation.h"
 #import "OOTypes.h"
 #import "legacy_random.h"
+#import "oofnd/objc/OOObject.h"
+
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
 
 typedef enum {
     OO_LAYER_CORE = 0,
@@ -49,13 +54,14 @@ typedef enum {
 // don't bother caching interstellar properties
 #define OO_SYSTEM_CACHE_LENGTH OO_SYSTEMS_AVAILABLE
 
-@interface OOSystemDescriptionEntry : NSObject {
+@interface OOSystemDescriptionEntry : OOObject {
 @private
-    NSMutableDictionary* layers[OO_SYSTEM_LAYERS];
+    oo::PList layers[OO_SYSTEM_LAYERS]; // each a Dict: property -> value
 }
 
-- (void)setProperty:(NSString*)property forLayer:(OOSystemLayer)layer toValue:(id)value;
-- (id)getProperty:(NSString*)property forLayer:(OOSystemLayer)layer;
+// value / result null = nil (setting nil removes the property)
+- (void)setProperty:(const std::string&)property forLayer:(OOSystemLayer)layer toValue:(const oo::PList&)value;
+- (oo::PList)getProperty:(const std::string&)property forLayer:(OOSystemLayer)layer;
 
 @end
 
@@ -65,16 +71,16 @@ typedef enum {
  * forSystemKey calculates the values - but is necessary for
  * interstellar space
  */
-@interface OOSystemDescriptionManager : NSObject {
+@interface OOSystemDescriptionManager : OOObject {
 @private
-    NSMutableDictionary* universalProperties;
+    oo::PList universalProperties; // a Dict: property -> value
     OOSystemDescriptionEntry* interstellarSpace;
-    NSMutableDictionary* systemDescriptions;
-    NSMutableDictionary* propertyCache[OO_SYSTEM_CACHE_LENGTH];
-    NSMutableSet* propertiesInUse;
+    std::map<std::string, oo::ObjCRef<OOSystemDescriptionEntry*>, std::less<>> systemDescriptions;
+    oo::PList propertyCache[OO_SYSTEM_CACHE_LENGTH]; // each a Dict: property -> value
+    std::set<std::string> propertiesInUse;
     NSPoint coordinatesCache[OO_SYSTEM_CACHE_LENGTH];
-    NSMutableArray* neighbourCache[OO_SYSTEM_CACHE_LENGTH];
-    NSMutableDictionary* scriptedChanges;
+    std::vector<OOSystemID> neighbourCache[OO_SYSTEM_CACHE_LENGTH]; // system numbers
+    oo::PList scriptedChanges; // a Dict: joined override key -> value
 }
 
 // this needs to be re-called every time system coordinates change
@@ -83,27 +89,32 @@ typedef enum {
 // called just after the manager data is loaded.
 - (void)buildRouteCache;
 
-- (void)setUniversalProperties:(NSDictionary*)properties;
-- (void)setInterstellarProperties:(NSDictionary*)properties;
+// Property dictionaries are oo::PList Dicts whose values are the properties' values (any objects:
+// Object nodes where they are not property-list data); a single value is an oo::PList (null = nil).
+- (void)cxx_setUniversalProperties:(const oo::PList&)properties;
+- (void)cxx_setInterstellarProperties:(const oo::PList&)properties;
 
 // this is used by planetinfo.plist and has default layer 1
-- (void)setProperties:(NSDictionary*)properties forSystemKey:(NSString*)key;
+- (void)cxx_setProperties:(const oo::PList&)properties forSystemKey:(const std::string&)key;
 
-// this is used by Javascript property setting
-- (void)setProperty:(NSString*)property forSystemKey:(NSString*)key andLayer:(OOSystemLayer)layer toValue:(id)value fromManifest:(NSString*)manifest;
+// this is used by Javascript property setting (manifest nullopt = nil: the change is not saved)
+- (void)cxx_setProperty:(const std::string&)property forSystemKey:(const std::string&)key andLayer:(OOSystemLayer)layer toValue:(const oo::PList&)value fromManifest:(const std::optional<std::string>&)manifest;
 
-- (void)importScriptedChanges:(NSDictionary*)scripted;
-- (void)importLegacyScriptedChanges:(NSDictionary*)scripted;
-- (NSDictionary*)exportScriptedChanges;
+// The save game's scripted overrides: property lists (Dicts) whose values are the properties'
+// values (any objects: Object nodes where they are not property-list data).
+- (void)cxx_importScriptedChanges:(const oo::PList&)scripted;
+- (void)cxx_importLegacyScriptedChanges:(const oo::PList&)scripted;
+- (oo::PList)cxx_exportScriptedChanges; // a Dict, empty when there are none
 
-- (NSDictionary*)getPropertiesForSystemKey:(NSString*)key;
-- (NSDictionary*)getPropertiesForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
-- (NSDictionary*)getPropertiesForCurrentSystem;
-- (id)getProperty:(NSString*)property forSystemKey:(NSString*)key;
-- (id)getProperty:(NSString*)property forSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
+// Property dictionaries (Dicts; empty for an invalid system) and single values (null = nil).
+- (oo::PList)cxx_getPropertiesForSystemKey:(const std::string&)key;
+- (oo::PList)cxx_getPropertiesForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
+- (oo::PList)cxx_getPropertiesForCurrentSystem;
+- (oo::PList)cxx_getProperty:(const std::string&)property forSystemKey:(const std::string&)key;
+- (oo::PList)cxx_getProperty:(const std::string&)property forSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
 
 - (NSPoint)getCoordinatesForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
-- (NSArray*)getNeighbourIDsForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
+- (std::vector<OOSystemID>)cxx_getNeighbourIDsForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g; // empty for an invalid system
 
 - (Random_Seed)getRandomSeedForCurrentSystem;
 - (Random_Seed)getRandomSeedForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;

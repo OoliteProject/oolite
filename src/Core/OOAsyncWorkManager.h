@@ -28,6 +28,7 @@ SOFTWARE.
 */
 
 #import "OOFoundation.h"
+#import "oofnd/objc/OOObject.h"
 
 @class OOAsyncQueue;
 
@@ -39,7 +40,7 @@ typedef enum {
     kOOAsyncPriorityHigh
 } OOAsyncWorkPriority;
 
-@interface OOAsyncWorkManager : NSObject
+@interface OOAsyncWorkManager : OOObject
 
 + (OOAsyncWorkManager*)sharedAsyncWorkManager;
 
@@ -60,7 +61,7 @@ typedef enum {
 
 @end
 
-@protocol OOAsyncWorkTask <NSObject>
+@protocol OOAsyncWorkTask <OOObject>
 
 // Called on a worker thread. There may be multiple worker threads.
 - (void)performAsyncTask;
