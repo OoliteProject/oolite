@@ -1,5 +1,9 @@
 # Define a wrapper function for curl that inject headers if a GitHub URL and GITHUB_TOKEN are available
 
+# Prevent multiple sourcing
+[[ -n "${_CURL_FN_LOADED:-}" ]] && return 0
+_CURL_FN_LOADED=1
+
 curl() {
   # Check if the URL being called targets GitHub
   local is_github=false

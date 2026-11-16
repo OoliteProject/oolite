@@ -20,7 +20,7 @@ download() {
 
     # Download if missing/not executable
     if [[ "$need_download" -eq 1 ]]; then
-        echo "📥 Downloading $filename..."
+        echo "📥 Downloading $download_url to $filepath..."
 
         # -f: fail on HTTP errors (e.g. 404)
         # -sS: silent mode, but show error if it fails
