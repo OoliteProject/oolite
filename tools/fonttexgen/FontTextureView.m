@@ -216,7 +216,7 @@ static inline NSRect ScaleRect(NSRect rect, NSPoint scale)
 		
 		NSMutableDictionary *plist = [_template mutableCopy];
 		[plist setObject:_widths forKey:@"widths"];
-		 [plist setObject:StringFromEncoding(_encoding) forKey:@"encoding"];
+		 [plist setObject:[NSString stringWithUTF8String:StringFromEncoding(_encoding)] forKey:@"encoding"];
 		
 		path = [[path stringByDeletingPathExtension] stringByAppendingPathExtension:@"plist"];
 		[plist writeToFile:path atomically:YES];

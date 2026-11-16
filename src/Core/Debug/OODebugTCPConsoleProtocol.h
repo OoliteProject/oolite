@@ -31,7 +31,7 @@ SOFTWARE.
 
 #ifndef OOALSTR
 #ifdef __OBJC__
-#import <Foundation/Foundation.h>
+#import "OOFoundation.h"
 #define OOALSTR(x) @"" x
 #else // C
 #include <CoreFoundation/CoreFoundation.h>
