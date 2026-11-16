@@ -91,16 +91,6 @@ modules:
       - type: git
         url: https://github.com/gnustep/libs-base.git
         commit: 85dedc64bd65492a5c0f0f80516688e2db59d57f
-  - name: mozilla-js-static
-    buildsystem: simple
-    build-commands:
-      - mkdir -p /app/lib /app/include
-      - cp -r include/* /app/include/
-      - cp -r lib/* /app/lib/
-    sources:
-      - type: archive
-        url: https://github.com/OoliteProject/mozillajs-linux/releases/download/0.0.1/mozilla-js-static-lib.tar.gz
-        sha256: ac8c18b4655e4798d348eb300201e46aa1574dfc683041f41e2b87f50ae72346
   - name: sdl3
     buildsystem: cmake-ninja
     build-options:
@@ -131,3 +121,11 @@ modules:
         url: https://github.com/OoliteProject/oolite.git
         tag: "1.92.1.0"
         commit: dd117d31c2f0e756d478e64584120d3d5cbf64d8
+      # QuickJS-ng, the JS engine, is a meson subproject (subprojects/quickjs-ng.wrap) linked
+      # statically into oolite. The flatpak build is offline, so its wrap tarball is fetched here
+      # and placed where meson's subproject packagecache looks for it.
+      - type: file
+        url: https://github.com/quickjs-ng/quickjs/archive/refs/tags/v0.17.0.tar.gz
+        sha256: 559bc4c420475e55c7ab4510adbc562f55d7524d75e8e89d79ce4bb02f5687d9
+        dest: subprojects/packagecache
+        dest-filename: quickjs-ng-0.17.0.tar.gz

@@ -4,6 +4,8 @@ DockEntity.h
 
 ShipEntity subclass representing a dock.
 
+A dock is made in C++ by DockEntity::newDockObject().
+
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -26,101 +28,126 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#import "ShipEntity.h"
-#import "StationEntity.h" // For MAX_DOCKING_STAGES
+#include "ShipEntity.h"
+#include "StationEntity.h"  // For MAX_DOCKING_STAGES
 
-@interface DockEntity : ShipEntity {
-@private
-    NSMutableDictionary* shipsOnApproach;
-    NSMutableArray* launchQueue;
-    double last_launch_time;
-    //	double					approach_spacing; // not needed now holding pattern changed
+/*	The dock's state and members.
 
-    ShipEntity* id_lock[MAX_DOCKING_STAGES]; // OOWeakReferences to a ShipEntity
+        Every data member is zero-initialised.
+*/
+class DockEntity : public ShipEntity {
+ public:
+  /*	A new dock, set up from its definition as a ship (oo::NewShipObject),
+     then given the dock's defaults. Answers the dock, its object retained (+1)
+     as +alloc/-init's was, or nullptr when the set-up fails.
+  */
+  static ::ShipEntity* newDockObject(const std::string& key,
+                                     const oo::PList& dict);
 
-    Vector port_dimensions;
-    double port_corridor; // corridor length inside station.
+  // -cxx_initWithKey:definition:'s body after [super
+  // cxx_initWithKey:definition:].
+  void initDockDefaults();
 
-    BOOL no_docking_while_launching;
-    BOOL allow_launching;
-    BOOL allow_docking;
-    BOOL disallowed_docking_collides;
-    BOOL virtual_dock;
+  // Run first when a dock is destroyed, before the ship's own teardown.
+  void willDealloc();
+
+  // Class shell, flags, geometry and lifecycle.
+  void clear();
+
+  // Docking
+  bool allowsDocking();
+  void setAllowsDocking(bool allowed);
+  bool disallowedDockingCollides();
+  void setDisallowedDockingCollides(bool ddc);
+  NSUInteger countOfShipsInDockingQueue();
+
+  // Launching
+  bool allowsLaunching();
+  void setAllowsLaunching(bool allowed);
+  NSUInteger countOfShipsInLaunchQueue();
+
+  // Geometry
+  void setDimensionsAndCorridor(bool docking, bool ddc, bool launching);
+  Vector portUpVectorForShipsBoundingBox(BoundingBox bb);
+  bool isOffCentre();
+  void setVirtual();
+
+  // The ID locks (the private category of DockEntity.mm).
+  void clearIdLocks(::ShipEntity* ship);
+  void clearAllIdLocks();
+
+  // Docking guidance, the approach queue and docking instructions.
+  oo::PList dockingInstructionsForShip(
+      ::ShipEntity*
+          ship);  // a dictionary (the station an Object node); null: none
+  std::optional<std::string> canAcceptShipForDocking(::ShipEntity* ship);
+  bool shipIsInDockingQueue(::ShipEntity* ship);
+  void abortDockingForShip(::ShipEntity* ship);
+  void abortAllDockings();
+  void autoDockShipsOnApproach();
+  NSUInteger pruneAndCountShipsOnApproach();
+  void noteDockingForShip(::ShipEntity* ship);
+  void autoDockShipsInQueue(
+      std::map<unsigned short, std::vector<oo::PList>>& queue);
+  void addShipToShipsOnApproach(::ShipEntity* ship);
+  void pullInShipIfPermitted(::ShipEntity* ship);
+
+  // The docking corridor and launching.
+  bool shipIsInDockingCorridor(::ShipEntity* ship);
+  void abortAllLaunches();
+  void addShipToLaunchQueue(::ShipEntity* ship, bool priority);
+  void launchShip(::ShipEntity* ship);
+  NSUInteger countOfShipsInLaunchQueueWithPrimaryRole(const std::string& role);
+  bool allowsLaunchingOf(::ShipEntity* ship);
+  bool dockingCorridorIsEmpty();
+  void clearDockingCorridor();
+
+  // From the superclass.
+  bool isDock() override;
+  // Entity (OOJavaScriptExtensions): the binding's bodies (OOJSDock.h).
+  JSClassID jsClassID() override;
+  std::optional<std::string> jsClassName() override;
+  // The ship's answer.
+  bool isVisibleToScripts() override;
+  bool setUpShipFromDictionary(const oo::PList& dict) override;
+  void update(OOTimeDelta delta_t) override;
+  void noteTakingDamage(double amount, Entity* entity,
+                        OOShipDamageType type) override;
+  void takeEnergyDamage(double amount, Entity* ent, Entity* other,
+                        const std::string& weaponIdentifier) override;
+  void drawImmediate(bool immediate, bool translucent) override;
+
+  // Public so the tests read them.
+  std::map<unsigned short, std::vector<oo::PList>>
+      shipsOnApproach;  // coordinate stacks (Dicts) by ship ID
+  std::vector<oo::EntityHold> launchQueue;  // the ships' objects held
+  double last_launch_time = {};
+  //	double					approach_spacing; // not needed
+  // now holding pattern changed
+
+  oo::WeakRef<Entity>
+      id_lock[MAX_DOCKING_STAGES];  // weak references to a ship (its C++ part)
+
+  Vector port_dimensions = {};
+  double port_corridor = {};  // corridor length inside station.
+
+  bool no_docking_while_launching = {};
+  bool allow_launching = {};
+  bool allow_docking = {};
+  bool disallowed_docking_collides = {};
+  bool virtual_dock = {};
+};
+
+namespace oo {
+
+// The same of a C++ entity (what an entity's JS object holds).
+inline ::DockEntity* ToDock(Entity* entity) {
+  return dynamic_cast<::DockEntity*>(entity);
 }
 
-- (void)clear;
+// The same question of a C++ ship: nullptr for null or another ship.
+inline ::DockEntity* ToDock(::ShipEntity* ship) {
+  return dynamic_cast<::DockEntity*>(ship);
+}
 
-// Docking
-- (BOOL)allowsDocking;
-- (void)setAllowsDocking:(BOOL)allow;
-- (BOOL)disallowedDockingCollides;
-- (void)setDisallowedDockingCollides:(BOOL)ddc;
-- (NSUInteger)countOfShipsInDockingQueue;
-/**
- * Guides a ship into the dock.
- * <h3>Possible results:</h3>
- * <ul>
- * <li>null<br/>
- *     if no result can be computed or the last control point is reached
- * <li>Move to station (APPROACH)<br/>
- *     if ship is too far away
- * <li>Move away from station (BACKOFF)<br/>
- *     if ship is too close
- * <li>Move perpendicular to station/dock direction (APPROACH)<br/>
- *     if ship is approaching from wrong side of station
- * <li>Abort (TRY AGAIN LATER)<br/>
- *     if something went wrong until here
- * <li>Hold position (HOLD_POSITION)<br/>
- *     if coordinatesStack is empty or approach is not clear
- * <li>Move to next control point (APPROACH_COORDINATES)<br/>
- *     if control point not within collision radius
- * </ul>
- *
- * <h3>Algorithm:</h3>
- * <ol>
- * <li>If ship is not on approach list and beyond scanner range (25 km?), approach the station
- * <li>Add ship to approach list
- * <li>If ship is within distance of 1000 km between station's and ship's collision radius, move away from station
- * <li>If ship is approaching from behind, move to the side of the station (perpendicular on direction to station and launch vector)
- * <li>If ship is further away than 12000 km, approach the station
- * </ol>
- * <p>Now the ship is in the vicinity of the station in the correct hemispere. Let's guide them in.</p>
- * <ol>
- * <li>Get the coordinatesStack for this ship (the approach path?). If there is a problem, Ship shall hold position
- * <li>If next coordinates (control point) not yet within collision radius, move towards that position
- * <li>Remove control point from stack; get next control point
- * <li>If next 3 stages of approach are clear, move to next position
- * <li>otherwise hold position
- * </ol>
- *
- * <p>TODO: Where is the detection that the ship has docked?</p>
- * <p>TODO: What are the magic number's units? Is it km (kilometers)?</p>
- */
-- (NSDictionary*)dockingInstructionsForShip:(ShipEntity*)ship;
-- (NSString*)canAcceptShipForDocking:(ShipEntity*)ship;
-- (BOOL)shipIsInDockingCorridor:(ShipEntity*)ship;
-- (BOOL)shipIsInDockingQueue:(ShipEntity*)ship;
-- (void)abortDockingForShip:(ShipEntity*)ship;
-- (void)abortAllDockings;
-- (BOOL)dockingCorridorIsEmpty;
-- (void)clearDockingCorridor;
-- (void)autoDockShipsOnApproach;
-- (NSUInteger)pruneAndCountShipsOnApproach;
-- (void)noteDockingForShip:(ShipEntity*)ship;
-
-// Launching
-- (BOOL)allowsLaunching;
-- (void)setAllowsLaunching:(BOOL)allow;
-- (NSUInteger)countOfShipsInLaunchQueue;
-- (NSUInteger)countOfShipsInLaunchQueueWithPrimaryRole:(NSString*)role;
-- (BOOL)allowsLaunchingOf:(ShipEntity*)ship;
-- (void)launchShip:(ShipEntity*)ship;
-- (void)addShipToLaunchQueue:(ShipEntity*)ship withPriority:(BOOL)priority;
-
-// Geometry
-- (void)setDimensionsAndCorridor:(BOOL)docking ddc:(BOOL)ddc launching:(BOOL)launching;
-- (Vector)portUpVectorForShipsBoundingBox:(BoundingBox)bb;
-- (BOOL)isOffCentre;
-- (void)setVirtual;
-
-@end
+}  // namespace oo

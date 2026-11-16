@@ -28,10 +28,9 @@ SOFTWARE.
 
 */
 
-#import "OOLogging.h"
+#pragma once
 
-void OOLogSetDisplayMessagesInClass(NSString* inClass, BOOL inFlag);
-NSString* OOLogGetParentMessageClass(NSString* inClass);
+#include "OOLogging.h"
 
 void OOLoggingInit(void);
 void OOLoggingTerminate(void);
@@ -39,17 +38,17 @@ void OOLoggingTerminate(void);
 void OOLogInsertMarker(void);
 
 // Get/set display settings. These are stored in user defaults.
-BOOL OOLogShowFunction(void);
-void OOLogSetShowFunction(BOOL flag);
-BOOL OOLogShowFileAndLine(void);
-void OOLogSetShowFileAndLine(BOOL flag);
-BOOL OOLogShowTime(void);
-void OOLogSetShowTime(BOOL flag);
-BOOL OOLogShowMessageClass(void);
-void OOLogSetShowMessageClass(BOOL flag);
+bool OOLogShowFunction(void);
+void OOLogSetShowFunction(bool flag);
+bool OOLogShowFileAndLine(void);
+void OOLogSetShowFileAndLine(bool flag);
+bool OOLogShowTime(void);
+void OOLogSetShowTime(bool flag);
+bool OOLogShowMessageClass(void);
+void OOLogSetShowMessageClass(bool flag);
 
 // Change message class visibility without saving to user defaults.
-void OOLogSetShowMessageClassTemporary(BOOL flag);
+void OOLogSetShowMessageClassTemporary(bool flag);
 
-// Utility function to strip path components from __FILE__ strings.
-NSString* OOLogAbbreviatedFileName(const char* inName);
+// Utility function to strip path components from __FILE__ strings:
+// oo::log::abbreviatedFileName().
