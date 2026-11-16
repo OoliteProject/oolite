@@ -62,8 +62,7 @@ typedef uint64_t OOHighResTimeValue;
 
 #elif OOLITE_WINDOWS
 
-// Windows: if standalone, use timeGetTime...
-#if OOSTOPWATCH_STANDALONE
+// Windows: use timeGetTime.
 #define OO_PROFILING_STOPWATCH_WINDOWS 1
 typedef DWORD OOHighResTimeValue; // Rolls over once every 50 days, but we can live with that.
 
@@ -76,14 +75,6 @@ typedef DWORD OOHighResTimeValue; // Rolls over once every 50 days, but we can l
         (void)time;                \
     } while (0)
 #define OOCopyHighResTime(time) ((OOHighResTimeValue)time)
-
-#else
-/*	...otherwise, use JS_Now() for higher precision. The Windows implementation
-        does the messy work of calibrating performance counters against low-res
-        timers.
-*/
-#define OO_PROFILING_STOPWATCH_JS_NOW 1
-#endif
 
 #else
 
@@ -107,18 +98,6 @@ OOINLINE OOHighResTimeValue OOGetHighResTime(void)
     } while (0)
 #define OOCopyHighResTime(time) ((OOHighResTimeValue)time)
 
-#endif
-
-#if OO_PROFILING_STOPWATCH_JS_NOW
-#include <jsapi.h>
-typedef int64 OOHighResTimeValue;
-
-#define OOGetHighResTime JS_Now
-#define OODisposeHighResTime(time) \
-    do {                           \
-        (void)time;                \
-    } while (0)
-#define OOCopyHighResTime(time) ((OOHighResTimeValue)time)
 #endif
 
 OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime, OOHighResTimeValue endTime);

@@ -126,6 +126,10 @@ typedef enum {
     OPENGL_STATE_INTERNAL_USE_ONLY
 } OOOpenGLStateID;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if OO_GL_STATE_VERIFICATION
 void OOSetOpenGLState_(OOOpenGLStateID state, const char* function, unsigned line);
 void OOVerifyOpenGLState_(const char* function, unsigned line);
@@ -224,6 +228,10 @@ void GLDrawQuadStrip(OOGLVector* points, int n);
 #define OO_CHECK_GL_HEAVY 0
 #endif
 
+#ifdef __cplusplus
+}
+#endif
+
 #if OO_CHECK_GL_HEAVY
 
 #if OO_GL_STATE_VERIFICATION
@@ -234,7 +242,15 @@ void OOGLNoteCurrentFunction(const char* func, unsigned line);
     } while (0)
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 NSString* OOLogAbbreviatedFileName(const char* inName);
+
+#ifdef __cplusplus
+}
+#endif
 #define OOGL_PERFORM_CHECK(label, code) OOCheckOpenGLErrors(@"%s %@:%u (%s)%s", label, OOLogAbbreviatedFileName(__FILE__), __LINE__, __PRETTY_FUNCTION__, code)
 #define OOGL(statement)                                  \
     do {                                                 \
@@ -283,8 +299,14 @@ NSString* OODisplayStringFromShaderSetting(OOShaderSetting setting);
 
 #ifndef NDEBUG
 
+#ifdef __cplusplus
+extern "C++" { // (this header is sometimes reached from inside OOMaths.h's extern "C" block)
+#endif
 NSString* OOGLColorToString(GLfloat color[4]);
 NSString* OOGLEnumToString(GLenum value);
 NSString* OOGLFlagToString(bool value);
+#ifdef __cplusplus
+}
+#endif
 
 #endif
