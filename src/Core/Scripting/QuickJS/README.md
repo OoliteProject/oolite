@@ -99,9 +99,11 @@ Behaviour that needed emulating, all in the engine core:
   `unpatchedEngine` check tests for this too.
 - **Profiling.** In debug builds `OOJS_PROFILE` is on, as with SpiderMonkey:
   natives bracketed by `OOJS_NATIVE_ENTER`/`OOJS_PROFILE_ENTER` are timed, and
-  the debug console's `profile()`, `getProfile()` and `trace()` work. As in
-  SpiderMonkey builds without `MOZ_TRACE_JSCALLS` (the usual case), only
-  natives are profiled; other time is reported as JavaScript time.
+  the debug console's `profile()`, `getProfile()` and `trace()` work.
+  JavaScript functions are timed too, through a function call hook that
+  Oolite's QuickJS-ng patch adds (the counterpart of SpiderMonkey's
+  `MOZ_TRACE_JSCALLS`, which `oo_javascript_trace` turns on by default). The
+  hook is only installed while profiling, so it costs nothing otherwise.
 - The time limiter uses QuickJS's interrupt handler; error locations come from
   the exception's stack.
 
