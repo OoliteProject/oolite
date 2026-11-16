@@ -25,7 +25,9 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+#pragma once
 
-void InitOOJSMissionVariables(JSContext* context, JSObject* global);
+#include "OOFoundation.h"
+#include <quickjs.h>
+
+void InitOOJSMissionVariables(JSContext* context, JSValueConst global);

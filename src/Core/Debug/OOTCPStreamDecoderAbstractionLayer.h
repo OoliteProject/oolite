@@ -4,8 +4,7 @@ Abstraction layer to allow OOTCPStreamDecoder to work with CoreFoundation/
 CF-Lite, Cocoa Foundation or GNUstep Foundation.
 */
 
-#ifndef INCLUDED_OOTCPStreamDecoderAbstractionLayer_h
-#define INCLUDED_OOTCPStreamDecoderAbstractionLayer_h
+#pragma once
 
 #ifndef OOTCPSTREAM_USE_COREFOUNDATION
 #define OOTCPSTREAM_USE_COREFOUNDATION 0
@@ -56,33 +55,40 @@ typedef JAAutoreleasePoolRef OOALAutoreleasePoolRef;
 #include <stdbool.h>
 #include <stdlib.h>
 
-#if __OBJC__
+/*	The handles are opaque in C and C++ alike: a struct OOALObject, defined
+   in OOTCPStreamDecoderAbstractionLayer.mm, holding a string, a data buffer or
+   a property list (an oo::PList). Handles made by a Create/FromData function
+   are owned (+1) and freed by OOALRelease(); OOALDictionaryGetValue(),
+   OOTypeDescription() and OOALSTR() answer borrowed handles that live as long
+   as their parent (or for ever, for OOALSTR). A handle from
+   OOALPropertyListFromData() belongs to the innermost
+        OOALCreateAutoreleasePool() and is freed when it is destroyed.
+*/
+typedef const struct OOALObject* OOALObjectRef;
 
-#import <Foundation/Foundation.h>
+typedef const struct OOALObject* OOALStringRef;
+typedef const struct OOALObject* OOALDataRef;
+typedef struct OOALObject* OOALMutableDataRef;
+typedef const struct OOALObject* OOALDictionaryRef;
+typedef struct OOALAutoreleasePool* OOALAutoreleasePoolRef;
 
-typedef id OOALObjectRef;
-
-typedef NSString* OOALStringRef;
-typedef NSData* OOALDataRef;
-typedef NSMutableData* OOALMutableDataRef;
-typedef NSDictionary* OOALDictionaryRef;
-typedef NSAutoreleasePool* OOALAutoreleasePoolRef;
-
-#define OOALSTR(x) @"" x
-
-#else
-
-typedef const void* OOALObjectRef;
-
-typedef const struct NSString* OOALStringRef;
-typedef const struct NSData* OOALDataRef;
-typedef struct NSData* OOALMutableDataRef;
-typedef const struct NSDictionary* OOALDictionaryRef;
-typedef const struct NSAutoreleasePool* OOALAutoreleasePoolRef;
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 OOALStringRef OOALGetConstantString(const char* string); // Should only be used with string literals!
-#define OOALSTR(string) OOALGetConstantString("" string "")
+#ifdef __cplusplus
+}
+#endif
 
+/*	Only the C decoder spells its protocol constants (OODebugTCPConsoleProtocol.h) as handles;
+        OODebugTCPConsoleClient uses plain literals.
+*/
+#if !(defined(__cplusplus) && !defined(OO_PLAIN_CPP_UNIT))
+#define OOALSTR(string) OOALGetConstantString("" string "")
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 void OOALRelease(OOALObjectRef object);
@@ -101,9 +107,19 @@ const void* OOALDataGetBytePtr(OOALDataRef data);
 size_t OOALDataGetLength(OOALDataRef data);
 
 OOALAutoreleasePoolRef OOALCreateAutoreleasePool(void);
-#define OOALDestroyAutoreleasePool(pool) OOALRelease(pool)
+void OOALDestroyAutoreleasePool(OOALAutoreleasePoolRef pool);
 
 OOALObjectRef OOALPropertyListFromData(OOALMutableDataRef data, OOALStringRef* errStr);
+#ifdef __cplusplus
+}
+#endif
+
+#ifdef __cplusplus
+extern "C++" {
+#include "oofnd/PList.hpp"
+// The value a handle holds, as a property list (a string or data handle as a string or data node).
+const oo::PList& OOALObjectPList(OOALObjectRef object);
+}
+#endif
 
 #endif /* OOTCPSTREAM_USE_COREFOUNDATION */
-#endif /* INCLUDED_OOTCPStreamDecoderAbstractionLayer_h */
