@@ -4,6 +4,10 @@ OOJSCall.h
 
 Basic JavaScript-to-ObjC bridge implementation.
 
+Converted in bead oo-81hy (proposed ADR-0056 amendment oo-ppc; no class of its own): bool for BOOL.
+The Objective-C it needs to read method signatures (the template class and the scalar-value
+protocol) is in OOJSCall+ObjCBridge.h/.mm, imported at the end of this header.
+
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -26,8 +30,9 @@ MA 02110-1301, USA.
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
 
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+#import "OOFoundation.h"
+#include "oofnd/StdLib.hpp"
+#include <quickjs.h>
 
 /*	OOJSCallObjCObjectMethod()
 
@@ -37,14 +42,21 @@ MA 02110-1301, USA.
         a string ending with a : followed by arbitrary arguments which will be
         concatenated as a string. (This behaviour reflects Oolite's traditional
         scripting system and the expectations of its script methods. It also has
-        the advantage that it can be done with GNUstep's buggy implementation of
-        NSMethodSignature.)
+        the advantage that it needs only the runtime's method type encodings, not
+        a general method-signature parser.)
 
         If the method returns an object, *outResult will be set to that object's
-        -oo_jsValueInContext:. Otherwise, it will be left unchanged.
+        -oo_jsValueInContext: (owned by the caller). Otherwise, it will be left
+        unchanged, so the caller should initialize it (normally to JS_UNDEFINED).
+
+        If it returns false, an error has been reported and the caller (a native)
+        should return JS_EXCEPTION.
 
         argv is assumed to contain at least one value.
 */
-BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, NSString* oo_jsClassName, uintN argc, jsval* argv, jsval* outResult);
+bool OOJSCallObjCObjectMethod(JSContext* context, id object, const std::string& oo_jsClassName, int argc, JSValueConst* argv, JSValue* outResult);
+
+// Transitional: the Objective-C helpers of the call. Deleted by the bridge's deletion bead.
+#import "OOJSCall+ObjCBridge.h"
 
 #endif
