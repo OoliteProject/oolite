@@ -27,7 +27,9 @@ SOFTWARE.
 
 */
 
-#import "OOPixMap.h"
+#pragma once
+
+#include "OOPixMap.h"
 
 /*	OOConvertCubeMapToLatLong
 
@@ -40,4 +42,4 @@ SOFTWARE.
 
         2 x 2 pixel supersampling is used.
 */
-OOPixMap OOConvertCubeMapToLatLong(OOPixMap sourcePixMap, OOPixMapDimension height, BOOL leaveSpaceForMipMaps);
+OOPixMap OOConvertCubeMapToLatLong(OOPixMap sourcePixMap, OOPixMapDimension height, bool leaveSpaceForMipMaps);
