@@ -1,6 +1,6 @@
 project(
     'oolite',
-    ['c', 'cpp', 'objc'],
+    ['c', 'cpp', 'objc', 'objcpp'],
     meson_version: '>= 1.4.0',
     version: run_command(
         'bash',
@@ -10,11 +10,14 @@ project(
     ).stdout().strip(),
     default_options: [
         'optimization=2',
+        # Always use the bundled, patched QuickJS-ng (see subprojects/quickjs-ng.wrap):
+        # an unpatched system build breaks OXPs that rely on SpiderMonkey behaviour.
+        'force_fallback_for=quickjs-ng',
     ],
 )
 
 host_os = host_machine.system()
-c_family = ['c', 'cpp', 'objc']
+c_family = ['c', 'cpp', 'objc', 'objcpp']
 
 version_string = meson.project_version()
 cat_cmd = find_program('cat', required: true)
@@ -46,6 +49,16 @@ if is_debug
         language: c_family,
     )
 endif
+
+# A MESSAGE TO AN UNDECLARED METHOD IS AN ERROR (proposed ADR-0050, bead oo-tk0w).
+#
+# While Foundation bridge categories are being deleted, clang's -Wobjc-method-access ("instance
+# method '-x' not found") is not a style warning: it is the only compile-time sign that a caller
+# still sends a selector nothing implements any more, and the run-time result is an
+# "unrecognized selector" exception. Bead oo-2o5x: oo-5pae deleted OOCacheManager+FoundationBridge
+# while six sends of -objectForKey:inCache: remained; the build warned, the game died at startup
+# and golden scenario 001 went red. This makes the check stricter; it silences nothing.
+add_project_arguments('-Werror=objc-method-access', language: ['objc', 'objcpp'])
 
 if get_option('no_shaders')
     add_project_arguments('-DNO_SHADERS=1', language: c_family)
@@ -96,10 +109,31 @@ if get_option('dev_release')
     )
 endif
 
-if get_option('oo_javascript_trace')
-    add_project_arguments('-DMOZ_TRACE_JSCALLS=1', language: c_family)
-endif
-
 gnustep_folder = ''  # Not needed for Windows
 # dependencies, compiler/linker flags and build
 subdir('src')
+
+if get_option('quickjs_poc')
+    subdir('src/Core/Scripting/poc')
+endif
+
+# The unit tests are built by every flavour but deployment: they test the live assertion and
+# debug paths, which a deployment build (NDEBUG) compiles out, and upstream's CI builds
+# `./mk.sh build deployment` (since #756), which builds every default target.
+# They are Windows-only for now: they were written and verified on the native Windows toolchain
+# and use its headers and LLP64 types (<process.h>, _putenv_s, <winsock2.h>, long == 32 bits),
+# so the Linux CI flavours build the game without them.
+#
+# deployment_unit_tests builds the oofnd suite under the deployment macros as well, in a separate
+# non-LTO build directory (meson setup with -Ddeployment_unit_tests=true): OOCAssert compiled out
+# under NDEBUG, and with it PlayerEntity's -deferredInit ship set-up, passes every test-flavour
+# suite and breaks the shipped game.
+if (not get_option('deployment_release') or get_option('deployment_unit_tests')) and host_machine.system() == 'windows'
+    # Unit tests that need no game build (meson test --suite oofnd).
+    subdir('tests/unit/oofnd')
+endif
+
+if not get_option('deployment_release') and host_machine.system() == 'windows'
+    # Unit tests of converted game classes, linked from the game's own objects (meson test --suite core).
+    subdir('tests/unit/core')
+endif

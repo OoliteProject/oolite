@@ -29,11 +29,10 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
-
+#import "OOFoundation.h"
 @class OODebugMonitor;
 
-JSObject* DebugMonitorToJSConsole(JSContext* context, OODebugMonitor* monitor);
+#include <quickjs.h>
 
-void OOJSConsoleDestroy(void);
+// Create the JS console object for the debug monitor. The caller owns the result.
+JSValue DebugMonitorToJSConsole(JSContext* context, OODebugMonitor* monitor);

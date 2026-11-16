@@ -27,8 +27,6 @@ MA 02110-1301, USA.
 
 #import "Entity.h"
 
-@class OOColor;
-
 enum {
     kOOBreakPatternMaxSides = 128,
     kOOBreakPatternMaxVertices = (kOOBreakPatternMaxSides + 1) * 2
@@ -37,24 +35,43 @@ enum {
 #define BREAK_PATTERN_RING_SPACING 50.0
 #define BREAK_PATTERN_RING_SPEED 200.0
 
-@interface OOBreakPatternEntity : Entity {
-@private
-    Vector _vertexPosition[kOOBreakPatternMaxVertices];
-    GLfloat _vertexColor[kOOBreakPatternMaxVertices][4];
-    NSUInteger _vertexCount;
-    double _lifetime;
-}
+struct OOBreakPatternEntityTestAccess;
 
-+ (instancetype)breakPatternWithPolygonSides:(NSUInteger)sides startAngle:(float)startAngleDegrees aspectRatio:(float)aspectRatio;
+namespace cxx {
 
-- (void)setInnerColor:(OOColor*)color1 outerColor:(OOColor*)color2;
+class OOBreakPatternEntity : public Entity {
+public:
+    // +breakPatternWithPolygonSides:startAngle:aspectRatio:: a new ring, initialised. The facade's
+    // class method hands it to Objective-C (oo::NewEntityFacade).
+    static oo::Ref<OOBreakPatternEntity> breakPatternWithPolygonSides(NSUInteger sides, float startAngleDegrees, float aspectRatio);
 
-- (void)setLifetime:(double)lifetime;
+    void setInnerColor(OOColor* color1, OOColor* color2);
 
-@end
+    void setLifetime(double lifetime);
 
-@interface Entity (OOBreakPatternEntity)
+    void update(OOTimeDelta delta_t) override;
+    void drawImmediate(bool immediate, bool translucent) override;
+    bool canCollide() override;
+    bool isBreakPattern();
 
-- (BOOL)isBreakPattern;
+private:
+    friend struct ::OOBreakPatternEntityTestAccess;
 
-@end
+    // -initWithPolygonSides:startAngle:aspectRatio:'s body, run once right after construction
+    // (amendment oo-vl43 item 2).
+    void initWithPolygonSides(NSUInteger sides, float startAngleDegrees, float aspectRatio);
+
+    void setInnerColorComponents(GLfloat color1[4], GLfloat color2[4]);
+
+    Vector _vertexPosition[kOOBreakPatternMaxVertices] = { };
+    GLfloat _vertexColor[kOOBreakPatternMaxVertices][4] = { };
+    NSUInteger _vertexCount = { };
+    double _lifetime = { };
+};
+
+} // namespace cxx
+
+// Transitional: the Objective-C OOBreakPatternEntity, for the universe, which makes the rings and
+// messages them, and the category the header declared. Deleted, with namespace cxx above, by the
+// bridge's deletion bead.
+#import "OOBreakPatternEntity+ObjCBridge.h"

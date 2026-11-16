@@ -4,6 +4,12 @@ OOOpenGLMatrixManager.h
 
 Manages OpenGL Model, View, etc. matrices.
 
+C++20 since bead oo-vt0o (proposed ADR-0056). The manager is cxx::OOOpenGLMatrixManager while
+OOOpenGLMatrixManager+ObjCBridge.h, imported at the end of this header, keeps the Objective-C
+OOOpenGLMatrixManager its unconverted callers (MyOpenGLView, OOShaderProgram) message; the bridge's
+deletion bead moves it out of namespace cxx. OOOpenGLMatrixStack had no caller outside this file,
+so it has no facade and is global.
+
 Oolite
 Copyright (C) 2004-2014 Giles C Williams and contributors
 
@@ -24,7 +30,13 @@ MA 02110-1301, USA.
 
 */
 
+#ifndef OOOPENGLMATRIXMANAGER_H
+#define OOOPENGLMATRIXMANAGER_H
+
 #import "OOMaths.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
 
 extern const char* ooliteStandardMatrixUniforms[];
 
@@ -45,58 +57,62 @@ enum {
     OOLITE_GL_MATRIX_END
 };
 
-@interface OOOpenGLMatrixStack : NSObject {
-@private
-    NSMutableArray* stack;
-}
+class OOOpenGLMatrixStack : public oo::RefCounted {
+public:
+    void push(OOMatrix matrix);
+    OOMatrix pop();
+    NSUInteger stackCount();
 
-- (id)init;
-- (void)dealloc;
-- (void)push:(OOMatrix)matrix;
-- (OOMatrix)pop;
-- (NSUInteger)stackCount;
+private:
+    std::vector<OOMatrix> stack = { }; // was a Foundation mutable array of boxed values (bead oo-3rb.10)
+};
 
-@end
+namespace cxx {
 
-@interface OOOpenGLMatrixManager : NSObject {
-@private
-    OOMatrix matrices[OOLITE_GL_MATRIX_END];
-    BOOL valid[OOLITE_GL_MATRIX_END];
-    OOOpenGLMatrixStack* modelViewStack;
-    OOOpenGLMatrixStack* projectionStack;
-}
+class OOOpenGLMatrixManager : public oo::RefCounted {
+public:
+    OOOpenGLMatrixManager();
+    void loadModelView(OOMatrix matrix);
+    void resetModelView();
+    void multModelView(OOMatrix matrix);
+    void translateModelView(Vector vector);
+    void rotateModelView(GLfloat angle, Vector axis);
+    void scaleModelView(Vector scale);
+    void lookAtWithEye(Vector eye, Vector center, Vector up);
+    void pushModelView();
+    OOMatrix popModelView();
+    OOMatrix getModelView();
+    NSUInteger countModelView();
+    void syncModelView();
+    void loadProjection(OOMatrix matrix);
+    void multProjection(OOMatrix matrix);
+    void translateProjection(Vector vector);
+    void rotateProjection(GLfloat angle, Vector axis);
+    void scaleProjection(Vector scale);
+    void frustumLeft(double l, double r, double b, double t, double n, double f);
+    void orthoLeft(double l, double r, double b, double t, double n, double f);
+    void perspectiveFovy(double fovy, double aspect, double zNear, double zFar);
+    void resetProjection();
+    void pushProjection();
+    OOMatrix popProjection();
+    OOMatrix getProjection();
+    void syncProjection();
+    OOMatrix getMatrix(int which);
+    // An array of (location, matrix index, "mat3" / "mat4") triples, as property-list values
+    // (Foundation sweep, proposed ADR-0043).
+    oo::PList standardMatrixUniformLocations(GLhandleARB program);
 
-- (id)init;
-- (void)dealloc;
-- (void)loadModelView:(OOMatrix)matrix;
-- (void)resetModelView;
-- (void)multModelView:(OOMatrix)matrix;
-- (void)translateModelView:(Vector)vector;
-- (void)rotateModelView:(GLfloat)angle axis:(Vector)axis;
-- (void)scaleModelView:(Vector)scale;
-- (void)lookAtWithEye:(Vector)eye center:(Vector)center up:(Vector)up;
-- (void)pushModelView;
-- (OOMatrix)popModelView;
-- (OOMatrix)getModelView;
-- (NSUInteger)countModelView;
-- (void)syncModelView;
-- (void)loadProjection:(OOMatrix)matrix;
-- (void)multProjection:(OOMatrix)matrix;
-- (void)translateProjection:(Vector)vector;
-- (void)rotateProjection:(GLfloat)angle axis:(Vector)axis;
-- (void)scaleProjection:(Vector)scale;
-- (void)frustumLeft:(double)l right:(double)r bottom:(double)b top:(double)t near:(double)n far:(double)f;
-- (void)orthoLeft:(double)l right:(double)r bottom:(double)b top:(double)t near:(double)n far:(double)f;
-- (void)perspectiveFovy:(double)fovy aspect:(double)aspect zNear:(double)zNear zFar:(double)zFar;
-- (void)resetProjection;
-- (void)pushProjection;
-- (OOMatrix)popProjection;
-- (OOMatrix)getProjection;
-- (void)syncProjection;
-- (OOMatrix)getMatrix:(int)which;
-- (NSArray*)standardMatrixUniformLocations:(GLhandleARB)program;
+private:
+    void updateModelView();
+    void updateProjection();
 
-@end
+    OOMatrix matrices[OOLITE_GL_MATRIX_END] = { };
+    bool valid[OOLITE_GL_MATRIX_END] = { };
+    oo::Ref<OOOpenGLMatrixStack> modelViewStack = { };
+    oo::Ref<OOOpenGLMatrixStack> projectionStack = { };
+};
+
+} // namespace cxx
 
 void OOGLPushModelView(void);
 OOMatrix OOGLPopModelView(void);
@@ -123,3 +139,9 @@ void OOGLOrtho(double left, double right, double bottom, double top, double near
 void OOGLPerspective(double fovy, double aspect, double zNear, double zFar);
 
 OOMatrix OOGLGetModelViewProjection(void);
+
+// Transitional: the Objective-C OOOpenGLMatrixManager, for callers not yet converted. Deleted,
+// with namespace cxx above, by the bridge's deletion bead.
+#import "OOOpenGLMatrixManager+ObjCBridge.h"
+
+#endif // OOOPENGLMATRIXMANAGER_H
