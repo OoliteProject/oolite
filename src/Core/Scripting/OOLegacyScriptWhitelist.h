@@ -23,7 +23,7 @@ argument), the second is the argument.
 A sanitized condition is an array of the form:
         (opType, rawString, selector, comparisonType, operandArray).
 
-opType and comparisonType are NSNumbers containing OOOperationType and
+opType and comparisonType are numbers containing OOOperationType and
 OOComparisonType enumerators, respectively.
 
 rawString is the original textual representation of the condition for
@@ -36,8 +36,8 @@ operandArray is an array of operands. Each operand is itself an array
 of two items: a boolean indicating whether it's a method selector
 (true) or a string (false), and a string.
 
-The special opType OP_FALSE doesn't require any other elements in the
-array. All other valid opTypes require the array to have five elements.
+The special opType OOOperationType::kFalse doesn't require any other elements in
+the array. All other valid opTypes require the array to have five elements.
 
 
 A complete example: given the following script (the Cloaking Device mission
@@ -51,44 +51,51 @@ script from Oolite 1.65):
                         );
                         do = (
                                 {
-                                        conditions = ("mission_cloakcounter undefined");
-                                        do = ("set: mission_cloakcounter 0");
+                                        conditions = ("mission_cloakcounter
+undefined"); do = ("set: mission_cloakcounter 0");
                                 },
                                 "increment: mission_cloakcounter",
                                 "checkForShips: asp-cloaked",
                                 {
-                                        conditions = ("shipsFound_number equal 0", "mission_cloakcounter greaterthan 6");
-                                        do = ("addShips: asp-cloaked 1", "addShips: asp-pirate 2");
+                                        conditions = ("shipsFound_number equal
+0", "mission_cloakcounter greaterthan 6"); do = ("addShips: asp-cloaked 1",
+"addShips: asp-pirate 2");
                                 }
                         );
                 }
         )
-the sanitized form (with rawString values replaced with "..." for simplicity) is:
+the sanitized form (with rawString values replaced with "..." for simplicity)
+is:
         (
                 (
                         true,	// This is a conditonal statement
                         (		// conditions
-                                (OP_NUMBER, "...", "galaxy_number", COMPARISON_EQUAL, ((false, "4"))),
-                                (OP_STRING, "...", "status_string", COMPARISON_EQUAL, ((false, "STATUS_EXITING_WITCHSPACE"))),
-                                (OP_MISSION_VAR, "...", "mission_cloak", COMPARISON_UNDEFINED, ())
+                                (OOOperationType::kNumber, "...",
+"galaxy_number", OOComparisonType::kEqual, ((false, "4"))),
+(OOOperationType::kString, "...", "status_string", OOComparisonType::kEqual,
+((false, "STATUS_EXITING_WITCHSPACE"))), (OOOperationType::kMissionVar,
+"...", "mission_cloak", OOComparisonType::kUndefined, ())
                         ),
                         (		// do
                                 (
                                         true,
-                                        ( (OP_MISSION_VAR, "...", "mission_cloakcounter", COMPARISON_UNDEFINED, ()) ),
-                                        ( (false, "set:", "mission_cloakcounter 0") ),
+                                        ( (OOOperationType::kMissionVar, "...",
+"mission_cloakcounter", OOComparisonType::kUndefined, ()) ), ( (false, "set:",
+"mission_cloakcounter 0") ),
                                         ()
                                 ),
                                 (false, "increment:", "mission_cloakcounter"),
                                 (false, "checkForShips:", "asp-cloaked"),
                                 (true,
                                         (
-                                                (OP_NUMBER, "...", "shipsFound_number", COMPARISON_EQUAL, ((false, "0"))),
-                                                (OP_MISSION_VAR, "...", "mission_cloakcounter, COMPARISON_GREATERTHAN, ((false, "6"))),
+                                                (OOOperationType::kNumber,
+"...", "shipsFound_number", OOComparisonType::kEqual, ((false, "0"))),
+(OOOperationType::kMissionVar, "...", "mission_cloakcounter,
+OOComparisonType::kGreaterThan, ((false, "6"))),
                                         ),
                                         (
-                                                (false, "addShips:", "asp-cloaked 1"),
-                                                (false, "addShips:", "asp-pirate 2"),
+                                                (false, "addShips:",
+"asp-cloaked 1"), (false, "addShips:", "asp-pirate 2"),
                                         ),
                                         ()
                                 )
@@ -118,18 +125,43 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
+#pragma once
+
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
+#include "OOFoundation.h"
+#include "oofnd/PList.hpp"
 
 // context is used for error messages.
-NSArray* OOSanitizeLegacyScript(NSArray* script, NSString* context, BOOL allowAIMethods);
-NSArray* OOSanitizeLegacyScriptConditions(NSArray* conditions, NSString* context);
+// A null oo::PList stands for nil, in and out.
+oo::PList OOSanitizeLegacyScript(const oo::PList& script,
+                                 const std::optional<std::string>& context,
+                                 bool allowAIMethods);
+oo::PList OOSanitizeLegacyScriptConditions(
+    const oo::PList& conditions, const std::optional<std::string>& context);
 
-/*	Quick test of whether a conditions array is sanitized. It is assumed that
-        this will only be passed fully-sanitized or fully-unsanitized conditions
+/*	Quick test of whether a conditions array is sanitized. It is assumed
+   that this will only be passed fully-sanitized or fully-unsanitized conditions
         arrays, so the test doesn't need to be exhaustive.
 
         Note that OOLegacyConditionsAreSanitized() is *not* called by
         OOSanitizeLegacyScript(), so that it is not possible to sneak an
         unwhitelisted "pre-compiled" condition past it.
 */
-BOOL OOLegacyConditionsAreSanitized(NSArray* conditions);
+bool OOLegacyConditionsAreSanitized(const oo::PList& conditions);

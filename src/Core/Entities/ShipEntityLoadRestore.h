@@ -25,23 +25,43 @@ MA 02110-1301, USA.
 
 */
 
-#import "ShipEntity.h"
+#pragma once
 
-@interface ShipEntity (LoadRestore)
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-/*	Produces a property list representation of a specific ship. Intended for
-        use with wormholes, but should probably generalize quite well.
+#include "ShipEntity.h"
+#include "oofnd/PList.hpp"
 
-        The optional "context" is a mutable dictionary used to synchronise certain
-        state when saving multiple ships - currently, groups. It is not a property
-        list and does not need to be saved alongside the ships.
+/*	A saved ship is an oo::PList (a Dict; null for no ship, as nil was), and
+        the save/restore context, which was a mutable dictionary keyed by group
+        pointers, is this struct. Both selectors are unique.
 */
-- (NSDictionary*)savedShipDictionaryWithContext:(NSMutableDictionary*)context;
+struct OOShipSaveContext {
+  std::map<OOShipGroup*, unsigned>
+      groupIDs;  // not retained, as the pointer-box keys were not
+  unsigned nextGroupID = 0;
+  std::vector<std::shared_ptr<OOShipGroup>>
+      groups;  // keeps the groups alive while they have IDs
+  std::map<std::size_t, std::shared_ptr<OOShipGroup>> groupsByID;
+};
 
-/*	Restore a ship from a property list representation generated with
-        -savedShipDictionary. If the ship can't be restored and fallback is YES,
-        an attempt will be made to generate a new ship with the same primary role.
+/*	The ShipEntity (LoadRestore) members are declared in ShipEntity.h and
+        defined in ShipEntityLoadRestore.cpp. This header stays for the files
+        that import it, and for OOShipSaveContext.
 */
-+ (id)shipRestoredFromDictionary:(NSDictionary*)dictionary useFallback:(BOOL)fallback context:(NSMutableDictionary*)context;
-
-@end

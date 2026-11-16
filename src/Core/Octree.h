@@ -24,9 +24,16 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
-#import "OOMaths.h"
-#import "OOOpenGL.h"
+#pragma once
+
+#include <vector>
+
+#include "OOFoundation.h"
+#include "OOMaths.h"
+#include "OOOpenGL.h"
+#include "oofnd/Object.hpp"
+#include "oofnd/PList.hpp"
+#include "oofnd/objc/OOObject.h"
 
 #define OCTREE_MIN_HALF_WIDTH 1.0
 
@@ -34,93 +41,127 @@ MA 02110-1301, USA.
 #define OODEBUGLDRAWING_DISABLE 1
 #endif
 
-@interface Octree : NSObject {
-@private
-    GLfloat _radius;
-    uint32_t _nodeCount;
-    const int* _octree;
-    BOOL _hasCollision;
+class OOOctreeBuilder;
+struct Octree_details;
 
-    unsigned char* _collisionOctree;
+class Octree : public oo::Object {
+ public:
+  /*
+          initWithDictionary()
 
-    NSData* _data;
-}
+          Deserialize an octree from cache representation; null if it is not a
+     valid one. (To make a new octree, build it with OOOctreeBuilder.)
+  */
+  static std::shared_ptr<Octree> initWithDictionary(
+      const oo::PList& dictionary);
 
-/*
-- (id) initWithDictionary:
-
-        Deserialize an octree from cache representation.
-        (To make a new octree, build it with OOOctreeBuilder.)
-*/
-- (id)initWithDictionary:(NSDictionary*)dictionary;
-
-- (Octree*)octreeScaledBy:(GLfloat)factor;
+  std::shared_ptr<Octree> octreeScaledBy(GLfloat factor);
 
 #ifndef OODEBUGLDRAWING_DISABLE
-- (void)drawOctree;
-- (void)drawOctreeCollisions;
+  void drawOctree();
+  void drawOctreeCollisions();
 #endif
 
-- (GLfloat)isHitByLine:(Vector)v0 v1:(Vector)v1;
+  GLfloat isHitByLine(Vector v0, Vector v1);
 
-- (BOOL)isHitByOctree:(Octree*)other withOrigin:(Vector)origin andIJK:(Triangle)ijk;
-- (BOOL)isHitByOctree:(Octree*)other withOrigin:(Vector)origin andIJK:(Triangle)ijk s1:(GLfloat)s1 s2:(GLfloat)s2;
+  bool isHitByOctree(Octree* other, Vector origin, Triangle ijk);
+  bool isHitByOctree(Octree* other, Vector origin, Triangle ijk, GLfloat s1,
+                     GLfloat s2);
 
-- (NSDictionary*)dictionaryRepresentation;
+  oo::PList
+  dictionaryRepresentation();  // the cache representation: a dictionary
 
-- (GLfloat)volume;
+  GLfloat volume();
 
-- (Vector)randomPoint;
+  Vector randomPoint();
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (size_t)totalSize;
+  size_t totalSize();
 #endif
 
-@end
+  ~Octree() override;
 
-enum {
-    kMaxOctreeDepth = 7 // 128x128x128
+ private:
+  friend class ::OOOctreeBuilder;
+
+  Octree(const oo::Data& data,
+         GLfloat radius);  // -initWithData:radius:, less its failure
+  static std::shared_ptr<Octree> initWithData(
+      const oo::Data& data, GLfloat radius);  // Designated initializer.
+
+#ifndef OODEBUGLDRAWING_DISABLE
+  void drawOctreeFromLocation(uint32_t loc, GLfloat scale, Vector offset);
+  void drawOctreeCollisionFromLocation(uint32_t loc, GLfloat scale,
+                                       Vector offset);
+#endif
+
+  bool hasCollision();
+  void setHasCollision(bool value);
+
+  Octree_details octreeDetails();
+
+  GLfloat _radius = {};
+  uint32_t _nodeCount = {};
+  const int* _octree = {};
+  bool _hasCollision = {};
+
+  std::vector<unsigned char> _collisionOctree;
+
+  oo::Data _data;
 };
 
-@interface OOOctreeBuilder : NSObject {
-@private
-    int* _octree;
-    uint32_t _nodeCount, _capacity;
-    struct OOOctreeBuildState {
-        uint32_t insertionPoint;
-        uint32_t remaining;
-    } _stateStack[kMaxOctreeDepth + 1];
-    uint8_t _level;
-}
+inline constexpr int kMaxOctreeDepth = 7;  // 128x128x128
 
-/*
-        -buildOctreeWithRadius:(GLfloat)radius
+class OOOctreeBuilder : public oo::Object {
+ public:
+  OOOctreeBuilder();  // -init; raises OOMallocException if it cannot allocate
+  ~OOOctreeBuilder() override;
 
-        Generate an octree with the current data in the builder and the specified
-        radius, and clear the builder. If NDEBUG is undefined, throws an exception
-        if the structure of the octree is invalid.
-*/
-- (Octree*)buildOctreeWithRadius:(GLfloat)radius;
+  /*
+          buildOctreeWithRadius()
 
-/*
-        Append nodes to the octree.
+          Generate an octree with the current data in the builder and the
+     specified radius, and clear the builder. If NDEBUG is undefined, throws an
+     exception if the structure of the octree is invalid.
+  */
+  std::shared_ptr<Octree> buildOctreeWithRadius(GLfloat radius);
 
-        There are three types of nodes: solid, empty, and inner nodes.
-        An inner node must have exactly eight children, which may be any type of
-        node. Exactly one node must be added at root level.
+  /*
+          Append nodes to the octree.
 
-        The order of child nodes is defined as follows: the index of a child node
-        is a three bit number. The highest bit represents x, the middle bit
-        represents y and the low bit represents z. A set bit indicates the high-
-        coordinate half of the parent node, and a clear bit indicates the low-
-        coordinate half.
+          There are three types of nodes: solid, empty, and inner nodes.
+          An inner node must have exactly eight children, which may be any type
+     of node. Exactly one node must be added at root level.
 
-        For instance, if the parent node is a cube ranging from -1 to 1 on each
-        axis, the child 101 (5) represents x 0..1, y -1..0, z 0..1.
-*/
-- (void)writeSolid;
-- (void)writeEmpty;
-- (void)beginInnerNode;
-- (void)endInnerNode;
+          The order of child nodes is defined as follows: the index of a child
+     node is a three bit number. The highest bit represents x, the middle bit
+          represents y and the low bit represents z. A set bit indicates the
+     high- coordinate half of the parent node, and a clear bit indicates the
+     low- coordinate half.
 
-@end
+          For instance, if the parent node is a cube ranging from -1 to 1 on
+     each axis, the child 101 (5) represents x 0..1, y -1..0, z 0..1.
+  */
+  void writeSolid();
+  void writeEmpty();
+  void beginInnerNode();
+  void endInnerNode();
+
+ private:
+  struct OOOctreeBuildState {
+    uint32_t insertionPoint;
+    uint32_t remaining;
+  };
+
+  // The file-static helpers that read the builder's state.
+  static OOOctreeBuildState* State(OOOctreeBuilder* self);
+  static void SetNode_slow(OOOctreeBuilder* self, uint32_t index,
+                           int value) NO_INLINE_FUNC;
+  static void SetNode(OOOctreeBuilder* self, uint32_t index, int value);
+  static void InsertNode(OOOctreeBuilder* self, int value);
+
+  std::vector<int> _octree;  // the nodes; its size is the capacity
+  uint32_t _nodeCount = {};
+  OOOctreeBuildState _stateStack[kMaxOctreeDepth + 1] = {};
+  uint8_t _level = {};
+};

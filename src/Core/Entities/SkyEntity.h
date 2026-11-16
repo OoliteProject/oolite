@@ -24,17 +24,60 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOEntityWithDrawable.h"
+#pragma once
 
-@class OOColor;
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-@interface SkyEntity : OOEntityWithDrawable {
-    OOColor* skyColor;
-}
+#include "OOEntityWithDrawable.h"
+#include "oofnd/PList.hpp"
 
-- (id)initWithColors:(OOColor*)col1 col2:(OOColor*)col2 andSystemInfo:(NSDictionary*)systemInfo;
-- (BOOL)changeProperty:(NSString*)key withDictionary:(NSDictionary*)dict;
+// The universe makes it with oo::makeShared<SkyEntity>() and finds it by
+// dynamic_cast.
+class SkyEntity : public OOEntityWithDrawable {
+ public:
+  /*	-initWithColors::andSystemInfo:'s body after [super init] (the
+     constructor ran Entity's), run on a new sky once its object is made.
+  */
+  void initWithColors(OOColor* col1, OOColor* col2,
+                      const oo::PList& systemInfo);
+  bool changeProperty(const std::string& key, const oo::PList& dict);
 
-- (OOColor*)skyColor;
+  OOColor* getSkyColor();  // -skyColor (the ivar keeps the name)
 
-@end
+  void update(OOTimeDelta delta_t) override;
+  bool isSky() override;
+  bool isVisible() override;
+  bool canCollide() override;
+  GLfloat cameraRangeFront() override;
+  GLfloat cameraRangeBack() override;
+  void drawImmediate(bool immediate, bool translucent) override;
+
+#ifdef OO_DEBUG_MONITOR_ENABLED
+  std::optional<std::string> descriptionForObjDump() override;
+#endif
+
+ private:
+  bool readColor1(std::shared_ptr<OOColor>* ioColor1,
+                  std::shared_ptr<OOColor>* ioColor2,
+                  std::shared_ptr<OOColor>* ioColor3,
+                  std::shared_ptr<OOColor>* ioColor4,
+                  const oo::PList& dictionary);
+
+  std::shared_ptr<OOColor> skyColor;
+};

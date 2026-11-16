@@ -25,31 +25,60 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
-#import "OOMaths.h"
+#pragma once
 
-@class ShipEntity, Octree;
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-enum {
-    kOOMeshToOctreeConverterSmallDataCapacity = 16
+#include "OOFoundation.h"
+#include "OOMaths.h"
+#include "Octree.h"
+#include "oofnd/Object.hpp"
+#include "oofnd/objc/OOObject.h"
+
+class ShipEntity;
+
+inline constexpr uint32_t kOOMeshToOctreeConverterSmallDataCapacity = 16;
+
+struct OOMeshToOctreeConverterInternalData {
+  Triangle* triangles;
+  uint32_t count;
+  uint32_t capacity;
+  uint32_t pendingCapacity;
+  Triangle smallData[kOOMeshToOctreeConverterSmallDataCapacity];
+  std::vector<Triangle> heap;  // the storage once smallData is outgrown
 };
 
-@interface OOMeshToOctreeConverter : NSObject {
-@private
-    struct OOMeshToOctreeConverterInternalData {
-        Triangle* triangles;
-        uint32_t count;
-        uint32_t capacity;
-        uint32_t pendingCapacity;
-        Triangle smallData[kOOMeshToOctreeConverterSmallDataCapacity];
-    } _data;
-}
+class OOMeshToOctreeConverter : public oo::Object {
+ public:
+  explicit OOMeshToOctreeConverter(std::size_t capacity);  // -initWithCapacity:
+  static std::shared_ptr<OOMeshToOctreeConverter> converterWithCapacity(
+      std::size_t capacity);
+  ~OOMeshToOctreeConverter() override;
 
-- (id)initWithCapacity:(NSUInteger)capacity;
-+ (instancetype)converterWithCapacity:(NSUInteger)capacity;
+  void addTriangle(Triangle tri);
 
-- (void)addTriangle:(Triangle)tri;
+  std::shared_ptr<Octree> findOctreeToDepth(std::size_t depth);
 
-- (Octree*)findOctreeToDepth:(NSUInteger)depth;
+  // What "%@" prints between the braces of <OOMeshToOctreeConverter 0x...>{...}
+  // (OODescription.h).
+  std::optional<std::string> descriptionComponents() const;
 
-@end
+ private:
+  struct OOMeshToOctreeConverterInternalData _data = {};
+};

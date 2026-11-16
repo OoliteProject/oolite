@@ -6,6 +6,9 @@ Class responsible for managing and mixing sound channels. This class is an
 implementation detail. Do not use it directly; use an OOSoundSource to play an
 OOSound.
 
+The sound sources, the root sound and the OpenAL controller call
+OOSoundMixer::sharedMixer(), null-guarded.
+
 OOALSound - OpenAL sound implementation for Oolite.
 Copyright (C) 2006-2013 Jens Ayton
 
@@ -29,28 +32,37 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
+#pragma once
 
-@class OOSoundChannel;
+#include "OOFoundation.h"
+#include "oofnd/Object.hpp"
+#include "oofnd/objc/OOObject.h"
 
-enum {
-    kMixerGeneralChannels = 32
+class OOSoundChannel;
+
+inline constexpr int kMixerGeneralChannels = 32;
+
+class OOSoundMixer : public oo::Object {
+ public:
+  /*	Singleton accessor: the one mixer, made on
+     first use; borrowed. Null while sound cannot be set up, and then the next
+     call asks again.
+  */
+  static OOSoundMixer* sharedMixer();
+
+  void update();
+
+  // Only to be called at app shutdown, by OOOpenALController::shutdown().
+  void shutdown();
+
+  OOSoundChannel* popChannel();
+  void pushChannel(OOSoundChannel* channel);
+
+ private:
+  bool init();
+
+  // _channels shares each channel the mixer made until shutdown() (as
+  // alloc/init and DESTROY did); the free list is borrowed.
+  std::shared_ptr<OOSoundChannel> _channels[kMixerGeneralChannels];
+  OOSoundChannel* _freeList = {};
 };
-
-@interface OOSoundMixer : NSObject {
-    OOSoundChannel* _channels[kMixerGeneralChannels];
-    OOSoundChannel* _freeList;
-
-    uint32_t _maxChannels;
-    uint32_t _playMask;
-}
-
-// Singleton accessor
-+ (id)sharedMixer;
-
-- (void)update;
-
-- (OOSoundChannel*)popChannel;
-- (void)pushChannel:(OOSoundChannel*)channel;
-
-@end

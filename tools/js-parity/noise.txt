@@ -1,0 +1,24 @@
+# Probe lines whose values differ between two runs of the same build (random
+# equipment, crew and orientation of the spawned ship). Matched as prefixes
+# of the line before " = " or " -> ".
+[oojs.probe]: spawned.accuracy
+[oojs.probe]: spawned.crew
+[oojs.probe]: spawned.entityPersonality
+[oojs.probe]: spawned.heading
+[oojs.probe]: spawned.orientation
+[oojs.probe]: spawned.vectorForward
+[oojs.probe]: spawned.vectorRight
+[oojs.probe]: spawned.vectorUp
+# missileLoadTime is 2.0 when the (random) accuracy is high enough, else 0 (ShipEntity.m).
+[oojs.probe]: spawned.missileLoadTime
+# Random traffic in the system.
+[oojs.probe]: system.allShips
+[oojs.probe]: system.populatorSettings
+# Missile types and other equipment are chosen at random when the ship is spawned.
+[oojs.probe]: spawned.missiles
+[oojs.probe]: spawned.equipment
+# Station order is not stable between runs.
+[oojs.probe]: system.stations
+# Market prices fluctuate, and system locations such as the witchpoint are randomised.
+[oojs.probe]: samplePrice
+[oojs.probe]: system.locationFromCode
