@@ -37,6 +37,8 @@ create_appimage() {
     export DEPLOY_OPENGL
     local DEPLOY_VULKAN=0
     export DEPLOY_VULKAN
+    local DEPLOY_SDL=1
+    export DEPLOY_SDL
     local DEPLOY_LOCALE=0
     export DEPLOY_LOCALE
     local STRACE_MODE=0

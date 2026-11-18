@@ -101,11 +101,20 @@ run_script() {
         echo "📦 Installing AppImage Tools..."
         install_package appimage
         BIN="/usr/local/bin"
-        download "https://raw.githubusercontent.com/pkgforge-dev/Anylinux-AppImages/refs/heads/main/useful-tools/quick-sharun.sh" "$BIN/quick-sharun.sh" "+x"
+        # quick-sharun.sh and get-debloated-pkgs.sh are pinned to one Anylinux-AppImages commit, because a change
+        # to quick-sharun can break the AppImage without any change here (#793). To update: try the latest commit
+        # from https://github.com/pkgforge-dev/Anylinux-AppImages/commits/main, build the AppImage with
+        # build_appimage_container.sh, check that the game starts with a title bar on GNOME Wayland and X11,
+        # then change the hash below. The libdecor-mini package itself is not pinned (install_libdecor_fn.sh).
+        local anylinux="https://raw.githubusercontent.com/pkgforge-dev/Anylinux-AppImages/7cb538a024588e29de89c2cea19cee8c9eca31c7/useful-tools"
+        download "$anylinux/quick-sharun.sh" "$BIN/quick-sharun.sh" "+x"
+        download "$anylinux/get-debloated-pkgs.sh" "$BIN/get-debloated-pkgs.sh" "+x"
         download "https://raw.githubusercontent.com/AppImage/AppImages/master/appdir-lint.sh" "$BIN/appdir-lint.sh" "+x"
         download "https://raw.githubusercontent.com/AppImage/AppImages/master/excludelist" "$BIN/excludelist"
         local appimage_filename="appimagetool-$(uname -m).AppImage"
         download "https://github.com/AppImage/appimagetool/releases/download/continuous/$appimage_filename" "$BIN/$appimage_filename" "+x"
+        source ./install_libdecor_fn.sh
+        install_libdecor || return 1
     fi
 
     if [[ "$INSTALL_FLATPAK" == true ]]; then  # For building Flatpak
