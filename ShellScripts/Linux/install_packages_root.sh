@@ -53,6 +53,8 @@ run_script() {
                 echo "  --core+appimage  Install base build dependencies + AppImage tools"
                 echo "  --core+flatpak   Install base build dependencies + Flatpak tools"
                 echo "  --all            Install everything"
+                echo "AppImage tools are only installed in a throwaway container (OOLITE_DISPOSABLE_BUILD_MACHINE=true),"
+                echo "because they replace the system libdecor. To build an AppImage, use build_appimage_container.sh."
                 exit 0
                 ;;
             *) echo "Unknown parameter: $1"; exit 1 ;;
@@ -69,6 +71,11 @@ run_script() {
 
     source ./install_package_fn.sh
     source ../common/download_fn.sh
+    source ./install_libdecor_fn.sh
+
+    if [[ "$INSTALL_APPIMAGE" == true ]]; then  # check before installing anything
+        require_disposable_build_machine || { popd > /dev/null; return 1; }
+    fi
 
     local outputdir="../../build"
     mkdir -p "$outputdir"
@@ -113,7 +120,6 @@ run_script() {
         download "https://raw.githubusercontent.com/AppImage/AppImages/master/excludelist" "$BIN/excludelist"
         local appimage_filename="appimagetool-$(uname -m).AppImage"
         download "https://github.com/AppImage/appimagetool/releases/download/continuous/$appimage_filename" "$BIN/$appimage_filename" "+x"
-        source ./install_libdecor_fn.sh
         install_libdecor || return 1
     fi
 
