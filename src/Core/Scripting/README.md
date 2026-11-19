@@ -82,9 +82,11 @@ Behaviour that needed emulating, all in the engine core:
   `unpatchedEngine` check tests for this too.
 - **Profiling.** In debug builds `OOJS_PROFILE` is on, as with SpiderMonkey:
   natives bracketed by `OOJS_NATIVE_ENTER`/`OOJS_PROFILE_ENTER` are timed, and
-  the debug console's `profile()`, `getProfile()` and `trace()` work. As in
-  SpiderMonkey builds without `MOZ_TRACE_JSCALLS` (the usual case), only
-  natives are profiled; other time is reported as JavaScript time.
+  the debug console's `profile()`, `getProfile()` and `trace()` work.
+  JavaScript functions are timed too, through a function call hook that
+  Oolite's QuickJS-ng patch adds (the counterpart of SpiderMonkey's
+  `MOZ_TRACE_JSCALLS`). The hook is only installed while profiling, so it
+  costs nothing otherwise.
 - The time limiter uses QuickJS's interrupt handler; error locations come from
   the exception's stack.
 
@@ -112,6 +114,12 @@ version and a format number (`kCompiledScriptFormat` in `OOJSScript.m`). An
 entry is only used if all three match, so editing a script recompiles it even
 when the data cache is otherwise up to date. As before, the whole data cache is
 cleared when the Oolite version or the search paths change.
+
+Within a session, each compiled script is also kept in memory by path, so a
+script loaded again (every ship's script and AI) isn't read, hashed or
+deserialised again; like SpiderMonkey, it doesn't notice a script edited during
+the session. Each load still runs a new closure of the bytecode, so scripts
+don't share state. The kept scripts are freed before the context is destroyed.
 
 Because `JS_EvalFunction()` runs compiled code with the global object as
 `this`, the wrapped script is compiled as a function expression and then called
