@@ -175,6 +175,8 @@ BOOL OOJSArgumentListGetNumber(JSContext* context, NSString* scriptClass, NSStri
 
 static JSValue JSArrayFromNSArray(JSContext* context, NSArray* array)
 {
+    OOJS_PROFILE_ENTER
+
     if (array == nil)
         return JS_UNDEFINED;
 
@@ -199,6 +201,8 @@ static JSValue JSArrayFromNSArray(JSContext* context, NSArray* array)
     }
 
     return result;
+
+    OOJS_PROFILE_EXIT
 }
 
 /*	Convert an NSDictionary to a JavaScript Object.
@@ -207,6 +211,8 @@ static JSValue JSArrayFromNSArray(JSContext* context, NSArray* array)
 */
 static JSValue JSObjectFromNSDictionary(JSContext* context, NSDictionary* dictionary)
 {
+    OOJS_PROFILE_ENTER
+
     if (dictionary == nil)
         return JS_UNDEFINED;
 
@@ -249,6 +255,8 @@ static JSValue JSObjectFromNSDictionary(JSContext* context, NSDictionary* dictio
     }
 
     return result;
+
+    OOJS_PROFILE_EXIT
 }
 
 @implementation NSObject (OOJavaScript)
@@ -356,6 +364,8 @@ static id KeyForAtom(JSContext* context, JSAtom atom)
 
 NSDictionary* OOJSDictionaryFromJSObject(JSContext* context, JSValueConst object)
 {
+    OOJS_PROFILE_ENTER
+
     JSPropertyEnum* properties = NULL;
     uint32_t i, count;
 
@@ -384,4 +394,6 @@ NSDictionary* OOJSDictionaryFromJSObject(JSContext* context, JSValueConst object
 
     JS_FreePropertyEnum(context, properties, count);
     return result;
+
+    OOJS_PROFILE_EXIT
 }
