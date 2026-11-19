@@ -136,6 +136,8 @@ static JSValue ValueForMissionVariable(JSContext* context, const std::string& ke
 
 static int MissionVariablesGetOwnProperty(JSContext* context, JSPropertyDescriptor* desc, JSValueConst object, JSAtom propID)
 {
+    OOJS_PROFILE_ENTER
+
     @try {
         std::optional<std::string> key = KeyForPropertyName(NameForPropertyID(context, propID));
         if (!key.has_value())
@@ -159,10 +161,14 @@ static int MissionVariablesGetOwnProperty(JSContext* context, JSPropertyDescript
         OOJSReportWrappedException(context, exception);
         return -1;
     }
+
+    OOJS_PROFILE_EXIT
 }
 
 static int MissionVariablesGetOwnPropertyNames(JSContext* context, JSPropertyEnum** outTable, uint32_t* outCount, JSValueConst object)
 {
+    OOJS_PROFILE_ENTER
+
     @try {
         // A copy of the keys, which is good since the enumerating code might mutate. In key order
         // (-allKeys gave them in hash order).
@@ -205,10 +211,14 @@ static int MissionVariablesGetOwnPropertyNames(JSContext* context, JSPropertyEnu
         OOJSReportWrappedException(context, exception);
         return -1;
     }
+
+    OOJS_PROFILE_EXIT
 }
 
 static int MissionVariablesDeleteProperty(JSContext* context, JSValueConst object, JSAtom propID)
 {
+    OOJS_PROFILE_ENTER
+
     @try {
         PlayerEntity* player = OOPlayerForScripting();
 
@@ -224,6 +234,8 @@ static int MissionVariablesDeleteProperty(JSContext* context, JSValueConst objec
         OOJSReportWrappedException(context, exception);
         return -1;
     }
+
+    OOJS_PROFILE_EXIT
 }
 
 static JSValue MissionVariablesGetProperty(JSContext* context, JSValueConst object, JSAtom propID, JSValueConst receiver)
@@ -285,6 +297,8 @@ static BOOL SetMissionVariable(JSContext* context, JSAtom propID, JSValueConst v
 
 static int MissionVariablesSetProperty(JSContext* context, JSValueConst object, JSAtom propID, JSValueConst value, JSValueConst receiver, int flags)
 {
+    OOJS_PROFILE_ENTER
+
     @try {
         return SetMissionVariable(context, propID, value) ? YES : -1;
     }
@@ -292,6 +306,8 @@ static int MissionVariablesSetProperty(JSContext* context, JSValueConst object, 
         OOJSReportWrappedException(context, exception);
         return -1;
     }
+
+    OOJS_PROFILE_EXIT
 }
 
 static int MissionVariablesDefineOwnProperty(JSContext* context, JSValueConst object, JSAtom propID, JSValueConst value, JSValueConst getter, JSValueConst setter, int flags)
