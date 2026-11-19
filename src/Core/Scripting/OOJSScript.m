@@ -625,21 +625,79 @@ static void AddStackToArrayReversed(NSMutableArray* array, RunningStack* stack)
     }
 }
 
-/*	Compile and run a script file with object as its this and, unless the
-        script opts out with the "use oolite modern" directive, at the head of
-        its scope chain.
+/*	Compiled scripts by path, kept for the session, so a script loaded for
+        every ship (ship scripts and AIs) is read and compiled only once, as
+        SpiderMonkey's compiled script cache did. Each load runs a new closure
+        of the shared bytecode, so script objects still don't share state.
+*/
+static NSMutableDictionary* sCompiledScripts = nil;
+
+static JSValue CompileScriptWithName(JSContext* context, NSString* path, NSString** outErrorMessage);
+
+void OOJSScriptDestroyCompiledScripts(JSContext* context)
+{
+    NSValue* held = nil;
+    foreach (held, [sCompiledScripts allValues]) {
+        JSValue compiled;
+        [held getValue:&compiled];
+        JS_FreeValue(context, compiled);
+    }
+    DESTROY(sCompiledScripts);
+}
+
+/*	Compile (or reuse) and run a script file with object as its this and,
+        unless the script opts out with the "use oolite modern" directive, at the
+        head of its scope chain.
 */
 static BOOL RunScriptWithName(JSContext* context, NSString* path, JSValueConst object, NSString** outErrorMessage)
 {
-    NSString* fileContents = nil;
-
     NSCParameterAssert(outErrorMessage != NULL);
     *outErrorMessage = nil;
 
-    fileContents = [NSString stringWithContentsOfUnicodeFile:path];
+    JSValue compiled;
+    NSValue* held = [sCompiledScripts objectForKey:path];
+    if (held != nil) {
+        [held getValue:&compiled];
+        compiled = JS_DupValue(context, compiled);
+    } else {
+        compiled = CompileScriptWithName(context, path, outErrorMessage);
+        if (JS_IsException(compiled))
+            return NO;
+
+        if (sCompiledScripts == nil)
+            sCompiledScripts = [[NSMutableDictionary alloc] init];
+        JSValue kept = JS_DupValue(context, compiled);
+        [sCompiledScripts setObject:[NSValue valueWithBytes:&kept objCType:@encode(JSValue)] forKey:path];
+    }
+
+    OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
+    JSValue result;
+    JSValue function = JS_EvalFunction(context, compiled); // Takes ownership of compiled.
+    if (JS_IsException(function)) {
+        result = function;
+    } else {
+        result = JS_Call(context, function, object, 0, NULL);
+        JS_FreeValue(context, function);
+    }
+    OOJSStopTimeLimiter();
+
+    if (JS_IsException(result)) {
+        OOJSReportPendingException(context);
+        *outErrorMessage = @"could not run script";
+        return NO;
+    }
+
+    JS_FreeValue(context, result);
+    return YES;
+}
+
+// Owned compiled script, or JS_EXCEPTION with *outErrorMessage set.
+static JSValue CompileScriptWithName(JSContext* context, NSString* path, NSString** outErrorMessage)
+{
+    NSString* fileContents = [NSString stringWithContentsOfUnicodeFile:path];
     if (fileContents == nil) {
         *outErrorMessage = @"could not load file";
-        return NO;
+        return JS_EXCEPTION;
     }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
@@ -692,32 +750,14 @@ static BOOL RunScriptWithName(JSContext* context, NSString* path, JSValueConst o
         if (JS_IsException(compiled)) {
             OOJSReportPendingException(context);
             *outErrorMessage = @"compilation failed";
-            return NO;
+            return JS_EXCEPTION;
         }
 #if OO_CACHE_JS_SCRIPTS
         CacheCompiledScript(context, path, source, compiled);
 #endif
     }
 
-    OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
-    JSValue result;
-    JSValue function = JS_EvalFunction(context, compiled); // Takes ownership of compiled.
-    if (JS_IsException(function)) {
-        result = function;
-    } else {
-        result = JS_Call(context, function, object, 0, NULL);
-        JS_FreeValue(context, function);
-    }
-    OOJSStopTimeLimiter();
-
-    if (JS_IsException(result)) {
-        OOJSReportPendingException(context);
-        *outErrorMessage = @"could not run script";
-        return NO;
-    }
-
-    JS_FreeValue(context, result);
-    return YES;
+    return compiled;
 }
 
 #if OO_CACHE_JS_SCRIPTS
