@@ -113,6 +113,9 @@ private:
 
 void InitOOJSScript(JSContext* context, JSValueConst global);
 
+// Frees the compiled scripts kept for reuse. Call before destroying the context.
+void OOJSScriptDestroyCompiledScripts(JSContext* context);
+
 // Transitional: the Objective-C OOJSScript, for callers not yet converted. Deleted, with
 // namespace cxx above, by the bridge's deletion bead.
 #import "OOJSScript+ObjCBridge.h"
