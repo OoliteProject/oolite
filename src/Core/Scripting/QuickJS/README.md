@@ -132,6 +132,12 @@ entry is only used if all three match, so editing a script recompiles it even
 when the data cache is otherwise up to date. As before, the whole data cache is
 cleared when the Oolite version or the search paths change.
 
+Within a session, each compiled script is also kept in memory by path, so a
+script loaded again (every ship's script and AI) isn't read, hashed or
+deserialised again; like SpiderMonkey, it doesn't notice a script edited during
+the session. Each load still runs a new closure of the bytecode, so scripts
+don't share state. The kept scripts are freed before the context is destroyed.
+
 Because `JS_EvalFunction()` runs compiled code with the global object as
 `this`, the wrapped script is compiled as a function expression and then called
 with the script object as `this`. The prefix is on the first line, so line

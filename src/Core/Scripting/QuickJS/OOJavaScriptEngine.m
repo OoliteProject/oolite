@@ -249,6 +249,7 @@ static void LoadCompatibilityScript(JSContext* context);
 {
     if (gOOJSMainThreadContext != NULL) {
         OOConstToJSStringDestroy();
+        OOJSScriptDestroyCompiledScripts(_context);
 
         JS_FreeValue(_context, sLegacyConstRewriter);
         sLegacyConstRewriter = JS_UNDEFINED;
