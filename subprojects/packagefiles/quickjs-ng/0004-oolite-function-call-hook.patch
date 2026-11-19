@@ -1,0 +1,104 @@
+--- a/quickjs.c
++++ b/quickjs.c
+@@ -381,6 +381,9 @@
+ 
+     JSInterruptHandler *interrupt_handler;
+     void *interrupt_opaque;
++
++    JSFunctionCallHook *function_call_hook; /* Oolite */
++    void *function_call_hook_opaque;
+ 
+     JSPromiseHook *promise_hook;
+     void *promise_hook_opaque;
+@@ -2474,6 +2477,12 @@
+     rt->interrupt_opaque = opaque;
+ }
+ 
++void JS_SetFunctionCallHook(JSRuntime *rt, JSFunctionCallHook *cb, void *opaque)
++{
++    rt->function_call_hook = cb;
++    rt->function_call_hook_opaque = opaque;
++}
++
+ void JS_SetCanBlock(JSRuntime *rt, bool can_block)
+ {
+     rt->can_block = can_block;
+@@ -18099,6 +18108,10 @@
+             pc = sf->cur_pc;
+             sf->prev_frame = rt->current_stack_frame;
+             rt->current_stack_frame = sf;
++            if (unlikely(rt->function_call_hook))
++                rt->function_call_hook(ctx, sf->cur_func, b, JS_UNDEFINED,
++                                       0, NULL, true,
++                                       rt->function_call_hook_opaque);
+             if (s->throw_flag)
+                 goto exception;
+             else
+@@ -18170,6 +18183,9 @@
+     sf->prev_frame = rt->current_stack_frame;
+     rt->current_stack_frame = sf;
+     ctx = b->realm; /* set the current realm */
++    if (unlikely(rt->function_call_hook))
++        rt->function_call_hook(ctx, func_obj, b, this_obj, argc, argv, true,
++                               rt->function_call_hook_opaque);
+ 
+ #ifdef ENABLE_DUMPS // JS_DUMP_BYTECODE_STEP
+     if (check_dump_flag(ctx->rt, JS_DUMP_BYTECODE_STEP))
+@@ -20970,6 +20986,9 @@
+             JS_FreeValue(ctx, *pval);
+         }
+     }
++    if (unlikely(rt->function_call_hook))
++        rt->function_call_hook(ctx, sf->cur_func, b, JS_UNDEFINED, 0, NULL,
++                               false, rt->function_call_hook_opaque);
+     rt->current_stack_frame = sf->prev_frame;
+     return ret_val;
+ }
+@@ -31785,6 +31804,24 @@
+     return JS_DupAtom(ctx, b->filename);
+ }
+ 
++bool JS_GetFunctionInfo(JSContext *ctx, JSValueConst func_obj,
++                        JSAtom *name, JSAtom *filename, int *line_num)
++{
++    JSObject *p;
++    JSFunctionBytecode *b;
++
++    if (JS_VALUE_GET_TAG(func_obj) != JS_TAG_OBJECT)
++        return false;
++    p = JS_VALUE_GET_OBJ(func_obj);
++    if (!js_class_has_bytecode(p->class_id))
++        return false;
++    b = p->u.func.function_bytecode;
++    *name = JS_DupAtom(ctx, b->func_name);
++    *filename = JS_DupAtom(ctx, b->filename);
++    *line_num = b->line_num;
++    return true;
++}
++
+ JSAtom JS_GetModuleName(JSContext *ctx, JSModuleDef *m)
+ {
+     return JS_DupAtom(ctx, m->module_name);
+--- a/quickjs.h
++++ b/quickjs.h
+@@ -1186,6 +1186,20 @@
+ /* return != 0 if the JS code needs to be interrupted */
+ typedef int JSInterruptHandler(JSRuntime *rt, void *opaque);
+ JS_EXTERN void JS_SetInterruptHandler(JSRuntime *rt, JSInterruptHandler *cb, void *opaque);
++/* Oolite: called when a bytecode function is entered (entering = true) and
++   left (entering = false), including each resumption and suspension of a
++   generator or async function. code identifies the function's bytecode, which
++   all closures of a function share. this_obj, argc and argv are only set on
++   entry to a call. Used by Oolite's JavaScript profiler. */
++typedef void JSFunctionCallHook(JSContext *ctx, JSValueConst func_obj,
++                                const void *code, JSValueConst this_obj,
++                                int argc, JSValueConst *argv, bool entering,
++                                void *opaque);
++JS_EXTERN void JS_SetFunctionCallHook(JSRuntime *rt, JSFunctionCallHook *cb, void *opaque);
++/* Oolite: the name, file name and first line of a bytecode function. Returns
++   false for other functions. The atoms must be freed. */
++JS_EXTERN bool JS_GetFunctionInfo(JSContext *ctx, JSValueConst func_obj,
++                                  JSAtom *name, JSAtom *filename, int *line_num);
+ /* if can_block is true, Atomics.wait() can be used */
+ JS_EXTERN void JS_SetCanBlock(JSRuntime *rt, bool can_block);
+ /* set the [IsHTMLDDA] internal slot */
