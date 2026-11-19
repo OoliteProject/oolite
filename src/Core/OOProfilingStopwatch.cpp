@@ -105,6 +105,17 @@ OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime,
   // the two still gives the right answer); the unsigned DWORD difference
   // wrapped to about 49.7 days.
   return 1e-3 * static_cast<double>(static_cast<int32_t>(endTime - startTime));
+#elif OO_PROFILING_STOPWATCH_PERFORMANCE_COUNTER
+  static double conversion = 0.0;
+
+  if (EXPECT_NOT(conversion == 0.0)) {
+    LARGE_INTEGER frequency;
+    if (QueryPerformanceFrequency(&frequency) && frequency.QuadPart != 0) {
+      conversion = 1.0 / static_cast<double>(frequency.QuadPart);
+    }
+  }
+
+  return conversion * static_cast<double>(endTime - startTime);
 #elif OO_PROFILING_STOPWATCH_GETTIMEOFDAY
   int32_t deltaS = static_cast<int32_t>(endTime.tv_sec) -
                    static_cast<int32_t>(startTime.tv_sec);

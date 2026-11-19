@@ -693,18 +693,82 @@ static void AddStackToArrayReversed(
   }
 }
 
-/*	Compile and run a script file with object as its this and, unless the
-        script opts out with the "use oolite modern" directive, at the head of
-        its scope chain.
+/*	Compiled scripts by path, kept for the session, so a script loaded for
+        every ship (ship scripts and AIs) is read and compiled only once, as
+        SpiderMonkey's compiled script cache did. Each load runs a new closure
+        of the shared bytecode, so script objects still don't share state.
+*/
+static std::unordered_map<std::string, JSValue>* sCompiledScripts = nullptr;
+
+static JSValue CompileScriptWithName(
+    JSContext* context, const std::optional<std::string>& path,
+    std::optional<std::string>* outErrorMessage);
+
+void OOJSScriptDestroyCompiledScripts(JSContext* context) {
+  if (sCompiledScripts == nullptr) return;
+  for (const auto& pathAndCompiled : *sCompiledScripts)
+    JS_FreeValue(context, pathAndCompiled.second);
+  delete sCompiledScripts;
+  sCompiledScripts = nullptr;
+}
+
+/*	Compile (or reuse) and run a script file with object as its this and,
+        unless the script opts out with the "use oolite modern" directive, at
+   the head of its scope chain.
 */
 static bool RunScriptWithName(JSContext* context,
                               const std::optional<std::string>& path,
                               JSValueConst object,
                               std::optional<std::string>* outErrorMessage) {
-  std::optional<std::string> utf8Contents;
-
   OOCParameterAssert(outErrorMessage != nullptr);
   outErrorMessage->reset();
+
+  JSValue compiled = JS_UNDEFINED;
+  bool reused = false;
+  if (sCompiledScripts != nullptr && path.has_value()) {
+    auto held = sCompiledScripts->find(*path);
+    if (held != sCompiledScripts->end()) {
+      compiled = JS_DupValue(context, held->second);
+      reused = true;
+    }
+  }
+  if (!reused) {
+    compiled = CompileScriptWithName(context, path, outErrorMessage);
+    if (JS_IsException(compiled)) return false;
+
+    if (sCompiledScripts == nullptr)
+      sCompiledScripts = new std::unordered_map<std::string, JSValue>;
+    (*sCompiledScripts)[*path] =
+        JS_DupValue(context, compiled);  // a compiled script has a path
+  }
+
+  OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
+  JSValue result;
+  JSValue function =
+      JS_EvalFunction(context, compiled);  // Takes ownership of compiled.
+  if (JS_IsException(function)) {
+    result = function;
+  } else {
+    result = JS_Call(context, function, object, 0, nullptr);
+    JS_FreeValue(context, function);
+  }
+  OOJSStopTimeLimiter();
+
+  if (JS_IsException(result)) {
+    OOJSReportPendingException(context);
+    *outErrorMessage = "could not run script";
+    return false;
+  }
+
+  JS_FreeValue(context, result);
+  return true;
+}
+
+// Owned compiled script, or JS_EXCEPTION with *outErrorMessage set.
+static JSValue CompileScriptWithName(
+    JSContext* context, const std::optional<std::string>& path,
+    std::optional<std::string>* outErrorMessage) {
+  std::optional<std::string> utf8Contents;
 
   // decodeUnicodeText (it read through .oxz archives)
   if (path.has_value()) {
@@ -713,7 +777,7 @@ static bool RunScriptWithName(JSContext* context,
   }
   if (!utf8Contents.has_value()) {
     *outErrorMessage = "could not load file";
-    return false;
+    return JS_EXCEPTION;
   }
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
@@ -771,33 +835,14 @@ static bool RunScriptWithName(JSContext* context,
     if (JS_IsException(compiled)) {
       OOJSReportPendingException(context);
       *outErrorMessage = "compilation failed";
-      return false;
+      return JS_EXCEPTION;
     }
 #if OO_CACHE_JS_SCRIPTS
     CacheCompiledScript(context, path.value_or(""), wrapped, compiled);
 #endif
   }
 
-  OOJSStartTimeLimiterWithTimeLimit(kOOJSLongTimeLimit);
-  JSValue result;
-  JSValue function =
-      JS_EvalFunction(context, compiled);  // Takes ownership of compiled.
-  if (JS_IsException(function)) {
-    result = function;
-  } else {
-    result = JS_Call(context, function, object, 0, nullptr);
-    JS_FreeValue(context, function);
-  }
-  OOJSStopTimeLimiter();
-
-  if (JS_IsException(result)) {
-    OOJSReportPendingException(context);
-    *outErrorMessage = "could not run script";
-    return false;
-  }
-
-  JS_FreeValue(context, result);
-  return true;
+  return compiled;
 }
 
 #if OO_CACHE_JS_SCRIPTS

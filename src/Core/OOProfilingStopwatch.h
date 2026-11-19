@@ -64,15 +64,16 @@ SOFTWARE.
 
 #if OOLITE_WINDOWS
 
-// Windows: use timeGetTime.
-// DWORD and timeGetTime(), from their own headers: <windows.h> here would bring
-// in the old <winsock.h> ahead of a later <winsock2.h>.
-// clang-format off
-// windef.h must come first: timeapi.h's mmsyscom.h uses BYTE, DWORD and
-// DECLARE_HANDLE without defining them. Don't let the include sorter reorder.
+// Windows: if standalone, use timeGetTime...
+// DWORD and the timer functions, from their own headers: <windows.h> here would
+// bring in the old <winsock.h> ahead of a later <winsock2.h>.
 #include <windef.h>
+
+#if OOSTOPWATCH_STANDALONE
+// windef.h must come first: timeapi.h's mmsyscom.h uses BYTE, DWORD and
+// DECLARE_HANDLE without defining them.
 #include <timeapi.h>
-// clang-format on
+
 #define OO_PROFILING_STOPWATCH_WINDOWS 1
 typedef DWORD OOHighResTimeValue;  // Rolls over once every 50 days, but we can
                                    // live with that.
@@ -88,6 +89,28 @@ typedef DWORD OOHighResTimeValue;  // Rolls over once every 50 days, but we can
     (void)time;                    \
   } while (0)
 #define OOCopyHighResTime(time) (static_cast<OOHighResTimeValue>(time))
+
+#else
+/*	...otherwise use the performance counter, so the profiler can time short
+        functions (timeGetTime() only counts whole milliseconds).
+*/
+#include <profileapi.h>
+
+#define OO_PROFILING_STOPWATCH_PERFORMANCE_COUNTER 1
+typedef int64_t OOHighResTimeValue;
+
+OOINLINE OOHighResTimeValue OOGetHighResTime(void) {
+  LARGE_INTEGER counter;
+  QueryPerformanceCounter(&counter);
+  return counter.QuadPart;
+}
+
+#define OODisposeHighResTime(time) \
+  do {                             \
+    (void)time;                    \
+  } while (0)
+#define OOCopyHighResTime(time) ((OOHighResTimeValue)time)
+#endif
 
 #else
 
