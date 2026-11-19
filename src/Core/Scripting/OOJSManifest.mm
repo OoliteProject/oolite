@@ -177,6 +177,8 @@ static JSValue ManifestGetProperty(OOJS_GETTER_ARGS)
 
 static int ManifestGetOwnProperty(JSContext* context, JSPropertyDescriptor* desc, JSValueConst object, JSAtom propID)
 {
+    OOJS_PROFILE_ENTER
+
     @try {
         PlayerEntity* entity = OOPlayerForScripting();
 
@@ -201,6 +203,8 @@ static int ManifestGetOwnProperty(JSContext* context, JSPropertyDescriptor* desc
         OOJSReportWrappedException(context, exception);
         return -1;
     }
+
+    OOJS_PROFILE_EXIT
 }
 
 // Returns NO with an exception pending on failure.
@@ -232,6 +236,8 @@ static BOOL ManifestSetProperty(JSContext* context, JSValueConst thisObj, const 
 
 static int ManifestSetPropertyExotic(JSContext* context, JSValueConst object, JSAtom propID, JSValueConst value, JSValueConst receiver, int flags)
 {
+    OOJS_PROFILE_ENTER
+
     @try {
         std::optional<std::string> key = NameForPropertyID(context, propID);
         if (!key.has_value()) {
@@ -278,10 +284,14 @@ static int ManifestSetPropertyExotic(JSContext* context, JSValueConst object, JS
         OOJSReportWrappedException(context, exception);
         return -1;
     }
+
+    OOJS_PROFILE_EXIT
 }
 
 static int ManifestDeleteProperty(JSContext* context, JSValueConst object, JSAtom propID)
 {
+    OOJS_PROFILE_ENTER
+
     @try {
         // As before, deleting is setting to undefined.
         std::optional<std::string> key = NameForPropertyID(context, propID);
@@ -293,6 +303,8 @@ static int ManifestDeleteProperty(JSContext* context, JSValueConst object, JSAto
         OOJSReportWrappedException(context, exception);
         return -1;
     }
+
+    OOJS_PROFILE_EXIT
 }
 
 static JSValue ManifestComment(OOJS_NATIVE_ARGS)
