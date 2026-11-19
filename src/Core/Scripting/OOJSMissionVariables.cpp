@@ -157,6 +157,8 @@ static JSValue ValueForMissionVariable(JSContext* context,
 static int MissionVariablesGetOwnProperty(JSContext* context,
                                           JSPropertyDescriptor* desc,
                                           JSValueConst object, JSAtom propID) {
+  OOJS_PROFILE_ENTER
+
   try {
     std::optional<std::string> key =
         KeyForPropertyName(NameForPropertyID(context, propID));
@@ -178,12 +180,16 @@ static int MissionVariablesGetOwnProperty(JSContext* context,
     OOJSReportCurrentException(context);
     return -1;
   }
+
+  OOJS_PROFILE_EXIT
 }
 
 static int MissionVariablesGetOwnPropertyNames(JSContext* context,
                                                JSPropertyEnum** outTable,
                                                uint32_t* outCount,
                                                JSValueConst object) {
+  OOJS_PROFILE_ENTER
+
   try {
     // A copy of the keys, which is good since the enumerating code might
     // mutate. In key order
@@ -228,10 +234,14 @@ static int MissionVariablesGetOwnPropertyNames(JSContext* context,
     OOJSReportCurrentException(context);
     return -1;
   }
+
+  OOJS_PROFILE_EXIT
 }
 
 static int MissionVariablesDeleteProperty(JSContext* context,
                                           JSValueConst object, JSAtom propID) {
+  OOJS_PROFILE_ENTER
+
   try {
     PlayerEntity* player = OOPlayerForScripting();
 
@@ -247,6 +257,8 @@ static int MissionVariablesDeleteProperty(JSContext* context,
     OOJSReportCurrentException(context);
     return -1;
   }
+
+  OOJS_PROFILE_EXIT
 }
 
 static JSValue MissionVariablesGetProperty(JSContext* context,
@@ -314,12 +326,16 @@ static bool SetMissionVariable(JSContext* context, JSAtom propID,
 static int MissionVariablesSetProperty(JSContext* context, JSValueConst object,
                                        JSAtom propID, JSValueConst value,
                                        JSValueConst receiver, int flags) {
+  OOJS_PROFILE_ENTER
+
   try {
     return SetMissionVariable(context, propID, value) ? true : -1;
   } catch (...) {
     OOJSReportCurrentException(context);
     return -1;
   }
+
+  OOJS_PROFILE_EXIT
 }
 
 static int MissionVariablesDefineOwnProperty(JSContext* context,

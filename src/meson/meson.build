@@ -21,7 +21,7 @@ endif
 if host_machine.system() == 'windows'
     meson.override_dependency('threads', declare_dependency(compile_args: ['-pthread']))
 endif
-oolite_dependencies += dependency(
+quickjs_dep = dependency(
     'quickjs-ng',
     version: '>=0.17.0',
     # A system header for the game: its macros' C-style casts are not the game's (-Wold-style-cast).
@@ -46,6 +46,18 @@ oolite_dependencies += dependency(
         'b_ndebug=true',
     ],
 )
+oolite_dependencies += quickjs_dep
+# Oolite's QuickJS-ng patch 0004 adds the function call hook the profiler uses
+# to time JavaScript functions. A subproject checkout made before the patch was
+# added lacks it. (Compiler checks can't use a subproject's dependency, so read
+# its header.)
+if import('fs').read(
+    meson.project_source_root() / 'subprojects' / 'quickjs-0.17.0' / 'quickjs.h',
+).contains('JS_SetFunctionCallHook')
+    add_project_arguments('-DOOJS_QUICKJS_CALL_HOOK=1', language: c_family)
+else
+    warning('subprojects/quickjs-ng predates Oolite\'s function call hook patch, so the profiler will time natives only. Run "meson subprojects update --reset quickjs-ng" and rebuild.')
+endif
 
 if get_option('b_lto')
     if ccid == 'clang'
