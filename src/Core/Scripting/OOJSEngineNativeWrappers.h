@@ -88,11 +88,14 @@ MA 02110-1301, USA.
 typedef struct OOJSProfileStackFrame OOJSProfileStackFrame;
 struct OOJSProfileStackFrame {
   OOJSProfileStackFrame* back;  // Stack link
-  const void* key;       // Key to look up profile entries: the function name.
-  const char* function;  // Name of function.
+  const void* key;  // Key to look up profile entries: the function name, or the
+                    // bytecode of a JS function.
+  const char* function;          // Name of function.
   OOHighResTimeValue startTime;  // Time frame was entered.
   OOTimeDelta subTime;           // Time spent in subroutine calls.
   OOTimeDelta* total;  // Pointer to accumulator for this type of frame.
+  void (*cleanup)(OOJSProfileStackFrame*);  // Cleanup function if needed (used
+                                            // for JS frames).
 };
 
 void OOJSProfileEnter(OOJSProfileStackFrame* frame, const char* function);
