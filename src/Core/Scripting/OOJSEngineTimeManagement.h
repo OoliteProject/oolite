@@ -74,9 +74,10 @@ SOFTWARE.
         If trace is set, all profileable functions will be logged. The actual
         profile will be of little use in this case because of logging overhead.
 
-        As in SpiderMonkey builds without MOZ_TRACE_JSCALLS, only natives are
-        profiled (QuickJS has no function call hook); time not spent in natives
-        is reported as JavaScript time.
+        Natives bracketed by OOJS_NATIVE_ENTER()/OOJS_PROFILE_ENTER are
+        profiled, and so are JavaScript functions, through the function call
+        hook Oolite's QuickJS-ng patch adds (the equivalent of SpiderMonkey's
+        MOZ_TRACE_JSCALLS).
 
         OOJSExcludeTimeFromLimiter()
         Extend the current time limit by the given time, unless the limiter is
@@ -101,6 +102,7 @@ void OOJSExcludeTimeFromLimiter(OOTimeDelta time);
     double _totalTime;
     double _nativeTime;
     double _extensionTime;
+    double _javaScriptTime;
     double _profilerOverhead;
 
     std::vector<oo::ObjCRef<OOTimeProfileEntry*>> _profileEntries;
@@ -125,6 +127,7 @@ void OOJSExcludeTimeFromLimiter(OOTimeDelta time);
     double _selfTimeSum;
     double _totalTimeMax;
     double _selfTimeMax;
+    BOOL _isJavaScriptFrame;
 }
 
 - (id)description; // shared selector (proposed ADR-0043)

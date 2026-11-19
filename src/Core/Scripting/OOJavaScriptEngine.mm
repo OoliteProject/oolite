@@ -256,6 +256,7 @@ static void LoadCompatibilityScript(JSContext* context);
 {
     if (gOOJSMainThreadContext != NULL) {
         OOConstToJSStringDestroy();
+        OOJSScriptDestroyCompiledScripts(_context);
 
         JS_FreeValue(_context, sLegacyConstRewriter);
         sLegacyConstRewriter = JS_UNDEFINED;
@@ -1013,6 +1014,8 @@ BOOL cxx_OOJSArgumentListGetNumber(JSContext* context, const std::optional<std::
 
 BOOL OOJSArgumentListGetNumberNoError(JSContext* context, int argc, JSValueConst* argv, double* outNumber, int* outConsumed)
 {
+    OOJS_PROFILE_ENTER
+
     double value;
 
     NSCParameterAssert(context != NULL && (argv != NULL || argc == 0) && outNumber != NULL);
@@ -1032,6 +1035,8 @@ BOOL OOJSArgumentListGetNumberNoError(JSContext* context, int argc, JSValueConst
     if (outConsumed != NULL)
         *outConsumed = 1;
     return YES;
+
+    OOJS_PROFILE_EXIT
 }
 
 //===========================================================================
@@ -1186,6 +1191,8 @@ JSValue OOJSObjectFromNativeObject(JSContext* context, id object)
 
 std::optional<std::string> cxx_OOStringFromJSValueEvenIfNull(JSContext* context, JSValueConst value)
 {
+    OOJS_PROFILE_ENTER
+
     size_t length;
     const char* chars = JS_ToCStringLen(context, &length, value); // Calls the value's toString method if needed.
     if (chars == NULL) {
@@ -1196,14 +1203,20 @@ std::optional<std::string> cxx_OOStringFromJSValueEvenIfNull(JSContext* context,
     std::string result(chars, length);
     JS_FreeCString(context, chars);
     return result;
+
+    OOJS_PROFILE_EXIT
 }
 
 std::optional<std::string> cxx_OOStringFromJSValue(JSContext* context, JSValueConst value)
 {
+    OOJS_PROFILE_ENTER
+
     if (EXPECT(!JS_IsNull(value) && !JS_IsUndefined(value))) {
         return cxx_OOStringFromJSValueEvenIfNull(context, value);
     }
     return std::nullopt;
+
+    OOJS_PROFILE_EXIT
 }
 
 NSString* OOJSClassNameOfValue(JSContext* context, JSValueConst value)
@@ -1225,6 +1238,8 @@ NSString* OOJSClassNameOfValue(JSContext* context, JSValueConst value)
 
 static std::string DescribeValue(JSContext* context, JSValueConst value, BOOL abbreviateObjects, BOOL recursing)
 {
+    OOJS_PROFILE_ENTER
+
     if (JS_IsFunction(context, value)) {
         JSValue nameVal = JS_GetPropertyStr(context, value, "name");
         std::optional<std::string> name = cxx_OOStringFromJSValue(context, nameVal);
@@ -1291,6 +1306,8 @@ static std::string DescribeValue(JSContext* context, JSValueConst value, BOOL ab
     }
 
     return *result;
+
+    OOJS_PROFILE_EXIT
 }
 
 std::string cxx_OOJSDescribeValue(JSContext* context, JSValueConst value, BOOL abbreviateObjects)
@@ -1448,6 +1465,8 @@ JSValue OOJSUnconstructableConstruct(JSContext* context, JSValueConst thisObj, i
 
 void OOJSObjectWrapperFinalize(JSRuntime* runtime, JSValueConst thisObj)
 {
+    OOJS_PROFILE_ENTER
+
     JSClassID classID;
     id object = (id)JS_GetAnyOpaque(thisObj, &classID);
     if (object != nil) {
@@ -1455,6 +1474,8 @@ void OOJSObjectWrapperFinalize(JSRuntime* runtime, JSValueConst thisObj)
         [object release];
         JS_SetOpaque(thisObj, NULL);
     }
+
+    OOJS_PROFILE_EXIT
 }
 
 JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst thisObj, int argc, JSValueConst* argv)
@@ -1490,6 +1511,8 @@ JSValue OOJSObjectWrapperToString(JSContext* context, JSValueConst thisObj, int 
 
 BOOL JSFunctionPredicate(Entity* entity, void* parameter)
 {
+    OOJS_PROFILE_ENTER
+
     JSFunctionPredicateParameter* param = (JSFunctionPredicateParameter*)parameter;
     BOOL result = NO;
 
@@ -1519,15 +1542,23 @@ BOOL JSFunctionPredicate(Entity* entity, void* parameter)
     }
 
     return result;
+
+    OOJS_PROFILE_EXIT
 }
 
 BOOL JSEntityIsJavaScriptVisiblePredicate(Entity* entity, void* parameter)
 {
+    OOJS_PROFILE_ENTER
+
     return [entity isVisibleToScripts];
+
+    OOJS_PROFILE_EXIT
 }
 
 BOOL JSEntityIsJavaScriptSearchablePredicate(Entity* entity, void* parameter)
 {
+    OOJS_PROFILE_ENTER
+
     if (![entity isVisibleToScripts])
         return NO;
     if ([entity isShip]) {
@@ -1552,6 +1583,8 @@ BOOL JSEntityIsJavaScriptSearchablePredicate(Entity* entity, void* parameter)
     }
 
     return YES; // would happen if we added a new script-visible class
+
+    OOJS_PROFILE_EXIT
 }
 
 BOOL JSEntityIsDemoShipPredicate(Entity* entity, void* parameter)
@@ -1604,10 +1637,14 @@ BOOL OOJSObjectGetterImplPRIVATE(JSContext* context, JSValueConst object, JSClas
 
 NSDictionary* OOJSDictionaryFromJSValue(JSContext* context, JSValueConst value)
 {
+    OOJS_PROFILE_ENTER
+
     if (EXPECT_NOT(!JS_IsObject(value))) {
         return nil;
     }
     return OOJSDictionaryFromJSObject(context, value);
+
+    OOJS_PROFILE_EXIT
 }
 
 // Integer-like property names become NSNumbers, as SpiderMonkey's int jsids did.
@@ -1629,6 +1666,8 @@ static id KeyForAtom(JSContext* context, JSAtom atom)
 
 NSDictionary* OOJSDictionaryFromJSObject(JSContext* context, JSValueConst object)
 {
+    OOJS_PROFILE_ENTER
+
     JSPropertyEnum* properties = NULL;
     uint32_t i, count;
 
@@ -1657,10 +1696,14 @@ NSDictionary* OOJSDictionaryFromJSObject(JSContext* context, JSValueConst object
 
     JS_FreePropertyEnum(context, properties, count);
     return result;
+
+    OOJS_PROFILE_EXIT
 }
 
 NSDictionary* OOJSDictionaryFromStringTable(JSContext* context, JSValueConst tableValue)
 {
+    OOJS_PROFILE_ENTER
+
     JSPropertyEnum* properties = NULL;
     uint32_t i, count;
 
@@ -1701,6 +1744,8 @@ NSDictionary* OOJSDictionaryFromStringTable(JSContext* context, JSValueConst tab
     JS_FreePropertyEnum(context, properties, count);
     JS_FreeValue(context, tableObject);
     return result;
+
+    OOJS_PROFILE_EXIT
 }
 
 // Indexed by class ID; process lifetime.
@@ -1710,6 +1755,8 @@ JSClassID gOOJSObjectClassID, gOOJSStringClassID, gOOJSArrayClassID, gOOJSNumber
 
 id OOJSNativeObjectFromJSValue(JSContext* context, JSValueConst value)
 {
+    OOJS_PROFILE_ENTER
+
     if (JS_IsNull(value) || JS_IsUndefined(value))
         return nil;
 
@@ -1734,10 +1781,14 @@ id OOJSNativeObjectFromJSValue(JSContext* context, JSValueConst value)
         return OOJSNativeObjectFromJSObject(context, value);
     }
     return nil;
+
+    OOJS_PROFILE_EXIT
 }
 
 id OOJSNativeObjectFromJSObject(JSContext* context, JSValueConst object)
 {
+    OOJS_PROFILE_ENTER
+
     if (!JS_IsObject(object))
         return nil;
 
@@ -1747,6 +1798,8 @@ id OOJSNativeObjectFromJSObject(JSContext* context, JSValueConst object)
         return converter(context, object);
     }
     return nil;
+
+    OOJS_PROFILE_EXIT
 }
 
 id OOJSNativeObjectOfClassFromJSValue(JSContext* context, JSValueConst value, Class requiredClass)
