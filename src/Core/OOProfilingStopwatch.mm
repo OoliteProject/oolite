@@ -110,6 +110,17 @@ OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime, OOHighResT
     // Signed, so a reversed pair gives a negative delta (and a rollover between the two still
     // gives the right answer); the unsigned DWORD difference wrapped to about 49.7 days.
     return 1e-3 * (double)(int32_t)(endTime - startTime);
+#elif OO_PROFILING_STOPWATCH_PERFORMANCE_COUNTER
+    static double conversion = 0.0;
+
+    if (EXPECT_NOT(conversion == 0.0)) {
+        LARGE_INTEGER frequency;
+        if (QueryPerformanceFrequency(&frequency) && frequency.QuadPart != 0) {
+            conversion = 1.0 / (double)frequency.QuadPart;
+        }
+    }
+
+    return conversion * (double)(endTime - startTime);
 #elif OO_PROFILING_STOPWATCH_GETTIMEOFDAY
     int32_t deltaS = (int32_t)endTime.tv_sec - (int32_t)startTime.tv_sec;
     int32_t deltaU = (int32_t)endTime.tv_usec - (int32_t)startTime.tv_usec;
