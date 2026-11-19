@@ -41,7 +41,8 @@ SOFTWARE.
 #include <string_view>
 #include <utility>
 
-#include "Entity.h"  // an entity's -inspect
+#include "Entity.h"                        // an entity's -inspect
+#include "EntityOOJavaScriptExtensions.h"  // IWYU pragma: keep: used only in OO_DEBUG builds
 #include "OOConstToString.h"
 #include "OODebugFlags.h"
 #include "OODebugMonitor.h"
@@ -52,6 +53,7 @@ SOFTWARE.
 #include "OOLogHeader.h"  // OOPlatformDescription()
 #include "OOLoggingExtended.h"
 #include "OOOpenGLExtensionManager.h"
+#include "ResourceManager.h"  // IWYU pragma: keep: used only in DEBUG builds
 #include "oofnd/AutoreleaseScope.hpp"  // IWYU pragma: keep: used only with OOJS_PROFILE
 #include "oofnd/PList.hpp"
 #if OO_DEBUG
