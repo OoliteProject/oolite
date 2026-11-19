@@ -137,3 +137,6 @@ modules:
       - type: patch
         path: ../../subprojects/packagefiles/quickjs-ng/0003-oolite-no-pthread-on-windows.patch
         dest: subprojects/quickjs-ng
+      - type: patch
+        path: ../../subprojects/packagefiles/quickjs-ng/0004-oolite-function-call-hook.patch
+        dest: subprojects/quickjs-ng
