@@ -110,3 +110,6 @@ private:
 };
 
 void InitOOJSScript(JSContext* context, JSValueConst global);
+
+// Frees the compiled scripts kept for reuse. Call before destroying the context.
+void OOJSScriptDestroyCompiledScripts(JSContext* context);
