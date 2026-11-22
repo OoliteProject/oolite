@@ -85,6 +85,11 @@ MA 02110-1301, USA.
 - (void)setGuiToKeyboardLayoutScreen:(unsigned)skip resetCurrentRow:(BOOL)resetCurrentRow;
 - (void)handleKeyboardLayoutEntryKeys:(GuiDisplayGen*)gui view:(MyOpenGLView*)gameView;
 
+- (void)setGuiToKeyBindingsScreen:(NSInteger)page;
+- (NSUInteger)keyBindingsPage;
+- (NSUInteger)keyBindingsPageCount;
+- (void)drawKeyBindingsList:(GLfloat)alpha screenAt:(Vector)screenAt;
+
 - (NSString*)validateKey:(NSString*)key checkKeys:(NSArray*)check_keys;
 
 - (NSDictionary*)makeKeyGuiDict:(NSString*)what keyDef:(NSString*)keyDef;

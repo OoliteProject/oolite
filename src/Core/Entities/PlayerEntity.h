@@ -535,6 +535,7 @@ typedef enum {
     NSArray* n_key_gui_chart_screens;
     NSArray* n_key_gui_system_data;
     NSArray* n_key_gui_market;
+    NSArray* n_key_gui_keybindings;
 
     NSArray* n_key_gui_arrow_left;
     NSArray* n_key_gui_arrow_right;

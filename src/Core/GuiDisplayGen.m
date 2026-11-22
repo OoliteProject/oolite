@@ -35,6 +35,7 @@ MA 02110-1301, USA.
 #import "OOTextureSprite.h"
 #import "PlayerEntity.h"
 #import "PlayerEntityControls.h"
+#import "PlayerEntityKeyMapper.h"
 #import "PlayerEntityStickProfile.h"
 #import "ResourceManager.h"
 #import "Universe.h"
@@ -1245,6 +1246,9 @@ static OOTextureSprite* NewTextureSpriteWithDescriptor(NSDictionary* descriptor,
             }
             if ([player guiScreen] == GUI_SCREEN_STICKPROFILE) {
                 [player stickProfileGraphAxisProfile:alpha screenAt:make_vector(x, y, z) screenSize:size_in_pixels];
+            }
+            if ([player guiScreen] == GUI_SCREEN_KEYBINDINGS) {
+                [player drawKeyBindingsList:alpha screenAt:make_vector(x, y, z)];
             }
         }
 
