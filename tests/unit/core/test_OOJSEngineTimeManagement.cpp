@@ -7,7 +7,11 @@
 	game's own objects for the file and the stopwatch (OOProfilingStopwatch.mm). What the rest of
 	the engine would provide is defined below as the smallest stand-in that does the same thing:
 	the time limiter the profiler reads, pauses and extends, and the property-list converter
-	(recording what it is given). The tests pin the profiler's entries (names, hit counts, the frame kind), the
+	(recording what it is given). With the function call hook (OOJS_QUICKJS_CALL_HOOK, upstream
+	#580), the profiler also installs its hook on the main thread context's runtime, so the test
+	makes a QuickJS context of its own for that, and stands in for the three engine functions the
+	hook's tracing names functions with; no JavaScript function runs, so they are never called.
+	The tests pin the profiler's entries (names, hit counts, the frame kind), the
 	profile's and entries' descriptions and property lists and the comparisons.
 	Run: tests/run.sh unit
 */
@@ -18,6 +22,7 @@
 #include "oo_test.hpp"
 
 #include <chrono>
+#include <optional>
 #include <string>
 #include <thread>
 #include <vector>
@@ -47,6 +52,17 @@ void OOJSExcludeTimeFromLimiter(OOTimeDelta)  {}
 #endif
 
 
+#if OOJS_QUICKJS_CALL_HOOK
+// The engine's main thread context, which the profiler installs its call hook on: the test's own
+// (MainThreadContext below).
+JSContext *gOOJSMainThreadContext = nullptr;
+
+// What the hook's tracing names a JavaScript function with. No JavaScript function runs here.
+std::string OOJSDescribeValue(JSContext *, JSValueConst, bool)  { return "?"; }
+std::optional<std::string> OOStringFromJSID(JSAtom)  { return std::nullopt; }
+#endif
+
+
 // MARK: Helpers -----------------------------------------------------------------------------------
 
 #if OOJS_PROFILE
@@ -73,6 +89,38 @@ const oo::PList *Key(const oo::PList &dict, const char *key)
 	return dict.get<oo::PList>(key);
 }
 
+
+// A QuickJS runtime and context of the test's own, as the engine's main thread context for as long
+// as it lives.
+class MainThreadContext
+{
+public:
+	MainThreadContext()
+	{
+#if OOJS_QUICKJS_CALL_HOOK
+		_runtime = JS_NewRuntime();
+		gOOJSMainThreadContext = JS_NewContext(_runtime);
+#endif
+	}
+
+	~MainThreadContext()
+	{
+#if OOJS_QUICKJS_CALL_HOOK
+		JS_FreeContext(gOOJSMainThreadContext);
+		gOOJSMainThreadContext = nullptr;
+		JS_FreeRuntime(_runtime);
+#endif
+	}
+
+	MainThreadContext(const MainThreadContext &) = delete;
+	MainThreadContext &operator=(const MainThreadContext &) = delete;
+
+private:
+#if OOJS_QUICKJS_CALL_HOOK
+	JSRuntime *_runtime = nullptr;
+#endif
+};
+
 }	// namespace
 #endif
 
@@ -83,6 +131,7 @@ const oo::PList *Key(const oo::PList &dict, const char *key)
 OO_TEST(profiling)
 {
 	{
+		const MainThreadContext mainThreadContext;
 		OO_CHECK(!OOJSIsProfiling());
 		OOJSBeginProfiling(false);
 		OO_CHECK(OOJSIsProfiling());
@@ -117,7 +166,12 @@ OO_TEST(profiling)
 		OO_CHECK_EQ(innerEntry->selfTimeMax(), innerEntry->totalTimeMax());	// nothing below it
 		OO_CHECK(profile->totalTime() >= outerEntry->totalTimeSum());
 		OO_CHECK_EQ(profile->nonExtensionTime(), profile->totalTime() - profile->extensionTime());
+#if OOJS_QUICKJS_CALL_HOOK
+		// The call hook times JavaScript functions themselves (upstream #580), and none ran.
+		OO_CHECK_EQ(profile->javaScriptTime(), 0.0);
+#else
 		OO_CHECK_EQ(profile->javaScriptTime(), profile->totalTime() - profile->nativeTime());
+#endif
 		OO_CHECK(profile->nativeTime() >= outerEntry->selfTimeSum() + innerEntry->selfTimeSum());
 
 		// Comparisons: "reverse" is longest first.
