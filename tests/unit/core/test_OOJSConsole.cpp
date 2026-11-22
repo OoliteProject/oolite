@@ -317,6 +317,31 @@ void OOJSDumpStack(JSContext *)  {}	// the profiler's, when a time limit is hit
 #endif
 
 
+#if OOJS_QUICKJS_CALL_HOOK
+// The engine's (OOJavaScriptEngine.cpp), which the profiler's function call hook (upstream #580)
+// names a JavaScript function and its file with: the same as the engine's.
+std::optional<std::string> OOStringFromJSID(JSAtom propID)
+{
+	JSContext *context = OOJSAcquireContext();
+	JSValue value = JS_AtomToString(context, propID);
+	std::optional<std::string> result = OOStringFromJSValue(context, value);
+	JS_FreeValue(context, value);
+	return result;
+}
+#endif
+
+
+#if DEBUG || OOJS_QUICKJS_CALL_HOOK
+// The engine's description of a value, which trace() logs a function's this and arguments with
+// under the call hook (and the debug flavour's diagnostics with): the value's string form, which
+// is what the log line needs here; no case reads it.
+std::string OOJSDescribeValue(JSContext *context, JSValueConst value, bool)
+{
+	return OOStringFromJSValue(context, value).value_or("?");
+}
+#endif
+
+
 std::string OOPlatformDescription(void)  { return "test platform"; }
 void OOLogInsertMarker(void)  { sLogMarkers++; }
 
@@ -371,7 +396,6 @@ int gOOTestEntityCxxEntityIvarOffset = 0;
 #if DEBUG
 #include "ResourceManager.h"
 
-std::string OOJSDescribeValue(JSContext *, JSValueConst, bool)  { std::abort(); }
 std::optional<std::string> ResourceManager::diagnosticFileLocation()  { std::abort(); }
 #endif
 
