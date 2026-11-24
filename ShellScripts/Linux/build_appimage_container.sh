@@ -4,6 +4,7 @@
 # .github/workflows/build-all.yaml. A local build then matches the published AppImages on any host distribution,
 # including the libdecor-mini they bundle (install_libdecor_fn.sh), and nothing on the host is installed or replaced.
 #
+# Called via mk.sh pkg-appimage.
 # Usage: ShellScripts/Linux/build_appimage_container.sh [build_type]
 #   build_type: deployment (default), test, dev or debug, as for ./mk.sh
 #
@@ -21,7 +22,7 @@ set -euo pipefail
 build_type="${1:-deployment}"
 case "$build_type" in
     deployment|test|dev|debug) ;;
-    -h|--help) sed -n '3,17p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '3,18p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "❌ Invalid build_type '$build_type'. Expected: deployment, test, dev or debug." >&2; exit 1 ;;
 esac
 
@@ -51,7 +52,7 @@ ShellScripts/Linux/install_mozilla_js.sh system
 echo "/usr/local/lib" >> /etc/ld.so.conf
 ldconfig
 ./mk.sh build "$BUILD_TYPE" --setup-flags="-Ddocs=enabled"
-./mk.sh pkg-appimage "$BUILD_TYPE"
+./mk.sh appimage-arch "$BUILD_TYPE"
 for appimage in build/Oolite*.AppImage; do
     install -o "$HOST_UID" -g "$HOST_GID" -m 755 "$appimage" /out/
     echo "✅ build/${appimage##*/}"
@@ -60,14 +61,14 @@ EOF
 
 echo "📦 Building the $build_type AppImage in a $image container; log in $log"
 start=$SECONDS
-# OOLITE_DISPOSABLE_BUILD_MACHINE: the container is deleted afterwards, so libdecor-mini may replace its libdecor.
+# INSTALL_LIBDECOR_MINI: the container is deleted afterwards, so libdecor-mini may replace its libdecor.
 # APPIMAGE_EXTRACT_AND_RUN and ARCH: appimagetool is an AppImage and a container has no FUSE, so it unpacks itself
 # instead, and it cannot detect the architecture when unpacked.
 status=0
 (cd "$repo" && { git ls-files -z -c -o --exclude-standard --deduplicate; printf '.git\0'; } \
     | tar -c --null --ignore-failed-read -T -) \
     | docker run --rm -i \
-        -e OOLITE_DISPOSABLE_BUILD_MACHINE=true \
+        -e INSTALL_LIBDECOR_MINI=true \
         -e APPIMAGE_EXTRACT_AND_RUN=1 \
         -e ARCH="$(uname -m)" \
         -e BUILD_TYPE="$build_type" \
