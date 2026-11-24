@@ -98,7 +98,7 @@ jobs:
           # get-debloated-pkgs.sh looks up libdecor-mini through the GitHub API; with a token it is not rate limited.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ShellScripts/Linux/install_packages_root.sh --core+appimage
+          ShellScripts/Linux/install_packages_root.sh --core+appimage-arch
       - name: Build GNUstep
         run: |
           ShellScripts/Linux/build_gnustep.sh system

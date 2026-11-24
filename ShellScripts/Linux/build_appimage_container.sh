@@ -27,7 +27,7 @@ case "$build_type" in
 esac
 
 if ! command -v docker > /dev/null; then
-    echo "❌ docker not found. Install Docker and make sure your user can run it." >&2
+    echo "❌ docker not found. Install it with: sudo ShellScripts/Linux/install_packages_root.sh --appimage" >&2
     exit 1
 fi
 
@@ -46,7 +46,7 @@ tar -x
 pacman -Syu --noconfirm
 pacman -S --noconfirm --needed git
 git config --global --add safe.directory /oolite
-ShellScripts/Linux/install_packages_root.sh --core+appimage
+ShellScripts/Linux/install_packages_root.sh --core+appimage-arch
 ShellScripts/Linux/build_gnustep.sh system
 ShellScripts/Linux/install_mozilla_js.sh system
 echo "/usr/local/lib" >> /etc/ld.so.conf

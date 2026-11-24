@@ -187,8 +187,14 @@ This builds an AppImage for development, which can be found in the `build` folde
 ```
 
 It runs the same steps as CI (`./mk.sh appimage-arch`) in a throwaway `archlinux` container, so the AppImage
-matches the published ones whatever distribution you use. It needs only Docker, and it does not install or
-replace anything on your machine. The build type can be `deployment`, `test`, `dev` or `debug`.
+matches the published ones whatever distribution you use. It does not install or replace anything on your
+machine. The build type can be `deployment`, `test`, `dev` or `debug`.
+
+It needs only Docker, which this installs if it's missing:
+
+```bash
+sudo ShellScripts/Linux/install_packages_root.sh --appimage
+```
 
 The container is needed because the AppImage bundles
 [libdecor-mini](https://github.com/QaidVoid/libdecor-rs), which draws the game window's title bar on GNOME
