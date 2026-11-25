@@ -11343,11 +11343,7 @@ static NSString* last_outfitting_key = nil;
 
 - (void)doWorldScriptEvent:(OOJSPropID)message inContext:(JSContext*)context withArguments:(OOJSVal*)argv count:(int)argc timeLimit:(OOTimeDelta)limit
 {
-#if OOJS_QUICKJS
     NSParameterAssert(context != NULL);
-#else
-    NSParameterAssert(context != NULL && JS_IsInRequest(context));
-#endif
 
     OOScript* theScript = nil;
 
