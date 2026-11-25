@@ -5,14 +5,9 @@ oolite_sources += files(
     'OODebugStandards.m',
     'OODebugSupport.m',
     'OODebugTCPConsoleClient.m',
+    'OOJSConsole.m',
     'OOTCPStreamDecoder.c',
     'OOTCPStreamDecoderAbstractionLayer.m',
 )
-
-if use_quickjs
-    oolite_sources += files('QuickJS/OOJSConsole.m')
-else
-    oolite_sources += files('OOJSConsole.m')
-endif
 
 oolite_includes += include_directories('.')

@@ -1,6 +1,6 @@
 /*
 
-OOJSEquipmentInfo.m
+OOJSEquipmentInfo.m (QuickJS-ng)
 
 
 Oolite
@@ -28,15 +28,20 @@ MA 02110-1301, USA.
 #import "OOJSPlayer.h"
 #import "OOJavaScriptEngine.h"
 
-static JSObject* sEquipmentInfoPrototype;
+static JSClassID sEquipmentInfoClassID;
 
-static JSBool EquipmentInfoGetProperty(JSContext* context, JSObject* this, jsid propID, jsval* value);
-static JSBool EquipmentInfoSetProperty(JSContext* context, JSObject* this, jsid propID, JSBool strict, jsval* value);
+static JSValue EquipmentInfoGetProperty(OOJS_GETTER_ARGS);
+static JSValue EquipmentInfoSetProperty(OOJS_SETTER_ARGS);
 
-static JSBool EquipmentInfoGetAllEqipment(JSContext* context, JSObject* this, jsid propID, jsval* value);
+static JSValue EquipmentInfoGetAllEqipment(OOJS_GETTER_ARGS);
 
 // Methods
-static JSBool EquipmentInfoStaticInfoForKey(JSContext* context, uintN argc, jsval* vp);
+static JSValue EquipmentInfoStaticInfoForKey(OOJS_NATIVE_ARGS);
+
+static JSClassDef sEquipmentInfoClass = {
+    .class_name = "EquipmentInfo",
+    .finalizer = OOJSObjectWrapperFinalize,
+};
 
 enum {
     // Property IDs
@@ -80,100 +85,81 @@ enum {
     kEquipmentInfo_weaponInfo
 };
 
-static JSPropertySpec sEquipmentInfoProperties[] = {
-    // JS name							ID											flags
-    { "calculatedPrice", kEquipmentInfo_calculatedPrice, OOJS_PROP_READONLY_CB },
-    { "canBeDamaged", kEquipmentInfo_canBeDamaged, OOJS_PROP_READONLY_CB },
-    { "canCarryMultiple", kEquipmentInfo_canCarryMultiple, OOJS_PROP_READONLY_CB },
-    { "damageProbability", kEquipmentInfo_damageProbability, OOJS_PROP_READONLY_CB },
-    { "description", kEquipmentInfo_description, OOJS_PROP_READONLY_CB },
-    { "displayColor", kEquipmentInfo_displayColor, OOJS_PROP_READWRITE_CB },
-    { "effectiveTechLevel", kEquipmentInfo_effectiveTechLevel, OOJS_PROP_READWRITE_CB },
-    { "equipmentKey", kEquipmentInfo_equipmentKey, OOJS_PROP_READONLY_CB },
-    { "fastAffinityDefensive", kEquipmentInfo_fastAffinityDefensive, OOJS_PROP_READONLY_CB },
-    { "fastAffinityOffensive", kEquipmentInfo_fastAffinityOffensive, OOJS_PROP_READONLY_CB },
-    { "defaultActivateKey", kEquipmentInfo_defaultActivateKey, OOJS_PROP_READONLY_CB },
-    { "defaultModeKey", kEquipmentInfo_defaultModeKey, OOJS_PROP_READONLY_CB },
-    { "incompatibleEquipment", kEquipmentInfo_incompatibleEquipment, OOJS_PROP_READONLY_CB },
-    { "installationTime", kEquipmentInfo_installationTime, OOJS_PROP_READONLY_CB },
-    { "isAvailableToAll", kEquipmentInfo_isAvailableToAll, OOJS_PROP_READONLY_CB },
-    { "isAvailableToNPCs", kEquipmentInfo_isAvailableToNPCs, OOJS_PROP_READONLY_CB },
-    { "isAvailableToPlayer", kEquipmentInfo_isAvailableToPlayer, OOJS_PROP_READONLY_CB },
-    { "isExternalStore", kEquipmentInfo_isExternalStore, OOJS_PROP_READONLY_CB },
-    { "isPortableBetweenShips", kEquipmentInfo_isPortableBetweenShips, OOJS_PROP_READONLY_CB },
-    { "isVisible", kEquipmentInfo_isVisible, OOJS_PROP_READONLY_CB },
-    { "name", kEquipmentInfo_name, OOJS_PROP_READONLY_CB },
-    { "price", kEquipmentInfo_price, OOJS_PROP_READONLY_CB },
-    { "provides", kEquipmentInfo_provides, OOJS_PROP_READONLY_CB },
-    { "repairTime", kEquipmentInfo_repairTime, OOJS_PROP_READONLY_CB },
-    { "requiredCargoSpace", kEquipmentInfo_requiredCargoSpace, OOJS_PROP_READONLY_CB },
-    { "requiresAnyEquipment", kEquipmentInfo_requiresAnyEquipment, OOJS_PROP_READONLY_CB },
-    { "requiresCleanLegalRecord", kEquipmentInfo_requiresCleanLegalRecord, OOJS_PROP_READONLY_CB },
-    { "requiresEmptyPylon", kEquipmentInfo_requiresEmptyPylon, OOJS_PROP_READONLY_CB },
-    { "requiresEquipment", kEquipmentInfo_requiresEquipment, OOJS_PROP_READONLY_CB },
-    { "requiresFreePassengerBerth", kEquipmentInfo_requiresFreePassengerBerth, OOJS_PROP_READONLY_CB },
-    { "requiresFullFuel", kEquipmentInfo_requiresFullFuel, OOJS_PROP_READONLY_CB },
-    { "requiresMountedPylon", kEquipmentInfo_requiresMountedPylon, OOJS_PROP_READONLY_CB },
-    { "requiresNonCleanLegalRecord", kEquipmentInfo_requiresNonCleanLegalRecord, OOJS_PROP_READONLY_CB },
-    { "requiresNonFullFuel", kEquipmentInfo_requiresNonFullFuel, OOJS_PROP_READONLY_CB },
-    { "scriptInfo", kEquipmentInfo_scriptInfo, OOJS_PROP_READONLY_CB },
-    { "scriptName", kEquipmentInfo_scriptName, OOJS_PROP_READONLY_CB },
-    { "techLevel", kEquipmentInfo_techLevel, OOJS_PROP_READONLY_CB },
-    { "weaponInfo", kEquipmentInfo_weaponInfo, OOJS_PROP_READONLY_CB },
-    { 0 }
+static const JSCFunctionListEntry sEquipmentInfoProperties[] = {
+    // JS name, getter, setter, ID
+    OOJS_PROPERTY_RO("calculatedPrice", EquipmentInfoGetProperty, kEquipmentInfo_calculatedPrice),
+    OOJS_PROPERTY_RO("canBeDamaged", EquipmentInfoGetProperty, kEquipmentInfo_canBeDamaged),
+    OOJS_PROPERTY_RO("canCarryMultiple", EquipmentInfoGetProperty, kEquipmentInfo_canCarryMultiple),
+    OOJS_PROPERTY_RO("damageProbability", EquipmentInfoGetProperty, kEquipmentInfo_damageProbability),
+    OOJS_PROPERTY_RO("description", EquipmentInfoGetProperty, kEquipmentInfo_description),
+    OOJS_PROPERTY_RW("displayColor", EquipmentInfoGetProperty, EquipmentInfoSetProperty, kEquipmentInfo_displayColor),
+    OOJS_PROPERTY_RW("effectiveTechLevel", EquipmentInfoGetProperty, EquipmentInfoSetProperty, kEquipmentInfo_effectiveTechLevel),
+    OOJS_PROPERTY_RO("equipmentKey", EquipmentInfoGetProperty, kEquipmentInfo_equipmentKey),
+    OOJS_PROPERTY_RO("fastAffinityDefensive", EquipmentInfoGetProperty, kEquipmentInfo_fastAffinityDefensive),
+    OOJS_PROPERTY_RO("fastAffinityOffensive", EquipmentInfoGetProperty, kEquipmentInfo_fastAffinityOffensive),
+    OOJS_PROPERTY_RO("defaultActivateKey", EquipmentInfoGetProperty, kEquipmentInfo_defaultActivateKey),
+    OOJS_PROPERTY_RO("defaultModeKey", EquipmentInfoGetProperty, kEquipmentInfo_defaultModeKey),
+    OOJS_PROPERTY_RO("incompatibleEquipment", EquipmentInfoGetProperty, kEquipmentInfo_incompatibleEquipment),
+    OOJS_PROPERTY_RO("installationTime", EquipmentInfoGetProperty, kEquipmentInfo_installationTime),
+    OOJS_PROPERTY_RO("isAvailableToAll", EquipmentInfoGetProperty, kEquipmentInfo_isAvailableToAll),
+    OOJS_PROPERTY_RO("isAvailableToNPCs", EquipmentInfoGetProperty, kEquipmentInfo_isAvailableToNPCs),
+    OOJS_PROPERTY_RO("isAvailableToPlayer", EquipmentInfoGetProperty, kEquipmentInfo_isAvailableToPlayer),
+    OOJS_PROPERTY_RO("isExternalStore", EquipmentInfoGetProperty, kEquipmentInfo_isExternalStore),
+    OOJS_PROPERTY_RO("isPortableBetweenShips", EquipmentInfoGetProperty, kEquipmentInfo_isPortableBetweenShips),
+    OOJS_PROPERTY_RO("isVisible", EquipmentInfoGetProperty, kEquipmentInfo_isVisible),
+    OOJS_PROPERTY_RO("name", EquipmentInfoGetProperty, kEquipmentInfo_name),
+    OOJS_PROPERTY_RO("price", EquipmentInfoGetProperty, kEquipmentInfo_price),
+    OOJS_PROPERTY_RO("provides", EquipmentInfoGetProperty, kEquipmentInfo_provides),
+    OOJS_PROPERTY_RO("repairTime", EquipmentInfoGetProperty, kEquipmentInfo_repairTime),
+    OOJS_PROPERTY_RO("requiredCargoSpace", EquipmentInfoGetProperty, kEquipmentInfo_requiredCargoSpace),
+    OOJS_PROPERTY_RO("requiresAnyEquipment", EquipmentInfoGetProperty, kEquipmentInfo_requiresAnyEquipment),
+    OOJS_PROPERTY_RO("requiresCleanLegalRecord", EquipmentInfoGetProperty, kEquipmentInfo_requiresCleanLegalRecord),
+    OOJS_PROPERTY_RO("requiresEmptyPylon", EquipmentInfoGetProperty, kEquipmentInfo_requiresEmptyPylon),
+    OOJS_PROPERTY_RO("requiresEquipment", EquipmentInfoGetProperty, kEquipmentInfo_requiresEquipment),
+    OOJS_PROPERTY_RO("requiresFreePassengerBerth", EquipmentInfoGetProperty, kEquipmentInfo_requiresFreePassengerBerth),
+    OOJS_PROPERTY_RO("requiresFullFuel", EquipmentInfoGetProperty, kEquipmentInfo_requiresFullFuel),
+    OOJS_PROPERTY_RO("requiresMountedPylon", EquipmentInfoGetProperty, kEquipmentInfo_requiresMountedPylon),
+    OOJS_PROPERTY_RO("requiresNonCleanLegalRecord", EquipmentInfoGetProperty, kEquipmentInfo_requiresNonCleanLegalRecord),
+    OOJS_PROPERTY_RO("requiresNonFullFuel", EquipmentInfoGetProperty, kEquipmentInfo_requiresNonFullFuel),
+    OOJS_PROPERTY_RO("scriptInfo", EquipmentInfoGetProperty, kEquipmentInfo_scriptInfo),
+    OOJS_PROPERTY_RO("scriptName", EquipmentInfoGetProperty, kEquipmentInfo_scriptName),
+    OOJS_PROPERTY_RO("techLevel", EquipmentInfoGetProperty, kEquipmentInfo_techLevel),
+    OOJS_PROPERTY_RO("weaponInfo", EquipmentInfoGetProperty, kEquipmentInfo_weaponInfo),
 };
 
-static JSPropertySpec sEquipmentInfoStaticProperties[] = {
-    { "allEquipment", 0, OOJS_PROP_READONLY_CB, EquipmentInfoGetAllEqipment },
-    { 0 }
+static const JSCFunctionListEntry sEquipmentInfoMethods[] = {
+    // JS name, min args, function
+    JS_CFUNC_DEF("toString", 0, OOJSObjectWrapperToString),
 };
 
-static JSFunctionSpec sEquipmentInfoMethods[] = {
-    // JS name					Function						min args
-    { "toString", OOJSObjectWrapperToString, 0 },
-    { 0 }
+static const JSCFunctionListEntry sEquipmentInfoStaticMethods[] = {
+    // Static property
+    OOJS_PROPERTY_RO("allEquipment", EquipmentInfoGetAllEqipment, 0),
+    // JS name, min args, function
+    JS_CFUNC_DEF("infoForKey", 0, EquipmentInfoStaticInfoForKey),
 };
 
-static JSFunctionSpec sEquipmentInfoStaticMethods[] = {
-    // JS name					Function						min args
-    { "infoForKey", EquipmentInfoStaticInfoForKey, 0 },
-    { 0 }
-};
-
-static JSClass sEquipmentInfoClass = {
-    "EquipmentInfo",
-    JSCLASS_HAS_PRIVATE,
-
-    JS_PropertyStub, // addProperty
-    JS_PropertyStub, // delProperty
-    EquipmentInfoGetProperty, // getProperty
-    EquipmentInfoSetProperty, // setProperty
-    JS_EnumerateStub, // enumerate
-    JS_ResolveStub, // resolve
-    JS_ConvertStub, // convert
-    OOJSObjectWrapperFinalize, // finalize
-    JSCLASS_NO_OPTIONAL_MEMBERS
-};
-
-DEFINE_JS_OBJECT_GETTER(JSEquipmentInfoGetEquipmentType, &sEquipmentInfoClass, sEquipmentInfoPrototype, OOEquipmentType);
+DEFINE_JS_OBJECT_GETTER(JSEquipmentInfoGetEquipmentType, sEquipmentInfoClassID, OOEquipmentType)
 
 // *** Public ***
 
-void InitOOJSEquipmentInfo(JSContext* context, JSObject* global)
+void InitOOJSEquipmentInfo(JSContext* context, JSValueConst global)
 {
-    sEquipmentInfoPrototype = JS_InitClass(context, global, NULL, &sEquipmentInfoClass, OOJSUnconstructableConstruct, 0, sEquipmentInfoProperties, sEquipmentInfoMethods, sEquipmentInfoStaticProperties, sEquipmentInfoStaticMethods);
+    OOJSRegisterClass(&sEquipmentInfoClassID, &sEquipmentInfoClass);
+    OOJSInitClass(context, global, sEquipmentInfoClassID, JS_UNDEFINED, OOJSUnconstructableConstruct, 0,
+        sEquipmentInfoProperties, OOJS_COUNT(sEquipmentInfoProperties), sEquipmentInfoMethods, OOJS_COUNT(sEquipmentInfoMethods),
+        sEquipmentInfoStaticMethods, OOJS_COUNT(sEquipmentInfoStaticMethods));
 
-    OOJSRegisterObjectConverter(&sEquipmentInfoClass, OOJSBasicPrivateObjectConverter);
+    OOJSRegisterObjectConverter(sEquipmentInfoClassID, OOJSBasicPrivateObjectConverter);
 }
 
-OOEquipmentType* JSValueToEquipmentType(JSContext* context, jsval value)
+OOEquipmentType* JSValueToEquipmentType(JSContext* context, JSValueConst value)
 {
     OOJS_PROFILE_ENTER
 
-    if (JSVAL_IS_OBJECT(value)) {
-        JSObject* object = JSVAL_TO_OBJECT(value);
-        if (JS_InstanceOf(context, JSVAL_TO_OBJECT(value), &sEquipmentInfoClass, NULL)) {
-            return (OOEquipmentType*)JS_GetPrivate(context, object);
+    if (JS_IsObject(value)) {
+        if (JS_GetClassID(value) == sEquipmentInfoClassID) {
+            return (OOEquipmentType*)JS_GetOpaque(value, sEquipmentInfoClassID);
         }
     }
 
@@ -185,12 +171,12 @@ OOEquipmentType* JSValueToEquipmentType(JSContext* context, jsval value)
     OOJS_PROFILE_EXIT
 }
 
-NSString* JSValueToEquipmentKey(JSContext* context, jsval value)
+NSString* JSValueToEquipmentKey(JSContext* context, JSValueConst value)
 {
     return [JSValueToEquipmentType(context, value) identifier];
 }
 
-NSString* JSValueToEquipmentKeyRelaxed(JSContext* context, jsval value, BOOL* outExists)
+NSString* JSValueToEquipmentKeyRelaxed(JSContext* context, JSValueConst value, BOOL* outExists)
 {
     OOJS_PROFILE_ENTER
 
@@ -221,10 +207,8 @@ NSString* JSValueToEquipmentKeyRelaxed(JSContext* context, jsval value, BOOL* ou
 
 // *** Implementation stuff ***
 
-static JSBool EquipmentInfoGetProperty(JSContext* context, JSObject* this, jsid propID, jsval* value)
+static JSValue EquipmentInfoGetProperty(OOJS_GETTER_ARGS)
 {
-    if (!JSID_IS_INT(propID))
-        return YES;
 
     OOJS_NATIVE_ENTER(context)
 
@@ -233,9 +217,9 @@ static JSBool EquipmentInfoGetProperty(JSContext* context, JSObject* this, jsid 
     NSUInteger inst_time;
 
     if (EXPECT_NOT(!JSEquipmentInfoGetEquipmentType(context, this, &eqType)))
-        return NO;
+        return OOJSNativeFailure(context);
 
-    switch (JSID_TO_INT(propID)) {
+    switch (magic) {
     case kEquipmentInfo_equipmentKey:
         result = [eqType identifier];
         break;
@@ -246,38 +230,34 @@ static JSBool EquipmentInfoGetProperty(JSContext* context, JSObject* this, jsid 
 
     case kEquipmentInfo_calculatedPrice:
         if ([[eqType identifier] isEqual:@"EQ_FUEL"]) {
-            return JS_NewNumberValue(context, (PLAYER_MAX_FUEL - [OOPlayerForScripting() fuel]) * [eqType price] * [OOPlayerForScripting() fuelChargeRate], value);
+            return JS_NewNumber(context, (PLAYER_MAX_FUEL - [OOPlayerForScripting() fuel]) * [eqType price] * [OOPlayerForScripting() fuelChargeRate]);
         } else if ([[eqType identifier] isEqual:@"EQ_RENOVATION"]) {
-            return JS_NewNumberValue(context, [OOPlayerForScripting() renovationCosts], value);
+            return JS_NewNumber(context, [OOPlayerForScripting() renovationCosts]);
         } else {
-            return JS_NewNumberValue(context, [OOPlayerForScripting() adjustPriceByScriptForEqKey:[eqType identifier] withCurrent:[eqType price]], value);
+            return JS_NewNumber(context, [OOPlayerForScripting() adjustPriceByScriptForEqKey:[eqType identifier] withCurrent:[eqType price]]);
         }
     case kEquipmentInfo_canCarryMultiple:
-        *value = OOJSValueFromBOOL([eqType canCarryMultiple]);
-        return YES;
+        return OOJSValueFromBOOL([eqType canCarryMultiple]);
 
     case kEquipmentInfo_canBeDamaged:
-        *value = OOJSValueFromBOOL([eqType canBeDamaged]);
-        return YES;
+        return OOJSValueFromBOOL([eqType canBeDamaged]);
 
     case kEquipmentInfo_description:
         result = [eqType descriptiveText];
         break;
 
     case kEquipmentInfo_damageProbability:
-        return JS_NewNumberValue(context, [eqType damageProbability], value);
+        return JS_NewNumber(context, [eqType damageProbability]);
 
     case kEquipmentInfo_displayColor:
         result = [[eqType displayColor] normalizedArray];
         break;
 
     case kEquipmentInfo_fastAffinityDefensive:
-        *value = OOJSValueFromBOOL([eqType fastAffinityDefensive]);
-        return YES;
+        return OOJSValueFromBOOL([eqType fastAffinityDefensive]);
 
     case kEquipmentInfo_fastAffinityOffensive:
-        *value = OOJSValueFromBOOL([eqType fastAffinityOffensive]);
-        return YES;
+        return OOJSValueFromBOOL([eqType fastAffinityOffensive]);
 
     case kEquipmentInfo_defaultActivateKey:
         result = [eqType defaultActivateKey];
@@ -288,15 +268,13 @@ static JSBool EquipmentInfoGetProperty(JSContext* context, JSObject* this, jsid 
         break;
 
     case kEquipmentInfo_techLevel:
-        *value = INT_TO_JSVAL((int32_t)[eqType techLevel]);
-        return YES;
+        return JS_NewInt32(context, (int32_t)[eqType techLevel]);
 
     case kEquipmentInfo_effectiveTechLevel:
-        *value = INT_TO_JSVAL((int32_t)[eqType effectiveTechLevel]);
-        return YES;
+        return JS_NewInt32(context, (int32_t)[eqType effectiveTechLevel]);
 
     case kEquipmentInfo_price:
-        return JS_NewNumberValue(context, [eqType price], value);
+        return JS_NewNumber(context, [eqType price]);
 
     case kEquipmentInfo_provides:
         result = [eqType providesForScripting];
@@ -307,68 +285,52 @@ static JSBool EquipmentInfoGetProperty(JSContext* context, JSObject* this, jsid 
         if (inst_time == 0) {
             inst_time = [eqType price] + 600;
         }
-        *value = INT_TO_JSVAL((int32_t)inst_time);
-        return YES;
+        return JS_NewInt32(context, (int32_t)inst_time);
 
     case kEquipmentInfo_isAvailableToAll:
-        *value = OOJSValueFromBOOL([eqType isAvailableToAll]);
-        return YES;
+        return OOJSValueFromBOOL([eqType isAvailableToAll]);
 
     case kEquipmentInfo_isAvailableToNPCs:
-        *value = OOJSValueFromBOOL([eqType isAvailableToNPCs]);
-        return YES;
+        return OOJSValueFromBOOL([eqType isAvailableToNPCs]);
 
     case kEquipmentInfo_isAvailableToPlayer:
-        *value = OOJSValueFromBOOL([eqType isAvailableToPlayer]);
-        return YES;
+        return OOJSValueFromBOOL([eqType isAvailableToPlayer]);
 
     case kEquipmentInfo_repairTime:
-        *value = INT_TO_JSVAL((int32_t)[eqType repairTime]);
-        return YES;
+        return JS_NewInt32(context, (int32_t)[eqType repairTime]);
 
     case kEquipmentInfo_requiresEmptyPylon:
-        *value = OOJSValueFromBOOL([eqType requiresEmptyPylon]);
-        return YES;
+        return OOJSValueFromBOOL([eqType requiresEmptyPylon]);
 
     case kEquipmentInfo_requiresMountedPylon:
-        *value = OOJSValueFromBOOL([eqType requiresMountedPylon]);
-        return YES;
+        return OOJSValueFromBOOL([eqType requiresMountedPylon]);
 
     case kEquipmentInfo_requiresCleanLegalRecord:
-        *value = OOJSValueFromBOOL([eqType requiresCleanLegalRecord]);
-        return YES;
+        return OOJSValueFromBOOL([eqType requiresCleanLegalRecord]);
 
     case kEquipmentInfo_requiresNonCleanLegalRecord:
-        *value = OOJSValueFromBOOL([eqType requiresNonCleanLegalRecord]);
-        return YES;
+        return OOJSValueFromBOOL([eqType requiresNonCleanLegalRecord]);
 
     case kEquipmentInfo_requiresFreePassengerBerth:
-        *value = OOJSValueFromBOOL([eqType requiresFreePassengerBerth]);
-        return YES;
+        return OOJSValueFromBOOL([eqType requiresFreePassengerBerth]);
 
     case kEquipmentInfo_requiresFullFuel:
-        *value = OOJSValueFromBOOL([eqType requiresFullFuel]);
-        return YES;
+        return OOJSValueFromBOOL([eqType requiresFullFuel]);
 
     case kEquipmentInfo_requiresNonFullFuel:
-        *value = OOJSValueFromBOOL([eqType requiresNonFullFuel]);
-        return YES;
+        return OOJSValueFromBOOL([eqType requiresNonFullFuel]);
 
     case kEquipmentInfo_isExternalStore:
-        *value = OOJSValueFromBOOL([eqType isMissileOrMine]);
-        return YES;
+        return OOJSValueFromBOOL([eqType isMissileOrMine]);
 
     case kEquipmentInfo_isPortableBetweenShips:
-        *value = OOJSValueFromBOOL([eqType isPortableBetweenShips]);
-        return YES;
+        return OOJSValueFromBOOL([eqType isPortableBetweenShips]);
 
     case kEquipmentInfo_isVisible:
-        *value = OOJSValueFromBOOL([eqType isVisible]);
-        return YES;
+        return OOJSValueFromBOOL([eqType isVisible]);
 
     case kEquipmentInfo_requiredCargoSpace:
-        *value = INT_TO_JSVAL((int32_t)[eqType requiredCargoSpace]);
-        return YES;
+        return JS_NewInt32(context, (int32_t)[eqType requiredCargoSpace]);
 
     case kEquipmentInfo_requiresEquipment:
         result = [[eqType requiresEquipment] allObjects];
@@ -401,96 +363,101 @@ static JSBool EquipmentInfoGetProperty(JSContext* context, JSObject* this, jsid 
         break;
 
     default:
-        OOJSReportBadPropertySelector(context, this, propID, sEquipmentInfoProperties);
-        return NO;
+        OOJSReportBadPropertySelector(context, this, magic, sEquipmentInfoProperties, OOJS_COUNT(sEquipmentInfoProperties));
+        return OOJSNativeFailure(context);
     }
 
-    *value = OOJSValueFromNativeObject(context, result);
-    return YES;
+    return OOJSValueFromNativeObject(context, result);
 
     OOJS_NATIVE_EXIT
 }
 
-static JSBool EquipmentInfoSetProperty(JSContext* context, JSObject* this, jsid propID, JSBool strict, jsval* value)
+static JSValue EquipmentInfoSetProperty(OOJS_SETTER_ARGS)
 {
-    if (!JSID_IS_INT(propID))
-        return YES;
 
     OOJS_NATIVE_ENTER(context)
 
     OOEquipmentType* eqType = nil;
-    int32 iValue;
+    int32_t iValue;
     OOColor* colorForScript = nil;
 
     if (EXPECT_NOT(!JSEquipmentInfoGetEquipmentType(context, this, &eqType)))
-        return NO;
+        return OOJSNativeFailure(context);
 
-    switch (JSID_TO_INT(propID)) {
+    switch (magic) {
     case kEquipmentInfo_displayColor:
-        colorForScript = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, *value)];
-        if (colorForScript != nil || JSVAL_IS_NULL(*value)) {
+        colorForScript = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, value)];
+        if (colorForScript != nil || JS_IsNull(value)) {
             [eqType setDisplayColor:colorForScript];
-            return YES;
+            return JS_UNDEFINED;
         }
         break;
     case kEquipmentInfo_effectiveTechLevel:
         OOStandardsDeprecated([NSString stringWithFormat:@"TL99 for variable tech level is deprecated for %@", [eqType identifier]]);
         if (!OOEnforceStandards() && [eqType techLevel] == kOOVariableTechLevel) {
-            if (JSVAL_IS_NULL(*value)) {
+            if (JS_IsNull(value)) {
                 // reset mission variable
                 [OOPlayerForScripting() setMissionVariable:nil
                                                     forKey:[@"mission_TL_FOR_" stringByAppendingString:[eqType identifier]]];
-                return YES;
+                return JS_UNDEFINED;
             }
-            if (JS_ValueToInt32(context, *value, &iValue)) {
+            if (OOJSValueToInt32(context, value, &iValue)) {
                 if (iValue < 0)
                     iValue = 0;
                 if (15 < iValue && iValue != kOOVariableTechLevel)
                     iValue = 15;
                 [OOPlayerForScripting() setMissionVariable:[NSString stringWithFormat:@"%u", iValue]
                                                     forKey:[@"mission_TL_FOR_" stringByAppendingString:[eqType identifier]]];
-                return YES;
+                return JS_UNDEFINED;
             }
         } else {
             OOJSReportWarning(context, @"Cannot modify effective tech level for %@, because its base tech level is not 99.", [eqType identifier]);
-            return YES;
+            return JS_UNDEFINED;
         }
         break;
 
     default:
-        OOJSReportBadPropertySelector(context, this, propID, sEquipmentInfoProperties);
-        return NO;
+        OOJSReportBadPropertySelector(context, this, magic, sEquipmentInfoProperties, OOJS_COUNT(sEquipmentInfoProperties));
+        return OOJSNativeFailure(context);
     }
 
-    OOJSReportBadPropertyValue(context, this, propID, sEquipmentInfoProperties, *value);
-    return NO;
+    OOJSReportBadPropertyValue(context, this, magic, sEquipmentInfoProperties, OOJS_COUNT(sEquipmentInfoProperties), value);
+    return OOJSNativeFailure(context);
 
     OOJS_NATIVE_EXIT
 }
 
-static JSBool EquipmentInfoGetAllEqipment(JSContext* context, JSObject* this, jsid propID, jsval* value)
+static JSValue EquipmentInfoGetAllEqipment(OOJS_GETTER_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
-    *value = OOJSValueFromNativeObject(context, [OOEquipmentType allEquipmentTypes]);
-    return YES;
+    return OOJSValueFromNativeObject(context, [OOEquipmentType allEquipmentTypes]);
 
     OOJS_NATIVE_EXIT
 }
 
 @implementation OOEquipmentType (OOJavaScriptExtensions)
 
-- (jsval)oo_jsValueInContext:(JSContext*)context
+/*	As with SpiderMonkey, the JS object retains the equipment type, and
+        _jsSelf is a weak (uncounted) reference to the JS object, cleared by
+        -oo_clearJSSelf: when the JS object is finalized.
+*/
+- (JSValue)oo_jsValueInContext:(JSContext*)context
 {
-    if (_jsSelf == NULL) {
-        _jsSelf = JS_NewObject(context, &sEquipmentInfoClass, sEquipmentInfoPrototype, NULL);
-        if (_jsSelf != NULL) {
-            if (!JS_SetPrivate(context, _jsSelf, [self retain]))
-                _jsSelf = NULL;
+    if (!JS_IsObject(_jsSelf)) {
+        JSValue jsSelf = JS_NewObjectClass(context, (int)sEquipmentInfoClassID);
+        if (JS_IsException(jsSelf)) {
+            JS_FreeValue(context, JS_GetException(context));
+            return JS_NULL;
         }
+        JS_SetOpaque(jsSelf, [self retain]);
+
+        // Weak: the caller gets the only reference.
+        _jsSelf = jsSelf;
+        return jsSelf;
     }
 
-    return OBJECT_TO_JSVAL(_jsSelf);
+    return JS_DupValue(context, _jsSelf);
 }
 
 - (NSString*)oo_jsClassName
@@ -498,10 +465,10 @@ static JSBool EquipmentInfoGetAllEqipment(JSContext* context, JSObject* this, js
     return @"EquipmentInfo";
 }
 
-- (void)oo_clearJSSelf:(JSObject*)selfVal
+- (void)oo_clearJSSelf:(JSValueConst)selfVal
 {
-    if (_jsSelf == selfVal)
-        _jsSelf = NULL;
+    if (JS_IsObject(_jsSelf) && JS_VALUE_GET_PTR(_jsSelf) == JS_VALUE_GET_PTR(selfVal))
+        _jsSelf = JS_UNDEFINED;
 }
 
 @end
@@ -509,7 +476,7 @@ static JSBool EquipmentInfoGetAllEqipment(JSContext* context, JSObject* this, js
 // *** Static methods ***
 
 // infoForKey(key : String): EquipmentInfo
-static JSBool EquipmentInfoStaticInfoForKey(JSContext* context, uintN argc, jsval* vp)
+static JSValue EquipmentInfoStaticInfoForKey(OOJS_NATIVE_ARGS)
 {
     OOJS_NATIVE_ENTER(context)
 
@@ -518,8 +485,8 @@ static JSBool EquipmentInfoStaticInfoForKey(JSContext* context, uintN argc, jsva
     if (argc > 0)
         key = OOStringFromJSValue(context, OOJS_ARGV[0]);
     if (key == nil) {
-        OOJSReportBadArguments(context, @"EquipmentInfo", @"infoForKey", MIN(argc, 1U), OOJS_ARGV, nil, @"string");
-        return NO;
+        OOJSReportBadArguments(context, @"EquipmentInfo", @"infoForKey", MIN(argc, 1), OOJS_ARGV, nil, @"string");
+        return OOJSNativeFailure(context);
     }
 
     OOJS_RETURN_OBJECT([OOEquipmentType equipmentTypeWithIdentifier:key]);
