@@ -7,6 +7,7 @@
 
 run_script() {
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    source "$script_dir/../common/curl_fn.sh"
     source "$script_dir/install_gitversion_fn.sh"
     source "$script_dir/install_typst_fn.sh"
     pushd "$script_dir"
