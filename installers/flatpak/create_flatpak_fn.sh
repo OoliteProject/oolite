@@ -13,7 +13,9 @@ create_flatpak() {
     cd ../..
     flatpak_dir="build/flatpak"
     mkdir -p "$flatpak_dir"
+    source ShellScripts/common/download_fn.sh
     source ShellScripts/common/get_version.sh
+
     run_script "$flatpak_dir"
     local githash ver_full ver_quad ver_gitrev cpp_date app_date buildtime builder
     source "$flatpak_dir/.meson_version"
@@ -21,7 +23,7 @@ create_flatpak() {
 
     cp ../../installers/flatpak/space.oolite.Oolite.* ./
     mkdir -p shared-modules/glu
-    if ! curl -o shared-modules/glu/glu-9.json -L https://github.com/flathub/shared-modules/raw/refs/heads/master/glu/glu-9.json; then
+    if ! download "https://github.com/flathub/shared-modules/raw/refs/heads/master/glu/glu-9.json" "shared-modules/glu/glu-9.json"; then
         echo "❌ Flatpak download of glu shared module failed!" >&2
         return 1
     fi
