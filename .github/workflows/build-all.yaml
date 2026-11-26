@@ -112,9 +112,13 @@ jobs:
           fetch-depth: 0
       - name: Install packages
         env:
+          # Throwaway container: lets install_libdecor_fn.sh replace the system libdecor with libdecor-mini (#793).
+          # Our own flag rather than CI=true, which is also set on machines that are kept (see install_libdecor_fn.sh).
+          INSTALL_LIBDECOR_MINI: true
+          # get-debloated-pkgs.sh looks up libdecor-mini through the GitHub API; with a token it is not rate limited.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ShellScripts/Linux/install_packages_root.sh --core+appimage
+          ShellScripts/Linux/install_packages_root.sh --core+appimage-arch
       - name: Build GNUstep
         run: |
           ShellScripts/Linux/build_gnustep.sh system
@@ -135,7 +139,7 @@ jobs:
           ./mk.sh test deployment --setup-flags="-Djs_engine=${{ matrix.js_engine }}"
       - name: Package Oolite
         run: |
-          ./mk.sh pkg-appimage deployment
+          ./mk.sh appimage-arch deployment
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
@@ -176,7 +180,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ShellScripts/Linux/install_packages_root.sh --core+appimage
+          ShellScripts/Linux/install_packages_root.sh --core
       - name: Build GNUstep
         run: |
           ShellScripts/Linux/build_gnustep.sh system
@@ -195,9 +199,6 @@ jobs:
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         run: |
           ./mk.sh test dev --setup-flags="-Djs_engine=${{ matrix.js_engine }}"
-      - name: Build AppImage
-        run: |
-          ./mk.sh pkg-appimage dev --setup-flags="-Djs_engine=${{ matrix.js_engine }}"
 
   build-fedora:
     needs: clang-format-check

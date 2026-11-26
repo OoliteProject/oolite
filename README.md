@@ -180,11 +180,32 @@ Optionally you can pass `--install-flags` to pass specific options to meson.
 
 ### Other Linux ./mk.sh Actions
 
-This action builds an AppImage for development which can be found in the `build` folder:
+This builds an AppImage for development, which can be found in the `build` folder:
 
 ```bash
 ./mk.sh pkg-appimage dev
 ```
+
+It runs the same steps as CI (`./mk.sh appimage-arch`) in a throwaway `archlinux` container, so the AppImage
+matches the published ones whatever distribution you use. It does not install or replace anything on your
+machine. The build type can be `deployment`, `test`, `dev` or `debug`. Any `./mk.sh` options are passed on unchanged
+to the `./mk.sh` calls in the container, so for example this builds a QuickJS AppImage:
+
+```bash
+./mk.sh pkg-appimage dev --setup-flags="-Djs_engine=quickjs"
+```
+
+It needs only Docker, which this installs if it's missing:
+
+```bash
+sudo ShellScripts/Linux/install_packages_root.sh --appimage
+```
+
+The container is needed because the AppImage bundles
+[libdecor-mini](https://github.com/QaidVoid/libdecor-rs), which draws the game window's title bar on GNOME
+Wayland, and installing it replaces the build machine's libdecor. The AppImage tools are therefore only installed
+where `INSTALL_LIBDECOR_MINI=true`, which that container and CI set. Never set it on a machine you keep
+(see `ShellScripts/Linux/install_libdecor_fn.sh`).
 
 This action builds a Flatpak which can be found in the `build` folder:
 

@@ -145,11 +145,16 @@ install_package() {
                 arch) pkg_name="libx11" ;;
             esac ;;
 
-        "appimage")
+        "appimage-arch")
             case "$CURRENT_DISTRO" in
-                debian) pkg_name="file fuse3 patchelf desktop-file-utils" ;;
-                redhat) pkg_name="file fuse3 desktop-file-utils patchelf which zsync" ;;
                 arch) pkg_name="file fuse3 desktop-file-utils patchelf zsync" ;;
+            esac ;;
+
+        "docker")
+            case "$CURRENT_DISTRO" in
+                debian) pkg_name="docker.io" ;;
+                redhat) pkg_name="moby-engine" ;;
+                arch) pkg_name="docker" ;;
             esac ;;
 
         "flatpak") pkg_name="flatpak flatpak-builder" ;;

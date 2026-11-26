@@ -153,7 +153,8 @@ show_help() {  # Script Help Menu
     echo -e "  \033[36moutput-meson-log <build_type>\033[0m  Print the meson log file for a build directory"
     echo -e "  \033[36mflatpak-internal <build_type>\033[0m  Build flatpak dependencies internally"
     echo -e "  \033[36mpkg-flatpak <build_type>\033[0m       Package a Flatpak application"
-    echo -e "  \033[36mpkg-appimage <build_type>\033[0m      Package a Linux AppImage installer"
+    echo -e "  \033[36mappimage-arch <build_type>\033[0m     Package the AppImage on Arch Linux (used by pkg-appimage and CI)"
+    echo -e "  \033[36mpkg-appimage <build_type>\033[0m      Build and package a Linux AppImage in a container (needs Docker)"
     echo -e "  \033[36mpkg-win <build_type>\033[0m           Package a Windows NSIS installer"
     echo -e "  \033[36mpkg-dmg <build_type>\033[0m           Package a macOS disk image (.dmg)"
     echo ""
@@ -259,6 +260,14 @@ execute_target() {  # Target Execution Logic
             ;;
         pkg-appimage)
             validate_build_type "$build_type"
+            # The options are passed on unchanged to the mk.sh build and appimage-arch calls in the container.
+            if ! ShellScripts/Linux/build_appimage_container.sh "$build_type" ${MK_OPTION_ARGS[@]+"${MK_OPTION_ARGS[@]}"}; then
+                echo "❌ AppImage container build failed!" >&2
+                exit 1
+            fi
+            ;;
+        appimage-arch)
+            validate_build_type "$build_type"
             local appdir=$(realpath -m "build/appimage/oolite.AppDir")
             if ! meson_configure "$build_type" "--prefix=$appdir"; then
                 echo "❌ AppImage meson configure with prefix /app failed!" >&2
@@ -308,9 +317,13 @@ execute_target() {  # Target Execution Logic
 
 ACTION=""
 BUILD_TYPE=""
+MK_OPTION_ARGS=()  # the options as given, for pkg-appimage to pass on to mk.sh in its container
 
 # --- Flexible Argument Parser (Allows flags and positionals anywhere) ---
 while [[ $# -gt 0 ]]; do
+    if [[ "$1" == --* ]]; then
+        MK_OPTION_ARGS+=("$1")
+    fi
     case "$1" in
         --setup-flags=*)
             read -r -a flags_array <<< "${1#*=}"
