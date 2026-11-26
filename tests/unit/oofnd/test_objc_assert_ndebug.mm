@@ -1,0 +1,98 @@
+/*	test_objc_assert_ndebug.mm
+	OOAssert.h compiled the way a deployment build compiles it: with NDEBUG.
+
+	Upstream's Foundation assertions were live in every flavour: OOFoundation.h defines
+	NS_BLOCK_ASSERTIONS only after importing the Foundation umbrella header, too late for
+	gnustep-base's include-guarded exception header. Blocking OOAssert/OOCAssert under NDEBUG
+	skips the side effect in PlayerEntity's -deferredInit assertion (the player's ship set-up), so
+	a deployment build cannot launch. This test is built with NDEBUG in every flavour, so the test
+	flavour catches a regression that only a deployment build would show: the condition (and its
+	side effects) must be evaluated and a false one must still raise. The reasons' text is
+	test_objc_assert.mm's subject; here only that the macros are live.
+*/
+
+#ifndef NDEBUG
+#define NDEBUG 1 // the deployment flavour's macro (meson.build, deployment_release)
+#endif
+
+#include "oofnd/objc/OOAssert.h"
+
+#include "oo_test.hpp"
+
+#include <objc/objc-arc.h>
+
+namespace {
+
+int sCalls = 0;
+
+bool CountedTrue()
+{
+	++sCalls;
+	return true;
+}
+
+template <class F>
+bool Raises(F body)
+{
+	bool raised = false;
+	void *pool = objc_autoreleasePoolPush();
+	@try
+	{
+		body();
+	}
+	@catch (OOException *e)
+	{
+		(void)e;
+		raised = true;
+	}
+	objc_autoreleasePoolPop(pool);
+	return raised;
+}
+
+// They return their argument so a macro that compiles its arguments out still builds (and the
+// checks below, not -Wunused-parameter, report it).
+int CFail(int y) { OOCAssert(y == 0, "y is %d", y); return y; }
+void *CParam(void *p) { OOCParameterAssert(p != nullptr); return p; }
+
+} // namespace
+
+@interface OOAssertNDebugProbe : OOObject
+- (int) fail:(int)x;
+- (void *) param:(void *)p;
+- (void) counted;
+@end
+
+@implementation OOAssertNDebugProbe
+- (int) fail:(int)x { OOAssert(x == 0, "x is %d", x); return x; }
+- (void *) param:(void *)p { OOParameterAssert(p != nullptr); return p; }
+- (void) counted { OOAssert(CountedTrue(), "never fails"); OOParameterAssert(CountedTrue()); }
+@end
+
+OO_TEST(conditionSideEffectsRunUnderNDEBUG)
+{
+	sCalls = 0;
+	OOCAssert(CountedTrue(), "never fails");
+	OOCParameterAssert(CountedTrue());
+	OO_CHECK_EQ(sCalls, 2);
+
+	OOAssertNDebugProbe *probe = [[OOAssertNDebugProbe alloc] init];
+	[probe counted];
+	OO_CHECK_EQ(sCalls, 4);
+	[probe release];
+	OO_CHECK(CountedTrue()); // and referenced here, so a macro that drops its argument still builds
+}
+
+OO_TEST(falseConditionsRaiseUnderNDEBUG)
+{
+	OO_CHECK(Raises([] { CFail(4); }));
+	OO_CHECK(Raises([] { CParam(nullptr); }));
+	OO_CHECK(!Raises([] { CFail(0); }));
+
+	OOAssertNDebugProbe *probe = [[OOAssertNDebugProbe alloc] init];
+	OO_CHECK(Raises([probe] { [probe fail:3]; }));
+	OO_CHECK(Raises([probe] { [probe param:nullptr]; }));
+	OO_CHECK(!Raises([probe] { [probe fail:0]; }));
+	[probe release];
+}
+
+OO_TEST_MAIN()

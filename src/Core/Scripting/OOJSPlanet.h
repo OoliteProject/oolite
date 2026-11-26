@@ -1,6 +1,6 @@
 /*
 
-OOJSPlanet.h
+OOJSPlanet.h (QuickJS-ng)
 
 JavaScript proxy for PlanetEntities.
 
@@ -27,10 +27,22 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#import "OOPlanetEntity.h"
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+#import "OOFoundation.h"
+#include <quickjs.h>
+
+#include <optional>
+#include <string>
 
 @class OOPlanetEntity;
 
-void InitOOJSPlanet(JSContext* context, JSObject* global);
+void InitOOJSPlanet(JSContext* context, JSValueConst global);
+
+JSClassID JSPlanetClassID(void);
+
+/*	The bodies of OOPlanetEntity (OOJavaScriptExtensions), which the engine reaches by selector.
+        Its methods are one-line forwarders to these in OOJSPlanet+ObjCBridge.mm until
+        OOPlanetEntity converts (proposed ADR-0056 amendments oo-ppc and oo-ykoy). Its
+        -oo_jsClassID answers JSPlanetClassID().
+*/
+bool OOJSPlanetIsVisibleToScripts(OOPlanetEntity* planet);
+std::optional<std::string> OOJSPlanetJSClassName(OOPlanetEntity* planet);

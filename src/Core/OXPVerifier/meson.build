@@ -1,19 +1,25 @@
 # Generated Meson configuration for sub-module: OXPVerifier
 
 oolite_sources += files(
-    'OOAIStateMachineVerifierStage.m',
-    'OOCheckDemoShipsPListVerifierStage.m',
-    'OOCheckEquipmentPListVerifierStage.m',
-    'OOCheckJSSyntaxVerifierStage.m',
-    'OOCheckPListSyntaxVerifierStage.m',
-    'OOCheckRequiresPListVerifierStage.m',
-    'OOCheckShipDataPListVerifierStage.m',
-    'OOFileScannerVerifierStage.m',
-    'OOModelVerifierStage.m',
-    'OOOXPVerifier.m',
-    'OOOXPVerifierStage.m',
-    'OOPListSchemaVerifier.m',
-    'OOTextureVerifierStage.m',
+    'OOAIStateMachineVerifierStage.mm',
+    'OOCheckDemoShipsPListVerifierStage.mm',
+    'OOCheckEquipmentPListVerifierStage.mm',
+    'OOCheckJSSyntaxVerifierStage.mm',
+    'OOCheckPListSyntaxVerifierStage.mm',
+    'OOCheckRequiresPListVerifierStage.mm',
+    'OOCheckShipDataPListVerifierStage.mm',
+    'OOCheckShipDataPListVerifierStage+ObjCBridge.mm',
+    'OOFileScannerVerifierStage.mm',
+    'OOFileScannerVerifierStage+ObjCBridge.mm',
+    'OOModelVerifierStage.mm',
+    'OOModelVerifierStage+ObjCBridge.mm',
+    'OOOXPVerifier.mm',
+    'OOOXPVerifierStage.mm',
+    'OOOXPVerifierStage+ObjCBridge.mm',
+    'OOPListSchemaVerifier.mm',
+    'OOPListSchemaVerifier+ObjCBridge.mm',
+    'OOTextureVerifierStage.mm',
+    'OOTextureVerifierStage+ObjCBridge.mm',
 )
 
 oolite_includes += include_directories('.')
