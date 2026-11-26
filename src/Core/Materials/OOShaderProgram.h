@@ -6,6 +6,8 @@ Encapsulates a vertex + fragment shader combo. In general, this should only be
 used though OOShaderMaterial. The point of this separation is that more than
 one OOShaderMaterial can use the same OOShaderProgram.
 
+Callers hold an oo::Ref<OOShaderProgram> for as long as they want the cached
+program.
 
 Copyright (C) 2007-2013 Jens Ayton
 
@@ -29,38 +31,79 @@ SOFTWARE.
 
 */
 
-#import "OOOpenGL.h"
-#import "OOOpenGLExtensionManager.h"
-#import <Foundation/Foundation.h>
+#pragma once
+
+#include "OOFoundation.h"
+#include "OOOpenGL.h"
+#include "OOOpenGLExtensionManager.h"
+#include "oofnd/objc/OOObject.h"
 
 #if OO_SHADERS
 
-@interface OOShaderProgram : NSObject {
-@private
-    GLhandleARB program;
-    NSString* key;
-    NSArray* standardMatrixUniformLocations;
-}
+#include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
 
-+ (id)shaderProgramWithVertexShader:(NSString*)vertexShaderSource
-                     fragmentShader:(NSString*)fragmentShaderSource
-                   vertexShaderName:(NSString*)vertexShaderName
-                 fragmentShaderName:(NSString*)fragmentShaderName
-                             prefix:(NSString*)prefixString // String prepended to program source (both vs and fs)
-                  attributeBindings:(NSDictionary*)attributeBindings // Maps vertex attribute names to "locations".
-                           cacheKey:(NSString*)cacheKey;
+/*	Shader sources,
+   names, prefix and cache key are nil-able strings (std::optional: a missing
+   source means no shader of that kind, an empty prefix counts as none).
+   Attribute bindings are a property-list dictionary of attribute name ->
+        location (oo::PList, null for none).
+*/
+class OOShaderProgram : public oo::RefCounted {
+public:
+    ~OOShaderProgram() override;
 
-// Loads a shader from a file, caching and sharing shader program instances.
-+ (id)shaderProgramWithVertexShaderName:(NSString*)vertexShaderName
-                     fragmentShaderName:(NSString*)fragmentShaderName
-                                 prefix:(NSString*)prefixString // String prepended to program source (both vs and fs)
-                      attributeBindings:(NSDictionary*)attributeBindings; // Maps vertex attribute names to "locations".
+    // Null where no program could be made (it answered nil).
+    static oo::Ref<OOShaderProgram> shaderProgramWithVertexShader(const std::optional<std::string>& vertexShaderSource,
+        const std::optional<std::string>& fragmentShaderSource,
+        const std::optional<std::string>& vertexShaderName,
+        const std::optional<std::string>& fragmentShaderName,
+        const std::optional<std::string>& prefixString, // String prepended to program source (both vs and fs)
+        const oo::PList& attributeBindings, // Maps vertex attribute names to "locations".
+        const std::optional<std::string>& cacheKey);
 
-- (void)apply;
-+ (void)applyNone;
+    // Loads a shader from a file, caching and sharing shader program instances.
+    static oo::Ref<OOShaderProgram> shaderProgramWithVertexShaderName(const std::string& vertexShaderName,
+        const std::string& fragmentShaderName,
+        const std::optional<std::string>& prefixString, // String prepended to program source (both vs and fs)
+        const oo::PList& attributeBindings); // Maps vertex attribute names to "locations".
 
-- (GLhandleARB)program;
+    void apply();
+    static void applyNone();
 
-@end
+    GLhandleARB program();
+
+private:
+    OOShaderProgram() = default;
+
+    bool initWithVertexShaderSource(const std::optional<std::string>& vertexSource,
+        const std::optional<std::string>& fragmentSource,
+        const std::optional<std::string>& prefixString,
+        const std::optional<std::string>& vertexName,
+        const std::optional<std::string>& fragmentName,
+        const oo::PList& attributeBindings,
+        const std::optional<std::string>& key);
+
+    void bindAttributes(const oo::PList& attributeBindings);
+    void bindStandardMatrixUniforms();
+
+    // The leading underscore: program() is the getter's name.
+    GLhandleARB _program = { };
+    std::optional<std::string> key = { };
+    oo::PList standardMatrixUniformLocations = { };
+};
+
+/*	Translate the subset of GLSL 3.30 used by Oolite's post-processing shaders
+        to GLSL 1.20 (plus GL_EXT_gpu_shader4). Only top-level declarations are
+        rewritten, so in/out parameter qualifiers inside functions are untouched.
+   A vertex shader's layout(location = N) inputs are added to attributeBindings.
+   The macOS legacy context only supports GLSL 1.20, so
+   shaderProgramWithVertexShaderName() calls this there (OOLITE_MACOS); it is
+   built everywhere so the unit tests run it.
+*/
+std::optional<std::string> OOTranslateGLSL330To120(
+    const std::optional<std::string>& source, bool isVertexShader,
+    oo::PList::Dict& attributeBindings);
 
 #endif // OO_SHADERS
