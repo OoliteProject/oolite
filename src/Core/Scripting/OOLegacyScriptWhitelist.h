@@ -23,7 +23,7 @@ argument), the second is the argument.
 A sanitized condition is an array of the form:
         (opType, rawString, selector, comparisonType, operandArray).
 
-opType and comparisonType are NSNumbers containing OOOperationType and
+opType and comparisonType are numbers containing OOOperationType and
 OOComparisonType enumerators, respectively.
 
 rawString is the original textual representation of the condition for
@@ -118,18 +118,27 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
+#pragma once
+
+#include "OOFoundation.h"
+
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 
 // context is used for error messages.
-NSArray* OOSanitizeLegacyScript(NSArray* script, NSString* context, BOOL allowAIMethods);
-NSArray* OOSanitizeLegacyScriptConditions(NSArray* conditions, NSString* context);
+// A null oo::PList stands for nil, in and out.
+oo::PList OOSanitizeLegacyScript(const oo::PList& script,
+    const std::optional<std::string>& context,
+    bool allowAIMethods);
+oo::PList OOSanitizeLegacyScriptConditions(
+    const oo::PList& conditions, const std::optional<std::string>& context);
 
-/*	Quick test of whether a conditions array is sanitized. It is assumed that
-        this will only be passed fully-sanitized or fully-unsanitized conditions
+/*	Quick test of whether a conditions array is sanitized. It is assumed
+   that this will only be passed fully-sanitized or fully-unsanitized conditions
         arrays, so the test doesn't need to be exhaustive.
 
         Note that OOLegacyConditionsAreSanitized() is *not* called by
         OOSanitizeLegacyScript(), so that it is not possible to sneak an
         unwhitelisted "pre-compiled" condition past it.
 */
-BOOL OOLegacyConditionsAreSanitized(NSArray* conditions);
+bool OOLegacyConditionsAreSanitized(const oo::PList& conditions);

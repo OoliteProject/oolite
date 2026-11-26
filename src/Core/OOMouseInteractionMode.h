@@ -23,7 +23,19 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
+#pragma once
+
+#ifndef OO_PLAIN_CPP_UNIT
+#include "OOFoundation.h"
+#else
+/*	Plain C++ translation unit (OOMouseInteractionMode.cpp): only
+   BOOL is needed, and OOFoundation.h imports Foundation, which does not compile
+   in a plain C++ unit.
+*/
+#include "oofnd/objc/OOFoundationTypes.h" // bool
+#endif
+
+#include "oofnd/StdLib.hpp"
 
 /*
         OOMouseInteractionMode
@@ -49,6 +61,6 @@ typedef enum {
     MOUSE_MODE_FLIGHT_WITH_MOUSE_CONTROL
 } OOMouseInteractionMode;
 
-NSString* OOStringFromMouseInteractionMode(OOMouseInteractionMode mode);
-BOOL OOMouseInteractionModeIsUIScreen(OOMouseInteractionMode mode);
-BOOL OOMouseInteractionModeIsFlightMode(OOMouseInteractionMode mode);
+std::string OOStringFromMouseInteractionMode(OOMouseInteractionMode mode);
+bool OOMouseInteractionModeIsUIScreen(OOMouseInteractionMode mode);
+bool OOMouseInteractionModeIsFlightMode(OOMouseInteractionMode mode);

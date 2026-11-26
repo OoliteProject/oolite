@@ -88,6 +88,10 @@ meson_setup() {
             exit 1
         fi
     fi
+    # clangd and clang-tidy (-p .) read the compile database from this directory's root.
+    if [[ -f "$build_dir/compile_commands.json" ]]; then
+        cp -f "$build_dir/compile_commands.json" compile_commands.json
+    fi
 }
 
 meson_compile() {
@@ -252,7 +256,7 @@ execute_target() {  # Target Execution Logic
                 echo "❌ Failed to source create_flatpak_fn.sh!" >&2
                 exit 1
             fi
-            if ! create_flatpak "$build_type" "$GITHUB_REPOSITORY" "${SETUP_FLAGS[*]-}"; then
+            if ! create_flatpak "$build_type" "$GITHUB_REPOSITORY"; then
                 echo "❌ Flatpak generation failed!" >&2
                 exit 1
             fi
