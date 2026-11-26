@@ -37,6 +37,17 @@ MA 02110-1301, USA.
 #include <math.h>
 #include <stdbool.h>
 
+/*	Apple's -sortedArrayUsingFunction: and friends take NSInteger (*)(id, id, void*). Oolite's
+        sort functions return NSComparisonResult, which has the same size and calling convention
+        but is a distinct enum type that C++ will not convert implicitly. GNUstep declares them
+        with NSComparisonResult, so there the functions are passed as they are.
+*/
+#ifdef GNUSTEP_BASE_LIBRARY
+#define OOSortFunction(function) (function)
+#else
+#define OOSortFunction(function) ((NSInteger (*)(id, id, void*))(function))
+#endif
+
 #ifdef NDEBUG
 #define OOLITE_DEBUG 0
 #else
@@ -45,6 +56,18 @@ MA 02110-1301, USA.
 
 #if !OOLITE_DEBUG
 #define NS_BLOCK_ASSERTIONS 1
+#endif
+
+/*	OO_DEBUG is set by the build system for debug builds (meson.build adds -DOO_DEBUG when
+        optimization==0 or debug==true; the deployment/test/dev flavours never do).
+
+        Hoisted here from further down the file because the enumeration macros below have to
+        test it, and a macro cannot be defined in terms of one the preprocessor has not seen
+        yet. Nothing between here and the old site defines it, so the meaning is unchanged.
+*/
+#ifndef OO_DEBUG
+// Defined by makefile/Xcode in debug builds.
+#define OO_DEBUG 0
 #endif
 
 #ifdef GNUSTEP_BASE_LIBRARY
@@ -102,6 +125,20 @@ MA 02110-1301, USA.
 
 #ifdef LINUX
 #define OOLITE_LINUX 1
+#endif
+
+#if defined(__cplusplus)
+/*	Objective-C++ is built as C++20 (ADR-0011; proposed ADR-0028). The true/false macros below
+        stay exactly as they were (game code keeps its int-typed true/false), but a C++20 standard
+        header parsed after them breaks: <optional> has `bool(__x) <=> false`, i.e. bool <=> int.
+        So those headers are parsed here first, with the real keywords; their include guards make
+        every later #include of them a no-op. extern "C++" because OOFoundation.h is sometimes reached
+        from inside an extern "C" block (OOMaths.h).
+*/
+extern "C++" {
+#include <compare>
+#include <optional>
+}
 #endif
 
 #if OOLITE_GNUSTEP
@@ -273,6 +310,21 @@ enum {
 
 @end
 
+/*	The same for classes rooted on the Foundation-free OOObject (proposed ADR-0029), so a class
+        rerooted from NSObject describes itself exactly as before.
+*/
+#import "OOObjectGNUstepBridge.h"
+#import "oofnd/objc/OOObject.h"
+
+@interface OOObject (OODescriptionComponents)
+
+- (NSString*)description;
+- (NSString*)descriptionComponents;
+- (NSString*)shortDescription;
+- (NSString*)shortDescriptionComponents;
+
+@end
+
 #if OOLITE_MAC_OS_X
 #define OOLITE_RELEASE_PLIST_ERROR_STRINGS 1
 #else
@@ -317,9 +369,44 @@ typedef NSComparisonResult OOComparisonResult;
                 }
 
     These are based on macros by Jens Alfke.
+
+        In a DEBUG build these route through the enumeration-order shuffle
+        (OOEnumerationShuffle.h): with OO_SHUFFLE_ENUMERATION set to a seed, dictionaries and
+        sets are enumerated in a seeded, reproducible order instead of GNUstep's hash order, so
+        code that silently depends on that order fails here rather than after the C++ port.
+
+        The two functions are declared here rather than by including OOEnumerationShuffle.h,
+        which includes this file; the documentation lives there.
+
+        In every non-debug flavour (deployment, test, dev) OO_DEBUG is 0 and the macros below
+        are character-for-character the upstream ones, so the shuffle is compiled out rather
+        than branched around: an unset OO_SHUFFLE_ENUMERATION cannot change behaviour because
+        in a shipping build there is no code to change it.
 */
+/* OO_ENUMERATION_MACROS_BEGIN - tools/check-enumeration-shuffle.sh extracts between these
+   sentinels and preprocesses the block under both settings of OO_DEBUG. Do not remove them
+   without updating that script. */
+#if OO_DEBUG
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+id OOShuffledKeys(id dictionary);
+id OOShuffledObjects(id collection);
+#ifdef __cplusplus
+}
+#endif
+
+#define foreach(VAR, COLLECTION) for (VAR in OOShuffledObjects(COLLECTION))
+#define foreachkey(VAR, DICT) for (VAR in OOShuffledKeys(DICT))
+
+#else
+
 #define foreach(VAR, COLLECTION) for (VAR in COLLECTION)
 #define foreachkey(VAR, DICT) for (VAR in DICT)
+
+#endif
+/* OO_ENUMERATION_MACROS_END */
 
 /*	Support for foreach() with NSEnumerators in GCC.
         It works without this with for (x in y) support, but we leave it defined
@@ -338,7 +425,7 @@ typedef NSComparisonResult OOComparisonResult;
         instance of that class.
 
         For example, given:
-                @interface Foo: NSObject
+                @interface Foo: OOObject
                 + (instancetype) fooWithProperty:(id)property;
                 @end
 
@@ -367,10 +454,7 @@ typedef NSComparisonResult OOComparisonResult;
 typedef id instancetype;
 #endif
 
-#ifndef OO_DEBUG
-// Defined by makefile/Xcode in debug builds.
-#define OO_DEBUG 0
-#endif
+// OO_DEBUG is defined at the top of this file, where the enumeration macros can test it.
 
 #if OOLITE_WINDOWS
 #ifndef OO_GAME_DATA_TO_USER_FOLDER

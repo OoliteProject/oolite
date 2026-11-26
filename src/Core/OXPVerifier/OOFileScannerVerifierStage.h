@@ -33,20 +33,31 @@ SOFTWARE.
 
 #if OO_OXP_VERIFIER_ENABLED
 
+#include "oofnd/Data.hpp"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+
+/*	Foundation sweep (proposed ADR-0043, bead oo-56tr): file and folder names are UTF-8
+        std::strings; a name that could be nil is std::optional. The Foundation-typed API this header
+        declared moved to OOFileScannerVerifierStage+FoundationBridge.h (transitional), forwarding to
+        the cxx_ methods below.
+*/
+
 @interface OOFileScannerVerifierStage : OOOXPVerifierStage {
 @private
-    NSString* _basePath;
-    NSMutableSet* _usedFiles;
-    NSMutableSet* _caseWarnings;
-    NSDictionary* _directoryListings;
-    NSDictionary* _directoryCases;
-    NSMutableSet* _badPLists;
-    NSSet* _junkFileNames;
-    NSSet* _skipDirectoryNames;
+    std::string _basePath;
+    std::set<std::string> _usedFiles;
+    std::set<std::string> _caseWarnings;
+    // lowercase folder name ("" for the root) -> lowercase file name -> file name as on disk
+    std::map<std::string, std::map<std::string, std::string, std::less<>>, std::less<>> _directoryListings;
+    std::map<std::string, std::string, std::less<>> _directoryCases; // lowercase -> as on disk
+    std::set<std::string> _badPLists;
+    std::set<std::string> _junkFileNames;
+    std::set<std::string> _skipDirectoryNames;
 }
 
 // Returns name to be used in -dependencies by other stages; also registers stage.
-+ (NSString*)nameForDependencyForVerifier:(OOOXPVerifier*)verifier;
++ (std::optional<std::string>)nameForDependencyForVerifier:(OOOXPVerifier*)verifier;
 
 /*	This method does the following:
                 A.	Checks whether a file exists.
@@ -56,45 +67,46 @@ SOFTWARE.
 
         For example, to test whether a texture referenced in a shipdata.plist entry
         exists, one would use:
-        [fileScanner fileExists:textureName inFolder:@"Textures" referencedFrom:@"shipdata.plist" checkBuiltIn:YES];
+        [fileScanner cxx_fileExists:textureName inFolder:"Textures" referencedFrom:"shipdata.plist" checkBuiltIn:YES];
 */
-- (BOOL)fileExists:(NSString*)file
-          inFolder:(NSString*)folder
-    referencedFrom:(NSString*)context
-      checkBuiltIn:(BOOL)checkBuiltIn;
-
-//	This method performs all the checks the previous one does, but also returns a file path.
-- (NSString*)pathForFile:(NSString*)file
-                inFolder:(NSString*)folder
-          referencedFrom:(NSString*)context
-            checkBuiltIn:(BOOL)checkBuiltIn;
-
-//	Data getters based on above method.
-- (NSData*)dataForFile:(NSString*)file
-              inFolder:(NSString*)folder
-        referencedFrom:(NSString*)context
+- (BOOL)cxx_fileExists:(const std::optional<std::string>&)file
+              inFolder:(const std::optional<std::string>&)folder
+        referencedFrom:(const std::optional<std::string>&)context
           checkBuiltIn:(BOOL)checkBuiltIn;
 
-- (id)plistNamed:(NSString*)file // Only uses "real" plist parser, not homebrew.
-          inFolder:(NSString*)folder
-    referencedFrom:(NSString*)context
-      checkBuiltIn:(BOOL)checkBuiltIn;
+//	This method performs all the checks the previous one does, but also returns a file path.
+- (std::optional<std::string>)cxx_pathForFile:(const std::optional<std::string>&)file
+                                     inFolder:(const std::optional<std::string>&)folder
+                               referencedFrom:(const std::optional<std::string>&)context
+                                 checkBuiltIn:(BOOL)checkBuiltIn;
+
+//	Data getters based on above method. An empty oo::Data: no such file (or an empty one).
+- (oo::Data)dataForFile:(const std::optional<std::string>&)file
+               inFolder:(const std::optional<std::string>&)folder
+         referencedFrom:(const std::optional<std::string>&)context
+           checkBuiltIn:(BOOL)checkBuiltIn;
+
+- (oo::PList)cxx_plistNamed:(const std::optional<std::string>&)file // Only uses "real" plist parser, not homebrew. Null: none.
+                   inFolder:(const std::optional<std::string>&)folder
+             referencedFrom:(const std::optional<std::string>&)context
+               checkBuiltIn:(BOOL)checkBuiltIn;
 
 /*	Utility to handle display names of files.
         If a file and folder are provided, returns folder/file, otherwise just file.
 */
-- (id)displayNameForFile:(NSString*)file andFolder:(NSString*)folder;
+- (std::optional<std::string>)cxx_displayNameForFile:(const std::optional<std::string>&)file andFolder:(const std::optional<std::string>&)folder;
 
-/*	Get a list of files in a subfolder of the OXP. Order is undefined.
- */
-- (NSArray*)filesInFolder:(NSString*)folder;
+/*	Get a list of files in a subfolder of the OXP, in byte order of the lowercase name; nullopt
+        if the OXP has no such folder.
+*/
+- (std::optional<std::vector<std::string>>)cxx_filesInFolder:(const std::optional<std::string>&)folder;
 
 @end
 
 @interface OOListUnusedFilesStage : OOOXPVerifierStage
 
 // Returns name to be used in -dependents by other stages; also registers stage.
-+ (NSString*)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier;
++ (id)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier; // an Objective-C string. Shared selector (proposed ADR-0043).
 
 @end
 
@@ -108,5 +120,11 @@ SOFTWARE.
 @interface OOFileHandlingVerifierStage : OOOXPVerifierStage
 
 @end
+
+/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): the Foundation-typed API this header
+        declared before bead oo-56tr, forwarding to the cxx_ methods above, so unmigrated callers compile
+        unchanged. Callers move to the cxx_ API in their own sweep beads; the bridge goes in its own bead.
+*/
+#import "OOFileScannerVerifierStage+FoundationBridge.h"
 
 #endif

@@ -30,9 +30,14 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 
+#include "oofnd/StdLib.hpp"
+
 @interface NSScanner (OOExtensions)
 
-- (BOOL)ooliteScanCharactersFromSet:(NSCharacterSet*)set intoString:(NSString**)value;
-- (BOOL)ooliteScanUpToCharactersFromSet:(NSCharacterSet*)set intoString:(NSString**)value;
+/*	Foundation sweep (proposed ADR-0043, bead oo-g7rw): the scanned text comes back as UTF-8 in
+ *value (value may be NULL), which is set only when something was scanned, as before.
+ */
+- (BOOL)ooliteScanCharactersFromSet:(NSCharacterSet*)set intoString:(std::string*)value;
+- (BOOL)ooliteScanUpToCharactersFromSet:(NSCharacterSet*)set intoString:(std::string*)value;
 
 @end

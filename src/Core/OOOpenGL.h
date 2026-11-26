@@ -126,6 +126,10 @@ typedef enum {
     OPENGL_STATE_INTERNAL_USE_ONLY
 } OOOpenGLStateID;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if OO_GL_STATE_VERIFICATION
 void OOSetOpenGLState_(OOOpenGLStateID state, const char* function, unsigned line);
 void OOVerifyOpenGLState_(const char* function, unsigned line);
@@ -141,14 +145,24 @@ void OOSetOpenGLState(OOOpenGLStateID state);
 // Inform the SetState/VerifyState mechanism that the OpenGL context has been reset to its initial state.
 void OOResetGLStateVerifier(void);
 
-/*	OOCheckOpenGLErrors()
+/*	cxx_OOCheckOpenGLErrors()
         Check for and log OpenGL errors, and returns YES if an error occurred.
         NOTE: this is controlled by the log message class rendering.opengl.error.
                   If logging is disabled, no error checking will occur. This is done
                   because glGetError() is quite expensive, requiring a full OpenGL
                   state sync.
+        The context is built only when an error is found: a printf format and its
+        arguments (a null format reads "<unknown>"), or a function giving the text.
+        (C++ linkage: this header is sometimes reached from inside an extern "C"
+        block, OOMaths.h, as OOFoundation.h notes.)
 */
-BOOL OOCheckOpenGLErrors(NSString* format, ...);
+#ifdef __cplusplus
+extern "C++" {
+#include "oofnd/StdLib.hpp"
+BOOL cxx_OOCheckOpenGLErrors(const char* format, ...) __attribute__((format(printf, 1, 2)));
+BOOL cxx_OOCheckOpenGLErrors(const std::function<std::string()>& context);
+}
+#endif
 
 /*	LogOpenGLState()
         Write a bunch of OpenGL state information to the log.
@@ -224,18 +238,32 @@ void GLDrawQuadStrip(OOGLVector* points, int n);
 #define OO_CHECK_GL_HEAVY 0
 #endif
 
+#ifdef __cplusplus
+}
+#endif
+
 #if OO_CHECK_GL_HEAVY
 
 #if OO_GL_STATE_VERIFICATION
+#ifdef __cplusplus
+extern "C" {
+#endif
 void OOGLNoteCurrentFunction(const char* func, unsigned line);
+#ifdef __cplusplus
+}
+#endif
 #else
 #define OOGLNoteCurrentFunction(FUNC, line) \
     do {                                    \
     } while (0)
 #endif
 
-NSString* OOLogAbbreviatedFileName(const char* inName);
-#define OOGL_PERFORM_CHECK(label, code) OOCheckOpenGLErrors(@"%s %@:%u (%s)%s", label, OOLogAbbreviatedFileName(__FILE__), __LINE__, __PRETTY_FUNCTION__, code)
+#ifdef __cplusplus
+extern "C++" {
+#include "oofnd/Log.hpp" // oo::log::abbreviatedFileName()
+}
+#endif
+#define OOGL_PERFORM_CHECK(label, code) cxx_OOCheckOpenGLErrors("%s %s:%u (%s)%s", label, oo::log::abbreviatedFileName(__FILE__).c_str(), __LINE__, __PRETTY_FUNCTION__, code)
 #define OOGL(statement)                                  \
     do {                                                 \
         OOGLNoteCurrentFunction(__FUNCTION__, __LINE__); \
@@ -283,8 +311,21 @@ NSString* OODisplayStringFromShaderSetting(OOShaderSetting setting);
 
 #ifndef NDEBUG
 
+#ifdef __cplusplus
+extern "C++" { // (this header is sometimes reached from inside OOMaths.h's extern "C" block)
+#endif
 NSString* OOGLColorToString(GLfloat color[4]);
 NSString* OOGLEnumToString(GLenum value);
 NSString* OOGLFlagToString(bool value);
+#ifdef __cplusplus
+}
+#endif
 
 #endif
+
+/*	TRANSITIONAL (proposed ADR-0043, "Transitional bridges"): OOCheckOpenGLErrors() as it was
+        declared before its sweep (bead oo-zpz4, chunk oo-3rb.143), forwarding to cxx_OOCheckOpenGLErrors,
+        so unmigrated callers compile unchanged. Callers move to the cxx_ API in their own sweep beads;
+        the bridge goes in its own bead.
+*/
+#import "OOOpenGL+FoundationBridge.h"

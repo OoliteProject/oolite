@@ -30,20 +30,26 @@ MA 02110-1301, USA.
 
 #if OO_OXP_VERIFIER_ENABLED
 
+#include "oofnd/StdLib.hpp"
+
+/*	Foundation sweep (proposed ADR-0043, bead oo-0iq2): the used texture names are a sorted
+        std::vector (a set), checked in byte order of the name. +nameForReverseDependencyForVerifier: is a shared selector
+        (the other stages declare it) and keeps an Objective-C string result.
+*/
 @interface OOTextureVerifierStage : OOFileHandlingVerifierStage {
 @private
-    NSMutableSet* _usedTextures;
+    std::vector<std::string> _usedTextures; // sorted, no duplicates
 }
 
 // Returns name to be used in -dependents by other stages.
-+ (NSString*)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier;
++ (id)nameForReverseDependencyForVerifier:(OOOXPVerifier*)verifier; // shared selector (proposed ADR-0043)
 
 /*	This can be called by other stages *before* the texture stage runs.
         The context specifies where the texture is used; something like
         "fooShip.dat" or "shipdata.plist materials dictionary for ship \"foo\"".
         It should make sense with "Texture \"foo\" referenced in " in front of it.
 */
-- (void)textureNamed:(NSString*)name usedInContext:(NSString*)context;
+- (void)textureNamed:(const std::string&)name usedInContext:(const std::string&)context; // an empty name is ignored, as nil was
 
 @end
 

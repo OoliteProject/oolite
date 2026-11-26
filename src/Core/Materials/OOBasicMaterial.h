@@ -33,9 +33,11 @@ SOFTWARE.
 #import "OOColor.h"
 #import "OOMaterial.h"
 
+#include "oofnd/StdLib.hpp"
+
 @interface OOBasicMaterial : OOMaterial {
 @private
-    NSString* materialName;
+    std::optional<std::string> materialName; // nil-able, as the name was (proposed ADR-0043)
 
     // Colours
     GLfloat diffuse[4],
@@ -54,7 +56,7 @@ SOFTWARE.
                 emission	{ 0.0, 0.0, 0.0, 1.0 }
                 shininess	0
 */
-- (id)initWithName:(NSString*)name;
+- (id)initWithName:(id)name; // name: an Objective-C string. Shared selector (proposed ADR-0043).
 
 /*	Initialize with dictionary. Accepted keys:
                 diffuse		colour description
@@ -66,7 +68,7 @@ SOFTWARE.
         "Colour description" refers to anything +[OOColor colorWithDescription:]
         will accept.
 */
-- (id)initWithName:(NSString*)name configuration:(NSDictionary*)configuration;
+- (id)initWithName:(id)name configuration:(id)configuration; // an Objective-C string and dictionary. Shared selector (proposed ADR-0043).
 
 - (OOColor*)diffuseColor;
 - (void)setDiffuseColor:(OOColor*)color;

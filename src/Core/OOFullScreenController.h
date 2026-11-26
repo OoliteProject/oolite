@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 
 #import "OOFoundation.h"
 #import "OOMouseInteractionMode.h"
+#import "oofnd/objc/OOObject.h"
 
 @class MyOpenGLView;
 
@@ -49,7 +50,7 @@ MA 02110-1301, USA.
 #define DISPLAY_MAX_WIDTH 7680 // 8K gaming, yay!!
 #define DISPLAY_MAX_HEIGHT 4320
 
-@interface OOFullScreenController : NSObject {
+@interface OOFullScreenController : OOObject {
 @private
     MyOpenGLView* _gameView;
 }

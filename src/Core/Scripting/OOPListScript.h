@@ -34,10 +34,10 @@ MA 02110-1301, USA.
 
 @interface OOPListScript : OOScript {
 @private
-    NSArray* _script;
-    NSDictionary* _metadata;
+    oo::PList _script; // the sanitized script actions (an array)
+    oo::PList _metadata; // a dictionary: name, and the file's !metadata! if it had one
 }
 
-+ (NSArray*)scriptsInPListFile:(NSString*)filePath;
++ (std::optional<std::vector<oo::ObjCRef<OOScript*>>>)scriptsInPListFile:(const std::string&)filePath;
 
 @end
