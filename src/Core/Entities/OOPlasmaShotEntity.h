@@ -2,6 +2,8 @@
 
 OOPlasmaShotEntity.h
 
+A leaf under OOLightParticleEntity, as OOPlasmaBurstEntity.
+
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -23,17 +25,29 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOLightParticleEntity.h"
+#pragma once
 
-@interface OOPlasmaShotEntity : OOLightParticleEntity {
-@private
-    OOTimeDelta _duration;
-}
+#include "OOLightParticleEntity.h"
 
-- (id)initWithPosition:(HPVector)position
-              velocity:(Vector)velocity
-                energy:(float)energy
-              duration:(OOTimeDelta)duration
-                 color:(OOColor*)color;
+// A global class over OOLightParticleEntity. ShipEntity makes one with
+// shotWithPosition().
+class OOPlasmaShotEntity : public OOLightParticleEntity {
+ public:
+  // [[OOPlasmaShotEntity alloc] initWithPosition:...]: a new shot, initialised.
+  static oo::Ref<OOPlasmaShotEntity> shotWithPosition(HPVector position,
+                                                      Vector velocity,
+                                                      float energy,
+                                                      OOTimeDelta duration,
+                                                      OOColor* color);
 
-@end
+  // -initWithPosition:...'s body, run once right after construction.
+  void initWithPosition(HPVector position, Vector velocity, float energy,
+                        OOTimeDelta duration, OOColor* color);
+
+  bool canCollide() override;
+  bool checkCloseCollisionWith(Entity* other) override;
+  void update(double delta_t) override;
+
+ private:
+  OOTimeDelta _duration = {};
+};

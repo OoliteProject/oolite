@@ -1,6 +1,6 @@
 /*
 
-OOJSSound.h
+OOJSSound.h (QuickJS-ng)
 
 JavaScript sound object.
 
@@ -25,17 +25,51 @@ MA 02110-1301, USA.
 */
 
 #pragma once
-#import "OOSound.h"
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+#include <quickjs.h>
 
-@class OOSound;
+#include <optional>
+#include <string>
 
-void InitOOJSSound(JSContext* context, JSObject* global);
+#include "OOFoundation.h"
+#include "OOJSPrivateObject.h"
+#include "oofnd/Ref.hpp"
+
+class OOSound;
+
+void InitOOJSSound(JSContext* context, JSValueConst global);
 
 /*	SoundFromJSValue()
 
-        Convert a JS value to a sound. The value may be either a Sound object or a
-        string specifying a sound name.
+        Convert a JS value to a sound. The value may be either a Sound object or
+   a string specifying a sound name.
  */
-OOSound* SoundFromJSValue(JSContext* context, jsval value);
+OOSound* SoundFromJSValue(JSContext* context, JSValueConst value);
+
+/*	The bodies of OOSound (OOJavaScriptExtentions): a new Sound object for
+   the sound (owned by the caller; JS null for none), its toString() text and
+   its JS class name. The binding and the SoundSource binding call them.
+*/
+JSValue OOJSSoundJSValueInContext(OOSound* sound, JSContext* context);
+std::optional<std::string> OOJSSoundJSDescription(OOSound* sound);
+std::optional<std::string> OOJSSoundJSClassName(void);
+
+/*	What a Sound object's private slot holds. Each Sound object has its own
+   holder, which retains the sound; the slot retains the holder
+   (OOJSSetCxxPrivate) and the finalizer releases it
+   (OOJSCxxObjectWrapperFinalize). Its toString() is the sound's. Defined in
+   OOJSSound.cpp; only the binding makes one.
+*/
+class OOJSSoundHolder final : public oo::RefCounted, public OOJSPrivateObject {
+ public:
+  explicit OOJSSoundHolder(OOSound* inSound);
+  ~OOJSSoundHolder() override;
+
+  OOSound* sound() const;
+
+  JSValue jsValueInContext(JSContext* context) override;  // owned
+  void clearJSSelf(JSValueConst selfVal) override;
+  std::optional<std::string> jsDescription() override;
+
+ private:
+  oo::Ref<OOSound> _sound;
+};

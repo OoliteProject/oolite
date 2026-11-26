@@ -1,0 +1,71 @@
+# tests/unit/asan-suppressions.txt -- AddressSanitizer interceptor suppressions for sanitized runs.
+#
+# ONE ENTRY PER LINE, EACH WITH A WRITTEN REASON. This file is a DEFENCE IN DEPTH, not the primary
+# mechanism: a sanitized run launches the game with --nosound, which returns from the OpenAL
+# controller's initialisation BEFORE alcOpenDevice, and that alone takes the run from 2
+# AddressSanitizer reports to 0. Measured, same binary, same box, 2026-09-18:
+#
+#   without --nosound   2 reports, both SUMMARY ...ucrtbase.dll... , startup complete at 38.96 s
+#   with    --nosound   0 reports,                                    startup complete at 40.07 s
+#
+# The entries below exist so that a future run which DOES initialise audio (a scenario that needs
+# sound, a build where --nosound stops being honoured) still fails only on defects that are ours.
+#
+# ------------------------------------------------------------------------------------------------
+# WHY THESE REPORTS ARE NOT GAME DEFECTS
+# ------------------------------------------------------------------------------------------------
+#
+# The two reports seen without --nosound are:
+#
+#   SUMMARY: AddressSanitizer: bad-malloc_usable_size (C:\WINDOWS\System32\ucrtbase.dll+0x180031843)
+#            in strnicoll+0x1b3
+#   SUMMARY: AddressSanitizer: attempting free on address which was not malloc()-ed
+#            (C:\WINDOWS\System32\ucrtbase.dll+0x180031808)
+#
+# Both call paths run alcOpenDevice -> alcCaptureStart inside the PREBUILT libopenal-1.dll, through
+# pthread_once in libwinpthread-1.dll, into ucrtbase.dll's onexit-table registration. The only
+# game-executable frame in either stack symbolises (llvm-symbolizer, --obj on the sanitized binary)
+# to the alcOpenDevice CALL in the OpenAL controller's initialisation, not to an allocation. This is the classic Windows ASan interceptor
+# mismatch: ASan intercepts HeapSize/free for the instrumented module, a prebuilt DLL allocates
+# through a different allocator, and ASan correctly reports a pointer it does not own. Nothing in
+# the engine allocated or freed it. Reporting these as game memory bugs would be a false positive.
+#
+# ------------------------------------------------------------------------------------------------
+# SCOPE DISCIPLINE
+# ------------------------------------------------------------------------------------------------
+#
+# Every entry names a SPECIFIC third-party module. There is deliberately no entry matching
+# the game executable, no wildcard that could match it, and no blanket halt_on_error=0: a report
+# with a frame in the game executable must fail the run whatever this file says.
+
+# ------------------------------------------------------------------------------------------------
+# SANITIZED UNIT RUNS AND THE COMPONENT HARNESS (2026-10-18)
+# ------------------------------------------------------------------------------------------------
+#
+# Measured on the sanitized debug flavour's core suite: these entries do NOT reach the two reports
+# above. The file was passed to ASan the only way a Windows path survives ASAN_OPTIONS' colon
+# syntax, quoted (suppressions="C:/.../asan-suppressions.txt", which ASan parses), and
+# test_OOOpenALController still died on bad-malloc_usable_size; interceptor_via_lib applies to
+# interceptor memory-range checks, not to the allocator's ownership checks (bad-free,
+# bad-malloc_usable_size). windows_hook_rtl_allocators=1 changes the first report to bad-free and
+# still dies. These reports are not recoverable (no -fsanitize-recover), so halt_on_error=0 does
+# not help either. The remedy is therefore the same as --nosound, applied per caller:
+#   - the core unit suite: every test that opens the OpenAL device is also in meson suite
+#     'openal' (tests/unit/core/meson.build); a sanitized run passes --no-suite openal;
+#   - the component harness: tests/component/console.py appends OO_GAME_EXTRA_ARGS to the game's
+#     command line; a sanitized run sets OO_GAME_EXTRA_ARGS=--nosound, and the harness
+#     keeps the game's stderr so a report is not lost.
+# The unsanitized runs still run every OpenAL test and launch the game with sound.
+
+# ucrtbase.dll owns the CRT onexit table. libopenal's DllMain-time registration allocates inside
+# it with the CRT's own allocator, which ASan's HeapSize/free interceptors do not own. Not ours.
+interceptor_via_lib:ucrtbase.dll
+
+# The prebuilt libopenal-1.dll shipped in the app bundle is not instrumented and not built by us; its
+# internal allocations are invisible to ASan's shadow memory. Excluded via --nosound in a normal
+# sanitized run; this entry covers a run that initialises audio anyway.
+interceptor_via_lib:libopenal-1.dll
+
+# libwinpthread-1.dll's pthread_once is the trampoline libopenal's one-time init runs through; it
+# appears in both stacks above and is likewise a prebuilt MSYS2 DLL, not engine code.
+interceptor_via_lib:libwinpthread-1.dll

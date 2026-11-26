@@ -4,6 +4,9 @@ OOALSound.h
 
 OOALSound - OpenAL sound implementation for Oolite.
 
+The sound sources, the channels, the resource manager, the player and the JS
+Sound class hold and call the C++ sound (oo::Ref).
+
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
@@ -24,25 +27,46 @@ SOFTWARE.
 
 */
 
-#import "OOOpenALController.h"
-#import <Foundation/Foundation.h>
+#pragma once
 
-@interface OOSound : NSObject
+#include "OOFoundation.h"
+#include "OOOpenALController.h"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObject.h"
 
-+ (BOOL)setUp;
-+ (void)update;
+class OOSound : public oo::RefCounted {
+ public:
+  OOSound();
 
-+ (void)setMasterVolume:(float)fraction;
-+ (float)masterVolume;
+  static bool setUp();
+  static void update();
 
-- (id)initWithContentsOfFile:(NSString*)path;
+  static void setMasterVolume(float fraction);
+  static float masterVolume();
 
-- (NSString*)name;
+  /*	Was -cxx_initWithContentsOfFile:, a class cluster's initialiser: it
+     answered, in place of the receiver, an OOALBufferedSound for up to 1 MB of
+     decoded data, else an OOALStreamedSound. Null
+     where it answered nil: sound not OK, no decoder for the path, or the
+     concrete sound refused.
+  */
+  static oo::Ref<OOSound> initWithContentsOfFile(
+      const std::optional<std::string>& path);  // nullopt: null
 
-+ (BOOL)isSoundOK;
+  virtual std::optional<std::string> name();  // nullopt: none
 
-- (ALuint)soundBuffer;
-- (BOOL)soundIncomplete;
-- (void)rewind;
+  static bool isSoundOK();
 
-@end
+  virtual ALuint soundBuffer();
+  virtual bool soundIncomplete();
+  virtual void rewind();
+
+  // What "%@" prints between the braces of <Class 0x...>{...}
+  // (OODescription.h). None here, as OOObject answered.
+  virtual std::optional<std::string> descriptionComponents() const;
+
+  // What "%@" printed for the sound: <ClassName 0x...>{components}, the C++
+  // class's name.
+  std::string description() const;
+};
