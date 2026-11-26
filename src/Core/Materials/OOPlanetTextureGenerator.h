@@ -25,10 +25,14 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOMaths.h"
-#import "OOTextureGenerator.h"
+#pragma once
 
-@class OOPlanetNormalMapGenerator, OOPlanetAtmosphereGenerator;
+#include "OOMaths.h"
+#include "OOTextureGenerator.h"
+#include "oofnd/PList.hpp"
+
+class OOPlanetNormalMapGenerator; // private to OOPlanetTextureGenerator.mm
+class OOPlanetAtmosphereGenerator;
 
 typedef struct OOPlanetTextureGeneratorInfo {
     RANROTSeed seed;
@@ -67,23 +71,62 @@ typedef struct OOPlanetTextureGeneratorInfo {
 
     unsigned planetAspectRatio;
     unsigned planetScaleOffset;
-    BOOL perlin3d;
+    bool perlin3d;
 } OOPlanetTextureGeneratorInfo;
 
-@interface OOPlanetTextureGenerator : OOTextureGenerator {
-@private
-    OOPlanetTextureGeneratorInfo _info;
-    unsigned _planetScale;
+/*	A leaf of the texture generators, over
+        OOTextureGenerator; so are the two helper generators private to
+        its file. Its one caller (OOPlanetEntity) calls the static members; a texture takes the C++
+        generator.
+*/
+class OOPlanetTextureGenerator : public OOTextureGenerator {
+public:
+    ~OOPlanetTextureGenerator() override; // was -dealloc
 
-    OOPlanetNormalMapGenerator* _nMapGenerator;
-    OOPlanetAtmosphereGenerator* _atmoGenerator;
-}
+    /*	planetInfo is the planet's material parameters, a mixed configuration:
+       plist values with the colours as PList::Object nodes holding OOColors
+       Was [[OOPlanetTextureGenerator alloc] initWithPlanetInfo:seed:]; null
+       where that answered nil.
+    */
+    static oo::Ref<OOPlanetTextureGenerator> generatorWithPlanetInfo(
+        const oo::PList& planetInfo, RANROTSeed seed);
+    bool initWithPlanetInfo(const oo::PList& planetInfo,
+        RANROTSeed seed); // false where it answered nil
 
-- (id)initWithPlanetInfo:(NSDictionary*)planetInfo;
+    /*	Were +planetTextureWithInfo:seed: and the three
+       +generatePlanetTexture:...; the textures are answered retained. The one
+       that took a texture and an atmosphere
+            (+generatePlanetTexture:andAtmosphere:withInfo:seed:) has its own
+       name: its arguments have the types of the one that took a texture and a
+       secondary texture.
+    */
+    static oo::Ref<OOTexture> planetTextureWithInfo(const oo::PList& planetInfo, RANROTSeed seed);
+    static bool generatePlanetTextureAndAtmosphere(oo::Ref<OOTexture>* texture, oo::Ref<OOTexture>* atmosphere, const oo::PList& planetInfo, RANROTSeed seed);
+    static bool generatePlanetTexture(oo::Ref<OOTexture>* texture, oo::Ref<OOTexture>* secondaryTexture, const oo::PList& planetInfo, RANROTSeed seed);
+    static bool generatePlanetTexture(oo::Ref<OOTexture>* texture, oo::Ref<OOTexture>* secondaryTexture, oo::Ref<OOTexture>* atmosphere, const oo::PList& planetInfo, RANROTSeed seed);
 
-+ (OOTexture*)planetTextureWithInfo:(NSDictionary*)planetInfo;
-+ (BOOL)generatePlanetTexture:(OOTexture**)texture andAtmosphere:(OOTexture**)atmosphere withInfo:(NSDictionary*)planetInfo;
-+ (BOOL)generatePlanetTexture:(OOTexture**)texture secondaryTexture:(OOTexture**)secondaryTexture withInfo:(NSDictionary*)planetInfo;
-+ (BOOL)generatePlanetTexture:(OOTexture**)texture secondaryTexture:(OOTexture**)secondaryTexture andAtmosphere:(OOTexture**)atmosphere withInfo:(NSDictionary*)planetInfo;
+    std::optional<std::string> descriptionComponents() const override;
+    uint32_t textureOptions() override;
+    std::optional<std::string> cacheKey() override;
 
-@end
+    /*	Was -getResult:format:width:height:, whose keywords are not the root's
+            -getResult:format:originalWidth:originalHeight:, so it never overrode
+       it and nothing sends it; kept, under a name that does not override
+       getResult() either.
+    */
+    bool getResultFormatWidthHeight(OOPixMap* outData, OOTextureDataFormat* outFormat, uint32_t* outWidth, uint32_t* outHeight);
+
+    void loadTexture() override;
+
+private:
+    std::optional<std::string> cacheKeyForType(const std::string& type);
+    OOPlanetNormalMapGenerator* normalMapGenerator(); // Must be called before generator is enqueued for rendering.
+    OOPlanetAtmosphereGenerator* atmosphereGenerator(); // Must be called before generator is enqueued for rendering.
+    void dumpNoiseBuffer(float* noise); // defined where the .mm's DEBUG_DUMP_RAW is set
+
+    OOPlanetTextureGeneratorInfo _info = { };
+    unsigned _planetScale = { };
+
+    oo::Ref<OOPlanetNormalMapGenerator> _nMapGenerator;
+    oo::Ref<OOPlanetAtmosphereGenerator> _atmoGenerator;
+};

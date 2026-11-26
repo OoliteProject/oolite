@@ -27,7 +27,19 @@
         SOFTWARE.
 */
 
-#import "OOFoundation.h"
+#pragma once
+
+#ifndef OO_PLAIN_CPP_UNIT
+#include "OOFoundation.h"
+#else
+/*	Plain C++ translation unit (OOIsNumberLiteral.cpp): only bool
+   is needed, and OOFoundation.h imports Foundation, which does not compile
+   in a plain C++ unit.
+*/
+#include "oofnd/objc/OOFoundationTypes.h" // bool
+#endif
+
+#include "oofnd/StdLib.hpp"
 
 /*	Recognise C-style decimal integer or float literals, without type suffix.
         More formally, it tests against the following grammar:
@@ -46,4 +58,8 @@
 
         if allowSpaces = NO, the [<whitespace>] terms are excluded.
 */
-BOOL OOIsNumberLiteral(NSString* string, BOOL allowSpaces);
+/*	The string is UTF-8.
+   A nil string used to answer NO; callers pass oo::StdString(s), and "" answers
+   NO too (no digits).
+*/
+bool OOIsNumberLiteral(const std::string& string, bool allowSpaces);

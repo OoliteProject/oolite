@@ -1,6 +1,6 @@
 /*
 
-OOJSPlanet.h
+OOJSPlanet.h (QuickJS-ng)
 
 JavaScript proxy for PlanetEntities.
 
@@ -27,10 +27,21 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#import "OOPlanetEntity.h"
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+#include "OOFoundation.h"
+#include <quickjs.h>
 
-@class OOPlanetEntity;
+#include <optional>
+#include <string>
 
-void InitOOJSPlanet(JSContext* context, JSObject* global);
+class OOPlanetEntity;
+
+void InitOOJSPlanet(JSContext* context, JSValueConst global);
+
+JSClassID JSPlanetClassID(void);
+
+/*	The bodies of OOPlanetEntity (OOJavaScriptExtensions), which the engine
+   reaches through the root Entity's virtual members: the C++ planet's overrides
+   call these. Its JS class is JSPlanetClassID().
+*/
+bool OOJSPlanetIsVisibleToScripts(OOPlanetEntity* planet);
+std::optional<std::string> OOJSPlanetJSClassName(OOPlanetEntity* planet);
