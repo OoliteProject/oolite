@@ -28,6 +28,16 @@ MA 02110-1301, USA.
 #import "OOFullScreenController.h"
 #import "OOFunctionAttributes.h"
 #import "OOMouseInteractionMode.h"
+#import "oofnd/objc/OOObject.h"
+
+#include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
+
+#include <functional>
+#include <optional>
+#include <string>
+#include <vector>
 
 #if OOLITE_MAC_COCOA_UI
 #import <Quartz/Quartz.h> // For PDFKit.
@@ -39,169 +49,222 @@ MA 02110-1301, USA.
 #define MINIMUM_ANIMATION_TICK 0.0041667
 // 1.0 / (desired framerate cap)
 
-@class MyOpenGLView, OOFullScreenController;
+class MyOpenGLView;
+class OOFullScreenController; // C++ since bead oo-bgmb
 
 // TEMP: whether to use separate OOFullScreenController object, will hopefully be used for all builds soon.
 #define OO_USE_FULLSCREEN_CONTROLLER OOLITE_MAC_COCOA_UI
 
-@interface GameController : NSObject {
-@private
-#if OOLITE_MAC_COCOA_UI
-    IBOutlet NSTextField* splashProgressTextField;
-    IBOutlet NSView* splashView;
-    IBOutlet NSWindow* gameWindow;
-    IBOutlet PDFView* helpView;
-    IBOutlet NSMenu* dockMenu;
+/*	The application controller (slice 1 of docs/phases/3-slices/GameController.md):
+        the class shell, its state and accessors; the frame loop and deferred calls (slice 2);
+        start-up, splash and progress messages, exit and the player file (slice 3); the SDL
+        full-screen members (SDL/GameController+SDLFullScreen.mm), the former FullScreen category.
+        The Mac FullScreen category (Core/GameController+FullScreen.mm) went as upstream's did
+        (OoliteProject #737); the Mac category at the end of GameController.mm is not compiled and is
+        left as it was (Phase 5). A global class since the Objective-C facade was deleted.
+*/
+class GameController : public oo::RefCounted {
+public:
+    // The shared controller, made on first use; borrowed, never released (proposed ADR-0056
+    // amendment oo-r7m0).
+    static GameController* sharedController();
+
+    GameController();
+    ~GameController();
+
+    bool finishedLaunching();
+
+    bool isGamePaused();
+    void setGamePaused(bool value);
+
+    /*
+      Eco Quality of Service currently implemented only on Windows.
+      It sets the game to low power consumption mode when it loses
+      focus or is paused. When EcoQoS is active:
+      - Windows schedules the appliation on more efficient CPU cores
+      - The CPU is kept at a more efficient clock frequency
+
+      On non-Windows platforms it is a no-op.
+    */
+    void setEcoQoS(bool efficiencyModeRequested);
+
+    OOMouseInteractionMode mouseInteractionMode();
+    void setMouseInteractionMode(OOMouseInteractionMode mode);
+    void setMouseInteractionModeForFlight(); // Chooses mouse control mode appropriately.
+    void setMouseInteractionModeForUIWithMouseInteraction(bool interaction);
+
+    ::MyOpenGLView* gameView();
+    void setGameView(::MyOpenGLView* view);
+
+#ifndef NDEBUG
+    bool suppressClangStuff();
 #endif
 
-    IBOutlet MyOpenGLView* gameView;
+    // The frame loop (bead oo-hn0fw, slice 2).
+#if !OOLITE_MAC_COCOA_UI
+    void performGameTick(id sender);
+#endif
+    void startAnimationTimer();
+    void stopAnimationTimer();
 
-    NSTimeInterval last_timeInterval;
-    double delta_t;
+    /*	Fire whatever is due now, the game tick first, then one deferred call:
+            what the run loop's -limitDateForMode: did for the game while its tick and
+            deferred calls were run-loop timers. For code that must let the game tick
+            while it blocks the frame loop (the OXZ download callback). See proposed
+            ADR-0033 and ADR-0040.
+    */
+    void fireDueTimers();
 
-    int my_mouse_x, my_mouse_y;
+    // Start-up, splash and progress messages, exit, player file (bead oo-5ah4k, slice 3).
+    void applicationDidFinishLaunching();
 
-    NSString* playerFileDirectory;
-    NSString* playerFileToLoad;
-    NSMutableArray* expansionPathsToInclude;
+    void exitAppWithContext(const std::string& context);
+    void exitAppCommandQ();
 
-    NSTimer* timer;
-    NSTimeInterval _animationTimerInterval;
+    // nullopt: no saved game to load (was nil).
+    std::optional<std::string> playerFileToLoad();
+    void setPlayerFileToLoad(const std::string& filename); // kept only for a .oolite-save path
 
-    NSDate* _splashStart;
+    // nullopt: no save directory (was nil). A nullopt argument clears it and the save-directory
+    // default, and the next playerFileDirectory() looks it up again (as nil did; "" does not).
+    std::optional<std::string> playerFileDirectory();
+    void setPlayerFileDirectory(const std::optional<std::string>& filename);
 
-    SEL pauseSelector;
-    NSObject* pauseTarget;
+    void loadPlayerIfRequired();
 
-    BOOL gameIsPaused;
+    void beginSplashScreen();
+    void logProgress(const std::string& message);
+#if OO_DEBUG
+    // These take the formatted message, as do OO_DEBUG_PROGRESS / OO_DEBUG_PUSH_PROGRESS below.
+    void debugLogProgress(const std::string& message);
+    void debugPushProgressMessage(const std::string& message);
+    void debugPopProgressMessage();
+#endif
+    void endSplashScreen();
 
-    OOMouseInteractionMode _mouseMode;
-    OOMouseInteractionMode _resumeMode;
+    void windowDidResize();
+
+#if OOLITE_SDL
+    // Full screen (SDL/GameController+SDLFullScreen.mm): the former FullScreen category.
+    // -displayModes is getDisplayModes(), as the state has a displayModes.
+    void setUpDisplayModes(); // internal use only
+    void setFullScreenMode(bool fsm);
+    void exitFullScreenMode(); // FIXME: should be setFullScreenMode(false)
+    bool inFullScreenMode();
+    bool setDisplayWidth(unsigned int d_width, unsigned int d_height, unsigned int d_refresh);
+    oo::PList findDisplayModeForWidth(unsigned int d_width, unsigned int d_height, unsigned int d_refresh); // a mode dictionary; null: none
+    oo::PList getDisplayModes(); // an array of mode dictionaries
+    NSUInteger indexOfCurrentDisplayMode();
+    void pauseFullScreenModeToPerform(SEL selector, id target);
+#endif
+
+    // tests/unit/core/test_GameController.mm reads and sets the state below.
+    friend struct GameControllerTestAccess;
+
+private:
+    // Internal: the state, read and written by the members above (and by the fenced Mac
+    // categories, not compiled). Private again since the facade was deleted.
+#if OOLITE_MAC_COCOA_UI
+    NSTextField* splashProgressTextField = { };
+    NSView* splashView = { };
+    NSWindow* gameWindow = { };
+    PDFView* helpView = { };
+    NSMenu* dockMenu = { };
+#endif
+
+    ::MyOpenGLView* _gameView = { }; // retained; was gameView, named like its getter
+
+    NSTimeInterval last_timeInterval = { };
+    double delta_t = { };
+
+    int my_mouse_x = { }, my_mouse_y = { };
+
+    std::optional<std::string> _playerFileDirectory; // nullopt: not looked up yet, or none (was nil); named so -cxx_playerFileDirectory's member can be playerFileDirectory()
+    std::optional<std::string> _playerFileToLoad; // nullopt: none (was nil); named so -cxx_playerFileToLoad's member can be playerFileToLoad()
+    std::vector<std::string> expansionPathsToInclude; // expansion folders opened with the application (Mac)
+
+    NSTimeInterval _animationTimerInterval = { };
+
+    NSTimeInterval _splashStart = { }; // oo::date::monotonicSeconds() at start-up
+
+    SEL pauseSelector = { };
+    OOObject* pauseTarget = { };
+
+    bool gameIsPaused = { };
+
+    OOMouseInteractionMode _mouseMode = { };
+    OOMouseInteractionMode _resumeMode = { };
 
 // Fullscreen mode stuff.
 #if OO_USE_FULLSCREEN_CONTROLLER
-    OOFullScreenController* _fullScreenController;
+    OOFullScreenController* _fullScreenController = { };
 #elif OOLITE_SDL
-    NSRect fsGeometry;
-    MyOpenGLView* switchView;
+    NSRect fsGeometry = { };
+    ::MyOpenGLView* switchView = { };
 
-    NSMutableArray* displayModes;
+    oo::PList::Array displayModes; // the usable screen modes, each a mode dictionary
 
-    unsigned int width, height;
-    unsigned int refresh;
-    BOOL fullscreen;
-    NSDictionary* originalDisplayMode;
-    NSDictionary* fullscreenDisplayMode;
+    unsigned int width = { }, height = { };
+    unsigned int refresh = { };
+    bool fullscreen = { };
+    oo::PList originalDisplayMode; // a mode dictionary; null: none (was nil)
+    oo::PList fullscreenDisplayMode; // a mode dictionary; null: none (was nil)
 
-    BOOL stayInFullScreenMode;
-    BOOL _finishedLaunching;
+    bool stayInFullScreenMode = { };
+    bool _finishedLaunching = { };
 #endif
-}
 
-+ (GameController*)sharedController;
+private:
+    void doPerformGameTick();
+    void performGameTickIfDue();
+    void fireDueDeadlines();
+    void runFrameLoop();
 
-- (void)applicationDidFinishLaunching:(NSNotification*)notification;
-- (BOOL)finishedLaunching;
+    void reportUnhandledStartupExceptionName(const std::string& name, const std::optional<std::string>& reason); // reason nullopt: none (was nil)
+#if OO_DEBUG && !OOLITE_MAC_COCOA_UI
+    bool debugMessageTrackingIsOn();
+    std::string debugMessageCurrentString();
+#endif
+};
 
-- (BOOL)isGamePaused;
-- (void)setGamePaused:(BOOL)value;
-
-/*
-  Eco Quality of Service currently implemented only on Windows.
-  It sets the game to low power consumption mode when it loses
-  focus or is paused. When EcoQoS is active:
-  - Windows schedules the appliation on more efficient CPU cores
-  - The CPU is kept at a more efficient clock frequency
-
-  On non-Windows platforms it is a no-op.
+/*	OOScheduleDeferredCall(target, selector, argument, delay): what Foundation's
+        performer-after-delay did (bead oo-3rb.57, proposed ADR-0040). [target
+        performSelector:selector withObject:argument] runs on the first frame-loop
+        pass at least delay seconds from now (a delay <= 0 is 0.0001 s), after that
+        pass's tick; target and argument are retained until then. Due calls fire in
+        the order they were scheduled, at most two per pass, as the run loop fired
+        its timers. Main thread only: a call scheduled on another thread never fires,
+        as a performer on that thread's never-run run loop did not.
 */
-- (void)setEcoQoS:(BOOL)efficiencyModeRequested;
+void OOScheduleDeferredCall(id target, SEL selector, id argument, NSTimeInterval delay);
 
-- (OOMouseInteractionMode)mouseInteractionMode;
-- (void)setMouseInteractionMode:(OOMouseInteractionMode)mode;
-- (void)setMouseInteractionModeForFlight; // Chooses mouse control mode appropriately.
-- (void)setMouseInteractionModeForUIWithMouseInteraction:(BOOL)interaction;
-
-- (void)performGameTick:(id)sender;
-
-#if OOLITE_MAC_COCOA_UI
-- (IBAction)showLogAction:(id)sender;
-- (IBAction)showLogFolderAction:(id)sender;
-- (IBAction)showSnapshotsAction:(id)sender;
-- (IBAction)showAddOnsAction:(id)sender;
-- (void)recenterVirtualJoystick;
-#endif
-
-- (void)exitAppWithContext:(NSString*)context;
-- (void)exitAppCommandQ;
-
-- (NSString*)playerFileToLoad;
-- (void)setPlayerFileToLoad:(NSString*)filename;
-
-- (NSString*)playerFileDirectory;
-- (void)setPlayerFileDirectory:(NSString*)filename;
-
-- (void)loadPlayerIfRequired;
-
-- (void)beginSplashScreen;
-- (void)logProgress:(NSString*)message;
-#if OO_DEBUG
-- (void)debugLogProgress:(NSString*)format, ... OO_TAKES_FORMAT_STRING(1, 2);
-- (void)debugLogProgress:(NSString*)format arguments:(va_list)arguments OO_TAKES_FORMAT_STRING(1, 0);
-- (void)debugPushProgressMessage:(NSString*)format, ... OO_TAKES_FORMAT_STRING(1, 2);
-- (void)debugPopProgressMessage;
-#endif
-- (void)endSplashScreen;
-
-- (void)startAnimationTimer;
-- (void)stopAnimationTimer;
-
-- (MyOpenGLView*)gameView;
-- (void)setGameView:(MyOpenGLView*)view;
-
-- (void)windowDidResize:(NSNotification*)aNotification;
-
-- (NSURL*)snapshotsURLCreatingIfNeeded:(BOOL)create;
-
-@end
-
-@interface GameController (FullScreen)
-
-#if OO_USE_FULLSCREEN_CONTROLLER
-#if OOLITE_MAC_COCOA_UI
-- (IBAction)toggleFullScreenAction:(id)sender;
-#endif
-
-- (void)setFullScreenMode:(BOOL)value;
-#endif
-
-- (void)exitFullScreenMode; // FIXME: should be setFullScreenMode:NO
-- (BOOL)inFullScreenMode;
-
-- (BOOL)setDisplayWidth:(unsigned int)d_width Height:(unsigned int)d_height Refresh:(unsigned int)d_refresh;
-- (NSDictionary*)findDisplayModeForWidth:(unsigned int)d_width Height:(unsigned int)d_height Refresh:(unsigned int)d_refresh;
-- (NSArray*)displayModes;
-- (NSUInteger)indexOfCurrentDisplayMode;
-
-- (void)pauseFullScreenModeToPerform:(SEL)selector onTarget:(id)target;
-
-// Internal use only.
-- (void)setUpDisplayModes;
-
-@end
+/*	The same queue for a C++ call: call() runs where the
+        perform ran, in the same order and pass, and is destroyed after it (what it captures is kept alive
+        until then, as the target was retained). An OOException from it is caught and logged as the
+        perform's was, and the call is then never destroyed, as the performer leaked its target.
+*/
+void OOScheduleDeferredCall(std::function<void()> call, NSTimeInterval delay);
 
 #if OO_DEBUG
-#define OO_DEBUG_PROGRESS(...) [[GameController sharedController] debugLogProgress:__VA_ARGS__]
-#define OO_DEBUG_PUSH_PROGRESS(...) [[GameController sharedController] debugPushProgressMessage:__VA_ARGS__]
-#define OO_DEBUG_POP_PROGRESS() [[GameController sharedController] debugPopProgressMessage]
+#define OO_DEBUG_PROGRESS(message) ::GameController::sharedController()->debugLogProgress(message)
+#define OO_DEBUG_PUSH_PROGRESS(message) ::GameController::sharedController()->debugPushProgressMessage(message)
+#define OO_DEBUG_POP_PROGRESS() ::GameController::sharedController()->debugPopProgressMessage()
 #else
-#define OO_DEBUG_PROGRESS(...) \
-    do {                       \
+#define OO_DEBUG_PROGRESS(message) \
+    do {                           \
     } while (0)
-#define OO_DEBUG_PUSH_PROGRESS(...) \
-    do {                            \
+#define OO_DEBUG_PUSH_PROGRESS(message) \
+    do {                                \
     } while (0)
 #define OO_DEBUG_POP_PROGRESS() \
     do {                        \
     } while (0)
 #endif
+
+/*	[target performSelector:selector withObject:argument] for a deferred call (OOScheduleDeferredCall):
+        false when it raised an OOException, which is caught and its name and reason (the exception's own
+        strings, alive until the pool drains) written out (the caller logs them as the Foundation timer
+        did); anything else propagates. The free function FireOneDueDeferredCall() calls it (its
+        @try/@catch and send stay Objective-C, in GameController.mm).
+*/
+bool GameControllerPerformSelectorWithObject(id target, SEL selector, id argument, const char** outName, const char** outReason);

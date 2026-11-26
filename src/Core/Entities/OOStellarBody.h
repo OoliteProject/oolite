@@ -28,19 +28,11 @@ MA 02110-1301, USA.
 #import "OOFoundation.h"
 #import "OOMaths.h"
 #import "OOTypes.h"
-#import "OOWeakReference.h"
-
-#ifndef NEW_PLANETS
-// not for 1.77/8
-#define NEW_PLANETS 1
-#endif
+#import "oofnd/objc/OOObject.h"
 
 typedef enum {
     STELLAR_TYPE_SUN,
     STELLAR_TYPE_NORMAL_PLANET, // Terrestrial planet with atmosphere and oceans
-#if !NEW_PLANETS
-    STELLAR_TYPE_ATMOSPHERE,
-#endif
     STELLAR_TYPE_MOON, // Rocky/airless planet
     STELLAR_TYPE_MINIATURE // Display proxy for a "normal" planet
 } OOStellarBodyType;
@@ -49,12 +41,21 @@ typedef enum {
 #define PLANET_MINIATURE_FACTOR 0.00185
 #define MAX_SUBDIVIDE 6
 
-@protocol OOStellarBody <NSObject, OOWeakReferenceSupport>
+@protocol OOStellarBody <OOObject> // (and the weak-reference protocol until the root facade went: nothing adopts it)
 
 - (double)radius;
 - (OOStellarBodyType)planetType;
 
-- (NSString*)name;
-- (void)setName:(NSString*)name;
+- (std::optional<std::string>)cxx_name; // nullopt: unnamed (bead oo-3rb.289.12)
+- (void)cxx_setName:(const std::optional<std::string>&)name;
 
 @end
+
+/*	-radius and -planetType of a stellar body's Objective-C object: the sun and the
+        planet, C++ since their facades were deleted, are asked directly
+        (their object is the root Entity's facade, which does not answer them); any other body by
+        selector, as before. Nil answers 0, as the message to nil did. Defined in OOSunEntity.mm.
+*/
+class Entity;
+double OOStellarBodyRadius(Entity* body); // of the C++ entity (the object overloads went with the facade)
+OOStellarBodyType OOStellarBodyPlanetType(Entity* body); // the same
