@@ -25,34 +25,49 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
+#pragma once
 
-@class OOTexture, OOColor;
+#include "Entity.h"
 
-@interface OOLightParticleEntity : Entity {
-@protected
-    GLfloat _colorComponents[4];
-    float _diameter;
-}
+class OOTexture;
 
-- (id)initWithDiameter:(float)diameter;
+// A particle is made in C++.
+class OOLightParticleEntity : public Entity {
+public:
+    // -initWithDiameter:'s body, run once right after construction: it calls
+    // members a subclass overrides. A converted subclass's initialiser calls it
+    // first.
+    void initWithDiameter(float diameter);
 
-- (float)diameter;
-- (void)setDiameter:(float)diameter;
+    float diameter();
+    void setDiameter(float diameter);
 
-- (void)setColor:(OOColor*)color;
-- (void)setColor:(OOColor*)color alpha:(GLfloat)alpha;
+    void setColor(OOColor* color);
+    void setColor(OOColor* color, GLfloat alpha);
 
-/*	For subclasses that don't want the default blur texture.
-        NOTE: such subclasses must deal with the OOGraphicsResetManager. Also,
-        OOLightParticleEntity assumes the texture is twice as big as the nominal
-        size of the particle (with a black border for anti-aliasing purposes).
-*/
-- (OOTexture*)texture;
+    /*	For subclasses that don't want the default blur texture.
+            NOTE: such subclasses must deal with the OOGraphicsResetManager. Also,
+            OOLightParticleEntity assumes the texture is twice as big as the nominal
+            size of the particle (with a black border for anti-aliasing purposes).
+    */
+    virtual OOTexture* texture();
 
-+ (void)setUpTexture;
-+ (OOTexture*)defaultParticleTexture;
+    static void setUpTexture();
+    static OOTexture* defaultParticleTexture();
+    // Called by the texture's file-local graphics reset client.
+    static void resetGraphicsState();
 
-- (void)drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent;
+    virtual void drawSubEntityImmediate(bool immediate, bool translucent);
 
-@end
+    void drawImmediate(bool immediate, bool translucent) override;
+    bool isEffect() override;
+    bool canCollide() override;
+
+#ifdef OO_DEBUG_MONITOR_ENABLED
+    std::vector<oo::Ref<OOTexture>> allTextures() override;
+#endif
+
+    // Public, as the tests read them.
+    GLfloat _colorComponents[4] = { };
+    float _diameter = { };
+};

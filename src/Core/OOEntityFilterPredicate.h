@@ -31,7 +31,9 @@ MA 02110-1301, USA.
 
 */
 
-#import "Universe.h"
+#pragma once
+
+#include "Universe.h"
 
 typedef struct
 {
@@ -47,6 +49,10 @@ typedef struct
     void* parameter2;
 } BinaryOperationPredicateParameter;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 BOOL YESPredicate(Entity* entity, void* parameter); // Parameter: ignored. Always returns YES.
 BOOL NOPredicate(Entity* entity, void* parameter); // Parameter: ignored. Always returns NO.
 
@@ -58,8 +64,7 @@ BOOL NORPredicate(Entity* entity, void* parameter); // Parameter: BinaryOperatio
 BOOL XORPredicate(Entity* entity, void* parameter); // Parameter: BinaryOperationPredicateParameter. XOR operator.
 BOOL NANDPredicate(Entity* entity, void* parameter); // Parameter: BinaryOperationPredicateParameter. NAND operator.
 
-BOOL HasScanClassPredicate(Entity* entity, void* parameter); // Parameter: NSNumber (int)
-BOOL HasClassPredicate(Entity* entity, void* parameter); // Parameter: Class
+BOOL HasScanClassPredicate(Entity* entity, void* parameter); // Parameter: an OOScanClass
 BOOL IsShipPredicate(Entity* entity, void* parameter); // Parameter: ignored. Tests isShip and !isSubentity.
 BOOL IsStationPredicate(Entity* entity, void* parameter); // Parameter: ignored. Tests isStation.
 BOOL IsPlanetPredicate(Entity* entity, void* parameter); // Parameter: ignored. Tests isPlanet and planetType == STELLAR_TYPE_NORMAL_PLANET.
@@ -67,8 +72,12 @@ BOOL IsSunPredicate(Entity* entity, void* parameter); // Parameter: ignored. Tes
 BOOL IsVisualEffectPredicate(Entity* entity, void* parameter); // Parameter: ignored. Tests isVisualEffect and !isSubentity.
 
 // These predicates assume their parameter is a ShipEntity.
-BOOL HasRolePredicate(Entity* ship, void* parameter); // Parameter: NSString
-BOOL HasPrimaryRolePredicate(Entity* ship, void* parameter); // Parameter: NSString
-BOOL HasRoleInSetPredicate(Entity* ship, void* parameter); // Parameter: NSSet
-BOOL HasPrimaryRoleInSetPredicate(Entity* ship, void* parameter); // Parameter: NSSet
+BOOL HasRolePredicate(Entity* ship, void* parameter); // Parameter: a std::string (null: none)
+BOOL HasPrimaryRolePredicate(Entity* ship, void* parameter); // Parameter: a std::string (null: none)
+BOOL HasRoleInSetPredicate(Entity* ship, void* parameter); // Parameter: a std::vector<std::string> of roles
+BOOL HasPrimaryRoleInSetPredicate(Entity* ship, void* parameter); // Parameter: a std::vector<std::string> of roles
 BOOL IsHostileAgainstTargetPredicate(Entity* ship, void* parameter); // Parameter: ShipEntity
+
+#ifdef __cplusplus
+}
+#endif
