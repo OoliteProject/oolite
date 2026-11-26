@@ -30,17 +30,9 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 #import "OOWeakReference.h"
 
-#ifndef NEW_PLANETS
-// not for 1.77/8
-#define NEW_PLANETS 1
-#endif
-
 typedef enum {
     STELLAR_TYPE_SUN,
     STELLAR_TYPE_NORMAL_PLANET, // Terrestrial planet with atmosphere and oceans
-#if !NEW_PLANETS
-    STELLAR_TYPE_ATMOSPHERE,
-#endif
     STELLAR_TYPE_MOON, // Rocky/airless planet
     STELLAR_TYPE_MINIATURE // Display proxy for a "normal" planet
 } OOStellarBodyType;
@@ -49,12 +41,12 @@ typedef enum {
 #define PLANET_MINIATURE_FACTOR 0.00185
 #define MAX_SUBDIVIDE 6
 
-@protocol OOStellarBody <NSObject, OOWeakReferenceSupport>
+@protocol OOStellarBody <OOObject, OOWeakReferenceSupport>
 
 - (double)radius;
 - (OOStellarBodyType)planetType;
 
-- (NSString*)name;
-- (void)setName:(NSString*)name;
+- (std::optional<std::string>)cxx_name; // nullopt: unnamed (bead oo-3rb.289.12)
+- (void)cxx_setName:(const std::optional<std::string>&)name;
 
 @end

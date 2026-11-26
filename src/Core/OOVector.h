@@ -118,17 +118,26 @@ OOINLINE OOScalar triple_product(Vector first, Vector second, Vector third) INLI
 OOINLINE Vector normal_to_surface(Vector v1, Vector v2, Vector v3) CONST_FUNC;
 
 #if __OBJC__
-NSString* VectorDescription(Vector vector); // @"(x, y, z)"
+/*	Objective-C++ only: OOMaths.h is included inside extern "C" (proposed ADR-0043, bead oo-g7k5). */
+extern "C++" {
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
+std::string VectorDescription(Vector vector); // "(x, y, z)"
 
-/* For storing vectors in NSArrays */
-@interface OONativeVector : NSObject {
-@private
-    Vector v;
+namespace cxx {
+
+    /* For storing vectors in Objective-C collections */
+    class OONativeVector : public oo::RefCounted {
+    public:
+        explicit OONativeVector(Vector vect);
+        Vector getVector();
+
+    private:
+        Vector v = { };
+    };
+
+} // namespace cxx
 }
-- (id)initWithVector:(Vector)vect;
-- (Vector)getVector;
-
-@end
 
 #endif
 
@@ -313,3 +322,11 @@ OOINLINE Vector normal_to_surface(Vector v1, Vector v2, Vector v3)
     d1 = vector_subtract(v3, v2);
     return cross_product(d0, d1);
 }
+
+#if __OBJC__
+// Transitional: the Objective-C OONativeVector, for callers not yet converted. Deleted, with
+// namespace cxx above, by the bridge's deletion bead.
+extern "C++" {
+#import "OOVector+ObjCBridge.h"
+}
+#endif
