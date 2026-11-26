@@ -3,11 +3,7 @@
 
 run_script() {
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-    pushd "$script_dir"
-
-    source ./install_zensical_fn.sh && install_zensical
-
-    popd
+    source "$script_dir/install_zensical_fn.sh" && install_zensical
 }
 
 run_script "$@"
