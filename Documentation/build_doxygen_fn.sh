@@ -8,10 +8,16 @@ build_doxygen() {
       return 1
     fi
 
+    source ../../ShellScripts/common/download_github_release_fn.sh
+
     mkdir -p docs/api
-    curl -L https://github.com/jothepro/doxygen-awesome-css/archive/refs/tags/v2.4.1.tar.gz -o doxygen-awesome-css.tar.gz
+    local doxygen_awesome_tgz
+    download_github_release doxygen_awesome_tgz "jothepro" "doxygen-awesome-css"
     mkdir -p doxygen-awesome
-    tar -xvzf doxygen-awesome-css.tar.gz --strip-components=1 -C doxygen-awesome
+    if ! tar xvfz ${doxygen_awesome_tgz} --strip-components=1 -C doxygen-awesome; then
+        echo "❌ Could not unpack doxygen awesome tgz!" >&2
+        return 1
+    fi
     if ! doxygen; then
         echo "❌ Doxygen build failed!" >&2
         return 1
