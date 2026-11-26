@@ -42,9 +42,9 @@ require_install_libdecor_mini() {
 install_libdecor() {
     require_install_libdecor_mini || return 1
 
-    echo "⚠️ INSTALL_LIBDECOR_MINI=true: REPLACING this machine's libdecor with libdecor-mini, so AppImages"
-    echo "   built here draw their own title bar on GNOME Wayland (#793). Other programs on this machine will use"
-    echo "   libdecor-mini too. Only set this flag on a throwaway build machine, such as a CI container."
+    echo "⚠️ INSTALL_LIBDECOR_MINI=true: REPLACING this container's libdecor with libdecor-mini, so AppImages"
+    echo "   built here draw their own title bar on GNOME Wayland (#793). Other programs in this container will"
+    echo "   use libdecor-mini too. Only set this flag in a throwaway build container."
     # libdecor-mini declares that it provides and conflicts with libdecor; get-debloated-pkgs.sh runs
     # pacman -U --ask 4, which removes libdecor
     if ! get-debloated-pkgs.sh libdecor-mini; then
