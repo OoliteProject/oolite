@@ -1,6 +1,6 @@
 /*
 
-OOJSSound.h
+OOJSSound.h (QuickJS-ng)
 
 JavaScript sound object.
 
@@ -25,17 +25,52 @@ MA 02110-1301, USA.
 */
 
 #pragma once
-#import "OOSound.h"
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+#import "OOFoundation.h"
+#include <quickjs.h>
 
-@class OOSound;
+#include <optional>
+#include <string>
 
-void InitOOJSSound(JSContext* context, JSObject* global);
+#include "OOJSPrivateObject.h"
+#include "oofnd/Ref.hpp"
+
+class OOSound; // C++: it has no Objective-C facade
+
+void InitOOJSSound(JSContext* context, JSValueConst global);
 
 /*	SoundFromJSValue()
 
         Convert a JS value to a sound. The value may be either a Sound object or a
         string specifying a sound name.
  */
-OOSound* SoundFromJSValue(JSContext* context, jsval value);
+OOSound* SoundFromJSValue(JSContext* context, JSValueConst value);
+
+/*	The bodies of OOSound (OOJavaScriptExtentions), which the engine reached by selector while the
+        sound had an Objective-C facade: a new Sound object for the sound (owned by the caller; JS
+        null for none), its toString() text and its JS class name. The binding and the SoundSource
+        binding call them.
+*/
+JSValue OOJSSoundJSValueInContext(OOSound* sound, JSContext* context);
+std::optional<std::string> OOJSSoundJSDescription(OOSound* sound);
+std::optional<std::string> OOJSSoundJSClassName(void);
+
+/*	What a Sound object's private slot holds (it held the sound's facade, retained).
+        -oo_jsValueInContext: made a new Sound object each time, so each object has its own holder,
+        which retains the sound; the slot retains the holder (OOJSSetCxxPrivate) and the finalizer
+        releases it (OOJSCxxObjectWrapperFinalize). Its toString() is the sound's. Defined in
+        OOJSSound.mm; only the binding makes one.
+*/
+class OOJSSoundHolder final : public oo::RefCounted, public OOJSPrivateObject {
+public:
+    explicit OOJSSoundHolder(OOSound* inSound);
+    ~OOJSSoundHolder() override;
+
+    OOSound* sound() const;
+
+    JSValue jsValueInContext(JSContext* context) override; // owned
+    void clearJSSelf(JSValueConst selfVal) override;
+    std::optional<std::string> jsDescription() override;
+
+private:
+    oo::Ref<OOSound> _sound;
+};
