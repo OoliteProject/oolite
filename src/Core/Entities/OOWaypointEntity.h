@@ -27,26 +27,69 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#import "Entity.h"
+#include "Entity.h"
+#include "OOPolygonSprite.h" // OOHUDBeaconIcon: the beacon drawable is oo::Ref
 
-@interface OOWaypointEntity : Entity <OOBeaconEntity> {
-@private
-    OOScalar _size;
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
 
-    NSString* _beaconCode;
-    NSString* _beaconLabel;
-    OOWeakReference* _prevBeacon;
-    OOWeakReference* _nextBeacon;
-    id<OOHUDBeaconIcon> _beaconDrawable;
-    BOOL oriented;
-}
+/*	Foundation sweep (proposed ADR-0043, bead oo-tmna): +waypointWithDictionary: takes an oo::PList;
+        the beacon accessors are shared and keep id; the beacon strings are std::optional (nil stays
+        nil). The initializer is -cxx_initWithDictionary: (bead oo-3rb.292.1; its id twin retired with
+        oo-qps.44).
+*/
 
-+ (instancetype)waypointWithDictionary:(NSDictionary*)info;
+/*	C++ only (its Objective-C facade is deleted): the universe makes it with waypointWithDictionary() and hands it to Objective-C with
+        oo::NewEntityFacade, whose object is the root Entity's facade. That object answers the
+        OOBeaconEntity selectors the beacon list sends for a waypoint's part (the root's category
+        Entity (OOWaypointBeacon), Entity+ObjCBridge.mm).
+*/
+class OOWaypointEntity : public Entity {
+public:
+    // +waypointWithDictionary:: a new waypoint, initialised. Callers hand it to Objective-C with
+    // oo::NewEntityFacade.
+    static oo::Ref<OOWaypointEntity> waypointWithDictionary(const oo::PList& info);
 
-- (id)initWithDictionary:(NSDictionary*)info;
+    // -cxx_initWithDictionary:'s body after [super init] (the constructor ran Entity's), run once
+    // right after construction (amendment oo-vl43 item 2): it calls members a subclass overrides.
+    void initWithDictionary(const oo::PList& info);
 
-- (BOOL)oriented;
-- (OOScalar)size;
-- (void)setSize:(OOScalar)newSize;
+    bool getOriented(); // -oriented (amendment oo-862e item 1: the ivar keeps the name)
+    OOScalar size();
+    void setSize(OOScalar newSize);
 
-@end
+    void setOrientation(Quaternion q) override;
+    bool isEffect() override;
+    bool isWaypoint() override;
+    void drawImmediate(bool immediate, bool translucent) override;
+
+    // The binding's bodies (OOJSWaypoint.mm), which the facade forwarded to.
+    JSClassID jsClassID() override;
+    std::optional<std::string> jsClassName() override;
+    bool isVisibleToScripts() override;
+
+    // OOBeaconEntity, answered for the waypoint by the root facade's category (the facade's
+    // before). Other beacons stay their Objective-C objects (amendment oo-bj8 item 4).
+    OOComparisonResult compareBeaconCodeWith(Entity* other);
+    std::optional<std::string> beaconCode();
+    void setBeaconCode(const std::optional<std::string>& bcode);
+    std::optional<std::string> beaconLabel();
+    void setBeaconLabel(const std::optional<std::string>& blabel);
+    bool isBeacon();
+    OOHUDBeaconIcon* beaconDrawable(); // borrowed
+    Entity* prevBeacon(); // the C++ entity (null once its object has gone, as before)
+    Entity* nextBeacon();
+    void setPrevBeacon(Entity* beaconShip);
+    void setNextBeacon(Entity* beaconShip);
+    bool isJammingScanning();
+
+private:
+    OOScalar _size = { };
+
+    std::optional<std::string> _beaconCode; // nullopt: nil
+    std::optional<std::string> _beaconLabel;
+    oo::WeakRef<Entity> _prevBeacon; // the beacons' C++ parts (were their objects' weak references)
+    oo::WeakRef<Entity> _nextBeacon;
+    oo::Ref<OOHUDBeaconIcon> _beaconDrawable;
+    bool oriented = { };
+};

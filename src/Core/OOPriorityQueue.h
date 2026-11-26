@@ -4,11 +4,11 @@ OOPriorityQueue.h
 
 A prority queue is a collection into which objects may be inserted in any
 order, but (primarily) extracted in sorted order. The order is defined by the
-comparison selector specified at creation time, which is assumed to have the
-same signature as a compare method used for array sorting:
-- (NSComparisonResult)compare:(id)other
-and must define a partial order on the objects in the priority queue. The
-behaviour when provided with an inconsistent comparison method is undefined.
+comparison function specified at creation time, which must define a partial
+order on the objects in the priority queue. The behaviour when provided with an
+inconsistent comparison function is undefined. (The Objective-C OOPriorityQueue,
+which ordered Objective-C objects by a comparator selector, was deleted by bead
+oo-4aq6a.3: no game code used it after bead oo-9ht.35.)
 
 The implementation is the standard one, a binary heap. It is described in
 detail in most algorithm textbooks.
@@ -38,41 +38,125 @@ SOFTWARE.
 
 */
 
-#import "OOFoundation.h"
+#ifndef OOPRIORITYQUEUE_H
+#define OOPRIORITYQUEUE_H
 
-#ifndef OO_PQ_STRONG
-#if __has_feature(objc_arc)
-#define OO_PQ_STRONG __strong
-#else
-#define OO_PQ_STRONG
-#endif
-#endif
+#include "OOFoundation.h" // OOComparisonResult
 
-@interface OOPriorityQueue : NSObject <NSCopying> {
-@private
-    SEL _comparator;
-    OO_PQ_STRONG id* _heap;
-    NSUInteger _count,
-        _capacity;
-}
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
 
-// Note: -init is equivalent to -initWithComparator:@selector(compare:)
-+ (instancetype)queueWithComparator:(SEL)comparator;
-- (id)initWithComparator:(SEL)comparator;
+#include <utility>
+#include <vector>
 
-- (void)addObject:(id)object; // May throw NSInvalidArgumentException or NSMallocException.
-- (void)removeObject:(id)object; // Uses comparator (looking for NSOrderedEqual) to find object. Note: relatively expensive.
-- (void)removeExactObject:(id)object; // Uses pointer comparison to find object. Note: still relatively expensive.
+/*	The queue for C++ elements (bead oo-9ht.35, which deleted the OOScriptTimer facade the
+        timer queue held): the elements are held by oo::Ref and ordered by a comparator function where
+        the Objective-C OOPriorityQueue (deleted by bead oo-4aq6a.3) sent a selector. The heap is the
+        Objective-C queue's, step for step (bubbling up on
+        insertion; on removal the last element takes the removed one's place and bubbles down; the
+        exact-object search goes on past a match), so elements that compare the same come out in the
+        same order. Capacity is the vector's. The element type must be complete where it is used.
+*/
+template <typename T>
+class OOPriorityQueueOf {
+public:
+    using Comparator = OOComparisonResult (*)(T* a, T* b);
 
-- (NSUInteger)count;
+    explicit OOPriorityQueueOf(Comparator comparator)
+        : _comparator(comparator)
+    {
+    }
 
-- (id)nextObject;
-- (id)peekAtNextObject; // Returns next object without removing it.
-- (void)removeNextObject;
+    void addObject(T* object) // null is ignored (OOPriorityQueue raised)
+    {
+        if (object == nullptr)
+            return;
+        _heap.emplace_back(object);
+        bubbleUpFrom(_heap.size() - 1);
+    }
 
-- (void)addObjects:(id)collection; // collection must respond to -nextObject, or implement -objectEnumerator to return something that implements -nextObject -- such as an NSEnumerator.
+    void removeExactObject(T* object) // pointer comparison; safe from the element's destructor
+    {
+        if (object == nullptr)
+            return;
+        for (size_t i = 0; i < _heap.size(); ++i) {
+            if (object == _heap[i].get())
+                (void)removeObjectAtIndex(i);
+        }
+    }
 
-- (NSArray*)sortedObjects; // Returns the objects in -nextObject order and empties the heap. To get the objects without emptying the heap, copy the priority queue first.
-- (NSEnumerator*)objectEnumerator; // Enumerator which pulls objects off the heap until it's empty. Note however that the queue itself behaves like an enumerator, as -nextObject has similar semantics (except that the enumerator's -nextObject can never start returning objects after it returns nil).
+    size_t count() const { return _heap.size(); }
 
-@end
+    T* peekAtNextObject() const { return _heap.empty() ? nullptr : _heap[0].get(); }
+
+    // Removes the next element and answers it (null when empty), so the caller decides how long
+    // it lives (OOPriorityQueue autoreleased it).
+    oo::Ref<T> removeNextObject() { return removeObjectAtIndex(0); }
+
+    // The elements in removeNextObject() order; empties the queue.
+    std::vector<oo::Ref<T>> sortedObjects()
+    {
+        std::vector<oo::Ref<T>> result;
+        result.reserve(_heap.size());
+        while (!_heap.empty())
+            result.push_back(removeNextObject());
+        return result;
+    }
+
+private:
+    static size_t LeftChild(size_t n) { return (n << 1) + 1; }
+    static size_t RightChild(size_t n) { return (n << 1) + 2; }
+    static size_t Parent(size_t n) { return ((n + 1) >> 1) - 1; }
+
+    void bubbleUpFrom(size_t i)
+    {
+        while (0 < i) {
+            const size_t pi = Parent(i);
+            if (_comparator(_heap[i].get(), _heap[pi].get()) < 0) {
+                std::swap(_heap[i], _heap[pi]);
+                i = pi;
+            } else
+                break;
+        }
+    }
+
+    void bubbleDownFrom(size_t i)
+    {
+        const size_t end = _heap.size() - 1;
+        while (LeftChild(i) <= end) {
+            const size_t li = LeftChild(i);
+            const size_t ri = RightChild(i);
+            // If left child has lower priority than right child, or there is only one child...
+            const size_t next = (li == end || _comparator(_heap[li].get(), _heap[ri].get()) < 0) ? li : ri;
+            if (_comparator(_heap[next].get(), _heap[i].get()) < 0) {
+                // Exchange parent with lowest-priority child
+                std::swap(_heap[i], _heap[next]);
+                i = next;
+            } else
+                break;
+        }
+    }
+
+    oo::Ref<T> removeObjectAtIndex(size_t i)
+    {
+        if (_heap.size() <= i)
+            return nullptr;
+        oo::Ref<T> object = std::move(_heap[i]);
+        if (i < _heap.size() - 1) {
+            // Overwrite object with last object in array, then push it down until the tree is
+            // partially ordered.
+            _heap[i] = std::move(_heap.back());
+            _heap.pop_back();
+            bubbleDownFrom(i);
+        } else {
+            // Special case: removing last (or only) object. No bubbling needed.
+            _heap.pop_back();
+        }
+        return object;
+    }
+
+    Comparator _comparator;
+    std::vector<oo::Ref<T>> _heap;
+};
+
+#endif // OOPRIORITYQUEUE_H

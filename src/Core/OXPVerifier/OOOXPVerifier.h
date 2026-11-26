@@ -6,6 +6,11 @@ Oolite expansion pack verification manager.
 
 NOTE: the overall design is discussed in OXP verifier design.txt.
 
+C++20 since bead oo-tsa4 (proposed ADR-0056 and its OXPVerifier amendments). The stages keep and
+call it, and GameController calls its static runVerificationIfRequested() (bead oo-qg71f); global
+since bead oo-9ht.130 deleted its transitional Objective-C facade. The stages are C++
+(OOOXPVerifierStage, global since bead oo-9ht.4 deleted its facade), kept and driven as they are.
+
 
 Copyright (C) 2007-2013 Jens Ayton and contributors
 
@@ -29,6 +34,8 @@ SOFTWARE.
 
 */
 
+#pragma once
+
 #ifndef OO_OXP_VERIFIER_ENABLED
 #ifdef NDEBUG
 #define OO_OXP_VERIFIER_ENABLED 0
@@ -39,51 +46,90 @@ SOFTWARE.
 
 #if OO_OXP_VERIFIER_ENABLED
 
-#import "OOFoundation.h"
+#include "OOFoundation.h"
+#include "oofnd/objc/OOObject.h"
 
-@class OOOXPVerifierStage;
+#include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
 
-@interface OOOXPVerifier : NSObject {
-@private
-    NSDictionary* _verifierPList;
+class OOOXPVerifierStage; // OOOXPVerifierStage.h, which imports this header
 
-    NSString* _basePath;
-    NSString* _displayName;
+struct OOOXPVerifierTestAccess; // tests only (amendment oo-862e item 2)
 
-    NSMutableDictionary* _stagesByName;
-    NSMutableSet* _waitingStages;
-
-    BOOL _openForRegistration;
-}
-
-/*	Look for command-line arguments requesting OXP verification. If any are
-        found, run the verification and return YES. Otherwise, return NO.
-
-        At the moment, only one OXP may be verified per run; additional requests
-        are ignored.
+/*	Foundation sweep (proposed ADR-0043, bead oo-hkvv): verifyOXP.plist is an oo::PList, paths
+        and names are UTF-8 std::strings, stages are retained through oo::Ref. The stages waiting
+        to be examined or run are a vector in registration order (they were a set).
+        A stage is kept as the C++ stage itself (oo::Ref<::OOOXPVerifierStage>; its Objective-C object
+        until bead oo-9ht.4 deleted the stage facade, ADR-0056 amendment oo-smy).
 */
-+ (BOOL)runVerificationIfRequested;
+class OOOXPVerifier : public oo::RefCounted {
+public:
+    /*	Look for command-line arguments requesting OXP verification. If any are
+            found, run the verification and return true. Otherwise, return false.
 
-/*	Stage registration. Currently, stages are registered by OOOXPVerifier
-        itself. Stages may also register other stages - substages, as it were -
-        in their -initWithVerifier: methods, or when -dependencies or
-        -dependents are called. Registration at later points is not permitted.
-*/
-- (void)registerStage:(OOOXPVerifierStage*)stage;
+            At the moment, only one OXP may be verified per run; additional requests
+            are ignored.
+    */
+    static bool runVerificationIfRequested();
 
-//	All other methods are for use by verifier stages.
-- (NSString*)oxpPath;
-- (NSString*)oxpDisplayName;
+    /*	Stage registration. Currently, stages are registered by OOOXPVerifier
+            itself. Stages may also register other stages - substages, as it were -
+            in their -initWithVerifier: methods, or when -dependencies or
+            -dependents are called. Registration at later points is not permitted.
+    */
+    void registerStage(::OOOXPVerifierStage* stage);
 
-- (id)stageWithName:(NSString*)name;
+    //	All other methods are for use by verifier stages.
+    std::optional<std::string> oxpPath();
+    std::optional<std::string> oxpDisplayName();
 
-// Read from verifyOXP.plist
-- (id)configurationValueForKey:(NSString*)key;
-- (NSArray*)configurationArrayForKey:(NSString*)key;
-- (NSDictionary*)configurationDictionaryForKey:(NSString*)key;
-- (NSString*)configurationStringForKey:(NSString*)key;
-- (NSSet*)configurationSetForKey:(NSString*)key;
+    ::OOOXPVerifierStage* stageWithName(const std::string& name); // null: none (borrowed: the verifier keeps it)
 
-@end
+    // Read from verifyOXP.plist
+    oo::PList configurationValueForKey(const std::string& key);
+    oo::PList configurationArrayForKey(const std::string& key); // an Array, or null (was nil) if absent or not an array
+    oo::PList configurationDictionaryForKey(const std::string& key); // a Dict, or null (was nil) if absent or not a dictionary
+    std::optional<std::string> configurationStringForKey(const std::string& key); // a string, or a number's text; nullopt (was nil) otherwise
+    std::optional<std::vector<std::string>> configurationSetForKey(const std::string& key); // the array's distinct strings in byte order; nullopt (was nil) if not an array
+
+private:
+    OOOXPVerifier() = default;
+
+    // -initWithPath:, which could fail (verifyOXP.plist unreadable): createWithPath() runs it on a
+    // new object and answers null then (ADR-0056 amendments oo-novu, oo-fg7i).
+    static oo::Ref<OOOXPVerifier> createWithPath(const std::optional<std::string>& path);
+    bool initWithPath(const std::optional<std::string>& path); // nullopt: nil (bead oo-3rb.292.2)
+    void run();
+
+    void setUpLogOverrides();
+
+    void registerBaseStages();
+    void buildDependencyGraph();
+    void runStages();
+
+    bool setUpDependencies(const std::vector<std::string>& dependencies, ::OOOXPVerifierStage* stage);
+    void setUpDependents(const std::vector<std::string>& dependents, ::OOOXPVerifierStage* stage);
+
+    void dumpDebugGraphviz();
+
+    /*	Test stand-in hook (ADR-0056 amendment oo-4jjl item 3): makes the stage a test names in its
+            verifyOXP.plist, asked after the stage table and before the class-name lookup (a stage
+            could be an Objective-C class made by its name until bead oo-9ht.4). Null in the game; set
+            only through OOOXPVerifierTestAccess.
+    */
+    friend struct ::OOOXPVerifierTestAccess;
+    static oo::Ref<::OOOXPVerifierStage> (*sTestStageMaker)(const std::string& name);
+
+    oo::PList _verifierPList = { };
+
+    std::string _basePath = { };
+    std::string _displayName = { };
+
+    std::map<std::string, oo::Ref<::OOOXPVerifierStage>, std::less<>> _stagesByName; // no `= {}`: GCC instantiates ~Ref<T> at a default member initializer, and T is incomplete here (bead oo-1q4)
+    std::vector<oo::Ref<::OOOXPVerifierStage>> _waitingStages; // no `= {}`: GCC instantiates ~Ref<T> at a default member initializer, and T is incomplete here (bead oo-1q4)
+
+    bool _openForRegistration = { };
+};
 
 #endif
