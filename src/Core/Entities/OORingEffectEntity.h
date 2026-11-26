@@ -4,6 +4,8 @@ OORingEffectEntity.h
 
 Entity subclass for expanding-ring effect, used for hyperspace entry and for
 some large explosions.
+A global class over Entity. Its callers (ShipEntity, Universe) make it
+with a factory.
 
 
 Oolite
@@ -26,18 +28,29 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
+#pragma once
 
-@interface OORingEffectEntity : Entity {
-@private
-    GLfloat _timePassed;
-    GLfloat _innerRadius,
-        _outerRadius,
-        _innerGrowthRate,
-        _outerGrowthRate;
-}
+#include "Entity.h"
 
-+ (instancetype)ringFromEntity:(Entity*)sourceEntity;
-+ (instancetype)shrinkingRingFromEntity:(Entity*)sourceEntity;
+class OORingEffectEntity : public Entity {
+ public:
+  // Null for a null source.
+  static std::shared_ptr<OORingEffectEntity> ringFromEntity(
+      Entity* sourceEntity);
+  static std::shared_ptr<OORingEffectEntity> shrinkingRingFromEntity(
+      Entity* sourceEntity);
 
-@end
+  std::optional<std::string> descriptionComponents() const override;
+  void update(OOTimeDelta delta_t) override;
+  void drawImmediate(bool immediate, bool translucent) override;
+  bool isEffect() override;
+  bool canCollide() override;
+
+ private:
+  static void initialize();
+  bool initRingFromEntity(Entity* sourceEntity);
+
+  GLfloat _timePassed = {};
+  GLfloat _innerRadius = {}, _outerRadius = {}, _innerGrowthRate = {},
+          _outerGrowthRate = {};
+};

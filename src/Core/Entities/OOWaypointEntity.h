@@ -27,26 +27,81 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#import "Entity.h"
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-@interface OOWaypointEntity : Entity <OOBeaconEntity> {
-@private
-    OOScalar _size;
+#include "Entity.h"
+#include "OOPolygonSprite.h"  // OOHUDBeaconIcon: the beacon drawable is std::shared_ptr
+#include "oofnd/PList.hpp"
 
-    NSString* _beaconCode;
-    NSString* _beaconLabel;
-    OOWeakReference* _prevBeacon;
-    OOWeakReference* _nextBeacon;
-    id<OOHUDBeaconIcon> _beaconDrawable;
-    BOOL oriented;
-}
+/*	+waypointWithDictionary: takes an oo::PList; the beacon accessors are
+   shared and keep id; the beacon strings are std::optional (nil stays nil). The
+   initializer is -initWithDictionary:.
+*/
 
-+ (instancetype)waypointWithDictionary:(NSDictionary*)info;
+// The universe makes it with waypointWithDictionary(). It answers the
+// OOBeaconEntity members the beacon list uses.
+class OOWaypointEntity : public Entity {
+ public:
+  // A new waypoint, initialised.
+  static std::shared_ptr<OOWaypointEntity> waypointWithDictionary(
+      const oo::PList& info);
 
-- (id)initWithDictionary:(NSDictionary*)info;
+  // -initWithDictionary:'s body after [super init] (the constructor ran
+  // Entity's), run once right after construction: it
+  // calls members a subclass overrides.
+  void initWithDictionary(const oo::PList& info);
 
-- (BOOL)oriented;
-- (OOScalar)size;
-- (void)setSize:(OOScalar)newSize;
+  bool getOriented();  // -oriented (the ivar keeps the name)
+  OOScalar size();
+  void setSize(OOScalar newSize);
 
-@end
+  void setOrientation(Quaternion q) override;
+  bool isEffect() override;
+  bool isWaypoint() override;
+  void drawImmediate(bool immediate, bool translucent) override;
+
+  // The binding's bodies (OOJSWaypoint.cpp).
+  JSClassID jsClassID() override;
+  std::optional<std::string> jsClassName() override;
+  bool isVisibleToScripts() override;
+
+  // OOBeaconEntity, answered for the waypoint.
+  OOComparisonResult compareBeaconCodeWith(Entity* other);
+  std::optional<std::string> beaconCode();
+  void setBeaconCode(const std::optional<std::string>& bcode);
+  std::optional<std::string> beaconLabel();
+  void setBeaconLabel(const std::optional<std::string>& blabel);
+  bool isBeacon();
+  OOHUDBeaconIcon* beaconDrawable();  // borrowed
+  Entity* prevBeacon();  // the C++ entity (null once its object has gone)
+  Entity* nextBeacon();
+  void setPrevBeacon(Entity* beaconShip);
+  void setNextBeacon(Entity* beaconShip);
+  bool isJammingScanning();
+
+ private:
+  OOScalar _size = {};
+
+  std::optional<std::string> _beaconCode;  // nullopt: nil
+  std::optional<std::string> _beaconLabel;
+  std::weak_ptr<Entity> _prevBeacon;  // the beacons' C++ parts
+  std::weak_ptr<Entity> _nextBeacon;
+  std::shared_ptr<OOHUDBeaconIcon> _beaconDrawable;
+  bool oriented = {};
+};

@@ -9,6 +9,7 @@ display lists relying on old texture names. All objects which have display
 lists must therefore register with the OOGraphicsResetManager on init, and
 unregister on dealloc.
 
+Every client is a C++ OOGraphicsResetClient.
 
 Copyright (C) 2007-2013 Jens Ayton and contributors
 
@@ -32,26 +33,51 @@ SOFTWARE.
 
 */
 
-#import "OOFoundation.h"
+#pragma once
 
-@protocol OOGraphicsResetClient
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-- (void)resetGraphicsState;
+#include "OOFoundation.h"
+#include "oofnd/Object.hpp"
 
-@end
+// A client: the one method, resetGraphicsState(), as a pure virtual. It
+// registers with registerCxxClient().
+class OOGraphicsResetClient {
+ public:
+  virtual ~OOGraphicsResetClient() = default;
+  virtual void resetGraphicsState() = 0;
+};
 
-@interface OOGraphicsResetManager : NSObject {
-@private
-    NSMutableSet* clients;
-}
+class OOGraphicsResetManager : public oo::Object {
+ public:
+  // The shared manager, made on first use; borrowed, never released.
+  static OOGraphicsResetManager* sharedManager();
 
-+ (OOGraphicsResetManager*)sharedManager;
+  ~OOGraphicsResetManager();
 
-// Clients are not retained.
-- (void)registerClient:(id<OOGraphicsResetClient>)client;
-- (void)unregisterClient:(id<OOGraphicsResetClient>)client;
+  // Clients are not retained; null is never registered.
+  void registerCxxClient(OOGraphicsResetClient* client);
+  void unregisterCxxClient(OOGraphicsResetClient* client);
 
-// Forwarded to all clients, after resetting textures.
-- (void)resetGraphicsState;
+  // Forwarded to all clients, after resetting textures.
+  void resetGraphicsState();
 
-@end
+ private:
+  std::unordered_set<OOGraphicsResetClient*> cxxClients = {};  // not retained
+};

@@ -2,7 +2,10 @@
 
 OOJSCall.h
 
-Basic JavaScript-to-ObjC bridge implementation.
+Declarations for the debug console's callObjC().
+
+An entity is called through its generated name table (OOJSCallEntityMethods.h)
+and the signature templates of any other object are @encode() strings.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -24,27 +27,52 @@ MA 02110-1301, USA.
 
 */
 
+#pragma once
+
 #ifdef OO_DEBUG_MONITOR_ENABLED
 
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+#include <quickjs.h>
 
-/*	OOJSCallObjCObjectMethod()
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-        Function for implementing JavaScript call() methods.
+#include "OOFoundation.h"
 
-        The argument list is expected to be either a single string (selector), or
-        a string ending with a : followed by arbitrary arguments which will be
-        concatenated as a string. (This behaviour reflects Oolite's traditional
-        scripting system and the expectations of its script methods. It also has
-        the advantage that it can be done with GNUstep's buggy implementation of
-        NSMethodSignature.)
+/*	OOJSCallEntityMethod()
 
-        If the method returns an object, *outResult will be set to that object's
-        -oo_jsValueInContext:. Otherwise, it will be left unchanged.
+        Function for implementing JavaScript call() methods on an entity
+   (callObjC()'s `this` is the C++ entity), by name table. The argument list is
+   expected to be either a single string (the method's name), or a name ending
+   with a : followed by arbitrary arguments which will be concatenated as a
+        string; argv is assumed to hold at least one value. A result is set in
+   *outResult (owned by the caller); a method without one leaves it unchanged,
+   so the caller should initialize it (normally to JS_UNDEFINED). Only a name of
+   kOOJSCallEntityMethods that the entity answers (its object's per-part
+   -respondsToSelector:) is called, with the table's signature; any other name
+   (a root-class or lifetime selector, one with other arguments) does not
+   respond.
 
-        argv is assumed to contain at least one value.
+        If it returns false, an error has been reported and the caller (a
+   native) should return JS_EXCEPTION.
 */
-BOOL OOJSCallObjCObjectMethod(JSContext* context, id object, NSString* oo_jsClassName, uintN argc, jsval* argv, jsval* outResult);
+class Entity;
+bool OOJSCallEntityMethod(JSContext* context, Entity* entity,
+                          const std::string& oo_jsClassName, int argc,
+                          JSValueConst* argv, JSValue* outResult);
 
 #endif

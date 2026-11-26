@@ -1,0 +1,10 @@
+{
+	identifier = "org.oolite.tests.compat";
+	required_oolite_version = "1.90";
+	title = "Oolite test scripts for SpiderMonkey compatibility";
+	version = "1.0";
+	category = "Miscellaneous";
+	author = "Oolite";
+	license = "GPL 2+";
+	description = "Scripts written the way SpiderMonkey-era OXPs were, and one modern one, for tests/run_js_tests.py. Not for play.";
+}

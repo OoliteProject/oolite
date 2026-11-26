@@ -1,6 +1,6 @@
 /*
 
-OOJSPlayerShip.h
+OOJSPlayerShip.h (QuickJS-ng)
 
 JavaScript proxy for the player's ship.
 While the player and player's ship are not differentiated in Oolite, such a
@@ -33,14 +33,31 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#import "PlayerEntity.h"
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+#include <quickjs.h>
 
-@class PlayerEntity;
+#include <optional>
+#include <string>
 
-void InitOOJSPlayerShip(JSContext* context, JSObject* global);
+#include "OOFoundation.h"
 
-JSClass* JSPlayerShipClass(void);
-JSObject* JSPlayerShipPrototype(void);
-JSObject* JSPlayerShipObject(void);
+class PlayerEntity;
+
+void InitOOJSPlayerShip(JSContext* context, JSValueConst global);
+
+JSClassID JSPlayerShipClassID(void);
+
+/*	The player's ship object (player.ship), which is also the PlayerEntity's
+        jsValueInContext(). The returned value is owned by the caller, who must
+        JS_FreeValue() it. (SpiderMonkey's JSPlayerShipPrototype() is no longer
+        needed; use JS_GetClassProto(context, JSPlayerShipClassID()).)
+*/
+JSValue JSPlayerShipObject(void);
+
+/*	PlayerEntity (OOJavaScriptExtensions), whose methods the engine and the
+   player send by selector: the bodies, as free functions. The C++ player calls
+   them (PlayerEntity::jsClassName()).
+        Its JS class is JSPlayerShipClassID() (PlayerEntity::jsClassID()).
+*/
+std::optional<std::string> OOJSPlayerShipJSClassName(void);
+void OOJSPlayerShipSetJSSelf(PlayerEntity* player, JSValueConst val,
+                             JSContext* context);

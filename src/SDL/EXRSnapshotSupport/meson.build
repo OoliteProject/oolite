@@ -5,8 +5,9 @@ oolite_sources += files(
 )
 
 if host_machine.system() == 'windows'
-    oolite_sources += files(
-        'miniz.c',
+    oolite_vendored_sources += files(
+        'miniz.cpp',
+        'tinyexr.cpp',
     )
 endif
 

@@ -26,60 +26,59 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
-#import "OOMouseInteractionMode.h"
+#pragma once
 
-@class MyOpenGLView;
+#include <string_view>
 
-#if OOLITE_MAC_COCOA_UI
-#define kOODisplayWidth ((NSString*)kCGDisplayWidth)
-#define kOODisplayHeight ((NSString*)kCGDisplayHeight)
-#define kOODisplayRefreshRate ((NSString*)kCGDisplayRefreshRate)
-#define kOODisplayBitsPerPixel ((NSString*)kCGDisplayBitsPerPixel)
-#define kOODisplayIOFlags ((NSString*)kCGDisplayIOFlags)
-#else
-#define kOODisplayWidth (@"Width")
-#define kOODisplayHeight (@"Height")
-#define kOODisplayRefreshRate (@"RefreshRate")
-#endif
+#include "MyOpenGLView.h"  // std::shared_ptr<MyOpenGLView>
+#include "OOFoundation.h"
+#include "OOMouseInteractionMode.h"
+#include "oofnd/Object.hpp"
+#include "oofnd/PList.hpp"
+
+/*	Display-mode dictionary keys. On Mac OS X they were CoreGraphics'
+   kCGDisplay* constants, whose values are these same strings (CFSTR("Width")
+   and so on), so a mode dictionary answers to either.
+*/
+inline constexpr std::string_view kOODisplayWidth = "Width";
+inline constexpr std::string_view kOODisplayHeight = "Height";
+inline constexpr std::string_view kOODisplayRefreshRate = "RefreshRate";
 
 #define DISPLAY_MIN_COLOURS 32
 #define DISPLAY_MIN_WIDTH 640
 #define DISPLAY_MIN_HEIGHT 480
-#define DISPLAY_MAX_WIDTH 7680 // 8K gaming, yay!!
+#define DISPLAY_MAX_WIDTH 7680  // 8K gaming, yay!!
 #define DISPLAY_MAX_HEIGHT 4320
 
-@interface OOFullScreenController : NSObject {
-@private
-    MyOpenGLView* _gameView;
-}
+/*	The abstract base of the Mac
+        full-screen controllers, which are Mac-only and not in this tree. Its
+   callers are never compiled here. The "subclass responsibility"
+   methods are virtual, so a C++ subclass overrides them; the base's bodies
+   still log and answer the default.
+*/
+class OOFullScreenController : public oo::Object {
+ public:
+  explicit OOFullScreenController(MyOpenGLView* view);  // -initWithGameView:
 
-- (id)initWithGameView:(MyOpenGLView*)view;
+  MyOpenGLView* gameView();
 
-#if OOLITE_PROPERTY_SYNTAX
+  virtual bool inFullScreenMode();
+  virtual void setFullScreenMode(bool value);
 
-@property (nonatomic, readonly) MyOpenGLView* gameView;
-@property (nonatomic, getter=inFullScreenMode) BOOL fullScreenMode;
-@property (nonatomic, readonly) NSArray* displayModes;
-@property (nonatomic, readonly) NSDictionary* currentDisplayMode;
-@property (nonatomic, readonly) NSUInteger indexOfCurrentDisplayMode;
+  virtual oo::PList
+  displayModes();  // array of mode dictionaries (flipped with its family)
+  oo::PList currentDisplayMode();  // a mode dictionary
+  virtual std::size_t indexOfCurrentDisplayMode();
 
-#else
+  virtual bool setDisplayWidth(std::size_t width, std::size_t height,
+                               std::size_t refresh);
+  virtual oo::PList findDisplayModeForWidth(
+      std::size_t width, std::size_t height,
+      std::size_t d_refresh);  // a mode dictionary; null: none
 
-- (MyOpenGLView*)gameView;
+  virtual void noteMouseInteractionModeChangedFrom(
+      OOMouseInteractionMode oldMode, OOMouseInteractionMode newMode);
 
-- (BOOL)inFullScreenMode;
-- (void)setFullScreenMode:(BOOL)value;
-
-- (NSArray*)displayModes;
-- (NSDictionary*)currentDisplayMode;
-- (NSUInteger)indexOfCurrentDisplayMode;
-
-#endif
-
-- (BOOL)setDisplayWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)refresh;
-- (NSDictionary*)findDisplayModeForWidth:(NSUInteger)width height:(NSUInteger)height refreshRate:(NSUInteger)d_refresh;
-
-- (void)noteMouseInteractionModeChangedFrom:(OOMouseInteractionMode)oldMode to:(OOMouseInteractionMode)newMode;
-
-@end
+ private:
+  std::shared_ptr<MyOpenGLView> _gameView;  // retained
+};

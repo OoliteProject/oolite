@@ -1,5 +1,6 @@
 # Probe lines (as in baseline-spidermonkey.txt) that are known, accepted
-# differences under QuickJS-ng. compare.sh ignores these lines on both sides.
+# differences under QuickJS-ng. compare.sh ignores lines containing any of
+# these on both sides, when either side is a SpiderMonkey baseline.
 #
 # Assigning to a read-only property in strict mode: SpiderMonkey's message
 # quoted the source expression ("ship.isValid is read-only"); QuickJS says
@@ -14,3 +15,36 @@
 # Function source text: SpiderMonkey returned decompiled, reformatted source
 # (including an injected "use strict"); QuickJS returns the original text.
 [oojs.probe]: function toString ->
+
+# Method sweep: Station methods called with a wrong this abort SpiderMonkey
+# debug builds (JS_Assert), so the probe sweeps them only under QuickJS.
+[oojs.probe]: sweep Station.
+
+# Method sweep differences, all improvements or wording:
+# - Dock.isQueued checks its this before its argument.
+[oojs.probe]: sweep Dock.isQueued:
+# - Script-defined methods called with a wrong this: QuickJS's TypeError says
+#   only "not a function", without naming the expression.
+[oojs.probe]: sweep Ship.spawnOne:
+[oojs.probe]: sweep SoundSource.playSound:
+[oojs.probe]: sweep SystemInfo.systemsInRange:
+# - SystemInfo.distanceToSystem/routeToSystem(undefined or null): SpiderMonkey
+#   failed an internal assertion (a native exception); QuickJS reports bad
+#   arguments.
+[oojs.probe]: sweep SystemInfo.distanceToSystem:
+[oojs.probe]: sweep SystemInfo.routeToSystem:
+# - Called with no arguments, some SpiderMonkey natives read the argument
+#   slot after the last one passed, which held whatever was there (the
+#   callee, "function", on macOS; a number on Linux): reported as the bad
+#   argument, or even accepted (Vector3D.multiply.call(v) succeeded, while
+#   apply(v, []) failed). QuickJS sees undefined.
+[oojs.probe]: sweep Ship.addCollisionException:
+[oojs.probe]: sweep Ship.addDefenseTarget:
+[oojs.probe]: sweep Ship.offerToEscort:
+[oojs.probe]: sweep Ship.patrolReportIn:
+[oojs.probe]: sweep Ship.removeCollisionException:
+[oojs.probe]: sweep Ship.removeDefenseTarget:
+[oojs.probe]: sweep Vector3D.multiply:
+[oojs.probe]: sweep Quaternion.rotateX:
+[oojs.probe]: sweep Quaternion.rotateY:
+[oojs.probe]: sweep Quaternion.rotateZ:

@@ -24,46 +24,53 @@ MA 02110-1301, USA.
 
 */
 
-#import "GuiDisplayGen.h"
-#import "MyOpenGLView.h"
-#import "PlayerEntity.h"
-#import "Universe.h"
+#pragma once
 
-#define MAX_ROWS_FUNCTIONS 12
+#include "PlayerEntity.h"
 
-#define GUI_ROW_STICKNAME 1
+/* The category PlayerEntity (StickMapper) is members of PlayerEntity, declared
+ * in PlayerEntity.h. This header stays for the files that include it.
+ */
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
+#include "GuiDisplayGen.h"
+#include "MyOpenGLView.h"
+#include "Universe.h"
+#include "oofnd/PList.hpp"
+
+inline constexpr int MAX_ROWS_FUNCTIONS = 12;
+
+inline constexpr int GUI_ROW_STICKNAME = 1;
 // leave row 2 empty - we need it in case we have a
 // second joystick connected. Also, we need a different way
 // of listing joysticks, if we ever decide to support more
 // than the current maximum of 2 - Nikos 20151103
-#define GUI_ROW_STICKPROFILE 3
-#define GUI_ROW_HEADING 4
-#define GUI_ROW_FUNCSTART 5
-#define GUI_ROW_FUNCEND (GUI_ROW_FUNCSTART + MAX_ROWS_FUNCTIONS - 1)
-#define GUI_ROW_INSTRUCT 18
+inline constexpr int GUI_ROW_STICKPROFILE = 3;
+inline constexpr int GUI_ROW_HEADING = 4;
+inline constexpr int GUI_ROW_FUNCSTART = 5;
+inline constexpr int GUI_ROW_FUNCEND =
+    GUI_ROW_FUNCSTART + MAX_ROWS_FUNCTIONS - 1;
+inline constexpr int GUI_ROW_INSTRUCT = 18;
 
-// Dictionary keys
-#define KEY_HEADER @"header"
-#define KEY_GUIDESC @"guiDesc"
-#define KEY_ALLOWABLE @"allowable"
-#define KEY_AXISFN @"axisfunc"
-#define KEY_BUTTONFN @"buttonfunc"
-
-@interface PlayerEntity (StickMapper)
-
-- (void)resetStickFunctions;
-- (void)setGuiToStickMapperScreen:(unsigned)skip resetCurrentRow:(BOOL)resetCurrentRow;
-- (void)setGuiToStickMapperScreen:(unsigned)skip;
-- (void)stickMapperInputHandler:(GuiDisplayGen*)gui
-                           view:(MyOpenGLView*)gameView;
-// Callback method
-- (void)updateFunction:(NSDictionary*)hwDict;
-
-// Future: populate via plist
-- (NSDictionary*)makeStickGuiDictHeader:(NSString*)header;
-- (NSDictionary*)makeStickGuiDict:(NSString*)what
-                        allowable:(int)allowable
-                           axisfn:(int)axisfn
-                            butfn:(int)butfn;
-
-@end
+// Dictionary keys (of the oo::PList function entries)
+#define KEY_HEADER "header"
+#define KEY_GUIDESC "guiDesc"
+#define KEY_ALLOWABLE "allowable"
+#define KEY_AXISFN "axisfunc"
+#define KEY_BUTTONFN "buttonfunc"

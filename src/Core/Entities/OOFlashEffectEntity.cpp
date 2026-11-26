@@ -1,0 +1,161 @@
+/*
+
+OOFlashEffectEntity.m
+
+
+Oolite
+Copyright (C) 2004-2013 Giles C Williams and contributors
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+
+*/
+
+#include "OOFlashEffectEntity.h"
+
+#include "OOColor.h"
+#include "OOGraphicsResetManager.h"
+#include "OOTexture.h"
+#include "PlayerEntity.h"
+#include "Universe.h"
+
+#define kLaserFlashDuration 0.3f
+#define kExplosionFlashDuration 0.4f
+#define kGrowthRateFactor \
+  150.0f  // if average flashSize is 80 then this is 12000
+#define kMinExplosionGrowth 600.0f
+#define kLaserFlashInitialSize 1.0f
+#define kExplosionFlashAlpha 0.5f
+
+// The texture, made on first use and given up by a graphics reset. The holder
+// is never deleted, so exit(0) frees no texture after the GL context has gone.
+static std::shared_ptr<OOTexture>& FlashTexture() {
+  static std::shared_ptr<OOTexture>& texture =
+      *new std::shared_ptr<OOTexture>();
+  return texture;
+}
+
+namespace {
+
+// The texture's graphics reset client (as OOLaserShotEntity's): registered
+// once, with the texture, and never destroyed.
+class FlashTextureResetClient : public OOGraphicsResetClient {
+ public:
+  void resetGraphicsState() override {
+    OOFlashEffectEntity::resetGraphicsState();
+  }
+};
+
+}  // namespace
+
+void OOFlashEffectEntity::initExplosionFlashWithPosition(HPVector pos,
+                                                         Vector vel,
+                                                         float size) {
+  initWithPosition(pos, size, OOColor::whiteColor().get(),
+                   kExplosionFlashDuration);
+  // [self initWithPosition:...] could not fail.
+  {
+    _growthRate = fmax(_growthRate, kMinExplosionGrowth);
+    _alpha = kExplosionFlashAlpha;
+    setVelocity(vel);
+  }
+}
+
+void OOFlashEffectEntity::initLaserFlashWithPosition(HPVector pos, Vector vel,
+                                                     OOColor* color) {
+  initWithPosition(pos, kLaserFlashInitialSize, color, kLaserFlashDuration);
+  // [self initWithPosition:...] could not fail.
+  {
+    setVelocity(vel);
+    _alpha = 1.0f;
+  }
+}
+
+// The C++ entity: the
+// members -position, -velocity and -collisionRadius forwarded to; none answers
+// zero, as nil did.
+std::shared_ptr<OOFlashEffectEntity>
+OOFlashEffectEntity::explosionFlashFromEntity(Entity* entity) {
+  const std::shared_ptr<OOFlashEffectEntity> flash =
+      oo::makeShared<OOFlashEffectEntity>();
+  flash->initExplosionFlashWithPosition(
+      entity != nullptr ? entity->getPosition() : kZeroHPVector,
+      entity != nullptr ? entity->getVelocity() : kZeroVector,
+      entity != nullptr ? entity->collisionRadius() : 0.0f);
+  return flash;
+}
+
+std::shared_ptr<OOFlashEffectEntity>
+OOFlashEffectEntity::laserFlashWithPosition(HPVector pos, Vector vel,
+                                            OOColor* color) {
+  const std::shared_ptr<OOFlashEffectEntity> flash =
+      oo::makeShared<OOFlashEffectEntity>();
+  flash->initLaserFlashWithPosition(pos, vel, color);
+  return flash;
+}
+
+void OOFlashEffectEntity::initWithPosition(HPVector pos, float size,
+                                           OOColor* color, float duration) {
+  OOLightParticleEntity::initWithDiameter(size);
+  // [super initWithDiameter:] could not fail.
+  {
+    setPosition(pos);
+    _duration = duration;
+    _growthRate = kGrowthRateFactor * size;
+    setColor(color, 1.0f);
+    assert(collisionRadius() == 0 && getEnergy() == 0 &&
+           magnitude(getVelocity()) == 0);
+  }
+}
+
+void OOFlashEffectEntity::update(OOTimeDelta delta_t) {
+  OOLightParticleEntity::update(delta_t);
+
+  float tf = _duration * 0.667f;
+  float tf1 = _duration - tf;
+
+  // Scale up.
+  _diameter += delta_t * _growthRate;
+
+  // Fade in and out.
+  OOTimeDelta lifeTime = timeElapsedSinceSpawn();
+  _colorComponents[3] =
+      _alpha *
+      ((lifeTime < tf) ? (lifeTime / tf) : (_duration - lifeTime) / tf1);
+
+  // Disappear as necessary.
+  if (lifeTime > _duration) {
+    if (UNIVERSE != nullptr) UNIVERSE->removeEntity(this);
+  }
+}
+
+OOTexture* OOFlashEffectEntity::texture() {
+  if (FlashTexture() == nullptr) OOFlashEffectEntity::setUpTexture();
+  return FlashTexture().get();
+}
+
+void OOFlashEffectEntity::setUpTexture() {
+  if (FlashTexture() == nullptr) {
+    FlashTexture() = (OOTexture::textureWithName(
+        "oolite-particle-flash.png", "Textures",
+        OOTextureFlags::kMinFilterMipMap | OOTextureFlags::kMagFilterLinear |
+            OOTextureFlags::kAlphaMask,
+        kOOTextureDefaultAnisotropy, 0.0));
+    OOGraphicsResetManager::sharedManager()->registerCxxClient(
+        new FlashTextureResetClient);
+  }
+}
+
+void OOFlashEffectEntity::resetGraphicsState() { FlashTexture().reset(); }

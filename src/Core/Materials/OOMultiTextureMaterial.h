@@ -27,26 +27,47 @@ SOFTWARE.
 
 */
 
-#import "OOOpenGLExtensionManager.h"
+#pragma once
+
+#include "OOOpenGLExtensionManager.h"
 
 #if OO_MULTITEXTURE
 
-#import "OOBasicMaterial.h"
+#include "OOBasicMaterial.h"
 
-@class OOTexture;
+class OOTexture;
 
-@interface OOMultiTextureMaterial : OOBasicMaterial {
-@private
-    OOTexture* _diffuseMap;
-    OOTexture* _emissionMap;
+class OOMultiTextureMaterial : public OOBasicMaterial {
+ public:
+  /*	A new material, initialised by initWithName() (below); null where it
+     failed (it answered nil: no texture combiners). It was
+     [[OOMultiTextureMaterial alloc] initWithName:configuration:].
+  */
+  static std::shared_ptr<OOMultiTextureMaterial> materialWithName(
+      const std::optional<std::string>& name, const oo::PList& configuration);
 
-    NSUInteger _unitsUsed;
-}
+  // Runs once, right after construction; false on failure.
+  bool initWithName(
+      const std::optional<std::string>& name,
+      const oo::PList& configuration);  // shared with OOBasicMaterial
 
-- (id)initWithName:(NSString*)name configuration:(NSDictionary*)configuration;
+  std::size_t textureUnitCount();
 
-- (NSUInteger)textureUnitCount;
+  std::optional<std::string> descriptionComponents() const override;
+  std::size_t countOfTextureUnitsWithBaseCoordinates() override;
+  void ensureFinishedLoading() override;
+  void apply() override;
+  void unapplyWithNext(OOMaterial* next) override;
+  size_t objectSize() const override { return sizeof *this; }
+#ifdef OO_DEBUG_MONITOR_ENABLED
+  std::vector<std::shared_ptr<OOTexture>> allTextures() override;
+#endif
 
-@end
+ private:
+  std::shared_ptr<OOTexture> _diffuseMap = {};
+  std::shared_ptr<OOTexture> _emissionMap = {};
+
+  std::size_t _unitsUsed = {};
+};
 
 #endif /* OO_MULTITEXTURE */

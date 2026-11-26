@@ -1,0 +1,163 @@
+/*	test_OOSkyDrawable.mm
+        Unit tests for OOSkyDrawable (src/Core/OOSkyDrawable.h), the drawable of
+   the sky (the stars and nebulae behind a system).
+
+        The drawable loads its star and nebula textures from the game's
+   resources, which the test has not, so it links the whole game but main
+   (['*']), uses a Universe that was never initialised (minimum detail, so the
+   nebulae are not set up) and replaces the star set-up with a stand-in that
+   records what the drawable passed it (as test_SkyEntity.mm does): the
+   stand-in gets the two star colours and
+   the drawable keeps the star and nebula counts it was given; the sky has
+   opaque parts only and no draw distance limit; it has no quad sets, so no
+   textures; and it is a graphics reset client, so a reset deletes its
+   display list (the GL context is a hidden window's, oo_gl_test_context.hpp).
+   The drawable's private state is read through the one block of helpers below.
+   The test holds the C++ drawable and calls its members. Run: bash
+   tests/run.sh unit
+*/
+
+#include <cmath>
+
+#include "OOColor.h"
+#include "OOGraphicsResetManager.h"
+#include "OOSkyDrawable.h"
+#include "Universe.h"
+#include "oo_gl_test_context.hpp"
+#include "oo_test.hpp"
+
+// main.mm defines the debug flags, and the test has its own main.
+#ifndef NDEBUG
+uint32_t gDebugFlags = 0;
+#endif
+
+extern Universe* gSharedUniverse;
+
+namespace {
+
+// What the star set-up's stand-in was given.
+std::shared_ptr<OOColor> sStarColor1;
+std::shared_ptr<OOColor> sStarColor2;
+unsigned sStarSetUps = 0;
+
+// --- The drawable, its star set-up's stand-in and its private state
+// ----------------------------------
+
+void SetUpStars(OOSkyDrawable*, OOColor* color1, OOColor* color2) {
+  sStarColor1 = oo::share(color1);
+  sStarColor2 = oo::share(color2);
+  sStarSetUps++;
+}
+
+}  // namespace
+
+struct OOSkyDrawableTestAccess {
+  static void InstallStandIn() {
+    OOSkyDrawable::sSetUpStarsStandIn = SetUpStars;
+  }
+  static OOSkyDrawable* Cxx(OODrawable* sky) {
+    return dynamic_cast<OOSkyDrawable*>(sky);
+  }
+  static unsigned StarCount(OODrawable* sky) { return Cxx(sky)->_starCount; }
+  static unsigned NebulaCount(OODrawable* sky) {
+    return Cxx(sky)->_nebulaCount;
+  }
+  static GLint& DisplayListName(OODrawable* sky) {
+    return Cxx(sky)->_displayListName;
+  }
+};
+
+namespace {
+
+void InstallStandIn() { OOSkyDrawableTestAccess::InstallStandIn(); }
+
+// A sky drawable: a new C++ drawable.
+std::shared_ptr<OODrawable> Sky(OOColor* color1, OOColor* color2, unsigned starCount,
+                        unsigned nebulaCount) {
+  return oo::makeShared<OOSkyDrawable>(color1, color2, OOColor::greenColor().get(),
+                                    OOColor::whiteColor().get(), starCount,
+                                    nebulaCount, false, 0.5f, 1.0f, 1.0f);
+}
+
+unsigned StarCount(OODrawable* sky) {
+  return OOSkyDrawableTestAccess::StarCount(sky);
+}
+unsigned NebulaCount(OODrawable* sky) {
+  return OOSkyDrawableTestAccess::NebulaCount(sky);
+}
+GLint& DisplayListName(OODrawable* sky) {
+  return OOSkyDrawableTestAccess::DisplayListName(sky);
+}
+
+// ------------------------------------------------------------------------------------------------------
+
+void SetUp() {
+  if (gSharedUniverse == nullptr) {
+    gSharedUniverse = new Universe();  // never released
+    InstallStandIn();
+  }
+}
+
+bool ColorIs(OOColor* color, float r, float g, float b, float a) {
+  if (color == nullptr) return false;
+  float cr = -1, cg = -1, cb = -1, ca = -1;
+  color->getRed(&cr, &cg, &cb, &ca);
+  auto within = [](float x, float y) { return std::fabs(x - y) < 1e-4f; };
+  return within(cr, r) && within(cg, g) && within(cb, b) && within(ca, a);
+}
+
+}  // namespace
+
+OO_TEST(made) {
+  {
+    SetUp();
+    const unsigned setUpsBefore = sStarSetUps;
+    const std::shared_ptr<OODrawable> sky =
+        Sky(OOColor::redColor().get(), OOColor::blueColor().get(), 7, 5);
+    OO_CHECK(sky != nullptr);
+    OO_CHECK(sStarSetUps == setUpsBefore + 1);
+    OO_CHECK(ColorIs(sStarColor1.get(), 1, 0, 0, 1) &&
+             ColorIs(sStarColor2.get(), 0, 0, 1, 1));
+    OO_CHECK(StarCount(sky.get()) == 7);
+    OO_CHECK(NebulaCount(sky.get()) ==
+             5);  // minimum detail: the nebulae were not set up
+    OO_CHECK(DisplayListName(sky.get()) == 0);
+  }
+}
+
+OO_TEST(parts) {
+  {
+    SetUp();
+    const std::shared_ptr<OODrawable> sky =
+        Sky(OOColor::whiteColor().get(), OOColor::yellowColor().get(), 0, 0);
+    OO_CHECK(sky->hasOpaqueParts());
+    OO_CHECK(!sky->hasTranslucentParts());
+    OO_CHECK(std::isinf(sky->maxDrawDistance()) && sky->maxDrawDistance() > 0);
+    OO_CHECK(sky->collisionRadius() == 0);
+#ifndef NDEBUG
+    OO_CHECK(sky->allTextures().empty());  // no quad sets
+    OO_CHECK(sky->totalSize() > 0);
+#endif
+  }
+}
+
+OO_TEST(resetDeletesTheDisplayList) {
+  OO_CHECK(OOTestGLContext());
+  {
+    SetUp();
+    const std::shared_ptr<OODrawable> sky =
+        Sky(OOColor::redColor().get(), OOColor::blueColor().get(), 0, 0);
+    const GLuint list = glGenLists(1);
+    OO_CHECK(list != 0);
+    DisplayListName(sky.get()) = (GLint)list;
+    OO_CHECK(glIsList(list));
+
+    OOGraphicsResetManager::sharedManager()->resetGraphicsState();
+    OO_CHECK(DisplayListName(sky.get()) == 0);
+    OO_CHECK(!glIsList(list));
+  }
+  // Released: no longer a client, so a reset does not reach it.
+  OOGraphicsResetManager::sharedManager()->resetGraphicsState();
+}
+
+OO_TEST_MAIN()
