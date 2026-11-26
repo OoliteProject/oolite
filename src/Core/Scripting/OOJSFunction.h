@@ -4,6 +4,10 @@ OOJSFunction.h
 
 Object encapsulating a runnable JavaScript function.
 
+C++20 since bead oo-3smy (proposed ADR-0056, the OOColor house style). The Objective-C facade
+was deleted once ShipEntityAI and OORegExpMatcher held the C++ object, and the class moved out of
+namespace cxx.
+
 
 JavaScript support for Oolite
 Copyright (C) 2007-2013 David Taylor and Jens Ayton.
@@ -25,44 +29,64 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOFoundation.h"
-#include <jsapi.h>
+#ifndef OOJSFUNCTION_H
+#define OOJSFUNCTION_H
 
-@interface OOJSFunction : NSObject {
-@private
-    JSFunction* _function;
-    NSString* _name;
-}
+#include "OOFoundation.h"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
+#include <quickjs.h>
 
-- (id)initWithFunction:(JSFunction*)function context:(JSContext*)context;
-- (id)initWithName:(NSString*)name
-             scope:(JSObject*)scope // may be NULL, in which case global object is used.
-              code:(NSString*)code // full JS code for function, including function declaration.
-     argumentCount:(NSUInteger)argCount
-     argumentNames:(const char**)argNames
-          fileName:(NSString*)fileName
-        lineNumber:(NSUInteger)lineNumber
-           context:(JSContext*)context; // may be NULL. If not null, must be in a request.
+#include <optional>
+#include <string>
+#include <vector>
 
-- (NSString*)name;
-- (JSFunction*)function;
-- (jsval)functionValue;
+class OOJSFunction : public oo::RefCounted {
+public:
+    // The initialisers' factories (proposed ADR-0056 amendment oo-novu): null where the
+    // initialiser answered nil (not a function; no code, missing argument names, or a compile
+    // error).
+    // function must be a function value; the OOJSFunction takes its own reference.
+    static oo::Ref<OOJSFunction> initWithFunction(JSValueConst function, JSContext* context);
+    static oo::Ref<OOJSFunction> initWithName(const std::optional<std::string>& name,
+        JSValueConst scope, // Ignored; QuickJS compiles functions in the global scope. Pass JS_UNDEFINED.
+        const std::optional<std::string>& code, // Function body.
+        NSUInteger argCount,
+        const char** argNames,
+        const std::optional<std::string>& fileName,
+        NSUInteger lineNumber,
+        JSContext* context); // may be NULL.
 
-// Raw evaluation. Context may not be NULL and must be in a request.
-- (BOOL)evaluateWithContext:(JSContext*)context
-                      scope:(JSObject*)jsThis
-                       argc:(uintN)argc
-                       argv:(jsval*)argv
-                     result:(jsval*)result;
+    ~OOJSFunction() override;
 
-// Object-wrapper evaluation.
-- (id)evaluateWithContext:(JSContext*)context
-                    scope:(id)jsThis
-                arguments:(NSArray*)arguments;
+    std::optional<std::string> descriptionComponents() const;
 
-// As above, but converts result to a boolean.
-- (BOOL)evaluatePredicateWithContext:(JSContext*)context
-                               scope:(id)jsThis
-                           arguments:(NSArray*)arguments;
+    std::optional<std::string> name(); // nullopt: anonymous (bead oo-3rb.289.7)
+    // Borrowed; valid while the receiver is alive and the engine is not reset. JS_NULL if invalid.
+    JSValueConst function();
+    // Owned (caller must free). JS_NULL if invalid.
+    JSValue functionValue();
 
-@end
+    // Raw evaluation. *result is owned by the caller on success. On failure, any exception is left pending (not reported).
+    bool evaluateWithContext(JSContext* context,
+        JSValueConst jsThis,
+        int argc,
+        JSValueConst* argv,
+        JSValue* result);
+
+    // (The object-wrapper evaluations, which converted Objective-C arguments and scope -
+    // evaluatePredicateWithContext() and its evaluateWithContext() - had no game caller and went
+    // with OOJSValueFromNativeObject().)
+
+private:
+    // The part of -initWithFunction:context: that cannot fail.
+    OOJSFunction(JSValueConst function, JSContext* context);
+
+    bool isValid() const;
+    void deleteJSValue();
+
+    JSValue _function = JS_NULL; // Owned; JS_NULL when invalid.
+    std::optional<std::string> _name; // nullopt for an anonymous function (was nil)
+};
+
+#endif // OOJSFUNCTION_H

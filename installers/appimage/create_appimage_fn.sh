@@ -10,8 +10,6 @@ create_appimage() {
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$script_dir"
     source ../FreeDesktop/install_freedesktop_fn.sh
-    source ../../ShellScripts/common/js_engine_fn.sh
-    local pkg_suffix=$(js_engine_pkg_suffix "$(meson_js_engine "../../build/$(dirname "$build_folder")")")
 
     cd ../../build/appimage
     local arch=$(uname -m)
@@ -30,7 +28,7 @@ create_appimage() {
     export ICON
     local DESKTOP="$appshr/applications/space.oolite.Oolite.desktop"
     export DESKTOP
-    local OUTNAME="Oolite-$ver_full$pkg_suffix-$build_type-$arch.AppImage"
+    local OUTNAME="Oolite-$ver_full-$build_type-$arch.AppImage"
     export OUTNAME
 
     echo "Building AppDir for AppImage..."

@@ -27,17 +27,42 @@ SOFTWARE.
 
 */
 
-#import "OOTextureLoader.h"
-#import "png.h"
+#ifndef OOPNGTEXTURELOADER_H
+#define OOPNGTEXTURELOADER_H
 
-@interface OOPNGTextureLoader : OOTextureLoader {
-@private
-    png_structp png;
-    png_infop pngInfo;
-    png_infop pngEndInfo;
-    NSData* fileData;
-    size_t length;
-    size_t offset;
-}
+// png.h first, in a block of its own: which header comes first decides whether MinGW's or the
+// UCRT's printf family is used by the files that include this one first.
+#include "png.h"
 
-@end
+#include "OOTexture.h"
+#include "OOTextureLoader.h"
+
+#include "oofnd/Data.hpp"
+#include "oofnd/StdLib.hpp"
+
+/*	Phase 3 (bead oo-z889, proposed ADR-0056 amendments oo-bj8 item 12, oo-vl43 item 4 and oo-zl36):
+        a converted leaf, global, over OOTextureLoader, with no facade of its own. Only the loaders'
+        factory (OOTextureLoader::loaderWithPath) makes one and queues it on the work manager (the
+        loaders' facade was deleted by bead oo-9ht.114).
+*/
+class OOPNGTextureLoader : public OOTextureLoader {
+public:
+    ~OOPNGTextureLoader() override; // was -dealloc
+
+    void loadTexture() override;
+
+    // Internal: for libpng's read callback (was the private -readBytes:count:).
+    void readBytes(png_bytep bytes, png_size_t count);
+
+private:
+    void doLoadTexture();
+
+    png_structp png = { };
+    png_infop pngInfo = { };
+    png_infop pngEndInfo = { };
+    std::optional<oo::Data> fileData;
+    size_t length = { };
+    size_t offset = { };
+};
+
+#endif // OOPNGTEXTURELOADER_H
