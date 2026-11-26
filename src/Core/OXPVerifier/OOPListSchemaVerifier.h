@@ -33,9 +33,10 @@ SOFTWARE.
 #if OO_OXP_VERIFIER_ENABLED
 
 #import "OOFunctionAttributes.h"
+#import "oofnd/objc/OOObject.h"
 #import <Foundation/Foundation.h>
 
-@interface OOPListSchemaVerifier : NSObject {
+@interface OOPListSchemaVerifier : OOObject {
 @private
     NSDictionary* _schema;
     NSDictionary* _definitions;

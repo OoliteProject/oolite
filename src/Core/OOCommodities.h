@@ -28,6 +28,13 @@ MA 02110-1301, USA.
 
 #define MAIN_SYSTEM_MARKET_LIMIT 127
 
+// A trade-goods.plist quantity_unit as an OOMassUnit: 0-2 are the units, anything else is
+// UNITS_UNKNOWN (ADR-0036; the bare cast this replaces was undefined for those values).
+static inline OOMassUnit OOMassUnitFromNumber(unsigned n)
+{
+    return (n <= UNITS_GRAMS) ? (OOMassUnit)n : UNITS_UNKNOWN;
+}
+
 // keys in trade-goods.plist
 static NSString* const kOOCommodityName = @"name";
 static NSString* const kOOCommodityClasses = @"classes";
@@ -75,7 +82,7 @@ static NSString* const kOOCommodityMarketTypeValueGood = @"good";
 
 @class OOCommodityMarket, StationEntity;
 
-@interface OOCommodities : NSObject {
+@interface OOCommodities : OOObject {
 @private
     NSDictionary* _commodityLists;
 }

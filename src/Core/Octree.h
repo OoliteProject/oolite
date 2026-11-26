@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import "OOFoundation.h"
 #import "OOMaths.h"
 #import "OOOpenGL.h"
+#import "oofnd/objc/OOObject.h"
 
 #define OCTREE_MIN_HALF_WIDTH 1.0
 
@@ -34,7 +35,7 @@ MA 02110-1301, USA.
 #define OODEBUGLDRAWING_DISABLE 1
 #endif
 
-@interface Octree : NSObject {
+@interface Octree : OOObject {
 @private
     GLfloat _radius;
     uint32_t _nodeCount;
@@ -82,7 +83,7 @@ enum {
     kMaxOctreeDepth = 7 // 128x128x128
 };
 
-@interface OOOctreeBuilder : NSObject {
+@interface OOOctreeBuilder : OOObject {
 @private
     int* _octree;
     uint32_t _nodeCount, _capacity;

@@ -79,7 +79,7 @@ typedef struct
     GLuint count;
 } OOMeshDisplayLists;
 
-@interface OOMesh : OODrawable <NSCopying> {
+@interface OOMesh : OODrawable <OOCopying> {
 @private
     uint8_t _normalMode : 2,
         brokenInRender : 1,

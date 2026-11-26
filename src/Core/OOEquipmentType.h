@@ -34,12 +34,11 @@ SOFTWARE.
 #import "OOScript.h"
 #import "OOTypes.h"
 #import "Universe.h"
+#import "oofnd/objc/OOObject.h"
 
-#if OOJS_QUICKJS
 #include <quickjs.h>
-#endif
 
-@interface OOEquipmentType : NSObject <NSCopying> {
+@interface OOEquipmentType : OOObject <OOCopying> {
 @private
     OOTechLevelID _techLevel;
     OOCreditsQuantity _price;
@@ -80,11 +79,7 @@ SOFTWARE.
     NSString* _script;
     NSString* _condition_script;
 
-#if OOJS_QUICKJS
     JSValue _jsSelf; // Zero-filled (not an object) until created; test with JS_IsObject().
-#else
-    struct JSObject* _jsSelf;
-#endif
 }
 
 + (void)loadEquipment; // Load equipment data; called on loading and when changing to/from strict mode.

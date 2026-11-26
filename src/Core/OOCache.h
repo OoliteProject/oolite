@@ -16,7 +16,7 @@ can be pruned to the prune threshold by explicitly calling -prune.
 
 While OOCacheManager-managed caches must have string keys and property list
 values, OOCaches used directly may have any keys allowable for a mutable
-dictionary (that is, keys should conform to <NSCopying> and values may be
+dictionary (that is, keys should be copyable, as dictionary keys, and values may be
 arbitrary objects) -- an 'unmanaged' cache is essentially a mutable dictionary
 with a prune limit. (Project: with the addition of a -keyEnumerator method and
 sutiable NSEnumerator subclass, and a -count method, it could be turned into a
@@ -43,6 +43,7 @@ MA 02110-1301, USA.
 
 */
 
+#import "oofnd/objc/OOObject.h"
 #import <Foundation/Foundation.h>
 
 enum {
@@ -51,7 +52,7 @@ enum {
     kOOCacheNoPrune = 0xFFFFFFFFU
 };
 
-@interface OOCache : NSObject {
+@interface OOCache : OOObject {
 @private
     struct OOCacheImpl* cache;
     unsigned pruneThreshold;

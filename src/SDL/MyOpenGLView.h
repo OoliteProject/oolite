@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import "OOMouseInteractionMode.h"
 #import "OOOpenGL.h"
 #import "OOOpenGLMatrixManager.h"
+#import "oofnd/objc/OOObject.h"
 
 #include <SDL3/SDL_video.h>
 
@@ -161,7 +162,7 @@ typedef enum {
 
 extern int debug;
 
-@interface MyOpenGLView : NSObject {
+@interface MyOpenGLView : OOObject {
     GameController* gameController;
     BOOL keys[NUM_KEYS];
     int scancode2Unicode[NUM_KEYS];

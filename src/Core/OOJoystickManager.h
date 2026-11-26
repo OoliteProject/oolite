@@ -38,6 +38,7 @@ MA 02110-1301, USA.
 #pragma once
 
 #import "OOFoundation.h"
+#import "oofnd/objc/OOObject.h"
 
 // Enums are used here rather than a more complex ObjC object because
 // these are required very frequently (once per frame) so must be light
@@ -164,7 +165,7 @@ enum {
 
 #import "OOJoystickProfile.h"
 
-@interface OOJoystickManager : NSObject {
+@interface OOJoystickManager : OOObject {
     // Axis/button mapping arrays
     int8_t axismap[MAX_STICKS][MAX_AXES];
     int8_t buttonmap[MAX_STICKS][MAX_BUTTONS];

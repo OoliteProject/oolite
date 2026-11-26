@@ -28,11 +28,8 @@ MA 02110-1301, USA.
 #import "OOFoundation.h"
 #import "OOMaths.h"
 #import "OOTypes.h"
-#if OOJS_QUICKJS
+#import "oofnd/objc/OOObject.h"
 #include <quickjs.h>
-#else
-#include <jsapi.h>
-#endif
 
 #define GUI_DEFAULT_COLUMNS 6
 #define GUI_DEFAULT_ROWS 30
@@ -161,7 +158,7 @@ typedef NSInteger OOGUIRow; // -1 for none
 typedef NSInteger OOGUITabStop; // negative value = right align text
 typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 
-@interface GuiDisplayGen : NSObject {
+@interface GuiDisplayGen : OOObject {
 @private
     NSSize size_in_pixels;
     unsigned n_columns;
@@ -353,11 +350,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 
         Requires a request on context.
 */
-#if OOJS_QUICKJS
 - (NSDictionary*)textureDescriptorFromJSValue:(JSValue)value inContext:(JSContext*)context callerDescription:(NSString*)callerDescription;
-#else
-- (NSDictionary*)textureDescriptorFromJSValue:(jsval)value inContext:(JSContext*)context callerDescription:(NSString*)callerDescription;
-#endif
 
 - (void)clearBackground;
 
