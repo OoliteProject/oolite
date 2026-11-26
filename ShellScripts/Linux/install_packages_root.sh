@@ -101,10 +101,11 @@ run_script() {
         echo "📦 Installing AppImage Tools..."
         install_package appimage
         BIN="/usr/local/bin"
-        download "https://raw.githubusercontent.com/pkgforge-dev/Anylinux-AppImages/refs/heads/main/useful-tools/quick-sharun.sh" "$BIN" "+x"
-        download "https://raw.githubusercontent.com/AppImage/AppImages/master/appdir-lint.sh" "$BIN" "+x"
-        download "https://raw.githubusercontent.com/AppImage/AppImages/master/excludelist" "$BIN"
-        download "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-$(uname -m).AppImage" "$BIN" "+x"
+        download "https://raw.githubusercontent.com/pkgforge-dev/Anylinux-AppImages/refs/heads/main/useful-tools/quick-sharun.sh" "$BIN/quick-sharun.sh" "+x"
+        download "https://raw.githubusercontent.com/AppImage/AppImages/master/appdir-lint.sh" "$BIN/appdir-lint.sh" "+x"
+        download "https://raw.githubusercontent.com/AppImage/AppImages/master/excludelist" "$BIN/excludelist"
+        local appimage_filename="appimagetool-$(uname -m).AppImage"
+        download "https://github.com/AppImage/appimagetool/releases/download/continuous/$appimage_filename" "$BIN/$appimage_filename" "+x"
     fi
 
     if [[ "$INSTALL_FLATPAK" == true ]]; then  # For building Flatpak
