@@ -25,13 +25,11 @@ MA 02110-1301, USA.
 
 */
 
-#import "ShipEntity.h"
+#pragma once
 
-@interface ShipEntity (ScriptMethods)
+#include "ShipEntity.h"
 
-- (ShipEntity*)ejectShipOfType:(NSString*)shipKey; // Note: ship type, not role.
-- (ShipEntity*)ejectShipOfRole:(NSString*)role;
-
-- (NSArray*)spawnShipsWithRole:(NSString*)role count:(NSUInteger)count;
-
-@end
+/*	The ShipEntity (ScriptMethods) members are declared in ShipEntity.h and
+   defined in ShipEntityScriptMethods.mm. This header stays for the files that
+   import it.
+*/
