@@ -1,6 +1,6 @@
 /*
 
-OOJSEntity.h
+OOJSEntity.h (QuickJS-ng)
 
 JavaScript proxy for entities.
 
@@ -21,26 +21,22 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
-
 */
 
 #import "EntityOOJavaScriptExtensions.h"
+#import "OOFoundation.h"
 #import "OOJavaScriptEngine.h"
 #import "Universe.h"
-#import <Foundation/Foundation.h>
+#include "oofnd/StdLib.hpp"
 
 @class Entity;
 
-void InitOOJSEntity(JSContext* context, JSObject* global);
+void InitOOJSEntity(JSContext* context, JSValueConst global);
 
-BOOL JSValueToEntity(JSContext* context, jsval value, Entity** outEntity);
+bool JSValueToEntity(JSContext* context, JSValueConst value, Entity** outEntity);
 
-extern JSClass gOOEntityJSClass;
-extern JSObject* gOOEntityJSPrototype;
-DEFINE_JS_OBJECT_GETTER(OOJSEntityGetEntity, &gOOEntityJSClass, gOOEntityJSPrototype, Entity)
-
-OOINLINE JSClass* JSEntityClass(void) { return &gOOEntityJSClass; }
-OOINLINE JSObject* JSEntityPrototype(void) { return gOOEntityJSPrototype; }
+JSClassID JSEntityClassID(void);
+DEFINE_JS_OBJECT_GETTER(OOJSEntityGetEntity, JSEntityClassID(), Entity)
 
 /*	EntityFromArgumentList()
 
@@ -48,11 +44,12 @@ OOINLINE JSObject* JSEntityPrototype(void) { return gOOEntityJSPrototype; }
         The optional outConsumed argument can be used to find out how many
         parameters were used (currently, this will be 0 on failure, otherwise 1).
 
-        On failure, it will return NO, annd the entity will be unaltered. If
+        On failure, it will return false, annd the entity will be unaltered. If
         scriptClass and function are non-nil, a warning will be reported to the
         log.
 */
-BOOL EntityFromArgumentList(JSContext* context, NSString* scriptClass, NSString* function, uintN argc, jsval* argv, Entity** outEntity, uintN* outConsumed);
+// C++ parameters (proposed ADR-0043); nullopt class or function: no warning (was nil).
+bool EntityFromArgumentList(JSContext* context, const std::optional<std::string>& scriptClass, const std::optional<std::string>& function, int argc, JSValueConst* argv, Entity** outEntity, int* outConsumed);
 
 /*
         For scripting purposes, a JS entity object is a stale reference if its
@@ -60,13 +57,13 @@ BOOL EntityFromArgumentList(JSContext* context, NSString* scriptClass, NSString*
         blockJSPlayerShipProps flag is in effect (i.e., the escape pod sequence is
         active).
 */
-OOINLINE BOOL OOIsPlayerStale(void)
+OOINLINE bool OOIsPlayerStale(void)
 {
     extern Entity* gOOJSPlayerIfStale;
     return gOOJSPlayerIfStale != nil;
 }
 
-OOINLINE BOOL OOIsStaleEntity(Entity* entity)
+OOINLINE bool OOIsStaleEntity(Entity* entity)
 {
     extern Entity* gOOJSPlayerIfStale;
     return entity == nil || (entity == gOOJSPlayerIfStale);

@@ -1,6 +1,6 @@
 /*
 
-OOJSFlasher.h
+OOJSFlasher.h (QuickJS-ng)
 
 JavaScript proxy for OOFlasherEntity.
 
@@ -26,16 +26,16 @@ MA 02110-1301, USA.
 
 #pragma once
 
-#import "OOFlasherEntity.h"
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+#import "OOFoundation.h"
+#include <quickjs.h>
 
-void InitOOJSFlasher(JSContext* context, JSObject* global);
+void InitOOJSFlasher(JSContext* context, JSValueConst global);
 
-@interface OOFlasherEntity (OOJavaScriptExtensions)
+JSClassID JSFlasherClassID(void);
 
-- (void)getJSClass:(JSClass**)outClass andPrototype:(JSObject**)outPrototype;
-- (NSString*)oo_jsClassName;
-- (BOOL)isVisibleToScripts;
-
-@end
+/*	The bodies of OOFlasherEntity (OOJavaScriptExtensions), which the engine reaches by selector
+        through the root's JS members: the C++ OOFlasherEntity's overrides call these (proposed
+        ADR-0056 amendments oo-ppc, oo-ykoy and oo-6ia4). Its jsClassID() answers JSFlasherClassID().
+*/
+std::optional<std::string> OOJSFlasherJSClassName(void);
+bool OOJSFlasherIsVisibleToScripts(void);

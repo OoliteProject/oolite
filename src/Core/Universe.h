@@ -39,20 +39,31 @@ MA 02110-1301, USA.
 #import "OOWeakReference.h"
 #import "legacy_random.h"
 
+#include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
+
+@class OOMaterial;
+
 #if OOLITE_ESPEAK
 #include <espeak-ng/speak_lib.h>
+#include <string_view>
 #endif
 
 @class GameController, CollisionRegion, MyOpenGLView, GuiDisplayGen,
     Entity, ShipEntity, StationEntity, OOPlanetEntity, OOSunEntity,
     OOVisualEffectEntity, PlayerEntity, OORoleSet, WormholeEntity,
-    DockEntity, OOJSScript, OOWaypointEntity, OOSystemDescriptionManager;
+    DockEntity, OOJSScript, OOWaypointEntity, OOSystemDescriptionManager,
+    OOException, OOCharacter;
 
 typedef BOOL (*EntityFilterPredicate)(Entity* entity, void* parameter);
 
 #ifndef OO_SCANCLASS_TYPE
 #define OO_SCANCLASS_TYPE
+#ifndef __cplusplus
 typedef enum OOScanClass OOScanClass;
+#endif
 #endif
 
 #define CROSSHAIR_SIZE 32.0
@@ -104,50 +115,50 @@ enum {
 #define SUN_SKIM_RADIUS_FACTOR 1.15470053838 // 2 sqrt(3) / 3. Why? I have no idea. -- Ahruman 2009-10-04
 #define SUN_SPARKS_RADIUS_FACTOR 2.0
 
-#define KEY_TECHLEVEL @"techlevel"
-#define KEY_ECONOMY @"economy"
-#define KEY_ECONOMY_DESC @"economy_description"
-#define KEY_GOVERNMENT @"government"
-#define KEY_GOVERNMENT_DESC @"government_description"
-#define KEY_POPULATION @"population"
-#define KEY_POPULATION_DESC @"population_description"
-#define KEY_PRODUCTIVITY @"productivity"
-#define KEY_RADIUS @"radius"
-#define KEY_NAME @"name"
-#define KEY_INHABITANT @"inhabitant"
-#define KEY_INHABITANTS @"inhabitants"
-#define KEY_DESCRIPTION @"description"
-#define KEY_SHORT_DESCRIPTION @"short_description"
-#define KEY_PLANETNAME @"planet_name"
-#define KEY_SUNNAME @"sun_name"
+inline constexpr std::string_view KEY_TECHLEVEL = "techlevel";
+inline constexpr std::string_view KEY_ECONOMY = "economy";
+inline constexpr std::string_view KEY_ECONOMY_DESC = "economy_description";
+inline constexpr std::string_view KEY_GOVERNMENT = "government";
+inline constexpr std::string_view KEY_GOVERNMENT_DESC = "government_description";
+inline constexpr std::string_view KEY_POPULATION = "population";
+inline constexpr std::string_view KEY_POPULATION_DESC = "population_description";
+inline constexpr std::string_view KEY_PRODUCTIVITY = "productivity";
+inline constexpr std::string_view KEY_RADIUS = "radius";
+inline constexpr std::string_view KEY_NAME = "name";
+inline constexpr std::string_view KEY_INHABITANT = "inhabitant";
+inline constexpr std::string_view KEY_INHABITANTS = "inhabitants";
+inline constexpr std::string_view KEY_DESCRIPTION = "description";
+inline constexpr std::string_view KEY_SHORT_DESCRIPTION = "short_description";
+inline constexpr std::string_view KEY_PLANETNAME = "planet_name";
+inline constexpr std::string_view KEY_SUNNAME = "sun_name";
 
-#define KEY_CHANCE @"chance"
-#define KEY_PRICE @"price"
-#define KEY_OPTIONAL_EQUIPMENT @"optional_equipment"
-#define KEY_STANDARD_EQUIPMENT @"standard_equipment"
-#define KEY_EQUIPMENT_MISSILES @"missiles"
-#define KEY_EQUIPMENT_FORWARD_WEAPON @"forward_weapon_type"
-#define KEY_EQUIPMENT_AFT_WEAPON @"aft_weapon_type"
+inline constexpr std::string_view KEY_CHANCE = "chance";
+inline constexpr std::string_view KEY_PRICE = "price";
+inline constexpr std::string_view KEY_OPTIONAL_EQUIPMENT = "optional_equipment";
+inline constexpr std::string_view KEY_STANDARD_EQUIPMENT = "standard_equipment";
+inline constexpr std::string_view KEY_EQUIPMENT_MISSILES = "missiles";
+inline constexpr std::string_view KEY_EQUIPMENT_FORWARD_WEAPON = "forward_weapon_type";
+inline constexpr std::string_view KEY_EQUIPMENT_AFT_WEAPON = "aft_weapon_type";
 #define KEY_EQUIPMENT_PORT_WEAPON @"port_weapon_type"
 #define KEY_EQUIPMENT_STARBOARD_WEAPON @"starboard_weapon_type"
-#define KEY_EQUIPMENT_EXTRAS @"extras"
-#define KEY_WEAPON_FACINGS @"weapon_facings"
-#define KEY_RENOVATION_MULTIPLIER @"renovation_multiplier"
+inline constexpr std::string_view KEY_EQUIPMENT_EXTRAS = "extras";
+inline constexpr std::string_view KEY_WEAPON_FACINGS = "weapon_facings";
+inline constexpr std::string_view KEY_RENOVATION_MULTIPLIER = "renovation_multiplier";
 
-#define SHIPYARD_KEY_ID @"id"
-#define SHIPYARD_KEY_SHIPDATA_KEY @"shipdata_key"
-#define SHIPYARD_KEY_SHIP @"ship"
-#define SHIPYARD_KEY_PRICE @"price"
-#define SHIPYARD_KEY_PERSONALITY @"personality"
+inline constexpr std::string_view SHIPYARD_KEY_ID = "id";
+inline constexpr std::string_view SHIPYARD_KEY_SHIPDATA_KEY = "shipdata_key";
+inline constexpr std::string_view SHIPYARD_KEY_SHIP = "ship";
+inline constexpr std::string_view SHIPYARD_KEY_PRICE = "price";
+inline constexpr std::string_view SHIPYARD_KEY_PERSONALITY = "personality";
 // default passenger berth required space
 #define PASSENGER_BERTH_SPACE 5
 
-#define PLANETINFO_UNIVERSAL_KEY @"universal"
-#define PLANETINFO_INTERSTELLAR_KEY @"interstellar space"
+inline constexpr std::string_view PLANETINFO_UNIVERSAL_KEY = "universal";
+inline constexpr std::string_view PLANETINFO_INTERSTELLAR_KEY = "interstellar space";
 
-#define OOLITE_EXCEPTION_LOOPING @"OoliteLoopingException"
-#define OOLITE_EXCEPTION_DATA_NOT_FOUND @"OoliteDataNotFoundException"
-#define OOLITE_EXCEPTION_FATAL @"OoliteFatalException"
+#define OOLITE_EXCEPTION_LOOPING "OoliteLoopingException"
+#define OOLITE_EXCEPTION_DATA_NOT_FOUND "OoliteDataNotFoundException"
+#define OOLITE_EXCEPTION_FATAL "OoliteFatalException"
 
 // the distance the sky backdrop is from the camera
 // though it appears at infinity
@@ -174,645 +185,626 @@ enum {
 #define MASS_DEPENDENT_FUEL_PRICES 1
 #endif
 
-@interface Universe : OOWeakRefObject {
-@public
-    // use a sorted list for drawing and other activities
-    Entity* sortedEntities[UNIVERSE_MAX_ENTITIES + 1]; // One extra for padding; see -doRemoveEntity:.
-    unsigned n_entities;
+@class Universe;
 
-    int cursor_row;
+// A beacon, which stays its Objective-C object (the beacon members of slice 9). Named at file scope
+// as OOWaypointEntity.h names it: inside namespace cxx a protocol list cannot follow ::Entity.
+typedef Entity<OOBeaconEntity> OOBeaconEntityObject;
+@class OOUniverseDelayedMessage; // Universe.mm's holder of a delayed message (slice 16)
+
+/*	The universe's state (bead oo-riqmz, slice 1 of docs/phases/3-slices/Universe.md): the old
+        @interface's ivars, by the same names and types, every one zero-initialised as the runtime
+        zeroed them. The Objective-C Universe (Universe+ObjCBridge.h, imported at the end of this
+        header) owns one and is the game's universe object; its unconverted methods, and the other
+        classes that read the ivars directly, reach the members through its @public _cxxUniverse
+        (UNIVERSE->_cxxUniverse->n_entities). Each later slice moves its methods here as member
+        functions (ADR-0056 amendments oo-bj8 item 2, oo-60fwo, oo-riqmz).
+        Objective-C classes are named ::X here: in namespace cxx the bare name may be the C++ twin.
+*/
+namespace cxx {
+
+class Universe : public oo::RefCounted {
+public:
+    explicit Universe(::Universe* objcOwner);
+    ~Universe();
+
+    // -initWithGameView:'s set-up, after the facade's [super init] (slice 1).
+    void initWithGameView(::MyOpenGLView* inGameView);
+    // -dealloc's body: the facade sends it before it releases this part and sends [super dealloc].
+    void dealloc();
+
+    // Slice 2: post-processing FX and colour-blind modes, the target framebuffer, start-up flags, add-ons, the entity list.
+    bool bloom();
+    void setBloom(bool newBloom);
+    int currentPostFX();
+    void setCurrentPostFX(int newCurrentPostFX);
+    void terminatePostFX(int postFX);
+    int nextColorblindMode(int index);
+    int prevColorblindMode(int index);
+    int colorblindMode();
+    void initTargetFramebufferWithViewSize(NSSize viewSize);
+    void deleteOpenGLObjects();
+    void resizeTargetFramebufferWithViewSize(NSSize viewSize);
+    void drawTargetTextureIntoDefaultFramebuffer();
+    NSUInteger sessionID();
+    bool doingStartUp();
+    bool getDoProcedurallyTexturedPlanets();
+    void setDoProcedurallyTexturedPlanets(bool value);
+    std::optional<std::string> getUseAddOns();
+    bool setUseAddOns(const std::string& newUse, bool saveGame);
+    bool setUseAddOns(const std::string& newUse, bool saveGame, bool force);
+    NSUInteger entityCount();
+#ifdef OO_DEBUG_MONITOR_ENABLED
+    void debugDumpEntities();
+    std::vector<oo::ObjCRef<::Entity*>> entityList();
+#endif
+
+    Universe(const Universe&) = delete;
+    Universe& operator=(const Universe&) = delete;
+
+    // The Objective-C object that owns this part; borrowed (oo::ToObjC answers it).
+    ::Universe* _objcOwner = nil;
+
+    // Formerly @public.
+    // use a sorted list for drawing and other activities
+    ::Entity* sortedEntities[UNIVERSE_MAX_ENTITIES + 1] = { }; // One extra for padding; see -doRemoveEntity:.
+    unsigned n_entities = 0;
+
+    int cursor_row = 0;
 
     // collision optimisation sorted lists
-    Entity *x_list_start, *y_list_start, *z_list_start;
+    ::Entity *x_list_start = nil, *y_list_start = nil, *z_list_start = nil;
 
-    GLfloat stars_ambient[4];
+    GLfloat stars_ambient[4] = { };
 
-@private
-    NSUInteger _sessionID;
+    // Formerly @private: public while the class is half converted, because the facade's
+    // unconverted methods read them (amendment oo-60fwo item 2). Private once Universe is
+    // converted (oo-pas).
+    NSUInteger _sessionID = 0;
 
     // colors
-    GLfloat sun_diffuse[4];
-    GLfloat sun_specular[4];
+    GLfloat sun_diffuse[4] = { };
+    GLfloat sun_specular[4] = { };
 
-    OOViewID viewDirection;
+    OOViewID viewDirection = { };
 
-    OOMatrix viewMatrix;
+    OOMatrix viewMatrix = { };
 
-    GLfloat airResistanceFactor;
+    GLfloat airResistanceFactor = 0;
 
-    MyOpenGLView* gameView;
+    ::MyOpenGLView* gameView = nil;
 
-    int next_universal_id;
-    Entity* entity_for_uid[MAX_ENTITY_UID];
+    int next_universal_id = 0;
+    ::Entity* entity_for_uid[MAX_ENTITY_UID] = { };
 
-    NSMutableArray* entities;
+    std::vector<oo::ObjCRef<::Entity*>> entities;
 
-    OOWeakReference *_firstBeacon,
-        *_lastBeacon;
-    NSMutableDictionary* waypoints;
+    ::OOWeakReference *_firstBeacon = nil,
+                      *_lastBeacon = nil;
+    std::map<std::string, oo::ObjCRef<::OOWaypointEntity*>, std::less<>> waypoints; // by key
 
-    GLfloat skyClearColor[4];
+    GLfloat skyClearColor[4] = { };
 
-    NSString* currentMessage;
-    OOTimeAbsolute messageRepeatTime;
-    OOTimeAbsolute countdown_messageRepeatTime; // Getafix(4/Aug/2010) - Quickfix countdown messages colliding with weapon overheat messages.
-                                                //                       For proper handling of message dispatching, code refactoring is needed.
-    GuiDisplayGen* gui;
-    GuiDisplayGen* message_gui;
-    GuiDisplayGen* comm_log_gui;
+    std::optional<std::string> currentMessage;
+    OOTimeAbsolute messageRepeatTime = 0;
+    OOTimeAbsolute countdown_messageRepeatTime = 0; // Getafix(4/Aug/2010) - Quickfix countdown messages colliding with weapon overheat messages.
+                                                    //                       For proper handling of message dispatching, code refactoring is needed.
+    ::GuiDisplayGen* gui = nil;
+    ::GuiDisplayGen* message_gui = nil;
+    ::GuiDisplayGen* comm_log_gui = nil;
 
-    BOOL displayGUI;
-    BOOL wasDisplayGUI;
+    BOOL displayGUI = NO;
+    BOOL wasDisplayGUI = NO;
 
-    BOOL autoSaveNow;
-    BOOL autoSave;
-    BOOL wireframeGraphics;
-    OOGraphicsDetail detailLevel;
+    BOOL autoSaveNow = NO;
+    BOOL autoSave = NO;
+    BOOL wireframeGraphics = NO;
+    OOGraphicsDetail detailLevel = { };
     // Above entry replaces these two
     //	BOOL					reducedDetail;
     //	OOShaderSetting			shaderEffectsLevel;
 
-    BOOL displayFPS;
+    BOOL displayFPS = NO;
 
-    OOTimeAbsolute universal_time;
-    OOTimeDelta time_delta;
+    OOTimeAbsolute universal_time = 0;
+    OOTimeDelta time_delta = 0;
 
-    OOTimeAbsolute demo_stage_time;
-    OOTimeAbsolute demo_start_time;
-    GLfloat demo_start_z;
-    int demo_stage;
-    NSUInteger demo_ship_index;
-    NSUInteger demo_ship_subindex;
-    NSArray* demo_ships;
+    OOTimeAbsolute demo_stage_time = 0;
+    OOTimeAbsolute demo_start_time = 0;
+    GLfloat demo_start_z = 0;
+    int demo_stage = 0;
+    NSUInteger demo_ship_index = 0;
+    NSUInteger demo_ship_subindex = 0;
+    oo::PList demo_ships; // arrays (one per class) of demo ship dictionaries
 
-    GLfloat main_light_position[4];
+    GLfloat main_light_position[4] = { };
 
-    BOOL dumpCollisionInfo;
+    BOOL dumpCollisionInfo = NO;
 
-    OOCommodities* commodities;
-    OOCommodityMarket* commodityMarket;
+    ::OOCommodities* commodities = nil;
+    ::OOCommodityMarket* commodityMarket = nil;
 
-    NSDictionary* _descriptions; // holds descriptive text for lots of stuff, loaded at initialisation
-    NSDictionary* customSounds; // holds descriptive audio for lots of stuff, loaded at initialisation
-    NSDictionary* characters; // holds descriptons of characters
-    NSArray* _scenarios; // game start scenarios
-    NSDictionary* globalSettings; // miscellaneous global game settings
-    OOSystemDescriptionManager* systemManager; // planetinfo data manager
-    NSDictionary* missiontext; // holds descriptive text for missions, loaded at initialisation
-    NSArray* equipmentData; // holds data on available equipment, loaded at initialisation
-    NSArray* equipmentDataOutfitting;
-    //	NSSet					*pirateVictimRoles;		// Roles listed in pirateVictimRoles.plist.
-    NSDictionary* roleCategories; // Categories for roles from role-categories.plist, extending the old pirate-victim-roles.plist
-    NSDictionary* autoAIMap; // Default AIs for roles from autoAImap.plist.
-    NSDictionary* screenBackgrounds; // holds filenames for various screens backgrounds, loaded at initialisation
-    NSDictionary* explosionSettings; // explosion settings from explosions.plist
+    oo::PList _descriptions; // holds descriptive text for lots of stuff, loaded at initialisation (a dict; null until loaded)
+    unsigned _descriptionsGeneration = 0; // changes whenever _descriptions is assigned (the bridged -descriptions caches per generation)
+    oo::PList customSounds; // holds descriptive audio for lots of stuff, loaded at initialisation
+    oo::PList characters; // holds descriptons of characters
+    oo::PList _scenarios; // game start scenarios (an array)
+    oo::PList globalSettings; // miscellaneous global game settings
+    ::OOSystemDescriptionManager* systemManager = nil; // planetinfo data manager
+    oo::PList missiontext; // holds descriptive text for missions, loaded at initialisation
+    oo::PList equipmentData; // holds data on available equipment, loaded at initialisation (an array)
+    oo::PList equipmentDataOutfitting;
+    //	std::set<std::string>	pirateVictimRoles;		// Roles listed in pirateVictimRoles.plist.
+    oo::PList roleCategories; // Categories for roles from role-categories.plist, extending the old pirate-victim-roles.plist (category -> array of roles)
+    oo::PList autoAIMap; // Default AIs for roles from autoAImap.plist.
+    oo::PList screenBackgrounds; // holds filenames for various screens backgrounds, loaded at initialisation
+    oo::PList explosionSettings; // explosion settings from explosions.plist
 
-    NSDictionary* cargoPods; // template cargo pods
+    std::map<std::string, oo::ObjCRef<::ShipEntity*>, std::less<>> cargoPods; // template cargo pods, by commodity key
 
-    OOGalaxyID galaxyID;
-    OOSystemID systemID;
-    OOSystemID targetSystemID;
+    OOGalaxyID galaxyID = 0;
+    OOSystemID systemID = 0;
+    OOSystemID targetSystemID = 0;
 
-    NSString* system_names[256]; // hold pregenerated universe info
-    BOOL system_found[256]; // holds matches for input strings
+    std::optional<std::string> system_names[256]; // hold pregenerated universe info (nullopt where the name was nil)
+    BOOL system_found[256] = { }; // holds matches for input strings
 
-    int breakPatternCounter;
+    int breakPatternCounter = 0;
 
-    ShipEntity* demo_ship;
+    ::ShipEntity* demo_ship = nil;
 
-    StationEntity* cachedStation;
-    OOPlanetEntity* cachedPlanet;
-    OOSunEntity* cachedSun;
-    NSMutableArray* allPlanets;
-    NSMutableSet* allStations;
+    ::StationEntity* cachedStation = nil;
+    ::OOPlanetEntity* cachedPlanet = nil;
+    ::OOSunEntity* cachedSun = nil;
+    std::vector<oo::ObjCRef<::OOPlanetEntity*>> allPlanets;
+    std::vector<oo::ObjCRef<::StationEntity*>> allStations; // each once, in the order added
 
-    float ambientLightLevel;
+    float ambientLightLevel = 0;
 
-    NSMutableDictionary* populatorSettings;
-    OOTimeDelta next_repopulation;
-    NSString* system_repopulator;
-    BOOL deterministic_population;
+    oo::PList populatorSettings; // key -> populator block (a mixed configuration: each block's callbackObj is an Object node)
+    OOTimeDelta next_repopulation = 0;
+    std::optional<std::string> system_repopulator;
+    BOOL deterministic_population = NO;
 
-    NSArray* closeSystems;
+    std::optional<std::vector<OOSystemID>> closeSystems; // the current system's neighbours; nullopt until cached
 
-    NSString* useAddOns;
+    std::string useAddOns;
 
-    BOOL no_update;
+    BOOL no_update = NO;
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    double timeAccelerationFactor;
+    double timeAccelerationFactor = 0;
 #endif
 
-    BOOL ECMVisualFXEnabled;
+    BOOL ECMVisualFXEnabled = NO;
 
-    NSMutableArray* activeWormholes;
+    std::vector<oo::ObjCRef<::WormholeEntity*>> activeWormholes;
 
-    NSMutableArray* characterPool;
+    std::vector<oo::ObjCRef<::OOCharacter*>> characterPool;
 
-    CollisionRegion* universeRegion;
+    ::CollisionRegion* universeRegion = nil;
 
     // check and maintain linked lists occasionally
-    BOOL doLinkedListMaintenanceThisUpdate;
+    BOOL doLinkedListMaintenanceThisUpdate = NO;
 
-    NSMutableSet* entitiesDeadThisUpdate;
-    int framesDoneThisUpdate;
-    NSUInteger drawCounter;
+    std::vector<oo::ObjCRef<::Entity*>> entitiesDeadThisUpdate; // each once, in the order removed
+    int framesDoneThisUpdate = 0;
+    NSUInteger drawCounter = 0;
 
 #if OOLITE_SPEECH_SYNTH
 #if OOLITE_MAC_COCOA_UI
-    NSSpeechSynthesizer* speechSynthesizer;
+    NSSpeechSynthesizer* speechSynthesizer = nil;
 #elif OOLITE_ESPEAK
-    const espeak_VOICE** espeak_voices;
-    unsigned int espeak_voice_count;
+    const espeak_VOICE** espeak_voices = nullptr;
+    unsigned int espeak_voice_count = 0;
 #endif
-    NSArray* speechArray;
-#endif
-
-#if NEW_PLANETS
-    NSMutableArray* _preloadingPlanetMaterials;
-#endif
-    BOOL doProcedurallyTexturedPlanets;
-
-    GLfloat frustum[6][4];
-
-    NSMutableDictionary* conditionScripts;
-
-    BOOL _pauseMessage;
-    BOOL _autoCommLog;
-    BOOL _permanentCommLog;
-    BOOL _autoMessageLogBg;
-    BOOL _permanentMessageLog;
-    BOOL _witchspaceBreakPattern;
-    BOOL _dockingClearanceProtocolActive;
-    BOOL _doingStartUp;
-
-    GLuint msaaTextureID;
-    GLuint targetTextureID;
-    GLuint passthroughTextureID[2];
-    NSSize targetFramebufferSize;
-    GLuint msaaFramebufferID;
-    GLuint msaaDepthBufferID;
-    GLuint targetDepthBufferID;
-    GLuint targetFramebufferID;
-    GLuint passthroughFramebufferID;
-    OOShaderProgram* textureProgram;
-    OOShaderProgram* blurProgram;
-    OOShaderProgram* finalProgram;
-    GLuint quadTextureVBO, quadTextureVAO, quadTextureEBO;
-    GLint defaultDrawFBO;
-    GLuint pingpongFBO[2];
-    GLuint pingpongColorbuffers[2];
-    BOOL _bloom;
-    int _currentPostFX;
-    int _colorblindMode;
-}
-
-- (BOOL)bloom;
-- (void)setBloom:(BOOL)newBloom;
-
-- (int)currentPostFX;
-- (void)setCurrentPostFX:(int)newCurrentPostFX;
-- (void)terminatePostFX:(int)postFX;
-
-- (id)initWithGameView:(MyOpenGLView*)gameView;
-
-// SessionID: a value that's incremented when the game is reset.
-- (NSUInteger)sessionID;
-
-- (BOOL)doProcedurallyTexturedPlanets;
-- (void)setDoProcedurallyTexturedPlanets:(BOOL)value;
-
-- (NSString*)useAddOns;
-- (BOOL)setUseAddOns:(NSString*)newUse fromSaveGame:(BOOL)saveGame;
-- (BOOL)setUseAddOns:(NSString*)newUse fromSaveGame:(BOOL)saveGame forceReinit:(BOOL)force;
-
-- (void)setUpSettings;
-
-- (BOOL)reinitAndShowDemo:(BOOL)showDemo;
-
-- (BOOL)doingStartUp; // True during initial game startup (not reset).
-
-- (NSUInteger)entityCount;
-#ifdef OO_DEBUG_MONITOR_ENABLED
-- (void)debugDumpEntities;
-- (NSArray*)entityList;
+    oo::PList speechArray; // [original, replacement(, espeak replacement)] pairs
 #endif
 
-- (void)pauseGame;
-- (void)quitGame;
-
-- (void)carryPlayerOn:(StationEntity*)carrier inWormhole:(WormholeEntity*)wormhole;
-- (void)setUpUniverseFromStation;
-- (void)setUpUniverseFromWitchspace;
-- (void)setUpUniverseFromMisjump;
-- (void)setUpWitchspace;
-- (void)setUpWitchspaceBetweenSystem:(OOSystemID)s1 andSystem:(OOSystemID)s2;
-- (void)setUpSpace;
-- (void)populateNormalSpace;
-- (void)clearSystemPopulator;
-- (BOOL)deterministicPopulation;
-- (void)populateSystemFromDictionariesWithSun:(OOSunEntity*)sun andPlanet:(OOPlanetEntity*)planet;
-- (NSDictionary*)getPopulatorSettings;
-- (void)setPopulatorSetting:(NSString*)key to:(NSDictionary*)setting;
-- (HPVector)locationByCode:(NSString*)code withSun:(OOSunEntity*)sun andPlanet:(OOPlanetEntity*)planet;
-- (void)setAmbientLightLevel:(float)newValue;
-- (float)ambientLightLevel;
-- (void)setLighting;
-- (void)forceLightSwitch;
-- (void)setMainLightPosition:(Vector)sunPos;
-- (OOPlanetEntity*)setUpPlanet;
-
-- (void)makeSunSkimmer:(ShipEntity*)ship andSetAI:(BOOL)setAI;
-- (void)addShipWithRole:(NSString*)desc nearRouteOneAt:(double)route_fraction;
-- (HPVector)coordinatesForPosition:(HPVector)pos withCoordinateSystem:(NSString*)system returningScalar:(GLfloat*)my_scalar;
-- (NSString*)expressPosition:(HPVector)pos inCoordinateSystem:(NSString*)system;
-- (HPVector)legacyPositionFrom:(HPVector)pos asCoordinateSystem:(NSString*)system;
-- (HPVector)coordinatesFromCoordinateSystemString:(NSString*)system_x_y_z;
-- (BOOL)addShipWithRole:(NSString*)desc nearPosition:(HPVector)pos withCoordinateSystem:(NSString*)system;
-- (BOOL)addShips:(int)howMany withRole:(NSString*)desc atPosition:(HPVector)pos withCoordinateSystem:(NSString*)system;
-- (BOOL)addShips:(int)howMany withRole:(NSString*)desc nearPosition:(HPVector)pos withCoordinateSystem:(NSString*)system;
-- (BOOL)addShips:(int)howMany withRole:(NSString*)desc nearPosition:(HPVector)pos withCoordinateSystem:(NSString*)system withinRadius:(GLfloat)radius;
-- (BOOL)addShips:(int)howMany withRole:(NSString*)desc intoBoundingBox:(BoundingBox)bbox;
-- (BOOL)spawnShip:(NSString*)shipdesc;
-- (void)witchspaceShipWithPrimaryRole:(NSString*)role;
-- (ShipEntity*)spawnShipWithRole:(NSString*)desc near:(Entity*)entity;
-
-- (OOVisualEffectEntity*)addVisualEffectAt:(HPVector)pos withKey:(NSString*)key;
-- (ShipEntity*)addShipAt:(HPVector)pos withRole:(NSString*)role withinRadius:(GLfloat)radius;
-- (NSArray*)addShipsAt:(HPVector)pos withRole:(NSString*)role quantity:(unsigned)count withinRadius:(GLfloat)radius asGroup:(BOOL)isGroup;
-- (NSArray*)addShipsToRoute:(NSString*)route withRole:(NSString*)role quantity:(unsigned)count routeFraction:(double)routeFraction asGroup:(BOOL)isGroup;
-
-- (BOOL)roleIsPirateVictim:(NSString*)role;
-- (BOOL)role:(NSString*)role isInCategory:(NSString*)category;
-
-- (void)forceWitchspaceEntries;
-- (void)addWitchspaceJumpEffectForShip:(ShipEntity*)ship;
-- (GLfloat)safeWitchspaceExitDistance;
-
-- (void)setUpBreakPattern:(HPVector)pos orientation:(Quaternion)q forDocking:(BOOL)forDocking;
-- (BOOL)witchspaceBreakPattern;
-- (void)setWitchspaceBreakPattern:(BOOL)newValue;
-
-- (BOOL)dockingClearanceProtocolActive;
-- (void)setDockingClearanceProtocolActive:(BOOL)newValue;
-
-- (void)handleGameOver;
-
-- (void)setupIntroFirstGo:(BOOL)justCobra;
-- (void)selectIntro2Previous;
-- (void)selectIntro2Next;
-- (void)selectIntro2PreviousCategory;
-- (void)selectIntro2NextCategory;
-
-- (StationEntity*)station;
-- (OOPlanetEntity*)planet;
-- (OOSunEntity*)sun;
-- (NSArray*)planets; // Note: does not include sun.
-- (NSArray*)stations; // includes main station
-- (NSArray*)wormholes;
-- (StationEntity*)stationWithRole:(NSString*)role andPosition:(HPVector)position;
-
-// Turn main station into just another station, for blowUpStation.
-- (void)unMagicMainStation;
-// find a valid station in interstellar space
-- (StationEntity*)stationFriendlyTo:(ShipEntity*)ship;
-
-- (void)resetBeacons;
-- (Entity<OOBeaconEntity>*)firstBeacon;
-- (Entity<OOBeaconEntity>*)lastBeacon;
-- (void)setNextBeacon:(Entity<OOBeaconEntity>*)beaconShip;
-- (void)clearBeacon:(Entity<OOBeaconEntity>*)beaconShip;
-
-- (NSDictionary*)currentWaypoints;
-- (void)defineWaypoint:(NSDictionary*)definition forKey:(NSString*)key;
-
-- (GLfloat*)skyClearColor;
-// Note: the alpha value is also air resistance!
-- (void)setSkyColorRed:(GLfloat)red green:(GLfloat)green blue:(GLfloat)blue alpha:(GLfloat)alpha;
-
-- (BOOL)breakPatternOver;
-- (BOOL)breakPatternHide;
-
-- (NSString*)randomShipKeyForRoleRespectingConditions:(NSString*)role;
-- (ShipEntity*)newShipWithRole:(NSString*)role OO_RETURNS_RETAINED; // Selects ship using role weights, applies auto_ai, respects conditions
-- (ShipEntity*)newShipWithName:(NSString*)shipKey OO_RETURNS_RETAINED; // Does not apply auto_ai or respect conditions
-- (ShipEntity*)newSubentityWithName:(NSString*)shipKey andScaleFactor:(float)scale OO_RETURNS_RETAINED; // Does not apply auto_ai or respect conditions
-- (OOVisualEffectEntity*)newVisualEffectWithName:(NSString*)effectKey OO_RETURNS_RETAINED;
-- (DockEntity*)newDockWithName:(NSString*)shipKey andScaleFactor:(float)scale OO_RETURNS_RETAINED; // Does not apply auto_ai or respect conditions
-- (ShipEntity*)newShipWithName:(NSString*)shipKey usePlayerProxy:(BOOL)usePlayerProxy OO_RETURNS_RETAINED; // If usePlayerProxy, non-carriers are instantiated as ProxyPlayerEntity.
-- (ShipEntity*)newShipWithName:(NSString*)shipKey usePlayerProxy:(BOOL)usePlayerProxy isSubentity:(BOOL)isSubentity OO_RETURNS_RETAINED;
-- (ShipEntity*)newShipWithName:(NSString*)shipKey usePlayerProxy:(BOOL)usePlayerProxy isSubentity:(BOOL)isSubentity andScaleFactor:(float)scale OO_RETURNS_RETAINED;
-
-- (Class)shipClassForShipDictionary:(NSDictionary*)dict;
-
-- (NSString*)defaultAIForRole:(NSString*)role; // autoAImap.plist lookup
-
-- (OOCargoQuantity)maxCargoForShip:(NSString*)desc;
-
-- (OOCreditsQuantity)getEquipmentPriceForKey:(NSString*)eq_key;
-
-- (OOCommodities*)commodities;
-
-- (ShipEntity*)reifyCargoPod:(ShipEntity*)cargoObj;
-- (ShipEntity*)cargoPodFromTemplate:(ShipEntity*)cargoObj;
-- (NSArray*)getContainersOfGoods:(OOCargoQuantity)how_many scarce:(BOOL)scarce legal:(BOOL)legal;
-- (NSArray*)getContainersOfCommodity:(OOCommodityType)commodity_name how_much:(OOCargoQuantity)how_much;
-- (void)fillCargopodWithRandomCargo:(ShipEntity*)cargopod;
-
-- (NSString*)getRandomCommodity;
-- (OOCargoQuantity)getRandomAmountOfCommodity:(OOCommodityType)co_type;
-
-- (NSDictionary*)commodityDataForType:(OOCommodityType)type;
-- (NSString*)displayNameForCommodity:(OOCommodityType)co_type;
-- (NSString*)describeCommodity:(OOCommodityType)co_type amount:(OOCargoQuantity)co_amount;
-
-- (void)setGameView:(MyOpenGLView*)view;
-- (MyOpenGLView*)gameView;
-- (GameController*)gameController;
-- (NSDictionary*)gameSettings;
-
-- (void)useGUILightSource:(BOOL)GUILight;
-
-- (void)drawUniverse;
-
-- (void)defineFrustum;
-- (BOOL)viewFrustumIntersectsSphereAt:(Vector)position withRadius:(GLfloat)radius;
-
-- (void)drawMessage;
-
-- (void)drawWatermarkString:(NSString*)watermarkString;
-
-// Used to draw subentities. Should be getting this from camera.
-- (OOMatrix)viewMatrix;
-
-- (id)entityForUniversalID:(OOUniversalID)u_id;
-
-- (BOOL)addEntity:(Entity*)entity;
-- (BOOL)removeEntity:(Entity*)entity;
-- (void)ensureEntityReallyRemoved:(Entity*)entity;
-- (void)removeAllEntitiesExceptPlayer;
-- (void)removeDemoShips;
-
-- (ShipEntity*)makeDemoShipWithRole:(NSString*)role spinning:(BOOL)spinning;
-
-- (BOOL)isVectorClearFromEntity:(Entity*)e1 toDistance:(double)dist fromPoint:(HPVector)p2;
-- (Entity*)hazardOnRouteFromEntity:(Entity*)e1 toDistance:(double)dist fromPoint:(HPVector)p2;
-- (HPVector)getSafeVectorFromEntity:(Entity*)e1 toDistance:(double)dist fromPoint:(HPVector)p2;
-
-- (ShipEntity*)addWreckageFrom:(ShipEntity*)ship withRole:(NSString*)wreckRole at:(HPVector)rpos scale:(GLfloat)scale lifetime:(GLfloat)lifetime;
-- (void)addLaserHitEffectsAt:(HPVector)pos against:(ShipEntity*)target damage:(float)damage color:(OOColor*)color;
-- (ShipEntity*)firstShipHitByLaserFromShip:(ShipEntity*)srcEntity inDirection:(OOWeaponFacing)direction offset:(Vector)offset gettingRangeFound:(GLfloat*)range_ptr;
-- (Entity*)firstEntityTargetedByPlayer;
-- (Entity*)firstEntityTargetedByPlayerPrecisely;
-
-- (NSArray*)entitiesWithinRange:(double)range ofEntity:(Entity*)entity;
-- (unsigned)countShipsWithRole:(NSString*)role inRange:(double)range ofEntity:(Entity*)entity;
-- (unsigned)countShipsWithRole:(NSString*)role;
-- (unsigned)countShipsWithPrimaryRole:(NSString*)role inRange:(double)range ofEntity:(Entity*)entity;
-- (unsigned)countShipsWithPrimaryRole:(NSString*)role;
-- (unsigned)countShipsWithScanClass:(OOScanClass)scanClass inRange:(double)range ofEntity:(Entity*)entity;
-
-// General count/search methods. Pass range of -1 and entity of nil to search all of system.
-- (unsigned)countEntitiesMatchingPredicate:(EntityFilterPredicate)predicate
-                                 parameter:(void*)parameter
-                                   inRange:(double)range
-                                  ofEntity:(Entity*)entity;
-- (unsigned)countShipsMatchingPredicate:(EntityFilterPredicate)predicate
-                              parameter:(void*)parameter
-                                inRange:(double)range
-                               ofEntity:(Entity*)entity;
-- (NSMutableArray*)findEntitiesMatchingPredicate:(EntityFilterPredicate)predicate
-                                       parameter:(void*)parameter
-                                         inRange:(double)range
-                                        ofEntity:(Entity*)entity;
-- (id)findOneEntityMatchingPredicate:(EntityFilterPredicate)predicate
-                           parameter:(void*)parameter;
-- (NSMutableArray*)findShipsMatchingPredicate:(EntityFilterPredicate)predicate
-                                    parameter:(void*)parameter
-                                      inRange:(double)range
-                                     ofEntity:(Entity*)entity;
-- (NSMutableArray*)findVisualEffectsMatchingPredicate:(EntityFilterPredicate)predicate
-                                            parameter:(void*)parameter
-                                              inRange:(double)range
-                                             ofEntity:(Entity*)entity;
-- (id)nearestEntityMatchingPredicate:(EntityFilterPredicate)predicate
-                           parameter:(void*)parameter
-                    relativeToEntity:(Entity*)entity;
-- (id)nearestShipMatchingPredicate:(EntityFilterPredicate)predicate
-                         parameter:(void*)parameter
-                  relativeToEntity:(Entity*)entity;
-
-- (OOTimeAbsolute)getTime;
-- (OOTimeDelta)getTimeDelta;
-
-- (void)findCollisionsAndShadows;
-- (NSString*)collisionDescription;
-- (void)dumpCollisions;
-
-- (OOViewID)viewDirection;
-- (void)setViewDirection:(OOViewID)vd;
-- (void)enterGUIViewModeWithMouseInteraction:(BOOL)mouseInteraction; // Use instead of setViewDirection:VIEW_GUI_DISPLAY
-
-- (NSString*)soundNameForCustomSoundKey:(NSString*)key;
-- (NSDictionary*)screenTextureDescriptorForKey:(NSString*)key;
-- (void)setScreenTextureDescriptorForKey:(NSString*)key descriptor:(NSDictionary*)desc;
-
-- (void)clearPreviousMessage;
-- (void)setMessageGuiBackgroundColor:(OOColor*)some_color;
-- (void)displayMessage:(NSString*)text forCount:(OOTimeDelta)count;
-- (void)displayCountdownMessage:(NSString*)text forCount:(OOTimeDelta)count;
-- (void)addDelayedMessage:(NSString*)text forCount:(OOTimeDelta)count afterDelay:(OOTimeDelta)delay;
-- (void)addDelayedMessage:(NSDictionary*)textdict;
-- (void)addMessage:(NSString*)text forCount:(OOTimeDelta)count;
-- (void)addMessage:(NSString*)text forCount:(OOTimeDelta)count forceDisplay:(BOOL)forceDisplay;
-- (void)addCommsMessage:(NSString*)text forCount:(OOTimeDelta)count;
-- (void)addCommsMessage:(NSString*)text forCount:(OOTimeDelta)count andShowComms:(BOOL)showComms logOnly:(BOOL)logOnly;
-- (void)showCommsLog:(OOTimeDelta)how_long;
-- (void)showGUIMessage:(NSString*)text withScroll:(BOOL)scroll andColor:(OOColor*)selectedColor overDuration:(OOTimeDelta)how_long;
-
-- (void)update:(OOTimeDelta)delta_t;
-
-// Time Acelleration Factor. In deployment builds, this is always 1.0 and -setTimeAccelerationFactor: does nothing.
-- (double)timeAccelerationFactor;
-- (void)setTimeAccelerationFactor:(double)newTimeAccelerationFactor;
-
-- (BOOL)ECMVisualFXEnabled;
-- (void)setECMVisualFXEnabled:(BOOL)isEnabled;
-
-- (void)filterSortedLists;
-
-///////////////////////////////////////
-
-- (void)setGalaxyTo:(OOGalaxyID)g;
-- (void)setGalaxyTo:(OOGalaxyID)g andReinit:(BOOL)forced;
-
-- (void)setSystemTo:(OOSystemID)s;
-
-- (OOSystemID)currentSystemID;
-
-- (NSDictionary*)descriptions;
-- (NSDictionary*)characters;
-- (NSDictionary*)missiontext;
-- (NSArray*)scenarios;
-- (NSDictionary*)explosionSetting:(NSString*)explosion;
-
-- (OOSystemDescriptionManager*)systemManager;
-
-- (NSString*)descriptionForKey:(NSString*)key; // String, or random item from array
-- (NSString*)descriptionForArrayKey:(NSString*)key index:(unsigned)index; // Indexed item from array
-- (BOOL)descriptionBooleanForKey:(NSString*)key; // Boolean from descriptions.plist, for configuration.
-
-- (NSString*)keyForPlanetOverridesForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
-- (NSString*)keyForInterstellarOverridesForSystems:(OOSystemID)s1 s2:(OOSystemID)s2 inGalaxy:(OOGalaxyID)g;
-- (NSDictionary*)generateSystemData:(OOSystemID)s;
-- (NSDictionary*)generateSystemData:(OOSystemID)s useCache:(BOOL)useCache;
-- (NSDictionary*)currentSystemData; // Same as generateSystemData:systemSeed unless in interstellar space.
-
-- (BOOL)inInterstellarSpace;
-
-- (void)setSystemDataKey:(NSString*)key value:(NSObject*)object fromManifest:(NSString*)manifest;
-- (void)setSystemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(NSString*)key value:(id)object fromManifest:(NSString*)manifest forLayer:(OOSystemLayer)layer;
-- (id)systemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(NSString*)key;
-- (NSArray*)systemDataKeysForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum;
-- (NSString*)getSystemName:(OOSystemID)sys;
-- (NSString*)getSystemName:(OOSystemID)sys forGalaxy:(OOGalaxyID)gnum;
-- (OOGovernmentID)getSystemGovernment:(OOSystemID)sys;
-- (NSString*)getSystemInhabitants:(OOSystemID)sys;
-- (NSString*)getSystemInhabitants:(OOSystemID)sys plural:(BOOL)plural;
-
-- (NSPoint)coordinatesForSystem:(OOSystemID)s;
-- (OOSystemID)findSystemFromName:(NSString*)sysName;
-
-/**
- * Finds systems within range.  If range is greater than 7.0LY then only look within 7.0LY.
- */
-- (NSMutableArray*)nearbyDestinationsWithinRange:(double)range;
-
-- (OOSystemID)findNeighbouringSystemToCoords:(NSPoint)coords withGalaxy:(OOGalaxyID)gal;
-- (OOSystemID)findConnectedSystemAtCoords:(NSPoint)coords withGalaxy:(OOGalaxyID)gal;
-// old alias for findSystemNumberAtCoords
-- (OOSystemID)findSystemAtCoords:(NSPoint)coords withGalaxy:(OOGalaxyID)gal;
-- (OOSystemID)findSystemNumberAtCoords:(NSPoint)coords withGalaxy:(OOGalaxyID)gal includingHidden:(BOOL)hidden;
-- (NSPoint)findSystemCoordinatesWithPrefix:(NSString*)p_fix;
-- (NSPoint)findSystemCoordinatesWithPrefix:(NSString*)p_fix exactMatch:(BOOL)exactMatch;
-- (BOOL*)systemsFound;
-- (NSString*)systemNameIndex:(OOSystemID)index;
-- (NSDictionary*)routeFromSystem:(OOSystemID)start toSystem:(OOSystemID)goal optimizedBy:(OORouteType)optimizeBy;
-- (NSArray*)neighboursToSystem:(OOSystemID)system_number;
-
-- (void)preloadPlanetTexturesForSystem:(OOSystemID)system;
-- (void)preloadSounds;
-
-- (NSDictionary*)globalSettings;
-
-- (NSArray*)equipmentData;
-- (NSArray*)equipmentDataOutfitting;
-- (OOCommodityMarket*)commodityMarket;
-- (Random_Seed)marketSeed;
-
-- (NSString*)timeDescription:(OOTimeDelta)interval;
-- (NSString*)shortTimeDescription:(OOTimeDelta)interval;
-
-- (void)loadStationMarkets:(NSArray*)marketData;
-- (NSArray*)getStationMarkets;
-
-- (NSArray*)shipsForSaleForSystem:(OOSystemID)s withTL:(OOTechLevelID)specialTL atTime:(OOTimeAbsolute)current_time;
-
-/* Calculate base cost, before depreciation */
-- (OOCreditsQuantity)tradeInValueForCommanderDictionary:(NSDictionary*)cmdr_dict;
-
-- (NSString*)brochureDescriptionWithDictionary:(NSDictionary*)dict standardEquipment:(NSArray*)extras optionalEquipment:(NSArray*)options;
-
-- (HPVector)getWitchspaceExitPosition;
-- (Quaternion)getWitchspaceExitRotation;
-
-- (HPVector)getSunSkimStartPositionForShip:(ShipEntity*)ship;
-- (HPVector)getSunSkimEndPositionForShip:(ShipEntity*)ship;
-
-- (NSArray*)listBeaconsWithCode:(NSString*)code;
-
-- (void)allShipsDoScriptEvent:(OOJSPropID)event andReactToAIMessage:(NSString*)message;
-
-///////////////////////////////////////
-
-- (void)clearGUIs;
-
-- (GuiDisplayGen*)gui;
-- (GuiDisplayGen*)commLogGUI;
-- (GuiDisplayGen*)messageGUI;
-
-- (void)resetCommsLogColor;
-
-- (void)setDisplayText:(BOOL)value;
-- (BOOL)displayGUI;
-
-- (void)setDisplayFPS:(BOOL)value;
-- (BOOL)displayFPS;
-
-- (void)setAutoSave:(BOOL)value;
-- (BOOL)autoSave;
-
-- (void)setWireframeGraphics:(BOOL)value;
-- (BOOL)wireframeGraphics;
-
-- (BOOL)reducedDetail;
-- (void)setDetailLevel:(OOGraphicsDetail)value;
-- (OOGraphicsDetail)detailLevel;
-- (BOOL)useShaders;
-
-- (void)handleOoliteException:(NSException*)ooliteException;
-
-- (GLfloat)airResistanceFactor;
-- (void)setAirResistanceFactor:(GLfloat)newFactor;
-
-// speech routines
-//
-- (void)startSpeakingString:(NSString*)text;
-//
-- (void)stopSpeaking;
-//
-- (BOOL)isSpeaking;
-//
+    std::vector<oo::ObjCRef<::OOMaterial*>> _preloadingPlanetMaterials;
+    BOOL doProcedurallyTexturedPlanets = NO;
+
+    GLfloat frustum[6][4] = { };
+
+    std::map<std::string, oo::ObjCRef<::OOJSScript*>, std::less<>> conditionScripts;
+
+    BOOL _pauseMessage = NO;
+    BOOL _autoCommLog = NO;
+    BOOL _permanentCommLog = NO;
+    BOOL _autoMessageLogBg = NO;
+    BOOL _permanentMessageLog = NO;
+    BOOL _witchspaceBreakPattern = NO;
+    BOOL _dockingClearanceProtocolActive = NO;
+    BOOL _doingStartUp = NO;
+
+    GLuint msaaTextureID = 0;
+    GLuint targetTextureID = 0;
+    GLuint passthroughTextureID[2] = { };
+    NSSize targetFramebufferSize = { };
+    GLuint msaaFramebufferID = 0;
+    GLuint msaaDepthBufferID = 0;
+    GLuint targetDepthBufferID = 0;
+    GLuint targetFramebufferID = 0;
+    GLuint passthroughFramebufferID = 0;
+    ::OOShaderProgram* textureProgram = nil;
+    ::OOShaderProgram* blurProgram = nil;
+    ::OOShaderProgram* finalProgram = nil;
+    GLuint quadTextureVBO = 0, quadTextureVAO = 0, quadTextureEBO = 0;
+    GLint defaultDrawFBO = 0;
+    GLuint pingpongFBO[2] = { };
+    GLuint pingpongColorbuffers[2] = { };
+    BOOL _bloom = NO;
+    int _currentPostFX = 0;
+    int _colorblindMode = 0;
+
+    // Slice 3: pause and quit, carrying the player on, set-up from station / witchspace / misjump, witchspace and planet set-up.
+    void pauseGame();
+    void quitGame();
+    void carryPlayerOn(::StationEntity* carrier, ::WormholeEntity* wormhole);
+    void setUpUniverseFromStation();
+    void setUpUniverseFromWitchspace();
+    void setUpUniverseFromMisjump();
+    void setUpWitchspace();
+    void setUpWitchspaceBetweenSystem(OOSystemID s1, OOSystemID s2);
+    ::OOPlanetEntity* setUpPlanet();
+
+    // Slice 4: setUpSpace, populating normal space, the system populator.
+    void setUpSpace();
+    void populateNormalSpace();
+    void clearSystemPopulator();
+    oo::PList getPopulatorSettings();
+    void setPopulatorSetting(const std::string& key, const oo::PList& setting);
+    bool deterministicPopulation();
+    void populateSystemFromDictionariesWithSun(::OOSunEntity* sun, ::OOPlanetEntity* planet);
+
+    // Slice 5: locations by code, lighting, adding ships by role, coordinate systems.
+    HPVector locationByCode(const std::string& code, ::OOSunEntity* sun, ::OOPlanetEntity* planet);
+    void setAmbientLightLevel(float newValue);
+    float getAmbientLightLevel();
+    void setLighting();
+    void forceLightSwitch();
+    void setMainLightPosition(Vector sunPos);
+    ::ShipEntity* addShipWithRole(const std::string& desc, HPVector launchPos, GLfloat rfactor);
+    void addShipWithRole(const std::string& desc, double route_fraction);
+    HPVector coordinatesForPosition(HPVector pos, const std::string& system, GLfloat* my_scalar);
+    std::optional<std::string> expressPosition(HPVector pos, const std::string& system);
+
+    // Slice 6: legacy positions, adding ships at / near positions and in boxes, spawning, visual effects.
+    HPVector legacyPositionFrom(HPVector pos, const std::string& system);
+    HPVector coordinatesFromCoordinateSystemString(const std::string& system_x_y_z);
+    bool addShipWithRole(const std::string& desc, HPVector pos, const std::string& system);
+    bool addShipsAtPosition(int howMany, const std::string& desc, HPVector pos, const std::string& system);
+    bool addShipsNearPosition(int howMany, const std::string& desc, HPVector pos, const std::string& system);
+    bool addShipsNearPosition(int howMany, const std::string& desc, HPVector pos, const std::string& system, GLfloat radius);
+    bool addShips(int howMany, const std::string& desc, BoundingBox bbox);
+    bool spawnShip(const std::string& shipdesc);
+    void witchspaceShipWithPrimaryRole(const std::string& role);
+    ::ShipEntity* spawnShipWithRole(const std::string& desc, ::Entity* entity);
+    ::OOVisualEffectEntity* addVisualEffectAt(HPVector pos, const std::string& key);
+
+    // Slice 7: adding ships within a radius and on routes, role categories, witchspace entries and effects, break patterns, the docking clearance protocol, game over.
+    ::ShipEntity* addShipAt(HPVector pos, const std::string& role, GLfloat radius);
+    std::vector<oo::ObjCRef<::ShipEntity*>> addShipsAt(HPVector pos, const std::string& role, unsigned count, GLfloat radius, bool isGroup);
+    std::vector<oo::ObjCRef<::ShipEntity*>> addShipsToRoute(const std::string& route, const std::string& role, unsigned count, double routeFraction, bool isGroup);
+    bool roleIsPirateVictim(const std::string& role);
+    bool role(const std::string& role, const std::string& category);
+    void forceWitchspaceEntries();
+    void addWitchspaceJumpEffectForShip(::ShipEntity* ship);
+    GLfloat safeWitchspaceExitDistance();
+    void setUpBreakPattern(HPVector pos, Quaternion q, bool forDocking);
+    bool witchspaceBreakPattern();
+    void setWitchspaceBreakPattern(bool newValue);
+    bool dockingClearanceProtocolActive();
+    void setDockingClearanceProtocolActive(bool newValue);
+    void handleGameOver();
+
+    // Slice 8: the intro and demo ships, the ship library text, station and planet look-ups.
+    void setupIntroFirstGo(bool justCobra);
+    oo::PList demoShipData();
+    void setLibraryTextForDemoShip();
+    void selectIntro2Previous();
+    void selectIntro2PreviousCategory();
+    void selectIntro2NextCategory();
+    void selectIntro2Next();
+    ::StationEntity* station();
+    ::StationEntity* stationWithRole(const std::string& role, HPVector position);
+    ::StationEntity* stationFriendlyTo(::ShipEntity* ship);
+    ::OOPlanetEntity* planet();
+    ::OOSunEntity* sun();
+    std::vector<oo::ObjCRef<::OOPlanetEntity*>> planets();
+    std::vector<oo::ObjCRef<::StationEntity*>> stations();
+
+    // Slice 9: wormholes, the main station, beacons, waypoints, sky colour, the break pattern, making ships by role and name, default AIs, cargo capacity.
+    std::vector<oo::ObjCRef<::WormholeEntity*>> wormholes();
+    void unMagicMainStation();
+    void resetBeacons();
+    OOBeaconEntityObject* firstBeacon();
+    void setFirstBeacon(OOBeaconEntityObject* beacon);
+    OOBeaconEntityObject* lastBeacon();
+    void setLastBeacon(OOBeaconEntityObject* beacon);
+    void setNextBeacon(OOBeaconEntityObject* beaconShip);
+    void clearBeacon(OOBeaconEntityObject* beaconShip);
+    std::map<std::string, oo::ObjCRef<::OOWaypointEntity*>, std::less<>> currentWaypoints();
+    void defineWaypoint(const oo::PList& definition, const std::string& key);
+    GLfloat* getSkyClearColor();
+    void setSkyColorRed(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
+    bool breakPatternOver();
+    bool breakPatternHide();
+    bool canInstantiateShip(const std::string& shipKey);
+    std::optional<std::string> randomShipKeyForRoleRespectingConditions(const std::string& role);
+    ::ShipEntity* newShipWithRole(const std::string& role);
+    ::OOVisualEffectEntity* newVisualEffectWithName(const std::string& effectKey);
+    ::ShipEntity* newSubentityWithName(const std::string& shipKey, float scale);
+    ::ShipEntity* newShipWithName(const std::string& shipKey, bool usePlayerProxy);
+    ::ShipEntity* newShipWithName(const std::string& shipKey, bool usePlayerProxy, bool isSubentity);
+    ::ShipEntity* newShipWithName(const std::string& shipKey, bool usePlayerProxy, bool isSubentity, float scale);
+    ::DockEntity* newDockWithName(const std::string& shipDataKey, float scale);
+    ::ShipEntity* newShipWithName(const std::string& shipKey);
+    Class shipClassForShipDictionary(const oo::PList& dict);
+    std::optional<std::string> defaultAIForRole(const std::string& role);
+    OOCargoQuantity maxCargoForShip(const std::string& desc);
+
+    // Slice 10: equipment prices, commodities and cargo pods, the game view and controller, settings, entity lighting, the active view matrix.
+    OOCreditsQuantity getEquipmentPriceForKey(const std::string& eq_key);
+    ::OOCommodities* getCommodities();
+    ::ShipEntity* reifyCargoPod(::ShipEntity* cargoObj);
+    ::ShipEntity* cargoPodFromTemplate(::ShipEntity* cargoObj);
+    std::vector<oo::ObjCRef<::ShipEntity*>> getContainersOfGoods(OOCargoQuantity how_many, bool scarce, bool legal);
+    std::vector<oo::ObjCRef<::ShipEntity*>> getContainersOfCommodity(const std::string& commodity_name, OOCargoQuantity how_much);
+    void fillCargopodWithRandomCargo(::ShipEntity* cargopod);
+    std::string getRandomCommodity();
+    OOCargoQuantity getRandomAmountOfCommodity(const std::string& co_type);
+    oo::PList commodityDataForType(const std::string& type);
+    std::optional<std::string> displayNameForCommodity(const std::string& co_type);
+    std::optional<std::string> describeCommodity(const std::string& co_type, OOCargoQuantity co_amount);
+    void setGameView(::MyOpenGLView* view);
+    ::MyOpenGLView* getGameView();
+    ::GameController* gameController();
+    oo::PList gameSettings();
+    void useGUILightSource(bool GUILight);
+    void lightForEntity(bool isLit);
+    void getActiveViewMatrix(OOMatrix* outMatrix, Vector* outForward, Vector* outUp);
+    OOMatrix activeViewMatrix();
+
+    // Slice 11: the view frustum.
+    void defineFrustum();
+    bool viewFrustumIntersectsSphereAt(Vector position, GLfloat radius);
+
+    // Slice 12: drawUniverse, framebuffer preparation, frame counters, the view matrix.
+    void drawUniverse();
+    void prepareToRenderIntoDefaultFramebuffer();
+    int getFramesDoneThisUpdate();
+    void resetFramesDoneThisUpdate();
+    OOMatrix getViewMatrix();
+
+    // Slice 13: messages and the watermark, entity look-up, the linked lists, adding and removing entities, demo ships.
+    void drawMessage();
+    void drawWatermarkString(const std::string& watermarkString);
+    id entityForUniversalID(OOUniversalID u_id);
+    bool addEntity(::Entity* entity);
+    bool removeEntity(::Entity* entity);
+    void ensureEntityReallyRemoved(::Entity* entity);
+    void removeAllEntitiesExceptPlayer();
+    void removeDemoShips();
+
+    // Slice 14: making demo ships, safe vectors, hazards on route, wreckage, laser hits.
+    ::ShipEntity* makeDemoShipWithRole(const std::string& role, bool spinning);
+    bool isVectorClearFromEntity(::Entity* e1, double dist, HPVector p2);
+    ::Entity* hazardOnRouteFromEntity(::Entity* e1, double dist, HPVector p2);
+    HPVector getSafeVectorFromEntity(::Entity* e1, double dist, HPVector p2);
+    ::ShipEntity* addWreckageFrom(::ShipEntity* ship, const std::string& wreckRole, HPVector rpos, GLfloat scale, GLfloat lifetime);
+    void addLaserHitEffectsAt(HPVector pos, ::ShipEntity* target, float damage, ::OOColor* color);
+    ::ShipEntity* firstShipHitByLaserFromShip(::ShipEntity* srcEntity, OOWeaponFacing direction, Vector offset, GLfloat* range_ptr);
+
+    // Slice 15: player targeting, entities in range, counting and finding ships by role and predicate, time, collisions, view direction.
+    ::Entity* firstEntityTargetedByPlayer();
+    ::Entity* firstEntityTargetedByPlayerPrecisely();
+    std::vector<oo::ObjCRef<::Entity*>> entitiesWithinRange(double range, ::Entity* entity);
+    unsigned countShipsWithRole(const std::string& role, double range, ::Entity* entity);
+    unsigned countShipsWithRole(const std::string& role);
+    unsigned countShipsWithPrimaryRole(const std::string& role, double range, ::Entity* entity);
+    unsigned countShipsWithScanClass(OOScanClass scanClass, double range, ::Entity* entity);
+    unsigned countShipsWithPrimaryRole(const std::string& role);
+    unsigned countEntitiesMatchingPredicate(EntityFilterPredicate predicate, void* parameter, double range, ::Entity* e1);
+    unsigned countShipsMatchingPredicate(EntityFilterPredicate predicate, void* parameter, double range, ::Entity* entity);
+    std::vector<oo::ObjCRef<::Entity*>> findEntitiesMatchingPredicate(EntityFilterPredicate predicate, void* parameter, double range, ::Entity* e1);
+    id findOneEntityMatchingPredicate(EntityFilterPredicate predicate, void* parameter);
+    std::vector<oo::ObjCRef<::Entity*>> findShipsMatchingPredicate(EntityFilterPredicate predicate, void* parameter, double range, ::Entity* entity);
+    std::vector<oo::ObjCRef<::Entity*>> findVisualEffectsMatchingPredicate(EntityFilterPredicate predicate, void* parameter, double range, ::Entity* entity);
+    id nearestEntityMatchingPredicate(EntityFilterPredicate predicate, void* parameter, ::Entity* entity);
+    id nearestShipMatchingPredicate(EntityFilterPredicate predicate, void* parameter, ::Entity* entity);
+    OOTimeAbsolute getTime();
+    OOTimeDelta getTimeDelta();
+    void findCollisionsAndShadows();
+    std::string collisionDescription();
+    void dumpCollisions();
+    OOViewID getViewDirection();
+
+    // Slice 16: setting the view direction, GUI view mode, custom sounds, screen textures, messages and comms, delayed messages, repopulating.
+    void setViewDirection(OOViewID vd);
+    void enterGUIViewModeWithMouseInteraction(bool mouseInteraction);
+    std::optional<std::string> soundNameForCustomSoundKey(const std::string& soundKey);
+    oo::PList screenTextureDescriptorForKey(const std::string& key);
+    void setScreenTextureDescriptorForKey(const std::string& key, const oo::PList& desc);
+    void clearPreviousMessage();
+    void setMessageGuiBackgroundColor(::OOColor* some_color);
+    void displayMessage(const std::optional<std::string>& text, OOTimeDelta count);
+    void displayCountdownMessage(const std::optional<std::string>& text, OOTimeDelta count);
+    void addDelayedMessage(const std::optional<std::string>& text, OOTimeDelta count, double delay);
+    void addDelayedMessage(::OOUniverseDelayedMessage* holder);
+    void addMessage(const std::optional<std::string>& text, OOTimeDelta count);
+    void speakWithSubstitutions(const std::optional<std::string>& text);
+    void addMessage(const std::optional<std::string>& text, OOTimeDelta count, bool forceDisplay);
+    void addCommsMessage(const std::optional<std::string>& text, OOTimeDelta count);
+    void addCommsMessage(const std::optional<std::string>& text, OOTimeDelta count, bool showComms, bool logOnly);
+    void showCommsLog(OOTimeDelta how_long);
+    void showGUIMessage(const std::optional<std::string>& text, bool scroll, ::OOColor* selectedColor, OOTimeDelta how_long);
+    void repopulateSystem();
+
+    // Slice 17: update:, time acceleration, ECM visual effects.
+    void update(OOTimeDelta inDeltaT);
+    bool getECMVisualFXEnabled();
+    void setECMVisualFXEnabled(bool isEnabled);
+    double getTimeAccelerationFactor();
+    void setTimeAccelerationFactor(double newTimeAccelerationFactor);
+
+    // Slice 18: filterSortedLists, setGalaxyTo:.
+    void filterSortedLists();
+    void setGalaxyTo(OOGalaxyID g);
+
+    // Slice 19: galaxy and system changes, descriptions, scenarios, characters, mission text, system data and names, finding systems.
+    void setGalaxyTo(OOGalaxyID g, bool forced);
+    void setSystemTo(OOSystemID s);
+    OOSystemID currentSystemID();
+    const oo::PList* descriptions();
+    unsigned descriptionsGeneration();
+    void verifyDescriptions();
+    void loadDescriptions();
+    oo::PList explosionSetting(const std::string& explosion);
+    oo::PList scenarios();
+    void loadScenarios();
+    oo::PList getCharacters();
+    oo::PList getMissiontext();
+    std::optional<std::string> descriptionForKey(const std::string& key);
+    std::optional<std::string> descriptionForArrayKey(const std::string& key, unsigned index);
+    bool descriptionBooleanForKey(const std::string& key);
+    ::OOSystemDescriptionManager* getSystemManager();
+    std::optional<std::string> keyForPlanetOverridesForSystem(OOSystemID s, OOGalaxyID g);
+    std::optional<std::string> keyForInterstellarOverridesForSystems(OOSystemID s1, OOSystemID s2, OOGalaxyID g);
+    oo::PList generateSystemData(OOSystemID s);
+    oo::PList generateSystemData(OOSystemID s, bool /*useCache*/);
+    oo::PList currentSystemData();
+    bool inInterstellarSpace();
+    void setSystemDataKey(const std::string& key, const oo::PList& value, const std::optional<std::string>& manifest);
+    void setSystemDataForGalaxy(OOGalaxyID gnum, OOSystemID pnum, const std::string& key, const oo::PList& value, const std::optional<std::string>& manifest, OOSystemLayer layer);
+    oo::PList generateSystemDataForGalaxy(OOGalaxyID gnum, OOSystemID pnum);
+    std::vector<std::string> systemDataKeysForGalaxy(OOGalaxyID gnum, OOSystemID pnum);
+    oo::PList systemDataForGalaxy(OOGalaxyID gnum, OOSystemID pnum, const std::string& key);
+    std::optional<std::string> getSystemName(OOSystemID sys);
+    std::optional<std::string> getSystemName(OOSystemID sys, OOGalaxyID gnum);
+    OOGovernmentID getSystemGovernment(OOSystemID sys);
+    std::optional<std::string> getSystemInhabitants(OOSystemID sys);
+    std::optional<std::string> getSystemInhabitants(OOSystemID sys, bool plural);
+    NSPoint coordinatesForSystem(OOSystemID s);
+    OOSystemID findSystemFromName(const std::string& sysName);
+    OOSystemID findSystemAtCoords(NSPoint coords, OOGalaxyID g);
+
+    // Slice 20: neighbouring systems, system-name look-up, routes (with RouteElement), planet textures, global and equipment data, the commodity market, time descriptions.
+    oo::PList nearbyDestinationsWithinRange(double range);
+    OOSystemID findNeighbouringSystemToCoords(NSPoint coords, OOGalaxyID g);
+    OOSystemID findConnectedSystemAtCoords(NSPoint coords, OOGalaxyID g);
+    OOSystemID findSystemNumberAtCoords(NSPoint coords, OOGalaxyID g, bool hidden);
+    NSPoint findSystemCoordinatesWithPrefix(const std::string& p_fix);
+    NSPoint findSystemCoordinatesWithPrefix(const std::string& p_fix, bool exactMatch);
+    BOOL* systemsFound();
+    std::optional<std::string> systemNameIndex(OOSystemID index);
+    oo::PList routeFromSystem(OOSystemID start, OOSystemID goal, OORouteType optimizeBy);
+    std::vector<OOSystemID> neighboursToSystem(OOSystemID s);
+    void preloadPlanetTexturesForSystem(OOSystemID /*s*/);
+    oo::PList getGlobalSettings();
+    oo::PList getEquipmentData();
+    oo::PList getEquipmentDataOutfitting();
+    ::OOCommodityMarket* getCommodityMarket();
+    std::optional<std::string> timeDescription(double interval);
+
+    // Slice 21: short time descriptions, sun skimmers, station markets.
+    std::optional<std::string> shortTimeDescription(double interval);
+    void makeSunSkimmer(::ShipEntity* ship, bool setAI);
+    Random_Seed marketSeed();
+    void loadStationMarkets(const oo::PList& marketData);
+    oo::PList getStationMarkets();
+
+    // Slice 22: ships for sale (cxx_shipsForSaleForSystem:withTL:atTime:).
+    oo::PList shipsForSaleForSystem(OOSystemID s, OOTechLevelID specialTL, OOTimeAbsolute current_time);
+
+    // Slice 23: trade-in value, brochure descriptions, witchspace exit and sun-skim positions, beacons by code, script events to all ships, the GUIs, FPS and autosave.
+    OOCreditsQuantity tradeInValueForCommanderDictionary(const oo::PList& dict);
+    std::optional<std::string> brochureDescriptionWithDictionary(const oo::PList& dict, const std::vector<std::string>& extras, const std::vector<std::string>& options);
+    HPVector getWitchspaceExitPosition();
+    Quaternion getWitchspaceExitRotation();
+    HPVector getSunSkimStartPositionForShip(::ShipEntity* ship);
+    HPVector getSunSkimEndPositionForShip(::ShipEntity* ship);
+    std::vector<oo::ObjCRef<::Entity<OOBeaconEntity>*>> listBeaconsWithCode(const std::string& code);
+    void allShipsDoScriptEvent(OOJSPropID event, const std::optional<std::string>& message);
+    ::GuiDisplayGen* getGui();
+    ::GuiDisplayGen* commLogGUI();
+    ::GuiDisplayGen* messageGUI();
+    void clearGUIs();
+    void resetCommsLogColor();
+    void setDisplayText(bool value);
+    bool getDisplayGUI();
+    void setDisplayFPS(bool value);
+    bool getDisplayFPS();
+    void setAutoSave(bool value);
+    bool getAutoSave();
+    void setAutoSaveNow(bool value);
+
+    // Slice 24: autosave, wireframe and detail levels, shaders, exceptions, air resistance, speech (eSpeak and none), message logs, settings, cargo pods, session IDs.
+    bool getAutoSaveNow();
+    void setWireframeGraphics(bool value);
+    bool getWireframeGraphics();
+    bool reducedDetail();
+    void setDetailLevelDirectly(OOGraphicsDetail value);
+    void setDetailLevel(OOGraphicsDetail value);
+    OOGraphicsDetail getDetailLevel();
+    bool useShaders();
+    void handleOoliteException(::OOException* exception);
+    GLfloat getAirResistanceFactor();
+    void setAirResistanceFactor(GLfloat newFactor);
+    bool pauseMessageVisible();
+    void setPauseMessageVisible(bool value);
+    bool permanentMessageLog();
+    void setPermanentMessageLog(bool value);
+    bool autoMessageLogBg();
+    void setAutoMessageLogBg(bool value);
+    bool permanentCommLog();
+    void setPermanentCommLog(bool value);
+    void setAutoCommLog(bool value);
+    bool blockJSPlayerShipProps();
+    void setBlockJSPlayerShipProps(bool value);
+    void setUpSettings();
+    void setUpCargoPods();
+    void verifyEntitySessionIDs();
+#if !OOLITE_MAC_OS_X // the Mac arms stay Objective-C in the facade (docs/phases/3-slices/Universe.md "mac-only")
+    void startSpeakingString(const std::string& text);
+    void stopSpeaking();
+    bool isSpeaking();
+#endif
 #if OOLITE_ESPEAK
-- (NSString*)voiceName:(unsigned int)index;
-- (unsigned int)voiceNumber:(NSString*)name;
-- (unsigned int)nextVoice:(unsigned int)index;
-- (unsigned int)prevVoice:(unsigned int)index;
-- (unsigned int)setVoice:(unsigned int)index withGenderM:(BOOL)isMale;
+    std::optional<std::string> voiceName(unsigned int index);
+    unsigned int voiceNumber(const std::string& name);
+    unsigned int nextVoice(unsigned int index);
+    unsigned int prevVoice(unsigned int index);
+    unsigned int setVoice(unsigned int index, bool isMale);
 #endif
-- (int)nextColorblindMode:(int)index;
-- (int)prevColorblindMode:(int)index;
-- (int)colorblindMode;
-//
-////
 
-// autosave
-- (void)setAutoSaveNow:(BOOL)value;
-- (BOOL)autoSaveNow;
+    // Slice 25: reinitialising and the demo, the initial universe, random positions, removing entities, preloading sounds, wormhole population, graph dumps.
+    bool reinitAndShowDemo(bool showDemo);
+    void setUpInitialUniverse();
+    float randomDistanceWithinScanner();
+    Vector randomPlaceWithinScannerFrom(Vector pos, Vector route, double offset);
+    HPVector fractionalPositionFrom(HPVector point0, HPVector point1, double routeFraction);
+    bool doRemoveEntity(::Entity* entity);
+    void preloadSounds();
+    void populateSpaceFromActiveWormholes();
+    std::optional<std::string> chooseStringForKey(const std::string& key, const oo::PList& dictionary);
+#if OO_LOCALIZATION_TOOLS && DEBUG_GRAPHVIZ
+    void dumpDebugGraphViz();
+    void dumpSystemDescriptionGraphViz();
+#endif
 
-- (int)framesDoneThisUpdate;
-- (void)resetFramesDoneThisUpdate;
+    // Slice 26: graph-viz references, localisation tools, planet-material pruning, condition scripts, the custom-sound categories of OOSound and OOSoundSource, description look-ups.
+#if OO_LOCALIZATION_TOOLS
+    void addNumericRefsInString(const std::string& string, std::string& graphViz, const std::string& fromNode, NSUInteger nodeCount);
+    void runLocalizationTools();
+#endif
+    void prunePreloadingPlanetMaterials();
+    void loadConditionScripts();
+    void addConditionScripts(const std::vector<std::string>& scripts);
+    ::OOJSScript* getConditionScript(const std::string& scriptname);
+};
 
-// True if textual pause message (as opposed to overlay) is being shown.
-- (BOOL)pauseMessageVisible;
-- (void)setPauseMessageVisible:(BOOL)value;
-
-- (BOOL)permanentCommLog;
-- (void)setPermanentCommLog:(BOOL)value;
-- (void)setAutoCommLog:(BOOL)value;
-- (BOOL)permanentMessageLog;
-- (void)setPermanentMessageLog:(BOOL)value;
-- (BOOL)autoMessageLogBg;
-- (void)setAutoMessageLogBg:(BOOL)value;
-
-- (BOOL)blockJSPlayerShipProps;
-- (void)setBlockJSPlayerShipProps:(BOOL)value;
-
-- (void)loadConditionScripts;
-- (void)addConditionScripts:(NSEnumerator*)scripts;
-- (OOJSScript*)getConditionScript:(NSString*)scriptname;
-
-@end
+} // namespace cxx
 
 /*	Use UNIVERSE to refer to the global universe object.
         The purpose of this is that it makes UNIVERSE essentially a read-only
@@ -826,34 +818,46 @@ OOINLINE Universe* OOGetUniverse(void)
 }
 #define UNIVERSE OOGetUniverse()
 
-// Only for use with string literals, and only for looking up strings.
-// DESC() is deprecated in favour of OOExpandKey() except in known performance-
-// critical contexts.
-#define DESC(key) (OOLookUpDescriptionPRIV(key ""))
-#define DESC_PLURAL(key, count) (OOLookUpPluralDescriptionPRIV(key "", count))
+// Only for use with string literals, and only for looking up strings: the description, or the
+// key itself when there is none (proposed ADR-0053). OO_DESC() is deprecated in favour of
+// cxx_OOExpandKey() except in known performance-critical contexts.
+#define OO_DESC(key) (cxx_OOLookUpDescriptionPRIV(key ""))
+#define OO_DESC_PLURAL(key, count) (cxx_OOLookUpPluralDescriptionPRIV(key "", count))
 
 // Not for direct use.
-NSComparisonResult populatorPrioritySort(id a, id b, void* context);
-NSComparisonResult equipmentSort(id a, id b, void* context);
-NSComparisonResult equipmentSortOutfitting(id a, id b, void* context);
-NSString* OOLookUpDescriptionPRIV(NSString* key);
-NSString* OOLookUpPluralDescriptionPRIV(NSString* key, NSInteger count);
+// The lookups behind OO_DESC() / OO_DESC_PLURAL(): the description, or the key itself when there is none.
+std::string cxx_OOLookUpDescriptionPRIV(const std::string& key);
+std::string cxx_OOLookUpPluralDescriptionPRIV(const std::string& key, NSInteger count);
+
+// The bodies of the two categories below (slice 26), which forward to them.
+::OOSound* OOSoundWithCustomSoundKey(const std::string& key);
+void OOSoundSourcePlayCustomSoundWithKey(::OOSoundSource* source, const std::string& key);
 
 @interface OOSound (OOCustomSounds)
 
-+ (id)soundWithCustomSoundKey:(NSString*)key;
-- (id)initWithCustomSoundKey:(NSString*)key;
++ (id)cxx_soundWithCustomSoundKey:(const std::string&)key;
+- (id)initWithCustomSoundKey:(const std::string&)key;
 
 @end
 
 @interface OOSoundSource (OOCustomSounds)
 
-+ (id)sourceWithCustomSoundKey:(NSString*)key;
-- (id)initWithCustomSoundKey:(NSString*)key;
++ (id)sourceWithCustomSoundKey:(const std::string&)key;
+- (id)initWithCustomSoundKey:(const std::string&)key;
 
-- (void)playCustomSoundWithKey:(NSString*)key;
+- (void)cxx_playCustomSoundWithKey:(const std::string&)key;
 
 @end
 
-NSString* OODisplayStringFromGovernmentID(OOGovernmentID government);
-NSString* OODisplayStringFromEconomyID(OOEconomyID economy);
+#ifdef __cplusplus
+#include "oofnd/StdLib.hpp"
+
+// C++ forms, defined in OOConstToString.mm (bead oo-nts1, chunk oo-3rb.162): nullopt where the
+// old Foundation forms gave nil.
+std::optional<std::string> cxx_OODisplayStringFromGovernmentID(OOGovernmentID government);
+std::optional<std::string> cxx_OODisplayStringFromEconomyID(OOEconomyID economy);
+#endif
+
+// The Objective-C Universe, the facade over cxx::Universe while the class converts slice by slice.
+// Deleted, with namespace cxx above, by the bridge's deletion bead.
+#import "Universe+ObjCBridge.h"
