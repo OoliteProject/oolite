@@ -26,17 +26,42 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 */
-#import "OOFoundation.h"
+#pragma once
+
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
+#include "OOFoundation.h"
 
 // Warn/exit if deprecated functionality used
-void OOStandardsDeprecated(NSString* message);
+void OOStandardsDeprecated(const std::string& message);
 
 // Warn/exit if an OXP error is detected
-void OOStandardsError(NSString* message);
+void OOStandardsError(const std::string& message);
 
 // Return true if in standard enforcing mode
 // Always false in release builds
 // This will *not* exit in "exit on error" mode
-BOOL OOEnforceStandards(void);
+bool OOEnforceStandards(void);
 
 void OOSetStandardsForOXPVerifierMode(void);
+
+/*	TRANSITIONAL: the Foundation-typed API forwarding to the cxx_ functions
+   above, so unmigrated callers compile unchanged. Callers move to the cxx_
+   API; the bridge then goes.
+*/

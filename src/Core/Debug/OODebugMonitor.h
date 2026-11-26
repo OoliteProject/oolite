@@ -10,6 +10,9 @@ formal protocol. This can either be (part of) a debugger loaded into Oolite
 itself (as in the Mac Debug OXP), or provide communications with an external
 debugger (for instance, over Distributed Objects or TCP/IP).
 
+The console's JS objects hold the monitor itself, and the console script is
+handed it as a property-list Object node (oo::PListForeign).
+
 
 Oolite debug support
 
@@ -35,89 +38,167 @@ SOFTWARE.
 
 */
 
-#import "OODebuggerInterface.h"
-#import "OOFoundation.h"
-#import "OOWeakReference.h"
-#if OOJS_QUICKJS
+#pragma once
+
 #include <quickjs.h>
-#endif
 
-@class OOJSScript;
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-@protocol OODebugMonitorInterface
+#include "OODebuggerInterface.h"
+#include "OOFoundation.h"
+#include "OOJSPrivateObject.h"          // the console's JS glue
+#include "OOJavaScriptEngineMonitor.h"  // the engine's monitor, a C++ interface
+#include "oofnd/Notification.hpp"
+#include "oofnd/Object.hpp"
+#include "oofnd/PList.hpp"
 
-// Note: disconnectDebugger:message: will cause a disconnectDebugMonitor:message: message to be sent to the debugger. The debugger should not send disconnectDebugger:message: in response to disconnectDebugMonitor:message:.
-- (void)disconnectDebugger:(in id<OODebuggerInterface>)debugger
-                   message:(in NSString*)message;
+class OOJavaScriptEngine;
+#include "OOColor.h"   // the colour maps hold std::shared_ptr<OOColor>
+#include "OOScript.h"  // the console script, std::shared_ptr<OOScript>
 
-// *** JavaScript console support.
+/*	The one debug monitor (sharedDebugMonitor(), made on first use and never
+   released). The debugger reaches it as itself, the JavaScript engine as its
+   monitor (the C++ OOJavaScriptEngineMonitor), the console's JS objects hold it
+   in their private slot and the console script is handed it as an Object node.
+*/
+class OODebugMonitor : public oo::PListForeign,
+                       public ::OOJavaScriptEngineMonitor,
+                       public ::OOJSPrivateObject {
+ public:
+  static OODebugMonitor* sharedDebugMonitor();
+  bool setDebugger(OODebuggerInterface* debugger);
 
-// Perform a JS command as though entered at the console, including echoing.
-- (oneway void)performJSConsoleCommand:(in NSString*)command;
+  // Note: disconnectDebugger() will cause a disconnectDebugMonitor:message:
+  // message to be sent to the debugger. The debugger should not send
+  // disconnectDebugger:message: in response to disconnectDebugMonitor:message:.
+  void disconnectDebugger(OODebuggerInterface* debugger,
+                          const std::optional<std::string>& message);
 
-- (id)configurationValueForKey:(in NSString*)key;
-- (void)setConfigurationValue:(in id)value forKey:(in NSString*)key;
+  // *** JavaScript console support.
 
-- (NSString*)sourceCodeForFile:(in NSString*)filePath line:(in unsigned)line;
+  // Perform a JS command as though entered at the console, including echoing.
+  void performJSConsoleCommand(const std::string& command);
 
-@end
+  void appendJSConsoleLine(const std::string& string,
+                           const std::optional<std::string>& colorKey,
+                           NSRange emphasisRange);
 
-@interface OODebugMonitor : OOWeakRefObject <OODebugMonitorInterface> {
-@private
-    id<OODebuggerInterface> _debugger;
+  void appendJSConsoleLine(const std::string& string,
+                           const std::optional<std::string>& colorKey);
 
-    // JavaScript console support.
-    OOJSScript* _script;
-#if OOJS_QUICKJS
-    JSValue _jsSelf; // Owned; released when the JS engine resets.
-#else
-    struct JSObject* _jsSelf;
-#endif
+  void clearJSConsole();
+  void showJSConsole();
 
-    NSDictionary* _configFromOXPs; // Settings from debugConfig.plist
-    NSMutableDictionary* _configOverrides; // Settings from preferences, modifiable through JS.
+  oo::PList configurationValueForKey(const std::string& key);
+  long long configurationIntValueForKey(const std::string& key,
+                                        long long value);
+  void setConfigurationValue(const oo::PList& value, const std::string& key);
 
-    // Caches
-    NSMutableDictionary *_fgColors,
-        *_bgColors,
-        *_sourceFiles;
-    // TCP options
-    BOOL _TCPIgnoresDroppedPackets;
-    BOOL _usingPlugInController;
-}
+  std::vector<std::string> configurationKeys();  // sorted case-insensitively
 
-+ (OODebugMonitor*)sharedDebugMonitor;
-- (BOOL)setDebugger:(id<OODebuggerInterface>)debugger;
+  bool debuggerConnected();
 
-// *** JavaScript console support.
-- (void)appendJSConsoleLine:(id)string
-                   colorKey:(NSString*)colorKey
-              emphasisRange:(NSRange)emphasisRange;
+  void dumpMemoryStatistics();
+  size_t dumpJSMemoryStatistics();
 
-- (void)appendJSConsoleLine:(id)string
-                   colorKey:(NSString*)colorKey;
+  void setTCPIgnoresDroppedPackets(bool flag);
+  bool TCPIgnoresDroppedPackets();
 
-- (void)clearJSConsole;
-- (void)showJSConsole;
+  void setUsingPlugInController(bool flag);
+  bool usingPlugInController();
 
-- (id)configurationValueForKey:(NSString*)key class:(Class)class defaultValue:(id)value;
-- (long long)configurationIntValueForKey:(NSString*)key defaultValue:(long long)value;
-
-- (NSArray*)configurationKeys;
-
-- (BOOL)debuggerConnected;
-
-- (void)dumpMemoryStatistics;
-- (size_t)dumpJSMemoryStatistics;
-
-- (void)setTCPIgnoresDroppedPackets:(BOOL)flag;
-- (BOOL)TCPIgnoresDroppedPackets;
-
-- (void)setUsingPlugInController:(BOOL)flag;
-- (BOOL)usingPlugInController;
+  std::string sourceCodeForFile(const std::string& filePath, unsigned line);
 
 #if OOLITE_SDL
-- (void)applicationWillTerminate;
+  void applicationWillTerminate();
 #endif
 
-@end
+  // The JavaScript engine's monitor (OOJavaScriptEngineMonitor): errors and
+  // warnings, and log messages (messageClass nullopt if Log() is used rather
+  // than LogWithClass()).
+  void jsEngine(::OOJavaScriptEngine* engine, JSContext* context,
+                const std::string& severity,
+                const std::optional<std::string>& file, unsigned line,
+                unsigned stackSkip, bool showLocation,
+                const std::string& message) override;
+  void jsEngine(::OOJavaScriptEngine* engine, JSContext* context,
+                const std::string& message,
+                const std::optional<std::string>& messageClass) override;
+
+  // The console's JS glue (OOJSPrivateObject): its JavaScript object, made on
+  // first use and kept; nothing when a wrapper is finalized.
+  JSValue jsValueInContext(JSContext* context) override;  // owned
+  void clearJSSelf(JSValueConst selfVal) override;
+
+  // oo::PListForeign: the class name, and a description of the form
+  // <OODebugMonitor 0x...>.
+  std::string className() const override;
+  std::string description() const override;
+
+ private:
+  struct EntityDumpState;
+
+  void init();
+
+  void applicationWillTerminate(const oo::Notification& notification);
+  void writeMemStat(const std::string& line);
+  void dumpEntity(Entity* entity, EntityDumpState* state,
+                  bool parentVisible);  // the C++ entity
+
+  void setUpDebugConsoleScript();
+  void javaScriptEngineWillReset(const oo::Notification& notification);
+
+  void disconnectDebuggerWithMessage(
+      const std::optional<std::string>&
+          message);  // nullopt: no message (the TCP client sends a bare close)
+
+  oo::PList mergedConfiguration();
+
+  /*	Convert a configuration dictionary to a standard form. In particular,
+          convert all colour specifiers to RGBA arrays with values in [0, 1],
+     and converts "show-console" values to booleans.
+  */
+  oo::PList normalizeConfigDictionary(
+      const oo::PList& dictionary);  // always a Dict (empty for null)
+  oo::PList normalizeConfigValue(const oo::PList& value,
+                                 const std::string& key);  // null: dropped
+
+  std::optional<std::vector<std::string>> loadSourceFile(
+      const std::string& filePath);  // nullopt: can't be read
+
+  std::shared_ptr<OODebuggerInterface> _debugger;  // a C++ interface
+
+  // JavaScript console support.
+  std::shared_ptr<OOScript> _script;  // the console script (an OOJSScript)
+  JSValue _jsSelf = JS_UNDEFINED;  // Owned; released when the JS engine resets.
+
+  oo::PList _configFromOXPs;   // Settings from debugConfig.plist (a Dict, never
+                               // null after init())
+  oo::PList _configOverrides;  // Settings from preferences, modifiable through
+                               // JS (a Dict; values may be Object nodes).
+
+  // Caches
+  std::map<std::string, std::shared_ptr<OOColor>, std::less<>> _fgColors,
+      _bgColors;
+  std::map<std::string, std::vector<std::string>, std::less<>>
+      _sourceFiles;  // lines of each source file shown so far
+  // TCP options
+  bool _TCPIgnoresDroppedPackets = {};
+  bool _usingPlugInController = {};
+};

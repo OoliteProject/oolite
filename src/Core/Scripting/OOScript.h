@@ -13,6 +13,16 @@ the order of precedence is:
 //	script.oos		(OOS)
         script.plist	(property list)
 
+The methods a subclass overrides (name, scriptDescription, version,
+requiresTickle, runWithTarget, and the description's components) are virtual.
+The class is global, a script is held as std::shared_ptr<OOScript> (weakly as
+std::weak_ptr), the class methods that load scripts answer std::shared_ptr, and
+the following are members here: -callMethod:... (OOScript (JavaScriptEvents);
+false but for a JS script), the plist payload (oo::PListForeign: a script
+travels in plist data as a PList::Object node) and the JS glue
+(OOJSPrivateObject: a JS script's Script object, undefined for any other
+script).
+
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
 
@@ -33,34 +43,110 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
+#pragma once
 
-@class Entity;
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-@interface OOScript : NSObject
+#include "OOFoundation.h"
+#include "OOJSPrivateObject.h"
+#include "oofnd/Object.hpp"
+#include "oofnd/PList.hpp"
 
-/*	Looks for path/world-scripts.plist, path/script.js, then path/script.plist.
-        May return zero or more scripts.
+class Entity;
+
+class OOScript : public oo::PListForeign, public ::OOJSPrivateObject {
+ public:
+  /*	Looks for path/world-scripts.plist, path/script.js, then
+     path/script.plist. May return zero or more scripts; nullopt (was nil) when
+     none could be loaded.
+  */
+  static std::optional<std::vector<std::shared_ptr<OOScript>>>
+  worldScriptsAtPath(const std::string& path);
+
+  //	Load named scripts from Scripts folders. nullopt where these returned
+  // nil.
+  static std::optional<std::vector<std::shared_ptr<OOScript>>>
+  scriptsFromFileNamed(const std::string& fileName);
+  static std::vector<std::shared_ptr<OOScript>> scriptsFromList(
+      const std::vector<std::string>& fileNames);
+
+  static std::optional<std::vector<std::shared_ptr<OOScript>>>
+  scriptsFromFileAtPath(const std::string& filePath);
+
+  //	Load a single JavaScript script (an OOJSScript; null where it answered
+  // nil). The properties may hold live objects (oo::PList Object nodes).
+  static std::shared_ptr<OOScript> jsScriptFromFileNamed(
+      const std::string& fileName, const oo::PList& properties);
+  //  As above, but load from the "AIs" directory
+  static std::shared_ptr<OOScript> jsAIScriptFromFileNamed(
+      const std::string& fileName, const oo::PList& properties);
+
+  // The subclass responsibilities. The root's own answer
+  // none, logging an error.
+  virtual std::optional<std::string> descriptionComponents();
+  virtual std::optional<std::string> name();               // nullopt: none
+  virtual std::optional<std::string> scriptDescription();  // nullopt: none
+  virtual std::optional<std::string> version();            // nullopt: none
+  virtual bool requiresTickle();
+  virtual void runWithTarget(Entity* target);  // the C++ entity
+
+  std::optional<std::string> displayName();  // "name version" if version is
+                                             // defined, otherwise just "name".
+
+  /*	OOScript (JavaScriptEvents), which every script answered: call a method.
+     For simplicity, calling methods on non-JS scripts works but does nothing
+     (false). outResult may be NULL; if not, it is owned by the caller.
+  */
+  virtual bool callMethod(JSAtom methodID, JSContext* context,
+                          JSValueConst* argv, int argc, JSValue* outResult);
+
+  // oo::PListForeign: the class name, and the description ("<C++ class
+  // address>{components}").
+  std::string className() const override;
+  std::string description() const override;
+
+  // OOJSPrivateObject: undefined (OOObject's -oo_jsValueInContext:); a JS
+  // script answers its Script object.
+  JSValue jsValueInContext(JSContext* context) override;  // owned
+  void clearJSSelf(JSValueConst selfVal) override;
+};
+
+/*	OOScriptAutorelease(): keeps the script until the current autorelease
+   pool drains, so a script a holder lets go of (replaced, or the holder
+   deallocated) or a caller does not keep lives exactly as long as its
+   autoreleased object did. Nothing for null.
 */
-+ (NSArray*)worldScriptsAtPath:(NSString*)path;
+void OOScriptAutorelease(std::shared_ptr<OOScript> script);
 
-//	Load named scripts from Scripts folders.
-+ (NSArray*)scriptsFromFileNamed:(NSString*)fileName;
-+ (NSArray*)scriptsFromList:(NSArray*)fileNames;
+/*	A script carried through plist data as a PList::Object node, as
+   oo::PListObject() and oo::ObjectIn() carry it.
+*/
+inline oo::PList OOScriptObjectNode(
+    OOScript* script)  // null script -> null PList
+{
+  if (script == nullptr) return oo::PList();
+  return oo::PList(oo::PList::Object(oo::share(script)));
+}
 
-+ (NSArray*)scriptsFromFileAtPath:(NSString*)filePath;
-
-//	Load a single JavaScript script.
-+ (id)jsScriptFromFileNamed:(NSString*)fileName properties:(NSDictionary*)properties;
-//  As above, but load from the "AIs" directory
-+ (id)jsAIScriptFromFileNamed:(NSString*)fileName properties:(NSDictionary*)properties;
-
-- (NSString*)name;
-- (NSString*)scriptDescription;
-- (NSString*)version;
-- (NSString*)displayName; // "name version" if version is defined, otherwise just "name".
-
-- (BOOL)requiresTickle;
-- (void)runWithTarget:(Entity*)target;
-
-@end
+inline OOScript* OOScriptInObjectNode(
+    const oo::PList& plist)  // null for any other node
+{
+  const oo::PList::Object* node = plist.getIf<oo::PList::Object>();
+  return (node != nullptr) ? dynamic_cast<OOScript*>(node->get()) : nullptr;
+}
