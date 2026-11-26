@@ -1,39 +1,37 @@
 download() {
-    # Download file
+    # Download file if missing/not executable
     # Parameter one: download URL
-    # Parameter two: destination path
+    # Parameter two: destination filepath
     # Parameter three: optional +x to make executable
     local download_url="$1"
-    local outputdir="$2"
+    local filepath="$2"
     local make_exec="${3:-}"
 
-    local filename=$(basename "${download_url}")
-    local dest="$outputdir/$filename"
+    local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    source "$script_dir/curl_fn.sh"
+
     # Determine if we need to download
     local need_download=0
     if [[ "$make_exec" == "+x" ]]; then
-        [[ ! -x "$dest" ]] && need_download=1
+        [[ ! -x "$filepath" ]] && need_download=1
     else
-        [[ ! -f "$dest" ]] && need_download=1
+        [[ ! -f "$filepath" ]] && need_download=1
     fi
 
     # Download if missing/not executable
     if [[ "$need_download" -eq 1 ]]; then
-        echo "📥 Downloading $filename..."
-
-        # Ensure target directory exists
-        mkdir -p "$outputdir"
+        echo "📥 Downloading $download_url to $filepath..."
 
         # -f: fail on HTTP errors (e.g. 404)
         # -sS: silent mode, but show error if it fails
         # -L: follow redirects
-        if ! curl -fsSL -O --output-dir "${outputdir}" "$download_url"; then
-            echo "❌ Error downloading $filename from $download_url!" >&2
+        if ! curl -fsSL -o "$filepath" "$download_url"; then
+            echo "❌ Error downloading $download_url to $filepath!" >&2
             return 1
         fi
 
         if [[ "$make_exec" == "+x" ]]; then
-            chmod +x "$dest"
+            chmod +x "$filepath"
         fi
     fi
 }
