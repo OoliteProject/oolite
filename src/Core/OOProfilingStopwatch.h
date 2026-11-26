@@ -32,6 +32,7 @@ SOFTWARE.
 #import "OOFoundation.h"
 #import "OOFunctionAttributes.h"
 #import "OOTypes.h"
+#import "oofnd/objc/OOObject.h"
 #endif
 
 /*	Platform-specific high-resolution timer:
@@ -77,10 +78,9 @@ typedef DWORD OOHighResTimeValue; // Rolls over once every 50 days, but we can l
     } while (0)
 #define OOCopyHighResTime(time) ((OOHighResTimeValue)time)
 
-#elif OOJS_QUICKJS
-/*	...with QuickJS, which has no JS_Now(), use the performance counter, so
-        the profiler can time short functions (timeGetTime() only counts whole
-        milliseconds)...
+#else
+/*	...otherwise use the performance counter, so the profiler can time short
+        functions (timeGetTime() only counts whole milliseconds).
 */
 #define OO_PROFILING_STOPWATCH_PERFORMANCE_COUNTER 1
 typedef int64_t OOHighResTimeValue;
@@ -97,13 +97,6 @@ OOINLINE OOHighResTimeValue OOGetHighResTime(void)
         (void)time;                \
     } while (0)
 #define OOCopyHighResTime(time) ((OOHighResTimeValue)time)
-
-#else
-/*	...otherwise, use JS_Now() for higher precision. The Windows implementation
-        does the messy work of calibrating performance counters against low-res
-        timers.
-*/
-#define OO_PROFILING_STOPWATCH_JS_NOW 1
 #endif
 
 #else
@@ -130,21 +123,9 @@ OOINLINE OOHighResTimeValue OOGetHighResTime(void)
 
 #endif
 
-#if OO_PROFILING_STOPWATCH_JS_NOW
-#include <jsapi.h>
-typedef int64 OOHighResTimeValue;
-
-#define OOGetHighResTime JS_Now
-#define OODisposeHighResTime(time) \
-    do {                           \
-        (void)time;                \
-    } while (0)
-#define OOCopyHighResTime(time) ((OOHighResTimeValue)time)
-#endif
-
 OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime, OOHighResTimeValue endTime);
 
-@interface OOProfilingStopwatch : NSObject {
+@interface OOProfilingStopwatch : OOObject {
 @private
     OOHighResTimeValue _start;
     OOHighResTimeValue _end;

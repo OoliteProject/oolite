@@ -32,13 +32,26 @@
 #import "OOPlanetEntity.h"
 #import "OOWeakReference.h"
 
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
+
 @class OOColor, OOMesh, OOScript, OOJSScript;
+
+/*	Foundation sweep (proposed ADR-0043, bead oo-ensq). The effect definition and script_info are
+        oo::PLists (script_info null where it was nil); the effect key and beacon strings are
+        std::optional (nullopt where they were nil). The subentity list is nullopt until the first
+        subentity is added and again after -clearSubEntities, as the array was nil. Shared selectors
+        (-initWithKey:definition:, -subEntities, -subEntityEnumerator, -flasherEnumerator, -scriptInfo,
+        the beacon accessors) keep Objective-C object types, spelled id.
+*/
+using OOVisualEffectSubEntities = std::vector<oo::ObjCRef<Entity<OOSubEntity>*>>;
 
 @interface OOVisualEffectEntity : OOEntityWithDrawable <OOSubEntity, OOBeaconEntity> {
 @private
-    NSMutableArray* subEntities;
+    std::optional<OOVisualEffectSubEntities> subEntities;
 
-    NSDictionary* effectinfoDictionary;
+    oo::PList effectinfoDictionary;
 
     GLfloat _profileRadius; // for frustum culling
 
@@ -58,15 +71,15 @@
     Vector _v_right;
 
     OOJSScript* script;
-    NSDictionary* scriptInfo;
+    oo::PList scriptInfo;
 
-    NSString* _effectKey;
+    std::optional<std::string> _effectKey;
 
     BOOL _haveExecutedSpawnAction;
 
     // beacons
-    NSString* _beaconCode;
-    NSString* _beaconLabel;
+    std::optional<std::string> _beaconCode;
+    std::optional<std::string> _beaconLabel;
     OOWeakReference* _prevBeacon;
     OOWeakReference* _nextBeacon;
     id<OOHUDBeaconIcon> _beaconDrawable;
@@ -77,13 +90,13 @@
     GLfloat scaleZ;
 }
 
-- (id)initWithKey:(NSString*)key definition:(NSDictionary*)dict;
-- (BOOL)setUpVisualEffectFromDictionary:(NSDictionary*)effectDict;
+- (id)initWithKey:(id)key definition:(id)dict; // shared selector (proposed ADR-0043): an Objective-C string and dictionary
+- (BOOL)setUpVisualEffectFromDictionary:(const oo::PList&)effectDict;
 
 - (OOMesh*)mesh;
 - (void)setMesh:(OOMesh*)mesh;
 
-- (NSString*)effectKey;
+- (std::optional<std::string>)effectKey;
 
 - (GLfloat)frustumRadius;
 
@@ -91,14 +104,14 @@
 - (BOOL)setUpSubEntities;
 - (void)removeSubEntity:(Entity<OOSubEntity>*)sub;
 - (void)setNoDrawDistance;
-- (NSArray*)subEntities;
+- (id)subEntities; // shared selector (proposed ADR-0043): an Objective-C array, nil before the first subentity
 - (NSUInteger)subEntityCount;
-- (NSEnumerator*)visualEffectSubEntityEnumerator;
+- (std::optional<std::vector<oo::ObjCRef<OOVisualEffectEntity*>>>)visualEffectSubEntityEnumerator; // the visual-effect subentities; nullopt where the array was nil
 - (BOOL)hasSubEntity:(Entity<OOSubEntity>*)sub;
 
-- (NSEnumerator*)subEntityEnumerator;
-- (NSEnumerator*)effectSubEntityEnumerator;
-- (NSEnumerator*)flasherEnumerator;
+- (id)subEntityEnumerator; // shared selector (proposed ADR-0043): an Objective-C enumerator over a snapshot
+- (std::vector<oo::ObjCRef<OOVisualEffectEntity*>>)effectSubEntityEnumerator;
+- (id)flasherEnumerator; // shared selector (proposed ADR-0043): an Objective-C enumerator over a snapshot
 
 - (void)orientationChanged;
 - (Vector)forwardVector;
@@ -111,9 +124,9 @@
 - (void)setScannerDisplayColor2:(OOColor*)color;
 - (GLfloat*)scannerDisplayColorForShip:(BOOL)flash scannerDisplayColor1:(OOColor*)scannerDisplayColor1 scannerDisplayColor2:(OOColor*)scannerDisplayColor2;
 
-- (void)setScript:(NSString*)script_name;
+- (void)setScript:(const std::optional<std::string>&)script_name;
 - (OOJSScript*)script;
-- (NSDictionary*)scriptInfo;
+- (id)scriptInfo; // shared selector (proposed ADR-0043): an Objective-C dictionary
 - (void)doScriptEvent:(OOJSPropID)message;
 - (void)remove;
 
@@ -145,6 +158,6 @@
 - (BOOL)isBreakPattern;
 - (void)setIsBreakPattern:(BOOL)bp;
 
-- (NSDictionary*)effectInfoDictionary;
+- (oo::PList)effectInfoDictionary;
 
 @end
