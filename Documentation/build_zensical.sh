@@ -4,11 +4,7 @@
 
 run_script() {
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-    pushd "$script_dir"
-
-    source ./build_zensical_fn.sh && build_zensical
-
-    popd
+    source "$script_dir/build_zensical_fn.sh" && build_zensical
 }
 
 run_script "$@"
