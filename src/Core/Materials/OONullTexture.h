@@ -28,10 +28,30 @@ SOFTWARE.
 
 */
 
+#ifndef OONULLTEXTURE_H
+#define OONULLTEXTURE_H
+
 #import "OOTexture.h"
 
-@interface OONullTexture : OOTexture
+/*	C++20 (bead oo-jvm6). Its Objective-C facade was deleted by bead oo-9ht.100 (ADR-0056 amendment
+        "deleting a facade"): the class is global, and Objective-C sees the null texture as an OOTexture
+        facade (the root's oo::ToObjC), which OOTexture's nullTexture() keeps for the process.
+*/
+class OONullTexture : public cxx::OOTexture {
+public:
+    /*	The one null texture, made on first use and never released (it was an immortal singleton;
+            proposed ADR-0056 amendments oo-r7m0 item 1 and oo-489v item 3). Borrowed.
+            NOTE: assumes single-threaded access.
+    */
+    static OONullTexture* sharedNullTexture();
 
-+ (OONullTexture*)sharedNullTexture;
+    void apply() override;
+    NSSize dimensions() override;
+    bool isMipMapped() override;
+    void forceRebind() override;
+#ifndef NDEBUG
+    std::optional<std::string> name() override;
+#endif
+};
 
-@end
+#endif // OONULLTEXTURE_H

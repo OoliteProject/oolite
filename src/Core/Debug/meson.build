@@ -1,18 +1,17 @@
 # Generated Meson configuration for sub-module: Debug
 
 oolite_sources += files(
-    'OODebugMonitor.m',
-    'OODebugStandards.m',
-    'OODebugSupport.m',
-    'OODebugTCPConsoleClient.m',
+    'OODebugMonitor.mm',
+    'OODebugMonitor+ObjCBridge.mm',
+    'OODebugStandards.mm',
+    'OODebugSupport.mm',
+    'OODebugSupport+ObjCBridge.mm',
+    'OODebugTCPConsoleClient.mm',
+    'OODebugTCPConsoleClient+ObjCBridge.mm',
+    'OOJSConsole.mm',
+    'OOJSConsole+ObjCBridge.mm',
     'OOTCPStreamDecoder.c',
-    'OOTCPStreamDecoderAbstractionLayer.m',
+    'OOTCPStreamDecoderAbstractionLayer.mm',
 )
-
-if use_quickjs
-    oolite_sources += files('QuickJS/OOJSConsole.m')
-else
-    oolite_sources += files('OOJSConsole.m')
-endif
 
 oolite_includes += include_directories('.')
