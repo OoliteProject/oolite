@@ -27,6 +27,8 @@ SOFTWARE.
 
 */
 
+#pragma once
+
 #ifdef OO_DEBUG_MONITOR_ENABLED
 
 void OOInitDebugSupport(void);
@@ -34,7 +36,7 @@ void OOInitDebugSupport(void);
 #else
 
 #define OOInitDebugSupport() \
-    do {                     \
-    } while (0)
+  do {                       \
+  } while (0)
 
 #endif

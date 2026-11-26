@@ -182,7 +182,9 @@ else
     fi
     find_exe_resources_dirs
     export GNUSTEP_CONFIG_FILE=$(mktemp -t oolite_gnustep_XXXX --suffix=.conf)
-    cp "$OO_RESOURCESDIR/GNUstep.conf.orig" "$GNUSTEP_CONFIG_FILE"
+    if [[ -f "$OO_RESOURCESDIR/GNUstep.conf.orig" ]]; then
+        cp "$OO_RESOURCESDIR/GNUstep.conf.orig" "$GNUSTEP_CONFIG_FILE"
+    fi
 fi
 
 mkdir -p "$GAME_DATA"
