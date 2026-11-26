@@ -188,7 +188,12 @@ This builds an AppImage for development, which can be found in the `build` folde
 
 It runs the same steps as CI (`./mk.sh appimage-arch`) in a throwaway `archlinux` container, so the AppImage
 matches the published ones whatever distribution you use. It does not install or replace anything on your
-machine. The build type can be `deployment`, `test`, `dev` or `debug`.
+machine. The build type can be `deployment`, `test`, `dev` or `debug`. Any `./mk.sh` options are passed on unchanged
+to the `./mk.sh` calls in the container, so for example this builds a QuickJS AppImage:
+
+```bash
+./mk.sh pkg-appimage dev --setup-flags="-Djs_engine=quickjs"
+```
 
 It needs only Docker, which this installs if it's missing:
 

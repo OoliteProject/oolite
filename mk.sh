@@ -260,12 +260,8 @@ execute_target() {  # Target Execution Logic
             ;;
         pkg-appimage)
             validate_build_type "$build_type"
-            # The container build uses fixed options, so refuse options that it would ignore.
-            if [[ -n "$MK_OPTIONS" ]]; then
-                echo "❌ pkg-appimage builds in a container and takes no options (got:$MK_OPTIONS)." >&2
-                exit 1
-            fi
-            if ! ShellScripts/Linux/build_appimage_container.sh "$build_type"; then
+            # The options are passed on unchanged to the mk.sh build and appimage-arch calls in the container.
+            if ! ShellScripts/Linux/build_appimage_container.sh "$build_type" ${MK_OPTION_ARGS[@]+"${MK_OPTION_ARGS[@]}"}; then
                 echo "❌ AppImage container build failed!" >&2
                 exit 1
             fi
@@ -321,12 +317,12 @@ execute_target() {  # Target Execution Logic
 
 ACTION=""
 BUILD_TYPE=""
-MK_OPTIONS=""  # names of the options given, for actions that take none
+MK_OPTION_ARGS=()  # the options as given, for pkg-appimage to pass on to mk.sh in its container
 
 # --- Flexible Argument Parser (Allows flags and positionals anywhere) ---
 while [[ $# -gt 0 ]]; do
     if [[ "$1" == --* ]]; then
-        MK_OPTIONS+=" ${1%%=*}"
+        MK_OPTION_ARGS+=("$1")
     fi
     case "$1" in
         --setup-flags=*)
