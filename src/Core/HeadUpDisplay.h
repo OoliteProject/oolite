@@ -400,6 +400,15 @@ void OODrawHilightedString(NSString* text, GLfloat x, GLfloat y, GLfloat z, NSSi
 void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 void OODrawHilightedPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 NSRect OORectFromString(NSString* text, GLfloat x, GLfloat y, NSSize siz);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 CGFloat OOStringWidthInEm(NSString* text);
+
+#ifdef __cplusplus
+}
+#endif
 
 void OOHUDResetTextEngine(void);
