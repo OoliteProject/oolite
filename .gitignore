@@ -23,11 +23,13 @@ deps/libpng
 
 # Build products
 build/
+/compile_commands.json
 tools/icosmesh/obj
 doxygen/
 libobjc2/
 libs-base/
 tools-make/
+tests/__pycache__
 
 # Debug output
 /core
