@@ -1,6 +1,6 @@
 /*
 
-EntityOOJavaScriptExtensions.h
+EntityOOJavaScriptExtensions.h (QuickJS-ng)
 
 JavaScript support methods for entities.
 
@@ -21,7 +21,6 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
-
 */
 
 #pragma once
@@ -33,10 +32,11 @@ MA 02110-1301, USA.
 
 - (BOOL)isVisibleToScripts;
 
-- (NSString*)oo_jsClassName;
+- (std::optional<std::string>)cxx_oo_jsClassName;
 
 // Internal:
-- (void)getJSClass:(JSClass**)outClass andPrototype:(JSObject**)outPrototype;
+// The JS class of the entity's wrapper object; subclasses override this.
+- (JSClassID)oo_jsClassID;
 - (void)deleteJSSelf;
 
 @end
@@ -44,7 +44,7 @@ MA 02110-1301, USA.
 @interface ShipEntity (OOJavaScriptExtensions)
 
 // "Normal" subentities, excluding flashers and exhaust plumes.
-- (NSArray*)subEntitiesForScript;
+- (std::vector<oo::ObjCRef<Entity*>>)subEntitiesForScript;
 
 - (void)setTargetForScript:(ShipEntity*)target;
 
@@ -52,6 +52,7 @@ MA 02110-1301, USA.
 
 @interface PlayerEntity (OOJavaScriptExtensions)
 
-- (void)setJSSelf:(JSObject*)val context:(JSContext*)context;
+// The player's wrapper is created by OOJSPlayerShip; the entity keeps its own reference to val.
+- (void)setJSSelf:(JSValueConst)val context:(JSContext*)context;
 
 @end

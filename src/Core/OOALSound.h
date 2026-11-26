@@ -24,10 +24,13 @@ SOFTWARE.
 
 */
 
+#import "OOFoundation.h"
 #import "OOOpenALController.h"
-#import <Foundation/Foundation.h>
+#import "oofnd/objc/OOObject.h"
 
-@interface OOSound : NSObject
+#include "oofnd/StdLib.hpp"
+
+@interface OOSound : OOObject
 
 + (BOOL)setUp;
 + (void)update;
@@ -35,9 +38,11 @@ SOFTWARE.
 + (void)setMasterVolume:(float)fraction;
 + (float)masterVolume;
 
-- (id)initWithContentsOfFile:(NSString*)path;
+- (id)initWithContentsOfFile:(id)path; // path: an Objective-C string. Shared selector (Foundation declares it too): -cxx_initWithContentsOfFile:.
+- (id)cxx_initWithContentsOfFile:(const std::optional<std::string>&)path OO_RETURNS_RETAINED; // nullopt: nil (bead oo-3rb.292.2)
 
-- (NSString*)name;
+- (id)name; // shared selector (Foundation declares -name too): -cxx_name as an Objective-C string, or nil
+- (std::optional<std::string>)cxx_name; // nullopt: none (bead oo-3rb.289.3)
 
 + (BOOL)isSoundOK;
 

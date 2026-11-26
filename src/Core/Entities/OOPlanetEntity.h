@@ -32,6 +32,15 @@ MA 02110-1301, USA.
 #import "Entity.h"
 #import "OOColor.h"
 
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+
+/*	Foundation sweep (proposed ADR-0043, bead oo-eofd): the planet configuration and material
+        parameters are oo::PLists (mixed: colours are PList::Object nodes); texture and planet names are
+        std::optional (nullopt where they were nil). -name and -setName: are shared selectors and keep
+        id; -textureFileName and -setUpPlanetFromTexture: flipped with PlanetEntity (bead oo-3rb.269.1).
+*/
+
 @class OOPlanetDrawable, ShipEntity, OOMaterial;
 
 @interface OOPlanetEntity : Entity <OOStellarBody> {
@@ -59,16 +68,16 @@ MA 02110-1301, USA.
     OOTimeDelta _lastLaunchTime;
     OOTimeDelta _shuttleLaunchInterval;
 
-    NSDictionary* _materialParameters;
-    NSString* _textureName;
-    NSString* _normSpecMapName;
+    oo::PList _materialParameters; // null where it was nil
+    std::optional<std::string> _textureName;
+    std::optional<std::string> _normSpecMapName;
 
-    NSString* _name;
+    std::optional<std::string> _name;
 }
 
 - (id)initAsMainPlanetForSystem:(OOSystemID)s;
 
-- (id)initFromDictionary:(NSDictionary*)dict withAtmosphere:(BOOL)atmosphere andSeed:(Random_Seed)seed forSystem:(OOSystemID)systemID;
+- (id)initFromDictionary:(const oo::PList&)dict withAtmosphere:(BOOL)atmosphere andSeed:(Random_Seed)seed forSystem:(OOSystemID)systemID;
 
 - (instancetype)miniatureVersion;
 
@@ -82,10 +91,10 @@ MA 02110-1301, USA.
 - (BOOL)hasAtmosphere;
 
 // FIXME: need material model.
-- (NSString*)textureFileName;
-- (void)setTextureFileName:(NSString*)textureName;
+- (std::optional<std::string>)textureFileName; // nullopt: none
+- (void)setTextureFileName:(const std::optional<std::string>&)textureName;
 
-- (BOOL)setUpPlanetFromTexture:(NSString*)fileName;
+- (BOOL)setUpPlanetFromTexture:(const std::optional<std::string>&)fileName; // nullopt: none
 
 - (OOMaterial*)material;
 - (OOMaterial*)atmosphereMaterial;

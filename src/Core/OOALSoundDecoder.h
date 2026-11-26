@@ -30,14 +30,19 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
+#import "OOFoundation.h"
+#import "OOFunctionAttributes.h"
+#import "oofnd/objc/OOObject.h"
+
+#include "oofnd/StdLib.hpp"
 
 #define OOAL_STREAM_CHUNK_SIZE (sizeof(char) * 409600)
 
-@interface OOALSoundDecoder : NSObject
+@interface OOALSoundDecoder : OOObject
 
-- (id)initWithPath:(NSString*)inPath;
-+ (OOALSoundDecoder*)codecWithPath:(NSString*)inPath;
+- (id)initWithPath:(id)inPath; // inPath: an Objective-C string. Shared selector (Foundation declares -initWithPath: too): -cxx_initWithPath:.
+- (id)cxx_initWithPath:(const std::optional<std::string>&)inPath OO_RETURNS_RETAINED; // nullopt: nil (bead oo-3rb.292.2)
++ (OOALSoundDecoder*)codecWithPath:(const std::string&)inPath;
 
 // Full-buffer reading.
 - (BOOL)readCreatingBuffer:(char**)outBuffer withFrameCount:(size_t*)outSize;
@@ -55,6 +60,7 @@ SOFTWARE.
 // For streaming
 - (void)reset;
 
-- (NSString*)name;
+- (id)name; // shared selector (Foundation declares -name too): -cxx_name as an Objective-C string, or nil
+- (std::optional<std::string>)cxx_name; // (bead oo-3rb.289.2)
 
 @end

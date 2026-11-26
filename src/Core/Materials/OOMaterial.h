@@ -33,17 +33,24 @@ SOFTWARE.
 
 */
 
+#import "OOFoundation.h"
 #import "OOOpenGL.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOWeakReference.h"
-#import <Foundation/Foundation.h>
+#import "oofnd/objc/OOObject.h"
 
-@interface OOMaterial : NSObject
+#include "oofnd/objc/OOObjCRef.h"
+#include <vector>
+
+@class OOTexture;
+
+@interface OOMaterial : OOObject
 
 // Called once at startup (by -[Universe init]).
 + (void)setUp;
 
-- (NSString*)name;
+- (id)name; // shared selector (Foundation declares -name too): -cxx_name as an Objective-C string, or nil
+- (std::optional<std::string>)cxx_name; // nullopt: none (bead oo-3rb.289.5)
 
 // Make this the current material.
 - (void)apply;
@@ -75,7 +82,7 @@ SOFTWARE.
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-- (NSSet*)allTextures;
+- (std::vector<oo::ObjCRef<OOTexture*>>)cxx_allTextures;
 #endif
 
 @end
