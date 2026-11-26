@@ -1,0 +1,47 @@
+/*
+
+OOJSVisualEffect.h (QuickJS-ng)
+
+JavaScript proxy for OOVisualEffectEntities.
+
+Oolite
+Copyright (C) 2004-2013 Giles C Williams and contributors
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+
+*/
+
+#pragma once
+
+#import "OOVisualEffectEntity.h"
+#import <Foundation/Foundation.h>
+#include <quickjs.h>
+
+@class OOVisualEffectEntity;
+
+void InitOOJSVisualEffect(JSContext* context, JSValueConst global);
+
+JSClassID JSVisualEffectClassID(void);
+
+@interface OOVisualEffectEntity (OOJavaScriptExtensions)
+
+// Replaces SpiderMonkey's -getJSClass:andPrototype:.
+- (JSClassID)oo_jsClassID;
+- (NSString*)oo_jsClassName;
+- (BOOL)isVisibleToScripts;
+- (NSArray*)subEntitiesForScript;
+
+@end

@@ -103,3 +103,7 @@ endif
 gnustep_folder = ''  # Not needed for Windows
 # dependencies, compiler/linker flags and build
 subdir('src')
+
+if get_option('quickjs_poc')
+    subdir('src/Core/Scripting/QuickJS/poc')
+endif
