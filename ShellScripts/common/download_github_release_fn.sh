@@ -13,6 +13,7 @@ download_github_release() {
     local api_url="https://api.github.com/repos/${repo}/releases/latest"
 
     local script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    source "$script_dir/curl_fn.sh"
     source "$script_dir/download_fn.sh"
 
     echo "Fetching latest release info for ${repo}..." >&2
@@ -29,20 +30,20 @@ download_github_release() {
     if [[ -n "${filter}" ]]; then
         download_url=$(echo "${release_json}" | jq -r ".assets[] | select(.name | contains(\"${filter}\")) | .browser_download_url" | head -n 1)
     else
-        download_url=$(echo "${release_json}" | jq -r '.assets[0].browser_download_url')
+        download_url=$(echo "${release_json}" | jq -r ".assets[0]?.browser_download_url // .tarball_url")
     fi
 
     # Check if a URL was actually found
     if [[ -z "${download_url}" || "${download_url}" == "null" ]]; then
         echo "❌ Could not find a matching download URL!" >&2
-        return 1
-    fi
-
-    if ! download "${download_url}" "${outputdir}"; then
+        echo "${release_json}" >&2
         return 1
     fi
 
     # Extract filename from the URL
     local filename=$(basename "${download_url}")
     _downloaded_file="${outputdir}/${filename}"
+    if ! download "${download_url}" "${_downloaded_file}"; then
+        return 1
+    fi
 }
