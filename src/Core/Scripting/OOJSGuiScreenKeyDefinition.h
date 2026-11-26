@@ -1,6 +1,6 @@
 /*
 
-OOJSGuiScreenKeyDefinition.h
+OOJSGuiScreenKeyDefinition.h (QuickJS-ng)
 
 
 Oolite
@@ -24,29 +24,36 @@ MA 02110-1301, USA.
 */
 
 #import "OOJSScript.h"
-#include <jsapi.h>
+#include <quickjs.h>
 
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+
+/*	The definition owns references to its callback and callbackThis, which are
+        released on dealloc and when the JavaScript engine is reset.
+*/
 @interface OOJSGuiScreenKeyDefinition : OOWeakRefObject {
 @private
-    jsval _callback;
-    JSObject* _callbackThis;
+    JSValue _callback; // Owned.
+    JSValue _callbackThis; // Owned.
     OOJSScript* _owningScript;
 
-    NSString* _name;
-    NSDictionary* _registerKeys;
+    std::optional<std::string> _name; // nullopt until set (was nil)
+    oo::PList _registerKeys; // key name -> key definitions; null until set (was nil)
 }
 
-- (NSString*)name;
-- (void)setName:(NSString*)name;
-- (NSDictionary*)registerKeys;
-- (void)setRegisterKeys:(NSDictionary*)registerKeys;
-- (jsval)callback;
-- (void)setCallback:(jsval)callback;
-- (JSObject*)callbackThis;
-- (void)setCallbackThis:(JSObject*)callbackthis;
+- (std::optional<std::string>)cxx_name; // nullopt until set (bead oo-3rb.289.7)
+- (void)cxx_setName:(const std::optional<std::string>&)name;
+- (oo::PList)registerKeys;
+- (void)setRegisterKeys:(const oo::PList&)registerKeys;
+// Returned values are owned by the caller.
+- (JSValue)callback;
+- (void)setCallback:(JSValueConst)callback;
+- (JSValue)callbackThis;
+- (void)setCallbackThis:(JSValueConst)callbackthis;
 
-- (void)runCallback:(NSString*)key;
+- (void)runCallback:(const std::string&)key;
 
-- (NSComparisonResult)interfaceCompare:(OOJSGuiScreenKeyDefinition*)other;
+- (OOComparisonResult)interfaceCompare:(OOJSGuiScreenKeyDefinition*)other;
 
 @end

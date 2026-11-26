@@ -33,32 +33,36 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
+#import "OOFoundation.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+#include "oofnd/objc/OOObjCRef.h"
+#import "oofnd/objc/OOObject.h"
 
 @class Entity;
 
-@interface OOScript : NSObject
+@interface OOScript : OOObject
 
 /*	Looks for path/world-scripts.plist, path/script.js, then path/script.plist.
-        May return zero or more scripts.
+        May return zero or more scripts; nullopt (was nil) when none could be loaded.
 */
-+ (NSArray*)worldScriptsAtPath:(NSString*)path;
++ (std::optional<std::vector<oo::ObjCRef<OOScript*>>>)cxx_worldScriptsAtPath:(const std::string&)path;
 
-//	Load named scripts from Scripts folders.
-+ (NSArray*)scriptsFromFileNamed:(NSString*)fileName;
-+ (NSArray*)scriptsFromList:(NSArray*)fileNames;
+//	Load named scripts from Scripts folders. nullopt where these returned nil.
++ (std::optional<std::vector<oo::ObjCRef<OOScript*>>>)scriptsFromFileNamed:(const std::string&)fileName;
++ (std::vector<oo::ObjCRef<OOScript*>>)scriptsFromList:(const std::vector<std::string>&)fileNames;
 
-+ (NSArray*)scriptsFromFileAtPath:(NSString*)filePath;
++ (std::optional<std::vector<oo::ObjCRef<OOScript*>>>)scriptsFromFileAtPath:(const std::string&)filePath;
 
-//	Load a single JavaScript script.
-+ (id)jsScriptFromFileNamed:(NSString*)fileName properties:(NSDictionary*)properties;
+//	Load a single JavaScript script. The properties may hold live objects (oo::PList Object nodes).
++ (id)cxx_jsScriptFromFileNamed:(const std::string&)fileName properties:(const oo::PList&)properties;
 //  As above, but load from the "AIs" directory
-+ (id)jsAIScriptFromFileNamed:(NSString*)fileName properties:(NSDictionary*)properties;
++ (id)cxx_jsAIScriptFromFileNamed:(const std::string&)fileName properties:(const oo::PList&)properties;
 
-- (NSString*)name;
-- (NSString*)scriptDescription;
-- (NSString*)version;
-- (NSString*)displayName; // "name version" if version is defined, otherwise just "name".
+- (std::optional<std::string>)cxx_name; // nullopt: none (bead oo-3rb.289.6)
+- (std::optional<std::string>)scriptDescription; // nullopt: none
+- (std::optional<std::string>)cxx_version; // nullopt: none (bead oo-3rb.291.1)
+- (std::optional<std::string>)displayName; // flipped with its family (bead oo-3rb.267): "name version" if version is defined, otherwise just "name".
 
 - (BOOL)requiresTickle;
 - (void)runWithTarget:(Entity*)target;

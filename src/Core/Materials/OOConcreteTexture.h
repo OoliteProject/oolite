@@ -33,14 +33,19 @@ SOFTWARE.
 #import "OOOpenGLExtensionManager.h"
 #import "OOTexture.h"
 
+#include "oofnd/StdLib.hpp"
+
 #define OOTEXTURE_RELOADABLE 1
 
+/*	Foundation sweep (proposed ADR-0043, bead oo-pa9j): the path, cache key and debug name are
+        nil-able strings (a generated texture has no path, and a generator may have no cache key).
+*/
 @interface OOConcreteTexture : OOTexture {
 @private
 #if OOTEXTURE_RELOADABLE
-    NSString* _path;
+    std::optional<std::string> _path;
 #endif
-    NSString* _key;
+    std::optional<std::string> _key;
     uint8_t _loaded : 1,
         _uploaded : 1,
 #if GL_EXT_texture_rectangle
@@ -71,18 +76,18 @@ SOFTWARE.
 #endif
 
 #ifdef OO_DEBUG_MONITOR_ENABLED
-    NSString* _name;
+    std::optional<std::string> _name;
 #endif
 }
 
 - (id)initWithLoader:(OOTextureLoader*)loader
-                 key:(NSString*)key
+                 key:(const std::optional<std::string>&)key
              options:(uint32_t)options
           anisotropy:(GLfloat)anisotropy
              lodBias:(GLfloat)lodBias;
 
-- (id)initWithPath:(NSString*)path
-               key:(NSString*)key
+- (id)initWithPath:(const std::string&)path
+               key:(const std::optional<std::string>&)key
            options:(uint32_t)options
         anisotropy:(float)anisotropy
            lodBias:(GLfloat)lodBias;

@@ -4,6 +4,11 @@ OOOXPVerifierStageInternal.h
 
 Private interface between OOOXPVerifierStage and OOOXPVerifier.
 
+Since bead oo-cwz (proposed ADR-0056 Amendment 1) this is the category of the transitional
+Objective-C facade (OOOXPVerifierStage+ObjCBridge.h), implemented there by forwarding to the C++
+cxx::OOOXPVerifierStage's internal members, for the Objective-C OOOXPVerifier. Deleted with the
+facade.
+
 
 Copyright (C) 2007-2013 Jens Ayton
 
@@ -44,8 +49,8 @@ SOFTWARE.
 - (void)noteSkipped;
 
 // These return sets of stages set up by -registerDependency, wheras -dependencies/dependents return sets of names.
-- (NSSet*)resolvedDependencies;
-- (NSSet*)resolvedDependents;
+- (std::vector<oo::ObjCRef<OOOXPVerifierStage*>>)resolvedDependencies;
+- (std::vector<oo::ObjCRef<OOOXPVerifierStage*>>)resolvedDependents;
 
 @end
 

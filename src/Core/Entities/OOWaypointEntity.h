@@ -29,21 +29,29 @@ MA 02110-1301, USA.
 
 #import "Entity.h"
 
+#include "oofnd/PList.hpp"
+#include "oofnd/StdLib.hpp"
+
+/*	Foundation sweep (proposed ADR-0043, bead oo-tmna): +waypointWithDictionary: takes an oo::PList;
+        the beacon accessors are shared and keep id; the beacon strings are std::optional (nil stays
+        nil). The initializer is -cxx_initWithDictionary: (bead oo-3rb.292.1; its id twin retired with
+        oo-qps.44).
+*/
 @interface OOWaypointEntity : Entity <OOBeaconEntity> {
 @private
     OOScalar _size;
 
-    NSString* _beaconCode;
-    NSString* _beaconLabel;
+    std::optional<std::string> _beaconCode; // nullopt: nil
+    std::optional<std::string> _beaconLabel;
     OOWeakReference* _prevBeacon;
     OOWeakReference* _nextBeacon;
     id<OOHUDBeaconIcon> _beaconDrawable;
     BOOL oriented;
 }
 
-+ (instancetype)waypointWithDictionary:(NSDictionary*)info;
++ (instancetype)waypointWithDictionary:(const oo::PList&)info;
 
-- (id)initWithDictionary:(NSDictionary*)info;
+- (id)cxx_initWithDictionary:(const oo::PList&)info OO_RETURNS_RETAINED;
 
 - (BOOL)oriented;
 - (OOScalar)size;

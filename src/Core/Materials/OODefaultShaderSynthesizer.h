@@ -28,8 +28,18 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
+#import "OOFoundation.h"
+
+#include "oofnd/PList.hpp"
+
+#include <optional>
+#include <string>
 
 @class OOMesh;
 
-BOOL OOSynthesizeMaterialShader(NSDictionary* materialConfiguration, NSString* materialKey, NSString* entityName, NSString** outVertexShader, NSString** outFragmentShader, NSArray** outTextureSpecs, NSDictionary** outUniformSpecs);
+/*	Foundation sweep (bead oo-3rb.150): the material configuration is an oo::PList dictionary, the
+        material key and entity name are nil-able strings, and the outputs are the two shader sources, the
+        texture list (a PList array) and the uniform specifications (a PList dictionary). On failure the
+        strings are empty and the two PLists null, where all four used to be nil.
+*/
+BOOL OOSynthesizeMaterialShader(const oo::PList& materialConfiguration, const std::optional<std::string>& materialKey, const std::optional<std::string>& entityName, std::string* outVertexShader, std::string* outFragmentShader, oo::PList* outTextureSpecs, oo::PList* outUniformSpecs);

@@ -79,7 +79,7 @@ run_script() {
             install_package python
         fi
         pkgs=(
-            procps base-devel clang cmake jq meson gnutls-dev icu-dev ffi-dev xslt-dev png-dev zlib-dev nspr-dev
+            procps base-devel clang cmake jq meson gnutls-dev icu-dev ffi-dev xslt-dev png-dev zlib-dev
             espeak-ng-dev vorbis-dev openal-dev opengl-dev glu-dev sdl3 x11-dev
             doxygen
         )
