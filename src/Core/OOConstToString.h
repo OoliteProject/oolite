@@ -82,8 +82,8 @@ declaration, in particular:
 
 */
 
-#if !OOJS_QUICKJS
-NSString* JSTypeToString(int /* JSType */ type) CONST_FUNC;
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 NSString* CargoTypeToString(OOCargoType cargo) CONST_FUNC;
@@ -122,3 +122,7 @@ OOHDRToneMapper OOHDRToneMapperFromString(NSString* string);
 
 NSString* OOStringFromSDRToneMapper(OOSDRToneMapper toneMapper);
 OOSDRToneMapper OOSDRToneMapperFromString(NSString* string);
+
+#ifdef __cplusplus
+}
+#endif

@@ -157,13 +157,13 @@ enum {
 #define OONSOperationClass() NSOperation
 #define OONSInvocationOperationClass() NSInvocationOperation
 
-enum {
-    OONSOperationQueuePriorityVeryLow = NSOperationQueuePriorityVeryLow,
-    OONSOperationQueuePriorityLow = NSOperationQueuePriorityLow,
-    OONSOperationQueuePriorityNormal = NSOperationQueuePriorityNormal,
-    OONSOperationQueuePriorityHigh = NSOperationQueuePriorityHigh,
-    OONSOperationQueuePriorityVeryHigh = NSOperationQueuePriorityVeryHigh
-};
+/* Typed constants rather than an unnamed enum: -setQueuePriority: takes NSOperationQueuePriority,
+   and C++ will not convert an unnamed enum to it implicitly. */
+static const NSOperationQueuePriority OONSOperationQueuePriorityVeryLow = NSOperationQueuePriorityVeryLow;
+static const NSOperationQueuePriority OONSOperationQueuePriorityLow = NSOperationQueuePriorityLow;
+static const NSOperationQueuePriority OONSOperationQueuePriorityNormal = NSOperationQueuePriorityNormal;
+static const NSOperationQueuePriority OONSOperationQueuePriorityHigh = NSOperationQueuePriorityHigh;
+static const NSOperationQueuePriority OONSOperationQueuePriorityVeryHigh = NSOperationQueuePriorityVeryHigh;
 
 #endif
 #endif

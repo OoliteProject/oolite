@@ -22,15 +22,10 @@ create_dmg() {
         echo "❌ Failed to read the version from the app bundle's manifest.plist!" >&2
         return 1
     fi
-    source "$script_dir/../../ShellScripts/common/js_engine_fn.sh"
-    local pkg_suffix=$(js_engine_pkg_suffix "$(meson_js_engine "$(dirname "$app_path")")")
     local arch=$(uname -m)
-    local out_name="Oolite-$ver_full$pkg_suffix-$build_type-$arch.dmg"
+    local out_name="Oolite-$ver_full-$build_type-$arch.dmg"
     local out_path="$build_dir/$out_name"
     local volume_name="Oolite $ver_full"
-    if [[ -n "$pkg_suffix" ]]; then
-        volume_name+=" ${pkg_suffix#-}"
-    fi
     if [[ "$build_type" != "deployment" ]]; then
         volume_name+=" ($build_type)"
     fi
