@@ -14,13 +14,11 @@ If auto-pruning is on, the cache will pruned to 80% of the prune threshold
 whenever the prune threshold is exceeded. If auto-pruning is off, the cache
 can be pruned to the prune threshold by explicitly calling -prune.
 
-While OOCacheManager-managed caches must have string keys and property list
-values, OOCaches used directly may have any keys allowable for a mutable
-dictionary (that is, keys should conform to <NSCopying> and values may be
-arbitrary objects) -- an 'unmanaged' cache is essentially a mutable dictionary
-with a prune limit. (Project: with the addition of a -keyEnumerator method and
-sutiable NSEnumerator subclass, and a -count method, it could be turned into a
-subclass of NSMutableDictionary.)
+Keys are UTF-8 std::strings and values are oo::PList (proposed ADR-0055 item 2, bead
+oo-qps.36): property-list data, or a PList::Object node (OOObjCPList.h) for a live
+object such as a texture. An OOCache is essentially a string-keyed dictionary with a
+prune limit. A null PList is "no value": it is never stored, and it is what a lookup of
+an absent key returns.
 
 
 Oolite
@@ -43,7 +41,12 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
+#pragma once
+
+#include "OOFoundation.h"
+#include "oofnd/PList.hpp"
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
 
 enum {
     kOOCacheMinimumPruneThreshold = 25U,
@@ -51,36 +54,60 @@ enum {
     kOOCacheNoPrune = 0xFFFFFFFFU
 };
 
-@interface OOCache : NSObject {
-@private
-    struct OOCacheImpl* cache;
-    unsigned pruneThreshold;
-    BOOL autoPrune;
-    BOOL dirty;
-}
+/*	C++20 since bead oo-rdfh (proposed ADR-0056, the OOColor house style). Its two callers
+        (OOTexture, OOEncodingConverter) were adapted in the same bead, so there is no Objective-C
+        facade and the class is global.
+*/
+class OOCache : public oo::RefCounted {
+public:
+    // [[OOCache alloc] init] is cacheWithPList(oo::PList()), as -init was.
+    // An array of {key = string; value = plist;} entries, oldest first (a null PList: empty); null for
+    // anything else. pListRepresentation() is the same form, null for an empty cache.
+    static oo::Ref<OOCache> cacheWithPList(const oo::PList& pList);
+    oo::PList pListRepresentation();
 
-- (id)init;
-- (id)initWithPList:(id)pList;
-- (id)pListRepresentation;
+    ~OOCache() override;
 
-- (id)objectForKey:(id)key;
-- (void)setObject:(id)value forKey:(id)key;
-- (void)removeObjectForKey:(id)key;
+    oo::PList pListForKey(const std::string& key); // null PList: absent
+    void setPList(const oo::PList& value, const std::string& key); // a null value is not stored
+    void removePListForKey(const std::string& key);
 
-- (void)setPruneThreshold:(unsigned)threshold;
-- (unsigned)pruneThreshold;
+    void setPruneThreshold(unsigned threshold);
+    unsigned pruneThreshold();
 
-- (void)setAutoPrune:(BOOL)flag;
-- (BOOL)autoPrune;
+    void setAutoPrune(bool flag);
+    bool autoPrune();
 
-- (void)prune;
+    void prune();
 
-- (BOOL)dirty;
-- (void)markClean;
+    bool dirty();
+    void markClean();
 
-- (NSString*)name;
-- (void)setName:(NSString*)name;
+    std::optional<std::string> name(); // nullopt: unnamed (bead oo-3rb.289.9)
+    void setName(const std::optional<std::string>& name);
 
-- (NSArray*)objectsByAge;
+    std::vector<oo::PList> pListsByAge(); // the values, youngest first; empty for an empty cache
 
-@end
+    // What "%@" printed between the braces of <OOCache 0x...>{...} (OODescription.h).
+    std::optional<std::string> descriptionComponents() const;
+
+#if DEBUG_GRAPHVIZ
+    std::optional<std::string> generateGraphVizBodyWithRootNamed(const std::string& rootName);
+    std::string generateGraphViz();
+    void writeGraphVizToPath(const std::string& path);
+#endif
+
+private:
+    bool initWithPList(const oo::PList& pList); // false where -cxx_initWithPList: returned nil
+
+    void loadFromArray(const oo::PList& inArray);
+
+#if DEBUG_GRAPHVIZ
+    void appendNodesFromSubTree(struct OOCacheNode* subTree, std::string& ioString);
+#endif
+
+    struct OOCacheImpl* cache = { };
+    unsigned _pruneThreshold = { }; // (the ivar was pruneThreshold, now the getter's name)
+    bool _autoPrune = { }; // (autoPrune, likewise)
+    bool _dirty = { }; // (dirty, likewise)
+};

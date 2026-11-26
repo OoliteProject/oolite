@@ -25,34 +25,51 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
+#pragma once
 
-@class OOTexture, OOColor;
+#include "Entity.h"
 
-@interface OOLightParticleEntity : Entity {
-@protected
-    GLfloat _colorComponents[4];
-    float _diameter;
-}
+class OOTexture;
 
-- (id)initWithDiameter:(float)diameter;
-
-- (float)diameter;
-- (void)setDiameter:(float)diameter;
-
-- (void)setColor:(OOColor*)color;
-- (void)setColor:(OOColor*)color alpha:(GLfloat)alpha;
-
-/*	For subclasses that don't want the default blur texture.
-        NOTE: such subclasses must deal with the OOGraphicsResetManager. Also,
-        OOLightParticleEntity assumes the texture is twice as big as the nominal
-        size of the particle (with a black border for anti-aliasing purposes).
+/*	C++ only since bead oo-9ht.76 deleted its Objective-C facade (ADR-0056 amendments oo-9ht.107,
+        oo-9ht.23 and oo-9ht.106): a particle is made in C++ and handed to Objective-C with
+        oo::NewEntityFacade, whose object is the root Entity's facade.
 */
-- (OOTexture*)texture;
+class OOLightParticleEntity : public Entity {
+public:
+    // -initWithDiameter:'s body, run once right after construction (amendment oo-vl43 item 2): it
+    // calls members a subclass overrides. A converted subclass's initialiser calls it first.
+    void initWithDiameter(float diameter);
 
-+ (void)setUpTexture;
-+ (OOTexture*)defaultParticleTexture;
+    float diameter();
+    void setDiameter(float diameter);
 
-- (void)drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent;
+    void setColor(OOColor* color);
+    void setColor(OOColor* color, GLfloat alpha);
 
-@end
+    /*	For subclasses that don't want the default blur texture.
+            NOTE: such subclasses must deal with the OOGraphicsResetManager. Also,
+            OOLightParticleEntity assumes the texture is twice as big as the nominal
+            size of the particle (with a black border for anti-aliasing purposes).
+    */
+    virtual OOTexture* texture();
+
+    static void setUpTexture();
+    static OOTexture* defaultParticleTexture();
+    // Called by the texture's file-local graphics reset client.
+    static void resetGraphicsState();
+
+    virtual void drawSubEntityImmediate(bool immediate, bool translucent);
+
+    void drawImmediate(bool immediate, bool translucent) override;
+    bool isEffect() override;
+    bool canCollide() override;
+
+#ifdef OO_DEBUG_MONITOR_ENABLED
+    std::vector<oo::Ref<OOTexture>> allTextures() override;
+#endif
+
+    // @protected in Objective-C: public, as the tests read them.
+    GLfloat _colorComponents[4] = { };
+    float _diameter = { };
+};

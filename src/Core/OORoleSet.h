@@ -6,6 +6,9 @@ Manage a set of roles for a ship (or ship type), including probabilities.
 
 A role set is an immutable object.
 
+C++20 since bead oo-bhb9 (proposed ADR-0056, the OOColor house style). Its Objective-C facade was
+deleted by bead oo-9ht.6: ships hold an oo::Ref<OORoleSet>.
+
 
 Copyright (C) 2007-2013 Jens Ayton
 
@@ -29,41 +32,65 @@ SOFTWARE.
 
 */
 
-#import "OOFoundation.h"
+#ifndef OOROLESET_H
+#define OOROLESET_H
 
-@interface OORoleSet : NSObject <NSCopying> {
-@private
-    NSString* _roleString;
-    NSDictionary* _rolesAndProbabilities;
-    NSSet* _roles;
-    float _totalProb;
-}
+#include "OOFoundation.h"
 
-+ (instancetype)roleSetWithString:(NSString*)roleString;
-+ (instancetype)roleSetWithRole:(NSString*)role probability:(float)probability;
+#include "oofnd/Ref.hpp"
+#include "oofnd/StdLib.hpp"
 
-- (id)initWithRoleString:(NSString*)roleString;
-- (id)initWithRole:(NSString*)role probability:(float)probability;
+/*	Foundation sweep (proposed ADR-0043, bead oo-hi38): roles are UTF-8 std::strings. An empty
+        role means "no role", as nil did. Results that could be nil are std::optional (a message to a
+        nil role set yields std::nullopt / an empty vector). -hasRole: is flipped with ShipEntity (bead oo-3rb.280) to const std::string &.
+        -intersectsSet: is gone (bead oo-qps.53): its last sender, HasRoleInSetPredicate, tests -hasRole: per role.
+*/
+class OORoleSet : public oo::RefCounted {
+public:
+    // The Objective-C initialisers' factories: null where -init returned nil (no roles).
+    static oo::Ref<OORoleSet> roleSetWithString(const std::string& roleString);
+    static oo::Ref<OORoleSet> roleSetWithRole(const std::string& role, float probability);
 
-- (NSString*)roleString;
+    std::optional<std::string> roleString();
 
-- (BOOL)hasRole:(NSString*)role;
-- (float)probabilityForRole:(NSString*)role;
-- (BOOL)intersectsSet:(id)set; // set may be an OORoleSet or an NSSet.
+    bool hasRole(const std::string& role); // flipped with its family (bead oo-3rb.280)
+    float probabilityForRole(const std::string& role);
 
-- (NSSet*)roles;
-- (NSArray*)sortedRoles;
-- (NSDictionary*)rolesAndProbabilities;
+    std::vector<std::string> roles(); // in byte order of the role
+    std::vector<std::string> sortedRoles(); // case-insensitive order, as roleString lists them
+    std::optional<std::map<std::string, float>> rolesAndProbabilities();
 
-// Returns a random role, taking probabilities into account.
-- (NSString*)anyRole;
+    // Returns a random role, taking probabilities into account.
+    std::optional<std::string> anyRole();
 
-// Creating modified copies of role sets:
-- (id)roleSetWithAddedRole:(NSString*)role probability:(float)probability;
-- (id)roleSetWithAddedRoleIfNotSet:(NSString*)role probability:(float)probability; // Unlike the above, does not change probability if role exists.
-- (id)roleSetWithRemovedRole:(NSString*)role;
+    // Creating modified copies of role sets:
+    oo::Ref<OORoleSet> roleSetWithAddedRole(const std::string& role, float probability);
+    oo::Ref<OORoleSet> roleSetWithAddedRoleIfNotSet(const std::string& role, float probability); // Unlike the above, does not change probability if role exists.
+    oo::Ref<OORoleSet> roleSetWithRemovedRole(const std::string& role);
 
-@end
+    // -isEqual: and -hash: equal role sets have the same roles with the same probabilities.
+    bool isEqual(OORoleSet* other);
+    NSUInteger hash();
 
-// Returns a dictionary whose keys are roles and whose values are weights.
-NSDictionary* OOParseRolesFromString(NSString* string);
+    // What "%@" prints between the braces of <OORoleSet 0x...>{...} (OODescription.h).
+    std::optional<std::string> descriptionComponents() const;
+
+private:
+    // The initialisers: false where they returned nil.
+    bool initWithRoleString(const std::string& roleString);
+    bool initWithRole(const std::string& role, float probability);
+    // nullptr is a nil dictionary: the initializer fails, as it did.
+    bool initWithRolesAndProbabilities(const std::map<std::string, float>* dict);
+
+    // [[[self class] alloc] initWithRolesAndProbabilities:dict]: null where that returned nil.
+    static oo::Ref<OORoleSet> roleSetWithRolesAndProbabilities(const std::map<std::string, float>* dict);
+
+    std::map<std::string, float> _rolesAndProbabilities = { };
+    std::optional<std::string> _roleString = { }; // normalised form, built on first use
+    float _totalProb = { };
+};
+
+// Returns a map whose keys are roles and whose values are weights; empty for no roles.
+std::map<std::string, float> OOParseRolesFromString(std::string_view string);
+
+#endif // OOROLESET_H

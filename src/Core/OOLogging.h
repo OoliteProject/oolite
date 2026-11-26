@@ -28,12 +28,18 @@ SOFTWARE.
 
 */
 
-#import "OOFoundation.h"
-#import "OOFunctionAttributes.h"
+#pragma once
+
+#include "OOFoundation.h"
+#include "OOFunctionAttributes.h"
 #include <stdarg.h>
 
-#ifndef OOLOG_POISON_NSLOG
-#define OOLOG_POISON_NSLOG 0
+// OO_LOG / oo::log (ADR-0035): the Foundation-free logging API. extern "C++" because this header
+// is sometimes reached from inside an extern "C" block (OOMaths.h), as OOFoundation.h notes.
+#ifdef __cplusplus
+extern "C++" {
+#include "oofnd/Log.hpp"
+}
 #endif
 
 #ifndef OOLOG_FUNCTION_NAME
@@ -63,75 +69,24 @@ SOFTWARE.
 #define OOLOG_SHORT_CIRCUIT 1
 #endif
 
-/*	General usage:
-                OOLog(messageClass, format, parameters);
-        is conceptually equivalent to:
-                NSLog(format, parameters);
-        except that it will do nothing if logging is disabled for messageClass.
-
-        A message class is a hierarchical string, such as:
-                @"all.script.debug"
-
-        To determine whether scripting is enabled for this class, a setting for
-        @"all.script.debug" is looked up in a settings table. If it is not found,
-        @"all.script" is tried, followed by @"all".
-
-        Message class display settings can be manipulated with
-        OOLogSetDisplayMessagesInClass() and tested with
-        OOLogWillDisplayMessagesInClass().
-*/
-#if OOLOG_SHORT_CIRCUIT
-#define OOLog(class, format, ...)                                                                                       \
-    do {                                                                                                                \
-        if (OOLogWillDisplayMessagesInClass(class)) {                                                                   \
-            OOLogWithFunctionFileAndLine(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, format, ##__VA_ARGS__); \
-        }                                                                                                               \
-    } while (0)
-#define OOLogWithArguments(class, format, args)                                                                            \
-    do {                                                                                                                   \
-        if (OOLogWillDisplayMessagesInClass(class)) {                                                                      \
-            OOLogWithFunctionFileAndLineAndArguments(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, format, args); \
-        }                                                                                                                  \
-    } while (0)
-#else
-#define OOLog(class, format, ...) OOLogWithFunctionFileAndLine(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, format, ##__VA_ARGS__)
-#define OOLogWithArguments(class, format, args) OOLogWithFunctionFileAndLineAndArguments(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, format, args)
+#ifdef __cplusplus
+extern "C" {
 #endif
-
-BOOL OOLogWillDisplayMessagesInClass(NSString* inMessageClass);
 
 void OOLogIndent(void);
 void OOLogOutdent(void);
 
-#if OOLOG_SHORT_CIRCUIT
-#define OOLogIndentIf(class)                        \
-    do {                                            \
-        if (OOLogWillDisplayMessagesInClass(class)) \
-            OOLogIndent();                          \
-    } while (0)
-#define OOLogOutdentIf(class)                       \
-    do {                                            \
-        if (OOLogWillDisplayMessagesInClass(class)) \
-            OOLogOutdent();                         \
-    } while (0)
-#else
-void OOLogIndentIf(NSString* inMessageClass);
-void OOLogOutdentIf(NSString* inMessageClass);
+#ifdef __cplusplus
+}
 #endif
 
-#define OOLOG_ERROR_PREFIX @"***** ERROR: "
-#define OOLOG_WARNING_PREFIX @"----- WARNING: "
-
-#define OOLogERR(class, format, ...) OOLogWithPrefix(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, OOLOG_ERROR_PREFIX, format, ##__VA_ARGS__)
-#define OOLogWARN(class, format, ...) OOLogWithPrefix(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, OOLOG_WARNING_PREFIX, format, ##__VA_ARGS__)
-
 // Remember/restore indent levels, for cases where an exception may occur while indented.
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void OOLogPushIndent(void);
 void OOLogPopIndent(void);
-
-void OOLogWithPrefix(NSString* inMessageClass, const char* inFunction, const char* inFile, unsigned long inLine, NSString* inPrefix, NSString* inFormat, ...) OO_TAKES_FORMAT_STRING(6, 7);
-void OOLogWithFunctionFileAndLine(NSString* inMessageClass, const char* inFunction, const char* inFile, unsigned long inLine, NSString* inFormat, ...) OO_TAKES_FORMAT_STRING(5, 6);
-void OOLogWithFunctionFileAndLineAndArguments(NSString* inMessageClass, const char* inFunction, const char* inFile, unsigned long inLine, NSString* inFormat, va_list inArguments) OO_TAKES_FORMAT_STRING(5, 0);
 
 // OOLogGenericParameterError(): general parameter error message, "***** $function_name: bad parameters. (This is an internal programming error, please report it.)"
 #define OOLogGenericParameterError() OOLogGenericParameterErrorForFunction(OOLOG_FUNCTION_NAME)
@@ -141,55 +96,29 @@ void OOLogGenericParameterErrorForFunction(const char* inFunction);
 #define OOLogGenericSubclassResponsibility() OOLogGenericSubclassResponsibilityForFunction(OOLOG_FUNCTION_NAME)
 void OOLogGenericSubclassResponsibilityForFunction(const char* inFunction);
 
-#if OOLOG_POISON_NSLOG
-#pragma GCC poison NSLog // Use OOLog instead
-#elif !OOLOG_NO_HIJACK_NSLOG
-// Hijack NSLog. Buahahahaha.
-#define NSLog(format, ...) OOLog(kOOLogUnconvertedNSLog, format, ##__VA_ARGS__)
-#define NSLogv(format, args) OOLogWithArguments(kOOLogUnconvertedNSLog, format, args)
-#endif
-
-// OODebugLog() is only included in debug builds.
-#if OO_DEBUG
-#define OODebugLog OOLog
-#else
-#define OODebugLog(class, format, ...) \
-    do {                               \
-        (void)class;                   \
-        if (0)                         \
-            (void)format;              \
-    } while (0)
-#endif
-
-// OOExtraLog() is included in debug and test-release builds, but not deployment builds.
-#ifndef NDEBUG
-#define OOExtraLog OOLog
-#else
-#define OOExtraLog(class, format, ...) \
-    do {                               \
-        (void)class;                   \
-        if (0)                         \
-            (void)format;              \
-    } while (0)
+#ifdef __cplusplus
+}
 #endif
 
 // *** Predefined message classes.
 /*	These are general coding error types. Generally a subclass should be used
-        for each instance -- for instance, -[Entity warnAboutHostiles] uses
+        for each instance -- for instance, Entity::warnAboutHostiles() uses
         @"general.error.subclassResponsibility.Entity-warnAboutHostiles".
 */
 
-extern NSString* const kOOLogSubclassResponsibility; // @"general.error.subclassResponsibility"
-extern NSString* const kOOLogParameterError; // @"general.error.parameterError"
-extern NSString* const kOOLogDeprecatedMethod; // @"general.error.deprecatedMethod"
-extern NSString* const kOOLogAllocationFailure; // @"general.error.allocationFailure"
-extern NSString* const kOOLogInconsistentState; // @"general.error.inconsistentState"
-extern NSString* const kOOLogException; // @"exception"
+#ifdef __cplusplus
+extern const char* const cxx_kOOLogSubclassResponsibility; // "general.error.subclassResponsibility"
+extern const char* const cxx_kOOLogParameterError; // "general.error.parameterError"
+extern const char* const cxx_kOOLogDeprecatedMethod; // "general.error.deprecatedMethod"
+extern const char* const cxx_kOOLogAllocationFailure; // "general.error.allocationFailure"
+extern const char* const cxx_kOOLogInconsistentState; // "general.error.inconsistentState"
+extern const char* const cxx_kOOLogException; // "exception"
 
-extern NSString* const kOOLogFileNotFound; // @"files.notFound"
-extern NSString* const kOOLogFileNotLoaded; // @"files.notLoaded"
+extern const char* const cxx_kOOLogFileNotFound; // "files.notFound"
+extern const char* const cxx_kOOLogFileNotLoaded; // "files.notLoaded"
 
-extern NSString* const kOOLogOpenGLError; // @"rendering.opengl.error"
+extern const char* const cxx_kOOLogOpenGLError; // "rendering.opengl.error"
 
-// Don't use. However, #defining it as @"unclassified.module" can be used as a stepping stone to OOLog support.
-extern NSString* const kOOLogUnconvertedNSLog; // @"unclassified"
+// Don't use.
+extern const char* const cxx_kOOLogUnconvertedNSLog; // "unclassified"
+#endif

@@ -25,33 +25,51 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOMaths.h"
-#import "OOTexture.h"
-#import "OOTypes.h"
-#import "ShipEntity.h"
+#pragma once
 
-@class OOColor;
+#include "OOMaths.h"
+#include "OOTexture.h"
+#include "OOTypes.h"
+#include "ShipEntity.h"
 
-@interface OOLaserShotEntity : Entity {
-@private
-    GLfloat _color[4];
-    OOTimeDelta _lifetime;
-    GLfloat _range;
-    Vector _offset;
-    Quaternion _relOrientation;
-}
+struct OOLaserShotEntityTestAccess;
 
-+ (instancetype)laserFromShip:(ShipEntity*)ship direction:(OOWeaponFacing)direction offset:(Vector)offset;
+class OOLaserShotEntity : public Entity {
+public:
+    // A new shot, initialised. A caller that hands it to Objective-C gives it a facade
+    // (oo::NewEntityFacade).
+    static oo::Ref<OOLaserShotEntity> laserFromShip(::ShipEntity* ship, OOWeaponFacing direction, Vector offset);
 
-- (void)setColor:(OOColor*)color;
+    std::optional<std::string> descriptionComponents() const override;
 
-- (void)setRange:(GLfloat)range;
+    void setColor(OOColor* color);
 
-- (OOTexture*)texture1;
-- (OOTexture*)texture2;
+    void setRange(GLfloat range);
 
-+ (void)setUpTexture;
-+ (OOTexture*)innerTexture;
-+ (OOTexture*)outerTexture;
+    void update(OOTimeDelta delta_t) override;
+    void drawImmediate(bool immediate, bool translucent) override;
+    bool isEffect() override;
+    bool canCollide() override;
 
-@end
+    OOTexture* texture1();
+    OOTexture* texture2();
+
+    static void setUpTexture();
+    static OOTexture* innerTexture();
+    static OOTexture* outerTexture();
+    // The graphics reset client is a file-local C++ one (OOLaserShotEntity.mm).
+    static void resetGraphicsState();
+
+private:
+    friend struct ::OOLaserShotEntityTestAccess;
+
+    // -initLaserFromShip:direction:offset:'s body, run once right after construction (amendment
+    // oo-vl43 item 2).
+    void initLaserFromShip(::ShipEntity* srcEntity, OOWeaponFacing direction, Vector offset);
+
+    GLfloat _color[4] = { };
+    OOTimeDelta _lifetime = { };
+    GLfloat _range = { };
+    Vector _offset = { };
+    Quaternion _relOrientation = { };
+};
